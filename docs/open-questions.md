@@ -32,7 +32,11 @@ Status: **Draft v0.1**. Tags say *when* each question must be answered:
   Decide the target age rating early: it affects store featuring, ad networks you can buy
   traffic from, and some markets.
 - **[Pre-prod]** Portrait or landscape?
-- **[Pre-prod]** Team size in battle (5 or 6) and the faction count. See `game-design.md`.
+- **[Pre-prod]** Team size in battle: 5 (proposed) or 6 like Idle Angels? Is the 3-faction
+  wheel (Celestial, Infernal, Fallen) enough? See `game-design.md`.
+- **[Pre-prod]** Who is the player character: a mortal envoy or an angel?
+- **[Pre-prod]** VIP system: yes or no? If yes, convenience-only perks?
+- **[Pre-prod]** Rewarded ads: yes or no? (Affects ad SDKs and content rating.)
 - **[Pre-prod]** What is our **hook**: the one thing we do better or differently than Idle Angels?
   (Candidates are in `vision.md`.)
 - **[Pre-prod]** How generous should we be? Pity thresholds, free premium currency per month,

@@ -14,6 +14,7 @@ Built in **Unity** by a small team. Planning stage: no code yet.
 | [Tech plan](docs/tech-plan.md) | Unity setup, backend, data pipeline, rules that keep the economy safe |
 | [Roadmap](docs/roadmap.md) | Phases from learning Unity to global launch, with exit criteria and team roles |
 | [Open questions](docs/open-questions.md) | Decisions made, decisions pending, risks, legal notes |
+| [Reference: Idle Angels](docs/reference-idle-angels.md) | How the reference game works, what its players praise and criticize, with sources |
 
 ## Where we are
 
