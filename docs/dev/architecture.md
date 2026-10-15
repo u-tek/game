@@ -48,6 +48,27 @@ Never `git commit`; the lead commits.
 - Randomness in rules uses a seeded RNG (`RandomNumberGenerator` with explicit seed, or
   `src/core/rng.gd`), never global `randi()`, so battles replay identically.
 
+## 3b. Portability: the game may be ported to Unity (C#) later
+
+Write code so a later Unity port can reuse the content and reproduce the rules exactly:
+
+- **Content is data, in JSON** under `data/` (heroes, kits, stages, economy, banner, quests,
+  offers), loaded by thin GDScript loaders. No game numbers hard-coded in UI code.
+- **Rules are engine-agnostic.** Battle, gacha, economy, idle, progression and save logic
+  live in plain `RefCounted` classes under `src/core/` that use no Nodes, scenes, signals,
+  `Time`, `OS` or other engine services. `game.gd` (the autoload) is a thin adapter that
+  passes in the current time and handles persistence/signals.
+- **Integer math only** in rules, with explicit rounding (`floor` of integer division). No
+  floats, so C# produces identical results.
+- **Our own RNG** (`src/core/rng.gd`, a 32-bit PCG or xorshift on masked ints, documented
+  algorithm), never Godot's `RandomNumberGenerator`/`randi()`.
+- **Golden fixtures**: `data/fixtures/*.json` record inputs (seed, setup) and exact outputs
+  (event logs, summon results, cost tables). Unit tests check them; a Unity port must too.
+- **Art stays engine-neutral**: SVG sources plus PNG exports; animation described by
+  parameters (durations, offsets), not engine-specific animation files.
+
+See `docs/dev/unity-port.md` for the module-by-module port map.
+
 ## 4. Game API (autoload `Game`, `src/core/game.gd`)
 
 The full list of method signatures lives in `src/core/game.gd`. Results of actions are
