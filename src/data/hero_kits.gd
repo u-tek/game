@@ -56,10 +56,10 @@ const KITS := {
 		"base_stats": {"hp": 2810, "atk": 60, "def": 82, "spd": 90, "crit": 500},
 		"ultimate": {
 			"id": "dawnwall", "name": "Dawnwall",
-			"description": "Raises the Gate Wardens' wall: shields all allies for 12% of her max HP and grants them +25% DEF for 6 s.",
+			"description": "Raises the Gate Wardens' wall: shields all allies for 10% of her max HP and grants them +20% DEF for 5 s.",
 			"effects": [
-				{"type": "shield", "target": "ally_all", "pct_max_hp_bp": 1200},
-				{"type": "status", "target": "ally_all", "status": "def_up", "duration_ms": 6000, "value_bp": 2500},
+				{"type": "shield", "target": "ally_all", "pct_max_hp_bp": 1000},
+				{"type": "status", "target": "ally_all", "status": "def_up", "duration_ms": 5000, "value_bp": 2000},
 			],
 		},
 		"passives": [
@@ -153,10 +153,10 @@ const KITS := {
 		"base_stats": {"hp": 2960, "atk": 62, "def": 76, "spd": 86, "crit": 500},
 		"ultimate": {
 			"id": "magma_bulwark", "name": "Magma Bulwark",
-			"description": "Plants his molten gauntlets: gains a shield of 35% max HP and Taunts all enemies for 4 s.",
+			"description": "Plants his molten gauntlets: gains a shield of 40% max HP and Taunts all enemies for 5 s.",
 			"effects": [
-				{"type": "shield", "target": "self", "pct_max_hp_bp": 3500},
-				{"type": "status", "target": "self", "status": "taunt", "duration_ms": 4000},
+				{"type": "shield", "target": "self", "pct_max_hp_bp": 4000},
+				{"type": "status", "target": "self", "status": "taunt", "duration_ms": 5000},
 			],
 		},
 		"passives": [
@@ -169,13 +169,13 @@ const KITS := {
 		],
 	},
 	"vesper": {
-		"base_stats": {"hp": 1520, "atk": 102, "def": 38, "spd": 95, "crit": 1100},
+		"base_stats": {"hp": 1560, "atk": 106, "def": 38, "spd": 95, "crit": 1100},
 		"ultimate": {
 			"id": "ember_rain", "name": "Ember Rain",
-			"description": "Forecast: fire. 120% ATK to all enemies and Burns them (45% ATK per second) for 6 s.",
+			"description": "Forecast: fire. 140% ATK to all enemies and Burns them (50% ATK per second) for 6 s.",
 			"effects": [
-				{"type": "damage", "target": "enemy_all", "mult_bp": 12000},
-				{"type": "status", "target": "enemy_all", "status": "burn", "duration_ms": 6000, "dot_mult_bp": 4500},
+				{"type": "damage", "target": "enemy_all", "mult_bp": 14000},
+				{"type": "status", "target": "enemy_all", "status": "burn", "duration_ms": 6000, "dot_mult_bp": 5000},
 			],
 		},
 		"passives": [
@@ -191,16 +191,16 @@ const KITS := {
 		"base_stats": {"hp": 1600, "atk": 68, "def": 44, "spd": 106, "crit": 500},
 		"ultimate": {
 			"id": "lantern_pact", "name": "Lantern Pact",
-			"description": "Strikes a deal with the whole team: all allies +30% ATK for 6 s, and every other ally gains 150 energy.",
+			"description": "Strikes a deal with the whole team: all allies +25% ATK for 5 s, and every other ally gains 100 energy.",
 			"effects": [
-				{"type": "status", "target": "ally_all", "status": "atk_up", "duration_ms": 6000, "value_bp": 3000},
-				{"type": "energy", "target": "ally_others", "amount": 150},
+				{"type": "status", "target": "ally_all", "status": "atk_up", "duration_ms": 5000, "value_bp": 2500},
+				{"type": "energy", "target": "ally_others", "amount": 100},
 			],
 		},
 		"passives": [
 			{"id": "fair_ish_deal", "name": "Fair-ish Deal", "unlock_stars": 3,
-				"description": "Basic attacks Weaken the target: -15% ATK for 3 s.",
-				"effects": [{"type": "on_hit_status", "status": "atk_down", "chance_bp": 10000, "duration_ms": 3000, "value_bp": 1500}]},
+				"description": "Basic attacks have a 50% chance to Weaken the target: -15% ATK for 3 s.",
+				"effects": [{"type": "on_hit_status", "status": "atk_down", "chance_bp": 5000, "duration_ms": 3000, "value_bp": 1500}]},
 			{"id": "lantern_light", "name": "Lantern Light", "unlock_stars": 5,
 				"description": "Battle start: all allies gain 150 energy.",
 				"effects": [{"type": "team_start_energy", "amount": 150}]},
@@ -244,14 +244,14 @@ const KITS := {
 		],
 	},
 	"orrin": {
-		"base_stats": {"hp": 2740, "atk": 62, "def": 80, "spd": 88, "crit": 500},
+		"base_stats": {"hp": 2900, "atk": 68, "def": 84, "spd": 90, "crit": 500},
 		"ultimate": {
 			"id": "chains_of_the_oath", "name": "Chains of the Oath",
-			"description": "Lashes out with broken chains: 110% ATK to front-row enemies and Stuns them for 2 s, then Weakens all enemies (-20% ATK) for 5 s.",
+			"description": "Lashes out with broken chains: 130% ATK to front-row enemies and Stuns them for 2.5 s, then Weakens all enemies (-25% ATK) for 6 s.",
 			"effects": [
-				{"type": "damage", "target": "enemy_front_row", "mult_bp": 11000},
-				{"type": "status", "target": "enemy_front_row", "status": "stun", "duration_ms": 2000},
-				{"type": "status", "target": "enemy_all", "status": "atk_down", "duration_ms": 5000, "value_bp": 2000},
+				{"type": "damage", "target": "enemy_front_row", "mult_bp": 13000},
+				{"type": "status", "target": "enemy_front_row", "status": "stun", "duration_ms": 2500},
+				{"type": "status", "target": "enemy_all", "status": "atk_down", "duration_ms": 6000, "value_bp": 2500},
 			],
 		},
 		"passives": [
@@ -264,13 +264,13 @@ const KITS := {
 		],
 	},
 	"sable": {
-		"base_stats": {"hp": 1760, "atk": 74, "def": 50, "spd": 98, "crit": 500},
+		"base_stats": {"hp": 1820, "atk": 80, "def": 50, "spd": 100, "crit": 500},
 		"ultimate": {
 			"id": "dusk_requiem", "name": "Dusk Requiem",
-			"description": "Swings the censer for the lost: all enemies -30% DEF for 6 s, and the most wounded ally heals for 300% ATK.",
+			"description": "Swings the censer for the lost: all enemies -35% DEF for 8 s, and all allies heal for 170% ATK.",
 			"effects": [
-				{"type": "status", "target": "enemy_all", "status": "def_down", "duration_ms": 6000, "value_bp": 3000},
-				{"type": "heal", "target": "ally_lowest", "mult_bp": 30000},
+				{"type": "status", "target": "enemy_all", "status": "def_down", "duration_ms": 8000, "value_bp": 3500},
+				{"type": "heal", "target": "ally_all", "mult_bp": 17000},
 			],
 		},
 		"passives": [
@@ -302,12 +302,12 @@ const KITS := {
 		],
 	},
 	"ashra": {
-		"base_stats": {"hp": 1430, "atk": 98, "def": 35, "spd": 94, "crit": 1000},
+		"base_stats": {"hp": 1560, "atk": 106, "def": 38, "spd": 96, "crit": 1000},
 		"ultimate": {
 			"id": "accidental_inferno", "name": "Accidental Inferno",
-			"description": "Oops. 140% ATK to all enemies, +60% damage to enemies below 50% HP.",
+			"description": "Oops. 180% ATK to all enemies, +60% damage to enemies below 50% HP.",
 			"effects": [
-				{"type": "damage", "target": "enemy_all", "mult_bp": 14000, "low_hp_bonus_bp": 6000},
+				{"type": "damage", "target": "enemy_all", "mult_bp": 18000, "low_hp_bonus_bp": 6000},
 			],
 		},
 		"passives": [

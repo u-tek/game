@@ -1,0 +1,203 @@
+{
+ "name": "stun",
+ "duration": 1.8,
+ "loop": true,
+ "mix": 0.15,
+ "mix_out": 0.15,
+ "bones": {
+  "hips": {
+   "translate": [
+    {
+     "t": 0,
+     "x": 0,
+     "y": 10,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.9,
+     "x": 0,
+     "y": 16,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.8,
+     "x": 0,
+     "y": 10,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "torso": {
+   "rotate": [
+    {
+     "t": 0,
+     "v": 4,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.9,
+     "v": 6,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.8,
+     "v": 4,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "head": {
+   "rotate": [
+    {
+     "t": 0,
+     "v": 12,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.6,
+     "v": 17,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.2,
+     "v": 9,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.8,
+     "v": 12,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "neck": {
+   "rotate": [
+    {
+     "t": 0,
+     "v": 4,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.9,
+     "v": 6,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.8,
+     "v": 4,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "arm_upper_r": {
+   "rotate": [
+    {
+     "t": 0,
+     "v": 5,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.9,
+     "v": 8,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.8,
+     "v": 5,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "arm_lower_r": {
+   "rotate": [
+    {
+     "t": 0,
+     "v": 4,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.9,
+     "v": 8,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.8,
+     "v": 4,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "arm_upper_l": {
+   "rotate": [
+    {
+     "t": 0,
+     "v": 6,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.9,
+     "v": 9,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.8,
+     "v": 6,
+     "e": "sine_in_out"
+    }
+   ]
+  }
+ },
+ "slots": {
+  "eye_l": {
+   "attachment": [
+    {
+     "t": 0,
+     "v": "hurt"
+    }
+   ]
+  },
+  "eye_r": {
+   "attachment": [
+    {
+     "t": 0,
+     "v": "hurt"
+    }
+   ]
+  },
+  "mouth": {
+   "attachment": [
+    {
+     "t": 0,
+     "v": "hurt"
+    }
+   ]
+  }
+ },
+ "events": [],
+ "look": [
+  {
+   "t": 0,
+   "x": 0,
+   "y": 0.5,
+   "e": "sine_in_out"
+  },
+  {
+   "t": 0.6,
+   "x": 0.2,
+   "y": 0.6,
+   "e": "sine_in_out"
+  },
+  {
+   "t": 1.2,
+   "x": -0.2,
+   "y": 0.5,
+   "e": "sine_in_out"
+  },
+  {
+   "t": 1.8,
+   "x": 0,
+   "y": 0.5,
+   "e": "sine_in_out"
+  }
+ ]
+}

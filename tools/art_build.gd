@@ -19,7 +19,8 @@ const KNOWN_DATA := ["data-slot", "data-variant", "data-default", "data-bone", "
 
 ## Standard skeleton names (docs/dev/halorig.md section 3). Non-standard names are allowed
 ## (hero extras) but must have a parent; they are reported as info so typos are visible.
-const STANDARD := ["root", "hips", "torso", "chest", "neck", "head",
+const STANDARD := ["root", "hips", "torso", "chest", "chest_upper", "clavicle_l", "clavicle_r",
+	"neck", "head", "toe_l", "toe_r",
 	"eye_l", "eye_r", "brow_l", "brow_r", "mouth", "blush", "nose",
 	"hair_back", "hair_top", "hair_side_l", "hair_side_r", "ahoge",
 	"arm_upper_l", "arm_lower_l", "hand_l", "arm_upper_r", "arm_lower_r", "hand_r",
@@ -172,9 +173,9 @@ func _build(id: String) -> void:
 	var vb := str(ra.get("viewBox", "0 0 1024 1280")).split(" ", false)
 	var cw := int(vb[2].to_float()) if vb.size() == 4 else 1024
 	var ch := int(vb[3].to_float()) if vb.size() == 4 else 1280
-	var origin := _vec(str(ra.get("data-origin", "%d,%d" % [cw / 2, ch - 40])))
+	var origin := _vec(str(ra.get("data-origin", "%d,%d" % [cw / 2, ch - 58])))
 	var texel := float(str(ra.get("data-texel-scale", "1")))
-	var look_px := _vec(str(ra.get("data-look-px", "24,14")))
+	var look_px := _vec(str(ra.get("data-look-px", "14,8")))
 	var header := '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %d %d" width="%d" height="%d">' % [cw, ch, cw, ch]
 
 	# Defs (shared gradients/clip paths) go into every part file.
@@ -390,7 +391,7 @@ func _build(id: String) -> void:
 	var meta := {}
 	for k in ra:
 		var ks := str(k)
-		if ks.begins_with("data-") and not (ks in ["data-origin", "data-texel-scale", "data-look-px", "data-portrait"]):
+		if ks.begins_with("data-") and not (ks in ["data-origin", "data-texel-scale", "data-look-px", "data-portrait", "data-tint-variants"]):
 			meta[ks.trim_prefix("data-").replace("-", "_")] = str(ra[k])
 	var pr := str(ra.get("data-portrait", ""))
 	var pc := Vector3(512, 420, 440)
@@ -399,7 +400,7 @@ func _build(id: String) -> void:
 		pc = Vector3(pp[0].to_float(), pp[1].to_float(), pp[2].to_float())
 	elif bone_defs.has("head"):
 		var hp: Vector2 = bone_defs["head"].pivot
-		pc = Vector3(hp.x, hp.y - 150, 440)
+		pc = Vector3(hp.x, hp.y + 20, 520)
 	var prect := Rect2(pc.x - pc.z * 0.5, pc.y - pc.z * 0.5, pc.z, pc.z)
 	var json := {
 		"format": "halorig", "version": FORMAT_VERSION, "id": id,
@@ -426,10 +427,41 @@ func _build(id: String) -> void:
 		por.blit_rect(big, cr, Vector2i.ZERO)
 		por.save_png(ProjectSettings.globalize_path(dir + id + "_portrait.png"))
 		_write_import(dir + id + "_portrait.png")
+		_tint_variants(id, dir, str(ra.get("data-tint-variants", "")), still, por)
 	var f := FileAccess.open(dir + id + ".rig.json", FileAccess.WRITE)
 	f.store_string(JSON.stringify(json, "\t", false))
 	f.close()
 	print("art_build: [%s] %d bones, %d slots, %d part PNGs, %.1f Mpx of part texture" % [id, bones_json.size(), slots_json.size(), parts.size(), px_total / 1000000.0])
+
+
+## data-tint-variants="celestial=f2c14e,infernal=d9412b": writes <id>_still_<name>.png and
+## <id>_portrait_<name>.png through the same luminance gradient map the rig shader uses
+## (dark #0d0a1c, mid = colour darkened 55%, light = colour lightened 35%).
+func _tint_variants(id: String, dir: String, spec: String, still: Image, por: Image) -> void:
+	if spec == "":
+		return
+	for item in spec.split(",", false):
+		var kv := item.split("=")
+		if kv.size() != 2:
+			_warn(id, "bad data-tint-variants entry '%s'" % item)
+			continue
+		var c := Color(kv[1].strip_edges())
+		var dark := Color("0d0a1c")
+		var mid := c.darkened(0.55)
+		var light := c.lightened(0.35)
+		for pair in [["still", still], ["portrait", por]]:
+			var img: Image = (pair[1] as Image).duplicate()
+			for y in img.get_height():
+				for x in img.get_width():
+					var px := img.get_pixel(x, y)
+					if px.a <= 0.0:
+						continue
+					var l := px.r * 0.299 + px.g * 0.587 + px.b * 0.114
+					var m := dark.lerp(mid, l * 2.0) if l < 0.5 else mid.lerp(light, l * 2.0 - 1.0)
+					img.set_pixel(x, y, Color(m, px.a))
+			var path := "%s%s_%s_%s.png" % [dir, id, pair[0], kv[0].strip_edges()]
+			img.save_png(ProjectSettings.globalize_path(path))
+			_write_import(path)
 
 
 func _has_std_prefix(b: String) -> bool:

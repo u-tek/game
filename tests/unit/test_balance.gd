@@ -30,6 +30,16 @@ func test_starters_win_first_stage(t: TestCtx) -> void:
 	g.free()
 
 
+func test_starters_win_opening_stages_without_upgrades(t: TestCtx) -> void:
+	# A brand-new player can clear 1-1..1-3 before touching any upgrade; 1-4 is the first wall.
+	var g := _game()
+	for i in 3:
+		var w := _wins(g, i, 20)
+		t.ok(w >= 18, "L1 starters win %s in %d/20 seeds" % [g.stage(i).id, w])
+	t.ok(_wins(g, 3, 10) <= 2, "1-4 asks for levels or summons")
+	g.free()
+
+
 func test_starters_lose_chapter_one_boss(t: TestCtx) -> void:
 	var g := _game()
 	var w := _wins(g, 9, 20)

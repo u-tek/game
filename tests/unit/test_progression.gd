@@ -107,8 +107,8 @@ func test_star_up_with_shards_and_dust(t: TestCtx) -> void:
 	t.eq(c.dust_per_shard, 10, "rare shards cost 10 dust")
 	t.ok(EconomyData.dust_per_shard("legendary") > EconomyData.dust_per_shard("epic")
 		and EconomyData.dust_per_shard("epic") > EconomyData.dust_per_shard("rare"), "rarer shards cost more dust")
-	for r in ["rare", "epic", "legendary"]:
-		t.ok(EconomyData.dust_per_excess_shard(r) < EconomyData.dust_per_shard(r), "excess shards convert at a loss (%s)" % r)
+	for rarity in ["rare", "epic", "legendary"]:
+		t.ok(EconomyData.dust_per_excess_shard(rarity) < EconomyData.dust_per_shard(rarity), "excess shards convert at a loss (%s)" % rarity)
 	g.dev_add("dust", 149)
 	t.eq(g.star_up("uriela").ok, false, "1 dust short")
 	g.dev_add("dust", 1)
@@ -160,6 +160,24 @@ func test_formation_rules(t: TestCtx) -> void:
 	t.ok(f.slice(0, 2).has("brakka"), "guardian goes in front: %s" % [f])
 	t.ok(f.slice(2).has("liora"), "support goes in back: %s" % [f])
 	t.eq(f.has(""), false)
+	g.free()
+
+
+func test_new_heroes_join_an_unfilled_formation(t: TestCtx) -> void:
+	var g := _game()
+	t.eq(g.formation().filter(func(x: String) -> bool: return x != "").size(), 3)
+	g._receive_hero("brakka")
+	var f: Array = g.formation()
+	t.ok(f.slice(0, 2).has("brakka"), "a new guardian takes the front row: %s" % [f])
+	g._receive_hero("liora")
+	f = g.formation()
+	t.ok(f.slice(2).has("liora"), "a new support goes to the back row: %s" % [f])
+	t.eq(f.has(""), false, "formation filled")
+	# A full formation is the player's: new heroes never reshuffle it.
+	var before: Array = g.formation()
+	g._receive_hero("cassiel")
+	t.eq(g.formation(), before, "full formation unchanged")
+	t.ok(g.owns("cassiel"))
 	g.free()
 
 

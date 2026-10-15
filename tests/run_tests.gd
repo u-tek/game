@@ -19,7 +19,7 @@ func _init() -> void:
 	var failed: Array[String] = []
 	for f in files:
 		var script: GDScript = load("res://tests/unit/" + f)
-		if script == null:
+		if script == null or not script.can_instantiate():
 			failed.append("%s: failed to load (parse error?)" % f)
 			continue
 		var inst = script.new()

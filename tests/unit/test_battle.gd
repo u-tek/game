@@ -47,6 +47,26 @@ func test_run_to_end_matches_stepping(t: TestCtx) -> void:
 	t.eq(out2.victory, out2.winner == "ally")
 
 
+## Skip (run_to_end builds no events) must land on exactly the same battle as watching it,
+## including from the middle of a battle.
+func test_skip_matches_watching(t: TestCtx) -> void:
+	for seed_value in [42, 7, 1001]:
+		var watched := BattleSim.new(_team_setup(seed_value))
+		while not watched.is_over():
+			watched.step()
+		var skipped := BattleSim.new(_team_setup(seed_value))
+		for i in 120:
+			skipped.step()
+		var out := skipped.run_to_end()
+		t.eq(JSON.stringify(out), JSON.stringify(watched.outcome()), "outcome (seed %d)" % seed_value)
+		for i in watched.units.size():
+			var a: Dictionary = watched.units[i]
+			var b: Dictionary = skipped.units[i]
+			for k in ["hp", "shield", "energy", "alive", "statuses"]:
+				t.eq(b[k], a[k], "%s.%s after skip (seed %d)" % [a.uid, k, seed_value])
+		t.eq(skipped.step(), [], "a finished battle produces no events")
+
+
 func test_event_shapes(t: TestCtx) -> void:
 	var evs := _run_events(_team_setup(7))
 	var need := {

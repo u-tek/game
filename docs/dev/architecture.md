@@ -189,8 +189,10 @@ Heroes are **rigged cutout characters**, not single images. Full spec: `docs/dev
 - Style: **full-scale, professional anime/gacha character art. No chibi.** Idealized
   proportions (about 7 to 7.5 heads tall), correct anatomy and hands, 3/4 contrapposto pose,
   varied-weight lineart, 2-3 tone cel shading per material plus soft form gradients, rim
-  light, metal/gem highlights, detailed costume ornament, faction palette. Tasteful designs,
+  light, metal/gem highlights, detailed costume ornament, faction palette. Suggestive designs,
   nothing explicit. Original designs only. Details: `docs/dev/art-style.md`.
+- Character designs and content rules: `docs/dev/character-briefs.md` (overrides `look` in
+  `heroes.gd`). Alluring, App Store 18+; adults only; implied, never explicit nudity.
 - In game: battle ~230-300 px tall, hero detail ~1100 px tall, cards use a
   head-and-shoulders portrait.
 

@@ -11,6 +11,10 @@ Status: **Draft v0.1**. Tags say *when* each question must be answered:
 | 2026-10-15 | Engine: Unity | See `tech-plan.md` |
 | 2026-10-15 | Theme: celestial angels vs. demons, with original characters, story and art | |
 | 2026-10-15 | Team: small team, commercial goal, new to game dev | Drives the phased roadmap |
+| 2026-10-15 | Engine changed to **Godot 4.5** (GDScript), kept portable to Unity | Claude builds and tests it end to end; see `docs/dev/unity-port.md` |
+| 2026-10-15 | iOS builds on GitHub Actions macOS runners (repo made public) | Unsigned IPA for sideloading; `docs/dev/ios-build.md` |
+| 2026-10-15 | Art made in-house: full-scale vector anime characters, animated with our own HaloRig system (no Spine) | `docs/dev/halorig.md`, `docs/dev/art-style.md` |
+| 2026-10-15 | **Content rating: App Store 18+, suggestive fan-service art.** Adults only; implied, never explicit | `docs/dev/character-briefs.md`. Google Play is stricter; plan alternate outfits for Android |
 
 ## Open questions
 

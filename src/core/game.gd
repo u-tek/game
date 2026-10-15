@@ -72,6 +72,11 @@ func _process(delta: float) -> void:
 			_check_idle_full()
 
 
+func _exit_tree() -> void:
+	if _dirty and not state.is_empty():
+		save()
+
+
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_WM_CLOSE_REQUEST:
@@ -237,25 +242,51 @@ func migrate(loaded: Dictionary) -> Dictionary:
 	var gear: Array = []
 	var gear_uids := {}
 	for it in loaded.gear:
-		if it is Dictionary and it.has("uid") and it.has("slot"):
-			_merge_defaults(it, {"tier": 1, "name": "Relic", "stats": {}, "equipped_by": ""})
-			if it.equipped_by != "" and not heroes.has(it.equipped_by):
-				it.equipped_by = ""
-			gear.append(it)
-			gear_uids[it.uid] = it
+		if not (it is Dictionary and it.has("uid") and EconomyData.GEAR_SLOTS.has(str(it.get("slot", "")))):
+			continue
+		_merge_defaults(it, {"tier": 1, "name": "Relic", "stats": {}, "equipped_by": ""})
+		it.uid = str(it.uid)
+		it.slot = str(it.slot)
+		it.tier = clampi(int(it.tier), 1, 5)
+		it.equipped_by = str(it.equipped_by)
+		if gear_uids.has(it.uid):
+			continue
+		if it.equipped_by != "" and not heroes.has(it.equipped_by):
+			it.equipped_by = ""
+		gear.append(it)
+		gear_uids[it.uid] = it
 	loaded.gear = gear
 	for id in heroes:
 		var hg: Dictionary = heroes[id].gear
 		for slot in hg.keys():
-			if not gear_uids.has(hg[slot]) or gear_uids[hg[slot]].equipped_by != id:
+			var uid := str(hg[slot])
+			if not gear_uids.has(uid) or gear_uids[uid].equipped_by != id or gear_uids[uid].slot != slot:
 				hg.erase(slot)
+			else:
+				hg[slot] = uid
+	# Items that claim an owner who does not list them are loose.
+	for it in gear:
+		if it.equipped_by != "" and str(heroes[it.equipped_by].gear.get(it.slot, "")) != it.uid:
+			it.equipped_by = ""
+	if heroes.is_empty():
+		# Nothing usable survived: give the starters back rather than an empty roster.
+		for id in EconomyData.STARTER_HEROES:
+			var d := hero_def(id)
+			heroes[id] = {"id": id, "level": 1, "stars": int(d.start_stars), "shards": 0, "gear": {}}
 	var f: Array = loaded.formation
 	var clean: Array = []
 	for i in 5:
 		var id: String = str(f[i]) if i < f.size() else ""
 		clean.append(id if heroes.has(id) and not clean.has(id) else "")
 	loaded.formation = clean
+	if not [1, 2, 4].has(int(loaded.settings.battle_speed)):
+		loaded.settings.battle_speed = 1
+	loaded.campaign.cleared = clampi(int(loaded.campaign.cleared), 0, StageData.count())
 	loaded.version = SAVE_VERSION
+	if clean == ["", "", "", "", ""]:
+		state = loaded
+		auto_formation()
+		loaded = state
 	return loaded
 
 
@@ -886,25 +917,33 @@ func set_formation(slots: Array) -> Dictionary:
 	return _ok(clean)
 
 
+## Best 5 owned heroes by power, guardians and strikers in front, then gear them up.
 func auto_formation() -> void:
 	var ids: Array = []
 	for h in owned_heroes():
 		ids.append(h.id)
-	ids = ids.slice(0, 5)
-	var front_score := func(id: String) -> int:
+	state.formation = _arrange(ids.slice(0, 5))
+	_auto_equip_team()
+	_changed()
+
+
+## Places up to 5 heroes in rows: the two sturdiest front-liners (guardian > striker > others,
+## then HP) in slots 0-1, the rest in the back row.
+func _arrange(ids: Array) -> Array:
+	var score := {}
+	for id in ids:
 		var role: String = hero_def(id).role
 		var base: int = {"guardian": 3, "striker": 2, "support": 0, "caster": 0, "assassin": -1}.get(role, 0)
-		return base * 1000000 + int(hero_stats(id).hp)
-	ids.sort_custom(func(a: String, b: String) -> bool: return front_score.call(a) > front_score.call(b))
+		score[id] = base * 1000000 + int(hero_stats(id).hp)
+	var sorted := ids.duplicate()
+	sorted.sort_custom(func(a: String, b: String) -> bool:
+		if score[a] != score[b]:
+			return score[a] > score[b]
+		return a < b)
 	var f: Array = ["", "", "", "", ""]
-	var front: Array = ids.slice(0, mini(2, ids.size()))
-	var back: Array = ids.slice(front.size())
-	for i in front.size():
-		f[i] = front[i]
-	for i in back.size():
-		f[2 + i] = back[i]
-	state.formation = f
-	_changed()
+	for i in sorted.size():
+		f[i] = sorted[i]
+	return f
 
 
 ## {faction: String, count: int, bonus_pct: int} for the current formation, or {}.
@@ -922,16 +961,19 @@ func faction_bonus() -> Dictionary:
 	return {}
 
 
+## A new hero joins a formation that still has room (early game): the team is re-arranged
+## so a new guardian takes the front row. A full formation is never changed.
 func _place_in_formation(hero_id: String) -> void:
 	var f: Array = state.formation
-	if f.has(hero_id):
+	if f.has(hero_id) or not f.has(""):
 		return
-	var role: String = hero_def(hero_id).role
-	var order: Array = [0, 1, 2, 3, 4] if role == "guardian" or role == "striker" else [2, 3, 4, 0, 1]
-	for i in order:
-		if f[i] == "":
-			f[i] = hero_id
-			return
+	var ids: Array = []
+	for id in f:
+		if id != "":
+			ids.append(id)
+	ids.append(hero_id)
+	state.formation = _arrange(ids)
+	_auto_equip_raw(hero_id)
 
 
 # ---------------------------------------------------------------- gear
@@ -1358,11 +1400,11 @@ func make_rich_state() -> void:
 		h.shards = int(roster[id][2])
 	state.currencies = {"gold": 500000, "hero_exp": 300000, "gems": 50000, "scrolls": 30, "dust": 2000}
 	state.campaign.cleared = 12
+	auto_formation()
 	var slots := ["weapon", "armor", "helm", "charm", "weapon", "armor", "helm", "charm", "weapon", "charm"]
 	var tiers := [3, 3, 2, 3, 2, 2, 2, 1, 1, 2]
 	for i in slots.size():
 		_create_gear(slots[i], tiers[i])
-	auto_formation()
 	var f := formation()
 	_auto_equip_raw(f[0])
 	_auto_equip_raw(f[2])

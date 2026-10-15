@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Render HaloRig frames from a jobs JSON (see tools/art_preview.gd header). Prints errors.
+#   tools/art_preview jobs.json
+cd "$(dirname "$0")/.." || exit 1
+NOISE='ALSA|audio_driver_alsa|All audio drivers failed|audio_server.cpp|init_output_device|^\s*at: (init_output_device|initialize) |^Godot Engine|OpenGL API'
+log=$(timeout 600 flock /tmp/halo-godot.lock xvfb-run -a -s "-screen 0 1800x2400x24" \
+  godot --path . --rendering-driver opengl3 --resolution 64x64 -s tools/art_preview.gd -- "$(realpath "$1")" 2>&1 | grep -vE "$NOISE")
+echo "$log" | grep -E "art_preview"
+echo "$log" | grep -E -A3 "SCRIPT ERROR|Parse Error|ERROR:" | head -40

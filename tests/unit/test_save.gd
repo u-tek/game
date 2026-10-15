@@ -76,6 +76,37 @@ func test_defaults_merge_for_missing_keys(t: TestCtx) -> void:
 	_cleanup()
 
 
+func test_migrate_repairs_bad_values(t: TestCtx) -> void:
+	_cleanup()
+	var bad := {
+		"version": 1, "heroes": {"ghost": {"level": 9}},
+		"gear": [{"uid": 5, "slot": "weapon", "tier": 9, "stats": {"atk": 10}, "equipped_by": "nobody"},
+			{"uid": "g6", "slot": "boots"}, "junk"],
+		"settings": {"battle_speed": 3, "sound": "yes"},
+		"campaign": {"cleared": 999},
+		"formation": "uriela",
+	}
+	var f := FileAccess.open(PATH, FileAccess.WRITE)
+	f.store_string(JSON.stringify(bad))
+	f.close()
+	var g := _game(PATH)
+	g.load_or_create()
+	t.eq(g.owned_heroes().size(), 3, "an empty roster gets the starters back")
+	t.eq(g.formation().has(""), true)
+	t.eq(g.formation().slice(0, 3).has(""), false, "starters placed in the formation")
+	t.eq(g.gear_items().size(), 1, "only valid gear kept")
+	var it: Dictionary = g.gear_items()[0]
+	t.eq(it.uid, "5", "uid coerced to a string")
+	t.eq(int(it.tier), 5, "tier clamped")
+	t.ok(it.equipped_by != "nobody" and g.formation().has(it.equipped_by), "unknown owner cleared, then auto-equipped onto the team (%s)" % it.equipped_by)
+	t.eq(g.setting("battle_speed"), 1, "invalid battle speed reset")
+	t.eq(g.setting("sound"), true, "wrong-typed setting reset")
+	t.eq(g.cleared_count(), StageData.count(), "cleared clamped to the campaign size")
+	t.eq(g.current_stage(), {}, "campaign complete")
+	g.free()
+	_cleanup()
+
+
 func test_corrupted_save_is_backed_up(t: TestCtx) -> void:
 	_cleanup()
 	var f := FileAccess.open(PATH, FileAccess.WRITE)
