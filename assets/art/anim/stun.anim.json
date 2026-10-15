@@ -164,6 +164,14 @@
     }
    ]
   },
+  "eyes": {
+   "attachment": [
+    {
+     "t": 0,
+     "v": "hurt"
+    }
+   ]
+  },
   "mouth": {
    "attachment": [
     {

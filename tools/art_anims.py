@@ -68,6 +68,7 @@ class Anim:
     def eyes(self, *pts):
         self.att("eye_l", *pts)
         self.att("eye_r", *pts)
+        self.att("eyes", *pts)       # warp rigs: one overlay slot for both eyes
         return self
 
     def col(self, slot, *pts):
@@ -381,8 +382,238 @@ def run():
     return a
 
 
+# ======================================================================== WARP set
+# For painted single-image heroes (warp rigs): whole-body actions built from root/hips/torso/
+# chest/head transforms (squash & stretch about the feet, lean, lunge, recoil), breathing,
+# wing flaps, weapon-region bob/thrust, overlay swaps, glows, and VFX hook events.
+# Events named vfx_<kind> ask the battle screen to spawn an effect (HeroSprite.vfx_requested).
+WARP_OUT = os.path.join(OUT, "warp")
+WINGS = (("wing_upper_r", 1), ("wing_lower_r", -1), ("wing_upper_l", -1), ("wing_lower_l", 1), ("wing_r", 1), ("wing_l", -1))
+
+
+def wings_flap(a, pts):
+    """pts: [(t, amount)] - positive opens the upper wings."""
+    for b, sg in WINGS:
+        a.rot(b, *[(p[0], p[1] * sg) + tuple(p[2:]) for p in pts])
+
+
+def w_idle():
+    a = Anim("idle", 3.2, loop=True, mix=0.25)
+    a.sc("chest", (0, 1, 1), (1.5, 1.012, 1.024), (3.2, 1, 1))
+    a.tr("chest", (0, 0, 0), (1.5, 0, -3), (3.2, 0, 0))
+    a.tr("hips", (0, 0, 0), (1.6, 0, 8), (3.2, 0, 0))
+    a.rot("torso", (0, 0), (1.7, 0.6), (3.2, 0))
+    a.rot("neck", (0, 0), (1.9, 0.6), (3.2, 0))
+    a.rot("head", (0, 0), (0.9, -1.2), (2.3, 1.4), (3.2, 0))
+    wings_flap(a, [(0, 0), (1.6, 3.0), (3.2, 0)])
+    a.tr("weapon", (0, 0, 0), (1.6, 0, -16), (3.2, 0, 0))
+    a.rot("weapon", (0, 0), (1.2, 1.5), (2.6, -1.0), (3.2, 0))
+    a.rot("arm_l", (0, 0), (1.6, 1.5), (3.2, 0))
+    a.rot("arm_r", (0, 0), (1.6, -1.5), (3.2, 0))
+    a.look((0, 0, 0), (1.2, 0.07, 0.04), (2.6, -0.05, 0), (3.2, 0, 0))
+    return a
+
+
+def w_attack_melee():
+    a = Anim("attack_melee", 0.8, mix=0.06, mix_out=0.2)
+    a.lunge((0, 0), (0.15, -0.06, "quint_out"), (0.3, 1.0, S), (0.54, 1.0, "cubic_in_out"), (0.8, 0))
+    a.sc("root", (0, 1, 1, "cubic_out"), (0.15, 1.06, 0.93, "expo_out"), (0.28, 0.94, 1.07), (0.38, 1.03, 0.97), (0.6, 1, 1))
+    a.rot("root", (0, 0, "cubic_out"), (0.15, -5, "expo_out"), (0.3, 8), (0.45, 6), (0.75, 0))
+    a.tr("hips", (0, 0, 0), (0.15, 0, 14, "expo_out"), (0.3, 0, -6), (0.8, 0, 0))
+    a.rot("head", (0, 0), (0.15, -4), (0.32, 5), (0.8, 0))
+    a.rot("weapon", (0, 0, "cubic_out"), (0.15, -18, "expo_out"), (0.32, 22), (0.5, 14), (0.8, 0))
+    a.tr("weapon", (0, 0, 0, "cubic_out"), (0.15, -30, -20, "expo_out"), (0.32, 60, 10), (0.8, 0, 0))
+    a.rot("arm_r", (0, 0), (0.15, 10), (0.32, -12), (0.8, 0))
+    a.rot("hair_back", (0, 0), (0.3, -3), (0.8, 0))
+    a.look((0, 0, 0), (0.3, 0.35, 0.2), (0.8, 0, 0))
+    a.eyes((0, "open"), (0.62, "default"))
+    a.att("mouth", (0.24, "open"), (0.5, "default"))
+    a.fx("flash", (0.28, 0, "expo_out"), (0.31, 0.12, "cubic_out"), (0.45, 0))
+    a.ev(0.15, "windup").ev(0.26, "vfx_slash").ev(0.26, "swing").ev(0.32, "hit").ev(0.3, "step")
+    return a
+
+
+def w_attack_thrust():
+    a = Anim("attack_thrust", 0.8, mix=0.06, mix_out=0.2)
+    a.lunge((0, 0), (0.18, -0.08, "cubic_out"), (0.31, 1.0, "expo_out"), (0.52, 1.0, "cubic_in_out"), (0.8, 0))
+    a.sc("root", (0, 1, 1), (0.18, 1.04, 0.95, "expo_out"), (0.31, 1.08, 0.95), (0.45, 1.0, 1.0), (0.8, 1, 1))
+    a.rot("root", (0, 0), (0.18, -6, "expo_out"), (0.31, 10), (0.5, 8), (0.8, 0))
+    a.tr("weapon", (0, 0, 0), (0.18, -50, 0, "expo_out"), (0.31, 90, 0), (0.5, 80, 0), (0.8, 0, 0))
+    a.rot("weapon", (0, 0), (0.18, -6), (0.31, 4), (0.8, 0))
+    a.look((0, 0, 0), (0.3, 0.4, 0.1), (0.8, 0, 0))
+    a.eyes((0, "open"), (0.62, "default"))
+    a.att("mouth", (0.26, "open"), (0.5, "default"))
+    a.ev(0.18, "windup").ev(0.27, "vfx_thrust").ev(0.27, "swing").ev(0.32, "hit")
+    return a
+
+
+def w_attack_ranged():
+    a = Anim("attack_ranged", 0.9, mix=0.08, mix_out=0.2)
+    a.sc("root", (0, 1, 1), (0.28, 1.03, 0.97), (0.42, 0.97, 1.04, "expo_out"), (0.6, 1, 1))
+    a.rot("root", (0, 0), (0.28, -3.5), (0.42, 4, "expo_out"), (0.9, 0))
+    a.tr("hips", (0, 0, 0), (0.28, 0, 8), (0.42, 0, -4, "expo_out"), (0.9, 0, 0))
+    a.rot("head", (0, 0), (0.28, -3), (0.42, 3), (0.9, 0))
+    a.rot("arm_l", (0, 0), (0.28, -10), (0.42, -16, "expo_out"), (0.9, 0))
+    a.tr("weapon", (0, 0, 0), (0.28, -14, -26, "cubic_out"), (0.42, 46, -8, "expo_out"), (0.9, 0, 0))
+    a.rot("weapon", (0, 0), (0.28, -10), (0.42, 16, "expo_out"), (0.9, 0))
+    wings_flap(a, [(0, 0), (0.28, 6), (0.42, -3, "expo_out"), (0.9, 0)])
+    a.look((0, 0, 0), (0.28, 0.3, -0.1), (0.42, 0.45, 0.1), (0.9, 0, 0))
+    a.eyes((0, "open"), (0.72, "default"))
+    a.att("mouth", (0.38, "open"), (0.6, "default"))
+    a.fx("glow", (0.05, 0), (0.36, 1.0, "expo_out"), (0.44, 1.3, "cubic_out"), (0.62, 0))
+    a.fx("flash", (0.38, 0, "expo_out"), (0.42, 0.22, "cubic_out"), (0.56, 0))
+    a.ev(0.05, "charge").ev(0.4, "release").ev(0.4, "vfx_bolt").ev(0.48, "hit")
+    return a
+
+
+def w_cast():
+    a = Anim("cast", 1.0, mix=0.1, mix_out=0.22)
+    a.tr("root", (0, 0, 0), (0.3, 0, 10), (0.55, 0, -42, "back_out"), (0.8, 0, -30), (1.0, 0, 0))
+    a.sc("root", (0, 1, 1), (0.3, 1.03, 0.97), (0.55, 0.98, 1.03, "back_out"), (1.0, 1, 1))
+    a.rot("head", (0, 0), (0.3, 5), (0.55, -5), (1.0, 0))
+    a.sc("chest", (0, 1, 1), (0.55, 1.03, 1.04), (1.0, 1, 1))
+    a.rot("arm_l", (0, 0), (0.3, -6), (0.55, -18, "back_out"), (1.0, 0))
+    a.tr("weapon", (0, 0, 0), (0.3, 0, 20), (0.55, 20, -90, "back_out"), (1.0, 0, 0))
+    wings_flap(a, [(0, 0), (0.3, -4), (0.55, 10, "back_out"), (1.0, 0)])
+    a.look((0, 0, 0), (0.3, 0.1, 0.4), (0.55, 0.2, -0.6), (1.0, 0, 0))
+    a.eyes((0, "closed"), (0.45, "open"), (0.85, "default"))
+    a.att("mouth", (0.45, "open"), (0.8, "default"))
+    a.fx("hand_glow", (0.05, 0), (0.45, 1.0, "cubic_in"), (0.6, 1.2), (0.85, 0))
+    a.fx("aura", (0, 0), (0.4, 1.0), (0.8, 0.6), (1.0, 0))
+    a.fx("glow", (0.2, 0), (0.5, 1.0), (0.7, 0))
+    a.fx("flash", (0.5, 0, "expo_out"), (0.55, 0.3, "cubic_out"), (0.75, 0))
+    a.ev(0.05, "charge").ev(0.55, "release").ev(0.55, "vfx_burst").ev(0.6, "hit")
+    return a
+
+
+def w_support_cast():
+    a = Anim("support_cast", 1.0, mix=0.1, mix_out=0.22)
+    a.tr("root", (0, 0, 0), (0.35, 0, 6), (0.6, 0, -24), (1.0, 0, 0))
+    a.rot("head", (0, 0), (0.35, 6), (0.6, -3), (1.0, 0))
+    a.sc("chest", (0, 1, 1), (0.35, 0.99, 0.98), (0.6, 1.03, 1.04), (1.0, 1, 1))
+    wings_flap(a, [(0, 0), (0.35, -3), (0.6, 8), (1.0, 0)])
+    a.look((0, 0, 0), (0.35, 0, 0.5), (0.6, 0.15, -0.3), (1.0, 0, 0))
+    a.eyes((0, "closed"), (0.5, "open"), (0.85, "default"))
+    a.att("mouth", (0.5, "smile"), (0.9, "default"))
+    a.fx("hand_glow", (0.1, 0), (0.45, 0.9), (0.62, 1.3), (0.9, 0))
+    a.fx("aura", (0, 0), (0.45, 0.8), (1.0, 0))
+    a.ev(0.5, "release").ev(0.5, "vfx_sparkle").ev(0.56, "hit")
+    return a
+
+
+def w_ultimate():
+    a = Anim("ultimate", 1.7, mix=0.08, mix_out=0.25)
+    a.lunge((0, 0), (0.8, 0, "cubic_in"), (0.93, 1.0, "expo_out"), (1.3, 1.0, "cubic_in_out"), (1.7, 0))
+    a.tr("root", (0, 0, 0), (0.32, 0, 12, "cubic_out"), (0.65, 0, -86, "back_out"), (0.88, 0, -80), (0.98, 0, 0, "expo_out"), (1.7, 0, 0))
+    a.sc("root", (0, 1, 1), (0.32, 1.06, 0.92, "cubic_out"), (0.65, 0.97, 1.05, "back_out"), (0.88, 0.98, 1.04),
+         (0.98, 1.06, 0.95, "expo_out"), (1.2, 1, 1))
+    a.rot("root", (0, 0), (0.32, 2), (0.65, -3), (0.7, -2.2), (0.75, -3.4), (0.8, -2.4), (0.88, -3), (0.98, 7, "expo_out"), (1.3, 4), (1.7, 0))
+    a.rot("head", (0, 0), (0.32, 9), (0.65, -8), (0.98, 4), (1.7, 0))
+    a.sc("chest", (0, 1, 1), (0.65, 1.04, 1.05), (1.0, 1, 1))
+    a.rot("arm_l", (0, 0), (0.32, 6), (0.65, -20, "back_out"), (0.98, -8, "expo_out"), (1.7, 0))
+    a.tr("weapon", (0, 0, 0), (0.32, 0, 30), (0.65, 0, -150, "back_out"), (0.98, 70, -20, "expo_out"), (1.7, 0, 0))
+    a.rot("weapon", (0, 0), (0.65, -10), (0.98, 22, "expo_out"), (1.7, 0))
+    wings_flap(a, [(0, 0), (0.32, -6), (0.65, 14, "back_out"), (0.88, 12), (0.98, -4, "expo_out"), (1.7, 0)])
+    a.look((0, 0, 0), (0.32, 0, 0.6), (0.65, -0.2, -0.7), (0.98, 0.45, 0.1), (1.7, 0, 0))
+    a.eyes((0, "closed"), (0.6, "open"), (1.45, "default"))
+    a.att("mouth", (0.6, "open"), (1.3, "default"))
+    a.fx("aura", (0, 0), (0.6, 1.0), (1.1, 1.2), (1.7, 0))
+    a.fx("hand_glow", (0.1, 0), (0.6, 1.2), (0.9, 1.4), (1.05, 0))
+    a.fx("glow", (0.3, 0), (0.85, 1.4), (1.0, 1.8), (1.3, 0))
+    a.fx("flash", (0.9, 0, "expo_out"), (0.96, 0.6, "cubic_out"), (1.25, 0))
+    a.ev(0.0, "ult_start").ev(0.1, "vfx_charge").ev(0.65, "ult_pose").ev(0.92, "release").ev(0.92, "vfx_burst").ev(0.98, "hit")
+    return a
+
+
+def w_hit():
+    a = Anim("hit", 0.45, mix=0.03, mix_out=0.16)
+    a.tr("root", (0, 0, 0, "expo_out"), (0.06, -46, 0), (0.45, 0, 0, "cubic_in_out"))
+    a.rot("root", (0, 0, "expo_out"), (0.06, -6), (0.22, -2, "back_out"), (0.45, 0))
+    a.sc("root", (0, 1, 1, "expo_out"), (0.06, 0.96, 1.03), (0.2, 1.02, 0.98), (0.45, 1, 1))
+    a.rot("head", (0, 0, "expo_out"), (0.06, -9), (0.2, -3, "back_out"), (0.45, 0))
+    wings_flap(a, [(0, 0, "expo_out"), (0.06, 6), (0.45, 0)])
+    a.look((0, 0, 0, "expo_out"), (0.06, -0.3, -0.3), (0.45, 0, 0))
+    a.eyes((0, "hurt"), (0.3, "default"))
+    a.att("mouth", (0, "hurt"), (0.3, "default"))
+    a.fx("flash", (0, 0.85, "cubic_out"), (0.16, 0))
+    a.ev(0.0, "impact")
+    return a
+
+
+def w_death():
+    a = Anim("death", 1.6, mix=0.05, hold=True)
+    a.tr("root", (0, 0, 0, "expo_out"), (0.08, -50, 0), (0.6, -64, 10, "cubic_in"), (1.0, -70, 46), (1.6, -70, 46))
+    a.rot("root", (0, 0, "expo_out"), (0.08, -7), (0.3, -3), (0.7, -10, "cubic_in"), (1.6, -11))
+    a.sc("root", (0, 1, 1, "expo_out"), (0.08, 0.96, 1.03), (0.3, 1, 1), (0.9, 1.03, 0.9, "cubic_in"), (1.6, 1.03, 0.88))
+    a.rot("head", (0, 0, "expo_out"), (0.08, -12), (0.4, -4), (0.9, 16), (1.6, 18))
+    a.rot("neck", (0, 0), (0.9, 6), (1.6, 6))
+    wings_flap(a, [(0, 0, "expo_out"), (0.08, 8), (0.9, -12, "cubic_in"), (1.6, -14)])
+    a.tr("weapon", (0, 0, 0), (0.6, 30, 200, "cubic_in"), (1.0, 60, 520, "cubic_in"), (1.6, 60, 520))
+    a.rot("weapon", (0, 0), (1.0, 50, "cubic_in"), (1.6, 50))
+    a.look((0, 0, 0, "expo_out"), (0.08, -0.4, -0.4), (0.8, 0, 0.8), (1.6, 0, 0.8))
+    a.eyes((0, "hurt"), (0.5, "closed"))
+    a.att("mouth", (0, "hurt"), (0.6, "default"))
+    a.fx("flash", (0, 0.9, "cubic_out"), (0.2, 0), (0.9, 0), (1.3, 0.35))
+    a.fx("fade", (0, 0), (0.85, 0, "sine_in"), (1.5, 1.0))
+    a.ev(0.0, "impact").ev(0.85, "vfx_dissolve").ev(1.5, "gone")
+    return a
+
+
+def w_victory():
+    a = Anim("victory", 2.8, loop=True, loop_start=1.2, mix=0.15)
+    a.tr("root", (0, 0, 0), (0.12, 0, 0, "cubic_out"), (0.3, 0, -70, "cubic_in"), (0.46, 0, 0), (2.8, 0, 0))
+    a.sc("root", (0, 1, 1), (0.12, 1.06, 0.93, "cubic_out"), (0.3, 0.96, 1.05), (0.48, 1.05, 0.95, "back_out"), (0.7, 1, 1))
+    a.tr("hips", (0, 0, 0), (1.2, 0, 0), (2.0, 0, 8), (2.8, 0, 0))
+    a.rot("head", (0, 0), (0.4, -4), (0.8, 3), (2.0, 5), (2.8, 3))
+    a.rot("arm_l", (0, 0), (0.45, -12, "back_out"), (2.0, -14), (2.8, -12))
+    wings_flap(a, [(0, 0), (0.3, 10), (0.6, 4, "back_out"), (2.0, 7), (2.8, 4)])
+    a.look((0, 0, 0), (0.4, -0.5, -0.1), (1.2, -0.45, -0.1), (2.0, -0.55, 0), (2.8, -0.45, -0.1))
+    a.eyes((0.3, "smile"))
+    a.att("mouth", (0.3, "smile"))
+    a.fx("aura", (0.3, 0), (0.6, 0.7), (1.2, 0.3), (2.0, 0.45), (2.8, 0.3))
+    a.ev(0.12, "jump").ev(0.46, "land").ev(0.5, "cheer").ev(0.5, "vfx_sparkle")
+    return a
+
+
+def w_stun():
+    a = Anim("stun", 1.8, loop=True, mix=0.15)
+    a.rot("root", (0, 1.5), (0.9, -1.5), (1.8, 1.5))
+    a.tr("hips", (0, 0, 10), (0.9, 0, 16), (1.8, 0, 10))
+    a.rot("head", (0, 9), (0.6, 13), (1.2, 7), (1.8, 9))
+    wings_flap(a, [(0, -6), (0.9, -8), (1.8, -6)])
+    a.look((0, 0, 0.5), (0.6, 0.2, 0.6), (1.2, -0.2, 0.5), (1.8, 0, 0.5))
+    a.eyes((0, "hurt"))
+    a.att("mouth", (0, "hurt"))
+    return a
+
+
+def w_hop():
+    a = Anim("hop", 0.55, mix=0.06, mix_out=0.15)
+    a.tr("root", (0, 0, 0), (0.12, 0, 0, "cubic_out"), (0.28, 0, -110, "cubic_in"), (0.44, 0, 0), (0.55, 0, 0))
+    a.sc("root", (0, 1, 1), (0.12, 1.07, 0.92, "cubic_out"), (0.28, 0.95, 1.06), (0.47, 1.06, 0.93, "back_out"), (0.55, 1, 1))
+    wings_flap(a, [(0, 0), (0.12, -6), (0.28, 12), (0.47, -2), (0.55, 0)])
+    a.ev(0.12, "jump").ev(0.44, "land")
+    return a
+
+
+def w_run():
+    a = Anim("run", 0.5, loop=True, mix=0.12)
+    a.rot("root", (0, 7), (0.25, 8), (0.5, 7))
+    a.tr("root", (0, 0, 0, "quad_out"), (0.125, 0, -18, "quad_in"), (0.25, 0, 0, "quad_out"), (0.375, 0, -18, "quad_in"), (0.5, 0, 0))
+    a.sc("root", (0, 1.03, 0.97), (0.125, 0.98, 1.02), (0.25, 1.03, 0.97), (0.375, 0.98, 1.02), (0.5, 1.03, 0.97))
+    wings_flap(a, [(0, 0), (0.25, 6), (0.5, 0)])
+    a.ev(0.0, "step").ev(0.25, "step")
+    return a
+
+
+WARP_ALL = [w_idle, w_attack_melee, w_attack_thrust, w_attack_ranged, w_cast, w_support_cast, w_ultimate, w_hit,
+            w_death, w_victory, w_stun, w_hop, w_run]
+
+
 ALL = [idle, attack_melee, attack_thrust, attack_ranged, cast, support_cast, ultimate, hit, death, victory, stun, hop, run]
 
 if __name__ == "__main__":
     for fn in ALL:
         print("wrote", os.path.relpath(fn().save()))
+    for fn in WARP_ALL:
+        print("wrote", os.path.relpath(fn().save(WARP_OUT)))

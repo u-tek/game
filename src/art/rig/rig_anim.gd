@@ -134,11 +134,14 @@ static func ease_value(e: int, x: float) -> float:
 	return x
 
 
-## Loads (cached) animation `anim_name`, preferring the hero's override. Null if missing.
-static func find(anim_name: String, hero_id: String = "") -> RigAnim:
+## Loads (cached) animation `anim_name`: the hero's override first, then (for warp rigs) the
+## shared warp set in anim/warp/, then the shared set. Null if missing.
+static func find(anim_name: String, hero_id: String = "", kind: String = "") -> RigAnim:
 	var paths: Array[String] = []
 	if hero_id != "":
 		paths.append("%s%s/anim/%s.anim.json" % [HEROES_DIR, hero_id, anim_name])
+	if kind == "warp":
+		paths.append("%swarp/%s.anim.json" % [SHARED_DIR, anim_name])
 	paths.append("%s%s.anim.json" % [SHARED_DIR, anim_name])
 	for p in paths:
 		if _cache.has(p):

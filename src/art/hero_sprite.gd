@@ -6,10 +6,13 @@ extends Node2D
 ## Faces right by default; set_facing(-1) mirrors it.
 ##
 ## Signals: anim_event(name) - "hit" on the impact frame (damage numbers, projectiles),
-## "release" when a spell leaves the hand, "step"/"land" for sounds; anim_finished(name).
+## "release" when a spell leaves the hand, "step"/"land" for sounds; anim_finished(name);
+## vfx_requested(kind, global_pos, facing) for animation events named "vfx_<kind>" - the battle
+## screen spawns the effect (kinds: slash, thrust, bolt, burst, sparkle, charge, dissolve).
 
 signal anim_event(name: String)
 signal anim_finished(name: String)
+signal vfx_requested(kind: String, global_pos: Vector2, facing: int)
 
 const BASE_SCALE := 0.145
 const FALLBACK_RIG := "_silhouette"
@@ -80,7 +83,7 @@ func setup(id: String) -> void:
 		rig.set_tint(&"map_dark", Color("0d0a1c"))
 		rig.set_tint(&"map_mid", fc.darkened(0.55))
 		rig.set_tint(&"map_light", fc.lightened(0.35))
-	rig.anim_event.connect(func(n: String) -> void: anim_event.emit(n))
+	rig.anim_event.connect(_on_event)
 	rig.anim_finished.connect(_on_finished)
 	play_idle()
 
@@ -175,7 +178,7 @@ func play(anim: String) -> void:
 		"victory":
 			play_victory()
 		_:
-			var a := RigAnim.find(_anim(anim), rig.hero_id)
+			var a := RigAnim.find(_anim(anim), rig.hero_id, rig.rig.kind)
 			if a == null:
 				return
 			if a.loop:
@@ -258,6 +261,27 @@ func get_height() -> float:
 
 func _on_finished(n: String) -> void:
 	anim_finished.emit(n)
+
+
+func _on_event(n: String) -> void:
+	anim_event.emit(n)
+	if n.begins_with("vfx_"):
+		var kind := n.substr(4)
+		vfx_requested.emit(kind, vfx_point(kind), facing)
+
+
+## Where an effect of `kind` should appear (global position).
+func vfx_point(kind: String) -> Vector2:
+	match kind:
+		"bolt", "charge", "burst":
+			return get_point("weapon")
+		"sparkle":
+			return get_point("head")
+		"slash", "thrust":
+			var c := get_point("chest")
+			return c + Vector2(facing * get_height() * 0.35, 0.0)
+		_:
+			return get_point("chest")
 
 
 func _process(delta: float) -> void:

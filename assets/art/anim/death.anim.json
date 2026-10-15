@@ -460,6 +460,18 @@
     }
    ]
   },
+  "eyes": {
+   "attachment": [
+    {
+     "t": 0,
+     "v": "hurt"
+    },
+    {
+     "t": 0.5,
+     "v": "closed"
+    }
+   ]
+  },
   "mouth": {
    "attachment": [
     {

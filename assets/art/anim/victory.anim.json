@@ -302,6 +302,14 @@
     }
    ]
   },
+  "eyes": {
+   "attachment": [
+    {
+     "t": 0.3,
+     "v": "smile"
+    }
+   ]
+  },
   "mouth": {
    "attachment": [
     {

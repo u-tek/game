@@ -37,7 +37,9 @@ var _icon_cache := {}
 var _bars_alpha := 1.0
 
 
-func setup(u: Dictionary, k: float, facing: int, echo: bool) -> void:
+## bars_layer: a Node2D drawn above every sprite (same transform as this node's parent);
+## the overhead bars live there so no sprite ever covers them.
+func setup(u: Dictionary, k: float, facing: int, echo: bool, bars_layer: Node2D) -> void:
 	uid = str(u.uid)
 	hero_id = str(u.hero_id)
 	side = str(u.side)
@@ -61,10 +63,9 @@ func setup(u: Dictionary, k: float, facing: int, echo: bool) -> void:
 		sprite.call("set_boss", true)
 	_head_h = float(sprite.call("get_height"))
 	_bars = Node2D.new()
-	_bars.name = "Bars"
-	_bars.z_index = 200
+	_bars.name = "Bars_" + uid
 	_bars.draw.connect(_draw_bars)
-	add_child(_bars)
+	bars_layer.add_child(_bars)
 
 
 ## Local y of the top of the head (negative).
@@ -181,8 +182,14 @@ func bars_visible(on: bool) -> void:
 	_bars.visible = on
 
 
+func _exit_tree() -> void:
+	if _bars and is_instance_valid(_bars):
+		_bars.queue_free()
+
+
 func _process(delta: float) -> void:
 	_t += delta
+	_bars.position = position
 	var frac := float(hp) / float(max_hp)
 	if _chip > frac:
 		_chip = maxf(frac, _chip - delta * 0.8)

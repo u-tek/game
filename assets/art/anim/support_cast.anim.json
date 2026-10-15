@@ -249,6 +249,22 @@
     }
    ]
   },
+  "eyes": {
+   "attachment": [
+    {
+     "t": 0,
+     "v": "closed"
+    },
+    {
+     "t": 0.5,
+     "v": "open"
+    },
+    {
+     "t": 0.85,
+     "v": "default"
+    }
+   ]
+  },
   "mouth": {
    "attachment": [
     {

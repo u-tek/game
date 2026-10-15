@@ -306,6 +306,18 @@
     }
    ]
   },
+  "eyes": {
+   "attachment": [
+    {
+     "t": 0,
+     "v": "open"
+    },
+    {
+     "t": 0.7,
+     "v": "default"
+    }
+   ]
+  },
   "mouth": {
    "attachment": [
     {

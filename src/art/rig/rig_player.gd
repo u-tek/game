@@ -319,13 +319,13 @@ func load_hero(id: String) -> bool:
 # ------------------------------------------------------------------ public API
 
 func has_anim(anim_name: String) -> bool:
-	return RigAnim.find(anim_name, hero_id) != null
+	return RigAnim.find(anim_name, hero_id, rig.kind if rig else "") != null
 
 
 ## Plays `anim_name` on `track` (0 = base/loops, 1+ = overlays). loop: -1 = anim default,
 ## 0 = once, 1 = loop. mix < 0 uses the animation's own "mix". Returns false if missing.
 func play(anim_name: String, track := 0, loop := -1, mix := -1.0) -> bool:
-	var a := RigAnim.find(anim_name, hero_id)
+	var a := RigAnim.find(anim_name, hero_id, rig.kind if rig else "")
 	if a == null:
 		push_warning("RigPlayer[%s]: no animation '%s'" % [hero_id, anim_name])
 		return false

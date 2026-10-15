@@ -417,6 +417,7 @@ def build(hero, regen=False, check=False):
         slots.append({"name": slot, "bone": bone, "z": int(ov.get("z", 10 + len(slots))), "default": ov.get("default", base_v),
                       "attachments": atts})
 
+    slots.sort(key=lambda sl: sl["z"])
     # ---- portrait + json
     pc = src.get("portrait", [ox, oy - 1700, 480])
     prect = [pc[0] - pc[2] / 2, pc[1] - pc[2] / 2, pc[2], pc[2]]

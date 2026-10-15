@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# HaloRig WARP build: painted image + masks -> <id>.warp.json, overlays, portrait; then import.
+#   tools/art_warp seraphiel                 # one hero
+#   tools/art_warp                           # every hero with <id>.warp_src.json
+#   tools/art_warp seraphiel --regen-masks   # rebuild masks/*.png from the "rule" entries
+#   tools/art_warp seraphiel --check         # validate only
+# See docs/dev/halorig.md section 8.
+cd "$(dirname "$0")/.." || exit 1
+python3 tools/art_warp_build.py "$@" || exit 1
+for a in "$@"; do [ "$a" = "--check" ] && exit 0; done
+NOISE='ALSA|audio_driver_alsa|All audio drivers failed|audio_server.cpp|init_output_device|^\s*at: (init_output_device|initialize) |^Godot Engine'
+imp=$(timeout 600 tools/gd --headless --path . --import 2>&1 | grep -vE "$NOISE")
+if echo "$imp" | grep -A1 -E "SCRIPT ERROR|ERROR:" | grep -qE "res://(assets/art/heroes|assets/art/anim|tools/art_|src/art/)"; then
+  echo "IMPORT: art errors"; echo "$imp" | grep -E -A2 "SCRIPT ERROR|ERROR:" | head -20; exit 1
+fi
+echo "IMPORT: ok"

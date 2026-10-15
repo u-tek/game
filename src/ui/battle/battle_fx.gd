@@ -40,7 +40,6 @@ static func number(layer: Node, pos: Vector2, text: String, color: Color, size: 
 	l.size = Vector2(w, size * 1.4)
 	l.position = pos - l.size * 0.5
 	l.pivot_offset = l.size * 0.5
-	l.z_index = 300
 	layer.add_child(l)
 	l.scale = Vector2(0.4, 0.4)
 	l.modulate.a = 0.0
@@ -62,7 +61,6 @@ static func projectile(layer: Node, from: Vector2, to: Vector2, dur: float, colo
 	p.dur = maxf(dur, 0.05)
 	p.color = color
 	p.glow = glow_texture()
-	p.z_index = 250
 	p.arrived.connect(func(at: Vector2) -> void:
 		if is_instance_valid(layer):
 			burst(layer, at, color, 42.0, 6))
@@ -75,7 +73,6 @@ static func slash(layer: Node, pos: Vector2, color: Color, flip: bool, size: flo
 	s.color = color
 	s.radius = size
 	s.rotation = randf_range(-0.6, 0.6) + (PI if flip else 0.0)
-	s.z_index = 260
 	layer.add_child(s)
 
 
@@ -85,7 +82,6 @@ static func burst(layer: Node, pos: Vector2, color: Color, radius: float = 60.0,
 	b.color = color
 	b.radius = radius
 	b.sparks = sparks
-	b.z_index = 260
 	layer.add_child(b)
 
 

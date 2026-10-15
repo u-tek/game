@@ -1,0 +1,241 @@
+{
+ "name": "attack_thrust",
+ "duration": 0.8,
+ "loop": false,
+ "mix": 0.06,
+ "mix_out": 0.2,
+ "bones": {
+  "root": {
+   "scale": [
+    {
+     "t": 0,
+     "x": 1,
+     "y": 1,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.18,
+     "x": 1.04,
+     "y": 0.95,
+     "e": "expo_out"
+    },
+    {
+     "t": 0.31,
+     "x": 1.08,
+     "y": 0.95,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.45,
+     "x": 1.0,
+     "y": 1.0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.8,
+     "x": 1,
+     "y": 1,
+     "e": "sine_in_out"
+    }
+   ],
+   "rotate": [
+    {
+     "t": 0,
+     "v": 0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.18,
+     "v": -6,
+     "e": "expo_out"
+    },
+    {
+     "t": 0.31,
+     "v": 10,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.5,
+     "v": 8,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.8,
+     "v": 0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "weapon": {
+   "translate": [
+    {
+     "t": 0,
+     "x": 0,
+     "y": 0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.18,
+     "x": -50,
+     "y": 0,
+     "e": "expo_out"
+    },
+    {
+     "t": 0.31,
+     "x": 90,
+     "y": 0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.5,
+     "x": 80,
+     "y": 0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.8,
+     "x": 0,
+     "y": 0,
+     "e": "sine_in_out"
+    }
+   ],
+   "rotate": [
+    {
+     "t": 0,
+     "v": 0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.18,
+     "v": -6,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.31,
+     "v": 4,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.8,
+     "v": 0,
+     "e": "sine_in_out"
+    }
+   ]
+  }
+ },
+ "slots": {
+  "eye_l": {
+   "attachment": [
+    {
+     "t": 0,
+     "v": "open"
+    },
+    {
+     "t": 0.62,
+     "v": "default"
+    }
+   ]
+  },
+  "eye_r": {
+   "attachment": [
+    {
+     "t": 0,
+     "v": "open"
+    },
+    {
+     "t": 0.62,
+     "v": "default"
+    }
+   ]
+  },
+  "eyes": {
+   "attachment": [
+    {
+     "t": 0,
+     "v": "open"
+    },
+    {
+     "t": 0.62,
+     "v": "default"
+    }
+   ]
+  },
+  "mouth": {
+   "attachment": [
+    {
+     "t": 0.26,
+     "v": "open"
+    },
+    {
+     "t": 0.5,
+     "v": "default"
+    }
+   ]
+  }
+ },
+ "events": [
+  {
+   "t": 0.18,
+   "name": "windup"
+  },
+  {
+   "t": 0.27,
+   "name": "vfx_thrust"
+  },
+  {
+   "t": 0.27,
+   "name": "swing"
+  },
+  {
+   "t": 0.32,
+   "name": "hit"
+  }
+ ],
+ "lunge": [
+  {
+   "t": 0,
+   "v": 0,
+   "e": "sine_in_out"
+  },
+  {
+   "t": 0.18,
+   "v": -0.08,
+   "e": "cubic_out"
+  },
+  {
+   "t": 0.31,
+   "v": 1.0,
+   "e": "expo_out"
+  },
+  {
+   "t": 0.52,
+   "v": 1.0,
+   "e": "cubic_in_out"
+  },
+  {
+   "t": 0.8,
+   "v": 0,
+   "e": "sine_in_out"
+  }
+ ],
+ "look": [
+  {
+   "t": 0,
+   "x": 0,
+   "y": 0,
+   "e": "sine_in_out"
+  },
+  {
+   "t": 0.3,
+   "x": 0.4,
+   "y": 0.1,
+   "e": "sine_in_out"
+  },
+  {
+   "t": 0.8,
+   "x": 0,
+   "y": 0,
+   "e": "sine_in_out"
+  }
+ ]
+}

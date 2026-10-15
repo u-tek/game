@@ -1,0 +1,358 @@
+{
+ "name": "attack_melee",
+ "duration": 0.8,
+ "loop": false,
+ "mix": 0.06,
+ "mix_out": 0.2,
+ "bones": {
+  "root": {
+   "scale": [
+    {
+     "t": 0,
+     "x": 1,
+     "y": 1,
+     "e": "cubic_out"
+    },
+    {
+     "t": 0.15,
+     "x": 1.06,
+     "y": 0.93,
+     "e": "expo_out"
+    },
+    {
+     "t": 0.28,
+     "x": 0.94,
+     "y": 1.07,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.38,
+     "x": 1.03,
+     "y": 0.97,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.6,
+     "x": 1,
+     "y": 1,
+     "e": "sine_in_out"
+    }
+   ],
+   "rotate": [
+    {
+     "t": 0,
+     "v": 0,
+     "e": "cubic_out"
+    },
+    {
+     "t": 0.15,
+     "v": -5,
+     "e": "expo_out"
+    },
+    {
+     "t": 0.3,
+     "v": 8,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.45,
+     "v": 6,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.75,
+     "v": 0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "hips": {
+   "translate": [
+    {
+     "t": 0,
+     "x": 0,
+     "y": 0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.15,
+     "x": 0,
+     "y": 14,
+     "e": "expo_out"
+    },
+    {
+     "t": 0.3,
+     "x": 0,
+     "y": -6,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.8,
+     "x": 0,
+     "y": 0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "head": {
+   "rotate": [
+    {
+     "t": 0,
+     "v": 0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.15,
+     "v": -4,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.32,
+     "v": 5,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.8,
+     "v": 0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "weapon": {
+   "rotate": [
+    {
+     "t": 0,
+     "v": 0,
+     "e": "cubic_out"
+    },
+    {
+     "t": 0.15,
+     "v": -18,
+     "e": "expo_out"
+    },
+    {
+     "t": 0.32,
+     "v": 22,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.5,
+     "v": 14,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.8,
+     "v": 0,
+     "e": "sine_in_out"
+    }
+   ],
+   "translate": [
+    {
+     "t": 0,
+     "x": 0,
+     "y": 0,
+     "e": "cubic_out"
+    },
+    {
+     "t": 0.15,
+     "x": -30,
+     "y": -20,
+     "e": "expo_out"
+    },
+    {
+     "t": 0.32,
+     "x": 60,
+     "y": 10,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.8,
+     "x": 0,
+     "y": 0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "arm_r": {
+   "rotate": [
+    {
+     "t": 0,
+     "v": 0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.15,
+     "v": 10,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.32,
+     "v": -12,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.8,
+     "v": 0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "hair_back": {
+   "rotate": [
+    {
+     "t": 0,
+     "v": 0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.3,
+     "v": -3,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.8,
+     "v": 0,
+     "e": "sine_in_out"
+    }
+   ]
+  }
+ },
+ "slots": {
+  "eye_l": {
+   "attachment": [
+    {
+     "t": 0,
+     "v": "open"
+    },
+    {
+     "t": 0.62,
+     "v": "default"
+    }
+   ]
+  },
+  "eye_r": {
+   "attachment": [
+    {
+     "t": 0,
+     "v": "open"
+    },
+    {
+     "t": 0.62,
+     "v": "default"
+    }
+   ]
+  },
+  "eyes": {
+   "attachment": [
+    {
+     "t": 0,
+     "v": "open"
+    },
+    {
+     "t": 0.62,
+     "v": "default"
+    }
+   ]
+  },
+  "mouth": {
+   "attachment": [
+    {
+     "t": 0.24,
+     "v": "open"
+    },
+    {
+     "t": 0.5,
+     "v": "default"
+    }
+   ]
+  }
+ },
+ "fx": {
+  "flash": [
+   {
+    "t": 0.28,
+    "v": 0,
+    "e": "expo_out"
+   },
+   {
+    "t": 0.31,
+    "v": 0.12,
+    "e": "cubic_out"
+   },
+   {
+    "t": 0.45,
+    "v": 0,
+    "e": "sine_in_out"
+   }
+  ]
+ },
+ "events": [
+  {
+   "t": 0.15,
+   "name": "windup"
+  },
+  {
+   "t": 0.26,
+   "name": "vfx_slash"
+  },
+  {
+   "t": 0.26,
+   "name": "swing"
+  },
+  {
+   "t": 0.3,
+   "name": "step"
+  },
+  {
+   "t": 0.32,
+   "name": "hit"
+  }
+ ],
+ "lunge": [
+  {
+   "t": 0,
+   "v": 0,
+   "e": "sine_in_out"
+  },
+  {
+   "t": 0.15,
+   "v": -0.06,
+   "e": "quint_out"
+  },
+  {
+   "t": 0.3,
+   "v": 1.0,
+   "e": "sine_in_out"
+  },
+  {
+   "t": 0.54,
+   "v": 1.0,
+   "e": "cubic_in_out"
+  },
+  {
+   "t": 0.8,
+   "v": 0,
+   "e": "sine_in_out"
+  }
+ ],
+ "look": [
+  {
+   "t": 0,
+   "x": 0,
+   "y": 0,
+   "e": "sine_in_out"
+  },
+  {
+   "t": 0.3,
+   "x": 0.35,
+   "y": 0.2,
+   "e": "sine_in_out"
+  },
+  {
+   "t": 0.8,
+   "x": 0,
+   "y": 0,
+   "e": "sine_in_out"
+  }
+ ]
+}
