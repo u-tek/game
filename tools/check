@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# One-shot health check: import, unit tests, headless boot. Exit 1 on any problem.
+#   tools/check            # everything
+#   tools/check tests      # import + tests only
+cd "$(dirname "$0")/.." || exit 1
+NOISE='ALSA|audio_driver_alsa|All audio drivers failed|audio_server.cpp|init_output_device|^\s*at: (init_output_device|initialize) '
+status=0
+imp=$(tools/gd --headless --path . --import 2>&1 | grep -vE "$NOISE")
+if echo "$imp" | grep -qE "SCRIPT ERROR|Parse Error|ERROR:"; then
+  echo "IMPORT: errors"; echo "$imp" | grep -E -A2 "SCRIPT ERROR|Parse Error|ERROR:" | head -40; status=1
+else echo "IMPORT: ok"; fi
+tst=$(tools/gd --headless --path . -s tests/run_tests.gd 2>&1 | grep -vE "$NOISE")
+echo "$tst" | grep -E "^FAIL|SCRIPT ERROR|Parse Error|ERROR:" | head -40
+echo "TESTS: $(echo "$tst" | grep -E '^[0-9]+ tests' || echo 'runner did not finish')"
+echo "$tst" | grep -qE "^[0-9]+ tests, 0 failures" || status=1
+echo "$tst" | grep -qE "SCRIPT ERROR|Parse Error" && status=1
+if [ "${1:-}" != "tests" ]; then
+  boot=$(tools/gd --headless --path . --quit-after 180 -- --fresh 2>&1 | grep -vE "$NOISE")
+  if echo "$boot" | grep -qE "SCRIPT ERROR|Parse Error|ERROR:"; then
+    echo "BOOT: errors"; echo "$boot" | grep -E -A2 "SCRIPT ERROR|Parse Error|ERROR:" | head -40; status=1
+  else echo "BOOT: ok"; fi
+fi
+exit $status

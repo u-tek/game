@@ -1,0 +1,11 @@
+# Godot
+.godot/
+*.translation
+export_credentials.cfg
+# Build output
+build/
+*.ipa
+# Misc
+*.log
+.DS_Store
+/screenshots/
