@@ -9,18 +9,24 @@ extends RefCounted
 ##              BUTTON_H (88), GAP (16), PAD (24)
 ##   Text       label, title, header, body, number, caption, font
 ##   Buttons    primary_button, secondary_button, danger_button, icon_button, cost_button,
-##              segmented, toggle, make_tappable, add_press_fx
+##              costs_button (several currencies), segmented, toggle, make_tappable,
+##              add_press_fx, empty_slot (formation)
 ##   Layout     vbox, hbox, grid, flow, scroll, margin, center, spacer, expand, add, divider
 ##   Panels     panel ("glass" | "card" | "inset" | "plain"), card, style
 ##   Widgets    progress_bar/set_progress, star_row, currency_icon, currency_chip/set_chip_amount,
-##              reward_list, reward_tile, faction_badge, role_badge, rarity_badge, tag,
-##              hero_card, dot/set_dot, section_header, stat_row, empty_state, icon, glow, rays
+##              cost_row, reward_list, reward_tile, faction_badge, role_badge, rarity_badge,
+##              tag, hero_card, dot/set_dot, section_header, screen_header, stat_row,
+##              empty_state, icon, glow, rays, art_background
+##   Economy    have(currency_id), can_afford(costs)
 ##   Colors     faction_color, rarity_color, rarity_frame, tier_color
 ##   Numbers    format_num (12.5K / 3.4M), format_full (1,234,567), format_time (2h 05m)
 ##   Motion     pop_in, pulse, shake, count_to
 ##
-## Conventions: sizes are viewport px on the 720 px wide canvas. Builders never touch Game
-## state except hero_card (reads owned level/stars when not given) and reward tiles.
+## Conventions: sizes are viewport px on the 720 px wide canvas. Builders only read Game
+## (never write): hero_card (owned level/stars when not given), reward tiles (gear names),
+## cost_row / costs_button / have / can_afford (currency amounts). Buttons play UI.sfx("tap").
+## Every clickable Kit widget uses MOUSE_FILTER_PASS so it works inside Kit.scroll lists
+## (a drag scrolls instead of pressing).
 
 const KitBox := preload("res://src/ui/components/kit_box.gd")
 const HeroCard := preload("res://src/ui/components/hero_card.gd")
@@ -65,6 +71,8 @@ const CURRENCIES: Array[String] = ["gold", "gems", "scrolls", "hero_exp", "dust"
 const CURRENCY_NAMES := {
 	"gold": "Gold", "gems": "Gems", "scrolls": "Summon Scrolls", "hero_exp": "Hero EXP", "dust": "Dust",
 }
+## Short names for tight spots (reward tile captions).
+const CURRENCY_SHORT := {"gold": "Gold", "gems": "Gems", "scrolls": "Scrolls", "hero_exp": "Hero EXP", "dust": "Dust"}
 const FACTIONS: Array[String] = ["celestial", "infernal", "fallen"]
 const FACTION_NAMES := {"celestial": "Celestial", "infernal": "Infernal", "fallen": "Fallen"}
 const ROLES: Array[String] = ["guardian", "striker", "caster", "support", "assassin"]
@@ -126,6 +134,22 @@ static func icon(name: String, size: float = 40.0, color: Color = Color.WHITE) -
 	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	t.modulate = color
 	return t
+
+
+## An autoload node by name ("UI", "Game") or null. Kit looks autoloads up at runtime so
+## it also compiles in -s scripts and unit tests where autoload names aren't registered.
+static func autoload(node_name: String) -> Node:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null or tree.root == null:
+		return null
+	return tree.root.get_node_or_null(node_name)
+
+
+## Plays a UI sound through the UI autoload (no-op without it).
+static func sfx(sound_name: String) -> void:
+	var ui := autoload("UI")
+	if ui:
+		ui.call("sfx", sound_name)
 
 
 # ------------------------------------------------------------------ text
@@ -226,8 +250,9 @@ static func icon_button(icon_name: String, on_pressed: Callable = Callable(), si
 
 
 ## Button with a label and a price line, e.g. ("Summon x10", "gems", 2700).
-## look: "primary" | "secondary". Shows the price in red when the player can't afford it
-## (pass affordable = false), still pressable so the screen can explain why.
+## look: "primary" | "secondary". The price turns red when the player has less than
+## `amount` (or when affordable = false); the button stays pressable so the screen can
+## explain why (e.g. UI.toast("Not enough gems")).
 static func cost_button(text: String, currency_id: String, amount: int, on_pressed: Callable = Callable(), look: String = "primary", affordable: bool = true) -> Button:
 	var b := _button("", &"PrimaryButton" if look == "primary" else &"SecondaryButton", on_pressed, "")
 	b.custom_minimum_size = Vector2(240, 104)
@@ -242,13 +267,64 @@ static func cost_button(text: String, currency_id: String, amount: int, on_press
 	price.alignment = BoxContainer.ALIGNMENT_CENTER
 	price.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	price.add_child(currency_icon(currency_id, 30))
-	var pc := Color("8a1c0c") if not affordable and dark else (EMBER if not affordable else (Color("3d2306") if dark else GOLD_LIGHT))
+	var short := not affordable or have(currency_id) < amount
+	var pc := Color("a3200e") if short and dark else (Color("ff6a50") if short else (Color("3d2306") if dark else GOLD_LIGHT))
 	price.add_child(label(format_full(amount), 24, pc, "black"))
 	col.add_child(price)
 	col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	col.offset_bottom = -6
 	b.add_child(col)
 	b.set_meta("price_box", price)
+	return b
+
+
+## Icons + amounts for a cost dict, e.g. {"gold": 1200, "hero_exp": 300}. When
+## check_afford is on, amounts the player can't pay are drawn in `short_color`.
+static func cost_row(costs: Dictionary, size: int = 24, color: Color = INK, check_afford: bool = true, short_color: Color = Color("ff6a50")) -> HBoxContainer:
+	var row := hbox(16)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for id: Variant in costs:
+		var amt := int(costs[id])
+		var pair := hbox(4)
+		pair.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		pair.add_child(currency_icon(str(id), size + 8))
+		var ok := (not check_afford) or have(str(id)) >= amt
+		pair.add_child(label(format_full(amt) if amt < 100000 else format_num(amt), size, color if ok else short_color, "black"))
+		row.add_child(pair)
+	return row
+
+
+## Amount of a currency the player has (0 when Game isn't available).
+static func have(currency_id: String) -> int:
+	var g := autoload("Game")
+	return int(g.call("currency", currency_id)) if g else 0
+
+
+## True when the player can pay every amount in `costs` ({currency_id: amount}).
+static func can_afford(costs: Dictionary) -> bool:
+	for id: Variant in costs:
+		if have(str(id)) < int(costs[id]):
+			return false
+	return true
+
+
+## Like cost_button but for several currencies, e.g. ("Level Up", {"gold": 1200, "hero_exp": 300}).
+## Amounts the player can't pay show in red automatically. look: "primary" | "secondary".
+static func costs_button(text: String, costs: Dictionary, on_pressed: Callable = Callable(), look: String = "primary") -> Button:
+	var b := _button("", &"PrimaryButton" if look == "primary" else &"SecondaryButton", on_pressed, "")
+	b.custom_minimum_size = Vector2(240, 104)
+	var dark := look == "primary"
+	var col := vbox(0)
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var t := label(text, 30, Color("3d2306") if dark else INK, "extrabold")
+	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(t)
+	col.add_child(cost_row(costs, 22, Color("3d2306") if dark else GOLD_LIGHT, true, Color("a3200e") if dark else Color("ff6a50")))
+	col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	col.offset_bottom = -6
+	b.add_child(col)
 	return b
 
 
@@ -272,15 +348,17 @@ static func segmented(options: Array, selected: int, on_select: Callable = Calla
 			b.text = str(opt.get("text", ""))
 			if opt.has("icon"):
 				b.icon = icon_texture(str(opt.icon))
-				b.add_theme_constant_override("icon_max_width", int(height * 0.5))
+				b.add_theme_constant_override("icon_max_width", int(height * 0.6))
 				b.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+				if b.text == "":
+					b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		else:
 			b.text = str(opt)
 		b.button_pressed = i == selected
 		var idx := i
 		b.toggled.connect(func(on: bool) -> void:
 			if on:
-				UI.sfx("tap")
+				sfx("tap")
 				if on_select.is_valid():
 					on_select.call(idx))
 		row.add_child(b)
@@ -296,7 +374,7 @@ static func toggle(on: bool, on_toggled: Callable = Callable()) -> CheckButton:
 	c.custom_minimum_size = Vector2(120, BUTTON_H)
 	c.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	c.toggled.connect(func(v: bool) -> void:
-		UI.sfx("tap")
+		sfx("tap")
 		if on_toggled.is_valid():
 			on_toggled.call(v))
 	return c
@@ -304,6 +382,8 @@ static func toggle(on: bool, on_toggled: Callable = Callable()) -> CheckButton:
 
 ## Makes any Control tappable: adds an invisible full-size Button on top, a press
 ## animation on `target` and the tap sound. Returns the overlay Button.
+## `target` must be a PanelContainer, Panel or plain Control (in a Box/Grid container the
+## overlay would become a layout item); wrap such content in Kit.panel(...) first.
 static func make_tappable(target: Control, on_pressed: Callable) -> Button:
 	var b := Button.new()
 	b.theme_type_variation = &"BareButton"
@@ -320,6 +400,7 @@ static func make_tappable(target: Control, on_pressed: Callable) -> Button:
 ## (defaults to the button). Safe inside ScrollContainers (cancelled presses restore).
 static func add_press_fx(button: BaseButton, target: Control = null) -> void:
 	var t: Control = target if target else button
+	t.pivot_offset = t.size * 0.5
 	t.resized.connect(func() -> void: t.pivot_offset = t.size * 0.5)
 	button.button_down.connect(func() -> void:
 		button.set_meta("_down_at", button.get_global_mouse_position())
@@ -334,7 +415,7 @@ static func add_press_fx(button: BaseButton, target: Control = null) -> void:
 static func _scale_to(c: Control, s: float, dur: float) -> void:
 	if not c.is_inside_tree():
 		return
-	var prev: Variant = c.get_meta("_press_tween", null)
+	var prev: Variant = c.get_meta("_press_tween") if c.has_meta("_press_tween") else null
 	if prev is Tween and (prev as Tween).is_valid():
 		(prev as Tween).kill()
 	var tw := c.create_tween()
@@ -349,11 +430,11 @@ static func _scale_to(c: Control, s: float, dur: float) -> void:
 ## scroll gesture does not fire).
 static func _connect_pressed(b: BaseButton, cb: Callable, sound: String = "tap") -> void:
 	b.pressed.connect(func() -> void:
-		var down: Variant = b.get_meta("_down_at", null)
+		var down: Variant = b.get_meta("_down_at") if b.has_meta("_down_at") else null
 		if down is Vector2 and (down as Vector2).distance_to(b.get_global_mouse_position()) > 36.0:
 			return
 		if sound != "":
-			UI.sfx(sound)
+			sfx(sound)
 		if cb.is_valid():
 			cb.call())
 
@@ -366,14 +447,42 @@ static func _button(text: String, variation: StringName, on_pressed: Callable, i
 	b.focus_mode = Control.FOCUS_NONE
 	b.mouse_filter = Control.MOUSE_FILTER_PASS
 	if icon_name != "":
-		b.icon = icon_texture(icon_name)
-		b.add_theme_constant_override("icon_max_width", 44)
-		b.add_theme_constant_override("h_separation", 12)
-		b.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		var bases := {&"PrimaryButton": "btn_primary", &"SecondaryButton": "btn_secondary", &"DangerButton": "btn_danger"}
+		_add_button_icon(b, str(bases.get(variation, "btn_secondary")), icon_name)
 	add_press_fx(b)
 	if on_pressed.is_valid():
 		_connect_pressed(b, on_pressed)
 	return b
+
+
+## Icon drawn just left of the (centered) button text; the pair stays centered and
+## follows text changes. Uses per-button styleboxes with extra left padding.
+static func _add_button_icon(b: Button, base: String, icon_name: String, isz: float = 44.0) -> void:
+	var gap := 10.0
+	var suffix := {"normal": "", "hover": "_hover", "pressed": "_pressed", "hover_pressed": "_pressed", "disabled": "_disabled"}
+	for st: String in suffix:
+		var sb := UITheme.style(base + str(suffix[st]))
+		sb.content_margin_left += isz + gap
+		b.add_theme_stylebox_override(st, sb)
+	var ic := icon(icon_name, isz)
+	ic.name = "KitIcon"
+	ic.size = Vector2(isz, isz)
+	b.add_child(ic)
+	var place := func() -> void:
+		var font := b.get_theme_font("font")
+		var fs := b.get_theme_font_size("font_size")
+		var tw := font.get_string_size(b.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x if b.text != "" else -gap
+		var mode := b.get_draw_mode()
+		var sb := b.get_theme_stylebox("pressed" if mode == BaseButton.DRAW_PRESSED or mode == BaseButton.DRAW_HOVER_PRESSED else "normal")
+		var ml := sb.content_margin_left
+		var mr := sb.content_margin_right
+		var cx := ml + (b.size.x - ml - mr) * 0.5
+		var top := sb.content_margin_top
+		var bot := sb.content_margin_bottom
+		ic.position = Vector2(roundf(cx - tw * 0.5 - gap - isz), roundf(top + (b.size.y - top - bot - isz) * 0.5))
+		ic.modulate = Color(0.75, 0.72, 0.85, 0.6) if b.disabled else Color.WHITE
+	b.draw.connect(place)
+	b.resized.connect(place)
 
 
 static func _center_child(parent: Control, child: Control, sz: Vector2) -> void:
@@ -640,7 +749,9 @@ static func currency_chip(currency_id: String, amount: int, on_plus: Callable = 
 
 ## Updates a currency chip; animate counts up/down and pulses on change.
 static func set_chip_amount(chip: Control, amount: int, animate: bool = true) -> void:
-	var l := chip.get_meta("amount_label", null) as Label
+	if not chip.has_meta("amount_label"):
+		return
+	var l := chip.get_meta("amount_label") as Label
 	if l == null:
 		return
 	var old: int = chip.get_meta("amount", amount)
@@ -694,13 +805,13 @@ static func reward_tile(kind: String, id: String, amount: int, tile: float = 112
 	var face: Control
 	match kind:
 		"hero":
-			face = hero_card(id, {"size": tile, "show_level": false})
+			face = hero_card(id, {"size": tile, "show_level": false, "owned": true})
 			name_text = str(_def(id).get("name", id))
 		"shard":
-			face = hero_card(id, {"size": tile, "show_level": false, "show_stars": false, "shard": true})
+			face = hero_card(id, {"size": tile, "show_level": false, "show_stars": false, "shard": true, "owned": true})
 			var amt := label("x%s" % format_num(amount), int(tile * 0.2), INK, "black", 5)
 			_corner(face, amt, Vector2(1, 1), Vector2(-8, -4))
-			name_text = "%s Shards" % str(_def(id).get("name", id))
+			name_text = str(_def(id).get("name", id))
 		"gear":
 			var item := _gear_item(id)
 			var slot := str(item.get("slot", "weapon"))
@@ -718,7 +829,7 @@ static func reward_tile(kind: String, id: String, amount: int, tile: float = 112
 			_center_child(face, ci, ci.custom_minimum_size)
 			var amt := label(format_num(amount), int(tile * 0.22), INK, "black", 5)
 			_corner(face, amt, Vector2(1, 1), Vector2(-8, -2))
-			name_text = str(CURRENCY_NAMES.get(id, id.capitalize()))
+			name_text = str(CURRENCY_SHORT.get(id, id.capitalize()))
 	col.add_child(face)
 	if show_name:
 		var n := caption(name_text, 18, INK_DIM)
@@ -767,12 +878,16 @@ static func _corner(parent: Control, child: Control, anchor: Vector2, off: Vecto
 
 
 static func _def(hero_id: String) -> Dictionary:
-	var d: Variant = Game.hero_def(hero_id)
+	var g := autoload("Game")
+	var d: Variant = g.hero_def(hero_id) if g else HeroData.get_def(hero_id)
 	return d if d is Dictionary else {}
 
 
 static func _gear_item(uid: String) -> Dictionary:
-	var items: Variant = Game.gear_items()
+	var g := autoload("Game")
+	if g == null:
+		return {}
+	var items: Variant = g.gear_items()
 	if items is Array:
 		for it: Variant in items:
 			if it is Dictionary and str(it.get("uid", "")) == uid:
@@ -909,6 +1024,44 @@ static func hero_card(hero_id: String, opts: Dictionary = {}) -> Button:
 	return c
 
 
+## Empty hero slot (formation, team picks): sunken square with a faint plus and an
+## optional caption ("Front", "Empty"). Returns a Button (tap with on_pressed).
+static func empty_slot(size: float = 152.0, text: String = "", on_pressed: Callable = Callable()) -> Button:
+	var b := Button.new()
+	b.theme_type_variation = &"BareButton"
+	b.focus_mode = Control.FOCUS_NONE
+	b.mouse_filter = Control.MOUSE_FILTER_PASS
+	b.custom_minimum_size = Vector2(size, size)
+	var p := Panel.new()
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var bx := KitBox.new()
+	bx.radius = maxf(10.0, size * 0.08)
+	bx.top_color = Color("07050fcc")
+	bx.bottom_color = Color("171231b3")
+	bx.border_width = 2
+	bx.border_color = Color(GOLD, 0.35)
+	bx.inner_color = Color(GOLD, 0.12)
+	bx.inner_inset = 6
+	p.add_theme_stylebox_override("panel", bx.commit())
+	p.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	b.add_child(p)
+	var ic := icon("plus", size * 0.32, Color(1, 1, 1, 0.42))
+	_center_child(b, ic, ic.custom_minimum_size)
+	if text != "":
+		var l := caption(text, int(maxf(16.0, size * 0.13)), Color(INK_DIM, 0.85))
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.anchor_top = 1.0
+		l.anchor_bottom = 1.0
+		l.anchor_right = 1.0
+		l.offset_top = -size * 0.26
+		l.offset_bottom = -size * 0.04
+		b.add_child(l)
+	add_press_fx(b)
+	if on_pressed.is_valid():
+		_connect_pressed(b, on_pressed)
+	return b
+
+
 # ------------------------------------------------------------------ notification dot
 
 ## Red notification dot (with white rim).
@@ -950,6 +1103,35 @@ static func section_header(text: String, size: int = 30, color: Color = GOLD_LIG
 	var t := header(text, size, color)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add(row, [l, t, r])
+	return row
+
+
+## Standard top row for sub-screens (hero detail, formation, campaign, settings): round
+## back button, centered Marcellus title, optional control on the right. on_back defaults
+## to UI.back().
+static func screen_header(title_text: String, on_back: Callable = Callable(), right: Control = null) -> HBoxContainer:
+	var row := hbox(8)
+	row.custom_minimum_size.y = 96
+	var cb := on_back
+	if not cb.is_valid():
+		cb = func() -> void:
+			var u := autoload("UI")
+			if u:
+				u.call("back")
+	var back := icon_button("back", cb, 80, "round")
+	back.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(back)
+	var t := header(title_text, SIZE_HEADER)
+	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	t.clip_text = true
+	t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	row.add_child(t)
+	if right:
+		right.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(right)
+	else:
+		row.add_child(spacer(80))
 	return row
 
 
@@ -1028,6 +1210,43 @@ static func rays(color: Color = GOLD, size: float = 520.0, count: int = 14) -> C
 	return r
 
 
+## Full-screen background art (e.g. HeroArt.background("home")) scaled to cover, with a
+## dark fade at the top and bottom so chrome and text stay readable. Add it as the first
+## child of the screen. tex may be null (only the shade is drawn).
+static func art_background(tex: Texture2D, shade: float = 0.6) -> Control:
+	var root := Control.new()
+	root.name = "ArtBackground"
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	if tex:
+		var tr := TextureRect.new()
+		tr.texture = tex
+		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		tr.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		root.add_child(tr)
+	var g := Gradient.new()
+	g.set_color(0, Color(BG, shade))
+	g.set_color(1, Color(BG, shade))
+	g.add_point(0.2, Color(BG, 0.0))
+	g.add_point(0.72, Color(BG, 0.0))
+	var gt := GradientTexture2D.new()
+	gt.gradient = g
+	gt.fill_from = Vector2(0, 0)
+	gt.fill_to = Vector2(0, 1)
+	gt.width = 4
+	gt.height = 256
+	var sh := TextureRect.new()
+	sh.texture = gt
+	sh.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	sh.stretch_mode = TextureRect.STRETCH_SCALE
+	sh.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	sh.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.add_child(sh)
+	return root
+
+
 ## Material that greys out a CanvasItem (unowned heroes). amount 0..1.
 static func grayscale_material() -> ShaderMaterial:
 	if _gray_material == null:
@@ -1043,6 +1262,8 @@ static func grayscale_material() -> ShaderMaterial:
 ## Pops a control in (scale 0.6 -> 1 with overshoot, fade in). Call after it is in the tree.
 static func pop_in(c: Control, delay: float = 0.0, dur: float = 0.32) -> void:
 	if not c.is_inside_tree():
+		c.modulate.a = 1.0
+		c.scale = Vector2.ONE
 		return
 	c.pivot_offset = c.size * 0.5
 	c.scale = Vector2(0.6, 0.6)

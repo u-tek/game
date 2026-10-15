@@ -385,6 +385,7 @@ static func build() -> Theme:
 		t.set_color("font_pressed_color", cb, Kit.INK)
 		t.set_color("font_hover_pressed_color", cb, Kit.INK)
 		t.set_color("font_focus_color", cb, Kit.INK)
+		t.set_constant("icon_max_width", cb, 0)
 
 	# Line edit.
 	t.set_stylebox("normal", "LineEdit", style("line_edit"))

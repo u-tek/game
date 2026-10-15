@@ -13,6 +13,7 @@ func setup(params: Dictionary) -> void:
 	_scroll.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	add_child(_scroll)
 
+	list.add_child(Kit.screen_header("Kit Preview", func() -> void: UI.go("home"), Kit.icon_button("info", func() -> void: _open("popup"), 80)))
 	var t := Kit.title("Halo & Horn")
 	list.add_child(t)
 	var sub := Kit.caption("UI kit preview: every shared widget", 24)
@@ -100,6 +101,14 @@ func _buttons(list: VBoxContainer) -> void:
 	costs.add_child(c1)
 	costs.add_child(c2)
 	list.add_child(costs)
+	var lvl := Kit.hbox(16)
+	var l1 := Kit.costs_button("Level Up", {"gold": 1200, "hero_exp": 300})
+	var l2 := Kit.costs_button("Star Up", {"dust": 999999}, Callable(), "secondary")
+	l1.size_flags_horizontal = SIZE_EXPAND_FILL
+	l2.size_flags_horizontal = SIZE_EXPAND_FILL
+	lvl.add_child(l1)
+	lvl.add_child(l2)
+	list.add_child(lvl)
 	var icons := Kit.hbox(6)
 	icons.alignment = BoxContainer.ALIGNMENT_CENTER
 	for n in ["back", "close", "settings", "speed", "auto", "skip"]:
@@ -203,6 +212,12 @@ func _heroes(list: VBoxContainer) -> void:
 	big.add_child(Kit.hero_card("vesper", {"size": 110, "level": 5, "owned": true}))
 	big.add_child(Kit.hero_card("orrin", {"size": 88, "level": 3, "owned": true}))
 	list.add_child(big)
+	var slots := Kit.hbox(14)
+	slots.alignment = BoxContainer.ALIGNMENT_CENTER
+	slots.add_child(Kit.empty_slot(120, "Front"))
+	slots.add_child(Kit.empty_slot(120, "Back"))
+	slots.add_child(Kit.hero_card("imra", {"size": 120, "level": 9, "owned": true, "show_name": false}))
+	list.add_child(slots)
 
 
 func _rewards(list: VBoxContainer) -> void:

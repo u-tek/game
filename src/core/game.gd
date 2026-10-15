@@ -215,6 +215,11 @@ static func intify(v: Variant) -> Variant:
 ## Bring a loaded save up to date: fill missing keys from defaults, drop bad entries.
 func migrate(loaded: Dictionary) -> Dictionary:
 	var defaults := default_state()
+	# A currency missing from an old save is 0, not the new-game amount.
+	if loaded.get("currencies") is Dictionary:
+		for c in CURRENCIES:
+			if not loaded.currencies.has(c):
+				loaded.currencies[c] = 0
 	# Defaults that depend on "now" must not overwrite loaded values; merge fills gaps only.
 	_merge_defaults(loaded, defaults)
 	var heroes: Dictionary = {}
@@ -604,7 +609,8 @@ func stage_battle_setup(stage_index: int) -> Dictionary:
 	for e in st.enemies:
 		enemies.append({"uid": "e%d" % int(e.slot), "hero_id": e.hero_id, "side": "enemy", "slot": int(e.slot),
 			"level": int(e.level), "stars": int(e.stars),
-			"stats": StatCalc.stats(e.hero_id, int(e.level), int(e.stars)), "is_boss": bool(e.is_boss)})
+			"stats": StageData.echo_stats(e.hero_id, int(e.level), int(e.stars), int(e.echo_bp)),
+			"is_boss": bool(e.is_boss)})
 	var attempt := counter("battles_started")
 	state.counters["battles_started"] = attempt + 1
 	return {

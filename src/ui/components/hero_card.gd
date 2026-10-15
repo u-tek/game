@@ -136,12 +136,16 @@ func _build(s: float, show_name: bool) -> void:
 		fi.size = Vector2(fs * 0.82, fs * 0.82)
 		face.add_child(fi)
 
-	# Level (top-right).
+	# Level (top-right; moves above the stars when a tag takes the corner).
+	var tag_text := str(opts.get("tag", ""))
 	if bool(opts.get("show_level", true)) and level > 0 and owned:
 		var lv := Kit.label("Lv.%d" % level, int(maxf(16.0, s * 0.14)), Kit.INK, "black", maxi(4, int(s * 0.035)))
 		lv.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		lv.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-		lv.position = Vector2(s * 0.3, b + 1)
+		if tag_text == "":
+			lv.position = Vector2(s * 0.3, b + 1)
+		else:
+			lv.position = Vector2(s * 0.3, s - b - s * 0.42)
 		lv.size = Vector2(s * 0.7 - b - 5, s * 0.2)
 		face.add_child(lv)
 
@@ -175,11 +179,11 @@ func _build(s: float, show_name: bool) -> void:
 		ic.size = Vector2(s * 0.4, s * 0.4)
 		face.add_child(ic)
 
-	var tag_text := str(opts.get("tag", ""))
 	if tag_text != "":
 		var t := Kit.tag(tag_text, Kit.GOLD if tag_text != "BOSS" else Kit.EMBER, Color("3d2306") if tag_text != "BOSS" else Color.WHITE, int(maxf(14.0, s * 0.12)))
+		t.z_index = 2
 		face.add_child(t)
-		t.position = Vector2(s - t.get_combined_minimum_size().x + 6, -8)
+		t.position = Vector2(s - t.get_combined_minimum_size().x - 2, -maxf(6.0, s * 0.06))
 
 	if bool(opts.get("dot", false)):
 		Kit.set_dot(self, true, maxf(18.0, s * 0.15), Vector2(-4, -4))
@@ -195,7 +199,8 @@ func _build(s: float, show_name: bool) -> void:
 
 
 func _owned_entry() -> Dictionary:
-	var st: Variant = Game.state
+	var g := Kit.autoload("Game")
+	var st: Variant = g.get("state") if g else null
 	if st is Dictionary:
 		var heroes: Variant = (st as Dictionary).get("heroes", {})
 		if heroes is Dictionary and (heroes as Dictionary).has(hero_id):

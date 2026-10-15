@@ -118,7 +118,7 @@ const MONTHLY_CARD_DAILY_GEMS := 100
 ## Cost of going from `level` to `level + 1`.
 static func level_cost(level: int) -> Dictionary:
 	var exp_cost := 20 + 10 * level + level * level
-	var gold_cost := (exp_cost * 3) / 2 + 20 * level
+	var gold_cost := exp_cost + exp_cost / 4 + 10 * level
 	return {"gold": gold_cost, "hero_exp": exp_cost}
 
 

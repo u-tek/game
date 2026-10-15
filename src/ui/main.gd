@@ -47,6 +47,8 @@ func _ready() -> void:
 	UI.screen_changed.connect(_on_screen_changed)
 	if Game.has_signal("changed"):
 		Game.changed.connect(_refresh)
+	if Game.has_signal("notify"):
+		Game.notify.connect(_on_notify)
 	get_viewport().size_changed.connect(_layout)
 	var timer := Timer.new()
 	timer.wait_time = 2.0
@@ -135,7 +137,8 @@ func _build_top_bar() -> void:
 	# Team power: tap to open the formation.
 	_power_chip = PanelContainer.new()
 	_power_chip.theme_type_variation = &"ChipPanel"
-	_power_chip.custom_minimum_size = Vector2(150, 54)
+	_power_chip.add_theme_stylebox_override("panel", _tall_chip_style())
+	_power_chip.custom_minimum_size = Vector2(150, 88)
 	_power_chip.size_flags_vertical = SIZE_SHRINK_CENTER
 	var prow := Kit.hbox(4)
 	prow.mouse_filter = MOUSE_FILTER_IGNORE
@@ -157,13 +160,24 @@ func _build_top_bar() -> void:
 		var chip := Kit.currency_chip(id, 0, actions[id])
 		chip.size_flags_horizontal = SIZE_EXPAND_FILL
 		chip.size_flags_vertical = SIZE_SHRINK_CENTER
-		chip.custom_minimum_size.y = 54
+		chip.add_theme_stylebox_override("panel", _tall_chip_style())
+		chip.custom_minimum_size.y = 88
 		row.add_child(chip)
 		_chips[id] = chip
 
-	var settings := Kit.icon_button("settings", func() -> void: UI.go("settings"), 76, "round")
+	var settings := Kit.icon_button("settings", func() -> void: UI.go("settings"), 88, "round")
 	settings.size_flags_vertical = SIZE_SHRINK_CENTER
 	row.add_child(settings)
+
+
+## Chip look (54 px pill) on an 88 px tall touch target.
+func _tall_chip_style() -> StyleBox:
+	var sb := UITheme.style("chip")
+	var inset := (88.0 - 54.0) * 0.5
+	sb.set("draw_inset", Vector2(0, inset))
+	sb.content_margin_top += inset
+	sb.content_margin_bottom += inset
+	return sb
 
 
 func _build_nav() -> void:
@@ -182,14 +196,6 @@ func _build_nav() -> void:
 	bg.offset_right = 4
 	bg.offset_bottom = 4
 	nav_bar.add_child(bg)
-	var crest := Kit.divider()
-	crest.anchor_right = 1.0
-	crest.offset_top = -6
-	crest.offset_bottom = 6
-	crest.offset_left = 40
-	crest.offset_right = -40
-	crest.modulate.a = 0.0
-	nav_bar.add_child(crest)
 	var row := Kit.hbox(0)
 	row.anchor_right = 1.0
 	row.offset_left = 6
@@ -263,6 +269,16 @@ func _refresh_dots() -> void:
 	(_tabs["summon"] as NavTab).set_dot(bool(Game.free_pull_available()))
 	var idle: Variant = Game.idle_status()
 	(_tabs["home"] as NavTab).set_dot(idle is Dictionary and bool((idle as Dictionary).get("full", false)))
+
+
+## Global feedback for one-shot Game events that can happen on any screen.
+func _on_notify(event: Dictionary) -> void:
+	match str(event.get("type", "")):
+		"quest_ready":
+			UI.toast("Quest complete: %s" % str(event.get("title", "")), "good")
+		"monthly_card":
+			UI.toast("Monthly Card: +%s gems" % Kit.format_full(int(event.get("gems", 0))), "good")
+	_refresh_dots()
 
 
 func _on_screen_changed(screen: String) -> void:

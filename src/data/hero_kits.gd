@@ -56,9 +56,9 @@ const KITS := {
 		"base_stats": {"hp": 2810, "atk": 60, "def": 82, "spd": 90, "crit": 500},
 		"ultimate": {
 			"id": "dawnwall", "name": "Dawnwall",
-			"description": "Raises the Gate Wardens' wall: shields all allies for 16% of her max HP and grants them +25% DEF for 6 s.",
+			"description": "Raises the Gate Wardens' wall: shields all allies for 12% of her max HP and grants them +25% DEF for 6 s.",
 			"effects": [
-				{"type": "shield", "target": "ally_all", "pct_max_hp_bp": 1600},
+				{"type": "shield", "target": "ally_all", "pct_max_hp_bp": 1200},
 				{"type": "status", "target": "ally_all", "status": "def_up", "duration_ms": 6000, "value_bp": 2500},
 			],
 		},

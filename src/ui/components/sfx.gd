@@ -39,8 +39,13 @@ static func _to_wav(s: PackedFloat32Array) -> AudioStreamWAV:
 	var gain := 0.9 / peak if peak > 0.9 else 1.0
 	var bytes := PackedByteArray()
 	bytes.resize(s.size() * 2)
+	var fade := mini(int(0.03 * RATE), s.size())
+	var fade_from := s.size() - fade
 	for i in s.size():
-		bytes.encode_s16(i * 2, int(clampf(s[i] * gain, -1.0, 1.0) * 32000.0))
+		var v := s[i] * gain
+		if i >= fade_from:
+			v *= float(s.size() - i) / float(fade)
+		bytes.encode_s16(i * 2, int(clampf(v, -1.0, 1.0) * 32000.0))
 	var w := AudioStreamWAV.new()
 	w.format = AudioStreamWAV.FORMAT_16_BITS
 	w.mix_rate = RATE

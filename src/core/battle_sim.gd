@@ -12,7 +12,7 @@ extends RefCounted
 ##   (ranged, random); everyone else hits the front row first (same lane when possible).
 ## - Damage = ATK * mult * ATK / (ATK + DEF), +20% vs the faction you beat, crits x1.5,
 ##   +/-5% variance. Shields absorb first.
-## - Energy: +200 per basic attack, + up to 600 for losing a full health bar (min 15 per
+## - Energy: +100 per basic attack, + up to 500 for losing a full health bar (min 15 per
 ##   hit). Ultimate at 1000. Enemies always cast automatically; allies when
 ##   auto_ultimates is true or when request_ultimate() is called.
 ## - Faction bonus (3/4/5 of one faction: +6/10/15% HP and ATK) and boss multipliers are
@@ -21,11 +21,13 @@ extends RefCounted
 const TICK_MS := 100
 const MAX_MS := 90000
 const ENERGY_MAX := 1000
-const ENERGY_PER_ATTACK := 200
-const ENERGY_PER_FULL_HP := 600
+const ENERGY_PER_ATTACK := 100
+const ENERGY_PER_FULL_HP := 500
 const ENERGY_HIT_MIN := 15
-const ENERGY_HIT_MAX := 250
+const ENERGY_HIT_MAX := 200
 const INTERVAL_K := 100000
+const ENERGY_EVENT_STEP := 50
+const NO_EXPIRY := 1 << 40
 const ADVANTAGE_BP := 2000
 const CRIT_DAMAGE_BP := 15000
 const SHIELD_CAP_BP := 6000
@@ -53,6 +55,14 @@ var _events: Array = []
 var _damage: Dictionary = {}
 var _healing: Dictionary = {}
 var _faction_bonus: Dictionary = {"ally": {}, "enemy": {}}
+## Hot-path caches.
+var _alive_cache: Dictionary = {}
+var _alive_count: Dictionary = {"ally": 0, "enemy": 0}
+var _energy_dirty: Array = []
+var _full_energy: Array = []
+var _timers := PackedInt32Array()
+var _intervals := PackedInt32Array()
+var _alive_flags := PackedByteArray()
 
 
 func _init(setup: Dictionary = {}) -> void:
@@ -182,16 +192,19 @@ func _add_unit(s: Dictionary, side: String, index: int) -> void:
 		"max_hp": hp, "hp": hp, "shield": 0, "energy": 0, "alive": true,
 		"is_boss": boss, "statuses": {},
 		"atk": atk, "def": def, "spd": spd, "crit": int(st.get("crit", 0)),
-		"interval": maxi(300, INTERVAL_K / spd),
-		"timer": 0,
-		"mods": {}, "dots": {}, "dot_src": {},
+		"idx": units.size(),
+		"beats": BEATS.get(ident.faction, ""),
+		"mods": {}, "dots": {}, "dot_src": {}, "exp": {}, "next_exp": NO_EXPIRY,
 		"pas": _collect_passives(hid, stars),
 		"ult": kit.ultimate,
 		"_ed": false,
 	}
-	u.timer = 350 + slot * 140 + rng.range_int(0, 250)
+	_timers.append(350 + slot * 140 + rng.range_int(0, 250))
+	_intervals.append(maxi(300, INTERVAL_K / spd))
+	_alive_flags.append(1)
 	units.append(u)
 	_by_uid[uid] = u
+	_alive_count[side] = int(_alive_count[side]) + 1
 	_damage[uid] = 0
 	_healing[uid] = 0
 
@@ -257,7 +270,8 @@ func _start_of_battle() -> void:
 			u.atk = int(u.atk) * (10000 + aura_atk) / 10000
 			if int(u.pas.start_shield) > 0:
 				u.shield = int(u.max_hp) * int(u.pas.start_shield) / 10000
-			u.energy = mini(ENERGY_MAX, int(u.pas.start_energy) + team_energy)
+			u.energy = 0
+			_gain_energy(u, int(u.pas.start_energy) + team_energy)
 
 
 # ---------------------------------------------------------------- tick phases
@@ -265,8 +279,6 @@ func _start_of_battle() -> void:
 func _tick_statuses() -> void:
 	var second := t_ms % 1000 == 0
 	for u in units:
-		if not u.alive:
-			continue
 		var sts: Dictionary = u.statuses
 		if sts.is_empty():
 			continue
@@ -279,17 +291,35 @@ func _tick_statuses() -> void:
 			if sts.has("regen"):
 				var hsrc: Dictionary = _by_uid.get(u.dot_src.get("regen", ""), u)
 				_heal(hsrc, u, int(u.dots.get("regen", 0)))
-		for k in sts.keys():
-			var left: int = int(sts[k]) - TICK_MS
-			if left <= 0:
-				sts.erase(k)
-				u.mods.erase(k)
-				u.dots.erase(k)
-			else:
-				sts[k] = left
+		if t_ms >= int(u.next_exp):
+			_expire_statuses(u)
+		elif second:
+			var ex: Dictionary = u.exp
+			for k in sts:
+				sts[k] = int(ex[k]) - t_ms
+
+
+## Drops finished statuses and refreshes remaining times.
+func _expire_statuses(u: Dictionary) -> void:
+	var sts: Dictionary = u.statuses
+	var ex: Dictionary = u.exp
+	var next := NO_EXPIRY
+	for k in ex.keys():
+		var end_t: int = ex[k]
+		if end_t <= t_ms:
+			ex.erase(k)
+			sts.erase(k)
+			u.mods.erase(k)
+			u.dots.erase(k)
+		else:
+			sts[k] = end_t - t_ms
+			next = mini(next, end_t)
+	u.next_exp = next
 
 
 func _tick_ultimates() -> void:
+	if _queued.is_empty() and _full_energy.is_empty():
+		return
 	var queue := _queued.duplicate()
 	_queued.clear()
 	for uid in queue:
@@ -298,7 +328,11 @@ func _tick_ultimates() -> void:
 			_cast_ultimate(u)
 			if _check_end():
 				return
-	for u in units:
+	if _full_energy.is_empty():
+		return
+	var ready := _full_energy.duplicate()
+	for ruid in ready:
+		var u: Dictionary = _by_uid[ruid]
 		if not u.alive or int(u.energy) < ENERGY_MAX or u.statuses.has("stun"):
 			continue
 		if u.side == "ally" and not auto_ultimates:
@@ -309,16 +343,27 @@ func _tick_ultimates() -> void:
 
 
 func _tick_attacks() -> void:
-	for u in units:
-		if not u.alive or u.statuses.has("stun"):
+	for i in units.size():
+		if _alive_flags[i] == 0:
 			continue
-		var spd_up: int = int(u.mods.get("spd_up", 0))
-		u.timer = int(u.timer) - TICK_MS * (10000 + spd_up) / 10000
-		if int(u.timer) > 0:
+		var timer: int = _timers[i]
+		var u: Dictionary = units[i]
+		var sts: Dictionary = u.statuses
+		if sts.is_empty():
+			timer -= TICK_MS
+		elif sts.has("stun"):
 			continue
-		u.timer = int(u.timer) + int(u.interval)
+		elif sts.has("spd_up"):
+			timer -= TICK_MS * (10000 + int(u.mods.get("spd_up", 0))) / 10000
+		else:
+			timer -= TICK_MS
+		if timer > 0:
+			_timers[i] = timer
+			continue
+		_timers[i] = timer + _intervals[i]
 		_basic_attack(u)
-		if _check_end():
+		if winner != "" or int(_alive_count.ally) <= 0 or int(_alive_count.enemy) <= 0:
+			_check_end()
 			return
 
 
@@ -328,7 +373,7 @@ func _basic_attack(u: Dictionary) -> void:
 	var target := _basic_target(u)
 	if target.is_empty():
 		return
-	_emit({"type": "attack", "src": u.uid, "target": target.uid})
+	_events.append({"type": "attack", "src": u.uid, "target": target.uid, "t": t_ms})
 	_gain_energy(u, ENERGY_PER_ATTACK)
 	_strike(u, target)
 	var p: Dictionary = u.pas
@@ -346,8 +391,9 @@ func _strike(u: Dictionary, target: Dictionary) -> void:
 	var dealt := _hit(u, target, 10000, false, 0)
 	if dealt <= 0:
 		return
-	if target.alive:
-		for e in u.pas.on_hit:
+	var on_hit: Array = u.pas.on_hit
+	if not on_hit.is_empty() and target.alive:
+		for e in on_hit:
 			if rng.chance_bp(int(e.chance_bp)):
 				_apply_status(u, target, str(e.status), int(e.duration_ms), int(e.get("value_bp", 0)), int(e.get("dot_mult_bp", 0)))
 	var thorns: int = int(target.pas.thorns)
@@ -361,7 +407,10 @@ func _cast_ultimate(u: Dictionary) -> void:
 	effects.append_array(ult.effects)
 	effects.append_array(u.pas.ult_bonus)
 	u.energy = 0
-	u._ed = true
+	_full_energy.erase(u.uid)
+	if not u._ed:
+		u._ed = true
+		_energy_dirty.append(u)
 	var primary := _basic_target(u)
 	var resolved: Array = []
 	var seen := {}
@@ -437,19 +486,20 @@ func _side_units(side: String) -> Array:
 	return out
 
 
+## Alive units of a side (cached; rebuilt after a death). Callers must not modify it.
 func _alive_of(side: String) -> Array:
+	if _alive_cache.has(side):
+		return _alive_cache[side]
 	var out: Array = []
 	for u in units:
 		if u.alive and u.side == side:
 			out.append(u)
+	_alive_cache[side] = out
 	return out
 
 
 func _all_dead(side: String) -> bool:
-	for u in units:
-		if u.alive and u.side == side:
-			return false
-	return true
+	return int(_alive_count[side]) <= 0
 
 
 func _lowest_ratio(list: Array) -> Dictionary:
@@ -476,22 +526,23 @@ func _basic_target(u: Dictionary) -> Dictionary:
 	if foes.is_empty():
 		return {}
 	for f in foes:
-		if f.statuses.has("taunt"):
+		if not f.statuses.is_empty() and f.statuses.has("taunt"):
 			return f
-	match str(u.role):
-		"assassin":
-			var back := _row(foes, true)
-			return _lowest_ratio(back if not back.is_empty() else foes)
-		"caster":
-			return rng.pick(foes)
-	var front := _row(foes, false)
-	if front.is_empty():
-		return foes[0]
+	var role: String = u.role
+	if role == "assassin":
+		var back := _row(foes, true)
+		return _lowest_ratio(back if not back.is_empty() else foes)
+	if role == "caster":
+		return rng.pick(foes)
 	var lane: int = int(u.slot) % 2
-	for f in front:
-		if int(f.slot) == lane:
+	var first_front: Dictionary = {}
+	for f in foes:
+		var fs: int = f.slot
+		if fs == lane:
 			return f
-	return front[0]
+		if fs < 2 and first_front.is_empty():
+			first_front = f
+	return first_front if not first_front.is_empty() else foes[0]
 
 
 func _resolve_targets(u: Dictionary, e: Dictionary, primary: Dictionary) -> Array:
@@ -561,31 +612,39 @@ func _def(u: Dictionary) -> int:
 	return maxi(0, int(u.def) * maxi(bp, 0) / 10000)
 
 
-## Computes and applies one hit. Returns damage dealt.
+## Computes and applies one hit. Returns damage dealt. (Hot path: stat math inlined.)
 func _hit(src: Dictionary, dst: Dictionary, mult_bp: int, from_ult: bool, low_hp_bonus_bp: int) -> int:
 	if not dst.alive:
 		return 0
-	var atk := _atk(src)
-	var def := _def(dst)
-	var dmg: int = atk * mult_bp / 10000
-	dmg = dmg * atk / maxi(1, atk + def)
-	var adv: bool = BEATS.get(src.faction, "") == dst.faction
+	var atk: int = src.atk
+	var sm: Dictionary = src.mods
+	if not sm.is_empty():
+		atk = maxi(1, atk * maxi(10000 + int(sm.get("atk_up", 0)) - int(sm.get("atk_down", 0)), 2000) / 10000)
+	var def: int = dst.def
+	var dm: Dictionary = dst.mods
+	if not dm.is_empty():
+		def = maxi(0, def * maxi(10000 + int(dm.get("def_up", 0)) - int(dm.get("def_down", 0)), 0) / 10000)
+	var dmg: int = atk * mult_bp / 10000 * atk / maxi(1, atk + def)
+	var adv: bool = src.beats == dst.faction
 	if adv:
 		dmg = dmg * (10000 + ADVANTAGE_BP) / 10000
-	if int(dst.hp) * 2 < int(dst.max_hp):
-		var lb: int = int(src.pas.low_hp) + low_hp_bonus_bp
-		if lb > 0:
-			dmg = dmg * (10000 + lb) / 10000
-	var crit := rng.chance_bp(int(src.crit))
+	var sp: Dictionary = src.pas
+	var lb: int = int(sp.low_hp) + low_hp_bonus_bp
+	if lb > 0 and int(dst.hp) * 2 < int(dst.max_hp):
+		dmg = dmg * (10000 + lb) / 10000
+	# One draw: low bits decide the crit, high bits the +/-5% variance.
+	var r: int = rng.next_u32()
+	var crit: bool = r % 10000 < int(src.crit)
 	if crit:
-		dmg = dmg * (CRIT_DAMAGE_BP + int(src.pas.crit_dmg)) / 10000
-	dmg = dmg * rng.range_int(9500, 10500) / 10000
-	var dr: int = int(dst.pas.dr)
+		dmg = dmg * (CRIT_DAMAGE_BP + int(sp.crit_dmg)) / 10000
+	dmg = dmg * (9500 + (r >> 14) % 1001) / 10000
+	var dr: int = dst.pas.dr
 	if dr > 0:
 		dmg = dmg * (10000 - dr) / 10000
-	dmg = maxi(1, dmg)
+	if dmg < 1:
+		dmg = 1
 	_apply_damage(src, dst, dmg, crit, adv, from_ult, false)
-	var ls: int = int(src.pas.lifesteal)
+	var ls: int = sp.lifesteal
 	if ls > 0 and src.alive:
 		_heal(src, src, dmg * ls / 10000)
 	return dmg
@@ -600,15 +659,22 @@ func _apply_damage(src: Dictionary, dst: Dictionary, dmg: int, crit: bool, adv: 
 	dst.hp = maxi(0, int(dst.hp) - to_hp)
 	_damage[src.uid] = int(_damage.get(src.uid, 0)) + dmg
 	var ev := {"type": "damage", "src": src.uid, "target": dst.uid, "amount": dmg, "crit": crit,
-		"advantage": adv, "from_ultimate": from_ult, "hp_after": dst.hp, "shield_after": dst.shield}
+		"advantage": adv, "from_ultimate": from_ult, "hp_after": dst.hp, "shield_after": dst.shield, "t": t_ms}
 	if dot:
 		ev["dot"] = true
-	_emit(ev)
+	_events.append(ev)
 	if int(dst.hp) <= 0:
 		_kill(dst, src)
 		return
-	var gain: int = dmg * ENERGY_PER_FULL_HP / maxi(1, int(dst.max_hp))
-	_gain_energy(dst, clampi(gain, ENERGY_HIT_MIN, ENERGY_HIT_MAX))
+	var before: int = dst.energy
+	if before < ENERGY_MAX:
+		var e: int = mini(ENERGY_MAX, before + clampi(dmg * ENERGY_PER_FULL_HP / int(dst.max_hp), ENERGY_HIT_MIN, ENERGY_HIT_MAX))
+		dst.energy = e
+		if e >= ENERGY_MAX:
+			_full_energy.append(dst.uid)
+		if not dst._ed and (e / ENERGY_EVENT_STEP != before / ENERGY_EVENT_STEP or e >= ENERGY_MAX):
+			dst._ed = true
+			_energy_dirty.append(dst)
 
 
 func _emit_execute(src: Dictionary, dst: Dictionary) -> void:
@@ -623,10 +689,16 @@ func _emit_execute(src: Dictionary, dst: Dictionary) -> void:
 
 func _kill(dst: Dictionary, killer: Dictionary) -> void:
 	dst.alive = false
+	_alive_flags[int(dst.idx)] = 0
+	_alive_count[dst.side] = int(_alive_count[dst.side]) - 1
+	_alive_cache.erase(dst.side)
+	_full_energy.erase(dst.uid)
 	dst.hp = 0
 	dst.shield = 0
 	dst.energy = 0
 	dst.statuses.clear()
+	dst.exp.clear()
+	dst.next_exp = NO_EXPIRY
 	dst.mods.clear()
 	dst.dots.clear()
 	_queued.erase(dst.uid)
@@ -666,7 +738,11 @@ func _apply_status(src: Dictionary, dst: Dictionary, status: String, duration_ms
 	if status == "stun" and dst.is_boss:
 		duration_ms /= 2
 	var sts: Dictionary = dst.statuses
-	sts[status] = maxi(int(sts.get(status, 0)), duration_ms)
+	var prev: int = int(sts.get(status, 0))
+	var end_t: int = maxi(int(dst.exp.get(status, 0)), t_ms + duration_ms)
+	dst.exp[status] = end_t
+	sts[status] = end_t - t_ms
+	dst.next_exp = mini(int(dst.next_exp), end_t)
 	if value_bp > 0:
 		dst.mods[status] = maxi(int(dst.mods.get(status, 0)), value_bp)
 	if dot_mult_bp > 0:
@@ -676,16 +752,25 @@ func _apply_status(src: Dictionary, dst: Dictionary, status: String, duration_ms
 		if amount >= int(dst.dots.get(status, 0)):
 			dst.dots[status] = amount
 			dst.dot_src[status] = src.uid
-	_emit({"type": "status", "src": src.uid, "target": dst.uid, "status": status, "duration_ms": duration_ms})
+	# Refreshing a status that is still running (by less than a second) is silent.
+	if prev <= 0 or duration_ms - prev >= 1000:
+		_emit({"type": "status", "src": src.uid, "target": dst.uid, "status": status, "duration_ms": duration_ms})
 
 
 func _gain_energy(u: Dictionary, amount: int) -> void:
 	if not u.alive:
 		return
-	var e: int = mini(ENERGY_MAX, int(u.energy) + amount)
-	if e != int(u.energy):
-		u.energy = e
+	var before: int = u.energy
+	var e: int = mini(ENERGY_MAX, before + amount)
+	if e == before:
+		return
+	u.energy = e
+	if e >= ENERGY_MAX:
+		_full_energy.append(u.uid)
+	# Energy events only when the bar moves a visible step (50) or fills up.
+	if not u._ed and (e / ENERGY_EVENT_STEP != before / ENERGY_EVENT_STEP or e >= ENERGY_MAX):
 		u._ed = true
+		_energy_dirty.append(u)
 
 
 # ---------------------------------------------------------------- bookkeeping
@@ -698,6 +783,8 @@ func _emit(ev: Dictionary) -> void:
 func _check_end() -> bool:
 	if winner != "":
 		return true
+	if int(_alive_count.ally) > 0 and int(_alive_count.enemy) > 0:
+		return false
 	if _all_dead("ally"):
 		winner = "enemy"
 	elif _all_dead("enemy"):
@@ -709,13 +796,13 @@ func _check_end() -> bool:
 
 
 func _flush() -> Array:
-	var tail: Array = []
-	for u in units:
-		if u._ed:
-			u._ed = false
-			tail.append({"type": "energy", "unit": u.uid, "energy": u.energy, "t": t_ms})
-	if tail.is_empty():
+	if _energy_dirty.is_empty():
 		return _events
+	var tail: Array = []
+	for u in _energy_dirty:
+		u._ed = false
+		tail.append({"type": "energy", "unit": u.uid, "energy": u.energy, "t": t_ms})
+	_energy_dirty.clear()
 	# Keep "end" as the very last event.
 	if not _events.is_empty() and _events.back().type == "end":
 		var end_ev: Dictionary = _events.pop_back()

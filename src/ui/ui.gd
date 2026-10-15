@@ -11,6 +11,7 @@ extends Node
 ##   UI.safe_top() / UI.safe_bottom()                # notch / home-indicator insets (px)
 ##   UI.sfx("tap")                                   # tap reward summon legendary hit ult victory defeat
 ##   UI.haptic(20)                                   # short vibration on phones
+## Background music plays by itself and follows Game.setting("music").
 ## Extras: UI.popup(title, content) for custom dialogs, UI.modal(content) / close_modal(m),
 ## signal screen_changed(name), UI.current_name, UI.history.
 ##
@@ -43,6 +44,9 @@ const NAV_PARENT := {"campaign": "home", "battle": "home", "hero_detail": "heroe
 ## Screens never kept in history (back from the next screen skips them).
 const NO_HISTORY: Array[String] = ["battle"]
 const FADE_TIME := 0.15
+## Ambient loop (rendered by assets/art/ui/src/make_music.py). Follows Game.setting("music").
+const MUSIC_PATH := "res://assets/art/ui/music_twilight.ogg"
+const MUSIC_DB := -15.0
 const MAX_TOASTS := 3
 const SFX_VOLUME_DB := {
 	"tap": -9.0, "hit": -6.0, "reward": -5.0, "summon": -4.0, "legendary": -3.0,
@@ -70,6 +74,11 @@ var _next_player := 0
 var _streams: Dictionary = {}
 var _streams_mutex := Mutex.new()
 var _gen_task := -1
+var _last_played: Dictionary = {}
+var _sfx_rng := RandomNumberGenerator.new()
+var _music: AudioStreamPlayer
+var _music_tw: Tween
+var _music_wanted := false
 
 
 func _ready() -> void:
@@ -81,9 +90,24 @@ func _ready() -> void:
 		_players.append(p)
 	# Synthesize all sounds off the main thread (takes a moment in GDScript).
 	_gen_task = WorkerThreadPool.add_task(_generate_all_sounds, false, "UI sfx synth")
+	_music = AudioStreamPlayer.new()
+	_music.bus = &"Master"
+	_music.volume_db = -60.0
+	add_child(_music)
+	if Game.has_signal("changed"):
+		Game.changed.connect(_sync_music)
+	_sync_music.call_deferred()
 
 
 func _exit_tree() -> void:
+	if _music_tw and _music_tw.is_valid():
+		_music_tw.kill()
+	if _music:
+		_music.stop()
+		_music.stream = null
+	for p in _players:
+		p.stop()
+		p.stream = null
 	if _gen_task >= 0:
 		WorkerThreadPool.wait_for_task_completion(_gen_task)
 		_gen_task = -1
@@ -184,8 +208,11 @@ func _show(screen: String, params: Dictionary) -> void:
 	if _fade and _fade.is_valid():
 		_fade.kill()
 	if is_instance_valid(sc):
-		_fade = sc.create_tween()
+		var y0 := sc.position.y
+		sc.position.y = y0 + 12.0
+		_fade = sc.create_tween().set_parallel(true)
 		_fade.tween_property(sc, "modulate:a", 1.0, FADE_TIME).set_trans(Tween.TRANS_SINE)
+		_fade.tween_property(sc, "position:y", y0, FADE_TIME + 0.05).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	screen_changed.emit(screen)
 
 
@@ -294,7 +321,7 @@ func modal(content: Control, dismissable: bool = true, on_closed: Callable = Cal
 	m.set_meta("dismissable", dismissable)
 	m.set_meta("on_closed", on_closed)
 	var dim := ColorRect.new()
-	dim.color = Color(0.02, 0.01, 0.06, 0.72)
+	dim.color = Color(0.02, 0.01, 0.06, 0.8)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	dim.gui_input.connect(func(ev: InputEvent) -> void:
@@ -452,6 +479,8 @@ func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callab
 	else:
 		var list := Kit.reward_list(reward, 112.0 if entries.size() <= 8 else 96.0)
 		list.custom_minimum_size.x = 580
+		for tile in list.get_children():
+			(tile as Control).modulate.a = 0.0
 		inner.add_child(list)
 	var m_ref: Array[Control] = []
 	var ok := Kit.primary_button("OK", func() -> void:
@@ -504,6 +533,11 @@ func has_modal() -> bool:
 func sfx(sound_name: String) -> void:
 	if not _sound_on():
 		return
+	# The same sound within 45 ms only gets louder, not better (fast battles): skip it.
+	var now := Time.get_ticks_msec()
+	if now - int(_last_played.get(sound_name, -1000)) < 45:
+		return
+	_last_played[sound_name] = now
 	var stream := _stream(sound_name)
 	if stream == null or _players.is_empty():
 		return
@@ -511,7 +545,7 @@ func sfx(sound_name: String) -> void:
 	_next_player = (_next_player + 1) % _players.size()
 	p.stream = stream
 	p.volume_db = float(SFX_VOLUME_DB.get(sound_name, -6.0))
-	p.pitch_scale = 1.0
+	p.pitch_scale = _sfx_rng.randf_range(0.92, 1.08) if sound_name == "hit" or sound_name == "tap" else 1.0
 	p.play()
 
 
@@ -523,6 +557,36 @@ func haptic(ms: int = 20) -> void:
 	if v is bool and not v:
 		return
 	Input.vibrate_handheld(ms)
+
+
+## Starts/stops the ambient music to match Game.setting("music") (null = on).
+func _sync_music() -> void:
+	var v: Variant = Game.setting("music") if Game.has_method("setting") else null
+	var want: bool = not (v is bool and v == false)
+	if DisplayServer.get_name() == "headless":
+		want = false
+	if want == _music_wanted:
+		return
+	_music_wanted = want
+	if _music_tw and _music_tw.is_valid():
+		_music_tw.kill()
+	if want:
+		if _music.stream == null:
+			if not ResourceLoader.exists(MUSIC_PATH):
+				return
+			var st: Variant = load(MUSIC_PATH)
+			if st is AudioStreamOggVorbis:
+				(st as AudioStreamOggVorbis).loop = true
+			_music.stream = st
+		if not _music.playing:
+			_music.volume_db = -50.0
+			_music.play()
+		_music_tw = create_tween()
+		_music_tw.tween_property(_music, "volume_db", MUSIC_DB, 2.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	else:
+		_music_tw = create_tween()
+		_music_tw.tween_property(_music, "volume_db", -60.0, 0.6)
+		_music_tw.tween_callback(_music.stop)
 
 
 func _sound_on() -> bool:

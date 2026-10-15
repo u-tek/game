@@ -51,7 +51,9 @@ func _init() -> void:
 	quit()
 
 
-## Uniform level 5 heroes (or 3) could reach with the EXP/gold earned before stage i.
+## Uniform level n heroes could reach with what the economy pays out before stage i,
+## following the intended pacing (docs/dev/economy-v1.md): chapter 1 on day 1, chapter 2 on
+## days 2-3, chapter 3 on days 4-8; ~16 h of idle claimed per day after day 1.
 func afford(i: int, n: int) -> int:
 	var xp: int = EconomyData.START_CURRENCIES.hero_exp
 	var gold: int = EconomyData.START_CURRENCIES.gold
@@ -59,11 +61,15 @@ func afford(i: int, n: int) -> int:
 		var r: Dictionary = StageData.stage(k).first_clear_reward
 		xp += int(r.hero_exp)
 		gold += int(r.gold)
-	# One free quick claim and the two daily quests that give EXP/gold each day of play.
-	var days := 1 + i / 4
+	var days := 1
+	if i >= 20:
+		days = 3 + (i - 19 + 1) / 2
+	elif i >= 10:
+		days = 1 + (i - 9 + 4) / 5
+	var hours := 3 + 16 * (days - 1)
 	var ph := EconomyData.idle_per_hour(i)
-	xp += days * (int(ph.hero_exp) * 2 + 3500)
-	gold += days * (int(ph.gold) * 2 + 8000)
+	xp += hours * int(ph.hero_exp) + days * 3500
+	gold += hours * int(ph.gold) + days * 10000
 	var lv := 1
 	while true:
 		var c := EconomyData.level_cost(lv)

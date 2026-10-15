@@ -1,15 +1,24 @@
 extends SceneTree
-## Stage calibrator (tool, not a unit test). For each stage, finds the enemy level at which
-## the "typical" profile (3 starter Rares + 2 Epics, no gear) needs the target uniform
-## level to win >= 70% of seeded battles. Prints suggested "lv" values for stages.gd.
-##   tools/gd --headless --path . -s tests/tools/calibrate_stages.gd [-- stages=0-9]
+## Stage calibrator (tool, not a unit test). Enemy levels in stages.gd rise steadily; this
+## solves each stage's hidden echo strength "pw" (basis points) so that a reference team
+## needs the TARGET uniform level to win reliably:
+##   stages 1-1..1-3: the 3 starter Rares, >= 90% wins
+##   later stages:    "typical" team (3 starters + 2 Epics, no gear), >= 70% wins
+## Prints the pw values to paste into stages.gd.
+##   tools/gd --headless --path . -s tests/tools/calibrate_stages.gd [-- stages=0-9 seeds=8]
 
 const TYPICAL := {"uriela": 1, "lucen": 1, "kessa": 1, "brakka": 2, "liora": 2}
+const STARTERS := {"uriela": 1, "lucen": 1, "kessa": 1}
+const STARTER_STAGES := 3
 const TARGET: Array[int] = [
-	1, 1, 2, 4, 6, 8, 10, 12, 14, 17,
-	19, 20, 22, 23, 25, 26, 28, 29, 31, 33,
-	35, 36, 38, 40, 42, 43, 45, 47, 49, 52,
+	1, 2, 4, 3, 5, 7, 9, 11, 13, 16,
+	18, 20, 22, 24, 27, 28, 30, 32, 34, 37,
+	39, 41, 43, 45, 48, 50, 52, 55, 58, 62,
 ]
+const PW_MIN := 3000
+const PW_MAX := 30000
+const PW_STEP := 250
+
 var seeds := 8
 
 
@@ -21,63 +30,61 @@ func _init() -> void:
 			var p := a.substr(7).split("-")
 			lo = int(p[0])
 			hi = int(p[p.size() - 1])
+		elif a.begins_with("seeds="):
+			seeds = int(a.substr(6))
 	var g = load("res://src/core/game.gd").new()
 	g.save_path = ""
 	g.now_override_ms = 1_700_000_000_000
 	g.tz_bias_ms = 0
 	var out: Array = []
 	for i in range(lo, hi + 1):
-		var base_lv: int = int(StageData.STAGES[i].lv)
-		# Find the largest enemy level whose required player level is <= target.
-		var a := 1
-		var b := 90
+		# Largest pw whose required level is still <= target.
+		var a := PW_MIN / PW_STEP
+		var b := PW_MAX / PW_STEP
 		while a < b:
 			var mid := (a + b + 1) / 2
-			if required(g, i, mid) <= TARGET[i]:
+			if required(g, i, mid * PW_STEP) <= TARGET[i]:
 				a = mid
 			else:
 				b = mid - 1
-		var req := required(g, i, a)
-		out.append(a)
-		print("%s: enemy lv %d (was %d) -> typical needs L%d (target %d)" % [StageData.stage(i).id, a, base_lv, req, TARGET[i]])
-	print("levels: ", out)
+		var pw := a * PW_STEP
+		out.append(pw)
+		print("%s lv %d: pw %d (was %d) -> needs L%d (target %d)" % [StageData.stage(i).id,
+			int(StageData.STAGES[i].lv), pw, int(StageData.STAGES[i].get("pw", 10000)), required(g, i, pw), TARGET[i]])
+	print("pw: ", out)
 	g.free()
 	quit()
 
 
-## Minimum uniform level for TYPICAL to win >= 70% vs stage i with enemies at level elv.
-func required(g, i: int, elv: int) -> int:
+## Minimum uniform level for the reference team to beat stage i with echo strength pw.
+func required(g, i: int, pw: int) -> int:
 	var lo := 1
 	var hi := 140
-	if not wins(g, i, elv, hi):
+	if not wins(g, i, pw, hi):
 		return 999
 	while lo < hi:
 		var mid := (lo + hi) / 2
-		if wins(g, i, elv, mid):
+		if wins(g, i, pw, mid):
 			hi = mid
 		else:
 			lo = mid + 1
 	return lo
 
 
-func wins(g, i: int, elv: int, plv: int) -> bool:
+func wins(g, i: int, pw: int, plv: int) -> bool:
 	g.new_game()
 	g.state.heroes = {}
-	for id in TYPICAL:
-		g.state.heroes[id] = {"id": id, "level": plv, "stars": int(TYPICAL[id]), "shards": 0, "gear": {}}
+	var prof: Dictionary = STARTERS if i < STARTER_STAGES else TYPICAL
+	for id in prof:
+		g.state.heroes[id] = {"id": id, "level": plv, "stars": int(prof[id]), "shards": 0, "gear": {}}
 	g.auto_formation()
-	var st: Dictionary = StageData.stage(i)
-	var base_lv: int = int(StageData.STAGES[i].lv)
 	var w := 0
+	var echo_bp: int = StageData.ECHO_STAT_BP * pw / 10000
 	for s in seeds:
 		var setup: Dictionary = g.stage_battle_setup(i)
 		setup.seed = 1000 + s * 7919
-		for k in setup.enemies.size():
-			var e: Dictionary = setup.enemies[k]
-			var lv: int = maxi(1, elv + int(st.enemies[k].level) - base_lv)
-			e.level = lv
-			e.stats = StatCalc.stats(e.hero_id, lv, int(e.stars))
-		var sim := BattleSim.new(setup)
-		if sim.run_to_end().victory:
+		for e in setup.enemies:
+			e.stats = StageData.echo_stats(e.hero_id, int(e.level), int(e.stars), echo_bp)
+		if BattleSim.new(setup).run_to_end().victory:
 			w += 1
-	return w * 10 >= seeds * 7
+	return w * 10 >= seeds * (9 if i < STARTER_STAGES else 7)

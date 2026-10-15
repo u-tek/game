@@ -35,6 +35,9 @@ var ornament_size: float = 5.0
 var offset_y: float = 0.0
 ## Optional bright line along the very top edge of the face (glass sheen).
 var top_line_color := Color.TRANSPARENT
+## Draws smaller than the control (x = left/right, y = top/bottom px): lets a control keep
+## a large touch area while looking compact. Add the same amount to the content margins.
+var draw_inset := Vector2.ZERO
 
 var _shadow: StyleBoxFlat
 var _border: StyleBoxFlat
@@ -83,7 +86,7 @@ func commit() -> StyleBox:
 func _draw(ci: RID, rect: Rect2) -> void:
 	if not _committed:
 		commit()
-	var body := rect
+	var body := rect.grow_individual(-draw_inset.x, -draw_inset.y, -draw_inset.x, -draw_inset.y)
 	body.position.y += offset_y
 	body.size.y -= offset_y
 	if body.size.x < 1.0 or body.size.y < 1.0:

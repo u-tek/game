@@ -8,6 +8,7 @@ const ICON := 66.0
 
 var tab_id := ""
 var _plate: Panel
+var _bar: Panel
 var _glow: TextureRect
 var _icon: TextureRect
 var _label: Label
@@ -31,16 +32,35 @@ func setup(id: String, text: String, icon_name: String) -> void:
 	pb.top_color = Color("4a3a92")
 	pb.bottom_color = Color("221a4c00")
 	pb.border_width = 0
-	pb.top_line_color = Color(1.0, 0.86, 0.5, 0.9)
 	_plate.add_theme_stylebox_override("panel", pb.commit())
 	_plate.anchor_left = 0.5
 	_plate.anchor_right = 0.5
 	_plate.offset_left = -62
 	_plate.offset_right = 62
-	_plate.offset_top = 4
-	_plate.offset_bottom = 108
+	_plate.offset_top = 2
+	_plate.offset_bottom = 110
 	_plate.modulate.a = 0.0
 	add_child(_plate)
+
+	# Lit gold bar on the nav's top edge above the active tab.
+	_bar = Panel.new()
+	_bar.mouse_filter = MOUSE_FILTER_IGNORE
+	var bb := KitBox.new()
+	bb.radius = 3
+	bb.top_color = Color("fff3c4")
+	bb.bottom_color = Color("f2b93a")
+	bb.shadow_size = 10
+	bb.shadow_color = Color(1.0, 0.78, 0.3, 0.7)
+	bb.shadow_offset = Vector2.ZERO
+	_bar.add_theme_stylebox_override("panel", bb.commit())
+	_bar.anchor_left = 0.5
+	_bar.anchor_right = 0.5
+	_bar.offset_left = -34
+	_bar.offset_right = 34
+	_bar.offset_top = -5
+	_bar.offset_bottom = 1
+	_bar.modulate.a = 0.0
+	add_child(_bar)
 
 	_glow = Kit.glow(Kit.GOLD, 150)
 	_glow.anchor_left = 0.5
@@ -88,7 +108,7 @@ func set_dot(show: bool) -> void:
 func _apply(animate: bool) -> void:
 	var lift := -7.0 if _active else 0.0
 	var sc := Vector2(1.14, 1.14) if _active else Vector2.ONE
-	var icon_col := Color.WHITE if _active else Color(0.66, 0.62, 0.78)
+	var icon_col := Color.WHITE if _active else Color(0.8, 0.77, 0.9)
 	var label_col := Kit.GOLD_LIGHT if _active else Kit.INK_DIM
 	_label.add_theme_color_override("font_color", label_col)
 	if _tw and _tw.is_valid():
@@ -100,6 +120,7 @@ func _apply(animate: bool) -> void:
 		_icon.modulate = icon_col
 		_glow.modulate.a = 0.5 if _active else 0.0
 		_plate.modulate.a = 1.0 if _active else 0.0
+		_bar.modulate.a = 1.0 if _active else 0.0
 		return
 	_tw = create_tween().set_parallel(true)
 	_tw.tween_property(_icon, "offset_top", 12 + lift, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -108,3 +129,4 @@ func _apply(animate: bool) -> void:
 	_tw.tween_property(_icon, "modulate", icon_col, 0.15)
 	_tw.tween_property(_glow, "modulate:a", 0.5 if _active else 0.0, 0.2)
 	_tw.tween_property(_plate, "modulate:a", 1.0 if _active else 0.0, 0.2)
+	_tw.tween_property(_bar, "modulate:a", 1.0 if _active else 0.0, 0.2)

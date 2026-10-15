@@ -31,7 +31,7 @@ func _init() -> void:
 	if elv > 0:
 		for e in setup.enemies:
 			e.level = elv
-			e.stats = StatCalc.stats(e.hero_id, elv, int(e.stars))
+			e.stats = StageData.echo_stats(e.hero_id, elv, int(e.stars))
 	var sim := BattleSim.new(setup)
 	var ults := {}
 	var deaths := {}

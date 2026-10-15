@@ -4,8 +4,8 @@ class_name StageData
 ## tests/balance_report.gd (see docs/dev/economy-v1.md).
 ##
 ## Stage: {index, id "1-5", chapter (0-based chapter index), name, enemies [{hero_id, level,
-##   stars, slot, is_boss}], recommended_power, first_clear_reward, is_boss, background,
-##   enemy_faction, hint}
+##   stars, slot, is_boss, echo_bp}], recommended_power, first_clear_reward, is_boss,
+##   background, enemy_faction, hint}
 ## Chapter: {index, id, name, intro, background, first_stage, stage_count}
 
 const CHAPTERS: Array[Dictionary] = [
@@ -23,45 +23,49 @@ const CHAPTERS: Array[Dictionary] = [
 	},
 ]
 
-## Per stage: name, default enemy level and stars, enemies [hero_id, slot, opts...].
+## Per stage: name, enemy level (lv) and stars (st), echo strength (pw, basis points of the
+## ECHO_STAT_BP baseline, solved by tests/tools/calibrate_stages.gd so the difficulty curve is
+## smooth while displayed levels rise steadily), enemies [hero_id, slot, opts...].
 ## Enemy opts: "boss" marks the boss; {"lv": +n, "st": n} adjust level / stars.
 const STAGES: Array[Dictionary] = [
 	# ---------------- Chapter 1: Shattered Sanctum (celestial echoes)
-	{"name": "Broken Narthex", "lv": 1, "st": 1, "e": [["uriela", 0], ["nuriel", 2]]},
-	{"name": "Hall of Fallen Bells", "lv": 2, "st": 1, "e": [["uriela", 0], ["uriela", 1], ["nuriel", 3]]},
-	{"name": "Glass Garden", "lv": 3, "st": 1, "e": [["uriela", 0], ["liora", 2], ["nuriel", 3]]},
-	{"name": "Pillar Walk", "lv": 5, "st": 1, "e": [["uriela", 0], ["uriela", 1], ["nuriel", 2], ["liora", 3]]},
-	{"name": "The Gate Warden", "lv": 6, "st": 1, "boss": true, "e": [["cassiel", 0, "boss"], ["uriela", 1], ["nuriel", 2], ["liora", 3]]},
-	{"name": "Ashen Cloister", "lv": 8, "st": 1, "e": [["cassiel", 0], ["uriela", 1], ["nuriel", 2], ["liora", 3], ["ashra", 4]]},
-	{"name": "Reliquary Stair", "lv": 9, "st": 2, "e": [["uriela", 0], ["cassiel", 1], ["nuriel", 2], ["kessa", 3], ["liora", 4]]},
-	{"name": "Choir Loft", "lv": 10, "st": 2, "e": [["cassiel", 0], ["uriela", 1], ["liora", 2], ["nuriel", 3], ["imra", 4]]},
-	{"name": "Bell Tower Ruin", "lv": 12, "st": 2, "e": [["cassiel", 0], ["uriela", 1], ["nuriel", 2], ["liora", 3], ["vesper", 4]]},
-	{"name": "The Choir Unsung", "lv": 13, "st": 2, "boss": true, "e": [["cassiel", 0], ["uriela", 1], ["seraphiel", 2, "boss"], ["liora", 3], ["nuriel", 4]]},
+	{"name": "Broken Narthex", "lv": 1, "pw": 14000, "st": 1, "e": [["uriela", 0], ["nuriel", 2]]},
+	{"name": "Hall of Fallen Bells", "lv": 2, "pw": 11000, "st": 1, "e": [["uriela", 0], ["uriela", 1], ["nuriel", 3]]},
+	{"name": "Glass Garden", "lv": 3, "pw": 11500, "st": 1, "e": [["uriela", 0], ["liora", 2], ["nuriel", 3]]},
+	{"name": "Pillar Walk", "lv": 4, "pw": 13000, "st": 1, "e": [["uriela", 0], ["uriela", 1], ["nuriel", 2], ["liora", 3]]},
+	{"name": "The Gate Warden", "lv": 5, "pw": 10250, "st": 1, "boss": true, "e": [["cassiel", 0, "boss"], ["uriela", 1], ["nuriel", 2], ["uriela", 4]]},
+	{"name": "Ashen Cloister", "lv": 7, "pw": 11750, "st": 1, "e": [["cassiel", 0], ["uriela", 1], ["nuriel", 2], ["liora", 3], ["ashra", 4]]},
+	{"name": "Reliquary Stair", "lv": 8, "pw": 11500, "st": 2, "e": [["uriela", 0], ["cassiel", 1], ["nuriel", 2], ["kessa", 3], ["liora", 4]]},
+	{"name": "Choir Loft", "lv": 10, "pw": 12500, "st": 2, "e": [["cassiel", 0], ["uriela", 1], ["liora", 2], ["nuriel", 3], ["imra", 4]]},
+	{"name": "Bell Tower Ruin", "lv": 11, "pw": 11500, "st": 2, "e": [["cassiel", 0], ["uriela", 1], ["nuriel", 2], ["liora", 3], ["vesper", 4]]},
+	{"name": "The Choir Unsung", "lv": 13, "pw": 9500, "st": 2, "boss": true, "e": [["cassiel", 0], ["uriela", 1], ["seraphiel", 2, "boss"], ["liora", 3], ["nuriel", 4]]},
 	# ---------------- Chapter 2: Ember Wastes (infernal echoes)
-	{"name": "Cinder Road", "lv": 15, "st": 2, "e": [["brakka", 0], ["kessa", 1], ["imra", 2], ["vesper", 3], ["kessa", 4]]},
-	{"name": "Sulfur Springs", "lv": 16, "st": 2, "e": [["brakka", 0], ["mordessa", 1, {"st": 2}], ["imra", 2], ["kessa", 3], ["vesper", 4]]},
-	{"name": "Molten Ford", "lv": 18, "st": 2, "e": [["brakka", 0], ["kessa", 1], ["vesper", 2], ["imra", 3], ["ashra", 4]]},
-	{"name": "Chainworks", "lv": 19, "st": 2, "e": [["brakka", 0], ["orrin", 1], ["vesper", 2], ["kessa", 3], ["imra", 4]]},
-	{"name": "Brimstone Bulwark", "lv": 21, "st": 2, "boss": true, "e": [["brakka", 0, "boss"], ["kessa", 1], ["vesper", 2], ["imra", 3], ["kessa", 4]]},
-	{"name": "Ashfall Market", "lv": 22, "st": 3, "e": [["brakka", 0], ["uriela", 1], ["vesper", 2], ["imra", 3], ["kessa", 4]]},
-	{"name": "Lantern Bazaar", "lv": 24, "st": 3, "e": [["brakka", 0], ["kessa", 1], ["imra", 2], ["vesper", 3], ["liora", 4]]},
-	{"name": "Obsidian Steps", "lv": 25, "st": 3, "e": [["brakka", 0], ["cassiel", 1], ["vesper", 2], ["kessa", 3], ["imra", 4]]},
-	{"name": "Furnace Gate", "lv": 27, "st": 3, "e": [["brakka", 0], ["mordessa", 1], ["vesper", 2], ["imra", 3], ["kessa", 4]]},
-	{"name": "Throne of the Ninth Furnace", "lv": 29, "st": 3, "boss": true, "e": [["brakka", 0], ["kessa", 1], ["mordessa", 2, "boss"], ["vesper", 3], ["imra", 4]]},
+	{"name": "Cinder Road", "lv": 15, "pw": 10750, "st": 2, "e": [["brakka", 0], ["kessa", 1], ["imra", 2], ["vesper", 3], ["kessa", 4]]},
+	{"name": "Sulfur Springs", "lv": 17, "pw": 10000, "st": 2, "e": [["brakka", 0], ["mordessa", 1, {"st": 2}], ["imra", 2], ["kessa", 3], ["vesper", 4]]},
+	{"name": "Molten Ford", "lv": 19, "pw": 12250, "st": 2, "e": [["brakka", 0], ["kessa", 1], ["vesper", 2], ["imra", 3], ["ashra", 4]]},
+	{"name": "Chainworks", "lv": 21, "pw": 10500, "st": 2, "e": [["brakka", 0], ["orrin", 1], ["vesper", 2], ["kessa", 3], ["imra", 4]]},
+	{"name": "Brimstone Bulwark", "lv": 23, "pw": 7750, "st": 2, "boss": true, "e": [["brakka", 0, "boss"], ["kessa", 1], ["vesper", 2], ["imra", 3], ["kessa", 4]]},
+	{"name": "Ashfall Market", "lv": 24, "pw": 9250, "st": 3, "e": [["brakka", 0], ["uriela", 1], ["vesper", 2], ["imra", 3], ["kessa", 4]]},
+	{"name": "Lantern Bazaar", "lv": 26, "pw": 11000, "st": 3, "e": [["brakka", 0], ["kessa", 1], ["imra", 2], ["vesper", 3], ["liora", 4]]},
+	{"name": "Obsidian Steps", "lv": 28, "pw": 9000, "st": 3, "e": [["brakka", 0], ["cassiel", 1], ["vesper", 2], ["kessa", 3], ["imra", 4]]},
+	{"name": "Furnace Gate", "lv": 30, "pw": 8500, "st": 3, "e": [["brakka", 0], ["mordessa", 1], ["vesper", 2], ["imra", 3], ["kessa", 4]]},
+	{"name": "Throne of the Ninth Furnace", "lv": 32, "pw": 9250, "st": 3, "boss": true, "e": [["brakka", 0], ["kessa", 1], ["mordessa", 2, "boss"], ["vesper", 3], ["imra", 4]]},
 	# ---------------- Chapter 3: Twilight Abyss (fallen echoes)
-	{"name": "Dusk Shore", "lv": 31, "st": 3, "e": [["orrin", 0], ["lucen", 1], ["ashra", 2], ["sable", 3], ["lucen", 4]]},
-	{"name": "Chapel of Ghosts", "lv": 33, "st": 3, "e": [["orrin", 0], ["lucen", 1], ["sable", 2], ["ashra", 3], ["noctaire", 4, {"st": 3}]]},
-	{"name": "Broken Oath Bridge", "lv": 34, "st": 3, "e": [["orrin", 0], ["brakka", 1], ["ashra", 2], ["sable", 3], ["lucen", 4]]},
-	{"name": "Hollow Choir", "lv": 36, "st": 3, "e": [["orrin", 0], ["lucen", 1], ["seraphiel", 2], ["sable", 3], ["ashra", 4]]},
-	{"name": "The Chained Gate", "lv": 38, "st": 3, "boss": true, "e": [["orrin", 0, "boss"], ["lucen", 1], ["ashra", 2], ["sable", 3], ["noctaire", 4]]},
-	{"name": "Ash Witch's Hollow", "lv": 40, "st": 4, "e": [["orrin", 0], ["lucen", 1], ["ashra", 2], ["ashra", 3], ["sable", 4]]},
-	{"name": "Mirror Lake", "lv": 42, "st": 4, "e": [["orrin", 0], ["cassiel", 1], ["lucen", 2], ["sable", 3], ["noctaire", 4]]},
-	{"name": "Feather Graveyard", "lv": 44, "st": 4, "e": [["orrin", 0], ["lucen", 1], ["vesper", 2], ["sable", 3], ["noctaire", 4]]},
-	{"name": "Eclipse Stair", "lv": 46, "st": 4, "e": [["orrin", 0], ["mordessa", 1], ["ashra", 2], ["sable", 3], ["noctaire", 4]]},
-	{"name": "The Last Order", "lv": 48, "st": 4, "boss": true, "e": [["orrin", 0], ["lucen", 1], ["noctaire", 2, "boss"], ["sable", 3], ["ashra", 4]]},
+	{"name": "Dusk Shore", "lv": 34, "pw": 11500, "st": 3, "e": [["orrin", 0], ["lucen", 1], ["ashra", 2], ["sable", 3], ["lucen", 4]]},
+	{"name": "Chapel of Ghosts", "lv": 36, "pw": 10000, "st": 3, "e": [["orrin", 0], ["lucen", 1], ["sable", 2], ["ashra", 3], ["noctaire", 4, {"st": 3}]]},
+	{"name": "Broken Oath Bridge", "lv": 38, "pw": 11750, "st": 3, "e": [["orrin", 0], ["brakka", 1], ["ashra", 2], ["sable", 3], ["lucen", 4]]},
+	{"name": "Hollow Choir", "lv": 40, "pw": 11000, "st": 3, "e": [["orrin", 0], ["lucen", 1], ["seraphiel", 2], ["sable", 3], ["ashra", 4]]},
+	{"name": "The Chained Gate", "lv": 42, "pw": 8250, "st": 3, "boss": true, "e": [["orrin", 0, "boss"], ["lucen", 1], ["ashra", 2], ["sable", 3], ["noctaire", 4]]},
+	{"name": "Ash Witch's Hollow", "lv": 44, "pw": 11250, "st": 4, "e": [["orrin", 0], ["lucen", 1], ["ashra", 2], ["ashra", 3], ["sable", 4]]},
+	{"name": "Mirror Lake", "lv": 46, "pw": 8000, "st": 4, "e": [["orrin", 0], ["cassiel", 1], ["lucen", 2], ["sable", 3], ["noctaire", 4]]},
+	{"name": "Feather Graveyard", "lv": 48, "pw": 8500, "st": 4, "e": [["orrin", 0], ["lucen", 1], ["vesper", 2], ["sable", 3], ["noctaire", 4]]},
+	{"name": "Eclipse Stair", "lv": 50, "pw": 8250, "st": 4, "e": [["orrin", 0], ["mordessa", 1], ["ashra", 2], ["sable", 3], ["noctaire", 4]]},
+	{"name": "The Last Order", "lv": 53, "pw": 8250, "st": 4, "boss": true, "e": [["orrin", 0], ["lucen", 1], ["noctaire", 2, "boss"], ["sable", 3], ["ashra", 4]]},
 ]
 
 const STAGES_PER_CHAPTER := 10
+## Echoes are hollow copies: HP, ATK and DEF at this fraction of a real hero's.
+const ECHO_STAT_BP := 7500
 ## recommended_power = enemy power (boss multipliers included) * this / 10000.
 const RECOMMENDED_BP := 10000
 
@@ -117,7 +121,8 @@ static func _build(i: int) -> Dictionary:
 		var hid: String = e[0]
 		var rarity: String = HeroData.get_def(hid).get("rarity", "rare")
 		st = maxi(st, int(EconomyData.START_STARS.get(rarity, 1)))
-		enemies.append({"hero_id": hid, "level": lv, "stars": st, "slot": int(e[1]), "is_boss": boss})
+		enemies.append({"hero_id": hid, "level": lv, "stars": st, "slot": int(e[1]), "is_boss": boss,
+			"echo_bp": ECHO_STAT_BP * int(raw.get("pw", 10000)) / 10000})
 	var is_boss := bool(raw.get("boss", false))
 	var s := {
 		"index": i,
@@ -135,7 +140,17 @@ static func _build(i: int) -> Dictionary:
 	return s
 
 
-## Enemy team power the way the player sees it (boss multipliers included).
+## Stats of an enemy echo (before boss multipliers, which BattleSim applies).
+## echo_bp: strength of the echo in basis points (Stage enemy "echo_bp").
+static func echo_stats(hero_id: String, level: int, stars: int, echo_bp: int = ECHO_STAT_BP) -> Dictionary:
+	var st := StatCalc.stats(hero_id, level, stars)
+	for k in ["hp", "atk", "def"]:
+		st[k] = maxi(1, int(st[k]) * echo_bp / 10000)
+	return st
+
+
+## Enemy team power the way the player sees it (faction and boss multipliers included).
+
 static func recommended_power(enemies: Array) -> int:
 	var counts := {}
 	for e in enemies:
@@ -146,7 +161,7 @@ static func recommended_power(enemies: Array) -> int:
 		fb = maxi(fb, int(BattleSim.FACTION_BONUS_BP.get(mini(int(counts[fac]), 5), 0)))
 	var total := 0
 	for e in enemies:
-		var st := StatCalc.stats(e.hero_id, int(e.level), int(e.stars))
+		var st := echo_stats(e.hero_id, int(e.level), int(e.stars), int(e.echo_bp))
 		st.hp = int(st.hp) * (10000 + fb) / 10000
 		st.atk = int(st.atk) * (10000 + fb) / 10000
 		if e.is_boss:

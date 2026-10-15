@@ -162,12 +162,26 @@ HeroSprite methods: `play_idle()`, `play_attack(target_global_pos)`, `play_cast(
 `play_hit()`, `play_death()`, `set_facing(dir: int)` (1 right/-1 left), `set_echo(bool)`
 (enemy "echo" tint), `set_boss(bool)` (bigger + aura). Feet at the node origin.
 
-### Hero SVG rules (Godot rasterizes SVGs with ThorVG at import)
+HeroSprite also has `play(anim: String)` and emits `anim_event(name)` (for example "hit" on the
+impact frame, so damage numbers sync with the swing).
 
-- File: `assets/art/heroes/<id>.svg`, `viewBox="0 0 512 640"`, character centered, feet at
-  y≈620, head (incl. hair) roughly inside x 110-402, y 40-330, so the shared portrait crop works.
-- Optional wings layer `assets/art/heroes/<id>_wings.svg` (same viewBox, drawn behind body)
-  so wings can flap in game.
+### HaloRig: our skeletal animation system (replaces Spine)
+
+Heroes are **rigged cutout characters**, not single images. Full spec: `docs/dev/halorig.md`.
+- Source art: `assets/art/heroes/<id>/<id>.svg`. Every moving part is its own named top-level
+  group with rig metadata (parent bone, pivot, draw order), following the **standard skeleton**
+  shared by all heroes (hips, torso, chest, neck, head, face parts, hair strands, arms, legs,
+  cloth, wings, tail, weapon). Hidden areas under overlapping parts are painted so nothing
+  gaps when parts move.
+- Build tool (`tools/art_build.gd`) splits the SVG into per-part PNGs plus
+  `<id>.rig.json`. Animations are shared JSON in `assets/art/anim/` and work on every hero
+  because the skeleton is standard; heroes may override.
+- Runtime (`src/art/rig/`) provides bones, keyframes with easing, crossfades, attachment
+  swaps (blink, mouth), bend shader for hair and cloth, spring physics for secondary motion,
+  pseudo-3D head turns, and animation events.
+- Everything is engine-neutral data (JSON + PNG), so a Unity runtime can play the same files.
+
+### Hero SVG rules (Godot rasterizes SVGs with ThorVG)
 - **Allowed:** path, circle, ellipse, rect, polygon, g, transform, fill/stroke, opacity,
   linearGradient, radialGradient, clipPath. **Not allowed:** filters (blur/glow), CSS
   `<style>`, text, images, masks, `mix-blend-mode`. Keep each file under ~40 KB.
