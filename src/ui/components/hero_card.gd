@@ -170,7 +170,7 @@ func _build(s: float, show_name: bool) -> void:
 		ov.add_theme_stylebox_override("panel", ob.commit())
 		ov.size = Vector2(s, s)
 		face.add_child(ov)
-		var ic := Kit.icon("lock" if locked else "check", s * 0.4)
+		var ic := Kit.icon("lock" if locked else "check", s * 0.4, Color.WHITE if locked else Kit.GOOD)
 		ic.position = Vector2(s * 0.3, s * 0.3)
 		ic.size = Vector2(s * 0.4, s * 0.4)
 		face.add_child(ic)

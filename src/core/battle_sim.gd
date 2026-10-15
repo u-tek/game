@@ -7,7 +7,7 @@ extends RefCounted
 ##   sim.run_to_end()                                # skip
 ##
 ## Rules in short:
-## - Attack interval = 120000 / spd ms (spd 100 = 1.2 s). Stunned units do nothing.
+## - Attack interval = 100000 / spd ms (spd 100 = 1.0 s). Stunned units do nothing.
 ## - Targeting: Taunt first; assassins hit the weakest back-row enemy; casters hit any enemy
 ##   (ranged, random); everyone else hits the front row first (same lane when possible).
 ## - Damage = ATK * mult * ATK / (ATK + DEF), +20% vs the faction you beat, crits x1.5,
@@ -25,7 +25,7 @@ const ENERGY_PER_ATTACK := 200
 const ENERGY_PER_FULL_HP := 600
 const ENERGY_HIT_MIN := 15
 const ENERGY_HIT_MAX := 250
-const INTERVAL_K := 120000
+const INTERVAL_K := 100000
 const ADVANTAGE_BP := 2000
 const CRIT_DAMAGE_BP := 15000
 const SHIELD_CAP_BP := 6000

@@ -627,7 +627,7 @@ static func currency_chip(currency_id: String, amount: int, on_plus: Callable = 
 	n.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(n)
 	if on_plus.is_valid():
-		row.add_child(icon("plus", 30))
+		row.add_child(icon("plus_badge", 30))
 	else:
 		row.add_child(spacer(4))
 	chip.add_child(row)

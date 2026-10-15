@@ -5,7 +5,7 @@ class_name HeroKits
 ##
 ## base_stats: level 1 values at 1 star (the starting-star bonus of Epic/Legendary heroes
 ##   is applied on top, see StatCalc). hp/atk/def scale with level and stars; spd sets the
-##   attack interval (120000 / spd ms); crit is a chance in basis points.
+##   attack interval (100000 / spd ms); crit is a chance in basis points.
 ##
 ## ultimate: {id, name, description, effects: [Effect]}. Fires at 1000 energy.
 ##   Effect: {type, target, ...}
