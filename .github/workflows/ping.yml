@@ -1,0 +1,7 @@
+name: ping
+on: workflow_dispatch
+jobs:
+  ping:
+    runs-on: macos-latest
+    steps:
+      - run: sw_vers && xcodebuild -version
