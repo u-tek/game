@@ -163,7 +163,7 @@ func test_maxed_duplicates_become_dust(t: TestCtx) -> void:
 	g.state.heroes.uriela.stars = 6
 	var r: Dictionary = g._receive_hero("uriela")
 	t.eq(r.is_new, false)
-	t.eq(int(r.dust), EconomyData.DUPE_SHARDS.rare * EconomyData.DUST_PER_EXCESS_SHARD)
+	t.eq(int(r.dust), EconomyData.DUPE_SHARDS.rare * EconomyData.dust_per_excess_shard("rare"))
 	t.eq(g.currency("dust"), int(r.dust))
 	t.eq(int(g.state.heroes.uriela.shards), 0)
 	g.free()

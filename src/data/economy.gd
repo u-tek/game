@@ -16,21 +16,20 @@ const LEVEL_CAP_PER_STAR := 20
 const STAR_SHARDS: Array[int] = [0, 10, 20, 40, 60, 100]
 ## Shards granted by a duplicate summon.
 const DUPE_SHARDS := {"rare": 10, "epic": 20, "legendary": 40}
-## Dust needed to replace one missing shard when starring up (worse rate than shards).
-const DUST_PER_SHARD := 10
-## Dust granted per shard a maxed hero cannot use.
-const DUST_PER_EXCESS_SHARD := 4
+## Dust needed to replace one missing shard when starring up, by the hero's rarity. A worse
+## rate than duplicates: dust smooths out bad luck but never replaces summoning.
+const DUST_PER_SHARD := {"rare": 10, "epic": 25, "legendary": 60}
+## Dust granted per shard a maxed hero cannot use (40% of the price above).
+const DUST_PER_EXCESS_SHARD := {"rare": 4, "epic": 10, "legendary": 24}
 
 # ---------------------------------------------------------------- idle
 const IDLE_CAP_MS := 12 * 3600 * 1000
 const QUICK_CLAIM_MS := 2 * 3600 * 1000
 ## Quick-claim prices by use index within the day (0 = the free one).
 const QUICK_CLAIM_COSTS: Array[int] = [0, 50, 100, 150]
-## Per-hour idle income: base + per_stage * stages cleared.
-const IDLE_BASE := {"gold": 600, "hero_exp": 400, "dust": 4, "gems": 3}
-const IDLE_PER_STAGE := {"gold": 110, "hero_exp": 75, "dust": 1, "gems": 0}
-## Extra gems per hour for every 5 stages cleared.
-const IDLE_GEMS_PER_5_STAGES := 1
+## Per-hour idle income: base + per_10_stages * stages cleared / 10 (rounded down).
+const IDLE_BASE := {"gold": 600, "hero_exp": 400, "dust": 3, "gems": 3}
+const IDLE_PER_10_STAGES := {"gold": 1100, "hero_exp": 750, "dust": 5, "gems": 2}
 ## One gear drop per this much idle time.
 const IDLE_GEAR_EVERY_MS := 3 * 3600 * 1000
 
@@ -94,7 +93,7 @@ const OFFERS: Array[Dictionary] = [
 		"price_label": "$0.99", "reward": {"gems": 1200, "scrolls": 10, "gold": 50000, "hero_exp": 30000},
 		"limit": 1, "period": "once"},
 	{"id": "monthly_card", "name": "Moonlit Pass", "tag": "monthly",
-		"description": "300 gems now, then 100 gems every day for 30 days.",
+		"description": "300 gems now, then 100 more on each day you log in, for 30 days.",
 		"price_label": "$4.99", "reward": {"gems": 300}, "limit": 0, "period": "once"},
 	{"id": "scroll_bundle", "name": "Summoner's Satchel", "tag": "limited",
 		"description": "10 summon scrolls and 300 dust. Limit 3.",
@@ -144,10 +143,20 @@ static func shards_to_max(stars: int) -> int:
 ## Idle income per hour for this many cleared stages.
 static func idle_per_hour(cleared: int) -> Dictionary:
 	var out := {}
+	var c := maxi(cleared, 0)
 	for k in IDLE_BASE:
-		out[k] = int(IDLE_BASE[k]) + int(IDLE_PER_STAGE[k]) * cleared
-	out["gems"] = int(out["gems"]) + IDLE_GEMS_PER_5_STAGES * (cleared / 5)
+		out[k] = int(IDLE_BASE[k]) + int(IDLE_PER_10_STAGES[k]) * c / 10
 	return out
+
+
+## Dust that replaces one missing shard of a hero of this rarity.
+static func dust_per_shard(rarity: String) -> int:
+	return int(DUST_PER_SHARD.get(rarity, DUST_PER_SHARD.rare))
+
+
+## Dust granted for one shard a maxed hero of this rarity cannot use.
+static func dust_per_excess_shard(rarity: String) -> int:
+	return int(DUST_PER_EXCESS_SHARD.get(rarity, DUST_PER_EXCESS_SHARD.rare))
 
 
 ## Gear tier that drops from idle / stages at this progress.

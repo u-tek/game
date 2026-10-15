@@ -31,7 +31,7 @@ const STAGES: Array[Dictionary] = [
 	# ---------------- Chapter 1: Shattered Sanctum (celestial echoes)
 	{"name": "Broken Narthex", "lv": 1, "pw": 14000, "st": 1, "e": [["uriela", 0], ["nuriel", 2]]},
 	{"name": "Hall of Fallen Bells", "lv": 2, "pw": 11000, "st": 1, "e": [["uriela", 0], ["uriela", 1], ["nuriel", 3]]},
-	{"name": "Glass Garden", "lv": 3, "pw": 11500, "st": 1, "e": [["uriela", 0], ["liora", 2], ["nuriel", 3]]},
+	{"name": "Glass Garden", "lv": 3, "pw": 10250, "st": 1, "e": [["uriela", 0], ["liora", 2], ["nuriel", 3]]},
 	{"name": "Pillar Walk", "lv": 4, "pw": 13000, "st": 1, "e": [["uriela", 0], ["uriela", 1], ["nuriel", 2], ["liora", 3]]},
 	{"name": "The Gate Warden", "lv": 5, "pw": 10250, "st": 1, "boss": true, "e": [["cassiel", 0, "boss"], ["uriela", 1], ["nuriel", 2], ["uriela", 4]]},
 	{"name": "Ashen Cloister", "lv": 7, "pw": 11750, "st": 1, "e": [["cassiel", 0], ["uriela", 1], ["nuriel", 2], ["liora", 3], ["ashra", 4]]},
@@ -67,7 +67,7 @@ const STAGES: Array[Dictionary] = [
 ## the three starters, >= 90% of seeds; later stages: REFERENCE_TEAM, >= 70%). The stage "pw"
 ## values are solved against these by tests/tools/calibrate_stages.gd.
 const CALIBRATION_LEVEL: Array[int] = [
-	1, 2, 4, 3, 5, 7, 9, 11, 13, 16,
+	1, 1, 1, 3, 5, 7, 9, 11, 13, 16,
 	18, 20, 22, 24, 27, 28, 30, 32, 34, 37,
 	39, 41, 43, 45, 48, 50, 52, 55, 58, 62,
 ]

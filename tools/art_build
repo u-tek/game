@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# HaloRig build: hero SVG(s) -> part PNGs + rig.json + still/portrait, then Godot import.
+#   tools/art_build                 # every hero with assets/art/heroes/<id>/<id>.svg
+#   tools/art_build seraphiel       # one hero
+#   tools/art_build --check seraphiel   # validate only, write nothing
+# Exit 1 on validation errors. See docs/dev/halorig.md.
+cd "$(dirname "$0")/.." || exit 1
+NOISE='ALSA|audio_driver_alsa|All audio drivers failed|audio_server.cpp|init_output_device|^\s*at: (init_output_device|initialize) |^Godot Engine'
+out=$(timeout 300 tools/gd --headless --path . -s tools/art_build.gd -- "$@" 2>&1 | grep -vE "$NOISE")
+echo "$out"
+echo "$out" | grep -qE "SCRIPT ERROR|Parse Error|^ERROR" && exit 1
+for a in "$@"; do [ "$a" = "--check" ] && exit 0; done
+imp=$(timeout 300 tools/gd --headless --path . --import 2>&1 | grep -vE "$NOISE")
+if echo "$imp" | grep -qE "SCRIPT ERROR|Parse Error|ERROR:"; then
+  echo "IMPORT: errors"; echo "$imp" | grep -E -A2 "SCRIPT ERROR|Parse Error|ERROR:" | head -20; exit 1
+fi
+echo "IMPORT: ok"

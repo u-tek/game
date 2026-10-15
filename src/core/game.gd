@@ -782,7 +782,7 @@ func affordable_levels(hero_id: String) -> int:
 
 ## {shards, dust} needed for the next star, or {} at max stars.
 ## shards = total shards the star needs; dust = dust needed to cover missing shards
-## (DUST_PER_SHARD each). Also: shards_have, shards_used, dust_per_shard.
+## (dust_per_shard each, by rarity). Also: shards_have, shards_used, dust_per_shard.
 func star_up_cost(hero_id: String) -> Dictionary:
 	if not owns(hero_id):
 		return {}
@@ -792,8 +792,9 @@ func star_up_cost(hero_id: String) -> Dictionary:
 		return {}
 	var have: int = int(h.shards)
 	var missing := maxi(0, need - have)
-	return {"shards": need, "dust": missing * EconomyData.DUST_PER_SHARD, "shards_have": have,
-		"shards_used": mini(have, need), "dust_per_shard": EconomyData.DUST_PER_SHARD}
+	var per := EconomyData.dust_per_shard(str(hero_def(hero_id).rarity))
+	return {"shards": need, "dust": missing * per, "shards_have": have,
+		"shards_used": mini(have, need), "dust_per_shard": per}
 
 
 func can_star_up(hero_id: String) -> bool:
@@ -836,7 +837,7 @@ func _add_shards(hero_id: String, n: int) -> int:
 	var usable := maxi(0, EconomyData.shards_to_max(int(h.stars)) - int(h.shards))
 	var keep := mini(n, usable)
 	h.shards = int(h.shards) + keep
-	var dust := (n - keep) * EconomyData.DUST_PER_EXCESS_SHARD
+	var dust := (n - keep) * EconomyData.dust_per_excess_shard(str(hero_def(hero_id).rarity))
 	if dust > 0:
 		_add_currency("dust", dust)
 	return dust

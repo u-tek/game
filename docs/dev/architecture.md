@@ -184,10 +184,15 @@ Heroes are **rigged cutout characters**, not single images. Full spec: `docs/dev
 ### Hero SVG rules (Godot rasterizes SVGs with ThorVG)
 - **Allowed:** path, circle, ellipse, rect, polygon, g, transform, fill/stroke, opacity,
   linearGradient, radialGradient, clipPath. **Not allowed:** filters (blur/glow), CSS
-  `<style>`, text, images, masks, `mix-blend-mode`. Keep each file under ~40 KB.
-- Style: chibi anime (head ≈ 40% of height), large expressive eyes with two highlights,
-  clean dark outlines (#2a1d3d, not black, 4-6 px), cel shading (one shadow tone) plus soft
-  gradient highlights, faction palette. Original designs only.
+  `<style>`, text, images, masks, `mix-blend-mode`.
+- Canvas `viewBox="0 0 1024 2048"`, figure ~1900 px tall, feet near y=1990.
+- Style: **full-scale, professional anime/gacha character art. No chibi.** Idealized
+  proportions (about 7 to 7.5 heads tall), correct anatomy and hands, 3/4 contrapposto pose,
+  varied-weight lineart, 2-3 tone cel shading per material plus soft form gradients, rim
+  light, metal/gem highlights, detailed costume ornament, faction palette. Tasteful designs,
+  nothing explicit. Original designs only. Details: `docs/dev/art-style.md`.
+- In game: battle ~230-300 px tall, hero detail ~1100 px tall, cards use a
+  head-and-shoulders portrait.
 
 ## 7. Visual direction: "Twilight cathedral"
 

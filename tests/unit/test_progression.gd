@@ -103,7 +103,12 @@ func test_star_up_with_shards_and_dust(t: TestCtx) -> void:
 	g.state.heroes.uriela.shards = 5
 	var c: Dictionary = g.star_up_cost("uriela")
 	t.eq(c.shards, 20)
-	t.eq(c.dust, 15 * EconomyData.DUST_PER_SHARD)
+	t.eq(c.dust, 15 * EconomyData.dust_per_shard("rare"))
+	t.eq(c.dust_per_shard, 10, "rare shards cost 10 dust")
+	t.ok(EconomyData.dust_per_shard("legendary") > EconomyData.dust_per_shard("epic")
+		and EconomyData.dust_per_shard("epic") > EconomyData.dust_per_shard("rare"), "rarer shards cost more dust")
+	for r in ["rare", "epic", "legendary"]:
+		t.ok(EconomyData.dust_per_excess_shard(r) < EconomyData.dust_per_shard(r), "excess shards convert at a loss (%s)" % r)
 	g.dev_add("dust", 149)
 	t.eq(g.star_up("uriela").ok, false, "1 dust short")
 	g.dev_add("dust", 1)
