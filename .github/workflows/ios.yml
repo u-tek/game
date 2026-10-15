@@ -1,0 +1,93 @@
+# Builds an unsigned iOS .ipa for sideloading (Sideloadly / AltStore / etc. re-sign it).
+# Godot exports an Xcode project, Xcode compiles it without code signing, and the .app is
+# zipped into Payload/ -> HaloAndHorn.ipa, kept as a workflow artifact (not a public release).
+name: iOS build
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  GODOT_VERSION: 4.5.1
+  APP_NAME: HaloAndHorn
+
+jobs:
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot editor and iOS templates
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/godot
+            ~/Library/Application Support/Godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}-ios-v1
+
+      - name: Install Godot ${{ env.GODOT_VERSION }}
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p ~/godot && cd ~/godot
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          curl -fsSL -o editor.zip "$base/Godot_v${GODOT_VERSION}-stable_macos.universal.zip"
+          unzip -q editor.zip && rm editor.zip
+          curl -fsSL -o templates.tpz "$base/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          tdir="$HOME/Library/Application Support/Godot/export_templates/${GODOT_VERSION}.stable"
+          mkdir -p "$tdir"
+          unzip -q -j templates.tpz "templates/ios.zip" "templates/version.txt" -d "$tdir"
+          rm templates.tpz
+          ls -la "$tdir"
+
+      - name: Import project
+        run: |
+          GODOT=~/godot/Godot.app/Contents/MacOS/Godot
+          $GODOT --headless --path . --import || true
+          $GODOT --headless --path . --import
+
+      - name: Run unit tests
+        run: ~/godot/Godot.app/Contents/MacOS/Godot --headless --path . -s tests/run_tests.gd
+
+      - name: Export Xcode project
+        run: |
+          set -euo pipefail
+          mkdir -p build/ios
+          ~/godot/Godot.app/Contents/MacOS/Godot --headless --path . --export-release "iOS" "build/ios/${APP_NAME}.ipa"
+          ls -la build/ios
+
+      - name: Build unsigned app with Xcode
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          xcodebuild \
+            -project "build/ios/${APP_NAME}.xcodeproj" \
+            -scheme "${APP_NAME}" \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
+            -derivedDataPath build/dd \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" PROVISIONING_PROFILE_SPECIFIER="" \
+            build | tail -n 40
+
+      - name: Package IPA
+        run: |
+          set -euo pipefail
+          app=$(find build/dd/Build/Products -maxdepth 2 -name "*.app" -type d | head -n 1)
+          echo "App bundle: $app"
+          ls -la "$app"
+          rm -rf Payload && mkdir Payload
+          cp -R "$app" Payload/
+          zip -qry "${APP_NAME}.ipa" Payload
+          ls -la "${APP_NAME}.ipa"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-ipa
+          path: ${{ env.APP_NAME }}.ipa
+          retention-days: 14
