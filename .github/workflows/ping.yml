@@ -1,7 +1,11 @@
 name: ping
 on: workflow_dispatch
 jobs:
-  ping:
-    runs-on: macos-latest
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - run: uname -a
+  mac:
+    runs-on: macos-15
     steps:
       - run: sw_vers && xcodebuild -version
