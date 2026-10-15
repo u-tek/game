@@ -99,6 +99,10 @@ func test_star_up_with_shards_and_dust(t: TestCtx) -> void:
 	t.eq(int(g.hero("uriela").stars), 2)
 	t.eq(int(g.hero("uriela").shards), 0)
 	t.eq(g.max_level("uriela"), 60, "cap rises with stars")
+	t.ok(g.upgrade_ready("uriela"), "starting gold and EXP afford a level")
+	g.state.currencies.gold = 0
+	t.eq(g.upgrade_ready("uriela"), false, "no gold, no shards: nothing to upgrade")
+	g.state.currencies.gold = 4000
 	# 2 -> 3 needs 20 shards; with 5 shards the rest is paid in dust at 10 per shard.
 	g.state.heroes.uriela.shards = 5
 	var c: Dictionary = g.star_up_cost("uriela")
@@ -209,6 +213,18 @@ func test_gear_equip_and_auto(t: TestCtx) -> void:
 	t.eq(g.hero("uriela").gear.has("weapon"), false)
 	t.eq(g.unequip("kessa", "weapon").ok, true)
 	t.eq(g.gear_item(w3).equipped_by, "")
+	# A formation hero's auto-equip takes gear off benched heroes, never off teammates.
+	g._add_hero("cassiel")
+	g.equip("cassiel", w3)
+	g.set_formation(["uriela", "kessa", "lucen", "", ""])
+	g.auto_equip("uriela")
+	t.eq(g.gear_item(w3).equipped_by, "uriela", "benched Cassiel's weapon moves to Uriela")
+	g.auto_equip("kessa")
+	t.eq(g.gear_item(w3).equipped_by, "uriela", "teammates keep their gear")
+	t.eq(g.gear_item(w1).equipped_by, "kessa", "the loose weapon goes to Kessa")
+	g.auto_equip("cassiel")
+	t.eq(g.gear_item(w3).equipped_by, "uriela", "a benched hero never takes from the team")
+	g.unequip("kessa", "weapon")
 	var s: Dictionary = g.salvage_gear(w1)
 	t.ok(s.ok)
 	t.ok(int(s.value.gold) > 0)

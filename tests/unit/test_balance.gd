@@ -131,3 +131,24 @@ func test_battle_setup_shape(t: TestCtx) -> void:
 	t.ok(s.has("seed"))
 	t.ok(g.stage_battle_setup(4).seed != s.seed, "each attempt gets a new seed")
 	g.free()
+
+
+## Pacing guard: an efficient free player (4 short sessions a day, spends everything well)
+## clears about chapter 1 on day 1 and does not run through chapter 2 on day 2.
+func test_free_player_pacing(t: TestCtx) -> void:
+	var bot = load("res://tests/tools/pacing_bot.gd").new()
+	bot.start()
+	var after_first := 0
+	var by_day := []
+	for day in 2:
+		for s in 4:
+			bot.goto_session(day, s)
+			bot.economy(day == 0 and s == 0)
+			bot.push(2)
+			if day == 0 and s == 0:
+				after_first = bot.g.cleared_count()
+		by_day.append(bot.g.cleared_count())
+	t.ok(after_first >= 4 and after_first <= 8, "first session clears %d stages (want 4-8: past the starters, around the 1-5 boss)" % after_first)
+	t.ok(by_day[0] >= 7 and by_day[0] <= 13, "day 1 ends with %d stages cleared (want about chapter 1)" % by_day[0])
+	t.ok(by_day[1] >= 11 and by_day[1] <= 19, "day 2 ends with %d stages cleared (chapter 2 takes days)" % by_day[1])
+	bot.finish()

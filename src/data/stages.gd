@@ -1,7 +1,8 @@
 class_name StageData
 ## Campaign: 3 chapters x 10 stages. Enemies are "echoes" of roster heroes. Stages 5 and
-## 10 of every chapter are boss stages. Owned by core logic; tuned with
-## tests/balance_report.gd (see docs/dev/economy-v1.md).
+## 10 of every chapter are boss stages. Owned by core logic; difficulty is solved by
+## tests/tools/calibrate_stages.gd and checked by tests/tools/playthrough.gd (see
+## docs/dev/economy-v1.md).
 ##
 ## Stage: {index, id "1-5", chapter (0-based chapter index), name, enemies [{hero_id, level,
 ##   stars, slot, is_boss, echo_bp}], recommended_power, enemy_power, first_clear_reward,
@@ -24,59 +25,58 @@ const CHAPTERS: Array[Dictionary] = [
 ]
 
 ## Per stage: name, enemy level (lv) and stars (st), echo strength (pw, basis points of the
-## ECHO_STAT_BP baseline, solved by tests/tools/calibrate_stages.gd so the difficulty curve is
-## smooth while displayed levels rise steadily), enemies [hero_id, slot, opts...].
+## ECHO_STAT_BP baseline), recommended power (rec), enemies [hero_id, slot, opts...].
+## lv, pw and rec come from tests/tools/calibrate_stages.gd, which follows pacing bots (an
+## efficient free player) along a target timeline: chapter 1 on day 1, chapter 2 on days 2-4,
+## chapter 3 on days 5-10. See docs/dev/economy-v1.md.
 ## Enemy opts: "boss" marks the boss; {"lv": +n, "st": n} adjust level / stars.
 const STAGES: Array[Dictionary] = [
 	# ---------------- Chapter 1: Shattered Sanctum (celestial echoes)
-	{"name": "Broken Narthex", "lv": 1, "pw": 14000, "st": 1, "e": [["uriela", 0], ["nuriel", 2]]},
-	{"name": "Hall of Fallen Bells", "lv": 2, "pw": 11000, "st": 1, "e": [["uriela", 0], ["uriela", 1], ["nuriel", 3]]},
-	{"name": "Glass Garden", "lv": 3, "pw": 10250, "st": 1, "e": [["uriela", 0], ["liora", 2], ["nuriel", 3]]},
-	{"name": "Pillar Walk", "lv": 4, "pw": 13000, "st": 1, "e": [["uriela", 0], ["uriela", 1], ["nuriel", 2], ["liora", 3]]},
-	{"name": "The Gate Warden", "lv": 5, "pw": 10250, "st": 1, "boss": true, "e": [["cassiel", 0, "boss"], ["uriela", 1], ["nuriel", 2], ["uriela", 4]]},
-	{"name": "Ashen Cloister", "lv": 7, "pw": 11750, "st": 1, "e": [["cassiel", 0], ["uriela", 1], ["nuriel", 2], ["liora", 3], ["ashra", 4]]},
-	{"name": "Reliquary Stair", "lv": 8, "pw": 11500, "st": 2, "e": [["uriela", 0], ["cassiel", 1], ["nuriel", 2], ["kessa", 3], ["liora", 4]]},
-	{"name": "Choir Loft", "lv": 10, "pw": 12500, "st": 2, "e": [["cassiel", 0], ["uriela", 1], ["liora", 2], ["nuriel", 3], ["imra", 4]]},
-	{"name": "Bell Tower Ruin", "lv": 11, "pw": 11500, "st": 2, "e": [["cassiel", 0], ["uriela", 1], ["nuriel", 2], ["liora", 3], ["vesper", 4]]},
-	{"name": "The Choir Unsung", "lv": 13, "pw": 9500, "st": 2, "boss": true, "e": [["cassiel", 0], ["uriela", 1], ["seraphiel", 2, "boss"], ["liora", 3], ["nuriel", 4]]},
+	{"name": "Broken Narthex", "lv": 1, "pw": 14000, "rec": 1322, "st": 1, "e": [["uriela", 0], ["nuriel", 2]]},
+	{"name": "Hall of Fallen Bells", "lv": 2, "pw": 10750, "rec": 1322, "st": 1, "e": [["uriela", 0], ["uriela", 1], ["nuriel", 3]]},
+	{"name": "Glass Garden", "lv": 3, "pw": 10250, "rec": 1322, "st": 1, "e": [["uriela", 0], ["liora", 2], ["nuriel", 3]]},
+	{"name": "Pillar Walk", "lv": 6, "pw": 17250, "rec": 3477, "st": 1, "e": [["uriela", 0], ["uriela", 1], ["nuriel", 2], ["liora", 3]]},
+	{"name": "The Gate Warden", "lv": 8, "pw": 11250, "rec": 3837, "st": 1, "boss": true, "e": [["cassiel", 0, "boss"], ["uriela", 1], ["nuriel", 2], ["uriela", 4]]},
+	{"name": "Ashen Cloister", "lv": 15, "pw": 14000, "rec": 5309, "st": 1, "e": [["cassiel", 0], ["uriela", 1], ["nuriel", 2], ["liora", 3], ["ashra", 4]]},
+	{"name": "Reliquary Stair", "lv": 16, "pw": 12000, "rec": 5385, "st": 2, "e": [["uriela", 0], ["cassiel", 1], ["nuriel", 2], ["kessa", 3], ["liora", 4]]},
+	{"name": "Choir Loft", "lv": 18, "pw": 14250, "rec": 6452, "st": 2, "e": [["cassiel", 0], ["uriela", 1], ["liora", 2], ["nuriel", 3], ["imra", 4]]},
+	{"name": "Bell Tower Ruin", "lv": 19, "pw": 13500, "rec": 6531, "st": 2, "e": [["cassiel", 0], ["uriela", 1], ["nuriel", 2], ["liora", 3], ["vesper", 4]]},
+	{"name": "The Choir Unsung", "lv": 20, "pw": 10000, "rec": 6968, "st": 2, "boss": true, "e": [["cassiel", 0], ["uriela", 1], ["seraphiel", 2, "boss"], ["liora", 3], ["nuriel", 4]]},
 	# ---------------- Chapter 2: Ember Wastes (infernal echoes)
-	{"name": "Cinder Road", "lv": 15, "pw": 10750, "st": 2, "e": [["brakka", 0], ["kessa", 1], ["imra", 2], ["vesper", 3], ["kessa", 4]]},
-	{"name": "Sulfur Springs", "lv": 17, "pw": 10000, "st": 2, "e": [["brakka", 0], ["mordessa", 1, {"st": 2}], ["imra", 2], ["kessa", 3], ["vesper", 4]]},
-	{"name": "Molten Ford", "lv": 19, "pw": 12250, "st": 2, "e": [["brakka", 0], ["kessa", 1], ["vesper", 2], ["imra", 3], ["ashra", 4]]},
-	{"name": "Chainworks", "lv": 21, "pw": 10500, "st": 2, "e": [["brakka", 0], ["orrin", 1], ["vesper", 2], ["kessa", 3], ["imra", 4]]},
-	{"name": "Brimstone Bulwark", "lv": 23, "pw": 7750, "st": 2, "boss": true, "e": [["brakka", 0, "boss"], ["kessa", 1], ["vesper", 2], ["imra", 3], ["kessa", 4]]},
-	{"name": "Ashfall Market", "lv": 24, "pw": 9250, "st": 3, "e": [["brakka", 0], ["uriela", 1], ["vesper", 2], ["imra", 3], ["kessa", 4]]},
-	{"name": "Lantern Bazaar", "lv": 26, "pw": 11000, "st": 3, "e": [["brakka", 0], ["kessa", 1], ["imra", 2], ["vesper", 3], ["liora", 4]]},
-	{"name": "Obsidian Steps", "lv": 28, "pw": 9000, "st": 3, "e": [["brakka", 0], ["cassiel", 1], ["vesper", 2], ["kessa", 3], ["imra", 4]]},
-	{"name": "Furnace Gate", "lv": 30, "pw": 8500, "st": 3, "e": [["brakka", 0], ["mordessa", 1], ["vesper", 2], ["imra", 3], ["kessa", 4]]},
-	{"name": "Throne of the Ninth Furnace", "lv": 32, "pw": 9250, "st": 3, "boss": true, "e": [["brakka", 0], ["kessa", 1], ["mordessa", 2, "boss"], ["vesper", 3], ["imra", 4]]},
+	{"name": "Cinder Road", "lv": 24, "pw": 11750, "rec": 8382, "st": 2, "e": [["brakka", 0], ["kessa", 1], ["imra", 2], ["vesper", 3], ["kessa", 4]]},
+	{"name": "Sulfur Springs", "lv": 26, "pw": 11500, "rec": 8801, "st": 2, "e": [["brakka", 0], ["mordessa", 1, {"st": 2}], ["imra", 2], ["kessa", 3], ["vesper", 4]]},
+	{"name": "Molten Ford", "lv": 28, "pw": 13500, "rec": 9608, "st": 2, "e": [["brakka", 0], ["kessa", 1], ["vesper", 2], ["imra", 3], ["ashra", 4]]},
+	{"name": "Chainworks", "lv": 29, "pw": 12750, "rec": 10014, "st": 2, "e": [["brakka", 0], ["orrin", 1], ["vesper", 2], ["kessa", 3], ["imra", 4]]},
+	{"name": "Brimstone Bulwark", "lv": 32, "pw": 9500, "rec": 11308, "st": 2, "boss": true, "e": [["brakka", 0, "boss"], ["kessa", 1], ["vesper", 2], ["imra", 3], ["kessa", 4]]},
+	{"name": "Ashfall Market", "lv": 34, "pw": 13750, "rec": 11828, "st": 3, "e": [["brakka", 0], ["uriela", 1], ["vesper", 2], ["imra", 3], ["kessa", 4]]},
+	{"name": "Lantern Bazaar", "lv": 35, "pw": 12250, "rec": 12230, "st": 3, "e": [["brakka", 0], ["kessa", 1], ["imra", 2], ["vesper", 3], ["liora", 4]]},
+	{"name": "Obsidian Steps", "lv": 36, "pw": 12500, "rec": 12568, "st": 3, "e": [["brakka", 0], ["cassiel", 1], ["vesper", 2], ["kessa", 3], ["imra", 4]]},
+	{"name": "Furnace Gate", "lv": 39, "pw": 12750, "rec": 13413, "st": 3, "e": [["brakka", 0], ["mordessa", 1], ["vesper", 2], ["imra", 3], ["kessa", 4]]},
+	{"name": "Throne of the Ninth Furnace", "lv": 41, "pw": 11500, "rec": 14664, "st": 3, "boss": true, "e": [["brakka", 0], ["kessa", 1], ["mordessa", 2, "boss"], ["vesper", 3], ["imra", 4]]},
 	# ---------------- Chapter 3: Twilight Abyss (fallen echoes)
-	{"name": "Dusk Shore", "lv": 34, "pw": 11500, "st": 3, "e": [["orrin", 0], ["lucen", 1], ["ashra", 2], ["sable", 3], ["lucen", 4]]},
-	{"name": "Chapel of Ghosts", "lv": 36, "pw": 10000, "st": 3, "e": [["orrin", 0], ["lucen", 1], ["sable", 2], ["ashra", 3], ["noctaire", 4, {"st": 3}]]},
-	{"name": "Broken Oath Bridge", "lv": 38, "pw": 11750, "st": 3, "e": [["orrin", 0], ["brakka", 1], ["ashra", 2], ["sable", 3], ["lucen", 4]]},
-	{"name": "Hollow Choir", "lv": 40, "pw": 11000, "st": 3, "e": [["orrin", 0], ["lucen", 1], ["seraphiel", 2], ["sable", 3], ["ashra", 4]]},
-	{"name": "The Chained Gate", "lv": 42, "pw": 8250, "st": 3, "boss": true, "e": [["orrin", 0, "boss"], ["lucen", 1], ["ashra", 2], ["sable", 3], ["noctaire", 4]]},
-	{"name": "Ash Witch's Hollow", "lv": 44, "pw": 11250, "st": 4, "e": [["orrin", 0], ["lucen", 1], ["ashra", 2], ["ashra", 3], ["sable", 4]]},
-	{"name": "Mirror Lake", "lv": 46, "pw": 8000, "st": 4, "e": [["orrin", 0], ["cassiel", 1], ["lucen", 2], ["sable", 3], ["noctaire", 4]]},
-	{"name": "Feather Graveyard", "lv": 48, "pw": 8500, "st": 4, "e": [["orrin", 0], ["lucen", 1], ["vesper", 2], ["sable", 3], ["noctaire", 4]]},
-	{"name": "Eclipse Stair", "lv": 50, "pw": 8250, "st": 4, "e": [["orrin", 0], ["mordessa", 1], ["ashra", 2], ["sable", 3], ["noctaire", 4]]},
-	{"name": "The Last Order", "lv": 53, "pw": 8250, "st": 4, "boss": true, "e": [["orrin", 0], ["lucen", 1], ["noctaire", 2, "boss"], ["sable", 3], ["ashra", 4]]},
+	{"name": "Dusk Shore", "lv": 44, "pw": 13750, "rec": 15963, "st": 3, "e": [["orrin", 0], ["lucen", 1], ["ashra", 2], ["sable", 3], ["lucen", 4]]},
+	{"name": "Chapel of Ghosts", "lv": 46, "pw": 12250, "rec": 16745, "st": 3, "e": [["orrin", 0], ["lucen", 1], ["sable", 2], ["ashra", 3], ["noctaire", 4, {"st": 3}]]},
+	{"name": "Broken Oath Bridge", "lv": 49, "pw": 14500, "rec": 18267, "st": 3, "e": [["orrin", 0], ["brakka", 1], ["ashra", 2], ["sable", 3], ["lucen", 4]]},
+	{"name": "Hollow Choir", "lv": 50, "pw": 14250, "rec": 19115, "st": 3, "e": [["orrin", 0], ["lucen", 1], ["seraphiel", 2], ["sable", 3], ["ashra", 4]]},
+	{"name": "The Chained Gate", "lv": 53, "pw": 12500, "rec": 20134, "st": 3, "boss": true, "e": [["orrin", 0, "boss"], ["lucen", 1], ["ashra", 2], ["sable", 3], ["noctaire", 4]]},
+	{"name": "Ash Witch's Hollow", "lv": 55, "pw": 13500, "rec": 20911, "st": 4, "e": [["orrin", 0], ["lucen", 1], ["ashra", 2], ["ashra", 3], ["sable", 4]]},
+	{"name": "Mirror Lake", "lv": 57, "pw": 13000, "rec": 21358, "st": 4, "e": [["orrin", 0], ["cassiel", 1], ["lucen", 2], ["sable", 3], ["noctaire", 4]]},
+	{"name": "Feather Graveyard", "lv": 59, "pw": 13000, "rec": 23095, "st": 4, "e": [["orrin", 0], ["lucen", 1], ["vesper", 2], ["sable", 3], ["noctaire", 4]]},
+	{"name": "Eclipse Stair", "lv": 61, "pw": 12500, "rec": 24522, "st": 4, "e": [["orrin", 0], ["mordessa", 1], ["ashra", 2], ["sable", 3], ["noctaire", 4]]},
+	{"name": "The Last Order", "lv": 64, "pw": 11750, "rec": 26514, "st": 4, "boss": true, "e": [["orrin", 0], ["lucen", 1], ["noctaire", 2, "boss"], ["sable", 3], ["ashra", 4]]},
 ]
 
-## Uniform hero level at which the reference team wins each stage reliably (stages 1-1..1-3:
-## the three starters, >= 90% of seeds; later stages: REFERENCE_TEAM, >= 70%). The stage "pw"
-## values are solved against these by tests/tools/calibrate_stages.gd.
-const CALIBRATION_LEVEL: Array[int] = [
-	1, 1, 1, 3, 5, 7, 9, 11, 13, 16,
-	18, 20, 22, 24, 27, 28, 30, 32, 34, 37,
-	39, 41, 43, 45, 48, 50, 52, 55, 58, 62,
-]
+## Stages 1-1..1-3 are tuned for the three starter Rares at level 1, before any upgrade.
 const STARTER_TEAM := {"uriela": 1, "lucen": 1, "kessa": 1}
-## Three starter Rares plus two Epics, no gear: what a player has after the first summons.
-const REFERENCE_TEAM := {"uriela": 1, "lucen": 1, "kessa": 1, "brakka": 2, "liora": 2}
 const STARTER_STAGES := 3
 
 const STAGES_PER_CHAPTER := 10
+## First-clear gold / hero EXP: base + step * stage index. Kept well below what the next
+## stage's levels cost, so idle income (not the campaign itself) paces progress.
+const FIRST_CLEAR_GOLD_BASE := 500
+const FIRST_CLEAR_GOLD_STEP := 150
+const FIRST_CLEAR_EXP_BASE := 300
+const FIRST_CLEAR_EXP_STEP := 90
 ## Echoes are hollow copies: HP, ATK and DEF at this fraction of a real hero's.
 const ECHO_STAT_BP := 7500
 
@@ -161,15 +161,12 @@ static func echo_stats(hero_id: String, level: int, stars: int, echo_bp: int = E
 	return st
 
 
-## Team power that wins this stage reliably: the reference team's power at the calibrated
-## level (so it already accounts for the enemy composition, bosses and faction bonus).
+## Team power (as Game.team_power() shows it, gear included) that wins this stage on the
+## intended schedule. Never drops from one stage to the next.
 static func recommended_power(index: int) -> int:
-	var team: Dictionary = STARTER_TEAM if index < STARTER_STAGES else REFERENCE_TEAM
-	var lv: int = CALIBRATION_LEVEL[clampi(index, 0, CALIBRATION_LEVEL.size() - 1)]
-	var total := 0
-	for id in team:
-		total += StatCalc.power(StatCalc.stats(id, lv, int(team[id])))
-	return total
+	if index < 0 or index >= STAGES.size():
+		return 0
+	return int(STAGES[index].get("rec", 0))
 
 
 ## Raw enemy team power (faction and boss multipliers included), for reference.
@@ -205,8 +202,8 @@ static func _hint(faction: String) -> String:
 static func _first_clear_reward(i: int, is_boss: bool) -> Dictionary:
 	var local := i % STAGES_PER_CHAPTER
 	var r := {
-		"gold": 1500 + 450 * i,
-		"hero_exp": 900 + 260 * i,
+		"gold": FIRST_CLEAR_GOLD_BASE + FIRST_CLEAR_GOLD_STEP * i,
+		"hero_exp": FIRST_CLEAR_EXP_BASE + FIRST_CLEAR_EXP_STEP * i,
 	}
 	var tier := EconomyData.gear_tier_for(i)
 	if local == 1 or local == 6:

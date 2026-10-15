@@ -4,7 +4,8 @@ extends RefCounted
 ##
 ##   var sim := BattleSim.new(setup)   # setup = {allies: [UnitSetup], enemies: [UnitSetup], seed}
 ##   while not sim.is_over(): events = sim.step()   # one 100 ms tick
-##   sim.run_to_end()                                # skip
+##   sim.run_to_end()                                # skip: same rules and RNG, no events built
+## Deterministic: integer math only and our own SeededRng, so a seed replays exactly.
 ##
 ## Rules in short:
 ## - Attack interval = 100000 / spd ms (spd 100 = 1.0 s). Stunned units do nothing.
@@ -162,10 +163,7 @@ func run_to_end() -> Dictionary:
 		step()
 		guard -= 1
 	_rec = true
-	for u in units:
-		var ex: Dictionary = u.exp
-		for k in ex:
-			u.statuses[k] = int(ex[k]) - t_ms
+	_refresh_remaining()
 	return outcome()
 
 
@@ -295,34 +293,43 @@ func _start_of_battle() -> void:
 
 # ---------------------------------------------------------------- tick phases
 
-## Once a second: burn and regen ticks, and remaining times refresh. Every tick: expiries.
+## Once a second: burn and regen ticks. Every tick: expiries, and (while events are
+## recorded, i.e. someone is watching) the remaining time of every status.
 func _tick_statuses() -> void:
 	var second := t_ms % 1000 == 0
-	if not second and t_ms < _min_exp:
-		return
+	if second or t_ms >= _min_exp:
+		for u in units:
+			var sts: Dictionary = u.statuses
+			if sts.is_empty():
+				continue
+			if second:
+				if sts.has("burn"):
+					var src: Dictionary = _by_uid.get(u.dot_src.get("burn", ""), u)
+					_apply_damage(src, u, maxi(1, int(u.dots.get("burn", 1))), false, false, false, true)
+					if not u.alive:
+						continue
+				if sts.has("regen"):
+					var hsrc: Dictionary = _by_uid.get(u.dot_src.get("regen", ""), u)
+					_heal(hsrc, u, int(u.dots.get("regen", 0)))
+			if t_ms >= int(u.next_exp):
+				_expire_statuses(u)
+		var m := NO_EXPIRY
+		for u in units:
+			m = mini(m, int(u.next_exp))
+		_min_exp = m
+	if _rec:
+		_refresh_remaining()
+
+
+## statuses {name: remaining_ms} from the absolute expiry times.
+func _refresh_remaining() -> void:
 	for u in units:
 		var sts: Dictionary = u.statuses
 		if sts.is_empty():
 			continue
-		if second:
-			if sts.has("burn"):
-				var src: Dictionary = _by_uid.get(u.dot_src.get("burn", ""), u)
-				_apply_damage(src, u, maxi(1, int(u.dots.get("burn", 1))), false, false, false, true)
-				if not u.alive:
-					continue
-			if sts.has("regen"):
-				var hsrc: Dictionary = _by_uid.get(u.dot_src.get("regen", ""), u)
-				_heal(hsrc, u, int(u.dots.get("regen", 0)))
-		if t_ms >= int(u.next_exp):
-			_expire_statuses(u)
-		elif second and _rec:
-			var ex: Dictionary = u.exp
-			for k in sts:
-				sts[k] = int(ex[k]) - t_ms
-	var m := NO_EXPIRY
-	for u in units:
-		m = mini(m, int(u.next_exp))
-	_min_exp = m
+		var ex: Dictionary = u.exp
+		for k in sts:
+			sts[k] = int(ex[k]) - t_ms
 
 
 ## Drops finished statuses and refreshes remaining times.

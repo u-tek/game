@@ -94,10 +94,10 @@ const KITS := {
 		"base_stats": {"hp": 1790, "atk": 92, "def": 48, "spd": 104, "crit": 1500},
 		"ultimate": {
 			"id": "sunlance", "name": "Sunlance",
-			"description": "Hurls her blazing spear: 360% ATK to her target and breaks its armor, -25% DEF for 5 s.",
+			"description": "Hurls her blazing spear: 360% ATK to her target and breaks its armor, -40% DEF for 6 s.",
 			"effects": [
 				{"type": "damage", "target": "enemy_target", "mult_bp": 36000},
-				{"type": "status", "target": "enemy_target", "status": "def_down", "duration_ms": 5000, "value_bp": 2500},
+				{"type": "status", "target": "enemy_target", "status": "def_down", "duration_ms": 6000, "value_bp": 4000},
 			],
 		},
 		"passives": [
@@ -191,9 +191,9 @@ const KITS := {
 		"base_stats": {"hp": 1600, "atk": 68, "def": 44, "spd": 106, "crit": 500},
 		"ultimate": {
 			"id": "lantern_pact", "name": "Lantern Pact",
-			"description": "Strikes a deal with the whole team: all allies +25% ATK for 5 s, and every other ally gains 100 energy.",
+			"description": "Strikes a deal with the whole team: all allies +20% ATK for 5 s, and every other ally gains 100 energy.",
 			"effects": [
-				{"type": "status", "target": "ally_all", "status": "atk_up", "duration_ms": 5000, "value_bp": 2500},
+				{"type": "status", "target": "ally_all", "status": "atk_up", "duration_ms": 5000, "value_bp": 2000},
 				{"type": "energy", "target": "ally_others", "amount": 100},
 			],
 		},
@@ -267,16 +267,16 @@ const KITS := {
 		"base_stats": {"hp": 1820, "atk": 80, "def": 50, "spd": 100, "crit": 500},
 		"ultimate": {
 			"id": "dusk_requiem", "name": "Dusk Requiem",
-			"description": "Swings the censer for the lost: all enemies -35% DEF for 8 s, and all allies heal for 170% ATK.",
+			"description": "Swings the censer for the lost: all enemies -50% DEF for 8 s, and all allies heal for 200% ATK.",
 			"effects": [
-				{"type": "status", "target": "enemy_all", "status": "def_down", "duration_ms": 8000, "value_bp": 3500},
-				{"type": "heal", "target": "ally_all", "mult_bp": 17000},
+				{"type": "status", "target": "enemy_all", "status": "def_down", "duration_ms": 8000, "value_bp": 5000},
+				{"type": "heal", "target": "ally_all", "mult_bp": 20000},
 			],
 		},
 		"passives": [
 			{"id": "censer_smoke", "name": "Censer Smoke", "unlock_stars": 3,
-				"description": "Basic attacks Expose the target: -15% DEF for 3 s.",
-				"effects": [{"type": "on_hit_status", "status": "def_down", "chance_bp": 10000, "duration_ms": 3000, "value_bp": 1500}]},
+				"description": "Basic attacks Expose the target: -25% DEF for 3 s.",
+				"effects": [{"type": "on_hit_status", "status": "def_down", "chance_bp": 10000, "duration_ms": 3000, "value_bp": 2500}]},
 			{"id": "vespers", "name": "Vespers", "unlock_stars": 5,
 				"description": "Each basic attack also heals the most wounded ally for 70% ATK.",
 				"effects": [{"type": "on_attack_heal", "mult_bp": 7000}]},

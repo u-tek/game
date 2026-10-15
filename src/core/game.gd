@@ -811,6 +811,16 @@ func affordable_levels(hero_id: String) -> int:
 	return n
 
 
+## True when the hero can level up or star up right now (for "upgrade ready" badges).
+func upgrade_ready(hero_id: String) -> bool:
+	if not owns(hero_id):
+		return false
+	var c := level_up_cost(hero_id)
+	if not c.is_empty() and _can_afford(c):
+		return true
+	return can_star_up(hero_id)
+
+
 ## {shards, dust} needed for the next star, or {} at max stars.
 ## shards = total shards the star needs; dust = dust needed to cover missing shards
 ## (dust_per_shard each, by rarity). Also: shards_have, shards_used, dust_per_shard.
@@ -1069,9 +1079,13 @@ func _equip_raw(hero_id: String, it: Dictionary) -> void:
 	it.equipped_by = hero_id
 
 
+## Best item per slot from loose gear and, for a hero in the formation, from heroes on the
+## bench (never from another formation hero).
 func _auto_equip_raw(hero_id: String) -> bool:
 	if not owns(hero_id):
 		return false
+	var team := formation()
+	var may_take := team.has(hero_id)
 	var did := false
 	var hg: Dictionary = state.heroes[hero_id].gear
 	for slot in EconomyData.GEAR_SLOTS:
@@ -1079,7 +1093,10 @@ func _auto_equip_raw(hero_id: String) -> bool:
 		var best := cur
 		var best_score := StatCalc.gear_score(cur) if not cur.is_empty() else -1
 		for it in state.gear:
-			if it.slot != slot or str(it.equipped_by) != "":
+			var owner := str(it.equipped_by)
+			if it.slot != slot or owner == hero_id:
+				continue
+			if owner != "" and (not may_take or team.has(owner)):
 				continue
 			var sc := StatCalc.gear_score(it)
 			if sc > best_score:

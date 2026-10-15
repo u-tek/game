@@ -319,7 +319,8 @@ def crescent(d, dx, dy, fill, op=None):
     return a + "/>"
 
 
-def cel(doc, d, base, tones=(), hi=None, rim=None, over=(), lw=4.5, outline=OUTLINE, lines=(), grad=None, under=""):
+def cel(doc, d, base, tones=(), hi=None, rim=None, over=(), lw=4.5, outline=OUTLINE, lines=(), grad=None, under="",
+        edge=None):
     """Cel-shaded shape.
     base: fill colour (or url(#gradient)); grad: optional (fill, opacity) overlay inside.
     tones: [(colour, dx, dy[, opacity])] shadow crescents, light toward (+dx, -dy) = upper right.
@@ -342,9 +343,17 @@ def cel(doc, d, base, tones=(), hi=None, rim=None, over=(), lw=4.5, outline=OUTL
         cid = doc.clip(d)
         out.append(group("".join(inner), clip=cid))
     if lw and outline:
-        out.append(path(d, "none", outline, lw))
+        # edge: optional open path(s) to stroke instead of the whole outline, so the
+        # overlapping joint caps of limbs stay unlined (no doll-joint seams)
+        out.append(path(edge if edge else d, "none", outline, lw, cap="round" if edge else None))
     out.extend(lines)
     return "".join(out)
+
+
+def underlay(ds, w, color=OUTLINE):
+    """Thick strokes under a group of overlapping shapes: after the fills are drawn on top,
+    only the union's outer silhouette keeps a line (w/2 wide)."""
+    return "".join('<path d="%s" fill="none" stroke="%s" stroke-width="%s" stroke-linejoin="round"/>' % (dd, color, f(w)) for dd in ds)
 
 
 def clipped(doc, clip_d, body):
