@@ -57,8 +57,8 @@ const GEAR_ITEM_NAMES := {
 ## Flat stats per slot at each tier (index = tier).
 const GEAR_STATS := {
 	"weapon": {"atk": [0, 16, 32, 56, 90, 140]},
-	"armor": {"hp": [0, 350, 700, 1200, 1900, 2880], "def": [0, 8, 16, 28, 44, 66]},
-	"helm": {"hp": [0, 280, 550, 950, 1500, 2250], "def": [0, 6, 12, 20, 32, 48]},
+	"armor": {"hp": [0, 270, 530, 910, 1440, 2190], "def": [0, 8, 16, 28, 44, 66]},
+	"helm": {"hp": [0, 210, 420, 720, 1140, 1710], "def": [0, 6, 12, 20, 32, 48]},
 	"charm": {"crit": [0, 300, 500, 800, 1100, 1500], "spd": [0, 3, 5, 8, 11, 15], "atk": [0, 6, 12, 22, 34, 52]},
 }
 ## Unequipped gear kept before the weakest pieces are salvaged automatically.

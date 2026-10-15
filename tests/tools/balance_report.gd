@@ -76,25 +76,37 @@ func afford(i: int, n: int) -> int:
 
 
 func min_level(g, prof: Dictionary, stage_i: int) -> Dictionary:
-	var battles := 0
-	for lv in range(1, 121):
-		if lv > 1 and lv % 2 == 0 and lv > 20:
-			continue
-		setup_team(g, prof, lv)
-		var wins := 0
-		var dur := 0
-		for s in seeds:
-			var setup: Dictionary = g.stage_battle_setup(stage_i)
-			setup.seed = 1000 + s * 7919
-			var sim := BattleSim.new(setup)
-			var out := sim.run_to_end()
-			battles += 1
-			if out.victory:
-				wins += 1
-			dur += int(out.duration_ms)
-		if wins * 10 >= seeds * 7:
-			return {"level": lv, "power": g.team_power(), "dur": dur / seeds, "battles": battles}
-	return {"level": -1, "power": 0, "dur": 0, "battles": battles}
+	var battles := [0]
+	var lo := 1
+	var hi := 140
+	var best := {}
+	if not wins_at(g, prof, stage_i, hi, battles).ok:
+		return {"level": -1, "power": 0, "dur": 0, "battles": battles[0]}
+	while lo < hi:
+		var mid := (lo + hi) / 2
+		var r := wins_at(g, prof, stage_i, mid, battles)
+		if r.ok:
+			hi = mid
+		else:
+			lo = mid + 1
+	best = wins_at(g, prof, stage_i, lo, battles)
+	return {"level": lo, "power": best.power, "dur": best.dur, "battles": battles[0]}
+
+
+func wins_at(g, prof: Dictionary, stage_i: int, lv: int, battles: Array) -> Dictionary:
+	setup_team(g, prof, lv)
+	var wins := 0
+	var dur := 0
+	for s in seeds:
+		var setup: Dictionary = g.stage_battle_setup(stage_i)
+		setup.seed = 1000 + s * 7919
+		var sim := BattleSim.new(setup)
+		var out := sim.run_to_end()
+		battles[0] += 1
+		if out.victory:
+			wins += 1
+		dur += int(out.duration_ms)
+	return {"ok": wins * 10 >= seeds * 7, "power": g.team_power(), "dur": dur / seeds}
 
 
 func setup_team(g, prof: Dictionary, lv: int) -> void:

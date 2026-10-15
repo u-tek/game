@@ -137,9 +137,18 @@ static func _build(i: int) -> Dictionary:
 
 ## Enemy team power the way the player sees it (boss multipliers included).
 static func recommended_power(enemies: Array) -> int:
+	var counts := {}
+	for e in enemies:
+		var fac: String = HeroData.get_def(e.hero_id).faction
+		counts[fac] = int(counts.get(fac, 0)) + 1
+	var fb := 0
+	for fac in counts:
+		fb = maxi(fb, int(BattleSim.FACTION_BONUS_BP.get(mini(int(counts[fac]), 5), 0)))
 	var total := 0
 	for e in enemies:
 		var st := StatCalc.stats(e.hero_id, int(e.level), int(e.stars))
+		st.hp = int(st.hp) * (10000 + fb) / 10000
+		st.atk = int(st.atk) * (10000 + fb) / 10000
 		if e.is_boss:
 			st.hp = int(st.hp) * BattleSim.BOSS_HP_BP / 10000
 			st.atk = int(st.atk) * BattleSim.BOSS_ATK_BP / 10000

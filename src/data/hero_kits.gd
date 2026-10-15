@@ -34,7 +34,7 @@ const PASSIVE_STARS: Array[int] = [3, 5]
 const KITS := {
 	# ---------------------------------------------------------------- CELESTIAL
 	"seraphiel": {
-		"base_stats": {"hp": 2250, "atk": 112, "def": 42, "spd": 96, "crit": 1200},
+		"base_stats": {"hp": 1710, "atk": 112, "def": 42, "spd": 96, "crit": 1200},
 		"ultimate": {
 			"id": "hymn_of_judgment", "name": "Hymn of Judgment",
 			"description": "Sings the sky's final verse: 180% ATK to all enemies and Stuns them for 1.5 s.",
@@ -53,7 +53,7 @@ const KITS := {
 		],
 	},
 	"cassiel": {
-		"base_stats": {"hp": 3700, "atk": 60, "def": 82, "spd": 90, "crit": 500},
+		"base_stats": {"hp": 2810, "atk": 60, "def": 82, "spd": 90, "crit": 500},
 		"ultimate": {
 			"id": "dawnwall", "name": "Dawnwall",
 			"description": "Raises the Gate Wardens' wall: shields all allies for 16% of her max HP and grants them +25% DEF for 6 s.",
@@ -72,7 +72,7 @@ const KITS := {
 		],
 	},
 	"liora": {
-		"base_stats": {"hp": 2300, "atk": 76, "def": 48, "spd": 102, "crit": 500},
+		"base_stats": {"hp": 1750, "atk": 76, "def": 48, "spd": 102, "crit": 500},
 		"ultimate": {
 			"id": "lullaby_of_mending", "name": "Lullaby of Mending",
 			"description": "A lullaby that closes wounds: heals all allies for 240% ATK and grants Regen (40% ATK per second) for 4 s.",
@@ -91,7 +91,7 @@ const KITS := {
 		],
 	},
 	"uriela": {
-		"base_stats": {"hp": 2350, "atk": 92, "def": 48, "spd": 104, "crit": 1500},
+		"base_stats": {"hp": 1790, "atk": 92, "def": 48, "spd": 104, "crit": 1500},
 		"ultimate": {
 			"id": "sunlance", "name": "Sunlance",
 			"description": "Hurls her blazing spear: 360% ATK to her target and breaks its armor, -25% DEF for 5 s.",
@@ -110,7 +110,7 @@ const KITS := {
 		],
 	},
 	"nuriel": {
-		"base_stats": {"hp": 1980, "atk": 92, "def": 38, "spd": 122, "crit": 2200},
+		"base_stats": {"hp": 1500, "atk": 92, "def": 38, "spd": 122, "crit": 2200},
 		"ultimate": {
 			"id": "daybreak_ambush", "name": "Daybreak Ambush",
 			"description": "Dives to the back row: strikes the weakest back-row enemy twice for 170% ATK each and Stuns it for 1 s.",
@@ -130,7 +130,7 @@ const KITS := {
 	},
 	# ---------------------------------------------------------------- INFERNAL
 	"mordessa": {
-		"base_stats": {"hp": 2700, "atk": 106, "def": 54, "spd": 104, "crit": 1800},
+		"base_stats": {"hp": 2050, "atk": 106, "def": 54, "spd": 104, "crit": 1800},
 		"ultimate": {
 			"id": "ninth_furnace", "name": "Ninth Furnace",
 			"description": "Brings down the burning greatsword: 320% ATK to her target, 140% ATK to every other enemy, and Burns them all (50% ATK per second) for 4 s.",
@@ -150,7 +150,7 @@ const KITS := {
 		],
 	},
 	"brakka": {
-		"base_stats": {"hp": 3900, "atk": 62, "def": 76, "spd": 86, "crit": 500},
+		"base_stats": {"hp": 2960, "atk": 62, "def": 76, "spd": 86, "crit": 500},
 		"ultimate": {
 			"id": "magma_bulwark", "name": "Magma Bulwark",
 			"description": "Plants his molten gauntlets: gains a shield of 35% max HP and Taunts all enemies for 4 s.",
@@ -169,7 +169,7 @@ const KITS := {
 		],
 	},
 	"vesper": {
-		"base_stats": {"hp": 2000, "atk": 102, "def": 38, "spd": 95, "crit": 1100},
+		"base_stats": {"hp": 1520, "atk": 102, "def": 38, "spd": 95, "crit": 1100},
 		"ultimate": {
 			"id": "ember_rain", "name": "Ember Rain",
 			"description": "Forecast: fire. 120% ATK to all enemies and Burns them (45% ATK per second) for 6 s.",
@@ -188,7 +188,7 @@ const KITS := {
 		],
 	},
 	"imra": {
-		"base_stats": {"hp": 2100, "atk": 68, "def": 44, "spd": 106, "crit": 500},
+		"base_stats": {"hp": 1600, "atk": 68, "def": 44, "spd": 106, "crit": 500},
 		"ultimate": {
 			"id": "lantern_pact", "name": "Lantern Pact",
 			"description": "Strikes a deal with the whole team: all allies +30% ATK for 6 s, and every other ally gains 150 energy.",
@@ -207,7 +207,7 @@ const KITS := {
 		],
 	},
 	"kessa": {
-		"base_stats": {"hp": 2000, "atk": 96, "def": 38, "spd": 118, "crit": 2000},
+		"base_stats": {"hp": 1520, "atk": 96, "def": 38, "spd": 118, "crit": 2000},
 		"ultimate": {
 			"id": "twelfth_contract", "name": "Twelfth Contract",
 			"description": "Pounces on the weakest enemy anywhere: 280% ATK, executing it if left below 25% HP (not bosses).",
@@ -226,7 +226,7 @@ const KITS := {
 	},
 	# ---------------------------------------------------------------- FALLEN
 	"noctaire": {
-		"base_stats": {"hp": 2300, "atk": 108, "def": 44, "spd": 124, "crit": 2500},
+		"base_stats": {"hp": 1750, "atk": 108, "def": 44, "spd": 124, "crit": 2500},
 		"ultimate": {
 			"id": "eclipse_harvest", "name": "Eclipse Harvest",
 			"description": "Dives into the back row with her crescent scythe: 220% ATK to every back-row enemy, executing any left below 30% HP (not bosses).",
@@ -244,7 +244,7 @@ const KITS := {
 		],
 	},
 	"orrin": {
-		"base_stats": {"hp": 3600, "atk": 62, "def": 80, "spd": 88, "crit": 500},
+		"base_stats": {"hp": 2740, "atk": 62, "def": 80, "spd": 88, "crit": 500},
 		"ultimate": {
 			"id": "chains_of_the_oath", "name": "Chains of the Oath",
 			"description": "Lashes out with broken chains: 110% ATK to front-row enemies and Stuns them for 2 s, then Weakens all enemies (-20% ATK) for 5 s.",
@@ -264,7 +264,7 @@ const KITS := {
 		],
 	},
 	"sable": {
-		"base_stats": {"hp": 2320, "atk": 74, "def": 50, "spd": 98, "crit": 500},
+		"base_stats": {"hp": 1760, "atk": 74, "def": 50, "spd": 98, "crit": 500},
 		"ultimate": {
 			"id": "dusk_requiem", "name": "Dusk Requiem",
 			"description": "Swings the censer for the lost: all enemies -30% DEF for 6 s, and the most wounded ally heals for 300% ATK.",
@@ -283,7 +283,7 @@ const KITS := {
 		],
 	},
 	"lucen": {
-		"base_stats": {"hp": 2250, "atk": 94, "def": 46, "spd": 108, "crit": 1600},
+		"base_stats": {"hp": 1710, "atk": 94, "def": 46, "spd": 108, "crit": 1600},
 		"ultimate": {
 			"id": "twinfeather_flurry", "name": "Twinfeather Flurry",
 			"description": "A dazzling flurry: 5 strikes of 85% ATK at random enemies, then +25% SPD for 5 s.",
@@ -302,7 +302,7 @@ const KITS := {
 		],
 	},
 	"ashra": {
-		"base_stats": {"hp": 1880, "atk": 98, "def": 35, "spd": 94, "crit": 1000},
+		"base_stats": {"hp": 1430, "atk": 98, "def": 35, "spd": 94, "crit": 1000},
 		"ultimate": {
 			"id": "accidental_inferno", "name": "Accidental Inferno",
 			"description": "Oops. 140% ATK to all enemies, +60% damage to enemies below 50% HP.",
