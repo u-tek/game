@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://f26ag7fkgdqg"
+path="res://.godot/imported/mouth_smile.png-c25f03cdba3748345fef105d23f15e37.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/art/heroes/seraphiel/overlays/mouth_smile.png"
+dest_files=["res://.godot/imported/mouth_smile.png-c25f03cdba3748345fef105d23f15e37.ctex"]
 
 [params]
 

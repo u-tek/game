@@ -260,6 +260,7 @@ func test_full_bag_salvages_weakest_then_oldest(t: TestCtx) -> void:
 			loose.append(it.uid)
 	t.eq(loose.size(), 40, "bag trimmed to the limit")
 	t.eq(loose.has("junk"), false, "the weakest piece goes first")
-	t.eq(loose[0], "w11", "equal pieces: the oldest are salvaged first (w3..w10 gone)")
-	t.eq(g.currency("gold"), gold + 9 * EconomyData.SALVAGE_GOLD_PER_TIER, "salvage pays per tier")
+	# 48 loose (w3..w49 + junk) -> 8 salvaged: junk, then the oldest equal pieces w3..w9.
+	t.eq(loose[0], "w10", "equal pieces: the oldest are salvaged first")
+	t.eq(g.currency("gold"), gold + 8 * EconomyData.SALVAGE_GOLD_PER_TIER, "salvage pays per tier")
 	g.free()

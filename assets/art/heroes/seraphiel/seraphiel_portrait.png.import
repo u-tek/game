@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://b6l3avr8lnd68"
+path="res://.godot/imported/seraphiel_portrait.png-a7667e14a54a78d1ff8a02659e91a4b1.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/art/heroes/seraphiel/seraphiel_portrait.png"
+dest_files=["res://.godot/imported/seraphiel_portrait.png-a7667e14a54a78d1ff8a02659e91a4b1.ctex"]
 
 [params]
 

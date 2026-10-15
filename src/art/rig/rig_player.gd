@@ -16,6 +16,8 @@ signal anim_event(name: String)
 signal anim_finished(name: String)
 
 const SHADER := preload("res://src/art/rig/rig.gdshader")
+const WARP_SHADER := preload("res://src/art/rig/warp.gdshader")
+const MAX_WARP_BONES := 32
 const PHYS_DT := 1.0 / 60.0
 const MAX_SUBSTEPS := 4
 const TRACKS := 3
@@ -100,6 +102,11 @@ var _col_want: Array[Color] = []
 
 var _mat: ShaderMaterial
 var _bend_mats: Array = []            # per slot: ShaderMaterial or null
+var _warp_mat: ShaderMaterial         # warp rigs: one material (bone uniforms) for body + overlays
+var _warp_body: MeshInstance2D
+var _ua := PackedVector4Array()
+var _ub := PackedVector4Array()
+var _uc := PackedVector4Array()
 var _tint := {}
 var _draw_root: Node2D
 var _bone_root: Node2D
@@ -212,6 +219,23 @@ func setup(r: RigData) -> void:
 	_draw_root = Node2D.new()
 	_draw_root.name = "Parts"
 	add_child(_draw_root)
+	_warp_mat = null
+	_warp_body = null
+	if r.kind == "warp":
+		if _n > MAX_WARP_BONES:
+			push_error("RigPlayer[%s]: warp rigs support at most %d bones" % [r.id, MAX_WARP_BONES])
+		_warp_mat = ShaderMaterial.new()
+		_warp_mat.shader = WARP_SHADER
+		_warp_mat.set_shader_parameter(&"body_bone", r.body_bone)
+		_ua.resize(MAX_WARP_BONES)
+		_ub.resize(MAX_WARP_BONES)
+		_uc.resize(MAX_WARP_BONES)
+		_warp_body = MeshInstance2D.new()
+		_warp_body.name = "Image"
+		_warp_body.mesh = r.mesh
+		_warp_body.texture = r.image
+		_warp_body.material = _warp_mat
+		_draw_root.add_child(_warp_body)
 	_slot_nodes.clear()
 	_slot_xf.clear()
 	_slot_mesh_cache.clear()
@@ -226,7 +250,13 @@ func setup(r: RigData) -> void:
 		var bendable: bool = (r.spring[bi] != null and float(r.spring[bi].get("b", 0.0)) > 0.0) or r.bend[bi] > 0.0
 		_slot_bendable[si] = 1 if bendable else 0
 		var node: Node2D
-		if bendable:
+		if r.kind == "warp":
+			_slot_bendable[si] = 2
+			var wm := MeshInstance2D.new()
+			wm.material = _warp_mat
+			_bend_mats.append(null)
+			node = wm
+		elif bendable:
 			var mi := MeshInstance2D.new()
 			var m := ShaderMaterial.new()
 			m.shader = SHADER
@@ -743,6 +773,8 @@ func _apply() -> void:
 			_slot_col[si] = col
 			node.self_modulate = col
 		var bi: int = s.bone
+		if _slot_bendable[si] == 2:
+			continue
 		node.transform = _world[bi] * _slot_xf[si]
 		if _slot_bendable[si] == 1:
 			var m: ShaderMaterial = _bend_mats[si]
@@ -750,7 +782,23 @@ func _apply() -> void:
 			if absf(bv - float(m.get_meta(&"b", 0.0))) > 0.0005:
 				m.set_meta(&"b", bv)
 				m.set_shader_parameter(&"bend", bv)
+	if _warp_mat != null:
+		_upload_warp()
 	_apply_fx()
+
+
+func _upload_warp() -> void:
+	var n := mini(_n, MAX_WARP_BONES)
+	for i in n:
+		var w := _world[i]
+		_ua[i] = Vector4(w.x.x, w.x.y, w.y.x, w.y.y)
+		var sw := rig.setup_world[i]
+		_ub[i] = Vector4(w.origin.x, w.origin.y, sw.x, sw.y)
+		var ax := rig.axis[i]
+		_uc[i] = Vector4(ax.x, ax.y, rig.length[i], _bend_out[i])
+	_warp_mat.set_shader_parameter(&"bone_a", _ua)
+	_warp_mat.set_shader_parameter(&"bone_b", _ub)
+	_warp_mat.set_shader_parameter(&"bone_c", _uc)
 
 
 func _apply_fx() -> void:
@@ -838,6 +886,16 @@ func _set_attachment(si: int, variant: String) -> void:
 	var r: Rect2 = att.rect
 	node.visible = true
 	var inv := 1.0 / rig.texel
+	if _slot_bendable[si] == 2:
+		# warp overlay patch: pre-skinned mesh, or nothing when the base image shows this variant
+		var wmi := node as MeshInstance2D
+		if att.texture == null:
+			node.visible = false
+			return
+		wmi.mesh = att.mesh
+		wmi.texture = att.texture
+		_slot_xf[si] = Transform2D.IDENTITY
+		return
 	if _slot_bendable[si] == 1:
 		var mi := node as MeshInstance2D
 		var cache: Dictionary = _slot_mesh_cache[si]
@@ -885,6 +943,8 @@ func _apply_tint_param(param: StringName, value: Variant) -> void:
 	if _mat == null:
 		return
 	_mat.set_shader_parameter(param, value)
+	if _warp_mat != null:
+		_warp_mat.set_shader_parameter(param, value)
 	for m in _bend_mats:
 		if m != null:
 			(m as ShaderMaterial).set_shader_parameter(param, value)

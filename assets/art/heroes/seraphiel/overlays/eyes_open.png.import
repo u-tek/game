@@ -2,10 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
+uid="uid://ccr6pqqh4fpan"
+path="res://.godot/imported/eyes_open.png-38b26e0b854698bef020f335c0a62832.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/art/heroes/seraphiel/overlays/eyes_open.png"
+dest_files=["res://.godot/imported/eyes_open.png-38b26e0b854698bef020f335c0a62832.ctex"]
 
 [params]
 
