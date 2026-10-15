@@ -303,3 +303,49 @@ def ink(d, color=OUTLINE, op=None):
 
 def line(d, color=OUTLINE, w=3.0, op=None, cap="round"):
     return path(d, "none", color, w, op=op, cap=cap)
+
+
+# ------------------------------------------------------------------ cel shading
+# Light comes from the UPPER RIGHT (the direction heroes face). A tone is the part of a shape
+# NOT covered by the same shape shifted TOWARD the light, so it hugs the shadow side.
+BIG = "M-3000 -3000H5000V6000H-3000Z"
+
+
+def crescent(d, dx, dy, fill, op=None):
+    """Region of shape d that is not covered by d shifted by (dx, dy) (use inside a clip)."""
+    a = '<path d="%s %s" fill-rule="evenodd" fill="%s" transform="translate(%s %s)"' % (BIG, d, fill, f(dx), f(dy))
+    if op is not None and op < 1.0:
+        a += ' opacity="%.2f"' % op
+    return a + "/>"
+
+
+def cel(doc, d, base, tones=(), hi=None, rim=None, over=(), lw=4.5, outline=OUTLINE, lines=(), grad=None, under=""):
+    """Cel-shaded shape.
+    base: fill colour (or url(#gradient)); grad: optional (fill, opacity) overlay inside.
+    tones: [(colour, dx, dy[, opacity])] shadow crescents, light toward (+dx, -dy) = upper right.
+    hi: (colour, dx, dy[, op]) highlight crescent on the lit side (pass the shift AWAY from the
+        light, e.g. (-14, 10)).  rim: same, a thin back-light line on the shadow side.
+    over: raw SVG drawn inside the clip after tones (hand-placed shades, patterns).
+    lines: raw SVG drawn after the outline (details, accents)."""
+    out = [under, path(d, base)]
+    inner = []
+    if grad:
+        inner.append(path(d, grad[0], op=grad[1]))
+    for t in tones:
+        inner.append(crescent(d, t[1], t[2], t[0], t[3] if len(t) > 3 else None))
+    if hi:
+        inner.append(crescent(d, hi[1], hi[2], hi[0], hi[3] if len(hi) > 3 else None))
+    inner.extend(over)
+    if rim:
+        inner.append(crescent(d, rim[1], rim[2], rim[0], rim[3] if len(rim) > 3 else None))
+    if inner:
+        cid = doc.clip(d)
+        out.append(group("".join(inner), clip=cid))
+    if lw and outline:
+        out.append(path(d, "none", outline, lw))
+    out.extend(lines)
+    return "".join(out)
+
+
+def clipped(doc, clip_d, body):
+    return group(body, clip=doc.clip(clip_d))

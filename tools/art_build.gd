@@ -126,6 +126,10 @@ func _ser(el: Dictionary, strip_data := true) -> String:
 	for k in el.attrs:
 		if strip_data and str(k).begins_with("data-"):
 			continue
+		# alternates are hidden in the source SVG (display="none") so it previews correctly;
+		# every part still renders on its own
+		if strip_data and k == "display" and el.attrs.has("id") and el.attrs.has("data-z") or (k == "display" and el.attrs.has("data-slot")):
+			continue
 		s += ' %s="%s"' % [k, str(el.attrs[k]).replace("&", "&amp;").replace("\"", "&quot;").replace("<", "&lt;")]
 	var kids: Array = el.children
 	if kids.is_empty():
