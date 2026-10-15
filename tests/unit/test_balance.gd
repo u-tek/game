@@ -60,7 +60,10 @@ func test_campaign_shape(t: TestCtx) -> void:
 	t.eq(g.chapters().size(), 3)
 	t.eq(g.stages().size(), 30)
 	var prev_level := 0
+	var prev_power := 0
 	for st in g.stages():
+		t.ok(int(st.recommended_power) >= prev_power, "recommended power never drops (%s)" % st.id)
+		prev_power = int(st.recommended_power)
 		for k in ["index", "id", "chapter", "name", "enemies", "recommended_power", "first_clear_reward", "is_boss"]:
 			t.ok(st.has(k), "stage has %s" % k)
 		var local: int = int(st.index) % 10

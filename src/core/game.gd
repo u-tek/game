@@ -185,7 +185,7 @@ func default_state() -> Dictionary:
 		"gear_seq": 0,
 		"quests": {"day": day, "progress": {}, "claimed": []},
 		"shop": {"purchases": {}, "daily": {}, "day": day, "monthly_until_day": -1, "monthly_last_day": -1},
-		"settings": {"sound": true, "music": true, "battle_speed": 1, "auto_ultimates": true},
+		"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 1, "auto_ultimates": true},
 		"counters": {},
 		"dev_time_offset": 0,
 		"rng_seed": SeededRng.mix(now & 0x7FFFFFFF, 104729),
@@ -1314,7 +1314,7 @@ func set_setting(key: String, value: Variant) -> void:
 			if not [1, 2, 4].has(v):
 				return
 			state.settings.battle_speed = v
-		"sound", "music", "auto_ultimates":
+		"sound", "music", "haptics", "auto_ultimates":
 			state.settings[key] = bool(value)
 		"player_name":
 			state.player_name = str(value).strip_edges().left(16)

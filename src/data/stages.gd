@@ -4,8 +4,8 @@ class_name StageData
 ## tests/balance_report.gd (see docs/dev/economy-v1.md).
 ##
 ## Stage: {index, id "1-5", chapter (0-based chapter index), name, enemies [{hero_id, level,
-##   stars, slot, is_boss, echo_bp}], recommended_power, first_clear_reward, is_boss,
-##   background, enemy_faction, hint}
+##   stars, slot, is_boss, echo_bp}], recommended_power, enemy_power, first_clear_reward,
+##   is_boss, background, enemy_faction, hint}
 ## Chapter: {index, id, name, intro, background, first_stage, stage_count}
 
 const CHAPTERS: Array[Dictionary] = [
@@ -63,11 +63,22 @@ const STAGES: Array[Dictionary] = [
 	{"name": "The Last Order", "lv": 53, "pw": 8250, "st": 4, "boss": true, "e": [["orrin", 0], ["lucen", 1], ["noctaire", 2, "boss"], ["sable", 3], ["ashra", 4]]},
 ]
 
+## Uniform hero level at which the reference team wins each stage reliably (stages 1-1..1-3:
+## the three starters, >= 90% of seeds; later stages: REFERENCE_TEAM, >= 70%). The stage "pw"
+## values are solved against these by tests/tools/calibrate_stages.gd.
+const CALIBRATION_LEVEL: Array[int] = [
+	1, 2, 4, 3, 5, 7, 9, 11, 13, 16,
+	18, 20, 22, 24, 27, 28, 30, 32, 34, 37,
+	39, 41, 43, 45, 48, 50, 52, 55, 58, 62,
+]
+const STARTER_TEAM := {"uriela": 1, "lucen": 1, "kessa": 1}
+## Three starter Rares plus two Epics, no gear: what a player has after the first summons.
+const REFERENCE_TEAM := {"uriela": 1, "lucen": 1, "kessa": 1, "brakka": 2, "liora": 2}
+const STARTER_STAGES := 3
+
 const STAGES_PER_CHAPTER := 10
 ## Echoes are hollow copies: HP, ATK and DEF at this fraction of a real hero's.
 const ECHO_STAT_BP := 7500
-## recommended_power = enemy power (boss multipliers included) * this / 10000.
-const RECOMMENDED_BP := 10000
 
 static var _stage_cache: Array[Dictionary] = []
 static var _chapter_cache: Array[Dictionary] = []
@@ -135,7 +146,8 @@ static func _build(i: int) -> Dictionary:
 		"enemy_faction": chapter.faction,
 		"first_clear_reward": _first_clear_reward(i, is_boss),
 	}
-	s["recommended_power"] = recommended_power(enemies)
+	s["recommended_power"] = recommended_power(i)
+	s["enemy_power"] = enemy_power(enemies)
 	s["hint"] = _hint(chapter.faction)
 	return s
 
@@ -149,9 +161,19 @@ static func echo_stats(hero_id: String, level: int, stars: int, echo_bp: int = E
 	return st
 
 
-## Enemy team power the way the player sees it (faction and boss multipliers included).
+## Team power that wins this stage reliably: the reference team's power at the calibrated
+## level (so it already accounts for the enemy composition, bosses and faction bonus).
+static func recommended_power(index: int) -> int:
+	var team: Dictionary = STARTER_TEAM if index < STARTER_STAGES else REFERENCE_TEAM
+	var lv: int = CALIBRATION_LEVEL[clampi(index, 0, CALIBRATION_LEVEL.size() - 1)]
+	var total := 0
+	for id in team:
+		total += StatCalc.power(StatCalc.stats(id, lv, int(team[id])))
+	return total
 
-static func recommended_power(enemies: Array) -> int:
+
+## Raw enemy team power (faction and boss multipliers included), for reference.
+static func enemy_power(enemies: Array) -> int:
 	var counts := {}
 	for e in enemies:
 		var fac: String = HeroData.get_def(e.hero_id).faction
@@ -169,7 +191,7 @@ static func recommended_power(enemies: Array) -> int:
 			st.atk = int(st.atk) * BattleSim.BOSS_ATK_BP / 10000
 			st.def = int(st.def) * BattleSim.BOSS_DEF_BP / 10000
 		total += StatCalc.power(st)
-	return total * RECOMMENDED_BP / 10000
+	return total
 
 
 static func _hint(faction: String) -> String:

@@ -7,14 +7,10 @@ extends SceneTree
 ## Prints the pw values to paste into stages.gd.
 ##   tools/gd --headless --path . -s tests/tools/calibrate_stages.gd [-- stages=0-9 seeds=8]
 
-const TYPICAL := {"uriela": 1, "lucen": 1, "kessa": 1, "brakka": 2, "liora": 2}
-const STARTERS := {"uriela": 1, "lucen": 1, "kessa": 1}
-const STARTER_STAGES := 3
-const TARGET: Array[int] = [
-	1, 2, 4, 3, 5, 7, 9, 11, 13, 16,
-	18, 20, 22, 24, 27, 28, 30, 32, 34, 37,
-	39, 41, 43, 45, 48, 50, 52, 55, 58, 62,
-]
+const TYPICAL := StageData.REFERENCE_TEAM
+const STARTERS := StageData.STARTER_TEAM
+const STARTER_STAGES := StageData.STARTER_STAGES
+const TARGET := StageData.CALIBRATION_LEVEL
 const PW_MIN := 3000
 const PW_MAX := 30000
 const PW_STEP := 250

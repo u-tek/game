@@ -16,7 +16,7 @@ extends RefCounted
 ##   Widgets    progress_bar/set_progress, star_row, currency_icon, currency_chip/set_chip_amount,
 ##              cost_row, reward_list, reward_tile, faction_badge, role_badge, rarity_badge,
 ##              tag, hero_card, dot/set_dot, section_header, screen_header, stat_row,
-##              empty_state, icon, glow, rays, art_background
+##              empty_state, icon, glow, rays, ribbon, art_background
 ##   Economy    have(currency_id), can_afford(costs)
 ##   Colors     faction_color, rarity_color, rarity_frame, tier_color
 ##   Numbers    format_num (12.5K / 3.4M), format_full (1,234,567), format_time (2h 05m)
@@ -33,6 +33,7 @@ const HeroCard := preload("res://src/ui/components/hero_card.gd")
 const Filigree := preload("res://src/ui/components/filigree.gd")
 const Dot := preload("res://src/ui/components/dot.gd")
 const Rays := preload("res://src/ui/components/rays.gd")
+const Ribbon := preload("res://src/ui/components/ribbon.gd")
 
 # ------------------------------------------------------------------ design tokens
 
@@ -727,16 +728,16 @@ static func currency_chip(currency_id: String, amount: int, on_plus: Callable = 
 	chip.theme_type_variation = &"ChipPanel"
 	chip.mouse_filter = Control.MOUSE_FILTER_PASS
 	chip.custom_minimum_size = Vector2(min_width, 52)
-	var row := hbox(6)
+	var row := hbox(4)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(currency_icon(currency_id, 44))
+	row.add_child(currency_icon(currency_id, 42))
 	var n := label(format_num(amount), 25, INK, "black", 4)
 	n.name = "Amount"
-	n.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	n.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	n.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(n)
 	if on_plus.is_valid():
-		row.add_child(icon("plus_badge", 30))
+		row.add_child(icon("plus_badge", 28))
 	else:
 		row.add_child(spacer(4))
 	chip.add_child(row)
@@ -1091,7 +1092,7 @@ static func set_dot(target: Control, show: bool, size: float = 22.0, inset: Vect
 
 # ------------------------------------------------------------------ headers & rows
 
-## Centered section title between two gold filigree lines:  ——◆  Title  ◆——
+## Centered section title between two gold filigree lines with diamond ornaments.
 static func section_header(text: String, size: int = 30, color: Color = GOLD_LIGHT) -> HBoxContainer:
 	var row := hbox(14)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1207,6 +1208,20 @@ static func rays(color: Color = GOLD, size: float = 520.0, count: int = 14) -> C
 	r.custom_minimum_size = Vector2(size, size)
 	r.size = Vector2(size, size)
 	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return r
+
+
+## Ribbon banner with folded tails and a Marcellus title ("Victory!", reward popups).
+## color: band color (Kit.GOLD, Kit.EMBER for defeat, Kit.VIOLET...). Long text shrinks to fit.
+## Change the text later with banner.set_text("...").
+static func ribbon(text: String, width: float = 520.0, color: Color = GOLD, text_color: Color = Color("3d2306"), size: int = 44) -> Control:
+	var r := Ribbon.new()
+	r.text = text
+	r.color = color
+	r.text_color = text_color
+	r.font_size = size
+	r.custom_minimum_size = Vector2(width, size * 2.1)
+	r.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	return r
 
 

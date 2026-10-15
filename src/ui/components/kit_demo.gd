@@ -79,6 +79,8 @@ func _typography(list: VBoxContainer) -> void:
 	v.add_child(nums)
 	v.add_child(Kit.caption("Caption: 2h 05m until the idle chest is full"))
 	list.add_child(p)
+	list.add_child(Kit.ribbon("Victory!"))
+	list.add_child(Kit.ribbon("Defeat", 420.0, Kit.VIOLET, Kit.INK, 40))
 
 
 func _buttons(list: VBoxContainer) -> void:
@@ -284,6 +286,6 @@ func _feedback(list: VBoxContainer) -> void:
 		var snd: String = s
 		(sb.get_child(0) as Button).toggle_mode = false
 		(sb.get_child(0) as Button).pressed.connect(func() -> void: UI.sfx(snd))
-		sb.custom_minimum_size.x = 150
+		sb.custom_minimum_size.x = 160
 		sounds.add_child(sb)
 	list.add_child(sounds)

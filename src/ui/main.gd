@@ -126,11 +126,11 @@ func _build_top_bar() -> void:
 
 	_top_margin = MarginContainer.new()
 	_top_margin.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	_top_margin.add_theme_constant_override("margin_left", 12)
-	_top_margin.add_theme_constant_override("margin_right", 8)
+	_top_margin.add_theme_constant_override("margin_left", 10)
+	_top_margin.add_theme_constant_override("margin_right", 6)
 	_top_margin.add_theme_constant_override("margin_bottom", 2)
 	top_bar.add_child(_top_margin)
-	var row := Kit.hbox(8)
+	var row := Kit.hbox(6)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	_top_margin.add_child(row)
 
@@ -138,11 +138,11 @@ func _build_top_bar() -> void:
 	_power_chip = PanelContainer.new()
 	_power_chip.theme_type_variation = &"ChipPanel"
 	_power_chip.add_theme_stylebox_override("panel", _tall_chip_style())
-	_power_chip.custom_minimum_size = Vector2(150, 88)
+	_power_chip.custom_minimum_size = Vector2(136, 88)
 	_power_chip.size_flags_vertical = SIZE_SHRINK_CENTER
 	var prow := Kit.hbox(4)
 	prow.mouse_filter = MOUSE_FILTER_IGNORE
-	prow.add_child(Kit.icon("power", 46))
+	prow.add_child(Kit.icon("power", 44))
 	_power_label = Kit.label("0", 26, Kit.GOLD_LIGHT, "black", 5)
 	_power_label.size_flags_horizontal = SIZE_EXPAND_FILL
 	_power_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -165,7 +165,8 @@ func _build_top_bar() -> void:
 		row.add_child(chip)
 		_chips[id] = chip
 
-	var settings := Kit.icon_button("settings", func() -> void: UI.go("settings"), 88, "round")
+	var settings := Kit.icon_button("settings", func() -> void: UI.go("settings"), 84, "round")
+	settings.custom_minimum_size = Vector2(74, 88)
 	settings.size_flags_vertical = SIZE_SHRINK_CENTER
 	row.add_child(settings)
 

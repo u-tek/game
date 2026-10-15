@@ -205,6 +205,8 @@ func _show(screen: String, params: Dictionary) -> void:
 	current_params = params
 	if sc.has_method("setup"):
 		sc.setup(params)
+	if current != sc:
+		return # setup() navigated somewhere else; that call already finished the job
 	if _fade and _fade.is_valid():
 		_fade.kill()
 	if is_instance_valid(sc):
@@ -462,10 +464,10 @@ func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callab
 	glow.position = Vector2(330 - 210, 75 - 210)
 	glow.modulate.a = 0.55
 	title_box.add_child(glow)
-	var t := Kit.title(title, 54)
-	t.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	title_box.add_child(t)
+	var banner := Kit.ribbon(title, 560.0)
+	banner.position = Vector2(330 - 280, 75 - 46)
+	banner.size = Vector2(560, 92)
+	title_box.add_child(banner)
 	col.add_child(title_box)
 	var panel := PanelContainer.new()
 	panel.theme_type_variation = &"ModalPanel"
