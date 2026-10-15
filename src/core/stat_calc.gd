@@ -60,12 +60,12 @@ static func power(st: Dictionary) -> int:
 	var def: int = int(st.get("def", 0))
 	var spd: int = int(st.get("spd", 100))
 	var crit: int = int(st.get("crit", 0))
-	var raw: int = hp + atk * 7 + def * 5
+	var raw: int = hp / 2 + atk * 8 + def * 6
 	return raw * spd / 100 * (20000 + crit) / 20000 / 5
 
 
 ## Power-equivalent score of one gear item (for auto-equip comparisons).
 static func gear_score(item: Dictionary) -> int:
 	var st: Dictionary = item.get("stats", {})
-	return int(st.get("hp", 0)) + int(st.get("atk", 0)) * 7 + int(st.get("def", 0)) * 5 \
-		+ int(st.get("spd", 0)) * 12 + int(st.get("crit", 0)) / 8
+	return int(st.get("hp", 0)) / 2 + int(st.get("atk", 0)) * 8 + int(st.get("def", 0)) * 6 \
+		+ int(st.get("spd", 0)) * 15 + int(st.get("crit", 0)) / 6

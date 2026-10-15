@@ -1,6 +1,26 @@
 extends Node
-## Autoload "UI" (STUB - owned by the UI shell agent): navigation + feedback helpers that
-## every screen uses. Contract: see docs/dev/architecture.md.
+## Autoload "UI": navigation, feedback and modals every screen uses.
+## Contract: docs/dev/architecture.md section 5.
+##
+##   UI.go("hero_detail", {"hero_id": "seraphiel"})  # navigate (0.15 s fade, history kept)
+##   UI.back()                                       # previous screen (or home)
+##   UI.toast("Not enough gold")                     # stacked message, top center
+##   UI.show_reward("Stage cleared!", reward, on_closed)  # reward popup (queued)
+##   UI.confirm("Spend 300 gems?", on_yes)           # in-game yes/no dialog
+##   UI.set_chrome(show_top_bar, show_nav)           # reset to (true, true) on every go()
+##   UI.safe_top() / UI.safe_bottom()                # notch / home-indicator insets (px)
+##   UI.sfx("tap")                                   # tap reward summon legendary hit ult victory defeat
+##   UI.haptic(20)                                   # short vibration on phones
+## Extras: UI.popup(title, content) for custom dialogs, UI.modal(content) / close_modal(m),
+## signal screen_changed(name), UI.current_name, UI.history.
+##
+## Screens fill the content area between the top bar and the bottom nav. A screen that hides
+## the chrome (battle, summon) fills the whole window and should keep its own controls
+## inside UI.safe_top() / UI.safe_bottom().
+
+const Sfx := preload("res://src/ui/components/sfx.gd")
+
+signal screen_changed(screen_name: String)
 
 const SCREENS := {
 	"home": "res://src/ui/screens/home_screen.gd",
@@ -13,42 +33,528 @@ const SCREENS := {
 	"quests": "res://src/ui/screens/quests_screen.gd",
 	"shop": "res://src/ui/screens/shop_screen.gd",
 	"settings": "res://src/ui/screens/settings_screen.gd",
+	"kit_demo": "res://src/ui/components/kit_demo.gd",
 }
 
+## Bottom-nav tabs. Going to one of these resets the history (back returns home).
+const NAV_ROOTS: Array[String] = ["home", "heroes", "summon", "quests", "shop"]
+## Which nav tab is highlighted for non-tab screens.
+const NAV_PARENT := {"campaign": "home", "battle": "home", "hero_detail": "heroes", "formation": "heroes", "kit_demo": "home"}
+## Screens never kept in history (back from the next screen skips them).
+const NO_HISTORY: Array[String] = ["battle"]
+const FADE_TIME := 0.15
+const MAX_TOASTS := 3
+const SFX_VOLUME_DB := {
+	"tap": -9.0, "hit": -6.0, "reward": -5.0, "summon": -4.0, "legendary": -3.0,
+	"ult": -5.0, "victory": -4.0, "defeat": -5.0,
+}
+
+## App root (main.gd). Screens mount into root.content.
 var root: Control
 var current_name := ""
 var current: Control
+var current_params: Dictionary = {}
+## Previous screens: [{name, params}], most recent last.
+var history: Array[Dictionary] = []
+## Safe-area override in viewport px (x = top, y = bottom); negative = use the device.
+var safe_override := Vector2(-1, -1)
+var chrome_top := true
+var chrome_nav := true
+
+var _fade: Tween
+var _modals: Array[Control] = []
+var _reward_queue: Array[Array] = []
+var _reward_open := false
+var _players: Array[AudioStreamPlayer] = []
+var _next_player := 0
+var _streams: Dictionary = {}
+var _streams_mutex := Mutex.new()
+var _gen_task := -1
 
 
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	for i in 8:
+		var p := AudioStreamPlayer.new()
+		p.bus = &"Master"
+		add_child(p)
+		_players.append(p)
+	# Synthesize all sounds off the main thread (takes a moment in GDScript).
+	_gen_task = WorkerThreadPool.add_task(_generate_all_sounds, false, "UI sfx synth")
+
+
+func _exit_tree() -> void:
+	if _gen_task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_gen_task)
+		_gen_task = -1
+
+
+## Called by main.gd once the app root exists.
 func attach(app_root: Control) -> void:
 	root = app_root
 
 
+# ------------------------------------------------------------------ navigation
+
 ## Navigate to a screen by name with optional params.
 func go(screen: String, params: Dictionary = {}) -> void:
-	if current:
-		current.queue_free()
-	var s: Control = load(SCREENS[screen]).new()
-	s.set_anchors_preset(Control.PRESET_FULL_RECT)
-	root.add_child(s)
-	current = s
-	current_name = screen
-	if s.has_method("setup"):
-		s.setup(params)
+	if not SCREENS.has(screen):
+		push_error("UI.go: unknown screen '%s'" % screen)
+		toast("That screen doesn't exist yet")
+		return
+	if screen in NAV_ROOTS:
+		history.clear()
+		if screen != "home":
+			history.append({"name": "home", "params": {}})
+	elif current_name != "" and current_name != screen:
+		var idx := _history_index(screen)
+		if idx >= 0:
+			history.resize(idx)
+		elif not (current_name in NO_HISTORY):
+			history.append({"name": current_name, "params": current_params})
+	_show(screen, params)
 
 
 ## Go back to the previous screen (or home).
 func back() -> void:
-	go("home")
+	if history.is_empty():
+		if current_name != "home":
+			_show("home", {})
+		return
+	var e: Dictionary = history.pop_back()
+	_show(str(e.get("name", "home")), e.get("params", {}))
 
 
-## Short message at the top of the screen.
-func toast(text: String) -> void:
-	print("[toast] ", text)
+## Back gesture / Escape: closes the top modal first, then navigates back.
+func handle_back() -> void:
+	if not _modals.is_empty():
+		var m: Control = _modals.back()
+		if m.get_meta("dismissable", true):
+			_dismiss(m)
+		return
+	back()
+
+
+func _history_index(screen: String) -> int:
+	for i in history.size():
+		if history[i].get("name", "") == screen:
+			return i
+	return -1
+
+
+func _content_host() -> Control:
+	if root == null or not is_instance_valid(root):
+		return null
+	var c: Variant = root.get("content")
+	return c if c is Control else root
+
+
+func _show(screen: String, params: Dictionary) -> void:
+	var host := _content_host()
+	if host == null:
+		push_error("UI.go before UI.attach")
+		return
+	var script: Variant = load(SCREENS[screen])
+	if not (script is Script) or not (script as Script).can_instantiate():
+		push_error("UI.go: screen '%s' failed to load" % screen)
+		toast("Couldn't open %s" % screen.capitalize())
+		return
+	if current and is_instance_valid(current):
+		host.remove_child(current)
+		current.queue_free()
+	current = null
+	set_chrome(true, true)
+	var s: Variant = (script as Script).new()
+	if not (s is Control):
+		push_error("UI.go: screen '%s' is not a Control" % screen)
+		if s is Node:
+			(s as Node).queue_free()
+		return
+	var sc := s as Control
+	sc.name = screen.to_pascal_case() + "Screen"
+	sc.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	sc.mouse_filter = Control.MOUSE_FILTER_PASS
+	sc.modulate.a = 0.0
+	host.add_child(sc)
+	current = sc
+	current_name = screen
+	current_params = params
+	if sc.has_method("setup"):
+		sc.setup(params)
+	if _fade and _fade.is_valid():
+		_fade.kill()
+	if is_instance_valid(sc):
+		_fade = sc.create_tween()
+		_fade.tween_property(sc, "modulate:a", 1.0, FADE_TIME).set_trans(Tween.TRANS_SINE)
+	screen_changed.emit(screen)
+
+
+## Which bottom-nav tab is highlighted for `screen` ("" = none).
+func nav_tab_for(screen: String) -> String:
+	if screen in NAV_ROOTS:
+		return screen
+	return str(NAV_PARENT.get(screen, ""))
+
+
+# ------------------------------------------------------------------ chrome & safe area
+
+## Show/hide the top bar (currencies) and bottom nav. Reset to visible on every go().
+func set_chrome(show_top_bar: bool, show_nav: bool) -> void:
+	chrome_top = show_top_bar
+	chrome_nav = show_nav
+	if root and is_instance_valid(root) and root.has_method("apply_chrome"):
+		root.apply_chrome(show_top_bar, show_nav)
+
+
+## Top inset (notch / status bar) in viewport px.
+func safe_top() -> float:
+	if safe_override.x >= 0.0:
+		return safe_override.x
+	return _device_insets().x
+
+
+## Bottom inset (home indicator) in viewport px.
+func safe_bottom() -> float:
+	if safe_override.y >= 0.0:
+		return safe_override.y
+	return _device_insets().y
+
+
+func _device_insets() -> Vector2:
+	if not OS.has_feature("mobile"):
+		return Vector2.ZERO
+	var vp := get_viewport()
+	if vp == null:
+		return Vector2.ZERO
+	var visible := vp.get_visible_rect().size
+	var win_size := DisplayServer.window_get_size()
+	if visible.y <= 0.0 or win_size.y <= 0:
+		return Vector2.ZERO
+	var safe := DisplayServer.get_display_safe_area()
+	var win_pos := DisplayServer.window_get_position()
+	var k := float(win_size.y) / visible.y
+	var top := maxf(0.0, float(safe.position.y - win_pos.y)) / k
+	var bottom := maxf(0.0, float((win_pos.y + win_size.y) - safe.end.y)) / k
+	return Vector2(top, bottom)
+
+
+# ------------------------------------------------------------------ toasts
+
+## Short message at the top of the screen. kind: "info" | "good" | "bad" (icon + accent).
+func toast(text: String, kind: String = "info") -> void:
+	var box: Variant = root.get("toast_box") if root and is_instance_valid(root) else null
+	if not (box is Container):
+		print("[toast] ", text)
+		return
+	var host := box as Container
+	while host.get_child_count() >= MAX_TOASTS:
+		var old := host.get_child(0)
+		host.remove_child(old)
+		old.queue_free()
+	var p := PanelContainer.new()
+	p.theme_type_variation = &"ToastPanel"
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var row := Kit.hbox(12)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var ic: String = {"good": "check", "bad": "info"}.get(kind, "")
+	if ic != "":
+		row.add_child(Kit.icon(ic, 34, Kit.GOOD if kind == "good" else Color("ff8a70")))
+	var l := Kit.label(text, Kit.SIZE_BODY, Kit.INK, "extrabold")
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var font := Kit.font("extrabold")
+	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, Kit.SIZE_BODY).x
+	l.custom_minimum_size.x = minf(w + 4.0, 560.0)
+	row.add_child(l)
+	p.add_child(row)
+	host.add_child(p)
+	p.modulate.a = 0.0
+	var tw := p.create_tween()
+	tw.tween_property(p, "modulate:a", 1.0, 0.18)
+	tw.tween_interval(2.2)
+	tw.tween_property(p, "modulate:a", 0.0, 0.35)
+	tw.tween_callback(p.queue_free)
+
+
+# ------------------------------------------------------------------ modals
+
+## Opens `content` as a modal over everything (dim backdrop, centered, pop-in).
+## dismissable: tapping the backdrop or Back closes it (calls on_closed).
+## Returns the modal root; close it with close_modal(m).
+func modal(content: Control, dismissable: bool = true, on_closed: Callable = Callable()) -> Control:
+	var layer := _modal_layer()
+	if layer == null:
+		push_warning("UI.modal before UI.attach")
+		return null
+	var m := Control.new()
+	m.name = "Modal"
+	m.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	m.mouse_filter = Control.MOUSE_FILTER_STOP
+	m.set_meta("dismissable", dismissable)
+	m.set_meta("on_closed", on_closed)
+	var dim := ColorRect.new()
+	dim.color = Color(0.02, 0.01, 0.06, 0.72)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	dim.gui_input.connect(func(ev: InputEvent) -> void:
+		var mb := ev as InputEventMouseButton
+		if dismissable and mb and not mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+			_dismiss(m))
+	m.add_child(dim)
+	var holder := CenterContainer.new()
+	holder.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	holder.offset_top = safe_top()
+	holder.offset_bottom = -safe_bottom()
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	m.add_child(holder)
+	holder.add_child(content)
+	layer.add_child(m)
+	_modals.append(m)
+	dim.modulate.a = 0.0
+	dim.create_tween().tween_property(dim, "modulate:a", 1.0, 0.18)
+	content.pivot_offset = content.get_combined_minimum_size() * 0.5
+	content.scale = Vector2(0.86, 0.86)
+	content.modulate.a = 0.0
+	var tw := content.create_tween().set_parallel(true)
+	tw.tween_property(content, "scale", Vector2.ONE, 0.26).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(content, "modulate:a", 1.0, 0.14)
+	content.resized.connect(func() -> void: content.pivot_offset = content.size * 0.5)
+	return m
+
+
+## Closes a modal opened with modal()/popup() without calling its on_closed.
+func close_modal(m: Control) -> void:
+	if m == null or not is_instance_valid(m) or m.is_queued_for_deletion():
+		return
+	_modals.erase(m)
+	m.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for c in m.get_children():
+		if c is Control:
+			(c as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var tw := m.create_tween()
+	tw.tween_property(m, "modulate:a", 0.0, 0.12)
+	tw.tween_callback(m.queue_free)
+
+
+func _dismiss(m: Control) -> void:
+	if not is_instance_valid(m) or not _modals.has(m):
+		return
+	var cb: Variant = m.get_meta("on_closed", Callable())
+	close_modal(m)
+	if cb is Callable and (cb as Callable).is_valid():
+		(cb as Callable).call()
+
+
+## Standard dialog: ornate panel with a title, close button and your content.
+## Returns the modal root (close with close_modal).
+func popup(title: String, content: Control, on_closed: Callable = Callable(), width: float = 640.0) -> Control:
+	var panel := PanelContainer.new()
+	panel.theme_type_variation = &"ModalPanel"
+	panel.custom_minimum_size.x = width
+	var col := Kit.vbox(18)
+	panel.add_child(col)
+	var head := Kit.hbox(8)
+	head.add_child(Kit.spacer(56))
+	var t := Kit.header(title, 38)
+	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(t)
+	var m_ref: Array[Control] = []
+	var close := Kit.icon_button("close", func() -> void:
+		if not m_ref.is_empty():
+			_dismiss(m_ref[0]), 64, "round")
+	close.custom_minimum_size = Vector2(64, 64)
+	head.add_child(close)
+	col.add_child(head)
+	col.add_child(Kit.divider())
+	col.add_child(content)
+	var m := modal(panel, true, on_closed)
+	m_ref.append(m)
+	return m
+
+
+## In-game yes/no dialog. on_yes runs on confirm, on_no (optional) on cancel/dismiss.
+## danger = red confirm button (destructive actions).
+func confirm(text: String, on_yes: Callable, on_no: Callable = Callable(), yes_text: String = "Confirm", no_text: String = "Cancel", danger: bool = false) -> void:
+	var panel := PanelContainer.new()
+	panel.theme_type_variation = &"ModalPanel"
+	panel.custom_minimum_size.x = 600
+	var col := Kit.vbox(26)
+	panel.add_child(col)
+	col.add_child(Kit.section_header("Confirm", 30))
+	var l := Kit.body(text, 30, Kit.INK)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.custom_minimum_size.x = 500
+	col.add_child(l)
+	var row := Kit.hbox(18)
+	var m_ref: Array[Control] = []
+	var no_btn := Kit.secondary_button(no_text, func() -> void:
+		if not m_ref.is_empty():
+			_dismiss(m_ref[0]))
+	var yes_cb := func() -> void:
+		if not m_ref.is_empty():
+			close_modal(m_ref[0])
+		if on_yes.is_valid():
+			on_yes.call()
+	var yes_btn := Kit.danger_button(yes_text, yes_cb) if danger else Kit.primary_button(yes_text, yes_cb)
+	no_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	yes_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(no_btn)
+	row.add_child(yes_btn)
+	col.add_child(row)
+	var m := modal(panel, true, on_no)
+	m_ref.append(m)
 
 
 ## Show a reward popup (Reward dictionary), then call `on_closed` if valid.
+## Popups queue if one is already open.
 func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callable()) -> void:
-	print("[reward] ", title, " ", reward)
-	if on_closed.is_valid():
-		on_closed.call()
+	if _modal_layer() == null:
+		print("[reward] ", title, " ", reward)
+		if on_closed.is_valid():
+			on_closed.call()
+		return
+	if _reward_open:
+		_reward_queue.append([title, reward, on_closed])
+		return
+	_reward_open = true
+	sfx("reward")
+	haptic(25)
+	var col := Kit.vbox(18)
+	col.custom_minimum_size.x = 660
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	# Title with rotating rays behind it.
+	var title_box := Control.new()
+	title_box.custom_minimum_size = Vector2(660, 150)
+	title_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var rays := Kit.rays(Kit.GOLD, 560.0, 16)
+	rays.position = Vector2(330 - 280, 75 - 280)
+	title_box.add_child(rays)
+	var glow := Kit.glow(Kit.GOLD, 420)
+	glow.position = Vector2(330 - 210, 75 - 210)
+	glow.modulate.a = 0.55
+	title_box.add_child(glow)
+	var t := Kit.title(title, 54)
+	t.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title_box.add_child(t)
+	col.add_child(title_box)
+	var panel := PanelContainer.new()
+	panel.theme_type_variation = &"ModalPanel"
+	var inner := Kit.vbox(26)
+	panel.add_child(inner)
+	var entries := Kit.reward_entries(reward)
+	if entries.is_empty():
+		var none := Kit.body("Nothing this time.", Kit.SIZE_BODY, Kit.INK_DIM)
+		none.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		inner.add_child(none)
+	else:
+		var list := Kit.reward_list(reward, 112.0 if entries.size() <= 8 else 96.0)
+		list.custom_minimum_size.x = 580
+		inner.add_child(list)
+	var m_ref: Array[Control] = []
+	var ok := Kit.primary_button("OK", func() -> void:
+		if not m_ref.is_empty():
+			_dismiss(m_ref[0]))
+	ok.custom_minimum_size.x = 300
+	ok.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	inner.add_child(ok)
+	col.add_child(panel)
+	var closed := func() -> void:
+		_reward_open = false
+		if on_closed.is_valid():
+			on_closed.call()
+		if not _reward_queue.is_empty():
+			var nxt: Array = _reward_queue.pop_front()
+			show_reward.call_deferred(nxt[0], nxt[1], nxt[2])
+	var m := modal(col, true, closed)
+	m_ref.append(m)
+	# Tiles pop in one after another.
+	await get_tree().process_frame
+	if not is_instance_valid(m):
+		return
+	var list_node: Control = null
+	for c in inner.get_children():
+		if c is HFlowContainer:
+			list_node = c
+	if list_node:
+		var i := 0
+		for tile in list_node.get_children():
+			Kit.pop_in(tile as Control, 0.12 + i * 0.06)
+			i += 1
+
+
+func _modal_layer() -> Control:
+	if root == null or not is_instance_valid(root):
+		return null
+	var l: Variant = root.get("modal_layer")
+	return l if l is Control else null
+
+
+## True while any modal (popup, confirm, reward) is open.
+func has_modal() -> bool:
+	return not _modals.is_empty()
+
+
+# ------------------------------------------------------------------ sound & haptics
+
+## Plays a short generated sound: tap, reward, summon, legendary, hit, ult, victory, defeat.
+## Silent when Game.setting("sound") is false.
+func sfx(sound_name: String) -> void:
+	if not _sound_on():
+		return
+	var stream := _stream(sound_name)
+	if stream == null or _players.is_empty():
+		return
+	var p := _players[_next_player]
+	_next_player = (_next_player + 1) % _players.size()
+	p.stream = stream
+	p.volume_db = float(SFX_VOLUME_DB.get(sound_name, -6.0))
+	p.pitch_scale = 1.0
+	p.play()
+
+
+## Short vibration (phones only).
+func haptic(ms: int = 20) -> void:
+	if not OS.has_feature("mobile"):
+		return
+	var v: Variant = Game.setting("haptics") if Game.has_method("setting") else null
+	if v is bool and not v:
+		return
+	Input.vibrate_handheld(ms)
+
+
+func _sound_on() -> bool:
+	if not Game.has_method("setting"):
+		return true
+	var v: Variant = Game.setting("sound")
+	return not (v is bool and v == false)
+
+
+func _stream(sound_name: String) -> AudioStreamWAV:
+	_streams_mutex.lock()
+	var s: Variant = _streams.get(sound_name, null)
+	_streams_mutex.unlock()
+	if s is AudioStreamWAV:
+		return s
+	# Not generated yet (very early tap): make it now.
+	var made := Sfx.make(sound_name)
+	if made:
+		_streams_mutex.lock()
+		_streams[sound_name] = made
+		_streams_mutex.unlock()
+	return made
+
+
+func _generate_all_sounds() -> void:
+	for n in Sfx.NAMES:
+		_streams_mutex.lock()
+		var have := _streams.has(n)
+		_streams_mutex.unlock()
+		if have:
+			continue
+		var w := Sfx.make(n)
+		_streams_mutex.lock()
+		_streams[n] = w
+		_streams_mutex.unlock()
