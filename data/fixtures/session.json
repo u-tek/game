@@ -1,0 +1,916 @@
+{
+	"version": 1,
+	"about": "GameModel (src/core/game_model.gd) end to end: a new player's first two days. Clock starts at start_ms (tz_bias_ms 0); each step first advances the clock by advance_ms, then calls the method with args (\"battle\" = stage_battle_setup + BattleSim.run_to_end + complete_stage). results[i] holds the return value and the notifications queued by step i; final_state is the whole save state.",
+	"regenerate": "tools/gd --headless --path . -s tests/tools/make_fixtures.gd",
+	"start_ms": 1702083600000,
+	"tz_bias_ms": 0,
+	"steps": [
+		{"advance_ms": 0, "call": "new_game", "args": []},
+		{"advance_ms": 0, "call": "idle_status", "args": []},
+		{"advance_ms": 0, "call": "summon", "args": [10]},
+		{"advance_ms": 0, "call": "summon", "args": [1, true]},
+		{"advance_ms": 0, "call": "summon", "args": [10]},
+		{"advance_ms": 0, "call": "summon", "args": [1]},
+		{"advance_ms": 0, "call": "summon", "args": [1]},
+		{"advance_ms": 0, "call": "summon", "args": [1]},
+		{"advance_ms": 0, "call": "summon", "args": [1]},
+		{"advance_ms": 0, "call": "summon", "args": [1]},
+		{"advance_ms": 0, "call": "summon", "args": [1]},
+		{"advance_ms": 0, "call": "buy_offer", "args": ["daily_gift"]},
+		{"advance_ms": 0, "call": "auto_formation", "args": []},
+		{"advance_ms": 0, "call": "formation", "args": []},
+		{"advance_ms": 0, "call": "team_power", "args": []},
+		{"advance_ms": 0, "call": "battle", "args": [0]},
+		{"advance_ms": 0, "call": "battle", "args": [1]},
+		{"advance_ms": 0, "call": "battle", "args": [2]},
+		{"advance_ms": 0, "call": "battle", "args": [3]},
+		{"advance_ms": 0, "call": "battle", "args": [4]},
+		{"advance_ms": 0, "call": "owned_heroes", "args": []},
+		{"advance_ms": 0, "call": "level_up_many", "args": ["uriela", 6]},
+		{"advance_ms": 0, "call": "affordable_levels", "args": ["lucen"]},
+		{"advance_ms": 60000, "call": "battle", "args": [3]},
+		{"advance_ms": 10800000, "call": "idle_status", "args": []},
+		{"advance_ms": 0, "call": "claim_idle", "args": []},
+		{"advance_ms": 0, "call": "quick_claim", "args": []},
+		{"advance_ms": 0, "call": "quick_claim", "args": []},
+		{"advance_ms": 0, "call": "quests", "args": []},
+		{"advance_ms": 0, "call": "claim_quest", "args": ["dq_summon"]},
+		{"advance_ms": 0, "call": "claim_quest", "args": ["dq_win"]},
+		{"advance_ms": 0, "call": "claim_quest", "args": ["dq_idle"]},
+		{"advance_ms": 0, "call": "claim_quest", "args": ["dq_quick"]},
+		{"advance_ms": 0, "call": "claim_quest", "args": ["dq_level"]},
+		{"advance_ms": 0, "call": "gear_items", "args": []},
+		{"advance_ms": 0, "call": "star_up_cost", "args": ["uriela"]},
+		{"advance_ms": 0, "call": "star_up", "args": ["uriela"]},
+		{"advance_ms": 0, "call": "set_formation", "args": [["kessa", "uriela", "lucen", "", ""]]},
+		{"advance_ms": 0, "call": "faction_bonus", "args": []},
+		{"advance_ms": 0, "call": "auto_formation", "args": []},
+		{"advance_ms": 0, "call": "faction_bonus", "args": []},
+		{"advance_ms": 0, "call": "battle", "args": [3]},
+		{"advance_ms": 0, "call": "battle", "args": [4]},
+		{"advance_ms": 0, "call": "battle", "args": [5]},
+		{"advance_ms": 0, "call": "battle", "args": [6]},
+		{"advance_ms": 18000000, "call": "claim_idle", "args": []},
+		{"advance_ms": 0, "call": "quick_claim", "args": []},
+		{"advance_ms": 0, "call": "buy_offer", "args": ["monthly_card"]},
+		{"advance_ms": 64800000, "call": "quests", "args": []},
+		{"advance_ms": 0, "call": "free_pull_available", "args": []},
+		{"advance_ms": 0, "call": "summon", "args": [1, true]},
+		{"advance_ms": 0, "call": "claim_idle", "args": []},
+		{"advance_ms": 0, "call": "offers", "args": []},
+		{"advance_ms": 0, "call": "salvage_gear", "args": ["g1"]},
+		{"advance_ms": 0, "call": "set_setting", "args": ["battle_speed", 4]},
+		{"advance_ms": 0, "call": "dev_add", "args": ["dust", 500]},
+		{"advance_ms": 0, "call": "upgrade_ready", "args": ["kessa"]},
+		{"advance_ms": 0, "call": "hero_stats", "args": ["kessa"]},
+		{"advance_ms": 86400000, "call": "monthly_card_days_left", "args": []},
+		{"advance_ms": 0, "call": "offers", "args": []}
+	],
+	"results": [
+		{"call": "new_game", "value": null, "notify": []},
+		{
+			"call": "idle_status",
+			"value": {
+				"elapsed_ms": 0,
+				"cap_ms": 43200000,
+				"full": false,
+				"pending": {},
+				"per_hour": {"gold": 600, "hero_exp": 400, "dust": 3, "gems": 3},
+				"quick_claims_left": 4,
+				"quick_claim_cost": 0,
+				"quick_claim_ms": 7200000,
+				"gear_every_ms": 10800000
+			},
+			"notify": []
+		},
+		{
+			"call": "summon",
+			"value": {
+				"ok": true,
+				"value": [
+					{"hero_id": "nuriel", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 1},
+					{"hero_id": "ashra", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 2},
+					{"hero_id": "cassiel", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 3},
+					{"hero_id": "vesper", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 4},
+					{"hero_id": "kessa", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 5},
+					{"hero_id": "lucen", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 6},
+					{"hero_id": "uriela", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 7},
+					{"hero_id": "sable", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 8},
+					{"hero_id": "nuriel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 9},
+					{"hero_id": "nuriel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 10}
+				],
+				"error": ""
+			},
+			"notify": [
+				{"type": "new_hero", "hero_id": "nuriel", "rarity": "rare"},
+				{"type": "new_hero", "hero_id": "ashra", "rarity": "rare"},
+				{"type": "new_hero", "hero_id": "cassiel", "rarity": "epic"},
+				{"type": "new_hero", "hero_id": "vesper", "rarity": "epic"},
+				{"type": "new_hero", "hero_id": "sable", "rarity": "epic"},
+				{"type": "quest_ready", "id": "dq_summon", "title": "Summon a hero"}
+			]
+		},
+		{
+			"call": "summon",
+			"value": {
+				"ok": true,
+				"value": [
+					{"hero_id": "uriela", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 11}
+				],
+				"error": ""
+			},
+			"notify": []
+		},
+		{"call": "summon", "value": {"ok": false, "value": null, "error": "Not enough gems"}, "notify": []},
+		{
+			"call": "summon",
+			"value": {
+				"ok": true,
+				"value": [
+					{"hero_id": "vesper", "rarity": "epic", "is_new": false, "shards": 20, "dust": 0, "pity": 12}
+				],
+				"error": ""
+			},
+			"notify": []
+		},
+		{
+			"call": "summon",
+			"value": {
+				"ok": true,
+				"value": [{"hero_id": "imra", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 13}],
+				"error": ""
+			},
+			"notify": [{"type": "new_hero", "hero_id": "imra", "rarity": "rare"}]
+		},
+		{
+			"call": "summon",
+			"value": {
+				"ok": true,
+				"value": [{"hero_id": "ashra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 14}],
+				"error": ""
+			},
+			"notify": []
+		},
+		{
+			"call": "summon",
+			"value": {
+				"ok": true,
+				"value": [
+					{"hero_id": "uriela", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 15}
+				],
+				"error": ""
+			},
+			"notify": []
+		},
+		{
+			"call": "summon",
+			"value": {
+				"ok": true,
+				"value": [{"hero_id": "kessa", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 16}],
+				"error": ""
+			},
+			"notify": []
+		},
+		{
+			"call": "summon",
+			"value": {
+				"ok": true,
+				"value": [{"hero_id": "kessa", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 17}],
+				"error": ""
+			},
+			"notify": []
+		},
+		{
+			"call": "buy_offer",
+			"value": {"ok": true, "value": {"gold": 2000, "gems": 30}, "error": ""},
+			"notify": []
+		},
+		{"call": "auto_formation", "value": null, "notify": []},
+		{"call": "formation", "value": ["cassiel", "uriela", "lucen", "kessa", "nuriel"], "notify": []},
+		{"call": "team_power", "value": 2281, "notify": []},
+		{
+			"call": "battle",
+			"value": {
+				"seed": 1119447960,
+				"victory": true,
+				"duration_ms": 8500,
+				"complete": {
+					"ok": true,
+					"value": {"reward": {"gold": 500, "hero_exp": 300}, "first_clear": true, "victory": true},
+					"error": ""
+				}
+			},
+			"notify": []
+		},
+		{
+			"call": "battle",
+			"value": {
+				"seed": 379261924,
+				"victory": true,
+				"duration_ms": 9400,
+				"complete": {
+					"ok": true,
+					"value": {
+						"reward": {"gold": 650, "hero_exp": 390, "gear": ["g1"]},
+						"first_clear": true,
+						"victory": true
+					},
+					"error": ""
+				}
+			},
+			"notify": []
+		},
+		{
+			"call": "battle",
+			"value": {
+				"seed": 1793609759,
+				"victory": true,
+				"duration_ms": 10100,
+				"complete": {
+					"ok": true,
+					"value": {
+						"reward": {"gold": 800, "hero_exp": 480, "gems": 100},
+						"first_clear": true,
+						"victory": true
+					},
+					"error": ""
+				}
+			},
+			"notify": [{"type": "quest_ready", "id": "dq_win", "title": "Win 3 battles"}]
+		},
+		{
+			"call": "battle",
+			"value": {
+				"seed": 1281961496,
+				"victory": false,
+				"duration_ms": 16700,
+				"complete": {"ok": true, "value": {"reward": {}, "first_clear": false, "victory": false}, "error": ""}
+			},
+			"notify": []
+		},
+		{
+			"call": "battle",
+			"value": {
+				"seed": 1026838193,
+				"victory": false,
+				"duration_ms": 35800,
+				"complete": {"ok": false, "value": null, "error": "Stage locked"}
+			},
+			"notify": []
+		},
+		{
+			"call": "owned_heroes",
+			"value": [
+				{"id": "cassiel", "level": 1, "stars": 2, "shards": 0, "gear": {"weapon": "g1"}},
+				{"id": "nuriel", "level": 1, "stars": 1, "shards": 20, "gear": {}},
+				{"id": "kessa", "level": 1, "stars": 1, "shards": 30, "gear": {}},
+				{"id": "lucen", "level": 1, "stars": 1, "shards": 10, "gear": {}},
+				{"id": "uriela", "level": 1, "stars": 1, "shards": 30, "gear": {}},
+				{"id": "sable", "level": 1, "stars": 2, "shards": 0, "gear": {}},
+				{"id": "vesper", "level": 1, "stars": 2, "shards": 20, "gear": {}},
+				{"id": "ashra", "level": 1, "stars": 1, "shards": 10, "gear": {}},
+				{"id": "imra", "level": 1, "stars": 1, "shards": 0, "gear": {}}
+			],
+			"notify": []
+		},
+		{
+			"call": "level_up_many",
+			"value": {
+				"ok": true,
+				"value": {"level": 7, "levels_gained": 6, "cost": {"gold": 734, "hero_exp": 421}},
+				"error": ""
+			},
+			"notify": [
+				{"type": "quest_ready", "id": "dq_level", "title": "Level up heroes 5 times"},
+				{"type": "level_up", "hero_id": "uriela", "level": 7}
+			]
+		},
+		{"call": "affordable_levels", "value": 15, "notify": []},
+		{
+			"call": "battle",
+			"value": {
+				"seed": 1554948203,
+				"victory": false,
+				"duration_ms": 17700,
+				"complete": {"ok": true, "value": {"reward": {}, "first_clear": false, "victory": false}, "error": ""}
+			},
+			"notify": []
+		},
+		{
+			"call": "idle_status",
+			"value": {
+				"elapsed_ms": 10860000,
+				"cap_ms": 43200000,
+				"full": false,
+				"pending": {"gold": 2805, "hero_exp": 1885, "dust": 12, "gems": 9, "gear_count": 1},
+				"per_hour": {"gold": 930, "hero_exp": 625, "dust": 4, "gems": 3},
+				"quick_claims_left": 4,
+				"quick_claim_cost": 0,
+				"quick_claim_ms": 7200000,
+				"gear_every_ms": 10800000
+			},
+			"notify": []
+		},
+		{
+			"call": "claim_idle",
+			"value": {"gold": 2805, "hero_exp": 1885, "gems": 9, "dust": 12, "gear": ["g2"]},
+			"notify": []
+		},
+		{
+			"call": "quick_claim",
+			"value": {"ok": true, "value": {"gold": 1860, "hero_exp": 1250, "gems": 6, "dust": 8}, "error": ""},
+			"notify": [{"type": "quest_ready", "id": "dq_quick", "title": "Use a Quick Claim"}]
+		},
+		{
+			"call": "quick_claim",
+			"value": {
+				"ok": true,
+				"value": {"gold": 1860, "hero_exp": 1250, "gems": 6, "dust": 8, "gear": ["g3"]},
+				"error": ""
+			},
+			"notify": []
+		},
+		{
+			"call": "quests",
+			"value": [
+				{
+					"id": "dq_idle",
+					"title": "Collect idle rewards twice",
+					"progress": 1,
+					"goal": 2,
+					"reward": {"gems": 40, "gold": 3000},
+					"claimed": false,
+					"ready": false
+				},
+				{
+					"id": "dq_win",
+					"title": "Win 3 battles",
+					"progress": 3,
+					"goal": 3,
+					"reward": {"gems": 60, "hero_exp": 1500},
+					"claimed": false,
+					"ready": true
+				},
+				{
+					"id": "dq_summon",
+					"title": "Summon a hero",
+					"progress": 1,
+					"goal": 1,
+					"reward": {"gems": 50},
+					"claimed": false,
+					"ready": true
+				},
+				{
+					"id": "dq_level",
+					"title": "Level up heroes 5 times",
+					"progress": 5,
+					"goal": 5,
+					"reward": {"gold": 5000, "hero_exp": 2000},
+					"claimed": false,
+					"ready": true
+				},
+				{
+					"id": "dq_quick",
+					"title": "Use a Quick Claim",
+					"progress": 1,
+					"goal": 1,
+					"reward": {"gems": 40},
+					"claimed": false,
+					"ready": true
+				},
+				{
+					"id": "dq_all",
+					"title": "Complete 5 daily quests",
+					"progress": 0,
+					"goal": 5,
+					"reward": {"gems": 100, "scrolls": 1},
+					"claimed": false,
+					"ready": false
+				}
+			],
+			"notify": []
+		},
+		{"call": "claim_quest", "value": {"ok": true, "value": {"gems": 50}, "error": ""}, "notify": []},
+		{
+			"call": "claim_quest",
+			"value": {"ok": true, "value": {"hero_exp": 1500, "gems": 60}, "error": ""},
+			"notify": []
+		},
+		{
+			"call": "claim_quest",
+			"value": {"ok": false, "value": null, "error": "Not finished yet"},
+			"notify": []
+		},
+		{"call": "claim_quest", "value": {"ok": true, "value": {"gems": 40}, "error": ""}, "notify": []},
+		{
+			"call": "claim_quest",
+			"value": {"ok": true, "value": {"gold": 5000, "hero_exp": 2000}, "error": ""},
+			"notify": []
+		},
+		{
+			"call": "gear_items",
+			"value": [
+				{
+					"uid": "g1",
+					"slot": "weapon",
+					"tier": 1,
+					"name": "Worn Glaive",
+					"stats": {"atk": 14},
+					"equipped_by": "lucen"
+				},
+				{
+					"uid": "g2",
+					"slot": "weapon",
+					"tier": 1,
+					"name": "Worn Sceptre",
+					"stats": {"atk": 16},
+					"equipped_by": "uriela"
+				},
+				{
+					"uid": "g3",
+					"slot": "weapon",
+					"tier": 1,
+					"name": "Worn Blade",
+					"stats": {"atk": 17},
+					"equipped_by": "cassiel"
+				}
+			],
+			"notify": []
+		},
+		{
+			"call": "star_up_cost",
+			"value": {"shards": 10, "dust": 0, "shards_have": 30, "shards_used": 10, "dust_per_shard": 10},
+			"notify": []
+		},
+		{
+			"call": "star_up",
+			"value": {"ok": true, "value": {"stars": 2, "level_cap": 60}, "error": ""},
+			"notify": [{"type": "star_up", "hero_id": "uriela", "stars": 2}]
+		},
+		{
+			"call": "set_formation",
+			"value": {"ok": true, "value": ["kessa", "uriela", "lucen", "", ""], "error": ""},
+			"notify": []
+		},
+		{"call": "faction_bonus", "value": {}, "notify": []},
+		{"call": "auto_formation", "value": null, "notify": []},
+		{"call": "faction_bonus", "value": {"faction": "celestial", "count": 3, "bonus_pct": 6}, "notify": []},
+		{
+			"call": "battle",
+			"value": {
+				"seed": 1356677282,
+				"victory": false,
+				"duration_ms": 17500,
+				"complete": {"ok": true, "value": {"reward": {}, "first_clear": false, "victory": false}, "error": ""}
+			},
+			"notify": []
+		},
+		{
+			"call": "battle",
+			"value": {
+				"seed": 1373125563,
+				"victory": false,
+				"duration_ms": 51100,
+				"complete": {"ok": false, "value": null, "error": "Stage locked"}
+			},
+			"notify": []
+		},
+		{
+			"call": "battle",
+			"value": {
+				"seed": 1519969653,
+				"victory": false,
+				"duration_ms": 12600,
+				"complete": {"ok": false, "value": null, "error": "Stage locked"}
+			},
+			"notify": []
+		},
+		{
+			"call": "battle",
+			"value": {
+				"seed": 206671260,
+				"victory": false,
+				"duration_ms": 13800,
+				"complete": {"ok": false, "value": null, "error": "Stage locked"}
+			},
+			"notify": []
+		},
+		{
+			"call": "claim_idle",
+			"value": {"gold": 4650, "hero_exp": 3125, "gems": 15, "dust": 20, "gear": ["g4", "g5"]},
+			"notify": [{"type": "quest_ready", "id": "dq_idle", "title": "Collect idle rewards twice"}]
+		},
+		{
+			"call": "quick_claim",
+			"value": {"ok": true, "value": {"gold": 1860, "hero_exp": 1250, "gems": 6, "dust": 8}, "error": ""},
+			"notify": []
+		},
+		{"call": "buy_offer", "value": {"ok": true, "value": {"gems": 300}, "error": ""}, "notify": []},
+		{
+			"call": "quests",
+			"value": [
+				{
+					"id": "dq_idle",
+					"title": "Collect idle rewards twice",
+					"progress": 0,
+					"goal": 2,
+					"reward": {"gems": 40, "gold": 3000},
+					"claimed": false,
+					"ready": false
+				},
+				{
+					"id": "dq_win",
+					"title": "Win 3 battles",
+					"progress": 0,
+					"goal": 3,
+					"reward": {"gems": 60, "hero_exp": 1500},
+					"claimed": false,
+					"ready": false
+				},
+				{
+					"id": "dq_summon",
+					"title": "Summon a hero",
+					"progress": 0,
+					"goal": 1,
+					"reward": {"gems": 50},
+					"claimed": false,
+					"ready": false
+				},
+				{
+					"id": "dq_level",
+					"title": "Level up heroes 5 times",
+					"progress": 0,
+					"goal": 5,
+					"reward": {"gold": 5000, "hero_exp": 2000},
+					"claimed": false,
+					"ready": false
+				},
+				{
+					"id": "dq_quick",
+					"title": "Use a Quick Claim",
+					"progress": 0,
+					"goal": 1,
+					"reward": {"gems": 40},
+					"claimed": false,
+					"ready": false
+				},
+				{
+					"id": "dq_all",
+					"title": "Complete 5 daily quests",
+					"progress": 0,
+					"goal": 5,
+					"reward": {"gems": 100, "scrolls": 1},
+					"claimed": false,
+					"ready": false
+				}
+			],
+			"notify": [{"type": "monthly_card", "gems": 100}]
+		},
+		{"call": "free_pull_available", "value": true, "notify": []},
+		{
+			"call": "summon",
+			"value": {
+				"ok": true,
+				"value": [{"hero_id": "kessa", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 18}],
+				"error": ""
+			},
+			"notify": [{"type": "quest_ready", "id": "dq_summon", "title": "Summon a hero"}]
+		},
+		{
+			"call": "claim_idle",
+			"value": {"gold": 11160, "hero_exp": 7500, "gems": 36, "dust": 48, "gear": ["g6", "g7", "g8", "g9"]},
+			"notify": []
+		},
+		{
+			"call": "offers",
+			"value": [
+				{
+					"id": "daily_gift",
+					"name": "Daily Blessing",
+					"description": "A small gift from the Choir, every day.",
+					"price_label": "Free",
+					"reward": {"gems": 30, "gold": 2000},
+					"limit": 1,
+					"purchased": 0,
+					"tag": "free",
+					"period": "day",
+					"available": true,
+					"test_purchase": false
+				},
+				{
+					"id": "starter_pack",
+					"name": "Envoy's Starter Pack",
+					"description": "Everything a new envoy needs: gems, scrolls and supplies. Once per account.",
+					"price_label": "$0.99",
+					"reward": {"gems": 1200, "scrolls": 10, "gold": 50000, "hero_exp": 30000},
+					"limit": 1,
+					"purchased": 0,
+					"tag": "best value",
+					"period": "once",
+					"available": true,
+					"test_purchase": true
+				},
+				{
+					"id": "monthly_card",
+					"name": "Moonlit Pass",
+					"description": "300 gems now, then 100 more on each day you log in, for 30 days.",
+					"price_label": "$4.99",
+					"reward": {"gems": 300},
+					"limit": 0,
+					"purchased": 1,
+					"tag": "monthly",
+					"period": "once",
+					"available": true,
+					"test_purchase": true,
+					"days_left": 29
+				},
+				{
+					"id": "scroll_bundle",
+					"name": "Summoner's Satchel",
+					"description": "10 summon scrolls and 300 dust. Limit 3.",
+					"price_label": "$9.99",
+					"reward": {"scrolls": 10, "dust": 300},
+					"limit": 3,
+					"purchased": 0,
+					"tag": "limited",
+					"period": "once",
+					"available": true,
+					"test_purchase": true
+				},
+				{
+					"id": "gems_s",
+					"name": "Pouch of Gems",
+					"description": "330 gems.",
+					"price_label": "$4.99",
+					"reward": {"gems": 330},
+					"limit": 0,
+					"purchased": 0,
+					"tag": "",
+					"period": "once",
+					"available": true,
+					"test_purchase": true
+				},
+				{
+					"id": "gems_m",
+					"name": "Chest of Gems",
+					"description": "1,100 gems.",
+					"price_label": "$14.99",
+					"reward": {"gems": 1100},
+					"limit": 0,
+					"purchased": 0,
+					"tag": "popular",
+					"period": "once",
+					"available": true,
+					"test_purchase": true
+				},
+				{
+					"id": "gems_l",
+					"name": "Reliquary of Gems",
+					"description": "3,880 gems.",
+					"price_label": "$49.99",
+					"reward": {"gems": 3880},
+					"limit": 0,
+					"purchased": 0,
+					"tag": "",
+					"period": "once",
+					"available": true,
+					"test_purchase": true
+				}
+			],
+			"notify": []
+		},
+		{
+			"call": "salvage_gear",
+			"value": {"ok": false, "value": null, "error": "Unequip it first"},
+			"notify": []
+		},
+		{"call": "set_setting", "value": null, "notify": []},
+		{"call": "dev_add", "value": null, "notify": []},
+		{"call": "upgrade_ready", "value": true, "notify": []},
+		{
+			"call": "hero_stats",
+			"value": {"hp": 1520, "atk": 112, "def": 38, "spd": 118, "crit": 2000},
+			"notify": []
+		},
+		{"call": "monthly_card_days_left", "value": 28, "notify": []},
+		{
+			"call": "offers",
+			"value": [
+				{
+					"id": "daily_gift",
+					"name": "Daily Blessing",
+					"description": "A small gift from the Choir, every day.",
+					"price_label": "Free",
+					"reward": {"gems": 30, "gold": 2000},
+					"limit": 1,
+					"purchased": 0,
+					"tag": "free",
+					"period": "day",
+					"available": true,
+					"test_purchase": false
+				},
+				{
+					"id": "starter_pack",
+					"name": "Envoy's Starter Pack",
+					"description": "Everything a new envoy needs: gems, scrolls and supplies. Once per account.",
+					"price_label": "$0.99",
+					"reward": {"gems": 1200, "scrolls": 10, "gold": 50000, "hero_exp": 30000},
+					"limit": 1,
+					"purchased": 0,
+					"tag": "best value",
+					"period": "once",
+					"available": true,
+					"test_purchase": true
+				},
+				{
+					"id": "monthly_card",
+					"name": "Moonlit Pass",
+					"description": "300 gems now, then 100 more on each day you log in, for 30 days.",
+					"price_label": "$4.99",
+					"reward": {"gems": 300},
+					"limit": 0,
+					"purchased": 1,
+					"tag": "monthly",
+					"period": "once",
+					"available": true,
+					"test_purchase": true,
+					"days_left": 28
+				},
+				{
+					"id": "scroll_bundle",
+					"name": "Summoner's Satchel",
+					"description": "10 summon scrolls and 300 dust. Limit 3.",
+					"price_label": "$9.99",
+					"reward": {"scrolls": 10, "dust": 300},
+					"limit": 3,
+					"purchased": 0,
+					"tag": "limited",
+					"period": "once",
+					"available": true,
+					"test_purchase": true
+				},
+				{
+					"id": "gems_s",
+					"name": "Pouch of Gems",
+					"description": "330 gems.",
+					"price_label": "$4.99",
+					"reward": {"gems": 330},
+					"limit": 0,
+					"purchased": 0,
+					"tag": "",
+					"period": "once",
+					"available": true,
+					"test_purchase": true
+				},
+				{
+					"id": "gems_m",
+					"name": "Chest of Gems",
+					"description": "1,100 gems.",
+					"price_label": "$14.99",
+					"reward": {"gems": 1100},
+					"limit": 0,
+					"purchased": 0,
+					"tag": "popular",
+					"period": "once",
+					"available": true,
+					"test_purchase": true
+				},
+				{
+					"id": "gems_l",
+					"name": "Reliquary of Gems",
+					"description": "3,880 gems.",
+					"price_label": "$49.99",
+					"reward": {"gems": 3880},
+					"limit": 0,
+					"purchased": 0,
+					"tag": "",
+					"period": "once",
+					"available": true,
+					"test_purchase": true
+				}
+			],
+			"notify": [{"type": "monthly_card", "gems": 100}]
+		}
+	],
+	"final_state": {
+		"version": 1,
+		"created_at": 1702083600000,
+		"player_name": "Envoy",
+		"currencies": {"gold": 36411, "hero_exp": 22909, "gems": 708, "scrolls": 0, "dust": 604},
+		"heroes": {
+			"uriela": {"id": "uriela", "level": 7, "stars": 2, "shards": 20, "gear": {"weapon": "g2"}},
+			"lucen": {"id": "lucen", "level": 1, "stars": 1, "shards": 10, "gear": {"weapon": "g6"}},
+			"kessa": {"id": "kessa", "level": 1, "stars": 1, "shards": 40, "gear": {"weapon": "g7"}},
+			"nuriel": {"id": "nuriel", "level": 1, "stars": 1, "shards": 20, "gear": {"weapon": "g1"}},
+			"ashra": {"id": "ashra", "level": 1, "stars": 1, "shards": 10, "gear": {}},
+			"cassiel": {
+				"id": "cassiel",
+				"level": 1,
+				"stars": 2,
+				"shards": 0,
+				"gear": {"weapon": "g3", "armor": "g4", "helm": "g5", "charm": "g9"}
+			},
+			"vesper": {"id": "vesper", "level": 1, "stars": 2, "shards": 20, "gear": {}},
+			"sable": {"id": "sable", "level": 1, "stars": 2, "shards": 0, "gear": {}},
+			"imra": {"id": "imra", "level": 1, "stars": 1, "shards": 0, "gear": {}}
+		},
+		"formation": ["cassiel", "uriela", "lucen", "kessa", "nuriel"],
+		"campaign": {"cleared": 3},
+		"idle": {
+			"last_claim_at": 1702177260000,
+			"quick_claims_used": 0,
+			"quick_claim_day": 19702,
+			"carry": {"gold": 1800000, "hero_exp": 1500000, "dust": 240000, "gems": 180000},
+			"gear_ms": 7260000,
+			"full_notified": false
+		},
+		"summon": {"pity": 18, "total_pulls": 18, "last_free_pull_day": 19701, "seed": 1725470481},
+		"gear": [
+			{
+				"uid": "g1",
+				"slot": "weapon",
+				"tier": 1,
+				"name": "Worn Glaive",
+				"stats": {"atk": 14},
+				"equipped_by": "nuriel"
+			},
+			{
+				"uid": "g2",
+				"slot": "weapon",
+				"tier": 1,
+				"name": "Worn Sceptre",
+				"stats": {"atk": 16},
+				"equipped_by": "uriela"
+			},
+			{
+				"uid": "g3",
+				"slot": "weapon",
+				"tier": 1,
+				"name": "Worn Blade",
+				"stats": {"atk": 17},
+				"equipped_by": "cassiel"
+			},
+			{
+				"uid": "g4",
+				"slot": "armor",
+				"tier": 1,
+				"name": "Worn Mail",
+				"stats": {"hp": 261, "def": 8},
+				"equipped_by": "cassiel"
+			},
+			{
+				"uid": "g5",
+				"slot": "helm",
+				"tier": 1,
+				"name": "Worn Helm",
+				"stats": {"hp": 214, "def": 5},
+				"equipped_by": "cassiel"
+			},
+			{
+				"uid": "g6",
+				"slot": "weapon",
+				"tier": 1,
+				"name": "Worn Glaive",
+				"stats": {"atk": 16},
+				"equipped_by": "lucen"
+			},
+			{
+				"uid": "g7",
+				"slot": "weapon",
+				"tier": 1,
+				"name": "Worn Sceptre",
+				"stats": {"atk": 16},
+				"equipped_by": "kessa"
+			},
+			{
+				"uid": "g8",
+				"slot": "weapon",
+				"tier": 1,
+				"name": "Worn Spear",
+				"stats": {"atk": 14},
+				"equipped_by": ""
+			},
+			{
+				"uid": "g9",
+				"slot": "charm",
+				"tier": 1,
+				"name": "Worn Rosary",
+				"stats": {"crit": 273, "spd": 3, "atk": 6},
+				"equipped_by": "cassiel"
+			}
+		],
+		"gear_seq": 9,
+		"quests": {"day": 19702, "progress": {}, "claimed": []},
+		"shop": {
+			"purchases": {"monthly_card": 1},
+			"daily": {},
+			"day": 19702,
+			"monthly_until_day": 19730,
+			"monthly_last_day": 19702
+		},
+		"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 4, "auto_ultimates": true},
+		"counters": {"summons": 18, "battles_started": 10, "battles_won": 3, "stages_cleared": 3, "battles_lost": 3, "level_ups": 6, "idle_claims": 3, "quick_claims": 3, "daily_quests_done": 4, "star_ups": 1},
+		"dev_time_offset": 0,
+		"rng_seed": 5422372
+	}
+}

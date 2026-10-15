@@ -1,0 +1,109 @@
+{
+	"version": 1,
+	"about": "IdleRules (src/core/idle_rules.gd): income per hour by stages cleared, accrual with carry and gear timer, the elapsed cap, quick claims.",
+	"regenerate": "tools/gd --headless --path . -s tests/tools/make_fixtures.gd",
+	"per_hour": [
+		{"cleared": 0, "out": {"gold": 600, "hero_exp": 400, "dust": 3, "gems": 3}},
+		{"cleared": 1, "out": {"gold": 710, "hero_exp": 475, "dust": 3, "gems": 3}},
+		{"cleared": 9, "out": {"gold": 1590, "hero_exp": 1075, "dust": 7, "gems": 4}},
+		{"cleared": 10, "out": {"gold": 1700, "hero_exp": 1150, "dust": 8, "gems": 5}},
+		{"cleared": 15, "out": {"gold": 2250, "hero_exp": 1525, "dust": 10, "gems": 6}},
+		{"cleared": 29, "out": {"gold": 3790, "hero_exp": 2575, "dust": 17, "gems": 8}},
+		{"cleared": 30, "out": {"gold": 3900, "hero_exp": 2650, "dust": 18, "gems": 9}}
+	],
+	"elapsed": [
+		{"now_ms": 1702087200000, "last_claim_at": 1702083600000, "out": 3600000},
+		{"now_ms": 1702191600000, "last_claim_at": 1702083600000, "out": 43200000},
+		{"now_ms": 1702083599995, "last_claim_at": 1702083600000, "out": 0}
+	],
+	"accrue": [
+		{
+			"elapsed_ms": 10800000,
+			"cleared": 0,
+			"carry": {},
+			"gear_ms": 0,
+			"out": {
+				"reward": {"gold": 1800, "hero_exp": 1200, "dust": 9, "gems": 9, "gear_count": 1},
+				"carry": {"gold": 0, "hero_exp": 0, "dust": 0, "gems": 0},
+				"gear_ms": 0
+			}
+		},
+		{
+			"elapsed_ms": 43200000,
+			"cleared": 12,
+			"carry": {},
+			"gear_ms": 0,
+			"out": {
+				"reward": {"gold": 23040, "hero_exp": 15600, "dust": 108, "gems": 60, "gear_count": 4},
+				"carry": {"gold": 0, "hero_exp": 0, "dust": 0, "gems": 0},
+				"gear_ms": 0
+			}
+		},
+		{
+			"elapsed_ms": 600000,
+			"cleared": 5,
+			"carry": {"gold": 1800000, "dust": 3599999},
+			"gear_ms": 10000000,
+			"out": {
+				"reward": {"gold": 192, "hero_exp": 129, "dust": 1},
+				"carry": {"gold": 600000, "hero_exp": 600000, "dust": 2999999, "gems": 2400000},
+				"gear_ms": 10600000
+			}
+		},
+		{
+			"elapsed_ms": 1,
+			"cleared": 30,
+			"carry": {},
+			"gear_ms": 0,
+			"out": {"reward": {}, "carry": {"gold": 3900, "hero_exp": 2650, "dust": 18, "gems": 9}, "gear_ms": 1}
+		},
+		{
+			"elapsed_ms": 43200000,
+			"cleared": 30,
+			"carry": {"gems": 100},
+			"gear_ms": 10799999,
+			"out": {
+				"reward": {"gold": 46800, "hero_exp": 31800, "dust": 216, "gems": 108, "gear_count": 4},
+				"carry": {"gold": 0, "hero_exp": 0, "dust": 0, "gems": 100},
+				"gear_ms": 10799999
+			}
+		}
+	],
+	"quick_claim": [
+		{"used": 0, "cost": 0, "left": 4},
+		{"used": 1, "cost": 50, "left": 3},
+		{"used": 2, "cost": 100, "left": 2},
+		{"used": 3, "cost": 150, "left": 1},
+		{"used": 4, "cost": -1, "left": 0},
+		{"used": 5, "cost": -1, "left": 0}
+	],
+	"quick_reward": [
+		{
+			"cleared": 0,
+			"gear_ms": 0,
+			"out": {
+				"reward": {"gold": 1200, "hero_exp": 800, "dust": 6, "gems": 6},
+				"gear_count": 0,
+				"gear_ms": 7200000
+			}
+		},
+		{
+			"cleared": 12,
+			"gear_ms": 9000000,
+			"out": {
+				"reward": {"gold": 3840, "hero_exp": 2600, "dust": 18, "gems": 10},
+				"gear_count": 1,
+				"gear_ms": 5400000
+			}
+		},
+		{
+			"cleared": 30,
+			"gear_ms": 10799999,
+			"out": {
+				"reward": {"gold": 7800, "hero_exp": 5300, "dust": 36, "gems": 18},
+				"gear_count": 1,
+				"gear_ms": 7199999
+			}
+		}
+	]
+}

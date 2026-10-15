@@ -1,15 +1,19 @@
 class_name StatCalc
+extends RefCounted
 ## Hero stat and power formulas shared by Game (owned heroes), stage enemies (echoes)
-## and tests. Pure functions, ints only.
+## and tests. Pure functions, ints only. Growth numbers: data/economy.json "stats".
+## Golden fixture: data/fixtures/stats.json.
 ##
 ##   stat = (base * level_mult * star_mult + gear) * (1 + passive stat bonus)
 ##   level_mult = 1 + 7% per level above 1, star_mult = 1 + 12% per star above 1
 ##   spd and crit do not scale with level; stars add +1 spd each.
 
-const LEVEL_GROWTH_BP := 700
-const STAR_GROWTH_BP := 1200
-const CRIT_CAP_BP := 7500
-const SCALED := ["hp", "atk", "def"]
+# Static initializers read GameData only (see GameData: load-order rule).
+static var LEVEL_GROWTH_BP: int = int(GameData.economy().stats.level_growth_bp)
+static var STAR_GROWTH_BP: int = int(GameData.economy().stats.star_growth_bp)
+static var SPD_PER_STAR: int = int(GameData.economy().stats.spd_per_star)
+static var CRIT_CAP_BP: int = int(GameData.economy().stats.crit_cap_bp)
+const SCALED: Array[String] = ["hp", "atk", "def"]
 
 
 static func level_mult_bp(level: int) -> int:
@@ -47,7 +51,7 @@ static func stats(hero_id: String, level: int, stars: int, gear: Array = []) -> 
 	for k in SCALED:
 		var v: int = int(base[k]) * lm / 10000 * sm / 10000 + int(g[k])
 		out[k] = v * (10000 + int(bonus[k + "_bp"])) / 10000
-	var spd: int = int(base.spd) + (maxi(stars, 1) - 1) + int(g.spd)
+	var spd: int = int(base.spd) + (maxi(stars, 1) - 1) * SPD_PER_STAR + int(g.spd)
 	out["spd"] = spd * (10000 + int(bonus.spd_bp)) / 10000
 	out["crit"] = mini(int(base.crit) + int(g.crit) + int(bonus.crit_bp), CRIT_CAP_BP)
 	return out

@@ -320,7 +320,7 @@ def crescent(d, dx, dy, fill, op=None):
 
 
 def cel(doc, d, base, tones=(), hi=None, rim=None, over=(), lw=4.5, outline=OUTLINE, lines=(), grad=None, under="",
-        edge=None):
+        edge=None, strokes=None):
     """Cel-shaded shape.
     base: fill colour (or url(#gradient)); grad: optional (fill, opacity) overlay inside.
     tones: [(colour, dx, dy[, opacity])] shadow crescents, light toward (+dx, -dy) = upper right.
@@ -342,7 +342,11 @@ def cel(doc, d, base, tones=(), hi=None, rim=None, over=(), lw=4.5, outline=OUTL
     if inner:
         cid = doc.clip(d)
         out.append(group("".join(inner), clip=cid))
-    if lw and outline:
+    if strokes is not None:
+        # varied line weight: each contour is a filled, tapered brush stroke
+        for st in strokes:
+            out.append(tline(st[0], st[1], st[2] if len(st) > 2 else outline, st[3] if len(st) > 3 else "both"))
+    elif lw and outline:
         # edge: optional open path(s) to stroke instead of the whole outline, so the
         # overlapping joint caps of limbs stay unlined (no doll-joint seams)
         out.append(path(edge if edge else d, "none", outline, lw, cap="round" if edge else None))
@@ -358,3 +362,35 @@ def underlay(ds, w, color=OUTLINE):
 
 def clipped(doc, clip_d, body):
     return group(body, clip=doc.clip(clip_d))
+
+
+def tline(pts, w, color=OUTLINE, profile="both", power=0.45, op=None, k=1.0):
+    """Tapered contour line (filled brush stroke): full width in the middle, sharp ends."""
+    return path(taper(pts, w, profile, k=k, power=power, per_seg=8), color, op=op)
+
+
+def matrix_str(m):
+    """SVG matrix(a b c d e f) from a 2x3 affine ((a, c, e), (b, d, f))."""
+    (a, c, e), (b, dd, ff) = m
+    return "matrix(%.5f %.5f %.5f %.5f %.2f %.2f)" % (a, b, c, dd, e, ff)
+
+
+def rot_about(deg, cx, cy):
+    r = math.radians(deg)
+    co, si = math.cos(r), math.sin(r)
+    return ((co, -si, cx - co * cx + si * cy), (si, co, cy - si * cx - co * cy))
+
+
+def mat_mul(m1, m2):
+    (a1, c1, e1), (b1, d1, f1) = m1
+    (a2, c2, e2), (b2, d2, f2) = m2
+    return ((a1 * a2 + c1 * b2, a1 * c2 + c1 * d2, a1 * e2 + c1 * f2 + e1),
+            (b1 * a2 + d1 * b2, b1 * c2 + d1 * d2, b1 * e2 + d1 * f2 + f1))
+
+
+def mat_apply(m, p):
+    (a, c, e), (b, dd, ff) = m
+    return (a * p[0] + c * p[1] + e, b * p[0] + dd * p[1] + ff)
+
+
+IDENT = ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0))

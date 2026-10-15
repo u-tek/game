@@ -1,0 +1,551 @@
+{
+	"version": 1,
+	"heroes": [
+		{
+			"id": "seraphiel",
+			"name": "Seraphiel",
+			"title": "the Choir Eternal",
+			"faction": "celestial",
+			"role": "caster",
+			"rarity": "legendary",
+			"bio": "The last seraph who still sings the hymn that once held the sky together. Every note is a sunrise; every chorus, a judgment.",
+			"look": "Six-winged seraph (two pairs large, one small pair at the head). Long flowing platinum-blonde hair to the knees, serene closed-eye smile, golden halo like a crown of sunrays. White and gold layered robes with sky-blue trim, holds a floating golden tuning-fork sceptre. Regal, luminous, the 'poster girl' of the game.",
+			"base_stats": {"hp": 1710, "atk": 112, "def": 42, "spd": 96, "crit": 1200},
+			"ultimate": {
+				"id": "hymn_of_judgment",
+				"name": "Hymn of Judgment",
+				"description": "Sings the sky's final verse: 180% ATK to all enemies and Stuns them for 1.5 s.",
+				"effects": [
+					{"type": "damage", "target": "enemy_all", "mult_bp": 18000},
+					{"type": "status", "target": "enemy_all", "status": "stun", "duration_ms": 1500}
+				]
+			},
+			"passives": [
+				{
+					"id": "radiant_aria",
+					"name": "Radiant Aria",
+					"unlock_stars": 3,
+					"description": "Basic attacks have a 25% chance to Stun the target for 1 s.",
+					"effects": [{"type": "on_hit_status", "status": "stun", "chance_bp": 2500, "duration_ms": 1000}]
+				},
+				{
+					"id": "choir_eternal",
+					"name": "Choir Eternal",
+					"unlock_stars": 5,
+					"description": "+20% ATK and +10% HP.",
+					"effects": [{"type": "stat", "atk_bp": 2000, "hp_bp": 1000}]
+				}
+			]
+		},
+		{
+			"id": "cassiel",
+			"name": "Cassiel",
+			"title": "Aegis of Dawn",
+			"faction": "celestial",
+			"role": "guardian",
+			"rarity": "epic",
+			"bio": "Captain of the Gate Wardens. She has never taken a step backward, and she does not intend to start.",
+			"look": "Armored paladin angel, short silver bob haircut, determined eyebrows. Polished white-gold plate armor with a sky-blue tabard, huge kite tower shield with a sunburst emblem held in front. Two medium feathered wings. Small simple halo.",
+			"base_stats": {"hp": 2810, "atk": 60, "def": 82, "spd": 90, "crit": 500},
+			"ultimate": {
+				"id": "dawnwall",
+				"name": "Dawnwall",
+				"description": "Raises the Gate Wardens' wall: shields all allies for 10% of her max HP and grants them +20% DEF for 5 s.",
+				"effects": [
+					{"type": "shield", "target": "ally_all", "pct_max_hp_bp": 1000},
+					{"type": "status", "target": "ally_all", "status": "def_up", "duration_ms": 5000, "value_bp": 2000}
+				]
+			},
+			"passives": [
+				{
+					"id": "unbroken_line",
+					"name": "Unbroken Line",
+					"unlock_stars": 3,
+					"description": "+15% HP and +10% DEF.",
+					"effects": [{"type": "stat", "hp_bp": 1500, "def_bp": 1000}]
+				},
+				{
+					"id": "morning_vigil",
+					"name": "Morning Vigil",
+					"unlock_stars": 5,
+					"description": "Battle start: gains a shield equal to 25% of her max HP.",
+					"effects": [{"type": "start_shield", "pct_max_hp_bp": 2500}]
+				}
+			]
+		},
+		{
+			"id": "liora",
+			"name": "Liora",
+			"title": "Hymn of Mending",
+			"faction": "celestial",
+			"role": "support",
+			"rarity": "epic",
+			"bio": "A temple novice whose lullabies close wounds. She is still learning which songs are safe to sing in battle.",
+			"look": "Gentle healer angel with rose-gold twin tails tied with ribbons, big kind eyes, blushing cheeks. Cream and pale pink dress with gold embroidery, carries a small golden lyre. Two small fluffy wings, flower-shaped halo.",
+			"base_stats": {"hp": 1750, "atk": 76, "def": 48, "spd": 102, "crit": 500},
+			"ultimate": {
+				"id": "lullaby_of_mending",
+				"name": "Lullaby of Mending",
+				"description": "A lullaby that closes wounds: heals all allies for 240% ATK and grants Regen (40% ATK per second) for 4 s.",
+				"effects": [
+					{"type": "heal", "target": "ally_all", "mult_bp": 24000},
+					{"type": "status", "target": "ally_all", "status": "regen", "duration_ms": 4000, "dot_mult_bp": 4000}
+				]
+			},
+			"passives": [
+				{
+					"id": "soft_refrain",
+					"name": "Soft Refrain",
+					"unlock_stars": 3,
+					"description": "Healing done +25%.",
+					"effects": [{"type": "heal_bonus", "bp": 2500}]
+				},
+				{
+					"id": "hymn_of_plenty",
+					"name": "Hymn of Plenty",
+					"unlock_stars": 5,
+					"description": "Battle start: all allies gain +10% max HP.",
+					"effects": [{"type": "team_aura", "hp_bp": 1000}]
+				}
+			]
+		},
+		{
+			"id": "uriela",
+			"name": "Uriela",
+			"title": "the Sunlance",
+			"faction": "celestial",
+			"role": "striker",
+			"rarity": "rare",
+			"bio": "A spear maiden of the outer bastions, eager to prove the old stories about her namesake true.",
+			"look": "Energetic spear maiden, high honey-blonde ponytail, confident grin. Azure and white light armor with gold trim, holds a long golden spear with a sun-shaped blade. Two swept-back wings, thin halo ring.",
+			"base_stats": {"hp": 1790, "atk": 92, "def": 48, "spd": 104, "crit": 1500},
+			"ultimate": {
+				"id": "sunlance",
+				"name": "Sunlance",
+				"description": "Hurls her blazing spear: 360% ATK to her target and breaks its armor, -40% DEF for 6 s.",
+				"effects": [
+					{"type": "damage", "target": "enemy_target", "mult_bp": 36000},
+					{"type": "status", "target": "enemy_target", "status": "def_down", "duration_ms": 6000, "value_bp": 4000}
+				]
+			},
+			"passives": [
+				{
+					"id": "bastion_drills",
+					"name": "Bastion Drills",
+					"unlock_stars": 3,
+					"description": "+12% ATK.",
+					"effects": [{"type": "stat", "atk_bp": 1200}]
+				},
+				{
+					"id": "sunburst_edge",
+					"name": "Sunburst Edge",
+					"unlock_stars": 5,
+					"description": "+15% crit chance and +25% crit damage.",
+					"effects": [{"type": "stat", "crit_bp": 1500}, {"type": "crit_damage", "bp": 2500}]
+				}
+			]
+		},
+		{
+			"id": "nuriel",
+			"name": "Nuriel",
+			"title": "Dawn Scout",
+			"faction": "celestial",
+			"role": "assassin",
+			"rarity": "rare",
+			"bio": "A quiet scout who hunts in the moment between night and morning. Says little, misses nothing.",
+			"look": "Boyish youth (male), short messy pale-gold hair, half-mask covering mouth and nose in white cloth. Hooded sky-blue scout cloak over light leather, twin short daggers glowing with white light. Small sharp wings, faint thin halo.",
+			"base_stats": {"hp": 1500, "atk": 92, "def": 38, "spd": 122, "crit": 2200},
+			"ultimate": {
+				"id": "daybreak_ambush",
+				"name": "Daybreak Ambush",
+				"description": "Dives to the back row: strikes the weakest back-row enemy twice for 170% ATK each and Stuns it for 1 s.",
+				"effects": [
+					{"type": "damage", "target": "enemy_back_lowest", "mult_bp": 17000, "hits": 2},
+					{"type": "status", "target": "enemy_back_lowest", "status": "stun", "duration_ms": 1000}
+				]
+			},
+			"passives": [
+				{
+					"id": "light_step",
+					"name": "Light Step",
+					"unlock_stars": 3,
+					"description": "+15% SPD.",
+					"effects": [{"type": "stat", "spd_bp": 1500}]
+				},
+				{
+					"id": "first_light",
+					"name": "First Light",
+					"unlock_stars": 5,
+					"description": "Battle start: gains 400 energy.",
+					"effects": [{"type": "start_energy", "amount": 400}]
+				}
+			]
+		},
+		{
+			"id": "mordessa",
+			"name": "Mordessa",
+			"title": "the Ember Queen",
+			"faction": "infernal",
+			"role": "striker",
+			"rarity": "legendary",
+			"bio": "Queen of the Ninth Furnace. She lost the war, kept the crown, and has decided the war is not over.",
+			"look": "Demon queen with large curled black ram horns, long wavy black hair with crimson ends, sharp golden eyes and a confident smirk. Black and crimson gothic armor-dress with gold filigree, small crown between the horns, huge greatsword wreathed in orange flame resting on her shoulder. Leathery bat wings, thin spaded tail.",
+			"base_stats": {"hp": 2050, "atk": 106, "def": 54, "spd": 104, "crit": 1800},
+			"ultimate": {
+				"id": "ninth_furnace",
+				"name": "Ninth Furnace",
+				"description": "Brings down the burning greatsword: 320% ATK to her target, 140% ATK to every other enemy, and Burns them all (50% ATK per second) for 4 s.",
+				"effects": [
+					{"type": "damage", "target": "enemy_target", "mult_bp": 32000},
+					{"type": "damage", "target": "enemy_others", "mult_bp": 14000},
+					{"type": "status", "target": "enemy_all", "status": "burn", "duration_ms": 4000, "dot_mult_bp": 5000}
+				]
+			},
+			"passives": [
+				{
+					"id": "queens_wrath",
+					"name": "Queen's Wrath",
+					"unlock_stars": 3,
+					"description": "+15% ATK and +10% crit chance.",
+					"effects": [{"type": "stat", "atk_bp": 1500, "crit_bp": 1000}]
+				},
+				{
+					"id": "unending_war",
+					"name": "Unending War",
+					"unlock_stars": 5,
+					"description": "On kill: restores 20% of her max HP and gains 300 energy.",
+					"effects": [{"type": "on_kill", "heal_pct_bp": 2000, "energy": 300}]
+				}
+			]
+		},
+		{
+			"id": "brakka",
+			"name": "Brakka",
+			"title": "Brimstone Bulwark",
+			"faction": "infernal",
+			"role": "guardian",
+			"rarity": "epic",
+			"bio": "A furnace-golem's grandson with a heart softer than his hide. Loyal to Mordessa, and to anyone who feeds him.",
+			"look": "Big stocky male demon (chibi but broad), dark red skin, thick short horns, friendly tusked grin. Heavy obsidian armor with glowing magma cracks, enormous molten gauntlets, chain belt. No wings; a thick tail.",
+			"base_stats": {"hp": 2960, "atk": 62, "def": 76, "spd": 86, "crit": 500},
+			"ultimate": {
+				"id": "magma_bulwark",
+				"name": "Magma Bulwark",
+				"description": "Plants his molten gauntlets: gains a shield of 40% max HP and Taunts all enemies for 5 s.",
+				"effects": [
+					{"type": "shield", "target": "self", "pct_max_hp_bp": 4000},
+					{"type": "status", "target": "self", "status": "taunt", "duration_ms": 5000}
+				]
+			},
+			"passives": [
+				{
+					"id": "molten_hide",
+					"name": "Molten Hide",
+					"unlock_stars": 3,
+					"description": "Reflects 20% of damage taken back to the attacker.",
+					"effects": [{"type": "thorns", "bp": 2000}]
+				},
+				{
+					"id": "second_helping",
+					"name": "Second Helping",
+					"unlock_stars": 5,
+					"description": "+25% HP.",
+					"effects": [{"type": "stat", "hp_bp": 2500}]
+				}
+			]
+		},
+		{
+			"id": "vesper",
+			"name": "Vesper",
+			"title": "Mistress of Ember Rain",
+			"faction": "infernal",
+			"role": "caster",
+			"rarity": "epic",
+			"bio": "A succubus scholar who reads the future in falling ash. Her forecasts are always right, and always fire.",
+			"look": "Elegant succubus mage, long straight wine-red hair with side bangs, half-lidded teasing eyes, small curved horns. Black and purple witch outfit with high collar and crimson ribbons, floating orb of hellfire in one hand. Small bat wings, heart-spaded tail.",
+			"base_stats": {"hp": 1560, "atk": 106, "def": 38, "spd": 95, "crit": 1100},
+			"ultimate": {
+				"id": "ember_rain",
+				"name": "Ember Rain",
+				"description": "Forecast: fire. 140% ATK to all enemies and Burns them (50% ATK per second) for 6 s.",
+				"effects": [
+					{"type": "damage", "target": "enemy_all", "mult_bp": 14000},
+					{"type": "status", "target": "enemy_all", "status": "burn", "duration_ms": 6000, "dot_mult_bp": 5000}
+				]
+			},
+			"passives": [
+				{
+					"id": "ashen_forecast",
+					"name": "Ashen Forecast",
+					"unlock_stars": 3,
+					"description": "Basic attacks have a 35% chance to Burn the target (30% ATK per second) for 3 s.",
+					"effects": [
+						{"type": "on_hit_status", "status": "burn", "chance_bp": 3500, "duration_ms": 3000, "dot_mult_bp": 3000}
+					]
+				},
+				{
+					"id": "inferno_thesis",
+					"name": "Inferno Thesis",
+					"unlock_stars": 5,
+					"description": "+18% ATK.",
+					"effects": [{"type": "stat", "atk_bp": 1800}]
+				}
+			]
+		},
+		{
+			"id": "imra",
+			"name": "Imra",
+			"title": "Lantern of Pacts",
+			"faction": "infernal",
+			"role": "support",
+			"rarity": "rare",
+			"bio": "An imp shaman who brokers small, fair deals. Mostly fair. Fair-ish.",
+			"look": "Tiny mischievous imp girl, short spiky orange hair, small stubby horns, big toothy grin, pointed ears. Patchwork crimson shaman robe with bone beads, holds a staff with a hanging lantern containing a green-orange flame. Tiny bat wings, curly tail.",
+			"base_stats": {"hp": 1600, "atk": 68, "def": 44, "spd": 106, "crit": 500},
+			"ultimate": {
+				"id": "lantern_pact",
+				"name": "Lantern Pact",
+				"description": "Strikes a deal with the whole team: all allies +20% ATK for 5 s, and every other ally gains 100 energy.",
+				"effects": [
+					{"type": "status", "target": "ally_all", "status": "atk_up", "duration_ms": 5000, "value_bp": 2000},
+					{"type": "energy", "target": "ally_others", "amount": 100}
+				]
+			},
+			"passives": [
+				{
+					"id": "fair_ish_deal",
+					"name": "Fair-ish Deal",
+					"unlock_stars": 3,
+					"description": "Basic attacks have a 50% chance to Weaken the target: -15% ATK for 3 s.",
+					"effects": [
+						{"type": "on_hit_status", "status": "atk_down", "chance_bp": 5000, "duration_ms": 3000, "value_bp": 1500}
+					]
+				},
+				{
+					"id": "lantern_light",
+					"name": "Lantern Light",
+					"unlock_stars": 5,
+					"description": "Battle start: all allies gain 150 energy.",
+					"effects": [{"type": "team_start_energy", "amount": 150}]
+				}
+			]
+		},
+		{
+			"id": "kessa",
+			"name": "Kessa",
+			"title": "Ashen Claw",
+			"faction": "infernal",
+			"role": "assassin",
+			"rarity": "rare",
+			"bio": "A hellcat bounty hunter. Twelve contracts, twelve trophies, and one very full scrapbook.",
+			"look": "Cat-like demon girl with black cat ears AND small horns, short choppy black hair with red streak, slit-pupil amber eyes, fang smile. Sleek black bodysuit with red straps and a scarf, twin curved sickles. Long cat tail, no wings.",
+			"base_stats": {"hp": 1520, "atk": 96, "def": 38, "spd": 118, "crit": 2000},
+			"ultimate": {
+				"id": "twelfth_contract",
+				"name": "Twelfth Contract",
+				"description": "Pounces on the weakest enemy anywhere: 280% ATK, executing it if left below 25% HP (not bosses).",
+				"effects": [{"type": "damage", "target": "enemy_lowest", "mult_bp": 28000, "execute_bp": 2500}]
+			},
+			"passives": [
+				{
+					"id": "hunters_instinct",
+					"name": "Hunter's Instinct",
+					"unlock_stars": 3,
+					"description": "+25% damage to enemies below 50% HP.",
+					"effects": [{"type": "low_hp_bonus", "bp": 2500}]
+				},
+				{
+					"id": "nine_lives",
+					"name": "Nine Lives",
+					"unlock_stars": 5,
+					"description": "Heals for 20% of damage dealt.",
+					"effects": [{"type": "lifesteal", "bp": 2000}]
+				}
+			]
+		},
+		{
+			"id": "noctaire",
+			"name": "Noctaire",
+			"title": "Eclipse Reaper",
+			"faction": "fallen",
+			"role": "assassin",
+			"rarity": "legendary",
+			"bio": "Once Heaven's executioner, she cut her own wings rather than carry out one final order. She still keeps the blade.",
+			"look": "Fallen angel with long straight silver hair, cold violet eyes, one cracked dark halo tilted on her head. Tattered black feathered wings with violet tips. Black and violet gothic coat-dress with silver buckles, huge crescent scythe with a violet glow. Melancholic and beautiful.",
+			"base_stats": {"hp": 1750, "atk": 108, "def": 44, "spd": 124, "crit": 2500},
+			"ultimate": {
+				"id": "eclipse_harvest",
+				"name": "Eclipse Harvest",
+				"description": "Dives into the back row with her crescent scythe: 220% ATK to every back-row enemy, executing any left below 30% HP (not bosses).",
+				"effects": [{"type": "damage", "target": "enemy_back_row", "mult_bp": 22000, "execute_bp": 3000}]
+			},
+			"passives": [
+				{
+					"id": "severed_wings",
+					"name": "Severed Wings",
+					"unlock_stars": 3,
+					"description": "+15% crit chance and +10% SPD.",
+					"effects": [{"type": "stat", "crit_bp": 1500, "spd_bp": 1000}]
+				},
+				{
+					"id": "last_order",
+					"name": "Last Order",
+					"unlock_stars": 5,
+					"description": "On kill: gains 500 energy.",
+					"effects": [{"type": "on_kill", "energy": 500}]
+				}
+			]
+		},
+		{
+			"id": "orrin",
+			"name": "Orrin",
+			"title": "the Chained Oath",
+			"faction": "fallen",
+			"role": "guardian",
+			"rarity": "epic",
+			"bio": "A knight who swore to guard a gate that no longer exists. He guards his friends now, with the same chains.",
+			"look": "Stoic male fallen knight, shaggy ash-grey hair, scar over one eye. Cracked silver armor wrapped with broken chains, violet cape. Holds a heavy chain-wrapped tower shield. Grey ragged wings, a broken halo hanging from a chain on his belt.",
+			"base_stats": {"hp": 2900, "atk": 68, "def": 84, "spd": 90, "crit": 500},
+			"ultimate": {
+				"id": "chains_of_the_oath",
+				"name": "Chains of the Oath",
+				"description": "Lashes out with broken chains: 130% ATK to front-row enemies and Stuns them for 2.5 s, then Weakens all enemies (-25% ATK) for 6 s.",
+				"effects": [
+					{"type": "damage", "target": "enemy_front_row", "mult_bp": 13000},
+					{"type": "status", "target": "enemy_front_row", "status": "stun", "duration_ms": 2500},
+					{"type": "status", "target": "enemy_all", "status": "atk_down", "duration_ms": 6000, "value_bp": 2500}
+				]
+			},
+			"passives": [
+				{
+					"id": "oathbound",
+					"name": "Oathbound",
+					"unlock_stars": 3,
+					"description": "Takes 12% less damage.",
+					"effects": [{"type": "damage_reduction", "bp": 1200}]
+				},
+				{
+					"id": "guarding_chains",
+					"name": "Guarding Chains",
+					"unlock_stars": 5,
+					"description": "+20% DEF and +15% HP.",
+					"effects": [{"type": "stat", "def_bp": 2000, "hp_bp": 1500}]
+				}
+			]
+		},
+		{
+			"id": "sable",
+			"name": "Sable",
+			"title": "Censer of Dusk",
+			"faction": "fallen",
+			"role": "support",
+			"rarity": "epic",
+			"bio": "A fallen nun who still holds services in ruined chapels. Her congregation is mostly ghosts. They come every week.",
+			"look": "Calm fallen nun, long dark-teal hair under a black-and-violet veil, gentle sad smile. Dark nun habit with silver trim, swinging a silver censer trailing violet smoke. Grey feathered wings, faint dim halo.",
+			"base_stats": {"hp": 1820, "atk": 80, "def": 50, "spd": 100, "crit": 500},
+			"ultimate": {
+				"id": "dusk_requiem",
+				"name": "Dusk Requiem",
+				"description": "Swings the censer for the lost: all enemies -50% DEF for 8 s, and all allies heal for 200% ATK.",
+				"effects": [
+					{"type": "status", "target": "enemy_all", "status": "def_down", "duration_ms": 8000, "value_bp": 5000},
+					{"type": "heal", "target": "ally_all", "mult_bp": 20000}
+				]
+			},
+			"passives": [
+				{
+					"id": "censer_smoke",
+					"name": "Censer Smoke",
+					"unlock_stars": 3,
+					"description": "Basic attacks Expose the target: -25% DEF for 3 s.",
+					"effects": [
+						{"type": "on_hit_status", "status": "def_down", "chance_bp": 10000, "duration_ms": 3000, "value_bp": 2500}
+					]
+				},
+				{
+					"id": "vespers",
+					"name": "Vespers",
+					"unlock_stars": 5,
+					"description": "Each basic attack also heals the most wounded ally for 70% ATK.",
+					"effects": [{"type": "on_attack_heal", "mult_bp": 7000}]
+				}
+			]
+		},
+		{
+			"id": "lucen",
+			"name": "Lucen",
+			"title": "Twinfeather Duelist",
+			"faction": "fallen",
+			"role": "striker",
+			"rarity": "rare",
+			"bio": "One wing white, one wing black. He insists he has not chosen a side. His rapier disagrees, daily.",
+			"look": "Flamboyant male duelist, wavy shoulder-length white hair with black tips, confident smile. Violet and silver duelist coat with frilled collar, slim rapier. Asymmetric wings: one white feathered, one black feathered. No halo.",
+			"base_stats": {"hp": 1710, "atk": 94, "def": 46, "spd": 108, "crit": 1600},
+			"ultimate": {
+				"id": "twinfeather_flurry",
+				"name": "Twinfeather Flurry",
+				"description": "A dazzling flurry: 5 strikes of 85% ATK at random enemies, then +25% SPD for 5 s.",
+				"effects": [
+					{"type": "damage", "target": "enemy_random", "mult_bp": 8500, "hits": 5},
+					{"type": "status", "target": "self", "status": "spd_up", "duration_ms": 5000, "value_bp": 2500}
+				]
+			},
+			"passives": [
+				{
+					"id": "neither_side",
+					"name": "Neither Side",
+					"unlock_stars": 3,
+					"description": "+10% ATK and +10% HP.",
+					"effects": [{"type": "stat", "atk_bp": 1000, "hp_bp": 1000}]
+				},
+				{
+					"id": "flourish",
+					"name": "Flourish",
+					"unlock_stars": 5,
+					"description": "Basic attacks have a 30% chance to strike twice.",
+					"effects": [{"type": "double_strike", "chance_bp": 3000}]
+				}
+			]
+		},
+		{
+			"id": "ashra",
+			"name": "Ashra",
+			"title": "Witch of Ash",
+			"faction": "fallen",
+			"role": "caster",
+			"rarity": "rare",
+			"bio": "She burned her own heaven down by accident. Now she studies fire very, very carefully.",
+			"look": "Young ash witch, messy grey hair with violet streaks, sleepy eyes, cracked violet halo. Oversized grey witch hat with silver star pins, layered violet robes with burned hem, holds a crooked wand with violet flame. Small grey wings.",
+			"base_stats": {"hp": 1560, "atk": 106, "def": 38, "spd": 96, "crit": 1000},
+			"ultimate": {
+				"id": "accidental_inferno",
+				"name": "Accidental Inferno",
+				"description": "Oops. 180% ATK to all enemies, +60% damage to enemies below 50% HP.",
+				"effects": [{"type": "damage", "target": "enemy_all", "mult_bp": 18000, "low_hp_bonus_bp": 6000}]
+			},
+			"passives": [
+				{
+					"id": "careful_study",
+					"name": "Careful Study",
+					"unlock_stars": 3,
+					"description": "+15% ATK.",
+					"effects": [{"type": "stat", "atk_bp": 1500}]
+				},
+				{
+					"id": "ash_cloud",
+					"name": "Ash Cloud",
+					"unlock_stars": 5,
+					"description": "Her ultimate also Weakens all enemies: -15% ATK for 4 s.",
+					"effects": [
+						{
+							"type": "ult_bonus",
+							"effects": [
+								{"type": "status", "target": "enemy_all", "status": "atk_down", "duration_ms": 4000, "value_bp": 1500}
+							]
+						}
+					]
+				}
+			]
+		}
+	]
+}

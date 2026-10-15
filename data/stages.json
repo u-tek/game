@@ -1,0 +1,544 @@
+{
+	"version": 1,
+	"echo_stat_bp": 7500,
+	"calibration": {"starter_team": {"uriela": 1, "lucen": 1, "kessa": 1}, "starter_stages": 3},
+	"chapters": [
+		{
+			"id": "ch1",
+			"name": "Shattered Sanctum",
+			"background": "chapter-1",
+			"faction": "celestial",
+			"intro": "The cathedral of the sky lies broken, and its wardens still patrol the ruins as echoes: hollow light that remembers only its orders. Climb the shattered nave and quiet the choir that will not stop singing.",
+			"hint": "Echoes of the Celestial host. Fallen heroes deal +20% damage here.",
+			"stages": [
+				{
+					"name": "Broken Narthex",
+					"boss": false,
+					"level": 1,
+					"stars": 1,
+					"strength_bp": 14000,
+					"recommended_power": 1322,
+					"enemies": [{"hero_id": "uriela", "slot": 0}, {"hero_id": "nuriel", "slot": 2}],
+					"first_clear_reward": {"gold": 500, "hero_exp": 300}
+				},
+				{
+					"name": "Hall of Fallen Bells",
+					"boss": false,
+					"level": 2,
+					"stars": 1,
+					"strength_bp": 10750,
+					"recommended_power": 1322,
+					"enemies": [
+						{"hero_id": "uriela", "slot": 0},
+						{"hero_id": "uriela", "slot": 1},
+						{"hero_id": "nuriel", "slot": 3}
+					],
+					"first_clear_reward": {"gold": 650, "hero_exp": 390, "gear_drops": [{"slot": "weapon", "tier": 1}]}
+				},
+				{
+					"name": "Glass Garden",
+					"boss": false,
+					"level": 3,
+					"stars": 1,
+					"strength_bp": 10250,
+					"recommended_power": 1322,
+					"enemies": [
+						{"hero_id": "uriela", "slot": 0},
+						{"hero_id": "liora", "slot": 2},
+						{"hero_id": "nuriel", "slot": 3}
+					],
+					"first_clear_reward": {"gold": 800, "hero_exp": 480, "gems": 100}
+				},
+				{
+					"name": "Pillar Walk",
+					"boss": false,
+					"level": 6,
+					"stars": 1,
+					"strength_bp": 17250,
+					"recommended_power": 3477,
+					"enemies": [
+						{"hero_id": "uriela", "slot": 0},
+						{"hero_id": "uriela", "slot": 1},
+						{"hero_id": "nuriel", "slot": 2},
+						{"hero_id": "liora", "slot": 3}
+					],
+					"first_clear_reward": {"gold": 950, "hero_exp": 570}
+				},
+				{
+					"name": "The Gate Warden",
+					"boss": true,
+					"level": 8,
+					"stars": 1,
+					"strength_bp": 11250,
+					"recommended_power": 3837,
+					"enemies": [
+						{"hero_id": "cassiel", "slot": 0, "boss": true},
+						{"hero_id": "uriela", "slot": 1},
+						{"hero_id": "nuriel", "slot": 2},
+						{"hero_id": "uriela", "slot": 4}
+					],
+					"first_clear_reward": {
+						"gold": 1100,
+						"hero_exp": 660,
+						"gems": 200,
+						"gear_drops": [{"slot": "weapon", "tier": 1}],
+						"dust": 50
+					}
+				},
+				{
+					"name": "Ashen Cloister",
+					"boss": false,
+					"level": 15,
+					"stars": 1,
+					"strength_bp": 14000,
+					"recommended_power": 5309,
+					"enemies": [
+						{"hero_id": "cassiel", "slot": 0},
+						{"hero_id": "uriela", "slot": 1},
+						{"hero_id": "nuriel", "slot": 2},
+						{"hero_id": "liora", "slot": 3},
+						{"hero_id": "ashra", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 1250, "hero_exp": 750}
+				},
+				{
+					"name": "Reliquary Stair",
+					"boss": false,
+					"level": 16,
+					"stars": 2,
+					"strength_bp": 12000,
+					"recommended_power": 5385,
+					"enemies": [
+						{"hero_id": "uriela", "slot": 0},
+						{"hero_id": "cassiel", "slot": 1},
+						{"hero_id": "nuriel", "slot": 2},
+						{"hero_id": "kessa", "slot": 3},
+						{"hero_id": "liora", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 1400, "hero_exp": 840, "gear_drops": [{"slot": "charm", "tier": 1}]}
+				},
+				{
+					"name": "Choir Loft",
+					"boss": false,
+					"level": 18,
+					"stars": 2,
+					"strength_bp": 14250,
+					"recommended_power": 6452,
+					"enemies": [
+						{"hero_id": "cassiel", "slot": 0},
+						{"hero_id": "uriela", "slot": 1},
+						{"hero_id": "liora", "slot": 2},
+						{"hero_id": "nuriel", "slot": 3},
+						{"hero_id": "imra", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 1550, "hero_exp": 930, "scrolls": 1}
+				},
+				{
+					"name": "Bell Tower Ruin",
+					"boss": false,
+					"level": 19,
+					"stars": 2,
+					"strength_bp": 13500,
+					"recommended_power": 6531,
+					"enemies": [
+						{"hero_id": "cassiel", "slot": 0},
+						{"hero_id": "uriela", "slot": 1},
+						{"hero_id": "nuriel", "slot": 2},
+						{"hero_id": "liora", "slot": 3},
+						{"hero_id": "vesper", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 1700, "hero_exp": 1020}
+				},
+				{
+					"name": "The Choir Unsung",
+					"boss": true,
+					"level": 20,
+					"stars": 2,
+					"strength_bp": 10000,
+					"recommended_power": 6968,
+					"enemies": [
+						{"hero_id": "cassiel", "slot": 0},
+						{"hero_id": "uriela", "slot": 1},
+						{"hero_id": "seraphiel", "slot": 2, "boss": true},
+						{"hero_id": "liora", "slot": 3},
+						{"hero_id": "nuriel", "slot": 4}
+					],
+					"first_clear_reward": {
+						"gold": 1850,
+						"hero_exp": 1110,
+						"gems": 400,
+						"scrolls": 2,
+						"gear_drops": [{"slot": "charm", "tier": 3}],
+						"dust": 50
+					}
+				}
+			]
+		},
+		{
+			"id": "ch2",
+			"name": "Ember Wastes",
+			"background": "chapter-2",
+			"faction": "infernal",
+			"intro": "Beyond the cathedral the land still burns from the last war. Furnace-echoes march under a queen's banner, certain the war never ended. Cross the cinder fields and remind them that it did.",
+			"hint": "Echoes of the Infernal host. Celestial heroes deal +20% damage here.",
+			"stages": [
+				{
+					"name": "Cinder Road",
+					"boss": false,
+					"level": 24,
+					"stars": 2,
+					"strength_bp": 11750,
+					"recommended_power": 8382,
+					"enemies": [
+						{"hero_id": "brakka", "slot": 0},
+						{"hero_id": "kessa", "slot": 1},
+						{"hero_id": "imra", "slot": 2},
+						{"hero_id": "vesper", "slot": 3},
+						{"hero_id": "kessa", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 2000, "hero_exp": 1200}
+				},
+				{
+					"name": "Sulfur Springs",
+					"boss": false,
+					"level": 26,
+					"stars": 2,
+					"strength_bp": 11500,
+					"recommended_power": 8801,
+					"enemies": [
+						{"hero_id": "brakka", "slot": 0},
+						{"hero_id": "mordessa", "slot": 1, "stars": 2},
+						{"hero_id": "imra", "slot": 2},
+						{"hero_id": "kessa", "slot": 3},
+						{"hero_id": "vesper", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 2150, "hero_exp": 1290, "gear_drops": [{"slot": "armor", "tier": 2}]}
+				},
+				{
+					"name": "Molten Ford",
+					"boss": false,
+					"level": 28,
+					"stars": 2,
+					"strength_bp": 13500,
+					"recommended_power": 9608,
+					"enemies": [
+						{"hero_id": "brakka", "slot": 0},
+						{"hero_id": "kessa", "slot": 1},
+						{"hero_id": "vesper", "slot": 2},
+						{"hero_id": "imra", "slot": 3},
+						{"hero_id": "ashra", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 2300, "hero_exp": 1380, "gems": 100}
+				},
+				{
+					"name": "Chainworks",
+					"boss": false,
+					"level": 29,
+					"stars": 2,
+					"strength_bp": 12750,
+					"recommended_power": 10014,
+					"enemies": [
+						{"hero_id": "brakka", "slot": 0},
+						{"hero_id": "orrin", "slot": 1},
+						{"hero_id": "vesper", "slot": 2},
+						{"hero_id": "kessa", "slot": 3},
+						{"hero_id": "imra", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 2450, "hero_exp": 1470}
+				},
+				{
+					"name": "Brimstone Bulwark",
+					"boss": true,
+					"level": 32,
+					"stars": 2,
+					"strength_bp": 9500,
+					"recommended_power": 11308,
+					"enemies": [
+						{"hero_id": "brakka", "slot": 0, "boss": true},
+						{"hero_id": "kessa", "slot": 1},
+						{"hero_id": "vesper", "slot": 2},
+						{"hero_id": "imra", "slot": 3},
+						{"hero_id": "kessa", "slot": 4}
+					],
+					"first_clear_reward": {
+						"gold": 2600,
+						"hero_exp": 1560,
+						"gems": 200,
+						"gear_drops": [{"slot": "weapon", "tier": 3}],
+						"dust": 75
+					}
+				},
+				{
+					"name": "Ashfall Market",
+					"boss": false,
+					"level": 34,
+					"stars": 3,
+					"strength_bp": 13750,
+					"recommended_power": 11828,
+					"enemies": [
+						{"hero_id": "brakka", "slot": 0},
+						{"hero_id": "uriela", "slot": 1},
+						{"hero_id": "vesper", "slot": 2},
+						{"hero_id": "imra", "slot": 3},
+						{"hero_id": "kessa", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 2750, "hero_exp": 1650}
+				},
+				{
+					"name": "Lantern Bazaar",
+					"boss": false,
+					"level": 35,
+					"stars": 3,
+					"strength_bp": 12250,
+					"recommended_power": 12230,
+					"enemies": [
+						{"hero_id": "brakka", "slot": 0},
+						{"hero_id": "kessa", "slot": 1},
+						{"hero_id": "imra", "slot": 2},
+						{"hero_id": "vesper", "slot": 3},
+						{"hero_id": "liora", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 2900, "hero_exp": 1740, "gear_drops": [{"slot": "weapon", "tier": 3}]}
+				},
+				{
+					"name": "Obsidian Steps",
+					"boss": false,
+					"level": 36,
+					"stars": 3,
+					"strength_bp": 12500,
+					"recommended_power": 12568,
+					"enemies": [
+						{"hero_id": "brakka", "slot": 0},
+						{"hero_id": "cassiel", "slot": 1},
+						{"hero_id": "vesper", "slot": 2},
+						{"hero_id": "kessa", "slot": 3},
+						{"hero_id": "imra", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 3050, "hero_exp": 1830, "scrolls": 1}
+				},
+				{
+					"name": "Furnace Gate",
+					"boss": false,
+					"level": 39,
+					"stars": 3,
+					"strength_bp": 12750,
+					"recommended_power": 13413,
+					"enemies": [
+						{"hero_id": "brakka", "slot": 0},
+						{"hero_id": "mordessa", "slot": 1},
+						{"hero_id": "vesper", "slot": 2},
+						{"hero_id": "imra", "slot": 3},
+						{"hero_id": "kessa", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 3200, "hero_exp": 1920}
+				},
+				{
+					"name": "Throne of the Ninth Furnace",
+					"boss": true,
+					"level": 41,
+					"stars": 3,
+					"strength_bp": 11500,
+					"recommended_power": 14664,
+					"enemies": [
+						{"hero_id": "brakka", "slot": 0},
+						{"hero_id": "kessa", "slot": 1},
+						{"hero_id": "mordessa", "slot": 2, "boss": true},
+						{"hero_id": "vesper", "slot": 3},
+						{"hero_id": "imra", "slot": 4}
+					],
+					"first_clear_reward": {
+						"gold": 3350,
+						"hero_exp": 2010,
+						"gems": 400,
+						"scrolls": 2,
+						"gear_drops": [{"slot": "charm", "tier": 4}],
+						"dust": 75
+					}
+				}
+			]
+		},
+		{
+			"id": "ch3",
+			"name": "Twilight Abyss",
+			"background": "chapter-3",
+			"faction": "fallen",
+			"intro": "Between Heaven and Hell lies a dusk that never ends. The Fallen made their home here, and their echoes guard every broken oath. At the bottom waits the reaper who refused her final order.",
+			"hint": "Echoes of the Fallen host. Infernal heroes deal +20% damage here.",
+			"stages": [
+				{
+					"name": "Dusk Shore",
+					"boss": false,
+					"level": 44,
+					"stars": 3,
+					"strength_bp": 13750,
+					"recommended_power": 15963,
+					"enemies": [
+						{"hero_id": "orrin", "slot": 0},
+						{"hero_id": "lucen", "slot": 1},
+						{"hero_id": "ashra", "slot": 2},
+						{"hero_id": "sable", "slot": 3},
+						{"hero_id": "lucen", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 3500, "hero_exp": 2100}
+				},
+				{
+					"name": "Chapel of Ghosts",
+					"boss": false,
+					"level": 46,
+					"stars": 3,
+					"strength_bp": 12250,
+					"recommended_power": 16745,
+					"enemies": [
+						{"hero_id": "orrin", "slot": 0},
+						{"hero_id": "lucen", "slot": 1},
+						{"hero_id": "sable", "slot": 2},
+						{"hero_id": "ashra", "slot": 3},
+						{"hero_id": "noctaire", "slot": 4, "stars": 3}
+					],
+					"first_clear_reward": {"gold": 3650, "hero_exp": 2190, "gear_drops": [{"slot": "helm", "tier": 4}]}
+				},
+				{
+					"name": "Broken Oath Bridge",
+					"boss": false,
+					"level": 49,
+					"stars": 3,
+					"strength_bp": 14500,
+					"recommended_power": 18267,
+					"enemies": [
+						{"hero_id": "orrin", "slot": 0},
+						{"hero_id": "brakka", "slot": 1},
+						{"hero_id": "ashra", "slot": 2},
+						{"hero_id": "sable", "slot": 3},
+						{"hero_id": "lucen", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 3800, "hero_exp": 2280, "gems": 100}
+				},
+				{
+					"name": "Hollow Choir",
+					"boss": false,
+					"level": 50,
+					"stars": 3,
+					"strength_bp": 14250,
+					"recommended_power": 19115,
+					"enemies": [
+						{"hero_id": "orrin", "slot": 0},
+						{"hero_id": "lucen", "slot": 1},
+						{"hero_id": "seraphiel", "slot": 2},
+						{"hero_id": "sable", "slot": 3},
+						{"hero_id": "ashra", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 3950, "hero_exp": 2370}
+				},
+				{
+					"name": "The Chained Gate",
+					"boss": true,
+					"level": 53,
+					"stars": 3,
+					"strength_bp": 12500,
+					"recommended_power": 20134,
+					"enemies": [
+						{"hero_id": "orrin", "slot": 0, "boss": true},
+						{"hero_id": "lucen", "slot": 1},
+						{"hero_id": "ashra", "slot": 2},
+						{"hero_id": "sable", "slot": 3},
+						{"hero_id": "noctaire", "slot": 4}
+					],
+					"first_clear_reward": {
+						"gold": 4100,
+						"hero_exp": 2460,
+						"gems": 200,
+						"gear_drops": [{"slot": "weapon", "tier": 4}],
+						"dust": 100
+					}
+				},
+				{
+					"name": "Ash Witch's Hollow",
+					"boss": false,
+					"level": 55,
+					"stars": 4,
+					"strength_bp": 13500,
+					"recommended_power": 20911,
+					"enemies": [
+						{"hero_id": "orrin", "slot": 0},
+						{"hero_id": "lucen", "slot": 1},
+						{"hero_id": "ashra", "slot": 2},
+						{"hero_id": "ashra", "slot": 3},
+						{"hero_id": "sable", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 4250, "hero_exp": 2550}
+				},
+				{
+					"name": "Mirror Lake",
+					"boss": false,
+					"level": 57,
+					"stars": 4,
+					"strength_bp": 13000,
+					"recommended_power": 21358,
+					"enemies": [
+						{"hero_id": "orrin", "slot": 0},
+						{"hero_id": "cassiel", "slot": 1},
+						{"hero_id": "lucen", "slot": 2},
+						{"hero_id": "sable", "slot": 3},
+						{"hero_id": "noctaire", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 4400, "hero_exp": 2640, "gear_drops": [{"slot": "armor", "tier": 4}]}
+				},
+				{
+					"name": "Feather Graveyard",
+					"boss": false,
+					"level": 59,
+					"stars": 4,
+					"strength_bp": 13000,
+					"recommended_power": 23095,
+					"enemies": [
+						{"hero_id": "orrin", "slot": 0},
+						{"hero_id": "lucen", "slot": 1},
+						{"hero_id": "vesper", "slot": 2},
+						{"hero_id": "sable", "slot": 3},
+						{"hero_id": "noctaire", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 4550, "hero_exp": 2730, "scrolls": 1}
+				},
+				{
+					"name": "Eclipse Stair",
+					"boss": false,
+					"level": 61,
+					"stars": 4,
+					"strength_bp": 12500,
+					"recommended_power": 24522,
+					"enemies": [
+						{"hero_id": "orrin", "slot": 0},
+						{"hero_id": "mordessa", "slot": 1},
+						{"hero_id": "ashra", "slot": 2},
+						{"hero_id": "sable", "slot": 3},
+						{"hero_id": "noctaire", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 4700, "hero_exp": 2820}
+				},
+				{
+					"name": "The Last Order",
+					"boss": true,
+					"level": 64,
+					"stars": 4,
+					"strength_bp": 11750,
+					"recommended_power": 26514,
+					"enemies": [
+						{"hero_id": "orrin", "slot": 0},
+						{"hero_id": "lucen", "slot": 1},
+						{"hero_id": "noctaire", "slot": 2, "boss": true},
+						{"hero_id": "sable", "slot": 3},
+						{"hero_id": "ashra", "slot": 4}
+					],
+					"first_clear_reward": {
+						"gold": 4850,
+						"hero_exp": 2910,
+						"gems": 400,
+						"scrolls": 2,
+						"gear_drops": [{"slot": "charm", "tier": 5}],
+						"dust": 100
+					}
+				}
+			]
+		}
+	]
+}

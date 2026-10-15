@@ -32,23 +32,8 @@ const STANDARD := ["root", "hips", "torso", "chest", "chest_upper", "clavicle_l"
 const STANDARD_PREFIX := ["hair_front_", "hair_back_", "hair_tail_", "ponytail_", "tail_",
 	"ribbon_", "acc_", "fx_", "skirt_", "cape_", "wing_", "hair_side_", "sleeve_", "coat_"]
 
-## Spring presets: stiffness k (1/s^2), damping c (1/s), gravity g (0..1, how strongly the
-## part keeps hanging in rig space when its parent rotates), wind w (fraction of length),
-## limit (deg), inertia i (0..1, share of parent motion that lags), bend b (0..1, share of the
-## swing realized as a curve by the bend shader instead of a rigid rotation).
-const SPRING_PRESETS := {
-	"hair": {"k": 70.0, "c": 8.0, "g": 0.5, "w": 0.25, "limit": 26.0, "i": 0.55, "b": 0.5},
-	"bangs": {"k": 120.0, "c": 11.0, "g": 0.3, "w": 0.12, "limit": 12.0, "i": 0.6, "b": 0.45},
-	"hair_mass": {"k": 95.0, "c": 11.0, "g": 0.4, "w": 0.08, "limit": 6.0, "i": 0.65, "b": 0.6},
-	"hair_long": {"k": 42.0, "c": 6.0, "g": 0.6, "w": 0.35, "limit": 32.0, "i": 0.45, "b": 0.6},
-	"cloth": {"k": 65.0, "c": 8.5, "g": 0.6, "w": 0.25, "limit": 14.0, "i": 0.6, "b": 0.5},
-	"cape": {"k": 40.0, "c": 6.0, "g": 0.7, "w": 0.45, "limit": 28.0, "i": 0.45, "b": 0.6},
-	"ribbon": {"k": 30.0, "c": 4.5, "g": 0.5, "w": 0.6, "limit": 40.0, "i": 0.35, "b": 0.7},
-	"sleeve": {"k": 70.0, "c": 8.0, "g": 0.7, "w": 0.2, "limit": 22.0, "i": 0.5, "b": 0.4},
-	"wing": {"k": 110.0, "c": 11.0, "g": 0.0, "w": 0.12, "limit": 10.0, "i": 0.7, "b": 0.55},
-	"tail": {"k": 38.0, "c": 5.0, "g": 0.2, "w": 0.4, "limit": 35.0, "i": 0.4, "b": 0.6},
-	"accessory": {"k": 90.0, "c": 7.0, "g": 0.3, "w": 0.1, "limit": 10.0, "i": 0.6, "b": 0.0},
-}
+## Spring presets live in tools/art_spring_presets.json (shared with tools/art_warp_build.py).
+var SPRING_PRESETS := {}
 
 ## Default head-turn ("look") parallax factors by bone name: [x, y]. 1.0 = moves with the face.
 const LOOK_DEFAULTS := [
@@ -65,6 +50,11 @@ var check_only := false
 
 
 func _init() -> void:
+	var pj: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://tools/art_spring_presets.json"))
+	if pj is Dictionary:
+		for k in pj:
+			if not str(k).begins_with("_"):
+				SPRING_PRESETS[k] = pj[k]
 	var ids: Array[String] = []
 	for a in OS.get_cmdline_user_args():
 		if a == "--check":
@@ -182,13 +172,17 @@ func _build(id: String) -> void:
 	var look_px := _vec(str(ra.get("data-look-px", "14,8")))
 	var header := '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %d %d" width="%d" height="%d">' % [cw, ch, cw, ch]
 
-	# Defs (shared gradients/clip paths) go into every part file.
+	# Defs (shared gradients/clip paths): each part file gets only the ones it references.
 	var defs := ""
+	var def_map := {}
 	var groups: Array = []
 	for c in root.children:
 		if c.name == "defs":
 			_lint(id, c, "defs")
 			defs += _ser(c)
+			for dc in c.children:
+				if dc.attrs.has("id"):
+					def_map[str(dc.attrs["id"])] = _ser(dc)
 		elif c.name == "g":
 			groups.append(c)
 		else:
@@ -300,8 +294,20 @@ func _build(id: String) -> void:
 				DirAccess.remove_absolute(ProjectSettings.globalize_path(out_dir + f))
 	var bone_imgs := {}  # bone -> Array[{img, rect}] for axis estimation
 	var px_total := 0
+	var url_re := RegEx.create_from_string("url\\(#([^)]+)\\)")
 	for p in parts:
-		var svg: String = header + defs + _ser(p.el) + "</svg>"
+		var body := _ser(p.el)
+		var used := {}
+		for m in url_re.search_all(body):
+			used[m.get_string(1)] = true
+		var pdefs := "<defs>"
+		for k in used:
+			if def_map.has(k):
+				pdefs += def_map[k]
+			else:
+				_err(id, "%s: references missing def #%s" % [p.id, k])
+		pdefs += "</defs>"
+		var svg: String = header + pdefs + body + "</svg>"
 		var img := Image.new()
 		if img.load_svg_from_string(svg, texel) != OK:
 			_err(id, "%s: SVG render failed" % p.id)

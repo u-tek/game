@@ -1,0 +1,322 @@
+{
+	"version": 1,
+	"about": "GearRules (src/core/gear_rules.gd): drop tier by stages cleared, random drop slots, item creation (stats rolled, name), salvage value.",
+	"regenerate": "tools/gd --headless --path . -s tests/tools/make_fixtures.gd",
+	"tier_for": [
+		{"cleared": 0, "out": 1},
+		{"cleared": 3, "out": 1},
+		{"cleared": 6, "out": 1},
+		{"cleared": 9, "out": 2},
+		{"cleared": 12, "out": 2},
+		{"cleared": 15, "out": 3},
+		{"cleared": 18, "out": 3},
+		{"cleared": 21, "out": 4},
+		{"cleared": 24, "out": 4},
+		{"cleared": 27, "out": 4},
+		{"cleared": 30, "out": 5},
+		{"cleared": 33, "out": 5}
+	],
+	"random_slot": [
+		{"rng_seed": 555555, "gear_seq": 0, "out": "weapon"},
+		{"rng_seed": 555555, "gear_seq": 1, "out": "armor"},
+		{"rng_seed": 555555, "gear_seq": 2, "out": "armor"},
+		{"rng_seed": 555555, "gear_seq": 3, "out": "weapon"},
+		{"rng_seed": 555555, "gear_seq": 4, "out": "weapon"},
+		{"rng_seed": 555555, "gear_seq": 5, "out": "charm"},
+		{"rng_seed": 555555, "gear_seq": 6, "out": "helm"},
+		{"rng_seed": 555555, "gear_seq": 7, "out": "charm"},
+		{"rng_seed": 555555, "gear_seq": 8, "out": "armor"},
+		{"rng_seed": 555555, "gear_seq": 9, "out": "helm"},
+		{"rng_seed": 555555, "gear_seq": 10, "out": "armor"},
+		{"rng_seed": 555555, "gear_seq": 11, "out": "helm"}
+	],
+	"make_item": [
+		{
+			"slot": "weapon",
+			"tier": 1,
+			"rng_seed": 104760,
+			"seq": 1,
+			"out": {
+				"uid": "g1",
+				"slot": "weapon",
+				"tier": 1,
+				"name": "Worn Glaive",
+				"stats": {"atk": 17},
+				"equipped_by": ""
+			}
+		},
+		{
+			"slot": "weapon",
+			"tier": 3,
+			"rng_seed": 104791,
+			"seq": 2,
+			"out": {
+				"uid": "g2",
+				"slot": "weapon",
+				"tier": 3,
+				"name": "Gilded Sceptre",
+				"stats": {"atk": 54},
+				"equipped_by": ""
+			}
+		},
+		{
+			"slot": "weapon",
+			"tier": 5,
+			"rng_seed": 104822,
+			"seq": 3,
+			"out": {
+				"uid": "g3",
+				"slot": "weapon",
+				"tier": 5,
+				"name": "Eclipse Blade",
+				"stats": {"atk": 131},
+				"equipped_by": ""
+			}
+		},
+		{
+			"slot": "weapon",
+			"tier": 9,
+			"rng_seed": 104853,
+			"seq": 4,
+			"out": {
+				"uid": "g4",
+				"slot": "weapon",
+				"tier": 5,
+				"name": "Eclipse Sceptre",
+				"stats": {"atk": 145},
+				"equipped_by": ""
+			}
+		},
+		{
+			"slot": "armor",
+			"tier": 1,
+			"rng_seed": 104884,
+			"seq": 5,
+			"out": {
+				"uid": "g5",
+				"slot": "armor",
+				"tier": 1,
+				"name": "Worn Cuirass",
+				"stats": {"hp": 264, "def": 7},
+				"equipped_by": ""
+			}
+		},
+		{
+			"slot": "armor",
+			"tier": 3,
+			"rng_seed": 104915,
+			"seq": 6,
+			"out": {
+				"uid": "g6",
+				"slot": "armor",
+				"tier": 3,
+				"name": "Gilded Cuirass",
+				"stats": {"hp": 864, "def": 29},
+				"equipped_by": ""
+			}
+		},
+		{
+			"slot": "armor",
+			"tier": 5,
+			"rng_seed": 104946,
+			"seq": 7,
+			"out": {
+				"uid": "g7",
+				"slot": "armor",
+				"tier": 5,
+				"name": "Eclipse Cuirass",
+				"stats": {"hp": 2277, "def": 65},
+				"equipped_by": ""
+			}
+		},
+		{
+			"slot": "armor",
+			"tier": 9,
+			"rng_seed": 104977,
+			"seq": 8,
+			"out": {
+				"uid": "g8",
+				"slot": "armor",
+				"tier": 5,
+				"name": "Eclipse Mail",
+				"stats": {"hp": 2255, "def": 64},
+				"equipped_by": ""
+			}
+		},
+		{
+			"slot": "helm",
+			"tier": 1,
+			"rng_seed": 105008,
+			"seq": 9,
+			"out": {
+				"uid": "g9",
+				"slot": "helm",
+				"tier": 1,
+				"name": "Worn Helm",
+				"stats": {"hp": 193, "def": 5},
+				"equipped_by": ""
+			}
+		},
+		{
+			"slot": "helm",
+			"tier": 3,
+			"rng_seed": 105039,
+			"seq": 10,
+			"out": {
+				"uid": "g10",
+				"slot": "helm",
+				"tier": 3,
+				"name": "Gilded Crown",
+				"stats": {"hp": 684, "def": 22},
+				"equipped_by": ""
+			}
+		},
+		{
+			"slot": "helm",
+			"tier": 5,
+			"rng_seed": 105070,
+			"seq": 11,
+			"out": {
+				"uid": "g11",
+				"slot": "helm",
+				"tier": 5,
+				"name": "Eclipse Crown",
+				"stats": {"hp": 1829, "def": 46},
+				"equipped_by": ""
+			}
+		},
+		{
+			"slot": "helm",
+			"tier": 9,
+			"rng_seed": 105101,
+			"seq": 12,
+			"out": {
+				"uid": "g12",
+				"slot": "helm",
+				"tier": 5,
+				"name": "Eclipse Crown",
+				"stats": {"hp": 1863, "def": 48},
+				"equipped_by": ""
+			}
+		},
+		{
+			"slot": "charm",
+			"tier": 1,
+			"rng_seed": 105132,
+			"seq": 13,
+			"out": {
+				"uid": "g13",
+				"slot": "charm",
+				"tier": 1,
+				"name": "Worn Locket",
+				"stats": {"crit": 300, "spd": 2, "atk": 6},
+				"equipped_by": ""
+			}
+		},
+		{
+			"slot": "charm",
+			"tier": 3,
+			"rng_seed": 105163,
+			"seq": 14,
+			"out": {
+				"uid": "g14",
+				"slot": "charm",
+				"tier": 3,
+				"name": "Gilded Reliquary",
+				"stats": {"crit": 840, "spd": 8, "atk": 23},
+				"equipped_by": ""
+			}
+		},
+		{
+			"slot": "charm",
+			"tier": 5,
+			"rng_seed": 105194,
+			"seq": 15,
+			"out": {
+				"uid": "g15",
+				"slot": "charm",
+				"tier": 5,
+				"name": "Eclipse Locket",
+				"stats": {"crit": 1440, "spd": 15, "atk": 56},
+				"equipped_by": ""
+			}
+		},
+		{
+			"slot": "charm",
+			"tier": 9,
+			"rng_seed": 105225,
+			"seq": 16,
+			"out": {
+				"uid": "g16",
+				"slot": "charm",
+				"tier": 5,
+				"name": "Eclipse Rosary",
+				"stats": {"crit": 1575, "spd": 16, "atk": 51},
+				"equipped_by": ""
+			}
+		},
+		{
+			"slot": "boots",
+			"tier": 1,
+			"rng_seed": 105256,
+			"seq": 17,
+			"out": {
+				"uid": "g17",
+				"slot": "weapon",
+				"tier": 1,
+				"name": "Worn Spear",
+				"stats": {"atk": 16},
+				"equipped_by": ""
+			}
+		},
+		{
+			"slot": "boots",
+			"tier": 3,
+			"rng_seed": 105287,
+			"seq": 18,
+			"out": {
+				"uid": "g18",
+				"slot": "weapon",
+				"tier": 3,
+				"name": "Gilded Glaive",
+				"stats": {"atk": 55},
+				"equipped_by": ""
+			}
+		},
+		{
+			"slot": "boots",
+			"tier": 5,
+			"rng_seed": 105318,
+			"seq": 19,
+			"out": {
+				"uid": "g19",
+				"slot": "weapon",
+				"tier": 5,
+				"name": "Eclipse Glaive",
+				"stats": {"atk": 140},
+				"equipped_by": ""
+			}
+		},
+		{
+			"slot": "boots",
+			"tier": 9,
+			"rng_seed": 105349,
+			"seq": 20,
+			"out": {
+				"uid": "g20",
+				"slot": "weapon",
+				"tier": 5,
+				"name": "Eclipse Glaive",
+				"stats": {"atk": 148},
+				"equipped_by": ""
+			}
+		}
+	],
+	"salvage": [
+		{"tier": 1, "out": {"gold": 400, "dust": 3}},
+		{"tier": 2, "out": {"gold": 800, "dust": 6}},
+		{"tier": 3, "out": {"gold": 1200, "dust": 9}},
+		{"tier": 4, "out": {"gold": 1600, "dust": 12}},
+		{"tier": 5, "out": {"gold": 2000, "dust": 15}}
+	]
+}

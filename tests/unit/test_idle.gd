@@ -151,3 +151,19 @@ func test_idle_full_notify_and_clock_rewind(t: TestCtx) -> void:
 	t.eq(g.idle_status().elapsed_ms, 0)
 	t.eq(g.claim_idle().size(), 0)
 	g.free()
+
+
+func test_idle_gear_slots_vary_within_a_claim(t: TestCtx) -> void:
+	# Each drop of one claim rolls its own slot (they used to share one).
+	var mixed := 0
+	for s in 10:
+		var g := _game()
+		g.state.rng_seed = 1000 + s * 7919
+		g.now_override_ms = BASE_MS + 12 * HOUR
+		var slots := {}
+		for uid in g.claim_idle().get("gear", []):
+			slots[g.gear_item(uid).slot] = true
+		if slots.size() > 1:
+			mixed += 1
+		g.free()
+	t.ok(mixed >= 8, "a 12 h claim (4 drops) mixes slots in %d/10 saves" % mixed)

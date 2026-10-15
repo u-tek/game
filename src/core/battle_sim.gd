@@ -18,26 +18,45 @@ extends RefCounted
 ##   auto_ultimates is true or when request_ultimate() is called.
 ## - Faction bonus (3/4/5 of one faction: +6/10/15% HP and ATK) and boss multipliers are
 ##   applied when the sim is built. 90 s limit: a timeout is a defeat.
+## Every tunable number comes from data/battle.json (and hero kits from data/heroes.json).
+## The exact tick order, for ports, is in docs/dev/unity-port.md; golden fixtures in
+## data/fixtures/battles.json.
 
+## Algorithm constants (part of the API contract, not tuning): one tick is 100 ms of battle
+## time; an ultimate fires at 1000 energy.
 const TICK_MS := 100
-const MAX_MS := 90000
 const ENERGY_MAX := 1000
-const ENERGY_PER_ATTACK := 100
-const ENERGY_PER_FULL_HP := 500
-const ENERGY_HIT_MIN := 15
-const ENERGY_HIT_MAX := 200
-const INTERVAL_K := 100000
-const ENERGY_EVENT_STEP := 50
 const NO_EXPIRY := 1 << 40
-const ADVANTAGE_BP := 2000
-const CRIT_DAMAGE_BP := 15000
-const SHIELD_CAP_BP := 6000
-const BOSS_HP_BP := 25000
-const BOSS_ATK_BP := 11500
-const BOSS_DEF_BP := 11000
-const FACTION_BONUS_BP := {3: 600, 4: 1000, 5: 1500}
-const BEATS := {"celestial": "infernal", "infernal": "fallen", "fallen": "celestial"}
 const STATUSES: Array[String] = ["stun", "burn", "regen", "taunt", "atk_up", "atk_down", "def_up", "def_down", "spd_up"]
+
+static var _B: Dictionary = GameData.battle()
+static var MAX_MS: int = int(_B.max_ms)
+static var FACTIONS: Array[String] = GameData.strings(_B.factions)
+## Counter wheel: attacker faction -> the faction it deals +advantage_bp damage to.
+static var BEATS: Dictionary = _B.beats
+static var ADVANTAGE_BP: int = int(_B.advantage_bp)
+## {count: bp} for 3/4/5 allies of one faction (from the faction_bonus_bp array by count).
+static var FACTION_BONUS_BP: Dictionary = _faction_bonus_table()
+static var INTERVAL_K: int = int(_B.attack_interval_k)
+static var MIN_INTERVAL_MS: int = int(_B.min_interval_ms)
+static var MIN_SPD: int = int(_B.min_spd)
+static var FIRST_ATTACK_BASE_MS: int = int(_B.first_attack_ms.base)
+static var FIRST_ATTACK_PER_SLOT_MS: int = int(_B.first_attack_ms.per_slot)
+static var FIRST_ATTACK_RANDOM_MS: int = int(_B.first_attack_ms.random_max)
+static var ENERGY_PER_ATTACK: int = int(_B.energy.per_attack)
+static var ENERGY_PER_FULL_HP: int = int(_B.energy.per_full_hp)
+static var ENERGY_HIT_MIN: int = int(_B.energy.hit_min)
+static var ENERGY_HIT_MAX: int = int(_B.energy.hit_max)
+static var ENERGY_EVENT_STEP: int = int(_B.energy.event_step)
+static var CRIT_DAMAGE_BP: int = int(_B.crit_damage_bp)
+static var VARIANCE_BP: int = int(_B.variance_bp)
+static var ATK_FLOOR_BP: int = int(_B.atk_floor_bp)
+static var SHIELD_CAP_BP: int = int(_B.shield_cap_bp)
+static var BOSS_HP_BP: int = int(_B.boss.hp_bp)
+static var BOSS_ATK_BP: int = int(_B.boss.atk_bp)
+static var BOSS_DEF_BP: int = int(_B.boss.def_bp)
+static var BOSS_STUN_DIVISOR: int = int(_B.boss.stun_divisor)
+static var STATUS_REFRESH_EVENT_MS: int = int(_B.status_refresh_event_ms)
 
 ## Runtime units. Contract keys: uid, hero_id, side, slot, max_hp, hp, shield, energy,
 ## alive, is_boss, statuses {name: remaining_ms}. Extra keys are internal.
@@ -74,6 +93,21 @@ var _min_exp: int = NO_EXPIRY
 const _F_STUN := 1
 const _F_SPD := 2
 const _F_DEAD := 4
+
+
+static func _faction_bonus_table() -> Dictionary:
+	var out := {}
+	var arr: Array = _B.faction_bonus_bp
+	for n in arr.size():
+		if int(arr[n]) > 0:
+			out[n] = int(arr[n])
+	return out
+
+
+## Faction bonus (basis points of HP and ATK) for `count` allies of one faction.
+static func faction_bonus_bp(count: int) -> int:
+	var arr: Array = _B.faction_bonus_bp
+	return int(arr[clampi(count, 0, arr.size() - 1)])
 
 
 func _init(setup: Dictionary = {}) -> void:
@@ -192,7 +226,7 @@ func _add_unit(s: Dictionary, side: String, index: int) -> void:
 	var hp: int = maxi(1, int(st.get("hp", 1)))
 	var atk: int = maxi(1, int(st.get("atk", 1)))
 	var def: int = maxi(0, int(st.get("def", 0)))
-	var spd: int = maxi(20, int(st.get("spd", 100)))
+	var spd: int = maxi(MIN_SPD, int(st.get("spd", 100)))
 	if boss:
 		hp = hp * BOSS_HP_BP / 10000
 		atk = atk * BOSS_ATK_BP / 10000
@@ -216,8 +250,8 @@ func _add_unit(s: Dictionary, side: String, index: int) -> void:
 		"ult": kit.ultimate,
 		"_ed": false,
 	}
-	_timers.append(350 + slot * 140 + rng.range_int(0, 250))
-	_intervals.append(maxi(300, INTERVAL_K / spd))
+	_timers.append(FIRST_ATTACK_BASE_MS + slot * FIRST_ATTACK_PER_SLOT_MS + rng.range_int(0, FIRST_ATTACK_RANDOM_MS))
+	_intervals.append(maxi(MIN_INTERVAL_MS, INTERVAL_K / spd))
 	_aflags.append(0)
 	units.append(u)
 	_by_uid[uid] = u
@@ -267,11 +301,11 @@ func _start_of_battle() -> void:
 			counts[u.faction] = int(counts.get(u.faction, 0)) + 1
 		var best_f := ""
 		var best_n := 0
-		for f in ["celestial", "infernal", "fallen"]:
+		for f in FACTIONS:
 			if int(counts.get(f, 0)) > best_n:
 				best_n = int(counts.get(f, 0))
 				best_f = f
-		var fb: int = int(FACTION_BONUS_BP.get(mini(best_n, 5), 0))
+		var fb: int = faction_bonus_bp(best_n)
 		if fb > 0:
 			_faction_bonus[side] = {"faction": best_f, "count": best_n, "bonus_bp": fb}
 		var aura_hp := fb
@@ -637,7 +671,7 @@ func _resolve_targets(u: Dictionary, e: Dictionary, primary: Dictionary) -> Arra
 func _atk(u: Dictionary) -> int:
 	var m: Dictionary = u.mods
 	var bp: int = 10000 + int(m.get("atk_up", 0)) - int(m.get("atk_down", 0))
-	return maxi(1, int(u.atk) * maxi(bp, 2000) / 10000)
+	return maxi(1, int(u.atk) * maxi(bp, ATK_FLOOR_BP) / 10000)
 
 
 func _def(u: Dictionary) -> int:
@@ -653,7 +687,7 @@ func _hit(src: Dictionary, dst: Dictionary, mult_bp: int, from_ult: bool, low_hp
 	var atk: int = src.atk
 	var sm: Dictionary = src.mods
 	if not sm.is_empty():
-		atk = maxi(1, atk * maxi(10000 + int(sm.get("atk_up", 0)) - int(sm.get("atk_down", 0)), 2000) / 10000)
+		atk = maxi(1, atk * maxi(10000 + int(sm.get("atk_up", 0)) - int(sm.get("atk_down", 0)), ATK_FLOOR_BP) / 10000)
 	var def: int = dst.def
 	var dm: Dictionary = dst.mods
 	if not dm.is_empty():
@@ -671,7 +705,7 @@ func _hit(src: Dictionary, dst: Dictionary, mult_bp: int, from_ult: bool, low_hp
 	var crit: bool = r % 10000 < int(src.crit)
 	if crit:
 		dmg = dmg * (CRIT_DAMAGE_BP + int(sp.crit_dmg)) / 10000
-	dmg = dmg * (9500 + (r >> 14) % 1001) / 10000
+	dmg = dmg * (10000 - VARIANCE_BP + (r >> 14) % (2 * VARIANCE_BP + 1)) / 10000
 	var dr: int = dst.pas.dr
 	if dr > 0:
 		dmg = dmg * (10000 - dr) / 10000
@@ -773,7 +807,7 @@ func _apply_status(src: Dictionary, dst: Dictionary, status: String, duration_ms
 	if not dst.alive or duration_ms <= 0:
 		return
 	if status == "stun" and dst.is_boss:
-		duration_ms /= 2
+		duration_ms /= BOSS_STUN_DIVISOR
 	var sts: Dictionary = dst.statuses
 	var prev: int = int(sts.get(status, 0))
 	var end_t: int = maxi(int(dst.exp.get(status, 0)), t_ms + duration_ms)
@@ -795,7 +829,7 @@ func _apply_status(src: Dictionary, dst: Dictionary, status: String, duration_ms
 			dst.dots[status] = amount
 			dst.dot_src[status] = src.uid
 	# Refreshing a status that is still running (by less than a second) is silent.
-	if _rec and (prev <= 0 or duration_ms - prev >= 1000):
+	if _rec and (prev <= 0 or duration_ms - prev >= STATUS_REFRESH_EVENT_MS):
 		_emit({"type": "status", "src": src.uid, "target": dst.uid, "status": status, "duration_ms": duration_ms})
 
 

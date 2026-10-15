@@ -1,164 +1,123 @@
 class_name EconomyData
-## Economy tuning (v1). Every number the rules use lives here; formulas and pacing are
-## documented in docs/dev/economy-v1.md. Owned by core logic.
+extends RefCounted
+## Economy tuning, loaded from res://data/economy.json, banner.json, quests.json and
+## offers.json (the source of truth; schemas in docs/dev/unity-port.md, pacing and formulas
+## in docs/dev/economy-v1.md). The names below are the ones the code used when these were
+## GDScript constants. Treat them as read-only. The formulas themselves live in the rule
+## classes under src/core/ (Progression, IdleRules, GearRules); the functions here forward
+## to them so existing callers keep working.
+
+static var _eco: Dictionary = GameData.economy()
 
 # ---------------------------------------------------------------- new game
-const STARTER_HEROES: Array[String] = ["uriela", "lucen", "kessa"]
-const START_CURRENCIES := {"gold": 4000, "hero_exp": 2400, "gems": 1800, "scrolls": 10, "dust": 0}
+static var STARTER_HEROES: Array[String] = GameData.strings(_eco.new_game.starter_heroes)
+static var START_CURRENCIES: Dictionary = _eco.new_game.currencies
+static var START_PLAYER_NAME: String = str(_eco.new_game.player_name)
 
 # ---------------------------------------------------------------- heroes
-const START_STARS := {"rare": 1, "epic": 2, "legendary": 3}
-const MAX_STARS := 6
-const LEVEL_CAP_BASE := 20
-const LEVEL_CAP_PER_STAR := 20
-
+static var START_STARS: Dictionary = _eco.heroes.start_stars
+static var MAX_STARS: int = int(_eco.heroes.max_stars)
+static var LEVEL_CAP_BASE: int = int(_eco.heroes.level_cap_base)
+static var LEVEL_CAP_PER_STAR: int = int(_eco.heroes.level_cap_per_star)
+## Level cost coefficients: see Progression.level_cost.
+static var LEVEL_COST: Dictionary = _eco.heroes.level_cost
 ## Shards to go from N stars to N+1 (index = current stars).
-const STAR_SHARDS: Array[int] = [0, 10, 20, 40, 60, 100]
+static var STAR_SHARDS: Array[int] = GameData.ints(_eco.heroes.star_shards)
 ## Shards granted by a duplicate summon.
-const DUPE_SHARDS := {"rare": 10, "epic": 20, "legendary": 40}
-## Dust needed to replace one missing shard when starring up, by the hero's rarity. A worse
-## rate than duplicates: dust smooths out bad luck but never replaces summoning.
-const DUST_PER_SHARD := {"rare": 10, "epic": 25, "legendary": 60}
-## Dust granted per shard a maxed hero cannot use (40% of the price above).
-const DUST_PER_EXCESS_SHARD := {"rare": 4, "epic": 10, "legendary": 24}
+static var DUPE_SHARDS: Dictionary = _eco.heroes.dupe_shards
+## Dust needed to replace one missing shard when starring up, by the hero's rarity.
+static var DUST_PER_SHARD: Dictionary = _eco.heroes.dust_per_shard
+## Dust granted per shard a maxed hero cannot use.
+static var DUST_PER_EXCESS_SHARD: Dictionary = _eco.heroes.dust_per_excess_shard
+## Stat growth: {level_growth_bp, star_growth_bp, spd_per_star, crit_cap_bp} (StatCalc).
+static var STATS: Dictionary = _eco.stats
 
 # ---------------------------------------------------------------- idle
-const IDLE_CAP_MS := 12 * 3600 * 1000
-const QUICK_CLAIM_MS := 2 * 3600 * 1000
+static var IDLE_CAP_MS: int = int(_eco.idle.cap_ms)
+static var QUICK_CLAIM_MS: int = int(_eco.idle.quick_claim_ms)
 ## Quick-claim prices by use index within the day (0 = the free one).
-const QUICK_CLAIM_COSTS: Array[int] = [0, 50, 100, 150]
+static var QUICK_CLAIM_COSTS: Array[int] = GameData.ints(_eco.idle.quick_claim_costs)
 ## Per-hour idle income: base + per_10_stages * stages cleared / 10 (rounded down).
-const IDLE_BASE := {"gold": 600, "hero_exp": 400, "dust": 3, "gems": 3}
-const IDLE_PER_10_STAGES := {"gold": 1100, "hero_exp": 750, "dust": 5, "gems": 2}
+static var IDLE_BASE: Dictionary = _eco.idle.base_per_hour
+static var IDLE_PER_10_STAGES: Dictionary = _eco.idle.per_10_stages_per_hour
 ## One gear drop per this much idle time.
-const IDLE_GEAR_EVERY_MS := 3 * 3600 * 1000
+static var IDLE_GEAR_EVERY_MS: int = int(_eco.idle.gear_every_ms)
+## A claim after at least this much idle time counts for the "collect idle rewards" quest.
+static var IDLE_MIN_QUEST_CLAIM_MS: int = int(_eco.idle.min_claim_for_quest_ms)
 
 # ---------------------------------------------------------------- summon
-const BANNER := {
-	"id": "standard",
-	"name": "Choir of the Fallen Sky",
-	"cost_one": {"gems": 300, "scrolls": 1},
-	"cost_ten": {"gems": 2700, "scrolls": 10},
-	"rates": {"legendary": 200, "epic": 1800, "rare": 8000},
-	"pity_legendary": 60,
-	"ten_pull_guarantee": "epic",
-}
+## The standard banner (first entry of banner.json).
+static var BANNER: Dictionary = GameData.banner().banners[0]
 
 # ---------------------------------------------------------------- gear
-const GEAR_SLOTS: Array[String] = ["weapon", "armor", "helm", "charm"]
-const GEAR_TIER_NAMES: Array[String] = ["", "Worn", "Tempered", "Gilded", "Hallowed", "Eclipse"]
-const GEAR_ITEM_NAMES := {
-	"weapon": ["Blade", "Spear", "Sceptre", "Glaive"],
-	"armor": ["Cuirass", "Vestments", "Mail"],
-	"helm": ["Circlet", "Helm", "Crown"],
-	"charm": ["Rosary", "Locket", "Reliquary"],
-}
-## Flat stats per slot at each tier (index = tier).
-const GEAR_STATS := {
-	"weapon": {"atk": [0, 16, 32, 56, 90, 140]},
-	"armor": {"hp": [0, 270, 530, 910, 1440, 2190], "def": [0, 8, 16, 28, 44, 66]},
-	"helm": {"hp": [0, 210, 420, 720, 1140, 1710], "def": [0, 6, 12, 20, 32, 48]},
-	"charm": {"crit": [0, 300, 500, 800, 1100, 1500], "spd": [0, 3, 5, 8, 11, 15], "atk": [0, 6, 12, 22, 34, 52]},
-}
+static var GEAR_SLOTS: Array[String] = GameData.strings(_eco.gear.slots)
+static var GEAR_TIER_NAMES: Array[String] = GameData.strings(_eco.gear.tier_names)
+static var GEAR_ITEM_NAMES: Dictionary = _eco.gear.item_names
+## Per slot: [{stat, by_tier: [value at tier 0..5]}] (order matters: one roll per entry).
+static var GEAR_STATS: Dictionary = _eco.gear.stats
+static var GEAR_ROLL_MIN_PCT: int = int(_eco.gear.roll_min_pct)
+static var GEAR_ROLL_MAX_PCT: int = int(_eco.gear.roll_max_pct)
+static var GEAR_STAGES_PER_TIER: int = int(_eco.gear.stages_per_tier)
+static var GEAR_MAX_TIER: int = int(_eco.gear.max_tier)
 ## Unequipped gear kept before the weakest pieces are salvaged automatically.
-const GEAR_BAG_LIMIT := 40
-const SALVAGE_GOLD_PER_TIER := 400
-const SALVAGE_DUST_PER_TIER := 3
+static var GEAR_BAG_LIMIT: int = int(_eco.gear.bag_limit)
+static var SALVAGE_GOLD_PER_TIER: int = int(_eco.gear.salvage_gold_per_tier)
+static var SALVAGE_DUST_PER_TIER: int = int(_eco.gear.salvage_dust_per_tier)
+
+# ---------------------------------------------------------------- formation
+## Auto-formation front-row preference by role (higher = more likely in front).
+static var FRONT_PRIORITY: Dictionary = _eco.formation.front_priority
 
 # ---------------------------------------------------------------- quests (daily)
-## counter: which Game counter drives the quest.
-const DAILY_QUESTS: Array[Dictionary] = [
-	{"id": "dq_idle", "title": "Collect idle rewards twice", "counter": "idle_claims", "goal": 2,
-		"reward": {"gems": 40, "gold": 3000}},
-	{"id": "dq_win", "title": "Win 3 battles", "counter": "battles_won", "goal": 3,
-		"reward": {"gems": 60, "hero_exp": 1500}},
-	{"id": "dq_summon", "title": "Summon a hero", "counter": "summons", "goal": 1,
-		"reward": {"gems": 50}},
-	{"id": "dq_level", "title": "Level up heroes 5 times", "counter": "level_ups", "goal": 5,
-		"reward": {"gold": 5000, "hero_exp": 2000}},
-	{"id": "dq_quick", "title": "Use a Quick Claim", "counter": "quick_claims", "goal": 1,
-		"reward": {"gems": 40}},
-	{"id": "dq_all", "title": "Complete 5 daily quests", "counter": "daily_quests_done", "goal": 5,
-		"reward": {"gems": 100, "scrolls": 1}},
-]
+## {id, title, counter, goal, reward}; counter: which Game counter drives the quest.
+static var DAILY_QUESTS: Array[Dictionary] = GameData.dicts(GameData.quests().daily)
+## Counter bumped when a daily quest is claimed (the meta quest's own claim doesn't count).
+static var META_QUEST_COUNTER: String = str(GameData.quests().meta_counter)
 
 # ---------------------------------------------------------------- shop
 ## limit: max purchases (0 = no limit). period: "once" (lifetime) or "day".
-const OFFERS: Array[Dictionary] = [
-	{"id": "daily_gift", "name": "Daily Blessing", "tag": "free",
-		"description": "A small gift from the Choir, every day.",
-		"price_label": "Free", "reward": {"gems": 30, "gold": 2000}, "limit": 1, "period": "day"},
-	{"id": "starter_pack", "name": "Envoy's Starter Pack", "tag": "best value",
-		"description": "Everything a new envoy needs: gems, scrolls and supplies. Once per account.",
-		"price_label": "$0.99", "reward": {"gems": 1200, "scrolls": 10, "gold": 50000, "hero_exp": 30000},
-		"limit": 1, "period": "once"},
-	{"id": "monthly_card", "name": "Moonlit Pass", "tag": "monthly",
-		"description": "300 gems now, then 100 more on each day you log in, for 30 days.",
-		"price_label": "$4.99", "reward": {"gems": 300}, "limit": 0, "period": "once"},
-	{"id": "scroll_bundle", "name": "Summoner's Satchel", "tag": "limited",
-		"description": "10 summon scrolls and 300 dust. Limit 3.",
-		"price_label": "$9.99", "reward": {"scrolls": 10, "dust": 300}, "limit": 3, "period": "once"},
-	{"id": "gems_s", "name": "Pouch of Gems", "tag": "",
-		"description": "330 gems.",
-		"price_label": "$4.99", "reward": {"gems": 330}, "limit": 0, "period": "once"},
-	{"id": "gems_m", "name": "Chest of Gems", "tag": "popular",
-		"description": "1,100 gems.",
-		"price_label": "$14.99", "reward": {"gems": 1100}, "limit": 0, "period": "once"},
-	{"id": "gems_l", "name": "Reliquary of Gems", "tag": "",
-		"description": "3,880 gems.",
-		"price_label": "$49.99", "reward": {"gems": 3880}, "limit": 0, "period": "once"},
-]
-const MONTHLY_CARD_DAYS := 30
-const MONTHLY_CARD_DAILY_GEMS := 100
+static var OFFERS: Array[Dictionary] = GameData.dicts(GameData.offers().offers)
+static var MONTHLY_CARD_OFFER: String = str(GameData.offers().monthly_card.offer_id)
+static var MONTHLY_CARD_DAYS: int = int(GameData.offers().monthly_card.days)
+static var MONTHLY_CARD_DAILY_GEMS: int = int(GameData.offers().monthly_card.daily_gems)
 
 
-# ---------------------------------------------------------------- formulas
+# ---------------------------------------------------------------- formulas (forwarders)
 
-## Cost of going from `level` to `level + 1`.
+## Cost of going from `level` to `level + 1`: {gold, hero_exp}.
 static func level_cost(level: int) -> Dictionary:
-	var exp_cost := 20 + 10 * level + level * level
-	var gold_cost := exp_cost + exp_cost / 4 + 10 * level
-	return {"gold": gold_cost, "hero_exp": exp_cost}
+	return Progression.level_cost(level)
 
 
 static func level_cap(stars: int) -> int:
-	return LEVEL_CAP_BASE + LEVEL_CAP_PER_STAR * clampi(stars, 1, MAX_STARS)
+	return Progression.level_cap(stars)
 
 
 ## Shards needed for the next star, 0 at max.
 static func star_shards(stars: int) -> int:
-	if stars < 1 or stars >= MAX_STARS:
-		return 0
-	return STAR_SHARDS[stars]
+	return Progression.star_shards(stars)
 
 
 ## Total shards a hero at `stars` can still use until max stars.
 static func shards_to_max(stars: int) -> int:
-	var total := 0
-	for s in range(maxi(stars, 1), MAX_STARS):
-		total += STAR_SHARDS[s]
-	return total
+	return Progression.shards_to_max(stars)
 
 
 ## Idle income per hour for this many cleared stages.
 static func idle_per_hour(cleared: int) -> Dictionary:
-	var out := {}
-	var c := maxi(cleared, 0)
-	for k in IDLE_BASE:
-		out[k] = int(IDLE_BASE[k]) + int(IDLE_PER_10_STAGES[k]) * c / 10
-	return out
+	return IdleRules.per_hour(cleared)
 
 
 ## Dust that replaces one missing shard of a hero of this rarity.
 static func dust_per_shard(rarity: String) -> int:
-	return int(DUST_PER_SHARD.get(rarity, DUST_PER_SHARD.rare))
+	return Progression.dust_per_shard(rarity)
 
 
 ## Dust granted for one shard a maxed hero of this rarity cannot use.
 static func dust_per_excess_shard(rarity: String) -> int:
-	return int(DUST_PER_EXCESS_SHARD.get(rarity, DUST_PER_EXCESS_SHARD.rare))
+	return Progression.dust_per_excess_shard(rarity)
 
 
 ## Gear tier that drops from idle / stages at this progress.
 static func gear_tier_for(cleared: int) -> int:
-	return clampi(1 + cleared / 7, 1, 5)
+	return GearRules.tier_for(cleared)

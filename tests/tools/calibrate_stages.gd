@@ -1,7 +1,10 @@
 extends SceneTree
-## Stage calibrator (tool, not a unit test). Prints the "lv", "pw" and "rec" values of
-## StageData.STAGES for the current kits, battle rules and economy:
-##   tools/gd --headless --path . -s tests/tools/calibrate_stages.gd [-- stages=3-29 seeds=12]
+## Stage calibrator (tool, not a unit test). Solves each stage's "level", "strength_bp" and
+## "recommended_power" in data/stages.json for the current kits, battle rules and economy:
+##   tools/gd --headless --path . -s tests/tools/calibrate_stages.gd [-- stages=3-29 seeds=12 write]
+## Prints the values; with "write" it also stores them in data/stages.json (then regenerate
+## the golden fixtures: tests/tools/make_fixtures.gd). Below, lv = level, pw = strength_bp,
+## rec = recommended_power.
 ##
 ## Difficulty follows the economy, not a guess. Four pacing bots (tests/tools/pacing_bot.gd:
 ## an efficient free player with four short sessions a day, each bot with different summon
@@ -18,6 +21,7 @@ extends SceneTree
 ## teams must win, so the first wall never depends on summon luck.
 
 const Bot := preload("res://tests/tools/pacing_bot.gd")
+const JsonPretty := preload("res://tests/tools/json_pretty.gd")
 
 ## Hour of play (0 = the first session, 9:00 on day 1; sessions at 9, 13, 19, 23) by which an
 ## efficient free player clears each stage. Chapter 1 on day 1, chapter 2 on days 2-4,
@@ -48,7 +52,10 @@ var snaps: Array = []
 func _init() -> void:
 	var lo := 0
 	var hi := StageData.count() - 1
+	var write := false
 	for a in OS.get_cmdline_user_args():
+		if a == "write":
+			write = true
 		if a.begins_with("stages="):
 			var p := a.substr(7).split("-")
 			lo = int(p[0])
@@ -66,19 +73,19 @@ func _init() -> void:
 	var pws: Array = []
 	var recs: Array = []
 	for i in StageData.count():
-		var raw: Dictionary = StageData.STAGES[i]
+		var raw: Dictionary = StageData.raw_stage(i)
 		if i < lo or i > hi:
-			lvs.append(int(raw.lv))
-			pws.append(int(raw.pw))
-			recs.append(int(raw.get("rec", 0)))
-			prev_lv = int(raw.lv)
-			prev_rec = int(raw.get("rec", 0))
+			lvs.append(int(raw.level))
+			pws.append(int(raw.strength_bp))
+			recs.append(int(raw.recommended_power))
+			prev_lv = int(raw.level)
+			prev_rec = int(raw.recommended_power)
 			continue
 		var lv: int
 		var pw: int
 		var rec: int
 		if i < StageData.STARTER_STAGES:
-			lv = int(raw.lv)
+			lv = int(raw.level)
 			pw = solve(func(p: int) -> bool: return starters_win(g, i, lv, p)) - STARTER_MARGIN
 			rec = starter_power()
 		else:
@@ -105,8 +112,24 @@ func _init() -> void:
 	print("lv: ", lvs)
 	print("pw: ", pws)
 	print("rec: ", recs)
+	if write:
+		write_stages(lvs, pws, recs)
 	g.free()
 	quit()
+
+
+## Stores the solved values in data/stages.json (key order and everything else unchanged).
+func write_stages(lvs: Array, pws: Array, recs: Array) -> void:
+	var data: Dictionary = GameData.stages().duplicate(true)
+	var i := 0
+	for ch in data.chapters:
+		for st in ch.stages:
+			st.level = int(lvs[i])
+			st.strength_bp = int(pws[i])
+			st.recommended_power = int(recs[i])
+			i += 1
+	if JsonPretty.write(GameData.DIR + "stages.json", data):
+		print("wrote data/stages.json; now run tests/tools/make_fixtures.gd")
 
 
 ## Runs every bot along the timeline and records its team just before each stage is due.
@@ -147,7 +170,7 @@ func at_level(g, lv: int) -> Dictionary:
 		if id == "":
 			continue
 		var stars: int = int(g.hero(id).stars)
-		var st := StatCalc.stats(id, mini(lv, g.max_level(id)), stars, g._equipped_items(id))
+		var st := StatCalc.stats(id, mini(lv, g.max_level(id)), stars, g.model.equipped_items(id))
 		power += StatCalc.power(st)
 		allies.append({"uid": "a%d" % slot, "hero_id": id, "side": "ally", "slot": slot, "level": lv,
 			"stars": stars, "stats": st, "is_boss": false})

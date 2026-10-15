@@ -1,0 +1,15 @@
+{
+	"version": 1,
+	"banners": [
+		{
+			"id": "standard",
+			"name": "Choir of the Fallen Sky",
+			"cost_one": {"gems": 300, "scrolls": 1},
+			"cost_ten": {"gems": 2700, "scrolls": 10},
+			"rates": {"legendary": 200, "epic": 1800, "rare": 8000},
+			"pity_legendary": 60,
+			"ten_pull_guarantee": "epic",
+			"pool": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "mordessa", "brakka", "vesper", "imra", "kessa", "noctaire", "orrin", "sable", "lucen", "ashra"]
+		}
+	]
+}

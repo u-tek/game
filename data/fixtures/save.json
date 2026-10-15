@@ -1,0 +1,180 @@
+{
+	"version": 1,
+	"about": "GameModel.migrate (save repair): an old or damaged save (numbers as ints) at clock now_ms -> the repaired state.",
+	"regenerate": "tools/gd --headless --path . -s tests/tools/make_fixtures.gd",
+	"cases": [
+		{
+			"name": "old_save_missing_keys",
+			"now_ms": 1702087200000,
+			"input": {
+				"version": 1,
+				"created_at": 1702083600000,
+				"player_name": "Old",
+				"currencies": {"gold": 77, "gems": 5},
+				"heroes": {"uriela": {"id": "uriela", "level": 7, "stars": 2}, "ghost": {"id": "ghost", "level": 3}},
+				"formation": ["uriela", "ghost", "", ""],
+				"campaign": {"cleared": 4},
+				"idle": {"last_claim_at": 1702080000000}
+			},
+			"out": {
+				"version": 1,
+				"created_at": 1702083600000,
+				"player_name": "Old",
+				"currencies": {"gold": 77, "gems": 5, "hero_exp": 0, "scrolls": 0, "dust": 0},
+				"heroes": {"uriela": {"id": "uriela", "level": 7, "stars": 2, "shards": 0, "gear": {}}},
+				"formation": ["uriela", "", "", "", ""],
+				"campaign": {"cleared": 4},
+				"idle": {"last_claim_at": 1702080000000, "quick_claims_used": 0, "quick_claim_day": 19700, "carry": {}, "gear_ms": 0, "full_notified": false},
+				"summon": {"pity": 0, "total_pulls": 0, "last_free_pull_day": -1, "seed": 1865841547},
+				"gear": [],
+				"gear_seq": 0,
+				"quests": {"day": 19700, "progress": {}, "claimed": []},
+				"shop": {"purchases": {}, "daily": {}, "day": 19700, "monthly_until_day": -1, "monthly_last_day": -1},
+				"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 1, "auto_ultimates": true},
+				"counters": {},
+				"dev_time_offset": 0,
+				"rng_seed": 1055219407
+			}
+		},
+		{
+			"name": "damaged_values",
+			"now_ms": 1702083600000,
+			"input": {
+				"version": 1,
+				"heroes": {"ghost": {"level": 9}},
+				"gear": [
+					{"uid": 5, "slot": "weapon", "tier": 9, "stats": {"atk": 10}, "equipped_by": "nobody"},
+					{"uid": "g6", "slot": "boots"},
+					"junk"
+				],
+				"settings": {"battle_speed": 3, "sound": "yes"},
+				"campaign": {"cleared": 999},
+				"formation": "uriela"
+			},
+			"out": {
+				"version": 1,
+				"heroes": {
+					"uriela": {"id": "uriela", "level": 1, "stars": 1, "shards": 0, "gear": {"weapon": "5"}},
+					"lucen": {"id": "lucen", "level": 1, "stars": 1, "shards": 0, "gear": {}},
+					"kessa": {"id": "kessa", "level": 1, "stars": 1, "shards": 0, "gear": {}}
+				},
+				"gear": [
+					{
+						"uid": "5",
+						"slot": "weapon",
+						"tier": 5,
+						"stats": {"atk": 10},
+						"equipped_by": "uriela",
+						"name": "Relic"
+					}
+				],
+				"settings": {"battle_speed": 1, "sound": true, "music": true, "haptics": true, "auto_ultimates": true},
+				"campaign": {"cleared": 30},
+				"formation": ["uriela", "lucen", "kessa", "", ""],
+				"created_at": 1702083600000,
+				"player_name": "Envoy",
+				"currencies": {"gold": 4000, "hero_exp": 2400, "gems": 1800, "scrolls": 10, "dust": 0},
+				"idle": {"last_claim_at": 1702083600000, "quick_claims_used": 0, "quick_claim_day": 19700, "carry": {}, "gear_ms": 0, "full_notified": false},
+				"summon": {"pity": 0, "total_pulls": 0, "last_free_pull_day": -1, "seed": 1725470481},
+				"gear_seq": 0,
+				"quests": {"day": 19700, "progress": {}, "claimed": []},
+				"shop": {"purchases": {}, "daily": {}, "day": 19700, "monthly_until_day": -1, "monthly_last_day": -1},
+				"counters": {},
+				"dev_time_offset": 0,
+				"rng_seed": 5422372
+			}
+		},
+		{
+			"name": "current_save_unchanged",
+			"now_ms": 1702101600000,
+			"input": {
+				"version": 1,
+				"created_at": 1702083600000,
+				"player_name": "Envoy",
+				"currencies": {"gold": 6400, "hero_exp": 4000, "gems": 1812, "scrolls": 0, "dust": 12},
+				"heroes": {
+					"uriela": {"id": "uriela", "level": 1, "stars": 1, "shards": 10, "gear": {"weapon": "g1"}},
+					"lucen": {"id": "lucen", "level": 1, "stars": 1, "shards": 10, "gear": {}},
+					"kessa": {"id": "kessa", "level": 1, "stars": 1, "shards": 10, "gear": {}},
+					"nuriel": {"id": "nuriel", "level": 1, "stars": 1, "shards": 20, "gear": {}},
+					"ashra": {"id": "ashra", "level": 1, "stars": 1, "shards": 0, "gear": {}},
+					"cassiel": {"id": "cassiel", "level": 1, "stars": 2, "shards": 0, "gear": {}},
+					"vesper": {"id": "vesper", "level": 1, "stars": 2, "shards": 0, "gear": {}},
+					"sable": {"id": "sable", "level": 1, "stars": 2, "shards": 0, "gear": {}}
+				},
+				"formation": ["uriela", "lucen", "ashra", "kessa", "nuriel"],
+				"campaign": {"cleared": 0},
+				"idle": {
+					"last_claim_at": 1702098000000,
+					"quick_claims_used": 0,
+					"quick_claim_day": 19700,
+					"carry": {"gold": 0, "hero_exp": 0, "dust": 0, "gems": 0},
+					"gear_ms": 3600000,
+					"full_notified": false
+				},
+				"summon": {"pity": 10, "total_pulls": 10, "last_free_pull_day": -1, "seed": 1725470481},
+				"gear": [
+					{
+						"uid": "g1",
+						"slot": "weapon",
+						"tier": 1,
+						"name": "Worn Glaive",
+						"stats": {"atk": 14},
+						"equipped_by": "uriela"
+					}
+				],
+				"gear_seq": 1,
+				"quests": {"day": 19700, "progress": {"dq_summon": 10, "dq_idle": 1}, "claimed": []},
+				"shop": {"purchases": {}, "daily": {}, "day": 19700, "monthly_until_day": -1, "monthly_last_day": -1},
+				"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 1, "auto_ultimates": true},
+				"counters": {"summons": 10, "idle_claims": 1},
+				"dev_time_offset": 0,
+				"rng_seed": 5422372
+			},
+			"out": {
+				"version": 1,
+				"created_at": 1702083600000,
+				"player_name": "Envoy",
+				"currencies": {"gold": 6400, "hero_exp": 4000, "gems": 1812, "scrolls": 0, "dust": 12},
+				"heroes": {
+					"uriela": {"id": "uriela", "level": 1, "stars": 1, "shards": 10, "gear": {"weapon": "g1"}},
+					"lucen": {"id": "lucen", "level": 1, "stars": 1, "shards": 10, "gear": {}},
+					"kessa": {"id": "kessa", "level": 1, "stars": 1, "shards": 10, "gear": {}},
+					"nuriel": {"id": "nuriel", "level": 1, "stars": 1, "shards": 20, "gear": {}},
+					"ashra": {"id": "ashra", "level": 1, "stars": 1, "shards": 0, "gear": {}},
+					"cassiel": {"id": "cassiel", "level": 1, "stars": 2, "shards": 0, "gear": {}},
+					"vesper": {"id": "vesper", "level": 1, "stars": 2, "shards": 0, "gear": {}},
+					"sable": {"id": "sable", "level": 1, "stars": 2, "shards": 0, "gear": {}}
+				},
+				"formation": ["uriela", "lucen", "ashra", "kessa", "nuriel"],
+				"campaign": {"cleared": 0},
+				"idle": {
+					"last_claim_at": 1702098000000,
+					"quick_claims_used": 0,
+					"quick_claim_day": 19700,
+					"carry": {"gold": 0, "hero_exp": 0, "dust": 0, "gems": 0},
+					"gear_ms": 3600000,
+					"full_notified": false
+				},
+				"summon": {"pity": 10, "total_pulls": 10, "last_free_pull_day": -1, "seed": 1725470481},
+				"gear": [
+					{
+						"uid": "g1",
+						"slot": "weapon",
+						"tier": 1,
+						"name": "Worn Glaive",
+						"stats": {"atk": 14},
+						"equipped_by": "uriela"
+					}
+				],
+				"gear_seq": 1,
+				"quests": {"day": 19700, "progress": {"dq_summon": 10, "dq_idle": 1}, "claimed": []},
+				"shop": {"purchases": {}, "daily": {}, "day": 19700, "monthly_until_day": -1, "monthly_last_day": -1},
+				"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 1, "auto_ultimates": true},
+				"counters": {"summons": 10, "idle_claims": 1},
+				"dev_time_offset": 0,
+				"rng_seed": 5422372
+			}
+		}
+	]
+}

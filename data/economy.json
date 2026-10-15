@@ -1,0 +1,63 @@
+{
+	"version": 1,
+	"new_game": {
+		"player_name": "Envoy",
+		"starter_heroes": ["uriela", "lucen", "kessa"],
+		"currencies": {"gold": 4000, "hero_exp": 2400, "gems": 1800, "scrolls": 10, "dust": 0}
+	},
+	"heroes": {
+		"start_stars": {"rare": 1, "epic": 2, "legendary": 3},
+		"max_stars": 6,
+		"level_cap_base": 20,
+		"level_cap_per_star": 20,
+		"level_cost": {"exp_base": 20, "exp_per_level": 10, "exp_per_level_squared": 1, "gold_exp_divisor": 4, "gold_per_level": 10},
+		"star_shards": [0, 10, 20, 40, 60, 100],
+		"dupe_shards": {"rare": 10, "epic": 20, "legendary": 40},
+		"dust_per_shard": {"rare": 10, "epic": 25, "legendary": 60},
+		"dust_per_excess_shard": {"rare": 4, "epic": 10, "legendary": 24}
+	},
+	"stats": {"level_growth_bp": 700, "star_growth_bp": 1200, "spd_per_star": 1, "crit_cap_bp": 7500},
+	"idle": {
+		"cap_ms": 43200000,
+		"quick_claim_ms": 7200000,
+		"quick_claim_costs": [0, 50, 100, 150],
+		"base_per_hour": {"gold": 600, "hero_exp": 400, "dust": 3, "gems": 3},
+		"per_10_stages_per_hour": {"gold": 1100, "hero_exp": 750, "dust": 5, "gems": 2},
+		"gear_every_ms": 10800000,
+		"min_claim_for_quest_ms": 60000
+	},
+	"gear": {
+		"slots": ["weapon", "armor", "helm", "charm"],
+		"tier_names": ["", "Worn", "Tempered", "Gilded", "Hallowed", "Eclipse"],
+		"item_names": {
+			"weapon": ["Blade", "Spear", "Sceptre", "Glaive"],
+			"armor": ["Cuirass", "Vestments", "Mail"],
+			"helm": ["Circlet", "Helm", "Crown"],
+			"charm": ["Rosary", "Locket", "Reliquary"]
+		},
+		"stats": {
+			"weapon": [{"stat": "atk", "by_tier": [0, 16, 32, 56, 90, 140]}],
+			"armor": [
+				{"stat": "hp", "by_tier": [0, 270, 530, 910, 1440, 2190]},
+				{"stat": "def", "by_tier": [0, 8, 16, 28, 44, 66]}
+			],
+			"helm": [
+				{"stat": "hp", "by_tier": [0, 210, 420, 720, 1140, 1710]},
+				{"stat": "def", "by_tier": [0, 6, 12, 20, 32, 48]}
+			],
+			"charm": [
+				{"stat": "crit", "by_tier": [0, 300, 500, 800, 1100, 1500]},
+				{"stat": "spd", "by_tier": [0, 3, 5, 8, 11, 15]},
+				{"stat": "atk", "by_tier": [0, 6, 12, 22, 34, 52]}
+			]
+		},
+		"roll_min_pct": 90,
+		"roll_max_pct": 110,
+		"stages_per_tier": 7,
+		"max_tier": 5,
+		"bag_limit": 40,
+		"salvage_gold_per_tier": 400,
+		"salvage_dust_per_tier": 3
+	},
+	"formation": {"front_priority": {"guardian": 3, "striker": 2, "support": 0, "caster": 0, "assassin": -1}}
+}

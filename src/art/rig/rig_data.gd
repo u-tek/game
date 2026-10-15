@@ -1,14 +1,27 @@
 class_name RigData
 extends RefCounted
-## A built HaloRig (assets/art/heroes/<id>/<id>.rig.json + part PNGs), loaded once and shared
-## by every RigPlayer of that hero. Format: docs/dev/halorig.md section 4.
+## A built HaloRig, loaded once and shared by every RigPlayer of that hero. Two kinds:
+##   "warp"   - one painted image on a skinned grid mesh (<id>.warp.json), the default for heroes
+##   "cutout" - separate part images per bone (<id>.rig.json), used by the fallback silhouette
+## Formats: docs/dev/halorig.md sections 4 (cutout) and 8 (warp).
 
 const HEROES_DIR := "res://assets/art/heroes/"
 
 var id := ""
+var kind := "cutout"
+# warp only
+var image: Texture2D
+var mesh: ArrayMesh
+var body_bone := 0
+var _mesh_skin := PackedFloat32Array()     ## per vertex b0,w0,b1,w1,b2,w2
+var _mesh_verts := PackedVector2Array()
+var _grid := Vector2i.ZERO
+var _grid_origin := Vector2.ZERO
+var _grid_cell := Vector2.ONE
+var _grid_vid := {}                         ## Vector2i -> vertex index
 var dir := ""
 var texel := 1.0
-var look_px := Vector2(24, 14)
+var look_px := Vector2(14, 8)
 var meta := {}
 var bounds := Rect2(-512, -1240, 1024, 1280)
 var portrait_rect := Rect2()
@@ -37,19 +50,21 @@ static var _cache := {}
 
 
 static func exists(hero_id: String) -> bool:
-	return ResourceLoader.exists("%s%s/%s.rig.json" % [HEROES_DIR, hero_id, hero_id]) \
+	return FileAccess.file_exists("%s%s/%s.warp.json" % [HEROES_DIR, hero_id, hero_id]) \
 		or FileAccess.file_exists("%s%s/%s.rig.json" % [HEROES_DIR, hero_id, hero_id])
 
 
-## Cached load. Returns null if the hero has no built rig.
+## Cached load (warp rig preferred, then cutout). Returns null if the hero has no built rig.
 static func load_rig(hero_id: String) -> RigData:
 	if _cache.has(hero_id):
 		return _cache[hero_id]
-	var path := "%s%s/%s.rig.json" % [HEROES_DIR, hero_id, hero_id]
+	var path := "%s%s/%s.warp.json" % [HEROES_DIR, hero_id, hero_id]
 	if not FileAccess.file_exists(path):
-		return null
+		path = "%s%s/%s.rig.json" % [HEROES_DIR, hero_id, hero_id]
+		if not FileAccess.file_exists(path):
+			return null
 	var d: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
-	if not (d is Dictionary) or str(d.get("format", "")) != "halorig":
+	if not (d is Dictionary) or not (str(d.get("format", "")) in ["halorig", "halowarp"]):
 		push_error("RigData: bad rig file %s" % path)
 		return null
 	var r := RigData.new()
@@ -90,15 +105,128 @@ func _load(d: Dictionary, hero_id: String) -> void:
 		bend.append(float(bj.get("bend", 0.0)))
 		var tp: Variant = bj.get("tip", null)
 		tip.append(Vector2(tp[0], tp[1]) if tp is Array else null)
+	kind = "warp" if str(d.get("format", "")) == "halowarp" else "cutout"
+	if kind == "warp":
+		_load_warp(d)
 	for sj in d.get("slots", []):
 		var atts := {}
 		for v in sj.get("attachments", {}):
 			var a: Dictionary = sj.attachments[v]
+			if not a.has("texture"):
+				atts[v] = {"texture": null, "rect": Rect2()}     # warp: the base image already shows it
+				continue
 			var tex: Texture2D = load(dir + str(a.texture))
 			atts[v] = {"texture": tex, "rect": Rect2(a.x, a.y, a.w, a.h)}
+			if kind == "warp":
+				atts[v]["mesh"] = _patch_mesh(Rect2(a.x, a.y, a.w, a.h))
 		slot_index[str(sj.name)] = slots.size()
 		slots.append({"name": str(sj.name), "bone": int(bone_index.get(str(sj.bone), 0)),
 			"z": int(sj.get("z", 0)), "default": str(sj.get("default", "default")), "attachments": atts})
+
+
+func _load_warp(d: Dictionary) -> void:
+	image = load(dir + str(d.get("image", id + ".png")))
+	body_bone = int(bone_index.get(str(d.get("body_bone", "hips")), 0))
+	var m: Dictionary = d.get("mesh", {})
+	var v: Array = m.get("vertices", [])
+	var uv: Array = m.get("uvs", [])
+	var sk: Array = m.get("skin", [])
+	var tri: Array = m.get("triangles", [])
+	var nv := v.size() / 2
+	_mesh_verts.resize(nv)
+	var uvs := PackedVector2Array()
+	uvs.resize(nv)
+	var c0 := PackedFloat32Array()
+	var c1 := PackedFloat32Array()
+	c0.resize(nv * 4)
+	c1.resize(nv * 4)
+	_mesh_skin = PackedFloat32Array(sk)
+	for i in nv:
+		_mesh_verts[i] = Vector2(v[i * 2], v[i * 2 + 1])
+		uvs[i] = Vector2(uv[i * 2], uv[i * 2 + 1])
+		c0[i * 4] = sk[i * 6]
+		c0[i * 4 + 1] = sk[i * 6 + 1]
+		c0[i * 4 + 2] = sk[i * 6 + 2]
+		c0[i * 4 + 3] = sk[i * 6 + 3]
+		c1[i * 4] = sk[i * 6 + 4]
+		c1[i * 4 + 1] = sk[i * 6 + 5]
+	mesh = _make_mesh(_mesh_verts, uvs, PackedInt32Array(tri), c0, c1)
+	# grid lookup for interpolating skin weights under overlay patches
+	var g: Array = m.get("grid", [24, 48])
+	_grid = Vector2i(int(g[0]), int(g[1]))
+	_grid_origin = bounds.position
+	_grid_cell = Vector2(bounds.size.x / _grid.x, bounds.size.y / _grid.y)
+	for i in nv:
+		var gi := Vector2i(roundi((_mesh_verts[i].x - _grid_origin.x) / _grid_cell.x), roundi((_mesh_verts[i].y - _grid_origin.y) / _grid_cell.y))
+		_grid_vid[gi] = i
+
+
+static func _make_mesh(verts: PackedVector2Array, uvs: PackedVector2Array, idx: PackedInt32Array, c0: PackedFloat32Array, c1: PackedFloat32Array) -> ArrayMesh:
+	var arr := []
+	arr.resize(Mesh.ARRAY_MAX)
+	arr[Mesh.ARRAY_VERTEX] = verts
+	arr[Mesh.ARRAY_TEX_UV] = uvs
+	arr[Mesh.ARRAY_CUSTOM0] = c0
+	arr[Mesh.ARRAY_CUSTOM1] = c1
+	arr[Mesh.ARRAY_INDEX] = idx
+	var fmt := (Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM0_SHIFT) | (Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM1_SHIFT)
+	var m := ArrayMesh.new()
+	m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, fmt)
+	return m
+
+
+## Skin influences at a rig-space point, bilinearly interpolated from the warp grid.
+func skin_at(p: Vector2) -> Array:
+	var fx := (p.x - _grid_origin.x) / _grid_cell.x
+	var fy := (p.y - _grid_origin.y) / _grid_cell.y
+	var i0 := clampi(floori(fx), 0, _grid.x - 1)
+	var j0 := clampi(floori(fy), 0, _grid.y - 1)
+	var tx := clampf(fx - i0, 0.0, 1.0)
+	var ty := clampf(fy - j0, 0.0, 1.0)
+	var acc := {}
+	for c in [[0, 0, (1 - tx) * (1 - ty)], [1, 0, tx * (1 - ty)], [0, 1, (1 - tx) * ty], [1, 1, tx * ty]]:
+		var vi: Variant = _grid_vid.get(Vector2i(i0 + c[0], j0 + c[1]), null)
+		var wc: float = c[2]
+		if vi == null or wc <= 0.0:
+			continue
+		var rest := 1.0
+		for k in 3:
+			var b := int(_mesh_skin[int(vi) * 6 + k * 2])
+			var w := _mesh_skin[int(vi) * 6 + k * 2 + 1]
+			acc[b] = float(acc.get(b, 0.0)) + w * wc
+			rest -= w
+		acc[body_bone] = float(acc.get(body_bone, 0.0)) + maxf(rest, 0.0) * wc
+	var lst := []
+	for b in acc:
+		if b != body_bone:
+			lst.append([b, acc[b]])
+	lst.sort_custom(func(a, b2): return a[1] > b2[1])
+	while lst.size() < 3:
+		lst.append([body_bone, 0.0])
+	return lst.slice(0, 3)
+
+
+## Small skinned grid for an overlay patch (deforms exactly like the image under it).
+func _patch_mesh(r: Rect2) -> ArrayMesh:
+	var n := 4
+	var verts := PackedVector2Array()
+	var uvs := PackedVector2Array()
+	var c0 := PackedFloat32Array()
+	var c1 := PackedFloat32Array()
+	var idx := PackedInt32Array()
+	for j in n + 1:
+		for i in n + 1:
+			var p := r.position + Vector2(r.size.x * i / n, r.size.y * j / n)
+			verts.append(p)
+			uvs.append(Vector2(float(i) / n, float(j) / n))
+			var sk := skin_at(p)
+			c0.append_array([sk[0][0], sk[0][1], sk[1][0], sk[1][1]])
+			c1.append_array([sk[2][0], sk[2][1], 0.0, 0.0])
+	for j in n:
+		for i in n:
+			var a := j * (n + 1) + i
+			idx.append_array([a, a + 1, a + n + 2, a, a + n + 2, a + n + 1])
+	return _make_mesh(verts, uvs, idx, c0, c1)
 
 
 func bone(name: String) -> int:
@@ -108,6 +236,8 @@ func bone(name: String) -> int:
 ## Total pixels of part textures (memory estimate: x4 bytes, x1.33 with mipmaps).
 func texture_pixels() -> int:
 	var n := 0
+	if image:
+		n += image.get_width() * image.get_height()
 	for s in slots:
 		for v in s.attachments:
 			var t: Texture2D = s.attachments[v].texture

@@ -157,8 +157,8 @@ func test_formation_rules(t: TestCtx) -> void:
 	var r: Dictionary = g.set_formation(["", "kessa", "uriela", "", "lucen"])
 	t.ok(r.ok)
 	t.eq(g.formation(), ["", "kessa", "uriela", "", "lucen"])
-	g._add_hero("brakka")
-	g._add_hero("liora")
+	g.model.add_hero("brakka")
+	g.model.add_hero("liora")
 	g.auto_formation()
 	var f: Array = g.formation()
 	t.ok(f.slice(0, 2).has("brakka"), "guardian goes in front: %s" % [f])
@@ -170,16 +170,16 @@ func test_formation_rules(t: TestCtx) -> void:
 func test_new_heroes_join_an_unfilled_formation(t: TestCtx) -> void:
 	var g := _game()
 	t.eq(g.formation().filter(func(x: String) -> bool: return x != "").size(), 3)
-	g._receive_hero("brakka")
+	g.model.receive_hero("brakka")
 	var f: Array = g.formation()
 	t.ok(f.slice(0, 2).has("brakka"), "a new guardian takes the front row: %s" % [f])
-	g._receive_hero("liora")
+	g.model.receive_hero("liora")
 	f = g.formation()
 	t.ok(f.slice(2).has("liora"), "a new support goes to the back row: %s" % [f])
 	t.eq(f.has(""), false, "formation filled")
 	# A full formation is the player's: new heroes never reshuffle it.
 	var before: Array = g.formation()
-	g._receive_hero("cassiel")
+	g.model.receive_hero("cassiel")
 	t.eq(g.formation(), before, "full formation unchanged")
 	t.ok(g.owns("cassiel"))
 	g.free()
@@ -189,7 +189,7 @@ func test_faction_bonus_query(t: TestCtx) -> void:
 	var g := _game()
 	t.eq(g.faction_bonus(), {})
 	for id in ["cassiel", "liora", "nuriel"]:
-		g._add_hero(id)
+		g.model.add_hero(id)
 	g.set_formation(["cassiel", "uriela", "liora", "nuriel", ""])
 	t.eq(g.faction_bonus(), {"faction": "celestial", "count": 4, "bonus_pct": 10})
 	g.free()
@@ -197,8 +197,8 @@ func test_faction_bonus_query(t: TestCtx) -> void:
 
 func test_gear_equip_and_auto(t: TestCtx) -> void:
 	var g := _game()
-	var w1: String = g._create_gear("weapon", 1)
-	var w3: String = g._create_gear("weapon", 3)
+	var w1: String = g.model.create_gear("weapon", 1)
+	var w3: String = g.model.create_gear("weapon", 3)
 	var r: Dictionary = g.equip("uriela", w1)
 	t.ok(r.ok)
 	t.eq(g.gear_item(w1).equipped_by, "uriela")
@@ -214,7 +214,7 @@ func test_gear_equip_and_auto(t: TestCtx) -> void:
 	t.eq(g.unequip("kessa", "weapon").ok, true)
 	t.eq(g.gear_item(w3).equipped_by, "")
 	# A formation hero's auto-equip takes gear off benched heroes, never off teammates.
-	g._add_hero("cassiel")
+	g.model.add_hero("cassiel")
 	g.equip("cassiel", w3)
 	g.set_formation(["uriela", "kessa", "lucen", "", ""])
 	g.auto_equip("uriela")
@@ -241,4 +241,25 @@ func test_owned_heroes_sorted_by_power(t: TestCtx) -> void:
 	t.eq(list[0].id, "kessa")
 	for i in list.size() - 1:
 		t.ok(g.hero_power(list[i].id) >= g.hero_power(list[i + 1].id))
+	g.free()
+
+
+func test_full_bag_salvages_weakest_then_oldest(t: TestCtx) -> void:
+	var g := _game()
+	# 50 identical weapons: the team equips the first three, the bag keeps 40 loose pieces.
+	for i in 50:
+		g.state.gear.append({"uid": "w%d" % i, "slot": "weapon", "tier": 1, "name": "Worn Blade",
+			"stats": {"atk": 5}, "equipped_by": ""})
+	g.state.gear.append({"uid": "junk", "slot": "weapon", "tier": 1, "name": "Worn Blade",
+		"stats": {"atk": 1}, "equipped_by": ""})
+	var gold: int = g.currency("gold")
+	g.model.grant({"gear_drops": [{"slot": "helm", "tier": 1}]})
+	var loose: Array = []
+	for it in g.gear_items():
+		if it.equipped_by == "":
+			loose.append(it.uid)
+	t.eq(loose.size(), 40, "bag trimmed to the limit")
+	t.eq(loose.has("junk"), false, "the weakest piece goes first")
+	t.eq(loose[0], "w11", "equal pieces: the oldest are salvaged first (w3..w10 gone)")
+	t.eq(g.currency("gold"), gold + 9 * EconomyData.SALVAGE_GOLD_PER_TIER, "salvage pays per tier")
 	g.free()

@@ -1,0 +1,2073 @@
+{
+	"version": 1,
+	"about": "StatCalc (src/core/stat_calc.gd): hero stats (level, stars, gear, stat passives), power, gear score; and every campaign stage's enemies as built from data/stages.json, with echo stats and enemy power.",
+	"regenerate": "tools/gd --headless --path . -s tests/tools/make_fixtures.gd",
+	"hero_stats": [
+		{
+			"hero_id": "seraphiel",
+			"level": 1,
+			"stars": 1,
+			"gear": [],
+			"out": {"hp": 1710, "atk": 112, "def": 42, "spd": 96, "crit": 1200},
+			"power": 407
+		},
+		{
+			"hero_id": "seraphiel",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 5440, "atk": 352, "def": 135, "spd": 98, "crit": 1200},
+			"power": 1318
+		},
+		{
+			"hero_id": "seraphiel",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 16150, "atk": 1045, "def": 366, "spd": 108, "crit": 2000},
+			"power": 4426
+		},
+		{
+			"hero_id": "seraphiel",
+			"level": 140,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 32291, "atk": 2305, "def": 720, "spd": 101, "crit": 1200},
+			"power": 8330
+		},
+		{
+			"hero_id": "cassiel",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 3310, "atk": 90, "def": 97, "spd": 90, "crit": 500},
+			"power": 545
+		},
+		{
+			"hero_id": "cassiel",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 11290, "atk": 194, "def": 312, "spd": 100, "crit": 1300},
+			"power": 1931
+		},
+		{
+			"hero_id": "cassiel",
+			"level": 60,
+			"stars": 5,
+			"gear": [],
+			"out": {"hp": 24534, "atk": 454, "def": 683, "spd": 94, "crit": 500},
+			"power": 3853
+		},
+		{
+			"hero_id": "cassiel",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 56052, "atk": 1058, "def": 1563, "spd": 95, "crit": 500},
+			"power": 8932
+		},
+		{
+			"hero_id": "liora",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 3450, "atk": 98, "def": 96, "spd": 110, "crit": 1300},
+			"power": 722
+		},
+		{
+			"hero_id": "liora",
+			"level": 20,
+			"stars": 3,
+			"gear": [],
+			"out": {"hp": 5055, "atk": 219, "def": 137, "spd": 104, "crit": 500},
+			"power": 1087
+		},
+		{
+			"hero_id": "liora",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 13785, "atk": 605, "def": 379, "spd": 106, "crit": 500},
+			"power": 3043
+		},
+		{
+			"hero_id": "liora",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 31743, "atk": 1326, "def": 872, "spd": 115, "crit": 1300},
+			"power": 7767
+		},
+		{
+			"hero_id": "uriela",
+			"level": 1,
+			"stars": 1,
+			"gear": [],
+			"out": {"hp": 1790, "atk": 92, "def": 48, "spd": 104, "crit": 1500},
+			"power": 428
+		},
+		{
+			"hero_id": "uriela",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 5670, "atk": 330, "def": 152, "spd": 106, "crit": 1500},
+			"power": 1455
+		},
+		{
+			"hero_id": "uriela",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 15289, "atk": 805, "def": 412, "spd": 116, "crit": 3800},
+			"power": 4570
+		},
+		{
+			"hero_id": "uriela",
+			"level": 140,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 30729, "atk": 1768, "def": 824, "spd": 109, "crit": 3000},
+			"power": 8636
+		},
+		{
+			"hero_id": "nuriel",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 2000, "atk": 122, "def": 53, "spd": 122, "crit": 2200},
+			"power": 621
+		},
+		{
+			"hero_id": "nuriel",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 6033, "atk": 287, "def": 157, "spd": 151, "crit": 3000},
+			"power": 2171
+		},
+		{
+			"hero_id": "nuriel",
+			"level": 60,
+			"stars": 5,
+			"gear": [],
+			"out": {"hp": 11388, "atk": 697, "def": 287, "spd": 144, "crit": 2200},
+			"power": 4153
+		},
+		{
+			"hero_id": "nuriel",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 26252, "atk": 1609, "def": 666, "spd": 146, "crit": 2200},
+			"power": 9721
+		},
+		{
+			"hero_id": "mordessa",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 3750, "atk": 128, "def": 102, "spd": 112, "crit": 2600},
+			"power": 888
+		},
+		{
+			"hero_id": "mordessa",
+			"level": 20,
+			"stars": 3,
+			"gear": [],
+			"out": {"hp": 5922, "atk": 350, "def": 155, "spd": 106, "crit": 2800},
+			"power": 1616
+		},
+		{
+			"hero_id": "mordessa",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 16063, "atk": 957, "def": 424, "spd": 108, "crit": 2800},
+			"power": 4489
+		},
+		{
+			"hero_id": "mordessa",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 36893, "atk": 2117, "def": 974, "spd": 117, "crit": 3600},
+			"power": 11383
+		},
+		{
+			"hero_id": "brakka",
+			"level": 1,
+			"stars": 1,
+			"gear": [],
+			"out": {"hp": 2960, "atk": 62, "def": 76, "spd": 86, "crit": 500},
+			"power": 428
+		},
+		{
+			"hero_id": "brakka",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 9051, "atk": 208, "def": 234, "spd": 88, "crit": 500},
+			"power": 1369
+		},
+		{
+			"hero_id": "brakka",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 30215, "atk": 492, "def": 623, "spd": 98, "crit": 1300},
+			"power": 4755
+		},
+		{
+			"hero_id": "brakka",
+			"level": 140,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 63520, "atk": 1064, "def": 1304, "spd": 91, "crit": 500},
+			"power": 8972
+		},
+		{
+			"hero_id": "vesper",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 2060, "atk": 136, "def": 53, "spd": 95, "crit": 1100},
+			"power": 488
+		},
+		{
+			"hero_id": "vesper",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 6206, "atk": 327, "def": 157, "spd": 105, "crit": 1900},
+			"power": 1531
+		},
+		{
+			"hero_id": "vesper",
+			"level": 60,
+			"stars": 5,
+			"gear": [],
+			"out": {"hp": 11842, "atk": 947, "def": 287, "spd": 99, "crit": 1100},
+			"power": 3178
+		},
+		{
+			"hero_id": "vesper",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 27280, "atk": 2181, "def": 666, "spd": 100, "crit": 1100},
+			"power": 7402
+		},
+		{
+			"hero_id": "imra",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 3300, "atk": 90, "def": 92, "spd": 114, "crit": 1300},
+			"power": 709
+		},
+		{
+			"hero_id": "imra",
+			"level": 20,
+			"stars": 3,
+			"gear": [],
+			"out": {"hp": 4622, "atk": 195, "def": 126, "spd": 108, "crit": 500},
+			"power": 1024
+		},
+		{
+			"hero_id": "imra",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 12647, "atk": 545, "def": 348, "spd": 110, "crit": 500},
+			"power": 2879
+		},
+		{
+			"hero_id": "imra",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 29168, "atk": 1188, "def": 803, "spd": 119, "crit": 1300},
+			"power": 7326
+		},
+		{
+			"hero_id": "kessa",
+			"level": 1,
+			"stars": 1,
+			"gear": [],
+			"out": {"hp": 1520, "atk": 96, "def": 38, "spd": 118, "crit": 2000},
+			"power": 455
+		},
+		{
+			"hero_id": "kessa",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 4890, "atk": 306, "def": 124, "spd": 120, "crit": 2000},
+			"power": 1488
+		},
+		{
+			"hero_id": "kessa",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 13239, "atk": 750, "def": 335, "spd": 130, "crit": 2800},
+			"power": 4335
+		},
+		{
+			"hero_id": "kessa",
+			"level": 140,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 26094, "atk": 1648, "def": 651, "spd": 123, "crit": 2000},
+			"power": 8154
+		},
+		{
+			"hero_id": "noctaire",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 2250, "atk": 138, "def": 59, "spd": 124, "crit": 2500},
+			"power": 720
+		},
+		{
+			"hero_id": "noctaire",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 6755, "atk": 333, "def": 174, "spd": 147, "crit": 4800},
+			"power": 2582
+		},
+		{
+			"hero_id": "noctaire",
+			"level": 60,
+			"stars": 5,
+			"gear": [],
+			"out": {"hp": 13285, "atk": 819, "def": 333, "spd": 140, "crit": 4000},
+			"power": 5104
+		},
+		{
+			"hero_id": "noctaire",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 30543, "atk": 1882, "def": 770, "spd": 141, "crit": 4000},
+			"power": 11826
+		},
+		{
+			"hero_id": "orrin",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 4600, "atk": 90, "def": 132, "spd": 98, "crit": 1300},
+			"power": 795
+		},
+		{
+			"hero_id": "orrin",
+			"level": 20,
+			"stars": 3,
+			"gear": [],
+			"out": {"hp": 8378, "atk": 195, "def": 241, "spd": 92, "crit": 500},
+			"power": 1356
+		},
+		{
+			"hero_id": "orrin",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 25894, "atk": 545, "def": 781, "spd": 94, "crit": 500},
+			"power": 4237
+		},
+		{
+			"hero_id": "orrin",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 59210, "atk": 1188, "def": 1786, "spd": 103, "crit": 1300},
+			"power": 10930
+		},
+		{
+			"hero_id": "sable",
+			"level": 1,
+			"stars": 1,
+			"gear": [],
+			"out": {"hp": 1820, "atk": 80, "def": 50, "spd": 100, "crit": 500},
+			"power": 379
+		},
+		{
+			"hero_id": "sable",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 5757, "atk": 260, "def": 158, "spd": 102, "crit": 500},
+			"power": 1234
+		},
+		{
+			"hero_id": "sable",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 15517, "atk": 628, "def": 426, "spd": 112, "crit": 1300},
+			"power": 3658
+		},
+		{
+			"hero_id": "sable",
+			"level": 140,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 31244, "atk": 1372, "def": 857, "spd": 105, "crit": 500},
+			"power": 6832
+		},
+		{
+			"hero_id": "lucen",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 2210, "atk": 124, "def": 61, "spd": 108, "crit": 1600},
+			"power": 574
+		},
+		{
+			"hero_id": "lucen",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 7304, "atk": 322, "def": 180, "spd": 118, "crit": 2400},
+			"power": 1931
+		},
+		{
+			"hero_id": "lucen",
+			"level": 60,
+			"stars": 5,
+			"gear": [],
+			"out": {"hp": 14280, "atk": 784, "def": 347, "spd": 112, "crit": 1600},
+			"power": 3748
+		},
+		{
+			"hero_id": "lucen",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 32841, "atk": 1806, "def": 803, "spd": 113, "crit": 1600},
+			"power": 8710
+		},
+		{
+			"hero_id": "ashra",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 3260, "atk": 128, "def": 86, "spd": 104, "crit": 1800},
+			"power": 718
+		},
+		{
+			"hero_id": "ashra",
+			"level": 20,
+			"stars": 3,
+			"gear": [],
+			"out": {"hp": 4506, "atk": 350, "def": 109, "spd": 98, "crit": 1000},
+			"power": 1174
+		},
+		{
+			"hero_id": "ashra",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 12342, "atk": 957, "def": 302, "spd": 100, "crit": 1000},
+			"power": 3284
+		},
+		{
+			"hero_id": "ashra",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 28480, "atk": 2117, "def": 699, "spd": 109, "crit": 1800},
+			"power": 8404
+		}
+	],
+	"gear_score": [
+		{"stats": {"atk": 140}, "out": 1120},
+		{"stats": {"hp": 2190, "def": 66}, "out": 1491},
+		{"stats": {"crit": 1500, "spd": 15, "atk": 52}, "out": 891},
+		{"stats": {}, "out": 0}
+	],
+	"stages": [
+		{
+			"index": 0,
+			"id": "1-1",
+			"enemies": [
+				{
+					"hero_id": "uriela",
+					"level": 1,
+					"stars": 1,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 10500,
+					"stats": {"hp": 1879, "atk": 96, "def": 50, "spd": 104, "crit": 1500}
+				},
+				{
+					"hero_id": "nuriel",
+					"level": 1,
+					"stars": 1,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 10500,
+					"stats": {"hp": 1575, "atk": 96, "def": 39, "spd": 122, "crit": 2200}
+				}
+			],
+			"enemy_power": 932,
+			"recommended_power": 1322,
+			"first_clear_reward": {"gold": 500, "hero_exp": 300}
+		},
+		{
+			"index": 1,
+			"id": "1-2",
+			"enemies": [
+				{
+					"hero_id": "uriela",
+					"level": 2,
+					"stars": 1,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 8062,
+					"stats": {"hp": 1543, "atk": 79, "def": 41, "spd": 104, "crit": 1500}
+				},
+				{
+					"hero_id": "uriela",
+					"level": 2,
+					"stars": 1,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 8062,
+					"stats": {"hp": 1543, "atk": 79, "def": 41, "spd": 104, "crit": 1500}
+				},
+				{
+					"hero_id": "nuriel",
+					"level": 2,
+					"stars": 1,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 8062,
+					"stats": {"hp": 1293, "atk": 79, "def": 32, "spd": 122, "crit": 2200}
+				}
+			],
+			"enemy_power": 1189,
+			"recommended_power": 1322,
+			"first_clear_reward": {"gold": 650, "hero_exp": 390, "gear_drops": [{"slot": "weapon", "tier": 1}]}
+		},
+		{
+			"index": 2,
+			"id": "1-3",
+			"enemies": [
+				{
+					"hero_id": "uriela",
+					"level": 3,
+					"stars": 1,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 7687,
+					"stats": {"hp": 1568, "atk": 79, "def": 41, "spd": 104, "crit": 1500}
+				},
+				{
+					"hero_id": "liora",
+					"level": 3,
+					"stars": 2,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 7687,
+					"stats": {"hp": 1717, "atk": 73, "def": 46, "spd": 103, "crit": 500}
+				},
+				{
+					"hero_id": "nuriel",
+					"level": 3,
+					"stars": 1,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 7687,
+					"stats": {"hp": 1314, "atk": 79, "def": 33, "spd": 122, "crit": 2200}
+				}
+			],
+			"enemy_power": 1190,
+			"recommended_power": 1322,
+			"first_clear_reward": {"gold": 800, "hero_exp": 480, "gems": 100}
+		},
+		{
+			"index": 3,
+			"id": "1-4",
+			"enemies": [
+				{
+					"hero_id": "uriela",
+					"level": 6,
+					"stars": 1,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 12937,
+					"stats": {"hp": 3125, "atk": 160, "def": 82, "spd": 104, "crit": 1500}
+				},
+				{
+					"hero_id": "uriela",
+					"level": 6,
+					"stars": 1,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 12937,
+					"stats": {"hp": 3125, "atk": 160, "def": 82, "spd": 104, "crit": 1500}
+				},
+				{
+					"hero_id": "nuriel",
+					"level": 6,
+					"stars": 1,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 12937,
+					"stats": {"hp": 2619, "atk": 160, "def": 65, "spd": 122, "crit": 2200}
+				},
+				{
+					"hero_id": "liora",
+					"level": 6,
+					"stars": 2,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 12937,
+					"stats": {"hp": 3421, "atk": 147, "def": 91, "spd": 103, "crit": 500}
+				}
+			],
+			"enemy_power": 3276,
+			"recommended_power": 3477,
+			"first_clear_reward": {"gold": 950, "hero_exp": 570}
+		},
+		{
+			"index": 4,
+			"id": "1-5",
+			"enemies": [
+				{
+					"hero_id": "cassiel",
+					"level": 8,
+					"stars": 2,
+					"slot": 0,
+					"is_boss": true,
+					"echo_bp": 8437,
+					"stats": {"hp": 3955, "atk": 83, "def": 114, "spd": 91, "crit": 500}
+				},
+				{
+					"hero_id": "uriela",
+					"level": 8,
+					"stars": 1,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 8437,
+					"stats": {"hp": 2250, "atk": 115, "def": 59, "spd": 104, "crit": 1500}
+				},
+				{
+					"hero_id": "nuriel",
+					"level": 8,
+					"stars": 1,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 8437,
+					"stats": {"hp": 1885, "atk": 115, "def": 47, "spd": 122, "crit": 2200}
+				},
+				{
+					"hero_id": "uriela",
+					"level": 8,
+					"stars": 1,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 8437,
+					"stats": {"hp": 2250, "atk": 115, "def": 59, "spd": 104, "crit": 1500}
+				}
+			],
+			"enemy_power": 3098,
+			"recommended_power": 3837,
+			"first_clear_reward": {
+				"gold": 1100,
+				"hero_exp": 660,
+				"gems": 200,
+				"gear_drops": [{"slot": "weapon", "tier": 1}],
+				"dust": 50
+			}
+		},
+		{
+			"index": 5,
+			"id": "1-6",
+			"enemies": [
+				{
+					"hero_id": "cassiel",
+					"level": 15,
+					"stars": 2,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 10500,
+					"stats": {"hp": 6541, "atk": 138, "def": 190, "spd": 91, "crit": 500}
+				},
+				{
+					"hero_id": "uriela",
+					"level": 15,
+					"stars": 1,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 10500,
+					"stats": {"hp": 3721, "atk": 191, "def": 99, "spd": 104, "crit": 1500}
+				},
+				{
+					"hero_id": "nuriel",
+					"level": 15,
+					"stars": 1,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 10500,
+					"stats": {"hp": 3118, "atk": 191, "def": 78, "spd": 122, "crit": 2200}
+				},
+				{
+					"hero_id": "liora",
+					"level": 15,
+					"stars": 2,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 10500,
+					"stats": {"hp": 4074, "atk": 176, "def": 111, "spd": 103, "crit": 500}
+				},
+				{
+					"hero_id": "ashra",
+					"level": 15,
+					"stars": 1,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 10500,
+					"stats": {"hp": 3242, "atk": 219, "def": 78, "spd": 96, "crit": 1000}
+				}
+			],
+			"enemy_power": 4897,
+			"recommended_power": 5309,
+			"first_clear_reward": {"gold": 1250, "hero_exp": 750}
+		},
+		{
+			"index": 6,
+			"id": "1-7",
+			"enemies": [
+				{
+					"hero_id": "uriela",
+					"level": 16,
+					"stars": 2,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 9000,
+					"stats": {"hp": 3698, "atk": 189, "def": 98, "spd": 105, "crit": 1500}
+				},
+				{
+					"hero_id": "cassiel",
+					"level": 16,
+					"stars": 2,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 9000,
+					"stats": {"hp": 5805, "atk": 123, "def": 169, "spd": 91, "crit": 500}
+				},
+				{
+					"hero_id": "nuriel",
+					"level": 16,
+					"stars": 2,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 9000,
+					"stats": {"hp": 3099, "atk": 189, "def": 77, "spd": 123, "crit": 2200}
+				},
+				{
+					"hero_id": "kessa",
+					"level": 16,
+					"stars": 2,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 9000,
+					"stats": {"hp": 3140, "atk": 197, "def": 77, "spd": 119, "crit": 2000}
+				},
+				{
+					"hero_id": "liora",
+					"level": 16,
+					"stars": 2,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 9000,
+					"stats": {"hp": 3615, "atk": 155, "def": 98, "spd": 103, "crit": 500}
+				}
+			],
+			"enemy_power": 4850,
+			"recommended_power": 5385,
+			"first_clear_reward": {"gold": 1400, "hero_exp": 840, "gear_drops": [{"slot": "charm", "tier": 1}]}
+		},
+		{
+			"index": 7,
+			"id": "1-8",
+			"enemies": [
+				{
+					"hero_id": "cassiel",
+					"level": 18,
+					"stars": 2,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 10687,
+					"stats": {"hp": 7364, "atk": 156, "def": 213, "spd": 91, "crit": 500}
+				},
+				{
+					"hero_id": "uriela",
+					"level": 18,
+					"stars": 2,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 10687,
+					"stats": {"hp": 4691, "atk": 240, "def": 125, "spd": 105, "crit": 1500}
+				},
+				{
+					"hero_id": "liora",
+					"level": 18,
+					"stars": 2,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 10687,
+					"stats": {"hp": 4585, "atk": 197, "def": 125, "spd": 103, "crit": 500}
+				},
+				{
+					"hero_id": "nuriel",
+					"level": 18,
+					"stars": 2,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 10687,
+					"stats": {"hp": 3931, "atk": 240, "def": 98, "spd": 123, "crit": 2200}
+				},
+				{
+					"hero_id": "imra",
+					"level": 18,
+					"stars": 2,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 10687,
+					"stats": {"hp": 4193, "atk": 176, "def": 114, "spd": 107, "crit": 500}
+				}
+			],
+			"enemy_power": 5853,
+			"recommended_power": 6452,
+			"first_clear_reward": {"gold": 1550, "hero_exp": 930, "scrolls": 1}
+		},
+		{
+			"index": 8,
+			"id": "1-9",
+			"enemies": [
+				{
+					"hero_id": "cassiel",
+					"level": 19,
+					"stars": 2,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 10125,
+					"stats": {"hp": 7200, "atk": 152, "def": 209, "spd": 91, "crit": 500}
+				},
+				{
+					"hero_id": "uriela",
+					"level": 19,
+					"stars": 2,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 10125,
+					"stats": {"hp": 4586, "atk": 233, "def": 121, "spd": 105, "crit": 1500}
+				},
+				{
+					"hero_id": "nuriel",
+					"level": 19,
+					"stars": 2,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 10125,
+					"stats": {"hp": 3843, "atk": 233, "def": 96, "spd": 123, "crit": 2200}
+				},
+				{
+					"hero_id": "liora",
+					"level": 19,
+					"stars": 2,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 10125,
+					"stats": {"hp": 4484, "atk": 193, "def": 121, "spd": 103, "crit": 500}
+				},
+				{
+					"hero_id": "vesper",
+					"level": 19,
+					"stars": 2,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 10125,
+					"stats": {"hp": 3997, "atk": 270, "def": 96, "spd": 96, "crit": 1100}
+				}
+			],
+			"enemy_power": 5783,
+			"recommended_power": 6531,
+			"first_clear_reward": {"gold": 1700, "hero_exp": 1020}
+		},
+		{
+			"index": 9,
+			"id": "1-10",
+			"enemies": [
+				{
+					"hero_id": "cassiel",
+					"level": 20,
+					"stars": 2,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 7500,
+					"stats": {"hp": 5499, "atk": 116, "def": 159, "spd": 91, "crit": 500}
+				},
+				{
+					"hero_id": "uriela",
+					"level": 20,
+					"stars": 2,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 7500,
+					"stats": {"hp": 3502, "atk": 179, "def": 93, "spd": 105, "crit": 1500}
+				},
+				{
+					"hero_id": "seraphiel",
+					"level": 20,
+					"stars": 3,
+					"slot": 2,
+					"is_boss": true,
+					"echo_bp": 7500,
+					"stats": {"hp": 3705, "atk": 241, "def": 90, "spd": 98, "crit": 1200}
+				},
+				{
+					"hero_id": "liora",
+					"level": 20,
+					"stars": 2,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 7500,
+					"stats": {"hp": 3424, "atk": 148, "def": 93, "spd": 103, "crit": 500}
+				},
+				{
+					"hero_id": "nuriel",
+					"level": 20,
+					"stars": 2,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 7500,
+					"stats": {"hp": 2935, "atk": 179, "def": 73, "spd": 123, "crit": 2200}
+				}
+			],
+			"enemy_power": 5520,
+			"recommended_power": 6968,
+			"first_clear_reward": {
+				"gold": 1850,
+				"hero_exp": 1110,
+				"gems": 400,
+				"scrolls": 2,
+				"gear_drops": [{"slot": "charm", "tier": 3}],
+				"dust": 50
+			}
+		},
+		{
+			"index": 10,
+			"id": "2-1",
+			"enemies": [
+				{
+					"hero_id": "brakka",
+					"level": 24,
+					"stars": 2,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 8812,
+					"stats": {"hp": 7624, "atk": 158, "def": 194, "spd": 87, "crit": 500}
+				},
+				{
+					"hero_id": "kessa",
+					"level": 24,
+					"stars": 2,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 8812,
+					"stats": {"hp": 3915, "atk": 246, "def": 96, "spd": 119, "crit": 2000}
+				},
+				{
+					"hero_id": "imra",
+					"level": 24,
+					"stars": 2,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 8812,
+					"stats": {"hp": 4121, "atk": 174, "def": 111, "spd": 107, "crit": 500}
+				},
+				{
+					"hero_id": "vesper",
+					"level": 24,
+					"stars": 2,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 8812,
+					"stats": {"hp": 4017, "atk": 272, "def": 96, "spd": 96, "crit": 1100}
+				},
+				{
+					"hero_id": "kessa",
+					"level": 24,
+					"stars": 2,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 8812,
+					"stats": {"hp": 3915, "atk": 246, "def": 96, "spd": 119, "crit": 2000}
+				}
+			],
+			"enemy_power": 6012,
+			"recommended_power": 8382,
+			"first_clear_reward": {"gold": 2000, "hero_exp": 1200}
+		},
+		{
+			"index": 11,
+			"id": "2-2",
+			"enemies": [
+				{
+					"hero_id": "brakka",
+					"level": 26,
+					"stars": 2,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 8625,
+					"stats": {"hp": 7862, "atk": 163, "def": 201, "spd": 87, "crit": 500}
+				},
+				{
+					"hero_id": "mordessa",
+					"level": 26,
+					"stars": 3,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 8625,
+					"stats": {"hp": 6028, "atk": 357, "def": 157, "spd": 106, "crit": 2800}
+				},
+				{
+					"hero_id": "imra",
+					"level": 26,
+					"stars": 2,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 8625,
+					"stats": {"hp": 4250, "atk": 180, "def": 116, "spd": 107, "crit": 500}
+				},
+				{
+					"hero_id": "kessa",
+					"level": 26,
+					"stars": 2,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 8625,
+					"stats": {"hp": 4037, "atk": 254, "def": 100, "spd": 119, "crit": 2000}
+				},
+				{
+					"hero_id": "vesper",
+					"level": 26,
+					"stars": 2,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 8625,
+					"stats": {"hp": 4143, "atk": 280, "def": 100, "spd": 96, "crit": 1100}
+				}
+			],
+			"enemy_power": 6697,
+			"recommended_power": 8801,
+			"first_clear_reward": {"gold": 2150, "hero_exp": 1290, "gear_drops": [{"slot": "armor", "tier": 2}]}
+		},
+		{
+			"index": 12,
+			"id": "2-3",
+			"enemies": [
+				{
+					"hero_id": "brakka",
+					"level": 28,
+					"stars": 2,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 10125,
+					"stats": {"hp": 9699, "atk": 202, "def": 248, "spd": 87, "crit": 500}
+				},
+				{
+					"hero_id": "kessa",
+					"level": 28,
+					"stars": 2,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 10125,
+					"stats": {"hp": 4980, "atk": 313, "def": 123, "spd": 119, "crit": 2000}
+				},
+				{
+					"hero_id": "vesper",
+					"level": 28,
+					"stars": 2,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 10125,
+					"stats": {"hp": 5111, "atk": 346, "def": 123, "spd": 96, "crit": 1100}
+				},
+				{
+					"hero_id": "imra",
+					"level": 28,
+					"stars": 2,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 10125,
+					"stats": {"hp": 5242, "atk": 221, "def": 143, "spd": 107, "crit": 500}
+				},
+				{
+					"hero_id": "ashra",
+					"level": 28,
+					"stars": 2,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 10125,
+					"stats": {"hp": 5111, "atk": 346, "def": 123, "spd": 97, "crit": 1000}
+				}
+			],
+			"enemy_power": 7085,
+			"recommended_power": 9608,
+			"first_clear_reward": {"gold": 2300, "hero_exp": 1380, "gems": 100}
+		},
+		{
+			"index": 13,
+			"id": "2-4",
+			"enemies": [
+				{
+					"hero_id": "brakka",
+					"level": 29,
+					"stars": 2,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 9562,
+					"stats": {"hp": 9382, "atk": 195, "def": 239, "spd": 87, "crit": 500}
+				},
+				{
+					"hero_id": "orrin",
+					"level": 29,
+					"stars": 2,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 9562,
+					"stats": {"hp": 9192, "atk": 215, "def": 264, "spd": 91, "crit": 500}
+				},
+				{
+					"hero_id": "vesper",
+					"level": 29,
+					"stars": 2,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 9562,
+					"stats": {"hp": 4944, "atk": 334, "def": 119, "spd": 96, "crit": 1100}
+				},
+				{
+					"hero_id": "kessa",
+					"level": 29,
+					"stars": 2,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 9562,
+					"stats": {"hp": 4817, "atk": 304, "def": 119, "spd": 119, "crit": 2000}
+				},
+				{
+					"hero_id": "imra",
+					"level": 29,
+					"stars": 2,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 9562,
+					"stats": {"hp": 5071, "atk": 215, "def": 138, "spd": 107, "crit": 500}
+				}
+			],
+			"enemy_power": 7147,
+			"recommended_power": 10014,
+			"first_clear_reward": {"gold": 2450, "hero_exp": 1470}
+		},
+		{
+			"index": 14,
+			"id": "2-5",
+			"enemies": [
+				{
+					"hero_id": "brakka",
+					"level": 32,
+					"stars": 2,
+					"slot": 0,
+					"is_boss": true,
+					"echo_bp": 7125,
+					"stats": {"hp": 7486, "atk": 156, "def": 190, "spd": 87, "crit": 500}
+				},
+				{
+					"hero_id": "kessa",
+					"level": 32,
+					"stars": 2,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 7125,
+					"stats": {"hp": 3844, "atk": 242, "def": 95, "spd": 119, "crit": 2000}
+				},
+				{
+					"hero_id": "vesper",
+					"level": 32,
+					"stars": 2,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 7125,
+					"stats": {"hp": 3945, "atk": 267, "def": 95, "spd": 96, "crit": 1100}
+				},
+				{
+					"hero_id": "imra",
+					"level": 32,
+					"stars": 2,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 7125,
+					"stats": {"hp": 4047, "atk": 171, "def": 110, "spd": 107, "crit": 500}
+				},
+				{
+					"hero_id": "kessa",
+					"level": 32,
+					"stars": 2,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 7125,
+					"stats": {"hp": 3844, "atk": 242, "def": 95, "spd": 119, "crit": 2000}
+				}
+			],
+			"enemy_power": 7122,
+			"recommended_power": 11308,
+			"first_clear_reward": {
+				"gold": 2600,
+				"hero_exp": 1560,
+				"gems": 200,
+				"gear_drops": [{"slot": "weapon", "tier": 3}],
+				"dust": 75
+			}
+		},
+		{
+			"index": 15,
+			"id": "2-6",
+			"enemies": [
+				{
+					"hero_id": "brakka",
+					"level": 34,
+					"stars": 3,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 10312,
+					"stats": {"hp": 12527, "atk": 261, "def": 320, "spd": 88, "crit": 500}
+				},
+				{
+					"hero_id": "uriela",
+					"level": 34,
+					"stars": 3,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 10312,
+					"stats": {"hp": 7574, "atk": 434, "def": 201, "spd": 106, "crit": 1500}
+				},
+				{
+					"hero_id": "vesper",
+					"level": 34,
+					"stars": 3,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 10312,
+					"stats": {"hp": 6601, "atk": 447, "def": 159, "spd": 97, "crit": 1100}
+				},
+				{
+					"hero_id": "imra",
+					"level": 34,
+					"stars": 3,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 10312,
+					"stats": {"hp": 6771, "atk": 287, "def": 184, "spd": 108, "crit": 500}
+				},
+				{
+					"hero_id": "kessa",
+					"level": 34,
+					"stars": 3,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 10312,
+					"stats": {"hp": 6432, "atk": 405, "def": 159, "spd": 120, "crit": 2000}
+				}
+			],
+			"enemy_power": 9589,
+			"recommended_power": 11828,
+			"first_clear_reward": {"gold": 2750, "hero_exp": 1650}
+		},
+		{
+			"index": 16,
+			"id": "2-7",
+			"enemies": [
+				{
+					"hero_id": "brakka",
+					"level": 35,
+					"stars": 3,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 9187,
+					"stats": {"hp": 11395, "atk": 237, "def": 291, "spd": 88, "crit": 500}
+				},
+				{
+					"hero_id": "kessa",
+					"level": 35,
+					"stars": 3,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 9187,
+					"stats": {"hp": 5851, "atk": 368, "def": 145, "spd": 120, "crit": 2000}
+				},
+				{
+					"hero_id": "imra",
+					"level": 35,
+					"stars": 3,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 9187,
+					"stats": {"hp": 6159, "atk": 259, "def": 168, "spd": 108, "crit": 500}
+				},
+				{
+					"hero_id": "vesper",
+					"level": 35,
+					"stars": 3,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 9187,
+					"stats": {"hp": 6005, "atk": 406, "def": 145, "spd": 97, "crit": 1100}
+				},
+				{
+					"hero_id": "liora",
+					"level": 35,
+					"stars": 3,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 9187,
+					"stats": {"hp": 6737, "atk": 291, "def": 183, "spd": 104, "crit": 500}
+				}
+			],
+			"enemy_power": 8380,
+			"recommended_power": 12230,
+			"first_clear_reward": {"gold": 2900, "hero_exp": 1740, "gear_drops": [{"slot": "weapon", "tier": 3}]}
+		},
+		{
+			"index": 17,
+			"id": "2-8",
+			"enemies": [
+				{
+					"hero_id": "brakka",
+					"level": 36,
+					"stars": 3,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 9375,
+					"stats": {"hp": 11870, "atk": 247, "def": 303, "spd": 88, "crit": 500}
+				},
+				{
+					"hero_id": "cassiel",
+					"level": 36,
+					"stars": 3,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 9375,
+					"stats": {"hp": 12959, "atk": 240, "def": 359, "spd": 92, "crit": 500}
+				},
+				{
+					"hero_id": "vesper",
+					"level": 36,
+					"stars": 3,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 9375,
+					"stats": {"hp": 6255, "atk": 423, "def": 151, "spd": 97, "crit": 1100}
+				},
+				{
+					"hero_id": "kessa",
+					"level": 36,
+					"stars": 3,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 9375,
+					"stats": {"hp": 6095, "atk": 384, "def": 151, "spd": 120, "crit": 2000}
+				},
+				{
+					"hero_id": "imra",
+					"level": 36,
+					"stars": 3,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 9375,
+					"stats": {"hp": 6416, "atk": 271, "def": 175, "spd": 108, "crit": 500}
+				}
+			],
+			"enemy_power": 9250,
+			"recommended_power": 12568,
+			"first_clear_reward": {"gold": 3050, "hero_exp": 1830, "scrolls": 1}
+		},
+		{
+			"index": 18,
+			"id": "2-9",
+			"enemies": [
+				{
+					"hero_id": "brakka",
+					"level": 39,
+					"stars": 3,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 9562,
+					"stats": {"hp": 12843, "atk": 267, "def": 328, "spd": 88, "crit": 500}
+				},
+				{
+					"hero_id": "mordessa",
+					"level": 39,
+					"stars": 3,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 9562,
+					"stats": {"hp": 8895, "atk": 525, "def": 233, "spd": 106, "crit": 2800}
+				},
+				{
+					"hero_id": "vesper",
+					"level": 39,
+					"stars": 3,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 9562,
+					"stats": {"hp": 6768, "atk": 458, "def": 164, "spd": 97, "crit": 1100}
+				},
+				{
+					"hero_id": "imra",
+					"level": 39,
+					"stars": 3,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 9562,
+					"stats": {"hp": 6942, "atk": 293, "def": 190, "spd": 108, "crit": 500}
+				},
+				{
+					"hero_id": "kessa",
+					"level": 39,
+					"stars": 3,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 9562,
+					"stats": {"hp": 6595, "atk": 415, "def": 164, "spd": 120, "crit": 2000}
+				}
+			],
+			"enemy_power": 10726,
+			"recommended_power": 13413,
+			"first_clear_reward": {"gold": 3200, "hero_exp": 1920}
+		},
+		{
+			"index": 19,
+			"id": "2-10",
+			"enemies": [
+				{
+					"hero_id": "brakka",
+					"level": 41,
+					"stars": 3,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 8625,
+					"stats": {"hp": 12029, "atk": 250, "def": 307, "spd": 88, "crit": 500}
+				},
+				{
+					"hero_id": "kessa",
+					"level": 41,
+					"stars": 3,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 8625,
+					"stats": {"hp": 6177, "atk": 388, "def": 153, "spd": 120, "crit": 2000}
+				},
+				{
+					"hero_id": "mordessa",
+					"level": 41,
+					"stars": 3,
+					"slot": 2,
+					"is_boss": true,
+					"echo_bp": 8625,
+					"stats": {"hp": 8330, "atk": 493, "def": 219, "spd": 106, "crit": 2800}
+				},
+				{
+					"hero_id": "vesper",
+					"level": 41,
+					"stars": 3,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 8625,
+					"stats": {"hp": 6339, "atk": 429, "def": 153, "spd": 97, "crit": 1100}
+				},
+				{
+					"hero_id": "imra",
+					"level": 41,
+					"stars": 3,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 8625,
+					"stats": {"hp": 6502, "atk": 275, "def": 178, "spd": 108, "crit": 500}
+				}
+			],
+			"enemy_power": 11976,
+			"recommended_power": 14664,
+			"first_clear_reward": {
+				"gold": 3350,
+				"hero_exp": 2010,
+				"gems": 400,
+				"scrolls": 2,
+				"gear_drops": [{"slot": "charm", "tier": 4}],
+				"dust": 75
+			}
+		},
+		{
+			"index": 20,
+			"id": "3-1",
+			"enemies": [
+				{
+					"hero_id": "orrin",
+					"level": 44,
+					"stars": 3,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 10312,
+					"stats": {"hp": 14868, "atk": 347, "def": 428, "spd": 92, "crit": 500}
+				},
+				{
+					"hero_id": "lucen",
+					"level": 44,
+					"stars": 3,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 10312,
+					"stats": {"hp": 9643, "atk": 527, "def": 235, "spd": 110, "crit": 1600}
+				},
+				{
+					"hero_id": "ashra",
+					"level": 44,
+					"stars": 3,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 10312,
+					"stats": {"hp": 7997, "atk": 624, "def": 193, "spd": 98, "crit": 1000}
+				},
+				{
+					"hero_id": "sable",
+					"level": 44,
+					"stars": 3,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 10312,
+					"stats": {"hp": 9331, "atk": 408, "def": 255, "spd": 102, "crit": 500}
+				},
+				{
+					"hero_id": "lucen",
+					"level": 44,
+					"stars": 3,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 10312,
+					"stats": {"hp": 9643, "atk": 527, "def": 235, "spd": 110, "crit": 1600}
+				}
+			],
+			"enemy_power": 12897,
+			"recommended_power": 15963,
+			"first_clear_reward": {"gold": 3500, "hero_exp": 2100}
+		},
+		{
+			"index": 21,
+			"id": "3-2",
+			"enemies": [
+				{
+					"hero_id": "orrin",
+					"level": 46,
+					"stars": 3,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 9187,
+					"stats": {"hp": 13709, "atk": 320, "def": 395, "spd": 92, "crit": 500}
+				},
+				{
+					"hero_id": "lucen",
+					"level": 46,
+					"stars": 3,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 9187,
+					"stats": {"hp": 8891, "atk": 487, "def": 215, "spd": 110, "crit": 1600}
+				},
+				{
+					"hero_id": "sable",
+					"level": 46,
+					"stars": 3,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 9187,
+					"stats": {"hp": 8603, "atk": 377, "def": 235, "spd": 102, "crit": 500}
+				},
+				{
+					"hero_id": "ashra",
+					"level": 46,
+					"stars": 3,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 9187,
+					"stats": {"hp": 7374, "atk": 574, "def": 178, "spd": 98, "crit": 1000}
+				},
+				{
+					"hero_id": "noctaire",
+					"level": 46,
+					"stars": 3,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 9187,
+					"stats": {"hp": 8271, "atk": 509, "def": 206, "spd": 138, "crit": 4000}
+				}
+			],
+			"enemy_power": 12838,
+			"recommended_power": 16745,
+			"first_clear_reward": {"gold": 3650, "hero_exp": 2190, "gear_drops": [{"slot": "helm", "tier": 4}]}
+		},
+		{
+			"index": 22,
+			"id": "3-3",
+			"enemies": [
+				{
+					"hero_id": "orrin",
+					"level": 49,
+					"stars": 3,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 10875,
+					"stats": {"hp": 17049, "atk": 399, "def": 492, "spd": 92, "crit": 500}
+				},
+				{
+					"hero_id": "brakka",
+					"level": 49,
+					"stars": 3,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 10875,
+					"stats": {"hp": 17402, "atk": 363, "def": 445, "spd": 88, "crit": 500}
+				},
+				{
+					"hero_id": "ashra",
+					"level": 49,
+					"stars": 3,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 10875,
+					"stats": {"hp": 9170, "atk": 714, "def": 221, "spd": 98, "crit": 1000}
+				},
+				{
+					"hero_id": "sable",
+					"level": 49,
+					"stars": 3,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 10875,
+					"stats": {"hp": 10699, "atk": 468, "def": 293, "spd": 102, "crit": 500}
+				},
+				{
+					"hero_id": "lucen",
+					"level": 49,
+					"stars": 3,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 10875,
+					"stats": {"hp": 11057, "atk": 605, "def": 269, "spd": 110, "crit": 1600}
+				}
+			],
+			"enemy_power": 13921,
+			"recommended_power": 18267,
+			"first_clear_reward": {"gold": 3800, "hero_exp": 2280, "gems": 100}
+		},
+		{
+			"index": 23,
+			"id": "3-4",
+			"enemies": [
+				{
+					"hero_id": "orrin",
+					"level": 50,
+					"stars": 3,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 10687,
+					"stats": {"hp": 17024, "atk": 398, "def": 492, "spd": 92, "crit": 500}
+				},
+				{
+					"hero_id": "lucen",
+					"level": 50,
+					"stars": 3,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 10687,
+					"stats": {"hp": 11041, "atk": 604, "def": 268, "spd": 110, "crit": 1600}
+				},
+				{
+					"hero_id": "seraphiel",
+					"level": 50,
+					"stars": 3,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 10687,
+					"stats": {"hp": 10038, "atk": 657, "def": 245, "spd": 98, "crit": 1200}
+				},
+				{
+					"hero_id": "sable",
+					"level": 50,
+					"stars": 3,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 10687,
+					"stats": {"hp": 10682, "atk": 468, "def": 292, "spd": 102, "crit": 500}
+				},
+				{
+					"hero_id": "ashra",
+					"level": 50,
+					"stars": 3,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 10687,
+					"stats": {"hp": 9156, "atk": 713, "def": 222, "spd": 98, "crit": 1000}
+				}
+			],
+			"enemy_power": 13774,
+			"recommended_power": 19115,
+			"first_clear_reward": {"gold": 3950, "hero_exp": 2370}
+		},
+		{
+			"index": 24,
+			"id": "3-5",
+			"enemies": [
+				{
+					"hero_id": "orrin",
+					"level": 53,
+					"stars": 3,
+					"slot": 0,
+					"is_boss": true,
+					"echo_bp": 9375,
+					"stats": {"hp": 15642, "atk": 365, "def": 451, "spd": 92, "crit": 500}
+				},
+				{
+					"hero_id": "lucen",
+					"level": 53,
+					"stars": 3,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 9375,
+					"stats": {"hp": 10144, "atk": 556, "def": 247, "spd": 110, "crit": 1600}
+				},
+				{
+					"hero_id": "ashra",
+					"level": 53,
+					"stars": 3,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 9375,
+					"stats": {"hp": 8414, "atk": 655, "def": 204, "spd": 98, "crit": 1000}
+				},
+				{
+					"hero_id": "sable",
+					"level": 53,
+					"stars": 3,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 9375,
+					"stats": {"hp": 9815, "atk": 431, "def": 269, "spd": 102, "crit": 500}
+				},
+				{
+					"hero_id": "noctaire",
+					"level": 53,
+					"stars": 3,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 9375,
+					"stats": {"hp": 9438, "atk": 582, "def": 236, "spd": 138, "crit": 4000}
+				}
+			],
+			"enemy_power": 17349,
+			"recommended_power": 20134,
+			"first_clear_reward": {
+				"gold": 4100,
+				"hero_exp": 2460,
+				"gems": 200,
+				"gear_drops": [{"slot": "weapon", "tier": 4}],
+				"dust": 100
+			}
+		},
+		{
+			"index": 25,
+			"id": "3-6",
+			"enemies": [
+				{
+					"hero_id": "orrin",
+					"level": 55,
+					"stars": 4,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 10125,
+					"stats": {"hp": 19087, "atk": 447, "def": 551, "spd": 93, "crit": 500}
+				},
+				{
+					"hero_id": "lucen",
+					"level": 55,
+					"stars": 4,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 10125,
+					"stats": {"hp": 12378, "atk": 679, "def": 300, "spd": 111, "crit": 1600}
+				},
+				{
+					"hero_id": "ashra",
+					"level": 55,
+					"stars": 4,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 10125,
+					"stats": {"hp": 10266, "atk": 800, "def": 249, "spd": 99, "crit": 1000}
+				},
+				{
+					"hero_id": "ashra",
+					"level": 55,
+					"stars": 4,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 10125,
+					"stats": {"hp": 10266, "atk": 800, "def": 249, "spd": 99, "crit": 1000}
+				},
+				{
+					"hero_id": "sable",
+					"level": 55,
+					"stars": 4,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 10125,
+					"stats": {"hp": 11977, "atk": 525, "def": 329, "spd": 103, "crit": 500}
+				}
+			],
+			"enemy_power": 16162,
+			"recommended_power": 20911,
+			"first_clear_reward": {"gold": 4250, "hero_exp": 2550}
+		},
+		{
+			"index": 26,
+			"id": "3-7",
+			"enemies": [
+				{
+					"hero_id": "orrin",
+					"level": 57,
+					"stars": 4,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 9750,
+					"stats": {"hp": 18918, "atk": 442, "def": 546, "spd": 93, "crit": 500}
+				},
+				{
+					"hero_id": "cassiel",
+					"level": 57,
+					"stars": 4,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 9750,
+					"stats": {"hp": 21081, "atk": 390, "def": 586, "spd": 93, "crit": 500}
+				},
+				{
+					"hero_id": "lucen",
+					"level": 57,
+					"stars": 4,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 9750,
+					"stats": {"hp": 12270, "atk": 672, "def": 299, "spd": 111, "crit": 1600}
+				},
+				{
+					"hero_id": "sable",
+					"level": 57,
+					"stars": 4,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 9750,
+					"stats": {"hp": 11872, "atk": 520, "def": 325, "spd": 103, "crit": 500}
+				},
+				{
+					"hero_id": "noctaire",
+					"level": 57,
+					"stars": 4,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 9750,
+					"stats": {"hp": 11416, "atk": 703, "def": 285, "spd": 139, "crit": 4000}
+				}
+			],
+			"enemy_power": 17832,
+			"recommended_power": 21358,
+			"first_clear_reward": {"gold": 4400, "hero_exp": 2640, "gear_drops": [{"slot": "armor", "tier": 4}]}
+		},
+		{
+			"index": 27,
+			"id": "3-8",
+			"enemies": [
+				{
+					"hero_id": "orrin",
+					"level": 59,
+					"stars": 4,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 9750,
+					"stats": {"hp": 19457, "atk": 455, "def": 563, "spd": 93, "crit": 500}
+				},
+				{
+					"hero_id": "lucen",
+					"level": 59,
+					"stars": 4,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 9750,
+					"stats": {"hp": 12618, "atk": 692, "def": 307, "spd": 111, "crit": 1600}
+				},
+				{
+					"hero_id": "vesper",
+					"level": 59,
+					"stars": 4,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 9750,
+					"stats": {"hp": 10465, "atk": 709, "def": 254, "spd": 98, "crit": 1100}
+				},
+				{
+					"hero_id": "sable",
+					"level": 59,
+					"stars": 4,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 9750,
+					"stats": {"hp": 12210, "atk": 535, "def": 335, "spd": 103, "crit": 500}
+				},
+				{
+					"hero_id": "noctaire",
+					"level": 59,
+					"stars": 4,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 9750,
+					"stats": {"hp": 11740, "atk": 723, "def": 293, "spd": 139, "crit": 4000}
+				}
+			],
+			"enemy_power": 17500,
+			"recommended_power": 23095,
+			"first_clear_reward": {"gold": 4550, "hero_exp": 2730, "scrolls": 1}
+		},
+		{
+			"index": 28,
+			"id": "3-9",
+			"enemies": [
+				{
+					"hero_id": "orrin",
+					"level": 61,
+					"stars": 4,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 9375,
+					"stats": {"hp": 19226, "atk": 450, "def": 555, "spd": 93, "crit": 500}
+				},
+				{
+					"hero_id": "mordessa",
+					"level": 61,
+					"stars": 4,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 9375,
+					"stats": {"hp": 13590, "atk": 807, "def": 356, "spd": 107, "crit": 2800}
+				},
+				{
+					"hero_id": "ashra",
+					"level": 61,
+					"stars": 4,
+					"slot": 2,
+					"is_boss": false,
+					"echo_bp": 9375,
+					"stats": {"hp": 10342, "atk": 807, "def": 250, "spd": 99, "crit": 1000}
+				},
+				{
+					"hero_id": "sable",
+					"level": 61,
+					"stars": 4,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 9375,
+					"stats": {"hp": 12066, "atk": 529, "def": 330, "spd": 103, "crit": 500}
+				},
+				{
+					"hero_id": "noctaire",
+					"level": 61,
+					"stars": 4,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 9375,
+					"stats": {"hp": 11602, "atk": 714, "def": 290, "spd": 139, "crit": 4000}
+				}
+			],
+			"enemy_power": 18053,
+			"recommended_power": 24522,
+			"first_clear_reward": {"gold": 4700, "hero_exp": 2820}
+		},
+		{
+			"index": 29,
+			"id": "3-10",
+			"enemies": [
+				{
+					"hero_id": "orrin",
+					"level": 64,
+					"stars": 4,
+					"slot": 0,
+					"is_boss": false,
+					"echo_bp": 8812,
+					"stats": {"hp": 18802, "atk": 439, "def": 543, "spd": 93, "crit": 500}
+				},
+				{
+					"hero_id": "lucen",
+					"level": 64,
+					"stars": 4,
+					"slot": 1,
+					"is_boss": false,
+					"echo_bp": 8812,
+					"stats": {"hp": 12194, "atk": 668, "def": 296, "spd": 111, "crit": 1600}
+				},
+				{
+					"hero_id": "noctaire",
+					"level": 64,
+					"stars": 4,
+					"slot": 2,
+					"is_boss": true,
+					"echo_bp": 8812,
+					"stats": {"hp": 11345, "atk": 699, "def": 284, "spd": 139, "crit": 4000}
+				},
+				{
+					"hero_id": "sable",
+					"level": 64,
+					"stars": 4,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 8812,
+					"stats": {"hp": 11799, "atk": 517, "def": 323, "spd": 103, "crit": 500}
+				},
+				{
+					"hero_id": "ashra",
+					"level": 64,
+					"stars": 4,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 8812,
+					"stats": {"hp": 10113, "atk": 788, "def": 244, "spd": 99, "crit": 1000}
+				}
+			],
+			"enemy_power": 21419,
+			"recommended_power": 26514,
+			"first_clear_reward": {
+				"gold": 4850,
+				"hero_exp": 2910,
+				"gems": 400,
+				"scrolls": 2,
+				"gear_drops": [{"slot": "charm", "tier": 5}],
+				"dust": 100
+			}
+		}
+	]
+}

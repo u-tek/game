@@ -1,0 +1,19 @@
+{
+	"version": 1,
+	"max_ms": 90000,
+	"factions": ["celestial", "infernal", "fallen"],
+	"beats": {"celestial": "infernal", "infernal": "fallen", "fallen": "celestial"},
+	"advantage_bp": 2000,
+	"faction_bonus_bp": [0, 0, 0, 600, 1000, 1500],
+	"attack_interval_k": 100000,
+	"min_interval_ms": 300,
+	"min_spd": 20,
+	"first_attack_ms": {"base": 350, "per_slot": 140, "random_max": 250},
+	"energy": {"per_attack": 100, "per_full_hp": 500, "hit_min": 15, "hit_max": 200, "event_step": 50},
+	"crit_damage_bp": 15000,
+	"variance_bp": 500,
+	"atk_floor_bp": 2000,
+	"shield_cap_bp": 6000,
+	"boss": {"hp_bp": 25000, "atk_bp": 11500, "def_bp": 11000, "stun_divisor": 2},
+	"status_refresh_event_ms": 1000
+}

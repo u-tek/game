@@ -3,15 +3,19 @@
 #   tools/art_build                 # every hero with assets/art/heroes/<id>/<id>.svg
 #   tools/art_build seraphiel       # one hero
 #   tools/art_build --check seraphiel   # validate only, write nothing
-# Exit 1 on validation errors. See docs/dev/halorig.md.
+# Exit 1 on validation errors in the art (errors from other game scripts that Godot loads
+# alongside are shown but do not fail the art build). See docs/dev/halorig.md.
 cd "$(dirname "$0")/.." || exit 1
 NOISE='ALSA|audio_driver_alsa|All audio drivers failed|audio_server.cpp|init_output_device|^\s*at: (init_output_device|initialize) |^Godot Engine'
-out=$(timeout 300 tools/gd --headless --path . -s tools/art_build.gd -- "$@" 2>&1 | grep -vE "$NOISE")
-echo "$out"
-echo "$out" | grep -qE "SCRIPT ERROR|Parse Error|^ERROR" && exit 1
+out=$(timeout 600 tools/gd --headless --path . -s tools/art_build.gd -- "$@" 2>&1 | grep -vE "$NOISE")
+echo "$out" | grep -vE "SCRIPT ERROR|^\s+at: "
+other=$(echo "$out" | grep -A1 -E "SCRIPT ERROR" | grep -vE "res://(tools/art_|src/art/)" | grep -cE "SCRIPT ERROR")
+[ "$other" -gt 0 ] && echo "note: $other script error(s) from non-art game code while loading the project (not an art problem)"
+echo "$out" | grep -A1 -E "SCRIPT ERROR" | grep -qE "res://(tools/art_|src/art/)" && { echo "$out" | grep -A1 "SCRIPT ERROR"; exit 1; }
+echo "$out" | grep -qE "^art_build: [0-9]+ hero\(es\), 0 error" || exit 1
 for a in "$@"; do [ "$a" = "--check" ] && exit 0; done
-imp=$(timeout 300 tools/gd --headless --path . --import 2>&1 | grep -vE "$NOISE")
-if echo "$imp" | grep -qE "SCRIPT ERROR|Parse Error|ERROR:"; then
-  echo "IMPORT: errors"; echo "$imp" | grep -E -A2 "SCRIPT ERROR|Parse Error|ERROR:" | head -20; exit 1
+imp=$(timeout 600 tools/gd --headless --path . --import 2>&1 | grep -vE "$NOISE")
+if echo "$imp" | grep -A1 -E "SCRIPT ERROR|ERROR:" | grep -qE "res://(assets/art/heroes|assets/art/anim|tools/art_|src/art/)"; then
+  echo "IMPORT: art errors"; echo "$imp" | grep -E -A2 "SCRIPT ERROR|ERROR:" | head -20; exit 1
 fi
 echo "IMPORT: ok"

@@ -1,0 +1,76 @@
+{
+	"version": 1,
+	"monthly_card": {"offer_id": "monthly_card", "days": 30, "daily_gems": 100},
+	"offers": [
+		{
+			"id": "daily_gift",
+			"name": "Daily Blessing",
+			"tag": "free",
+			"description": "A small gift from the Choir, every day.",
+			"price_label": "Free",
+			"reward": {"gems": 30, "gold": 2000},
+			"limit": 1,
+			"period": "day"
+		},
+		{
+			"id": "starter_pack",
+			"name": "Envoy's Starter Pack",
+			"tag": "best value",
+			"description": "Everything a new envoy needs: gems, scrolls and supplies. Once per account.",
+			"price_label": "$0.99",
+			"reward": {"gems": 1200, "scrolls": 10, "gold": 50000, "hero_exp": 30000},
+			"limit": 1,
+			"period": "once"
+		},
+		{
+			"id": "monthly_card",
+			"name": "Moonlit Pass",
+			"tag": "monthly",
+			"description": "300 gems now, then 100 more on each day you log in, for 30 days.",
+			"price_label": "$4.99",
+			"reward": {"gems": 300},
+			"limit": 0,
+			"period": "once"
+		},
+		{
+			"id": "scroll_bundle",
+			"name": "Summoner's Satchel",
+			"tag": "limited",
+			"description": "10 summon scrolls and 300 dust. Limit 3.",
+			"price_label": "$9.99",
+			"reward": {"scrolls": 10, "dust": 300},
+			"limit": 3,
+			"period": "once"
+		},
+		{
+			"id": "gems_s",
+			"name": "Pouch of Gems",
+			"tag": "",
+			"description": "330 gems.",
+			"price_label": "$4.99",
+			"reward": {"gems": 330},
+			"limit": 0,
+			"period": "once"
+		},
+		{
+			"id": "gems_m",
+			"name": "Chest of Gems",
+			"tag": "popular",
+			"description": "1,100 gems.",
+			"price_label": "$14.99",
+			"reward": {"gems": 1100},
+			"limit": 0,
+			"period": "once"
+		},
+		{
+			"id": "gems_l",
+			"name": "Reliquary of Gems",
+			"tag": "",
+			"description": "3,880 gems.",
+			"price_label": "$49.99",
+			"reward": {"gems": 3880},
+			"limit": 0,
+			"period": "once"
+		}
+	]
+}
