@@ -50,22 +50,22 @@
    "rotate": [
     {
      "t": 0,
-     "v": 9,
+     "v": 5,
      "e": "sine_in_out"
     },
     {
      "t": 0.6,
-     "v": 13,
-     "e": "sine_in_out"
-    },
-    {
-     "t": 1.2,
      "v": 7,
      "e": "sine_in_out"
     },
     {
+     "t": 1.2,
+     "v": 4,
+     "e": "sine_in_out"
+    },
+    {
      "t": 1.8,
-     "v": 9,
+     "v": 5,
      "e": "sine_in_out"
     }
    ]

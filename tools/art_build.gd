@@ -446,7 +446,7 @@ func _build(id: String) -> void:
 
 ## data-tint-variants="celestial=f2c14e,infernal=d9412b": writes <id>_still_<name>.png and
 ## <id>_portrait_<name>.png through the same luminance gradient map the rig shader uses
-## (dark #0d0a1c, mid = colour darkened 55%, light = colour lightened 35%).
+## (dark #0d0a1c, mid = colour darkened 40%, light = colour lightened 35%).
 func _tint_variants(id: String, dir: String, spec: String, still: Image, por: Image) -> void:
 	if spec == "":
 		return
@@ -457,7 +457,7 @@ func _tint_variants(id: String, dir: String, spec: String, still: Image, por: Im
 			continue
 		var c := Color(kv[1].strip_edges())
 		var dark := Color("0d0a1c")
-		var mid := c.darkened(0.55)
+		var mid := c.darkened(0.4)
 		var light := c.lightened(0.35)
 		for pair in [["still", still], ["portrait", por]]:
 			var img: Image = (pair[1] as Image).duplicate()

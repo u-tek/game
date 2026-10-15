@@ -132,6 +132,7 @@ var _trail_pts: Array[Vector2] = []
 var _last_tip_xf := Transform2D()
 var _queued_events: Array = []
 var _frame_dt := 0.0
+var _expr := {}                        ## slot -> resting variant override
 
 static var _glow_tex: Texture2D
 static var _ring_tex: Texture2D
@@ -403,6 +404,20 @@ func get_weapon_tip() -> Vector2:
 	return _world[i] * local
 
 
+## Blink now (both eyes), regardless of the timer. Only visible when the eyes show "open".
+func blink() -> void:
+	_blink_left = BLINK_TIME
+
+
+## Persistent expression: makes `variant` the slot's resting attachment (e.g. "eyes", "open"
+## for a hero whose eyes are closed by default). Animations still key over it. "" clears.
+func set_expression(slot: String, variant: String) -> void:
+	if variant == "":
+		_expr.erase(slot)
+	else:
+		_expr[slot] = variant
+
+
 func set_tint(param: StringName, value: Variant) -> void:
 	_tint[param] = value
 	_apply_tint_param(param, value)
@@ -496,9 +511,10 @@ func _advance_tracks(dt: float) -> void:
 		var t0 := _anim_time(e) if e.started else -0.0001
 		e.started = true
 		e.time += dt
+		if e.mix_t < e.mix_dur:
+			e.mix_t += dt
 		if e.prev != null:
 			e.prev.time += dt
-			e.mix_t += dt
 			if e.mix_t >= e.mix_dur:
 				e.prev = null
 		var t1 := _anim_time(e)
@@ -740,7 +756,7 @@ func _solve(dt: float) -> void:
 
 
 func _apply() -> void:
-	# blink timing
+	# blink timing (automatic when blink_enabled; blink() forces one)
 	var blinking := false
 	if blink_enabled:
 		_blink_timer -= _frame_dt
@@ -754,15 +770,15 @@ func _apply() -> void:
 				_blink_timer = 0.28
 			else:
 				_blink_timer = randf_range(BLINK_MIN, BLINK_MAX)
-		if _blink_left > 0.0:
-			blinking = true
-			_blink_left -= _frame_dt
+	if _blink_left > 0.0:
+		blinking = true
+		_blink_left -= _frame_dt
 	var ns := rig.slots.size()
 	for si in ns:
 		var s: Dictionary = rig.slots[si]
 		var want := _att_want[si]
 		if want == "" or want == "default":
-			want = s.default
+			want = _expr.get(s.name, s.default)
 		if blinking and want == "open" and s.attachments.has("closed"):
 			want = "closed"
 		if want != _slot_att[si]:

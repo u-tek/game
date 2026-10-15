@@ -19,6 +19,8 @@ var horizon := 0.3
 var sigil_y := -1.0
 ## Dims the whole scene a little (0..1) so UI on top reads well.
 var dim := 0.0
+## How much the floor darkens toward the bottom edge (0..1).
+var floor_shade := 0.4
 var motes_enabled := true
 
 var _tex: Texture2D
@@ -352,7 +354,7 @@ func _draw_floor(w: float, h: float, hy: float) -> void:
 	var fl: Array = _pal.floor
 	_vgrad(Rect2(0, hy, w, h - hy), fl[1], fl[0])
 	# Darken toward the bottom edge a bit so UI reads.
-	_vgrad(Rect2(0, h - (h - hy) * 0.35, w, (h - hy) * 0.35), Color(0, 0, 0, 0), Color(0.02, 0.0, 0.05, 0.4))
+	_vgrad(Rect2(0, h - (h - hy) * 0.35, w, (h - hy) * 0.35), Color(0, 0, 0, 0), Color(0.02, 0.0, 0.05, floor_shade))
 	var line: Color = _pal.line
 	var vp := Vector2(w * 0.5, hy - (h - hy) * 0.5)
 	# Radial floor seams toward the vanishing point.

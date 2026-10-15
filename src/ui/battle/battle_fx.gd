@@ -25,8 +25,9 @@ static func glow_texture() -> Texture2D:
 	return _glow_tex
 
 
-## Floating number/text that pops, rises and fades. size = font px.
-static func number(layer: Node, pos: Vector2, text: String, color: Color, size: int = 32, rise: float = 70.0, delay: float = 0.0) -> void:
+## Floating number/text that pops, rises and fades. size = font px. life scales how long it
+## stays (fast battle speeds pass < 1 so numbers don't pile up).
+static func number(layer: Node, pos: Vector2, text: String, color: Color, size: int = 32, rise: float = 70.0, delay: float = 0.0, life: float = 1.0) -> void:
 	var l := Label.new()
 	l.text = text
 	l.add_theme_font_override("font", Kit.font("black"))
@@ -49,8 +50,8 @@ static func number(layer: Node, pos: Vector2, text: String, color: Color, size: 
 	tw.set_parallel(true)
 	tw.tween_property(l, "modulate:a", 1.0, 0.06)
 	tw.tween_property(l, "scale", Vector2.ONE * (1.25 if size >= 40 else 1.0), 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(l, "position:y", l.position.y - rise, 0.75).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tw.chain().tween_property(l, "modulate:a", 0.0, 0.25)
+	tw.tween_property(l, "position:y", l.position.y - rise, 0.75 * life).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.chain().tween_property(l, "modulate:a", 0.0, 0.25 * life)
 	tw.tween_callback(l.queue_free)
 
 

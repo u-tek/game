@@ -14,27 +14,29 @@ const FALLBACK := "_silhouette"
 static var _tinted := {}
 
 
-## True if the hero has its own built rig art (not the silhouette fallback).
+## True if the hero has its own built art (warp or cutout rig), not the silhouette fallback.
 static func has_art(hero_id: String) -> bool:
-	return FileAccess.file_exists("res://assets/art/heroes/%s/%s.rig.json" % [hero_id, hero_id])
+	return RigData.exists(hero_id)
 
 
-## Full-body still (1024x2048 canvas at the rig's texel scale; feet near the bottom).
+## Full-body still (the painted image for warp rigs: ~1024x2048, feet near the bottom).
 static func texture(hero_id: String) -> Texture2D:
-	var path := "res://assets/art/heroes/%s/%s_still.png" % [hero_id, hero_id]
-	if ResourceLoader.exists(path):
-		return load(path)
+	if has_art(hero_id):
+		var r := RigData.load_rig(hero_id)
+		if r != null and ResourceLoader.exists(r.still_path):
+			return load(r.still_path)
 	return _fallback_tex(hero_id, "still")
 
 
 ## Region of texture(hero_id) that frames the head and shoulders, for portraits.
 static func portrait_region(hero_id: String) -> Rect2:
 	var r := RigData.load_rig(hero_id if has_art(hero_id) else FALLBACK)
+	var t := texture(hero_id)
 	if r == null or r.portrait_rect.size.x <= 0.0:
-		var t := texture(hero_id)
 		var w := t.get_width()
 		return Rect2(w * 0.25, w * 0.05, w * 0.5, w * 0.5)
-	return Rect2(r.portrait_rect.position * r.texel, r.portrait_rect.size * r.texel)
+	var k := float(t.get_width()) / maxf(r.canvas.x, 1.0)
+	return Rect2(r.portrait_rect.position * k, r.portrait_rect.size * k)
 
 
 ## Animated battle/stage sprite (HeroSprite: feet at origin, battle size at scale 1).

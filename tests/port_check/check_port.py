@@ -1,0 +1,722 @@
+"""Independent second implementation of the pure rules, written from docs/dev/unity-port.md
+(sections 4-8: RNG, stats, battle, summon, idle, progression, gear), checked against
+data/fixtures/*.json. It proves the port document is precise enough, and is a compact
+reference for a C# port. GameModel (session.json, save.json) is not covered here.
+
+    python3 -B tests/port_check/check_port.py       # exit 1 if any fixture differs
+
+Not part of tools/check. Data changes need nothing here; a rules change in src/core needs the
+same change here (or delete this folder)."""
+import json, sys, os
+from rng import Rng, mix
+
+ROOT = sys.argv[1] if len(sys.argv) > 1 else os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+def load(name):
+    with open(os.path.join(ROOT, "data", name + ".json")) as f:
+        return json.load(f)
+
+HEROES = load("heroes")["heroes"]
+HERO = {h["id"]: h for h in HEROES}
+STAGES = load("stages")
+ECO = load("economy")
+BANNER = load("banner")["banners"][0]
+BATTLE = load("battle")
+
+def idiv(a, b):
+    """C#-style truncating integer division."""
+    q = abs(a) // abs(b)
+    return q if (a >= 0) == (b > 0) else -q
+
+def imod(a, b):
+    return a - idiv(a, b) * b
+
+# ------------------------------------------------------------------ section 6 stats
+ST = ECO["stats"]
+def active_passives(hid, stars):
+    return [p for p in HERO[hid]["passives"] if stars >= p["unlock_stars"]]
+
+def stats(hid, level, stars, gear=()):
+    base = HERO[hid]["base_stats"]
+    lm = 10000 + (max(level, 1) - 1) * ST["level_growth_bp"]
+    sm = 10000 + (max(stars, 1) - 1) * ST["star_growth_bp"]
+    g = {k: 0 for k in ("hp", "atk", "def", "spd", "crit")}
+    for it in gear:
+        for k, v in it.get("stats", {}).items():
+            g[k] = g.get(k, 0) + v
+    bonus = {k: 0 for k in ("hp_bp", "atk_bp", "def_bp", "spd_bp", "crit_bp")}
+    for p in active_passives(hid, stars):
+        for e in p["effects"]:
+            if e["type"] == "stat":
+                for k in bonus:
+                    bonus[k] += e.get(k, 0)
+    out = {}
+    for k in ("hp", "atk", "def"):
+        v = idiv(idiv(base[k] * lm, 10000) * sm, 10000) + g[k]
+        out[k] = idiv(v * (10000 + bonus[k + "_bp"]), 10000)
+    out["spd"] = idiv((base["spd"] + (max(stars, 1) - 1) * ST["spd_per_star"] + g["spd"]) * (10000 + bonus["spd_bp"]), 10000)
+    out["crit"] = min(base["crit"] + g["crit"] + bonus["crit_bp"], ST["crit_cap_bp"])
+    return out
+
+def power(st):
+    hp, atk, de, spd, crit = st.get("hp", 0), st.get("atk", 0), st.get("def", 0), st.get("spd", 100), st.get("crit", 0)
+    raw = idiv(hp, 2) + atk * 8 + de * 6
+    return idiv(idiv(idiv(raw * spd, 100) * (20000 + crit), 20000), 5)
+
+def gear_score(it):
+    s = it.get("stats", {})
+    return idiv(s.get("hp", 0), 2) + s.get("atk", 0) * 8 + s.get("def", 0) * 6 + s.get("spd", 0) * 15 + idiv(s.get("crit", 0), 6)
+
+def echo_stats(hid, level, stars, echo_bp):
+    st = stats(hid, level, stars)
+    for k in ("hp", "atk", "def"):
+        st[k] = max(1, idiv(st[k] * echo_bp, 10000))
+    return st
+
+def start_stars(rarity):
+    return ECO["heroes"]["start_stars"].get(rarity, 1)
+
+def built_stages():
+    out = []
+    for ci, ch in enumerate(STAGES["chapters"]):
+        for li, s in enumerate(ch["stages"]):
+            echo_bp = idiv(STAGES["echo_stat_bp"] * s["strength_bp"], 10000)
+            enemies = []
+            for e in s["enemies"]:
+                st = max(e.get("stars", s["stars"]), start_stars(HERO[e["hero_id"]]["rarity"]))
+                enemies.append({"hero_id": e["hero_id"], "level": s["level"] + e.get("level_bonus", 0), "stars": st,
+                                "slot": e["slot"], "is_boss": bool(e.get("boss", False)), "echo_bp": echo_bp})
+            out.append({"index": len(out), "id": "%d-%d" % (ci + 1, li + 1), "enemies": enemies,
+                        "recommended_power": s["recommended_power"], "first_clear_reward": s["first_clear_reward"]})
+    return out
+
+def fb_bp(count):
+    arr = BATTLE["faction_bonus_bp"]
+    return arr[max(0, min(count, len(arr) - 1))]
+
+def enemy_power(enemies):
+    counts = {}
+    for e in enemies:
+        f = HERO[e["hero_id"]]["faction"]
+        counts[f] = counts.get(f, 0) + 1
+    fb = max([fb_bp(min(c, 5)) for c in counts.values()] + [0])
+    total = 0
+    B = BATTLE["boss"]
+    for e in enemies:
+        st = echo_stats(e["hero_id"], e["level"], e["stars"], e["echo_bp"])
+        st["hp"] = idiv(st["hp"] * (10000 + fb), 10000)
+        st["atk"] = idiv(st["atk"] * (10000 + fb), 10000)
+        if e["is_boss"]:
+            st["hp"] = idiv(st["hp"] * B["hp_bp"], 10000)
+            st["atk"] = idiv(st["atk"] * B["atk_bp"], 10000)
+            st["def"] = idiv(st["def"] * B["def_bp"], 10000)
+        total += power(st)
+    return total
+
+# ------------------------------------------------------------------ section 8
+H = ECO["heroes"]
+def level_cost(L):
+    c = H["level_cost"]
+    e = c["exp_base"] + c["exp_per_level"] * L + c["exp_per_level_squared"] * L * L
+    return {"gold": e + idiv(e, c["gold_exp_divisor"]) + c["gold_per_level"] * L, "hero_exp": e}
+def level_cap(s):
+    return H["level_cap_base"] + H["level_cap_per_star"] * max(1, min(s, H["max_stars"]))
+def star_shards(s):
+    return 0 if s < 1 or s >= H["max_stars"] else H["star_shards"][s]
+def shards_to_max(s):
+    return sum(H["star_shards"][k] for k in range(max(s, 1), H["max_stars"]))
+def dps(r): return H["dust_per_shard"].get(r, H["dust_per_shard"]["rare"])
+def dpe(r): return H["dust_per_excess_shard"].get(r, H["dust_per_excess_shard"]["rare"])
+def star_up_cost(s, have, r):
+    need = star_shards(s)
+    if need <= 0: return {}
+    return {"shards": need, "dust": max(0, need - have) * dps(r), "shards_have": have, "shards_used": min(have, need), "dust_per_shard": dps(r)}
+def add_shards(s, have, n, r):
+    keep = min(n, max(0, shards_to_max(s) - have))
+    return {"shards": have + keep, "dust": (n - keep) * dpe(r)}
+def affordable(L, cap, gold, xp):
+    n = 0
+    while L + n < cap:
+        c = level_cost(L + n)
+        if gold < c["gold"] or xp < c["hero_exp"]: break
+        gold -= c["gold"]; xp -= c["hero_exp"]; n += 1
+    return n
+
+I = ECO["idle"]
+def per_hour(c):
+    c = max(c, 0)
+    return {k: v + idiv(I["per_10_stages_per_hour"].get(k, 0) * c, 10) for k, v in I["base_per_hour"].items()}
+def elapsed(now, last):
+    return 0 if now < last else min(now - last, I["cap_ms"])
+def accrue(el, rates, carry, gear_ms):
+    reward, nc = {}, {}
+    for k, v in rates.items():
+        tot = v * el + carry.get(k, 0)
+        n = idiv(tot, 3600000); nc[k] = imod(tot, 3600000)
+        if n > 0: reward[k] = n
+    g = gear_ms + el
+    gc = idiv(g, I["gear_every_ms"]); g -= gc * I["gear_every_ms"]
+    if gc > 0: reward["gear_count"] = gc
+    return {"reward": reward, "carry": nc, "gear_ms": g}
+def qcost(u):
+    c = I["quick_claim_costs"]
+    return c[u] if 0 <= u < len(c) else -1
+def quick_reward(rates, gear_ms):
+    reward = {}
+    for k, v in rates.items():
+        n = idiv(v * I["quick_claim_ms"], 3600000)
+        if n > 0: reward[k] = n
+    g = gear_ms + I["quick_claim_ms"]; cnt = 0
+    while g >= I["gear_every_ms"]:
+        g -= I["gear_every_ms"]; cnt += 1
+    return {"reward": reward, "gear_count": cnt, "gear_ms": g}
+
+G = ECO["gear"]
+def tier_for(c): return max(1, min(1 + idiv(c, G["stages_per_tier"]), G["max_tier"]))
+def random_slot(seed, seq): return Rng(mix(seed + 31, seq * 13 + 5)).pick(G["slots"])
+def make_item(slot, tier, seed, seq):
+    t = max(1, min(tier, G["max_tier"]))
+    s = slot if slot in G["slots"] else "weapon"
+    r = Rng(mix(seed, seq))
+    st = {}
+    for ent in G["stats"][s]:
+        st[ent["stat"]] = max(1, idiv(ent["by_tier"][t] * r.range_int(G["roll_min_pct"], G["roll_max_pct"]), 100))
+    noun = r.pick(G["item_names"][s])
+    return {"uid": "g%d" % seq, "slot": s, "tier": t, "name": "%s %s" % (G["tier_names"][t], noun), "stats": st, "equipped_by": ""}
+
+def pool_by_rarity(b):
+    out = {"rare": [], "epic": [], "legendary": []}
+    for i in b["pool"]:
+        out[HERO[i]["rarity"]].append(i)
+    return out
+def rarity_for_roll(r, b):
+    R = b["rates"]
+    if r < R["legendary"]: return "legendary"
+    if r < R["legendary"] + R["epic"]: return "epic"
+    return "rare"
+def pull(b, seed, total, pity, count):
+    pool = pool_by_rarity(b)
+    rng = Rng(mix(seed, total))
+    res, got = [], False
+    for i in range(count):
+        rar = "legendary" if pity >= b["pity_legendary"] - 1 else rarity_for_roll(rng.range_int(0, 9999), b)
+        if count == 10 and i == 9 and not got and rar == "rare":
+            rar = b["ten_pull_guarantee"]
+        if rar != "rare": got = True
+        pity = 0 if rar == "legendary" else pity + 1
+        total += 1
+        res.append({"hero_id": rng.pick(pool[rar]), "rarity": rar, "pity": pity})
+    return {"results": res, "pity": pity, "total_pulls": total}
+
+# ------------------------------------------------------------------ section 7 battle
+B = BATTLE
+TICK = 100
+EMAX = 1000
+EN = B["energy"]
+
+class U: pass
+
+class Sim:
+    def __init__(self, setup):
+        self.rng = Rng(setup.get("seed", 1))
+        self.max_ms = setup.get("max_ms", B["max_ms"])
+        self.units, self.by = [], {}
+        self.t, self.winner = 0, ""
+        self.auto = True
+        self.queue, self.full, self.eflags = [], [], []
+        self.events = []
+        self.dmg, self.heal_done = {}, {}
+        for s in setup.get("allies", []): self.add(s, "ally")
+        for s in setup.get("enemies", []): self.add(s, "enemy")
+        self.start()
+
+    def add(self, s, side):
+        hid = s["hero_id"]
+        if hid not in HERO: return
+        st = s.get("stats") or stats(hid, s.get("level", 1), s.get("stars", 1))
+        u = U()
+        u.hid, u.side, u.slot = hid, side, s.get("slot", 0)
+        u.faction, u.role = HERO[hid]["faction"], HERO[hid]["role"]
+        hp, atk, de = max(1, st.get("hp", 1)), max(1, st.get("atk", 1)), max(0, st.get("def", 0))
+        spd = max(B["min_spd"], st.get("spd", 100))
+        u.boss = bool(s.get("is_boss", False))
+        if u.boss:
+            hp = idiv(hp * B["boss"]["hp_bp"], 10000); atk = idiv(atk * B["boss"]["atk_bp"], 10000); de = idiv(de * B["boss"]["def_bp"], 10000)
+        uid = s.get("uid", "")
+        if uid == "" or uid in self.by:
+            uid = ("a" if side == "ally" else "e") + str(u.slot)
+        u.uid = uid
+        u.max_hp, u.hp, u.shield, u.energy, u.alive = hp, hp, 0, 0, True
+        u.atk, u.de, u.crit = atk, de, st.get("crit", 0)
+        u.st_end, u.mods, u.dots, u.dot_src = {}, {}, {}, {}
+        u.flag = False
+        p = dict(start_energy=0, team_start_energy=0, aura_hp=0, aura_atk=0, start_shield=0, heal_bonus=0, thorns=0, dr=0,
+                 on_hit=[], atk_heal=0, low_hp=0, kill_heal=0, kill_energy=0, lifesteal=0, crit_dmg=0, double=0, ult_bonus=[])
+        for pas in active_passives(hid, s.get("stars", 1)):
+            for e in pas["effects"]:
+                t = e["type"]
+                if t == "start_energy": p["start_energy"] += e["amount"]
+                elif t == "team_start_energy": p["team_start_energy"] += e["amount"]
+                elif t == "team_aura": p["aura_hp"] += e.get("hp_bp", 0); p["aura_atk"] += e.get("atk_bp", 0)
+                elif t == "start_shield": p["start_shield"] += e["pct_max_hp_bp"]
+                elif t == "heal_bonus": p["heal_bonus"] += e["bp"]
+                elif t == "thorns": p["thorns"] += e["bp"]
+                elif t == "damage_reduction": p["dr"] += e["bp"]
+                elif t == "on_hit_status": p["on_hit"].append(e)
+                elif t == "on_attack_heal": p["atk_heal"] += e["mult_bp"]
+                elif t == "low_hp_bonus": p["low_hp"] += e["bp"]
+                elif t == "on_kill": p["kill_heal"] += e.get("heal_pct_bp", 0); p["kill_energy"] += e.get("energy", 0)
+                elif t == "lifesteal": p["lifesteal"] += e["bp"]
+                elif t == "crit_damage": p["crit_dmg"] += e["bp"]
+                elif t == "double_strike": p["double"] += e["chance_bp"]
+                elif t == "ult_bonus": p["ult_bonus"] += e["effects"]
+        u.p = p
+        u.ult = HERO[hid]["ultimate"]
+        fa = B["first_attack_ms"]
+        u.timer = fa["base"] + u.slot * fa["per_slot"] + self.rng.range_int(0, fa["random_max"])
+        u.interval = max(B["min_interval_ms"], idiv(B["attack_interval_k"], spd))
+        self.units.append(u); self.by[uid] = u
+        self.dmg[uid] = 0; self.heal_done[uid] = 0
+
+    def start(self):
+        for side in ("ally", "enemy"):
+            team = [u for u in self.units if u.side == side]
+            counts = {}
+            for u in team: counts[u.faction] = counts.get(u.faction, 0) + 1
+            bn = 0
+            for f in B["factions"]:
+                if counts.get(f, 0) > bn: bn = counts[f]
+            fb = fb_bp(min(bn, 5))
+            ah = fb + sum(u.p["aura_hp"] for u in team)
+            aa = fb + sum(u.p["aura_atk"] for u in team)
+            te = sum(u.p["team_start_energy"] for u in team)
+            for u in team:
+                u.max_hp = idiv(u.max_hp * (10000 + ah), 10000); u.hp = u.max_hp
+                u.atk = idiv(u.atk * (10000 + aa), 10000)
+                if u.p["start_shield"] > 0: u.shield = idiv(u.max_hp * u.p["start_shield"], 10000)
+                u.energy = 0
+                self.gain(u, u.p["start_energy"] + te)
+
+    # ---------------- helpers
+    def emit(self, ev):
+        ev["t"] = self.t; self.events.append(ev)
+    def setflag(self, u):
+        if not u.flag: u.flag = True; self.eflags.append(u)
+    def living(self, side): return [u for u in self.units if u.alive and u.side == side]
+    def foe(self, side): return "enemy" if side == "ally" else "ally"
+    def stunned(self, u): return "stun" in u.st_end
+    def lowest(self, lst):
+        best, br = None, None
+        for u in lst:
+            r = idiv(u.hp * 10000, max(1, u.max_hp))
+            if br is None or r < br: best, br = u, r
+        return best
+    def Atk(self, u):
+        m = u.mods
+        return max(1, idiv(u.atk * max(10000 + m.get("atk_up", 0) - m.get("atk_down", 0), B["atk_floor_bp"]), 10000))
+    def Def(self, u):
+        m = u.mods
+        return max(0, idiv(u.de * max(10000 + m.get("def_up", 0) - m.get("def_down", 0), 0), 10000))
+
+    def check_end(self):
+        if self.winner: return True
+        a, e = self.living("ally"), self.living("enemy")
+        if a and e: return False
+        self.winner = "enemy" if not a else "ally"
+        self.emit({"type": "end", "winner": self.winner})
+        return True
+
+    def flush(self):
+        evs = self.events
+        if self.eflags:
+            tail = [{"type": "energy", "unit": u.uid, "energy": u.energy, "t": self.t} for u in self.eflags]
+            for u in self.eflags: u.flag = False
+            self.eflags = []
+            if evs and evs[-1]["type"] == "end":
+                end = evs.pop(); evs += tail; evs.append(end)
+            else:
+                evs += tail
+        return evs
+
+    def step(self):
+        if self.winner: return []
+        self.events = []
+        self.t += TICK
+        self.status_phase()
+        if self.check_end(): return self.flush()
+        self.ult_phase()
+        if self.check_end(): return self.flush()
+        self.attack_phase()
+        if not self.check_end() and self.t >= self.max_ms:
+            self.winner = "enemy"
+            self.emit({"type": "end", "winner": "enemy", "timeout": True})
+        return self.flush()
+
+    def request(self, uid):
+        u = self.by.get(uid)
+        if self.winner or u is None or u.side != "ally" or not u.alive or u.energy < EMAX or self.stunned(u) or uid in self.queue:
+            return False
+        self.queue.append(uid); return True
+
+    def outcome(self):
+        a = len(self.living("ally")); e = len(self.living("enemy"))
+        return {"winner": self.winner, "victory": self.winner == "ally", "duration_ms": self.t, "allies_alive": a,
+                "enemies_alive": e, "timeout": self.winner == "enemy" and self.t >= self.max_ms and a > 0 and e > 0,
+                "damage_dealt": dict(self.dmg), "healing_done": dict(self.heal_done)}
+
+    # ---------------- phases
+    def status_phase(self):
+        sec = self.t % 1000 == 0
+        for u in self.units:
+            if not u.st_end: continue
+            if sec:
+                if "burn" in u.st_end:
+                    src = self.by.get(u.dot_src.get("burn", ""), u)
+                    self.apply_damage(src, u, max(1, u.dots.get("burn", 1)), False, False, False, True)
+                    if not u.alive: continue
+                if "regen" in u.st_end:
+                    src = self.by.get(u.dot_src.get("regen", ""), u)
+                    self.heal(src, u, u.dots.get("regen", 0))
+            for k in list(u.st_end):
+                if u.st_end[k] <= self.t:
+                    del u.st_end[k]; u.mods.pop(k, None); u.dots.pop(k, None)
+
+    def ult_phase(self):
+        q = self.queue; self.queue = []
+        for uid in q:
+            u = self.by[uid]
+            if u.alive and u.energy >= EMAX and not self.stunned(u):
+                self.cast(u)
+                if self.check_end(): return
+        for uid in list(self.full):
+            u = self.by[uid]
+            if not u.alive or u.energy < EMAX or self.stunned(u): continue
+            if u.side == "ally" and not self.auto: continue
+            self.cast(u)
+            if self.check_end(): return
+
+    def attack_phase(self):
+        for u in self.units:
+            if not u.alive or self.stunned(u): continue
+            if "spd_up" in u.st_end:
+                u.timer -= idiv(TICK * (10000 + u.mods.get("spd_up", 0)), 10000)
+            else:
+                u.timer -= TICK
+            if u.timer > 0: continue
+            u.timer += u.interval
+            self.basic_attack(u)
+            if self.winner or not self.living("ally") or not self.living("enemy"):
+                self.check_end(); return
+
+    # ---------------- actions
+    def basic_target(self, u):
+        foes = self.living(self.foe(u.side))
+        if not foes: return None
+        for f in foes:
+            if "taunt" in f.st_end: return f
+        if u.role == "assassin":
+            back = [f for f in foes if f.slot >= 2]
+            return self.lowest(back if back else foes)
+        if u.role == "caster":
+            return self.rng.pick(foes)
+        lane = u.slot % 2
+        first_front = None
+        for f in foes:
+            if f.slot == lane: return f
+            if f.slot < 2 and first_front is None: first_front = f
+        return first_front if first_front else foes[0]
+
+    def basic_attack(self, u):
+        tg = self.basic_target(u)
+        if tg is None: return
+        self.emit({"type": "attack", "src": u.uid, "target": tg.uid})
+        self.gain(u, EN["per_attack"])
+        self.strike(u, tg)
+        p = u.p
+        if p["double"] > 0 and u.alive and tg.alive and self.rng.chance_bp(p["double"]):
+            self.emit({"type": "attack", "src": u.uid, "target": tg.uid})
+            self.strike(u, tg)
+        if p["atk_heal"] > 0 and u.alive:
+            low = self.lowest(self.living(u.side))
+            if low is not None:
+                self.heal(u, low, idiv(idiv(self.Atk(u) * p["atk_heal"], 10000) * (10000 + p["heal_bonus"]), 10000))
+
+    def strike(self, u, tg):
+        dealt = self.hit(u, tg, 10000, False, 0)
+        if dealt <= 0: return
+        if tg.alive:
+            for e in u.p["on_hit"]:
+                if self.rng.chance_bp(e["chance_bp"]):
+                    self.apply_status(u, tg, e["status"], e["duration_ms"], e.get("value_bp", 0), e.get("dot_mult_bp", 0))
+        if tg.p["thorns"] > 0 and u.alive:
+            self.apply_damage(tg, u, max(1, idiv(dealt * tg.p["thorns"], 10000)), False, False, False, False)
+
+    def hit(self, src, dst, mult, from_ult, lowb):
+        if not dst.alive: return 0
+        a = self.Atk(src); d = self.Def(dst)
+        dmg = idiv(idiv(a * mult, 10000) * a, max(1, a + d))
+        adv = B["beats"].get(src.faction, "") == dst.faction
+        if adv: dmg = idiv(dmg * (10000 + B["advantage_bp"]), 10000)
+        lb = src.p["low_hp"] + lowb
+        if lb > 0 and dst.hp * 2 < dst.max_hp: dmg = idiv(dmg * (10000 + lb), 10000)
+        r = self.rng.next_u32()
+        crit = r % 10000 < src.crit
+        if crit: dmg = idiv(dmg * (B["crit_damage_bp"] + src.p["crit_dmg"]), 10000)
+        V = B["variance_bp"]
+        dmg = idiv(dmg * (10000 - V + (r >> 14) % (2 * V + 1)), 10000)
+        if dst.p["dr"] > 0: dmg = idiv(dmg * (10000 - dst.p["dr"]), 10000)
+        dmg = max(dmg, 1)
+        self.apply_damage(src, dst, dmg, crit, adv, from_ult, False)
+        if src.p["lifesteal"] > 0 and src.alive:
+            self.heal(src, src, idiv(dmg * src.p["lifesteal"], 10000))
+        return dmg
+
+    def apply_damage(self, src, dst, dmg, crit, adv, ult, dot):
+        if not dst.alive: return
+        ab = min(dst.shield, dmg); dst.shield -= ab
+        dst.hp = max(0, dst.hp - (dmg - ab))
+        self.dmg[src.uid] += dmg
+        ev = {"type": "damage", "src": src.uid, "target": dst.uid, "amount": dmg, "crit": crit, "advantage": adv,
+              "from_ultimate": ult, "hp_after": dst.hp, "shield_after": dst.shield}
+        if dot: ev["dot"] = True
+        self.emit(ev)
+        if dst.hp <= 0:
+            self.kill(dst, src); return
+        if dst.energy < EMAX:
+            old = dst.energy
+            e = min(EMAX, old + max(EN["hit_min"], min(EN["hit_max"], idiv(dmg * EN["per_full_hp"], dst.max_hp))))
+            if e >= EMAX: self.full.append(dst.uid)
+            if idiv(e, EN["event_step"]) != idiv(old, EN["event_step"]) or e >= EMAX: self.setflag(dst)
+            dst.energy = e
+
+    def execute(self, src, dst):
+        rest = dst.hp + dst.shield
+        dst.hp = 0; dst.shield = 0
+        self.dmg[src.uid] += rest
+        self.emit({"type": "damage", "src": src.uid, "target": dst.uid, "amount": rest, "crit": False, "advantage": False,
+                   "from_ultimate": True, "hp_after": 0, "shield_after": 0, "execute": True})
+        self.kill(dst, src)
+
+    def heal(self, src, dst, n):
+        if not dst.alive or n <= 0: return
+        h = min(n, dst.max_hp - dst.hp)
+        if h <= 0: return
+        dst.hp += h; self.heal_done[src.uid] += h
+        self.emit({"type": "heal", "src": src.uid, "target": dst.uid, "amount": h, "hp_after": dst.hp})
+
+    def add_shield(self, src, dst, n):
+        new = min(idiv(dst.max_hp * B["shield_cap_bp"], 10000), dst.shield + n)
+        added = new - dst.shield
+        if added <= 0: return
+        dst.shield = new
+        self.emit({"type": "shield", "src": src.uid, "target": dst.uid, "amount": added, "shield_after": new})
+
+    def gain(self, u, n):
+        if not u.alive: return
+        old = u.energy; e = min(EMAX, old + n)
+        if e == old: return
+        u.energy = e
+        if e >= EMAX: self.full.append(u.uid)
+        if idiv(e, EN["event_step"]) != idiv(old, EN["event_step"]) or e >= EMAX: self.setflag(u)
+
+    def kill(self, dst, killer):
+        dst.alive = False; dst.hp = 0; dst.shield = 0; dst.energy = 0
+        dst.st_end.clear(); dst.mods.clear(); dst.dots.clear()
+        if dst.uid in self.full: self.full.remove(dst.uid)
+        if dst.uid in self.queue: self.queue.remove(dst.uid)
+        self.emit({"type": "death", "unit": dst.uid})
+        if killer.alive and killer.side != dst.side:
+            if killer.p["kill_heal"] > 0: self.heal(killer, killer, idiv(killer.max_hp * killer.p["kill_heal"], 10000))
+            if killer.p["kill_energy"] > 0: self.gain(killer, killer.p["kill_energy"])
+
+    def apply_status(self, src, dst, status, dur, vbp, dot):
+        if not dst.alive or dur <= 0: return
+        if status == "stun" and dst.boss: dur = idiv(dur, B["boss"]["stun_divisor"])
+        prev = dst.st_end[status] - self.t if status in dst.st_end else 0
+        dst.st_end[status] = max(dst.st_end.get(status, 0), self.t + dur)
+        if vbp > 0: dst.mods[status] = max(dst.mods.get(status, 0), vbp)
+        if dot > 0:
+            amt = max(1, idiv(self.Atk(src) * dot, 10000))
+            if status == "regen": amt = idiv(amt * (10000 + src.p["heal_bonus"]), 10000)
+            if amt >= dst.dots.get(status, 0):
+                dst.dots[status] = amt; dst.dot_src[status] = src.uid
+        if prev <= 0 or dur - prev >= B["status_refresh_event_ms"]:
+            self.emit({"type": "status", "src": src.uid, "target": dst.uid, "status": status, "duration_ms": dur})
+
+    def resolve(self, u, e, primary):
+        foes = self.living(self.foe(u.side)); mates = self.living(u.side)
+        t = e.get("target", "enemy_target")
+        if t == "enemy_target": return [] if primary is None else [primary]
+        if t == "enemy_others": return [f for f in foes if primary is None or f.uid != primary.uid]
+        if t == "enemy_all": return foes
+        if t == "enemy_front_row":
+            fr = [f for f in foes if f.slot < 2]; return fr if fr else [f for f in foes if f.slot >= 2]
+        if t == "enemy_back_row":
+            br = [f for f in foes if f.slot >= 2]; return br if br else [f for f in foes if f.slot < 2]
+        if t == "enemy_back_lowest":
+            br = [f for f in foes if f.slot >= 2]; p = self.lowest(br if br else foes); return [] if p is None else [p]
+        if t == "enemy_lowest":
+            p = self.lowest(foes); return [] if p is None else [p]
+        if t == "enemy_random":
+            if not foes: return []
+            return [self.rng.pick(foes) for _ in range(max(1, e.get("hits", 1)))]
+        if t == "ally_all": return mates
+        if t == "ally_others": return [m for m in mates if m.uid != u.uid]
+        if t == "ally_lowest":
+            p = self.lowest(mates); return [] if p is None else [p]
+        if t == "self": return [u]
+        return []
+
+    def cast(self, u):
+        effects = list(u.ult["effects"]) + list(u.p["ult_bonus"])
+        u.energy = 0
+        if u.uid in self.full: self.full.remove(u.uid)
+        self.setflag(u)
+        primary = self.basic_target(u)
+        resolved, ids = [], []
+        for e in effects:
+            ts = self.resolve(u, e, primary)
+            resolved.append(ts)
+            for t in ts:
+                if t.uid not in ids: ids.append(t.uid)
+        self.emit({"type": "ultimate", "src": u.uid, "skill_id": u.ult["id"], "skill_name": u.ult["name"], "targets": ids})
+        for e, ts in zip(effects, resolved):
+            self.apply_effect(u, e, ts)
+            if self.winner or not self.living(self.foe(u.side)): return
+
+    def apply_effect(self, u, e, ts):
+        ty = e["type"]
+        if ty == "damage":
+            mult, lowb, ex = e.get("mult_bp", 10000), e.get("low_hp_bonus_bp", 0), e.get("execute_bp", 0)
+            if e.get("target") == "enemy_random":
+                for t in ts:
+                    if not t.alive:
+                        foes = self.living(self.foe(u.side))
+                        if not foes: return
+                        t = self.rng.pick(foes)
+                    self.hit(u, t, mult, True, lowb)
+                return
+            for t in ts:
+                for _ in range(max(1, e.get("hits", 1))):
+                    if not t.alive: break
+                    self.hit(u, t, mult, True, lowb)
+                if ex > 0 and t.alive and not t.boss and t.hp * 10000 < t.max_hp * ex:
+                    self.execute(u, t)
+        elif ty == "heal":
+            n = idiv(idiv(self.Atk(u) * e["mult_bp"], 10000) * (10000 + u.p["heal_bonus"]), 10000)
+            for t in ts:
+                if t.alive: self.heal(u, t, n)
+        elif ty == "shield":
+            n = idiv(u.max_hp * e["pct_max_hp_bp"], 10000)
+            for t in ts:
+                if t.alive: self.add_shield(u, t, n)
+        elif ty == "status":
+            for t in ts:
+                self.apply_status(u, t, e["status"], e["duration_ms"], e.get("value_bp", 0), e.get("dot_mult_bp", 0))
+        elif ty == "energy":
+            for t in ts:
+                if t.alive: self.gain(t, e["amount"])
+
+
+# ------------------------------------------------------------------ checker
+def fx(name):
+    with open(os.path.join(ROOT, "data", "fixtures", name + ".json")) as f:
+        return json.load(f)
+
+def first_diff(a, b, path=""):
+    if type(a) != type(b):
+        return "%s: %r vs %r" % (path, a, b)
+    if isinstance(a, dict):
+        for k in a:
+            if k not in b: return "%s/%s missing" % (path, k)
+            d = first_diff(a[k], b[k], path + "/" + k)
+            if d: return d
+        for k in b:
+            if k not in a: return "%s/%s unexpected" % (path, k)
+        return ""
+    if isinstance(a, list):
+        for i, (x, y) in enumerate(zip(a, b)):
+            d = first_diff(x, y, "%s/%d" % (path, i))
+            if d: return d
+        return "" if len(a) == len(b) else "%s: len %d vs %d" % (path, len(a), len(b))
+    return "" if a == b else "%s: expected %r got %r" % (path, a, b)
+
+results = {}
+def check(label, expected, actual):
+    d = first_diff(expected, actual)
+    results[label] = d
+    print("%-28s %s" % (label, "OK" if not d else "DIFF " + d[:300]))
+
+f = fx("rng")
+check("rng.sequences", [c["next_u32"] for c in f["sequences"]], [[r.next_u32() for _ in range(12)] for r in [Rng(c["seed"]) for c in f["sequences"]]])
+check("rng.mix", [c["out"] for c in f["mix"]], [mix(c["a"], c["b"]) for c in f["mix"]])
+def rr(c):
+    r = Rng(c["seed"]); v = [r.range_int(c["lo"], c["hi"]) for _ in range(10)]; return [v, r.next_u32()]
+check("rng.range_int", [[c["out"], c["next_u32_after"]] for c in f["range_int"]], [rr(c) for c in f["range_int"]])
+def cc(c):
+    r = Rng(c["seed"]); v = [r.chance_bp(c["bp"]) for _ in range(10)]; return [v, r.next_u32()]
+check("rng.chance_bp", [[c["out"], c["next_u32_after"]] for c in f["chance_bp"]], [cc(c) for c in f["chance_bp"]])
+def pk(c):
+    r = Rng(c["seed"]); a = list(range(c["size"])); return [r.pick(a) for _ in range(10)]
+check("rng.pick", [c["out"] for c in f["pick"]], [pk(c) for c in f["pick"]])
+
+f = fx("progression")
+check("progression.level_cost", [[c["gold"], c["hero_exp"]] for c in f["level_cost"]], [[level_cost(c["level"])["gold"], level_cost(c["level"])["hero_exp"]] for c in f["level_cost"]])
+check("progression.level_cap", [c["cap"] for c in f["level_cap"]], [level_cap(c["stars"]) for c in f["level_cap"]])
+check("progression.star_shards", [[c["next"], c["to_max"]] for c in f["star_shards"]], [[star_shards(c["stars"]), shards_to_max(c["stars"])] for c in f["star_shards"]])
+check("progression.star_up_cost", [c["out"] for c in f["star_up_cost"]], [star_up_cost(c["stars"], c["shards_have"], c["rarity"]) for c in f["star_up_cost"]])
+check("progression.add_shards", [c["out"] for c in f["add_shards"]], [add_shards(c["stars"], c["shards_have"], c["n"], c["rarity"]) for c in f["add_shards"]])
+check("progression.affordable", [c["out"] for c in f["affordable_levels"]], [affordable(c["level"], c["cap"], c["gold"], c["hero_exp"]) for c in f["affordable_levels"]])
+
+f = fx("idle")
+check("idle.per_hour", [c["out"] for c in f["per_hour"]], [per_hour(c["cleared"]) for c in f["per_hour"]])
+check("idle.elapsed", [c["out"] for c in f["elapsed"]], [elapsed(c["now_ms"], c["last_claim_at"]) for c in f["elapsed"]])
+check("idle.accrue", [c["out"] for c in f["accrue"]], [accrue(c["elapsed_ms"], per_hour(c["cleared"]), c["carry"], c["gear_ms"]) for c in f["accrue"]])
+check("idle.quick_claim", [[c["cost"], c["left"]] for c in f["quick_claim"]], [[qcost(c["used"]), max(0, len(I["quick_claim_costs"]) - c["used"])] for c in f["quick_claim"]])
+check("idle.quick_reward", [c["out"] for c in f["quick_reward"]], [quick_reward(per_hour(c["cleared"]), c["gear_ms"]) for c in f["quick_reward"]])
+
+f = fx("gear")
+check("gear.tier_for", [c["out"] for c in f["tier_for"]], [tier_for(c["cleared"]) for c in f["tier_for"]])
+check("gear.random_slot", [c["out"] for c in f["random_slot"]], [random_slot(c["rng_seed"], c["gear_seq"]) for c in f["random_slot"]])
+check("gear.make_item", [c["out"] for c in f["make_item"]], [make_item(c["slot"], c["tier"], c["rng_seed"], c["seq"]) for c in f["make_item"]])
+check("gear.salvage", [c["out"] for c in f["salvage"]], [{"gold": G["salvage_gold_per_tier"] * c["tier"], "dust": G["salvage_dust_per_tier"] * c["tier"]} for c in f["salvage"]])
+
+f = fx("stats")
+check("stats.hero_stats", [[c["out"], c["power"]] for c in f["hero_stats"]], [[stats(c["hero_id"], c["level"], c["stars"], c["gear"]), power(stats(c["hero_id"], c["level"], c["stars"], c["gear"]))] for c in f["hero_stats"]])
+check("stats.gear_score", [c["out"] for c in f["gear_score"]], [gear_score({"stats": c["stats"]}) for c in f["gear_score"]])
+bs = built_stages()
+exp_st, act_st = [], []
+for c in f["stages"]:
+    s = bs[c["index"]]
+    en = [dict(e, stats=echo_stats(e["hero_id"], e["level"], e["stars"], e["echo_bp"])) for e in s["enemies"]]
+    act_st.append({"id": s["id"], "enemies": en, "enemy_power": enemy_power(s["enemies"]), "recommended_power": s["recommended_power"], "first_clear_reward": s["first_clear_reward"]})
+    exp_st.append({k: c[k] for k in ("id", "enemies", "enemy_power", "recommended_power", "first_clear_reward")})
+check("stats.stages", exp_st, act_st)
+
+f = fx("summon")
+check("summon.rarity_for_roll", [c["out"] for c in f["rarity_for_roll"]], [rarity_for_roll(c["roll"], BANNER) for c in f["rarity_for_roll"]])
+for c in f["cases"]:
+    outs, tot, pity = [], c["total_pulls"], c["pity"]
+    for n in c["counts"]:
+        r = pull(BANNER, c["seed"], tot, pity, n); outs.append(r); tot, pity = r["total_pulls"], r["pity"]
+    check("summon." + c["name"], c["out"], outs)
+
+f = fx("battles")
+for b in f["battles"]:
+    sim = Sim(b["setup"]); sim.auto = b["auto_ultimates"]
+    evs, reqs, tick = [], [], 0
+    while not sim.winner:
+        tick += 1
+        for r in b["manual_ultimates"]:
+            if r["tick"] == tick:
+                reqs.append({"tick": r["tick"], "uid": r["uid"], "accepted": sim.request(r["uid"])})
+        evs += sim.step()
+    units = [{"uid": u.uid, "hp": u.hp, "max_hp": u.max_hp, "shield": u.shield, "energy": u.energy, "alive": u.alive,
+              "statuses": {k: v - sim.t for k, v in u.st_end.items()}} for u in sim.units]
+    check("battle.%s.events" % b["name"], b["events"], evs)
+    check("battle.%s.outcome" % b["name"], b["outcome"], sim.outcome())
+    check("battle.%s.final_units" % b["name"], b["final_units"], units)
+    if reqs: check("battle.%s.requests" % b["name"], b["manual_ultimates"], reqs)
+
+bad = [k for k, v in results.items() if v]
+print("\n%d checks, %d differ" % (len(results), len(bad)))
+sys.exit(1 if bad else 0)

@@ -165,35 +165,31 @@ HeroSprite methods: `play_idle()`, `play_attack(target_global_pos)`, `play_cast(
 HeroSprite also has `play(anim: String)` and emits `anim_event(name)` (for example "hit" on the
 impact frame, so damage numbers sync with the swing).
 
-### HaloRig: our skeletal animation system (replaces Spine)
+### HaloRig: our animation system (replaces Spine)
 
-Heroes are **rigged cutout characters**, not single images. Full spec: `docs/dev/halorig.md`.
-- Source art: `assets/art/heroes/<id>/<id>.svg`. Every moving part is its own named top-level
-  group with rig metadata (parent bone, pivot, draw order), following the **standard skeleton**
-  shared by all heroes (hips, torso, chest, neck, head, face parts, hair strands, arms, legs,
-  cloth, wings, tail, weapon). Hidden areas under overlapping parts are painted so nothing
-  gaps when parts move.
-- Build tool (`tools/art_build.gd`) splits the SVG into per-part PNGs plus
-  `<id>.rig.json`. Animations are shared JSON in `assets/art/anim/` and work on every hero
-  because the skeleton is standard; heroes may override.
-- Runtime (`src/art/rig/`) provides bones, keyframes with easing, crossfades, attachment
-  swaps (blink, mouth), bend shader for hair and cloth, spring physics for secondary motion,
-  pseudo-3D head turns, and animation events.
+Heroes are **painted, rendered illustrations** (AI-generated on the owner's ComfyUI; see
+`docs/dev/art-generation.md` and `docs/dev/comfyui-setup.md`) animated with a **warp rig**.
+Full spec: `docs/dev/halorig.md`.
+- Source art: `assets/art/heroes/<id>/<id>.png`, 1024x2048 with transparency, feet at
+  (512, 1990), plus `variants/` (eyes closed, mouth open) cut into swap patches.
+- The image sits on a grid mesh; grayscale **region masks** (head, hair, chest, skirt/cloth,
+  wings, tail, weapon, cape) bind pixels to bones, so the runtime can breathe, sway hair and
+  cloth with spring physics, flap wings, tilt the head and swap expressions. Battle actions are
+  whole-body keyframed motions plus effects requested via `vfx_requested`.
+- Build: `tools/art_warp <id> --regen-masks` writes `<id>.warp.json`, the still and the portrait.
+- Runtime: `src/art/rig/` (bones, easing keyframes, crossfades, events, springs, bend, head
+  turn, expression swaps). Heroes without art use a faction-tinted silhouette fallback.
 - Everything is engine-neutral data (JSON + PNG), so a Unity runtime can play the same files.
 
-### Hero SVG rules (Godot rasterizes SVGs with ThorVG)
-- **Allowed:** path, circle, ellipse, rect, polygon, g, transform, fill/stroke, opacity,
-  linearGradient, radialGradient, clipPath. **Not allowed:** filters (blur/glow), CSS
-  `<style>`, text, images, masks, `mix-blend-mode`.
-- Canvas `viewBox="0 0 1024 2048"`, figure ~1900 px tall, feet near y=1990.
-- Style: **full-scale, professional anime/gacha character art. No chibi.** Idealized
-  proportions (about 7 to 7.5 heads tall), correct anatomy and hands, 3/4 contrapposto pose,
-  varied-weight lineart, 2-3 tone cel shading per material plus soft form gradients, rim
-  light, metal/gem highlights, detailed costume ornament, faction palette. Suggestive designs,
-  nothing explicit. Original designs only. Details: `docs/dev/art-style.md`.
+### Hero art direction
+
+- **Full-scale, professional, painted anime/gacha character art. No chibi.** Idealized
+  proportions (about 7 to 7.5 heads tall), correct anatomy and hands, full body with feet
+  visible, dynamic contrapposto pose, gacha splash-art rendering, faction palette.
 - Character designs and content rules: `docs/dev/character-briefs.md` (overrides `look` in
-  `heroes.gd`). Alluring, App Store 18+; adults only; implied, never explicit nudity.
-- In game: battle ~230-300 px tall, hero detail ~1100 px tall, cards use a
+  the hero data). Alluring, App Store 18+; adults only; implied, never explicit nudity.
+- Review rubric and delivery spec: `docs/dev/art-style.md`.
+- In game: battle ~275 px tall (node scale 1), hero detail about 4x, cards use a
   head-and-shoulders portrait.
 
 ## 7. Visual direction: "Twilight cathedral"

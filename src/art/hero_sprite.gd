@@ -81,7 +81,7 @@ func setup(id: String) -> void:
 		var fc := HeroArt.faction_color(faction)
 		rig.set_tint(&"map_on", 1.0)
 		rig.set_tint(&"map_dark", Color("0d0a1c"))
-		rig.set_tint(&"map_mid", fc.darkened(0.55))
+		rig.set_tint(&"map_mid", fc.darkened(0.4))
 		rig.set_tint(&"map_light", fc.lightened(0.35))
 	rig.anim_event.connect(_on_event)
 	rig.anim_finished.connect(_on_finished)
@@ -186,6 +186,24 @@ func play(anim: String) -> void:
 			else:
 				_lunge_vec = Vector2.ZERO
 				rig.play(_anim(anim), 1)
+
+
+## Animation speed multiplier (battle speed 1/2/4): scales animations, events and physics.
+func set_speed(mult: float) -> void:
+	if rig:
+		rig.speed_scale = mult
+
+
+## True while an action (attack, cast, hit...) is still playing on top of idle.
+func is_busy() -> bool:
+	return rig != null and rig.is_playing(1)
+
+
+## Resting expression, e.g. set_expression("eyes", "open"); "" restores the hero's default.
+## Overlay slots: "eyes" (open/closed/smile/hurt), "mouth" (default/open/smile/hurt).
+func set_expression(slot: String, variant: String) -> void:
+	if rig:
+		rig.set_expression(slot, variant)
 
 
 func attack_anim() -> String:

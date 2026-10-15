@@ -19,6 +19,7 @@ static var _cache: Dictionary = {}
 
 
 ## Parsed content of res://data/<file_name>.json ({} with an error if missing or invalid).
+## Read-only (like the constants it replaces): duplicate(true) before changing a copy.
 static func file(file_name: String) -> Dictionary:
 	if _cache.has(file_name):
 		return _cache[file_name]
@@ -33,8 +34,21 @@ static func file(file_name: String) -> Dictionary:
 	else:
 		push_error("GameData: missing %s" % path)
 	var d: Dictionary = data if data is Dictionary else {}
+	freeze(d)
 	_cache[file_name] = d
 	return d
+
+
+## Makes a parsed JSON value read-only, recursively.
+static func freeze(v: Variant) -> void:
+	if v is Dictionary:
+		for k in v:
+			freeze(v[k])
+		(v as Dictionary).make_read_only()
+	elif v is Array:
+		for x in v:
+			freeze(x)
+		(v as Array).make_read_only()
 
 
 static func heroes() -> Dictionary:

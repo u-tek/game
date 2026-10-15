@@ -32,9 +32,81 @@ func _run(jobs: Array) -> void:
 	for j in jobs:
 		if j.has("bench"):
 			await _bench(j)
+		elif j.has("timeline"):
+			await _timeline(j)
 		else:
 			await _job(j)
 	quit()
+
+
+## {"timeline": [[t, action], ...], "duration": s, "expression": {"eyes": "open"}, ...}
+## actions: attack | cast | ultimate | hit | death | victory | idle | blink | <any animation>
+func _timeline(j: Dictionary) -> void:
+	var size: Array = j.get("size", [600, 1000])
+	_vp = SubViewport.new()
+	_vp.size = Vector2i(int(size[0]), int(size[1]))
+	_vp.transparent_bg = true
+	_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	_vp.disable_3d = true
+	root.add_child(_vp)
+	var feet: Array = j.get("feet", [size[0] * 0.5, size[1] * 0.96])
+	var sc := float(j.get("scale", 0.45))
+	var out := str(j.get("out", "/tmp/rigprev"))
+	DirAccess.make_dir_recursive_absolute(out)
+	var dt := 1.0 / float(j.get("fps", 30.0))
+	var sprite := HeroArt.make_sprite(str(j.get("hero", "seraphiel"))) as HeroSprite
+	sprite.position = Vector2(float(feet[0]), float(feet[1]))
+	sprite.scale = Vector2(sc / HeroSprite.BASE_SCALE, sc / HeroSprite.BASE_SCALE)
+	_vp.add_child(sprite)
+	sprite.rig.manual = true
+	sprite.rig.blink_enabled = bool(j.get("auto_blink", false))
+	sprite.set_process(false)
+	var ex: Dictionary = j.get("expression", {})
+	for k in ex:
+		sprite.set_expression(k, str(ex[k]))
+	var tt := 0.0
+	while tt < float(j.get("warm", 1.5)):
+		_step(sprite, dt)
+		tt += dt
+	var tl: Array = j.get("timeline", [])
+	var t := 0.0
+	var k := 0
+	var n := int(float(j.get("duration", 3.0)) / dt + 0.5)
+	for i in n:
+		while k < tl.size() and float(tl[k][0]) <= t + 0.0001:
+			var act := str(tl[k][1])
+			match act:
+				"attack":
+					sprite.play_attack(sprite.global_position + Vector2(float(j.get("target_dx", 700.0)), 0))
+				"cast":
+					sprite.play_cast()
+				"ultimate":
+					sprite.play_ultimate(sprite.global_position + Vector2(float(j.get("target_dx", 700.0)), 0))
+				"hit":
+					sprite.play_hit()
+				"death":
+					sprite.play_death()
+				"victory":
+					sprite.play_victory()
+				"idle":
+					sprite.play_idle()
+				"blink":
+					sprite.rig.blink()
+				_:
+					if act.begins_with("expr:"):     # expr:eyes=open  /  expr:eyes=
+						var kv := act.substr(5).split("=")
+						sprite.set_expression(kv[0], kv[1] if kv.size() > 1 else "")
+					else:
+						sprite.play(act)
+			k += 1
+		_step(sprite, dt if i > 0 else 0.0)
+		await RenderingServer.frame_post_draw
+		_vp.get_texture().get_image().save_png(out.path_join("%04d.png" % i))
+		t += dt
+	print("art_preview: %d frame(s) -> %s" % [n, out])
+	sprite.queue_free()
+	_vp.queue_free()
+	await process_frame
 
 
 func _job(j: Dictionary) -> void:

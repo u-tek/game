@@ -21,6 +21,7 @@ var _grid_cell := Vector2.ONE
 var _grid_vid := {}                         ## Vector2i -> vertex index
 var dir := ""
 var texel := 1.0
+var canvas := Vector2(1024, 2048)        ## source canvas / image size (portrait_rect units)
 var look_px := Vector2(14, 8)
 var meta := {}
 var bounds := Rect2(-512, -1240, 1024, 1280)
@@ -77,6 +78,8 @@ func _load(d: Dictionary, hero_id: String) -> void:
 	id = hero_id
 	dir = "%s%s/" % [HEROES_DIR, hero_id]
 	texel = float(d.get("texel_scale", 1.0))
+	var cv: Array = d.get("canvas", [1024, 2048])
+	canvas = Vector2(cv[0], cv[1])
 	var lp: Array = d.get("look_px", [24, 14])
 	look_px = Vector2(lp[0], lp[1])
 	meta = d.get("meta", {})

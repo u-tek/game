@@ -18,6 +18,7 @@ static func _ensure() -> void:
 		var ident := {}
 		for k in IDENTITY_KEYS:
 			ident[k] = str(rec.get(k, ""))
+		ident.make_read_only()
 		_roster.append(ident)
 		_by_id[ident.id] = ident
 

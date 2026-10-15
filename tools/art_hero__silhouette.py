@@ -14,8 +14,8 @@ from art_svgkit import Doc, smooth, taper, shape, path, line, ellipse_d, ink, f
 from art_body import FEMALE as L, limb, limb_d, along
 
 OUT = "#151515"
-C0, C1, C2, C3 = "#2c2c2c", "#1f1f1f", "#141414", "#3c3c3c"   # cloak base / shade / deep / lit
-RIM = "#e6e6e6"
+C0, C1, C2, C3 = "#707070", "#585858", "#404040", "#8c8c8c"   # cloak base / shade / deep / lit (luminance -> faction gradient map)
+RIM = "#f4f4f4"
 GLOW = "#ffffff"
 
 d = Doc(1024, 2048)

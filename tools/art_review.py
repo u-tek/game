@@ -1,6 +1,6 @@
 """Review renders for a hero, composited on the game background (#120e24).
 
-    python3 tools/art_review.py seraphiel r4        # after tools/art_build seraphiel
+    python3 tools/art_review.py seraphiel r1        # after tools/art_warp (or tools/art_build)
 
 Writes screenshots/rig/<hero>_<label>_{detail,face,hair,sizes}.png:
   detail  figure ~1100 px tall (hero detail screen size)
@@ -32,10 +32,14 @@ def main():
     hdir = os.path.join(ROOT, "assets", "art", "heroes", hero)
     out_dir = os.path.join(ROOT, "screenshots", "rig")
     os.makedirs(out_dir, exist_ok=True)
-    rig = json.load(open(os.path.join(hdir, hero + ".rig.json")))
+    warp = os.path.exists(os.path.join(hdir, hero + ".warp.json"))
+    rig = json.load(open(os.path.join(hdir, hero + (".warp.json" if warp else ".rig.json"))))
     full = os.path.join(out_dir, "_%s_full.png" % hero)
-    subprocess.run([os.path.join(ROOT, "tools", "gd"), "--headless", "--path", ROOT, "-s", "tools/art_svg2png.gd", "--",
-                    os.path.join(hdir, hero + ".svg"), full, "1.0"], cwd=ROOT, capture_output=True)
+    if warp:      # painted hero: the still IS the source image
+        Image.open(os.path.join(hdir, rig["still"])).save(full)
+    else:         # cutout hero: render the SVG source 1:1 with Godot's renderer
+        subprocess.run([os.path.join(ROOT, "tools", "gd"), "--headless", "--path", ROOT, "-s", "tools/art_svg2png.gd", "--",
+                        os.path.join(hdir, hero + ".svg"), full, "1.0"], cwd=ROOT, capture_output=True)
     im = on_bg(Image.open(full))
     ox, oy = rig["origin"]
     bx, by, bw, bh = rig["bounds"]

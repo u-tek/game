@@ -1161,6 +1161,8 @@ def bake_and_write():
     import subprocess
     r = subprocess.run(args, cwd=root, capture_output=True, text=True)
     print("\n".join(l for l in r.stdout.splitlines() if "->" in l))
+    for fn, _png in jobs[1:]:      # variant SVGs are intermediates; the PNGs are the deliverable
+        os.remove(os.path.join(sdir, fn))
     print("wrote", os.path.normpath(out), "%d KB" % (len(svg) // 1024), len(d.parts), "groups")
 
 

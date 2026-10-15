@@ -3,6 +3,7 @@ extends Node2D
 ## trailing damage chip, shield, energy), status icons and stun stars. Feet at the origin.
 ## The battle screen feeds it display-time values from sim events; it never reads the sim.
 
+const BattleFxRef := preload("res://src/ui/battle/battle_fx.gd")
 const STATUS_ICONS := {
 	"stun": "star", "burn": "faction_infernal", "regen": "stat_hp", "taunt": "role_guardian",
 	"atk_up": "stat_atk", "atk_down": "stat_atk", "def_up": "stat_def", "def_down": "stat_def",
@@ -27,6 +28,12 @@ var sprite: Node2D
 var statuses := {}
 var home_facing := 1
 var depth_scale := 1.0
+## Animation timing read from this hero's rig (battle ms at speed 1; -1 = unknown).
+var hit_ms := -1.0
+var release_ms := -1.0
+var ult_hit_s := -1.0
+## True when the attack animation draws its own swing (vfx_slash / vfx_thrust event).
+var has_swing_vfx := false
 
 var _bars: Node2D
 var _chip := 1.0
@@ -62,10 +69,49 @@ func setup(u: Dictionary, k: float, facing: int, echo: bool, bars_layer: Node2D)
 	if is_boss:
 		sprite.call("set_boss", true)
 	_head_h = float(sprite.call("get_height"))
+	_read_timing()
 	_bars = Node2D.new()
 	_bars.name = "Bars_" + uid
 	_bars.draw.connect(_draw_bars)
 	bars_layer.add_child(_bars)
+
+
+func _read_timing() -> void:
+	var rp: Variant = sprite.get("rig")
+	if not (rp is Node):
+		return
+	var rig_id := str((rp as Node).get("hero_id"))
+	var data: Variant = (rp as Node).get("rig")
+	var kind := str(data.get("kind")) if data is Object and "kind" in data else ""
+	var atk := RigAnim.find(attack_anim(), rig_id, kind)
+	if atk:
+		var h := atk.event_time("hit")
+		hit_ms = h * 1000.0 if h >= 0.0 else -1.0
+		var r := atk.event_time("release")
+		release_ms = r * 1000.0 if r >= 0.0 else -1.0
+		has_swing_vfx = atk.event_time("vfx_slash") >= 0.0 or atk.event_time("vfx_thrust") >= 0.0
+	var ult := RigAnim.find("ultimate", rig_id, kind)
+	if ult:
+		ult_hit_s = ult.event_time("hit")
+
+
+## Ground ring (green for allies, red for enemies) and a soft backlight in the faction
+## color, drawn behind the sprite so every unit reads on any floor.
+func _draw() -> void:
+	if dead:
+		return
+	var k := float(sprite.scale.y) if sprite else 1.0
+	var rx := 62.0 * k * (1.3 if is_boss else 1.0)
+	var ry := rx * 0.3
+	var col := Color("5cd6a0") if side == "ally" else Color("ff5a4a")
+	var glow := BattleFxRef.glow_texture()
+	var gs := Vector2(_head_h * 0.95, _head_h * 1.1)
+	draw_texture_rect(glow, Rect2(Vector2(-gs.x * 0.5, -_head_h * 0.55 - gs.y * 0.5), gs), false, Color(HeroArt.faction_color(faction), 0.16))
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, ry / rx))
+	draw_circle(Vector2.ZERO, rx, Color(col, 0.16), true, -1.0, true)
+	draw_arc(Vector2.ZERO, rx, 0, TAU, 48, Color(col, 0.75), 3.0, true)
+	draw_arc(Vector2.ZERO, rx * 0.8, 0, TAU, 48, Color(col, 0.3), 2.0, true)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## Local y of the top of the head (negative).
@@ -73,16 +119,27 @@ func head_y() -> float:
 	return -_head_h
 
 
+## Where the body currently is relative to the formation spot (attack lunges move it).
+func body_offset() -> Vector2:
+	if sprite == null:
+		return Vector2.ZERO
+	var b: Variant = sprite.get("_body")
+	if b is Node2D:
+		return (b as Node2D).position * sprite.scale
+	return Vector2.ZERO
+
+
 func chest_global() -> Vector2:
-	return to_global(Vector2(0, -_head_h * 0.55))
+	return to_global(body_offset() + Vector2(0, -_head_h * 0.55))
 
 
 func head_global() -> Vector2:
-	return to_global(Vector2(0, -_head_h * 0.9))
+	return to_global(body_offset() + Vector2(0, -_head_h * 0.9))
 
 
 func hand_global() -> Vector2:
-	return to_global(Vector2(home_facing * _head_h * 0.18, -_head_h * 0.6))
+	var f := int(sprite.get("facing")) if sprite else home_facing
+	return to_global(body_offset() + Vector2(f * _head_h * 0.18, -_head_h * 0.6))
 
 
 func set_speed(s: float) -> void:
@@ -160,6 +217,7 @@ func die() -> void:
 	shield = 0
 	energy = 0
 	statuses.clear()
+	queue_redraw()
 	sprite.call("play_death")
 	var tw := create_tween()
 	tw.tween_property(self, "_bars_alpha", 0.0, 0.25)
@@ -189,7 +247,7 @@ func _exit_tree() -> void:
 
 func _process(delta: float) -> void:
 	_t += delta
-	_bars.position = position
+	_bars.position = position + body_offset()
 	var frac := float(hp) / float(max_hp)
 	if _chip > frac:
 		_chip = maxf(frac, _chip - delta * 0.8)
