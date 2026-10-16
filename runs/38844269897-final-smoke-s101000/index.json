@@ -1,0 +1,102 @@
+{
+ "run": "38844269897-final-smoke-s101000",
+ "created": "2026-10-16T04:46:22Z",
+ "jobs_expected": [
+  "seraphiel-f101000"
+ ],
+ "jobs_missing": [],
+ "heroes": {
+  "seraphiel": {
+   "images": [
+    "seraphiel/contact_sheet.webp",
+    "seraphiel/final_s101000/seraphiel_hires.webp",
+    "seraphiel/final_s101000/seraphiel_portrait.png",
+    "seraphiel/final_s101000/seraphiel_source.webp"
+   ],
+   "dropped": 3
+  }
+ },
+ "sheets": [
+  "seraphiel/contact_sheet.webp"
+ ],
+ "sheet_note": "",
+ "jobs": [
+  {
+   "key": "seraphiel-f101000",
+   "hero": "seraphiel",
+   "mode": "final",
+   "preset": "standard",
+   "style": "farm",
+   "dtype": "fp32",
+   "exit_code": 5,
+   "wall_s": 5482.0,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 20.6
+   },
+   "filter": {
+    "checked": 6,
+    "passed": 3,
+    "dropped": 3,
+    "errors": 0
+   },
+   "cpu": "AMD EPYC 9V74 80-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "hires img2img 1248x1824 @0.40",
+     "step": "hires_img2img",
+     "seed": 101000,
+     "seconds": 3976.9,
+     "s_per_step": 188.72,
+     "steps_run": 20,
+     "steps_effective": 20,
+     "num_inference_steps": 50,
+     "decode": "untiled",
+     "decode_s": 116.0,
+     "vmhwm_gb": 13.98,
+     "rss_peak_gb": 13.98
+    },
+    {
+     "what": "inpaint 1024x1024 @0.35",
+     "step": "face_polish",
+     "seed": 101000,
+     "seconds": 1386.7,
+     "s_per_step": 82.01,
+     "steps_run": 16,
+     "steps_effective": 16,
+     "num_inference_steps": 46,
+     "decode": "untiled",
+     "decode_s": 56.3,
+     "vmhwm_gb": 14.46,
+     "rss_peak_gb": 14.46
+    },
+    {
+     "step": "cutout",
+     "seed": 101000,
+     "seconds": 10.0
+    }
+   ]
+  }
+ ],
+ "filter_totals": {
+  "published_images": 4,
+  "dropped": 3
+ },
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)",
+  "license_url": "https://huggingface.co/cagliostrolab/animagine-xl-4.0"
+ },
+ "updated": "2026-10-16T04:46:31Z"
+}

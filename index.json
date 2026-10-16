@@ -30,6 +30,17 @@
    "dropped": 1
   },
   {
+   "run": "38844269897-final-smoke-s101000",
+   "created": "2026-10-16T04:46:22Z",
+   "updated": "2026-10-16T04:46:31Z",
+   "heroes": [
+    "seraphiel"
+   ],
+   "published_images": 4,
+   "dropped": 3,
+   "jobs_missing": []
+  },
+  {
    "run": "38844272140-candidates-ab-farm",
    "created": "2026-10-16T03:56:30Z",
    "updated": "2026-10-16T03:56:41Z",
