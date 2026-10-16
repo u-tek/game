@@ -1,39 +1,56 @@
 #!/usr/bin/env python3
-"""Art farm renderer: anime SDXL (cagliostrolab/animagine-xl-4.0) on a CPU runner, fp32.
+"""Art farm renderer: anime SDXL (cagliostrolab/animagine-xl-4.0) on a CPU runner.
 
-    gen.py candidates --hero ID --seeds 101000,101001 [--preset lightning8] --out DIR --work DIR
-    gen.py final      --hero ID --seeds 101001 [--source-run RUN] [--flip] --out DIR --work DIR
+    gen.py candidates --hero ID --seeds 101000,101001 [--preset standard] [--style farm] [--dtype fp32] --out DIR --work DIR
+    gen.py final      --hero ID --seeds 101000 --source-run RUN [--repo OWNER/NAME] [--flip] --out DIR --work DIR
+    gen.py final      --hero ID --seeds 101000 --no-source [--preset standard]     (local/tests: render the base)
+    gen.py bench      --hero ID --out DIR --work DIR                              (s/step only, no images)
 
 Prompts come from the prompt bible through tools/comfy/prompts.py (full_body / face / variant_spec,
-family "animagine"); every prompt is re-checked with prompts.enforce() right before it is encoded.
-Every image goes through the exposure filter (safety.py) before it reaches --out, the only
-directory the workflow uploads. Rendering happens in --work, which is never uploaded.
+family "animagine"), with the in-memory style overlay of style.py; every prompt is re-checked with
+prompts.lint + prompts.enforce (gen.checked) right before it is encoded. Every image goes through the
+exposure filter (safety.py) before it reaches --out, the only directory the workflow uploads.
+Rendering happens in --work, which is never uploaded. CFG is always within config.CFG_MIN..CFG_MAX
+(> 1, so the negative prompt is always active); presets are refused otherwise.
 
-candidates: one fast render per seed (preset from config.PRESETS, default SDXL-Lightning 8-step),
-    saved as a WebP preview + metadata JSON (prompt, negative, seed, model, LoRA, licences,
-    settings, timings, framing report, filter scores).
-final: per chosen seed
-    1. re-render the candidate exactly (prompt/preset/size from its metadata on the art-gen-output
-       branch when found, else from the bible), compare with its stored preview;
-    2. full-quality img2img at 1.5x (the animagine profile: Euler a, 28 steps, CFG 5, no LoRA,
-       denoise 0.45) = hires pass that keeps the chosen composition;
-    3. face box (deepghs anime face detector, fallback post.estimate_face_box), face polish
-       (crop inpaint at 1024 px, denoise from the bible's face_refine);
-    4. cutout with rembg isnet-anime (post.alpha_from_mask edge treatment), placement on the
-       1024x2048 canvas with the soles at y=1990 (post.finalize_local: portrait, check, boxes, meta);
-    5. expression variants on the canvas (variant_set: eyes_open/eyes_closed, mouth_open, smile):
-       crop inpaint of the eyes/mouth region only, alpha and every pixel outside the region
-       identical to the base (as tools/comfy/variants.py), patches, masks, variants.json;
-    6. a review sheet of the face (base + variants).
+candidates: one render per seed (preset from config.PRESETS, default "standard" = the Animagine XL
+    4.0 model card: Euler a, 28 steps, CFG 5, 832x1216), saved as a WebP preview (q95) + metadata JSON
+    (prompt, negative, style, seed, model, licences, settings, timings, framing report, filter scores).
+final: per chosen seed, starting from the PUBLISHED candidate preview (downloaded from the
+    art-gen-output branch: runs/<run>/<hero>/<hero>_s<seed>.json/.webp; a final always names its
+    candidate run; missing/invalid -> exit 6, nothing rendered). Each stage is published through the
+    filter as soon as it is done, with the live <hero>.json:
+    1. hires: Lanczos x1.5 (bible hires.scale), img2img Euler a / CFG 5, denoise 0.4 for 20 EFFECTIVE
+       steps (bible hires.denoise_model / steps) -> <hero>_hires.webp;
+    2. face box (deepghs anime face detector, fallback post.estimate_face_box) and face polish (crop
+       inpaint at 1024 px, bible face_refine.denoise, 16 effective steps) -> <hero>_source.webp;
+    3. cutout (cutout.artgen_cutout: rembg isnet-anime + enclosed holes + ground shadow), placement on
+       the 1024x2048 canvas with the soles at y=1990 (post.finalize_local) -> <hero>.png,
+       _portrait.png, _check.webp, _boxes.webp, plus an automatic spec report;
+    4. expression variants (the hero's variant_set) on the canvas: crop inpaint of the eyes/mouth
+       region at 768 px, 14 effective steps, alpha and every pixel outside the region identical to the
+       base (as tools/comfy/variants.py) -> variants/<n>.png, _patch.png/.json, masks/, variants.json;
+       each variant is isolated (an error is logged and the next one runs);
+    5. variants_sheet.webp.
+    Deadline checks (estimates from the measured s/step) come before the hires, the face polish and
+    each variant. Exit 5 when a seed or variant failed (finished stages are still uploaded).
+bench: fp32 at 4 and 2 threads (then bf16 on CPUs with native bf16), a few txt2img steps without
+    decoding: only job_<key>.json with s/step is written.
+
+Exit codes: 0 ok, 2 bad arguments, 3 exposure filter unavailable, 4 prompt refused by the content
+rules, 5 a seed/stage failed (partial outputs), 6 final source candidate missing or invalid.
 """
 import argparse
 import gc
+import hashlib
+import io
 import json
 import os
 import platform
-import subprocess
+import re
 import sys
 import time
+import traceback
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
@@ -43,14 +60,22 @@ import config as C  # noqa: E402  (adds tools/comfy to sys.path)
 import numpy as np  # noqa: E402
 from PIL import Image, ImageFilter  # noqa: E402
 
+import cutout  # noqa: E402
+import memstat  # noqa: E402
 import pipeline as P  # noqa: E402  tools/comfy: square_box, ellipse_mask, flat_rgb, skin_profile
 import post  # noqa: E402            tools/comfy: cutout edge treatment, placement, sheets
 import prompts  # noqa: E402         tools/comfy: prompt bible composer + content rules
 import safety  # noqa: E402
+import schedule  # noqa: E402
+import style  # noqa: E402
 import variants as V  # noqa: E402   tools/comfy: patch_from
 
 ROOT = C.ROOT
 T_START = time.time()
+HERO_RE = re.compile(r"^[a-z][a-z0-9_]{1,30}$")
+RUN_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$")
+REPO_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9._-]{1,100}$")
+RAW_URL = "https://raw.githubusercontent.com/%s/%s/runs/%s/%s"
 
 
 def log(*a):
@@ -72,7 +97,11 @@ class Deadline:
         return self.left() > seconds
 
 
-# ------------------------------------------------------------------ prompts
+class SourceError(RuntimeError):
+    """The final's source candidate is missing or does not match: nothing is rendered (exit 6)."""
+
+
+# ------------------------------------------------------------------ prompts and settings
 def checked(bible, hero, positive, negative):
     """The single choke point before any text reaches the encoder: syntax + content rules."""
     prompts.lint(positive, negative)
@@ -80,20 +109,38 @@ def checked(bible, hero, positive, negative):
     return positive, negative
 
 
-def base_size(bible, hero):
-    h = bible["heroes"][hero]
-    st = prompts.family_block(bible, C.FAMILY)["settings"]
-    w, hh = h.get("size") or [st["width"], st["height"]]
-    return int(w), int(hh)
+def preset_settings(name_or_dict):
+    """A validated copy of a preset (by name, or a recorded preset_settings dict). Raises ValueError."""
+    p = C.PRESETS.get(name_or_dict) if isinstance(name_or_dict, str) else name_or_dict
+    if p is None:
+        raise ValueError("unknown preset %r (known: %s)" % (name_or_dict, ", ".join(sorted(C.PRESETS))))
+    probs = C.preset_problems(p)
+    if probs:
+        raise ValueError("preset refused: %s" % "; ".join(probs))
+    return dict(p)
+
+
+def final_settings(bible, a):
+    """Sampler/CFG of the final preset + the bible's hires and face_refine values (CLI overrides)."""
+    p = preset_settings(C.FINAL_PRESET)
+    hires = prompts.family_block(bible, C.FAMILY)["settings"].get("hires") or {}
+    s = {"sampler": p["sampler"], "cfg": p["cfg"], "preset": C.FINAL_PRESET,
+         "hires_scale": float(a.hires_scale or hires.get("scale", 1.5)),
+         "hires_denoise": float(a.hires_denoise or hires.get("denoise_model", 0.4)),
+         "hires_steps": int(a.hires_steps or hires.get("steps", 20)),
+         "face_denoise": float(bible["face_refine"]["denoise"]),
+         "face_steps": int(a.face_steps), "face_px": int(a.face_px),
+         "variant_steps": int(a.variant_steps), "variant_px": int(a.variant_px)}
+    for k in ("hires_denoise", "face_denoise"):
+        if not 0.05 <= s[k] <= 1.0:
+            raise ValueError("%s %.2f out of range" % (k, s[k]))
+    if not 1.0 <= s["hires_scale"] <= 2.0:
+        raise ValueError("hires scale %.2f out of range 1..2" % s["hires_scale"])
+    return s
 
 
 def round8(v):
     return int(round(v / 8.0)) * 8
-
-
-def quality_settings(bible):
-    st = prompts.family_block(bible, C.FAMILY)["settings"]
-    return {"sampler": st["sampler"], "steps": int(st["steps"]), "cfg": float(st["cfg"])}
 
 
 # ------------------------------------------------------------------ real components (runner)
@@ -102,9 +149,9 @@ def real_encoders(model_dir, variants):
     return sdxl.TextEncoders(model_dir, variants, log=log)
 
 
-def real_engine(model_dir, variants, threads):
+def real_engine(model_dir, variants, threads=None, dtype=C.DEFAULT_DTYPE, lazy_unet=False):
     import sdxl
-    return sdxl.Engine(model_dir, variants, log=log, threads=threads)
+    return sdxl.Engine(model_dir, variants, log=log, threads=threads, dtype=dtype, lazy_unet=lazy_unet)
 
 
 class RembgCutter:
@@ -149,69 +196,115 @@ class AnimeFaceFinder:
         return [int(round(x)), int(round(y)), int(round(w)), int(round(h))], "anime face detector %.2f" % sc
 
 
-# ------------------------------------------------------------------ helpers
-def git(*args, binary=False):
-    r = subprocess.run(["git", *args], cwd=ROOT, capture_output=True)
-    if r.returncode != 0:
-        return None
-    return r.stdout if binary else r.stdout.decode("utf-8", "replace")
+class Lazy:
+    """Optional helper models (face detector, isnet): built on first use; a failure is logged once
+    and the caller falls back (heuristic face box / colour-flood cutout)."""
 
+    def __init__(self, factory, what, job):
+        self.factory, self.what, self.job = factory, what, job
+        self.obj, self.tried = None, False
 
-def find_candidate(hero, seed, run=None, ref="origin/art-gen-output"):
-    """(meta, preview PIL or None, path) of a published candidate on the output branch, newest run first."""
-    listing = git("ls-tree", "-r", "--name-only", ref, "--", "runs")
-    if not listing:
-        return None, None, None
-    want = "/%s/%s_s%d.json" % (hero, hero, seed)
-    paths = [p for p in listing.splitlines() if p.endswith(want) and (not run or p.startswith("runs/%s/" % run))]
-
-    def run_key(p):
-        head = p.split("/")[1].split("-")[0]
-        return int(head) if head.isdigit() else 0
-
-    for p in sorted(paths, key=run_key, reverse=True):
-        try:
-            meta = json.loads(git("show", "%s:%s" % (ref, p)) or "")
-        except ValueError:
-            continue
-        if meta.get("mode") != "candidates" or meta.get("dropped") or meta.get("hero") != hero:
-            continue
-        prev = None
-        blob = git("show", "%s:%s" % (ref, p[:-5] + ".webp"), binary=True)
-        if blob:
-            import io
+    def get(self):
+        if not self.tried:
+            self.tried = True
             try:
-                prev = Image.open(io.BytesIO(blob)).convert("RGB")
-            except Exception:       # noqa: BLE001
-                prev = None
-        return meta, prev, p
-    return None, None, None
+                self.obj = self.factory()
+            except Exception as e:      # noqa: BLE001
+                log("WARNING: %s unavailable, using the fallback: %s: %s" % (self.what, type(e).__name__, e))
+                self.job.setdefault("warnings", []).append("%s unavailable: %s" % (self.what, e))
+        return self.obj
 
 
-def psnr(a, b):
-    x = np.asarray(a.convert("RGB")).astype(np.float32)
-    y = np.asarray(b.convert("RGB").resize(a.size)).astype(np.float32)
-    mse = float(((x - y) ** 2).mean())
-    return 99.0 if mse <= 1e-9 else round(10 * np.log10(255.0 ** 2 / mse), 2)
+# ------------------------------------------------------------------ final source (published candidate)
+def _http_get(url, limit, tries=3, timeout=60):
+    import urllib.error
+    import urllib.request
+    last = None
+    for i in range(tries):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "art-farm"})
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                data = r.read(limit + 1)
+            if len(data) > limit:
+                raise SourceError("%s is larger than %d bytes" % (url, limit))
+            return data
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                raise SourceError("not found: %s" % url)
+            last = e
+        except (urllib.error.URLError, OSError) as e:
+            last = e
+        time.sleep(3 * (i + 1))
+    raise SourceError("could not download %s: %s" % (url, last))
 
 
-def crop_inpaint(eng, emb, image, crop, mask, denoise, seed, q, target=1024, grow=6, feather=4):
+def fetch_candidate(repo, run, hero, seed, get=_http_get):
+    """(meta, RGB preview, source record) of a published candidate on the art-gen-output branch.
+    Downloads only runs/<run>/<hero>/<hero>_s<seed>.json/.webp and the run's filter manifest. Raises
+    SourceError when anything is missing or does not match (mode, hero, seed, size, filter record)."""
+    if not (isinstance(repo, str) and REPO_RE.match(repo)):
+        raise SourceError("bad repo %r" % (repo,))
+    if not (isinstance(run, str) and RUN_RE.match(run)):
+        raise SourceError("bad run name %r" % (run,))
+    if not HERO_RE.match(hero) or not 0 <= int(seed) < 2 ** 32:
+        raise SourceError("bad hero/seed")
+    stem = "%s_s%d" % (hero, int(seed))
+    try:
+        meta = json.loads(get(RAW_URL % (repo, C.BRANCH, run, "%s/%s.json" % (hero, stem)), 4 << 20).decode("utf-8"))
+        man = json.loads(get(RAW_URL % (repo, C.BRANCH, run, safety.MANIFEST), 32 << 20).decode("utf-8"))
+    except (ValueError, UnicodeDecodeError) as e:
+        raise SourceError("candidate metadata is not valid JSON: %s" % e)
+    if not isinstance(meta, dict) or meta.get("mode") != "candidates":
+        raise SourceError("%s is not a candidate" % stem)
+    if meta.get("dropped") or not meta.get("image"):
+        raise SourceError("%s was dropped by the filter" % stem)
+    if meta.get("hero") != hero or meta.get("seed") != int(seed):
+        raise SourceError("%s metadata names %r seed %r" % (stem, meta.get("hero"), meta.get("seed")))
+    rel = "%s/%s.webp" % (hero, stem)
+    rec = (man.get("files") or {}).get(rel) if isinstance(man, dict) else None
+    if not rec or not rec.get("passed") or not rec.get("sha256"):
+        raise SourceError("%s has no filter pass record in the run's manifest" % rel)
+    blob = get(RAW_URL % (repo, C.BRANCH, run, rel), 32 << 20)
+    sha = hashlib.sha256(blob).hexdigest()
+    if sha != rec["sha256"]:
+        raise SourceError("%s sha256 %s does not match its filter record %s" % (rel, sha[:12], rec["sha256"][:12]))
+    try:
+        img = Image.open(io.BytesIO(blob))
+        img.load()
+        img = img.convert("RGB")
+    except Exception as e:      # noqa: BLE001
+        raise SourceError("%s is not a readable image: %s" % (rel, e))
+    if [img.width, img.height] != [meta.get("width"), meta.get("height")]:
+        raise SourceError("%s is %dx%d, metadata says %sx%s" % (rel, img.width, img.height, meta.get("width"),
+                                                                meta.get("height")))
+    for k in ("prompt", "negative"):
+        if not isinstance(meta.get(k), str) or not meta[k]:
+            raise SourceError("%s metadata has no %s" % (stem, k))
+    src = {"repo": repo, "run": run, "path": "runs/%s/%s" % (run, rel), "sha256": sha,
+           "preset": meta.get("preset"), "preset_settings": meta.get("preset_settings"),
+           "style": (meta.get("style") or {}).get("name", "bible")}
+    return meta, img, src
+
+
+# ------------------------------------------------------------------ image helpers
+def crop_inpaint(eng, emb, image, crop, mask, denoise, seed, fs, steps, target, grow=6, feather=4):
     """Inpaint `mask` (full-size L, white = repaint) of an RGB image on the square `crop` scaled to
-    `target` px, pasted back through a feathered mask (same as pipeline.crop_inpaint on ComfyUI)."""
+    `target` px for `steps` effective steps, pasted back through a feathered mask (as
+    pipeline.crop_inpaint on ComfyUI)."""
     x0, y0, x1, y1 = crop
     side = x1 - x0
     src = image.crop(crop).resize((target, target), Image.LANCZOS)
     mcrop = mask.crop(crop).resize((target, target), Image.BILINEAR)
     if grow:
         mcrop = mcrop.filter(ImageFilter.MaxFilter(2 * grow + 1))
-    res, info = eng.inpaint(emb, src, mcrop, denoise, seed, q["steps"], q["cfg"], q["sampler"])
+    res, info = eng.inpaint(emb, src, mcrop, denoise, seed, steps, fs["cfg"], fs["sampler"])
     back = res.convert("RGB").resize((side, side), Image.LANCZOS)
     m_back = mask.crop(crop)
     if feather:
         m_back = m_back.filter(ImageFilter.GaussianBlur(feather))
     out = image.copy()
     out.paste(back, (x0, y0), m_back)
-    info.update({"crop": [x0, y0, side, side], "denoise": denoise, "seed": seed})
+    info.update({"crop": [x0, y0, side, side], "denoise": denoise, "seed": seed, "px": target})
     return out, info
 
 
@@ -226,6 +319,34 @@ def merge_variant(base, out_rgb, mask):
     return Image.fromarray(np.clip(merged + 0.5, 0, 255).astype(np.uint8), "RGBA")
 
 
+def spec_report(canvas, fmeta):
+    """Automatic check of a canvas against docs/dev/art-style.md section 2 (1024x2048 RGBA, soles at
+    y=1990, head top >= 40, >= 24 px margins left/right/top, no scale-down notes)."""
+    probs = []
+    if canvas.size != tuple(post.CANVAS) or canvas.mode != "RGBA":
+        probs.append("canvas %s %s, spec %dx%d RGBA" % (canvas.size, canvas.mode, post.CANVAS[0], post.CANVAS[1]))
+    try:
+        feet = post.figure_metrics(canvas)["feet"]
+    except ValueError:
+        return {"ok": False, "problems": probs + ["no opaque figure"]}
+    if abs(feet - post.FEET_Y) > 2:
+        probs.append("soles at y=%d, spec %d" % (feet, post.FEET_Y))
+    tr = fmeta.get("transform") or {}
+    crown = tr.get("crown_y")
+    if crown is None:
+        probs.append("head top unknown (face box from proportions only)")
+    elif crown < post.HEAD_TOP_MIN:
+        probs.append("head top at y=%.0f, spec >= %d" % (crown, post.HEAD_TOP_MIN))
+    bb = post.alpha_bbox(canvas)
+    W, H = canvas.size
+    margins = {"left": bb[0], "right": W - bb[2], "top": bb[1], "bottom": H - bb[3]} if bb else {}
+    for k in ("left", "right", "top"):
+        if bb and margins[k] < post.MARGIN - 1:
+            probs.append("%s margin %d px, spec >= %d" % (k, margins[k], post.MARGIN))
+    probs += [n for n in tr.get("notes", []) if "too wide" in n or "too tall" in n]
+    return {"ok": not probs, "problems": probs, "margins": margins, "feet_row": feet, "crown_y": crown}
+
+
 def env_info():
     info = {"python": platform.python_version(), "machine": platform.machine(), "cpus": os.cpu_count()}
     try:
@@ -238,7 +359,7 @@ def env_info():
             info["mem_gb"] = round(int(f.readline().split()[1]) / 1024 / 1024, 1)
     except OSError:
         pass
-    for mod in ("torch", "diffusers", "transformers", "peft", "nudenet", "rembg", "onnxruntime"):
+    for mod in ("torch", "diffusers", "transformers", "nudenet", "rembg", "onnxruntime"):
         try:
             info[mod] = __import__(mod).__version__
         except Exception:       # noqa: BLE001
@@ -253,87 +374,17 @@ def save_tmp(work, img, name, **kw):
     return p
 
 
-# ------------------------------------------------------------------ modes
-def run_candidates(a, bible, pub, comps, job):
-    hero = a.hero
-    preset = C.PRESETS[a.preset]
-    pr = prompts.full_body(bible, hero, C.FAMILY)
-    pos, neg = checked(bible, hero, pr["positive"], pr["negative"])
-    w, h = base_size(bible, hero)
-    bg_key, bg = prompts.background(bible, hero)
-    t0 = time.time()
-    enc = comps["encoders"]()
-    emb = enc.encode_pair(pos, neg)
-    enc.close()
-    del enc
-    gc.collect()
-    job["timing"]["encode_s"] = round(time.time() - t0, 1)
-    eng = comps["engine"]()
-    job["timing"]["engine_load_s"] = round(getattr(eng, "load_s", 0.0), 1)
-    t0 = time.time()
-    eng.set_lora(preset["lora"], preset.get("lora_scale", 1.0))
-    job["timing"]["lora_s"] = round(time.time() - t0, 1)
-    lora = getattr(eng, "lora", None)
-    for seed in a.seeds:
-        if not a.deadline.allows(job["timing"].get("last_image_s", 0) * 1.3 + 120):
-            log("time budget exhausted: skipping seed %d and later" % seed)
-            job["skipped"].append(seed)
-            continue
-        stem = "%s_s%d" % (hero, seed)
-        img, info = eng.txt2img(emb, seed, preset["steps"], preset["cfg"], preset["sampler"], w, h)
-        job["timing"]["last_image_s"] = info["seconds"]
-        job["images"].append(dict(info, seed=seed))
-        try:
-            _cut, rep = post.candidate_report(img, expected_bg=bg["rgb"])
-        except Exception as e:      # noqa: BLE001  (review aid only)
-            rep = {"error": str(e)}
-        tmp = save_tmp(a.work, img, stem + ".webp", format="WEBP", quality=92, method=6)
-        dest = pub.publish(tmp, "%s/%s.webp" % (hero, stem))
-        meta = {"hero": hero, "mode": "candidates", "seed": seed, "image": os.path.basename(dest) if dest else None,
-                "dropped": dest is None, "width": w, "height": h, "preset": a.preset, "preset_settings": preset,
-                "family": C.FAMILY, "prompt": pos, "negative": neg, "prompt_chunks": emb.get("chunks"),
-                "background": {"key": bg_key, "rgb": bg["rgb"]},
-                "model": {"repo": C.MODEL["repo"], "license": C.MODEL["license"]},
-                "lora": lora, "render": info, "framing": rep,
-                "filter": pub.manifest["files"].get("%s/%s.webp" % (hero, stem), {}).get("scores")
-                if dest else pub.manifest["dropped"][-1]["report"],
-                "run": job["run"], "created": stamp()}
-        pub.write_json("%s/%s.json" % (hero, stem), meta)
-        log("candidate %s: %s in %.0f s (%s)" % (stem, "published" if dest else "DROPPED by the filter",
-                                                 info["seconds"], ",".join(rep.get("flags", [])) or "framing ok"))
+def to_webp(path, quality=90):
+    """Re-save a review PNG as WebP next to it (deletes the PNG). Returns the new path."""
+    out = os.path.splitext(path)[0] + ".webp"
+    with Image.open(path) as im:
+        im.load()
+        im.save(out, format="WEBP", quality=quality, method=6)
+    os.remove(path)
+    return out
 
 
-def run_final(a, bible, pub, comps, job):
-    hero = a.hero
-    h = bible["heroes"][hero]
-    q = quality_settings(bible)
-    bg_key, bg = prompts.background(bible, hero)
-    names = [v.strip() for v in (a.variants.split(",") if a.variants else h["variant_set"]) if v.strip()]
-    if a.no_variants:
-        names = []
-    plans = []
-    for seed in a.seeds:
-        meta, preview, src = (None, None, None) if a.no_source else find_candidate(hero, seed, a.source_run)
-        if meta:
-            pos, neg = checked(bible, hero, meta["prompt"], meta["negative"])
-            preset_name = meta.get("preset") if meta.get("preset") in C.PRESETS else a.preset
-            w, hh = int(meta.get("width") or base_size(bible, hero)[0]), int(meta.get("height") or base_size(bible, hero)[1])
-            log("final %s s%d: candidate metadata from %s (preset %s)" % (hero, seed, src, preset_name))
-        else:
-            pr = prompts.full_body(bible, hero, C.FAMILY)
-            pos, neg = checked(bible, hero, pr["positive"], pr["negative"])
-            preset_name = a.preset
-            w, hh = base_size(bible, hero)
-            log("final %s s%d: no published candidate found, composing from the bible (preset %s)" % (hero, seed, preset_name))
-        plans.append({"seed": seed, "pos": pos, "neg": neg, "preset": preset_name, "w": w, "h": hh,
-                      "preview": preview, "source": src})
-    face_pr = prompts.face(bible, hero, C.FAMILY)
-    texts = {"face": checked(bible, hero, face_pr["positive"], face_pr["negative"])}
-    for n in names:
-        vp = prompts.face(bible, hero, C.FAMILY, variant=n)
-        texts["v:" + n] = checked(bible, hero, vp["positive"], vp["negative"])
-    for i, p in enumerate(plans):
-        texts["base%d" % i] = (p["pos"], p["neg"])
+def encode_all(comps, texts, job):
     t0 = time.time()
     enc = comps["encoders"]()
     embs = {k: enc.encode_pair(*v) for k, v in texts.items()}
@@ -341,138 +392,387 @@ def run_final(a, bible, pub, comps, job):
     del enc
     gc.collect()
     job["timing"]["encode_s"] = round(time.time() - t0, 1)
-    eng = comps["engine"]()
-    job["timing"]["engine_load_s"] = round(getattr(eng, "load_s", 0.0), 1)
-    cutter = comps["cutter"]()
-    finder = comps["faces"]()
+    return embs
 
+
+# ------------------------------------------------------------------ candidates
+def run_candidates(a, bible, pub, comps, job):
+    hero = a.hero
+    p = preset_settings(a.preset)
+    sty = style.full_body(bible, hero, a.style)
+    pos, neg = checked(bible, hero, sty["positive"], sty["negative"])
+    w, h = p["width"], p["height"]
+    emb = encode_all(comps, {"base": (pos, neg)}, job)["base"]
+    eng = comps["engine"](dtype=a.dtype, lazy_unet=False)
+    job["engine"] = dict(getattr(eng, "info", {}) or {})
+    job["timing"]["engine_load_s"] = round(getattr(eng, "load_s", 0.0), 1)
+    rc = 0
+    for seed in a.seeds:
+        if not a.deadline.allows(job["timing"].get("last_image_s", 0) * 1.3 + 120):
+            log("time budget exhausted: skipping seed %d and later" % seed)
+            job["skipped"].append(seed)
+            continue
+        stem = "%s_s%d" % (hero, seed)
+        try:
+            img, info = eng.txt2img(emb, seed, p["steps"], p["cfg"], p["sampler"], w, h)
+        except Exception as e:      # noqa: BLE001  (next seed; the job still uploads what it has)
+            log("ERROR rendering %s: %s\n%s" % (stem, e, traceback.format_exc()))
+            job["errors"].append({"seed": seed, "stage": "txt2img", "error": "%s: %s" % (type(e).__name__, e)})
+            rc = 5
+            continue
+        job["timing"]["last_image_s"] = info["seconds"]
+        job["images"].append(dict(info, seed=seed))
+        try:
+            _cut, rep = post.candidate_report(img, expected_bg=sty["bg_rgb"])
+        except Exception as e:      # noqa: BLE001  (review aid only)
+            rep = {"error": str(e)}
+        tmp = save_tmp(a.work, img, stem + ".webp", format="WEBP", quality=95, method=6)
+        rel = "%s/%s.webp" % (hero, stem)
+        dest = pub.publish(tmp, rel)
+        meta = {"hero": hero, "mode": "candidates", "seed": seed, "image": os.path.basename(dest) if dest else None,
+                "dropped": dest is None, "width": w, "height": h, "preset": a.preset, "preset_settings": p,
+                "dtype": a.dtype, "family": C.FAMILY, "style": sty["style"], "prompt": pos, "negative": neg,
+                "prompt_chunks": emb.get("chunks"), "background": {"key": sty["background_key"], "rgb": sty["bg_rgb"]},
+                "model": {"repo": C.MODEL["repo"], "license": C.MODEL["license"]}, "lora": None,
+                "render": info, "framing": rep,
+                "filter": pub.manifest["files"].get(rel, {}).get("scores") if dest else pub.manifest["dropped"][-1]["report"],
+                "run": job["run"], "created": stamp()}
+        pub.write_json("%s/%s.json" % (hero, stem), meta)
+        log("candidate %s: %s in %.0f s (%s)" % (stem, "published" if dest else "DROPPED by the filter",
+                                                 info["seconds"], ",".join(rep.get("flags", [])) or "framing ok"))
+    return rc
+
+
+# ------------------------------------------------------------------ final
+class _Est:
+    """Stage time estimates, refined from the measured s/step after every sampled stage."""
+
+    def __init__(self):
+        self.ref = float(C.FINAL["ref_s_per_step_mp"])
+
+    def seconds(self, w, h, steps):
+        return schedule.estimate_s(self.ref, w, h, steps, C.FINAL["stage_overhead_s"], C.FINAL["mp_exponent"])
+
+    def learn(self, info, w, h):
+        sps = info.get("s_per_step")
+        if sps:
+            self.ref = schedule.ref_from_measure(sps, w, h, C.FINAL["mp_exponent"])
+
+
+def run_final(a, bible, pub, comps, job):
+    hero = a.hero
+    h = bible["heroes"][hero]
+    fs = final_settings(bible, a)
+    names = [v.strip() for v in (a.variants.split(",") if a.variants else h["variant_set"]) if v.strip()]
+    if a.no_variants:
+        names = []
+    # 0. every source and every text first: a missing candidate or a refused prompt stops the job
+    #    before anything heavy is loaded
+    plans = []
+    for seed in a.seeds:
+        if a.no_source:
+            p = preset_settings(a.preset)
+            sty = style.full_body(bible, hero, a.style)
+            pos, neg = checked(bible, hero, sty["positive"], sty["negative"])
+            plans.append({"seed": seed, "pos": pos, "neg": neg, "style": a.style, "base_settings": p,
+                          "w": p["width"], "h": p["height"], "preview": None, "source": None})
+            continue
+        try:
+            meta, preview, src = comps["fetch"](a.repo, a.source_run, hero, seed)
+        except SourceError as e:
+            log("ERROR: final source for %s s%d: %s (nothing rendered; pass --no-source to render a base)" % (
+                hero, seed, e))
+            job["errors"].append({"seed": seed, "stage": "source", "error": str(e)})
+            return 6
+        sname = src["style"] if src["style"] in C.STYLES else "bible"
+        # the candidate's own positive (it describes this image) + its negative joined with today's
+        # (new model-card or content-rule negatives apply to the passes that are still to come)
+        pos, neg = checked(bible, hero, meta["prompt"],
+                           prompts.join_tags(meta["negative"], style.full_body(bible, hero, sname)["negative"]))
+        plans.append({"seed": seed, "pos": pos, "neg": neg, "style": sname, "base_settings": src["preset_settings"],
+                      "w": preview.width, "h": preview.height, "preview": preview, "source": src})
+        log("final %s s%d: source %s (sha256 %s, preset %s, style %s)" % (hero, seed, src["path"], src["sha256"][:12],
+                                                                          src["preset"], sname))
+    texts = {}
     for i, p in enumerate(plans):
-        seed = p["seed"]
-        tag = "final_s%d" % seed
-        wdir = os.path.join(a.work, hero, tag)
-        os.makedirs(wdir, exist_ok=True)
-        rel = "%s/%s" % (hero, tag)
-        steps = []
-        preset = C.PRESETS[p["preset"]]
-        # 1. the chosen candidate, exactly
-        eng.set_lora(preset["lora"], preset.get("lora_scale", 1.0))
-        base, info = eng.txt2img(embs["base%d" % i], seed, preset["steps"], preset["cfg"], preset["sampler"], p["w"], p["h"])
-        rec = {"step": "base", "preset": p["preset"], "lora": getattr(eng, "lora", None), **info}
-        if p["preview"] is not None:
-            rec["psnr_vs_published_preview"] = psnr(base, p["preview"])
-            log("  re-render vs published preview: PSNR %.1f dB" % rec["psnr_vs_published_preview"])
-        steps.append(rec)
-        base_tmp = save_tmp(wdir, base, "%s_base.webp" % hero, format="WEBP", quality=92, method=6)
-        # 2. full-quality hires pass over it
-        eng.set_lora(None)
-        W2, H2 = round8(p["w"] * a.hires_scale), round8(p["h"] * a.hires_scale)
-        img, info = eng.img2img(embs["base%d" % i], base.resize((W2, H2), Image.LANCZOS), a.refine_denoise,
-                                seed + 1, q["steps"], q["cfg"], q["sampler"])
-        img = img.convert("RGB")
-        steps.append({"step": "hires_img2img", "size": [W2, H2], "denoise": a.refine_denoise, "seed": seed + 1,
-                      "settings": q, **info})
-        # 3. face box + face polish
-        found = finder.find(img) if finder else None
-        if found:
-            face_box, conf = found
+        texts["base%d" % i] = (p["pos"], p["neg"])
+        sname = p["style"]
+        if "face:" + sname not in texts:
+            f = style.face(bible, hero, sname)
+            texts["face:" + sname] = checked(bible, hero, f["positive"], f["negative"])
+            for n in names:
+                vp = style.face(bible, hero, sname, variant=n)
+                texts["v:%s:%s" % (sname, n)] = checked(bible, hero, vp["positive"], vp["negative"])
+    embs = encode_all(comps, texts, job)
+    eng = comps["engine"](dtype="fp32", lazy_unet=True)
+    job["engine"] = dict(getattr(eng, "info", {}) or {})
+    finder = Lazy(comps["faces"], "anime face detector", job)
+    cutter = Lazy(comps["cutter"], "rembg isnet-anime", job)
+    est = _Est()
+    rc = 0
+    for i, p in enumerate(plans):
+        ctx = {}
+        try:
+            res = _final_one(a, bible, pub, job, eng, embs, texts, i, p, fs, names, finder, cutter, est, ctx)
+        except Exception as e:      # noqa: BLE001  (the next seed still runs; finished stages are uploaded)
+            log("ERROR in final %s s%d: %s\n%s" % (hero, p["seed"], e, traceback.format_exc()))
+            job["errors"].append({"seed": p["seed"], "stage": "final", "error": "%s: %s" % (type(e).__name__, e)})
+            if "save" in ctx:
+                ctx["meta"]["errors"].append("%s: %s" % (type(e).__name__, e))
+                ctx["save"]("failed after %s" % ctx["meta"]["status"])
+            res = 5
+        rc = rc or res
+    return rc
+
+
+def _final_one(a, bible, pub, job, eng, embs, texts, i, p, fs, names, finder, cutter, est, ctx):
+    hero = a.hero
+    h = bible["heroes"][hero]
+    seed = p["seed"]
+    tag = "final_s%d" % seed
+    wdir = os.path.join(a.work, hero, tag)
+    fdir = os.path.join(wdir, "final")
+    os.makedirs(fdir, exist_ok=True)
+    rel = "%s/%s" % (hero, tag)
+    steps = []
+    meta = {"hero": hero, "mode": "final", "seed": seed, "status": "started", "source_candidate": p["source"],
+            "style": style.record(p["style"]), "settings": fs, "base_settings": p["base_settings"],
+            "family": C.FAMILY, "prompt": p["pos"], "negative": p["neg"],
+            "model": {"repo": C.MODEL["repo"], "license": C.MODEL["license"]}, "lora": None,
+            "steps": steps, "errors": [], "skipped": [], "outputs": [], "run": job["run"], "created": stamp()}
+
+    def save(status):
+        meta["status"] = status
+        meta["updated"] = stamp()
+        pub.write_json("%s/%s.json" % (rel, hero), meta)
+
+    ctx.update(save=save, meta=meta)
+
+    def publish(path, name):
+        dest = pub.publish(path, "%s/%s" % (rel, name))
+        if dest:
+            meta["outputs"].append(name)
         else:
-            quick, _ = post.remove_background(img, holes=False, feather=0)
-            face_box, conf = post.estimate_face_box(quick, P.skin_profile(bible, hero))
-        log("  face box %s (%s)" % (face_box, conf))
-        if not a.no_face_polish:
+            meta.setdefault("dropped", []).append(name)
+        return dest
+
+    def stage_done(rec):
+        steps.append(rec)
+        job["images"].append(dict(rec, seed=seed))
+        job["stage_mem"].append({"seed": seed, "step": rec["step"], "vmhwm_gb": rec.get("vmhwm_gb"),
+                                 "mem": rec.get("mem_stage") or memstat.snapshot()})
+
+    # 0. base: the published preview (already on the branch), or a fresh render with --no-source
+    if p["preview"] is not None:
+        base = p["preview"]
+        steps.append({"step": "base", "from": p["source"]["path"], "sha256": p["source"]["sha256"]})
+    else:
+        bs = p["base_settings"]
+        if not a.deadline.allows(est.seconds(p["w"], p["h"], bs["steps"])):
+            meta["skipped"].append("base: time budget")
+            save("skipped: time budget")
+            return 5
+        base, info = eng.txt2img(embs["base%d" % i], seed, bs["steps"], bs["cfg"], bs["sampler"], p["w"], p["h"])
+        est.learn(info, p["w"], p["h"])
+        stage_done({"step": "base", **info})
+        publish(save_tmp(wdir, base, "%s_base.webp" % hero, format="WEBP", quality=95, method=6), "%s_base.webp" % hero)
+    save("base")
+
+    # 1. hires
+    W2, H2 = round8(p["w"] * fs["hires_scale"]), round8(p["h"] * fs["hires_scale"])
+    need = est.seconds(W2, H2, fs["hires_steps"]) + 300
+    if not a.deadline.allows(need):
+        log("  time budget: %.0f min left, hires needs about %.0f: no hires, no canvas" % (a.deadline.left() / 60, need / 60))
+        meta["skipped"].append("hires: time budget")
+        save("skipped: time budget")
+        return 5
+    img, info = eng.hires(embs["base%d" % i], base, (W2, H2), fs["hires_denoise"], seed + 1, fs["hires_steps"],
+                          fs["cfg"], fs["sampler"])
+    img = img.convert("RGB")
+    est.learn(info, W2, H2)
+    stage_done({"step": "hires_img2img", "seed": seed + 1, **info})
+    publish(save_tmp(wdir, img, "%s_hires.webp" % hero, format="WEBP", quality=95, method=6), "%s_hires.webp" % hero)
+    save("hires")
+
+    # 2. face box + face polish
+    face_box, conf = None, None
+    fd = finder.get()
+    if fd is not None:
+        try:
+            found = fd.find(img)
+            if found:
+                face_box, conf = found
+        except Exception as e:      # noqa: BLE001
+            log("WARNING: face detector failed: %s" % e)
+    if face_box is None:
+        quick, _ = post.remove_background(img, holes=False, feather=0)
+        face_box, conf = post.estimate_face_box(quick, P.skin_profile(bible, hero))
+    log("  face box %s (%s)" % (face_box, conf))
+    if a.no_face_polish:
+        meta["skipped"].append("face polish: --no-face-polish")
+    else:
+        crop = P.square_box(face_box, img.size, scale=C.FINAL["face_crop_scale"])
+        need = est.seconds(fs["face_px"], fs["face_px"], fs["face_steps"]) + 300
+        if not a.deadline.allows(need):
+            log("  time budget: skipping the face polish")
+            meta["skipped"].append("face polish: time budget")
+        else:
             fr = bible["regions"]["face"]
-            mbox = post.region_box(face_box, fr)
-            mask = P.ellipse_mask(img.size, mbox, feather=max(3, face_box[3] // 30))
-            crop = P.square_box(face_box, img.size, scale=C.FINAL["face_crop_scale"])
-            den = float(bible["face_refine"]["denoise"])
-            img, info = crop_inpaint(eng, embs["face"], img, crop, mask, den, seed + 7, q, target=a.inpaint_px)
-            steps.append({"step": "face_polish", **info})
-        src_tmp = save_tmp(wdir, img, "%s_source.webp" % hero, format="WEBP", quality=95, method=6)
-        # 4. cutout + canvas
-        t0 = time.time()
-        mask_img = cutter.mask(img) if cutter else None
-        steps.append({"step": "cutout", "method": getattr(cutter, "name", "post.remove_background"),
-                      "seconds": round(time.time() - t0, 1)})
-        fdir = os.path.join(wdir, "final")
-        meta = post.finalize_local(hero, img, fdir, face_box=face_box, face_source=conf, mask=mask_img,
-                                   skin_profile=P.skin_profile(bible, hero), flip=a.flip,
-                                   extra_meta={"seed": seed, "mode": "final", "steps": steps,
-                                               "model": {"repo": C.MODEL["repo"], "license": C.MODEL["license"]},
-                                               "family": C.FAMILY, "prompt": p["pos"], "negative": p["neg"],
-                                               "source_candidate": p["source"], "created": stamp()})
-        canvas_path = os.path.join(fdir, hero + ".png")
-        canvas = Image.open(canvas_path).convert("RGBA")
-        fbc = meta["face_box"]
-        # 5. variants on the canvas
-        vrec = {"hero": hero, "base": "%s.png" % hero, "base_sha": safety.sha256_file(canvas_path), "face_box": fbc,
-                "face_box_source": meta.get("face_box_source"), "variants": {}}
-        vdir = os.path.join(fdir, "variants")
-        mdir = os.path.join(fdir, "masks")
-        os.makedirs(vdir, exist_ok=True)
-        os.makedirs(mdir, exist_ok=True)
-        rgb = P.flat_rgb(canvas, bg["rgb"])
-        vcrop = P.square_box(fbc, canvas.size, scale=C.FINAL["variant_crop_scale"])
-        first = int(h["seed_base"]) + C.FINAL["variant_seed_offset"]
-        var_imgs = []
-        for n in names:
-            est = (steps[-1].get("seconds") or 600) * 1.5 + 300
-            if not a.deadline.allows(est):
-                log("  time budget: skipping variant %s" % n)
-                vrec["variants"][n] = {"skipped": "time budget"}
-                continue
-            spec = prompts.variant_spec(bible, hero, n)
-            region = post.region_box(fbc, spec["region_frac"])
+            mask = P.ellipse_mask(img.size, post.region_box(face_box, fr), feather=max(3, face_box[3] // 30))
+            img, info = crop_inpaint(eng, embs["face:" + p["style"]], img, crop, mask, fs["face_denoise"], seed + 7, fs,
+                                     fs["face_steps"], fs["face_px"])
+            est.learn(info, fs["face_px"], fs["face_px"])
+            stage_done({"step": "face_polish", **info})
+    src_tmp = save_tmp(wdir, img, "%s_source.webp" % hero, format="WEBP", quality=95, method=6)
+    publish(src_tmp, "%s_source.webp" % hero)
+    save("face")
+
+    # 3. cutout + canvas
+    t0 = time.time()
+    isnet = None
+    ct = cutter.get()
+    if ct is not None:
+        try:
+            isnet = ct.mask(img)
+        except Exception as e:      # noqa: BLE001
+            log("WARNING: isnet mask failed, colour-flood cutout instead: %s" % e)
+    rgba, cinfo = cutout.artgen_cutout(img, isnet)
+    stage_done({"step": "cutout", "method": cinfo["method"], "seconds": round(time.time() - t0, 1), "detail": cinfo})
+    bg_meas = [int(round(v)) for v in post.estimate_bg(post._rgb(img))]
+    fmeta = post.finalize_local(hero, rgba, fdir, face_box=face_box, face_source=conf,
+                                skin_profile=P.skin_profile(bible, hero), flip=a.flip)
+    canvas_path = os.path.join(fdir, hero + ".png")
+    canvas = Image.open(canvas_path).convert("RGBA")
+    spec = spec_report(canvas, fmeta)
+    log("  canvas spec: %s" % ("ok" if spec["ok"] else "; ".join(spec["problems"])))
+    fmeta.pop("hero", None)
+    meta.update({k: v for k, v in fmeta.items() if k not in ("steps",)})
+    meta.update({"image": hero + ".png", "spec": spec, "bg_measured": bg_meas, "cutout_detail": cinfo})
+    canvas_dest = publish(canvas_path, hero + ".png")
+    publish(os.path.join(fdir, hero + "_portrait.png"), hero + "_portrait.png")
+    for kind in ("check", "boxes"):
+        publish(to_webp(os.path.join(fdir, "%s_%s.png" % (hero, kind))), "%s_%s.webp" % (hero, kind))
+    save("canvas")
+    if not canvas_dest:
+        log("  the canvas was dropped by the filter: no variants for this seed")
+        meta["errors"].append("canvas dropped by the exposure filter")
+        save("canvas dropped")
+        return 5
+
+    # 4. expression variants on the canvas, each isolated
+    rc = 0
+    fbc = meta["face_box"]
+    vrec = {"hero": hero, "base": "%s.png" % hero, "base_sha": safety.sha256_file(canvas_dest), "face_box": fbc,
+            "face_box_source": meta.get("face_box_source"), "bg_rgb": bg_meas, "variants": {},
+            "warp_overlay_hints": {"_doc": "rects for <id>.warp_src.json overlays (eyes / mouth slots)",
+                                   "eyes": post.region_box(fbc, bible["regions"]["eyes"]),
+                                   "mouth": post.region_box(fbc, bible["regions"]["mouth"]),
+                                   "base_eyes": h.get("default_eyes", "open")}}
+    vdir = os.path.join(wdir, "variants")
+    os.makedirs(os.path.join(vdir, "candidates"), exist_ok=True)
+    os.makedirs(os.path.join(wdir, "masks"), exist_ok=True)
+    rgb = P.flat_rgb(canvas, bg_meas)
+    vcrop = P.square_box(fbc, canvas.size, scale=C.FINAL["variant_crop_scale"])
+    first = int(h["seed_base"]) + C.FINAL["variant_seed_offset"]
+    var_imgs = []
+    for n in names:
+        need = est.seconds(fs["variant_px"], fs["variant_px"], fs["variant_steps"]) * max(1, a.variant_tries) + 60
+        if not a.deadline.allows(need):
+            log("  time budget: skipping variant %s" % n)
+            vrec["variants"][n] = {"skipped": "time budget"}
+            meta["skipped"].append("variant %s: time budget" % n)
+            job["skipped"].append("%s s%d variant %s" % (hero, seed, n))
+            continue
+        try:
+            spec_v = prompts.variant_spec(bible, hero, n)
+            region = post.region_box(fbc, spec_v["region_frac"])
             feather = max(3, region[3] // 10)
             vmask = P.ellipse_mask(canvas.size, region, feather=feather)
-            vmask.save(os.path.join(mdir, "%s.png" % spec["region"]))
+            mpath = os.path.join(wdir, "masks", "%s.png" % spec_v["region"])
+            if not os.path.exists(mpath):
+                vmask.save(mpath)
+                publish(mpath, "masks/%s.png" % spec_v["region"])
             tries = []
             for k in range(max(1, a.variant_tries)):
                 vseed = first + k
-                out_rgb, info = crop_inpaint(eng, embs["v:" + n], rgb, vcrop, vmask, spec["denoise"], vseed, q,
-                                             target=a.inpaint_px)
+                out_rgb, info = crop_inpaint(eng, embs["v:%s:%s" % (p["style"], n)], rgb, vcrop, vmask, spec_v["denoise"],
+                                             vseed, fs, fs["variant_steps"], fs["variant_px"])
+                est.learn(info, fs["variant_px"], fs["variant_px"])
                 var = merge_variant(canvas, out_rgb, vmask)
                 probs = post.variant_alignment(canvas, var, allowed_rect=region, margin=3 * feather + 2)
-                tp = os.path.join(vdir, "candidates", "%s_s%d.png" % (n, vseed))
-                os.makedirs(os.path.dirname(tp), exist_ok=True)
-                var.save(tp)
-                tries.append({"seed": vseed, "alignment_problems": probs, **info})
-                steps.append({"step": "variant_" + n, **info})
-            pick = tries[0]["seed"]
-            pick_img = Image.open(os.path.join(vdir, "candidates", "%s_s%d.png" % (n, pick))).convert("RGBA")
-            pick_img.save(os.path.join(vdir, n + ".png"))
-            patch, prect = V.patch_from(pick_img, canvas, region)
-            patch.save(os.path.join(vdir, n + "_patch.png"))
-            with open(os.path.join(vdir, n + "_patch.json"), "w") as f:
-                json.dump({"rect": prect, "seed": pick, "region": spec["region"], "base_sha": vrec["base_sha"]}, f, indent=1)
-            vrec["variants"][n] = {"picked_seed": pick, "region": region, "region_name": spec["region"],
-                                   "denoise": spec["denoise"], "prompt": texts["v:" + n][0], "tries": tries}
-            var_imgs.append((n, pick_img))
-        vrec["warp_overlay_hints"] = {"_doc": "rects for <id>.warp_src.json overlays (eyes / mouth slots)",
-                                      "eyes": post.region_box(fbc, bible["regions"]["eyes"]),
-                                      "mouth": post.region_box(fbc, bible["regions"]["mouth"]),
-                                      "base_eyes": h.get("default_eyes", "open")}
-        # 6. face review sheet
+                tries.append({"seed": vseed, "alignment_problems": probs, "image": var,
+                              **{k2: v2 for k2, v2 in info.items() if k2 != "step_s"}})
+                stage_done({"step": "variant_" + n, **info})
+            pick = tries[0]
+            vpath = os.path.join(vdir, n + ".png")
+            pick["image"].save(vpath)
+            patch, prect = V.patch_from(pick["image"], canvas, region)
+            ppath = os.path.join(vdir, n + "_patch.png")
+            patch.save(ppath)
+            vdest = publish(vpath, "variants/%s.png" % n)
+            publish(ppath, "variants/%s_patch.png" % n)
+            pub.write_json("%s/variants/%s_patch.json" % (rel, n), {"rect": prect, "seed": pick["seed"],
+                                                                    "region": spec_v["region"], "base_sha": vrec["base_sha"]})
+            if a.variant_tries > 1:
+                for t in tries:
+                    cp = os.path.join(vdir, "candidates", "%s_s%d.png" % (n, t["seed"]))
+                    t["image"].save(cp)
+                    publish(cp, "variants/candidates/%s_s%d.png" % (n, t["seed"]))
+            vrec["variants"][n] = {"picked_seed": pick["seed"], "published": bool(vdest), "region": region,
+                                   "region_name": spec_v["region"], "denoise": spec_v["denoise"],
+                                   "prompt": texts["v:%s:%s" % (p["style"], n)][0],
+                                   "tries": [{k2: v2 for k2, v2 in t.items() if k2 != "image"} for t in tries]}
+            if vdest:
+                var_imgs.append((n, pick["image"]))
+        except Exception as e:      # noqa: BLE001  (isolate: the next variant still runs)
+            log("ERROR in variant %s of %s s%d: %s\n%s" % (n, hero, seed, e, traceback.format_exc()))
+            vrec["variants"][n] = {"error": "%s: %s" % (type(e).__name__, e)}
+            meta["errors"].append("variant %s: %s: %s" % (n, type(e).__name__, e))
+            rc = 5
+        pub.write_json("%s/variants/variants.json" % rel, vrec)
+        save("variant " + n)
+
+    # 5. face review sheet
+    try:
         sq = P.square_box(fbc, canvas.size, scale=2.4)
         entries = [(canvas.crop(sq), "base")] + [(im.crop(sq), n) for n, im in var_imgs]
-        post.contact_sheet(entries, os.path.join(fdir, "variants_sheet.png"), cols=len(entries), cell_w=300,
-                           detail=False, title="%s s%d: base + variants" % (hero, seed))
-        # publish: every image through the filter, text as JSON
-        pub.publish(base_tmp, "%s/%s_base.webp" % (rel, hero))
-        pub.publish(src_tmp, "%s/%s_source.webp" % (rel, hero))
-        for dp, _dn, fns in os.walk(fdir):
-            for fn in sorted(fns):
-                full = os.path.join(dp, fn)
-                r = "%s/%s" % (rel, os.path.relpath(full, fdir).replace(os.sep, "/"))
-                if fn.endswith(".png"):
-                    pub.publish(full, r)
-                elif fn.endswith(".json"):
-                    with open(full) as f:
-                        pub.write_json(r, json.load(f))
-        meta["steps"] = steps
-        pub.write_json("%s/%s.json" % (rel, hero), meta)
-        pub.write_json("%s/variants/variants.json" % rel, vrec)
-        job["images"] += [s for s in steps if "seconds" in s]
-        log("final %s s%d done: canvas, %d variants" % (hero, seed, len(var_imgs)))
+        sp = post.contact_sheet(entries, os.path.join(wdir, "variants_sheet.png"), cols=len(entries), cell_w=300,
+                                detail=False, title="%s s%d: base + variants" % (hero, seed))
+        publish(to_webp(sp), "variants_sheet.webp")
+    except Exception as e:      # noqa: BLE001
+        log("WARNING: variants sheet failed: %s" % e)
+        meta["errors"].append("variants sheet: %s" % e)
+    pub.write_json("%s/variants/variants.json" % rel, vrec)
+    save("done" if not meta["errors"] else "done with errors")
+    log("final %s s%d done: canvas, %d variant(s), spec %s" % (hero, seed, len(var_imgs), "ok" if spec["ok"] else "NOT ok"))
+    return rc
+
+
+# ------------------------------------------------------------------ bench
+def run_bench(a, bible, pub, comps, job):
+    """s/step at 4 and 2 threads in fp32 (then bf16 at the faster count on native-bf16 CPUs); no images."""
+    p = preset_settings(a.preset)
+    sty = style.full_body(bible, a.hero, a.style)
+    emb = encode_all(comps, {"base": checked(bible, a.hero, sty["positive"], sty["negative"])}, job)["base"]
+    res = []
+    eng = comps["engine"](dtype="fp32", lazy_unet=False)
+    native = bool((getattr(eng, "info", {}) or {}).get("bf16_native"))
+    for th in (4, 2):
+        eng.set_threads(th)
+        _none, info = eng.bench(emb, a.bench_steps, p["cfg"], p["sampler"], p["width"], p["height"])
+        res.append({"dtype": "fp32", "threads": th, **info})
+    best = min(res, key=lambda r: r.get("s_per_step_steady") or 1e9)["threads"]
+    if native:
+        eng.close()
+        del eng
+        gc.collect()
+        eng = comps["engine"](dtype="bf16", threads=best, lazy_unet=False)
+        _none, info = eng.bench(emb, a.bench_steps, p["cfg"], p["sampler"], p["width"], p["height"])
+        res.append({"dtype": "bf16", "threads": best, **info})
+    job["bench"] = {"preset": a.preset, "size": [p["width"], p["height"]], "steps": a.bench_steps,
+                    "bf16_native": native, "results": res}
+    log("bench: %s" % json.dumps([{k: r.get(k) for k in ("dtype", "threads", "s_per_step_steady")} for r in res]))
+    return 0
 
 
 # ------------------------------------------------------------------ main
@@ -490,35 +790,61 @@ def parse_seeds(s):
 
 def build_args(argv):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("mode", choices=["candidates", "final"])
+    ap.add_argument("mode", choices=["candidates", "final", "bench"])
     ap.add_argument("--hero", required=True)
-    ap.add_argument("--seeds", required=True, help="comma list")
+    ap.add_argument("--seeds", default="1", help="comma list (bench ignores it)")
     ap.add_argument("--preset", default=C.DEFAULT_PRESET, choices=sorted(C.PRESETS))
+    ap.add_argument("--style", default=C.DEFAULT_STYLE, choices=sorted(C.STYLES))
+    ap.add_argument("--dtype", default=C.DEFAULT_DTYPE, choices=list(C.DTYPES))
     ap.add_argument("--out", required=True, help="upload dir: only filtered images ever land here")
     ap.add_argument("--work", required=True, help="scratch dir (never uploaded)")
     ap.add_argument("--key", default="local", help="job key (matrix entry)")
     ap.add_argument("--run", default="local", help="run dir name on the output branch")
     ap.add_argument("--model-cache", default=None, help="HF cache dir for the base model")
     ap.add_argument("--threads", type=int, default=None)
-    ap.add_argument("--max-minutes", type=float, default=280.0, help="soft budget; later images are skipped")
-    ap.add_argument("--source-run", default=None, help="final: run dir of the candidate (default: newest)")
-    ap.add_argument("--no-source", action="store_true", help="final: ignore published candidates")
+    ap.add_argument("--max-minutes", type=float, default=280.0, help="soft budget; later stages are skipped")
+    ap.add_argument("--repo", default=os.environ.get("GITHUB_REPOSITORY") or "u-tek/game",
+                    help="final: repository whose art-gen-output branch holds the candidate")
+    ap.add_argument("--source-run", default=None, help="final: run dir of the chosen candidate (required)")
+    ap.add_argument("--no-source", action="store_true", help="final: render the base from the bible (local/tests)")
     ap.add_argument("--flip", action="store_true", help="final: mirror (the spec wants a 3/4 view facing right)")
-    ap.add_argument("--hires-scale", type=float, default=C.FINAL["hires_scale"])
-    ap.add_argument("--refine-denoise", type=float, default=C.FINAL["refine_denoise"])
-    ap.add_argument("--inpaint-px", type=int, default=C.FINAL["inpaint_px"])
+    ap.add_argument("--hires-scale", type=float, default=None, help="default: bible hires.scale")
+    ap.add_argument("--hires-denoise", type=float, default=None, help="default: bible hires.denoise_model")
+    ap.add_argument("--hires-steps", type=int, default=None, help="effective steps (default: bible hires.steps)")
+    ap.add_argument("--face-steps", type=int, default=C.FINAL["face_steps"], help="effective steps")
+    ap.add_argument("--face-px", type=int, default=C.FINAL["face_px"])
+    ap.add_argument("--variant-steps", type=int, default=C.FINAL["variant_steps"], help="effective steps")
+    ap.add_argument("--variant-px", type=int, default=C.FINAL["variant_px"])
     ap.add_argument("--variants", default=None, help="final: comma list (default: the hero's variant_set)")
     ap.add_argument("--variant-tries", type=int, default=1)
     ap.add_argument("--no-variants", action="store_true")
     ap.add_argument("--no-face-polish", action="store_true")
+    ap.add_argument("--bench-steps", type=int, default=3)
     a = ap.parse_args(argv)
     a.seeds = parse_seeds(a.seeds)
     a.deadline = Deadline(a.max_minutes)
+    probs = C.preset_problems(C.PRESETS[a.preset])
+    if probs:
+        ap.error("preset %s refused: %s" % (a.preset, "; ".join(probs)))
+    if a.mode == "final" and a.dtype != "fp32":
+        ap.error("final mode runs in fp32 only")
+    if a.mode == "final" and not a.no_source and not a.source_run:
+        ap.error("final mode needs --source-run (the candidate's run dir) or --no-source")
+    if a.source_run and not RUN_RE.match(a.source_run):
+        ap.error("bad --source-run")
+    if not 1 <= a.variant_tries <= 4 or not 1 <= a.bench_steps <= 8:
+        ap.error("--variant-tries 1..4, --bench-steps 1..8")
+    for k in ("face_px", "variant_px"):
+        if getattr(a, k) % 64 or not 512 <= getattr(a, k) <= 1024:
+            ap.error("--%s must be a multiple of 64 in 512..1024" % k.replace("_", "-"))
     return a
 
 
 def main(argv=None, components=None):
-    a = build_args(argv)
+    try:
+        a = build_args(argv)
+    except SystemExit as e:
+        return e.code if isinstance(e.code, int) else 2
     bible = prompts.load_bible()
     if a.hero not in bible["heroes"]:
         log("ERROR: unknown hero %r" % a.hero)
@@ -533,8 +859,9 @@ def main(argv=None, components=None):
         log("ERROR: exposure filter unavailable, refusing to render (fail closed): %s" % e)
         return 3
     job = {"key": a.key, "run": a.run, "hero": a.hero, "mode": a.mode, "seeds": a.seeds, "preset": a.preset,
-           "env": env_info(), "timing": {}, "images": [], "skipped": [], "started": stamp(),
-           "licenses": {"model": C.MODEL, "loras": C.LORAS, "aux": C.AUX}}
+           "preset_settings": C.PRESETS[a.preset], "style": a.style, "dtype": a.dtype if a.mode != "final" else "fp32",
+           "env": env_info(), "timing": {}, "images": [], "stage_mem": [], "skipped": [], "errors": [],
+           "started": stamp(), "licenses": {"model": C.MODEL, "aux": C.AUX}}
     pub = safety.Publisher(filt, a.out, log=log, job={"key": a.key, "run": a.run, "hero": a.hero, "mode": a.mode})
     if "encoders" not in comps or "engine" not in comps:
         import sdxl
@@ -542,28 +869,38 @@ def main(argv=None, components=None):
         job["model"] = {k: v for k, v in minfo.items() if k != "repo_files"}
         job["timing"]["download_s"] = minfo["download_s"]
         comps.setdefault("encoders", lambda: real_encoders(model_dir, variants))
-        comps.setdefault("engine", lambda: real_engine(model_dir, variants, a.threads))
+        comps.setdefault("engine", lambda **kw: real_engine(model_dir, variants, **dict({"threads": a.threads}, **kw)))
     comps.setdefault("cutter", RembgCutter)
     comps.setdefault("faces", AnimeFaceFinder)
+    comps.setdefault("fetch", fetch_candidate)
     rc = 0
     try:
         if a.mode == "candidates":
-            run_candidates(a, bible, pub, comps, job)
+            rc = run_candidates(a, bible, pub, comps, job)
+        elif a.mode == "final":
+            rc = run_final(a, bible, pub, comps, job)
         else:
-            run_final(a, bible, pub, comps, job)
+            rc = run_bench(a, bible, pub, comps, job)
     except (prompts.ContentRuleError, prompts.PromptError) as e:
         log("ERROR: prompt refused: %s" % e)
         rc = 4
+    except Exception as e:      # noqa: BLE001  (the job record and the finished outputs still upload)
+        log("ERROR: %s: %s\n%s" % (type(e).__name__, e, traceback.format_exc()))
+        job["errors"].append({"stage": "job", "error": "%s: %s" % (type(e).__name__, e)})
+        rc = 5
     finally:
         job["filter"] = dict(filt.stats)
         job["finished"] = stamp()
         job["wall_s"] = round(time.time() - T_START, 1)
-        imgs = [i for i in job["images"] if i.get("what", "").startswith("txt2img")]
+        job["exit_code"] = rc
+        imgs = [i for i in job["images"] if str(i.get("what", "")).startswith("txt2img")]
         if imgs:
             job["timing"]["s_per_txt2img"] = round(sum(i["seconds"] for i in imgs) / len(imgs), 1)
         pub.write_json("%s/job_%s.json" % (a.hero, a.key), job)
         log(pub.summary())
-        log("job %s finished in %.1f min, timings %s" % (a.key, job["wall_s"] / 60, json.dumps(job["timing"])))
+        if job["skipped"]:
+            print("::warning::art-gen %s skipped (time budget): %s" % (a.key, ", ".join(map(str, job["skipped"]))))
+        log("job %s finished in %.1f min (exit %d), timings %s" % (a.key, job["wall_s"] / 60, rc, json.dumps(job["timing"])))
     return rc
 
 

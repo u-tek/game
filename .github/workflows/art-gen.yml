@@ -1,47 +1,71 @@
-# Art farm: renders anime hero art on free CPU runners (one job per hero or seed chunk) and commits
-# the results to the orphan branch `art-gen-output`. Docs: docs/dev/art-farm.md.
+# Art farm: renders anime hero art on free CPU runners (one job per hero, seed chunk or final seed) and
+# merges the results into the orphan branch `art-gen-output`. Docs: docs/dev/art-farm.md.
 #
-# Safety: every image passes an exposure filter on the runner (tools/artgen/safety.py: NudeNet +
-# anime censor-point detector, fail closed) before it is uploaded as an artifact or committed;
-# `safety.py verify` re-checks the upload dir right before the upload and collect re-checks again.
+# Settings: Animagine XL 4.0 model card for every render (preset `standard`: Euler a, CFG 5, 28 steps,
+# 832x1216, quality tags at the end); CFG outside 4-7 is refused (plan.py, gen.py, the engine), so the
+# negative prompt is always active. `draft` is an explicit opt-in.
+#
+# Safety: every image passes an exposure filter on the gen runner (tools/artgen/safety.py: NudeNet +
+# anime censor-point detector + a sensitivity canary in the self-test, fail closed) before it is
+# uploaded as an artifact; `safety.py verify` deletes anything without a pass record (path + sha256)
+# right before the upload. The `sheets` job (read-only, no token) re-verifies sha256 against each
+# job's manifest, re-runs the detectors only on the contact sheets it draws and uploads one bundle.
+# The `publish` job (the only one with contents: write) runs no pip packages: stdlib publish.py
+# re-checks sha256 + file type, merges into runs/<run>/ (never deletes) and refuses to push anything
+# without a matching record.
 # Inputs reach scripts only through env vars and are validated by tools/artgen/plan.py.
+# Actions are pinned to commit SHAs (the tag they resolved to on 2026-10-16 in the comment).
 name: Art farm
 
 on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "candidates (fast previews) or final (chosen seeds: hires, face polish, cutout, variants)"
+        description: "candidates (previews to pick from), final (chosen seeds: hires, face polish, cutout, variants) or bench (s/step only)"
         type: choice
-        options: [candidates, final]
+        options: [candidates, final, bench]
         default: candidates
       heroes:
-        description: "candidates: comma list of hero ids or 'all' (final: optional filter on the seeds keys)"
+        description: "candidates: comma list of hero ids or 'all'; final: optional filter on the seeds keys; bench: hero to time"
         type: string
         default: seraphiel
       count:
-        description: "candidates per hero (1-12)"
+        description: "candidates per hero (1-12); bench: jobs (1-3)"
         type: string
-        default: "6"
+        default: "2"
       seeds:
-        description: 'final: {"seraphiel": [101001]} or {"seraphiel": {"seeds": [101001], "run": "<run dir>", "flip": true}}; candidates: optional {"hero": first_seed}'
+        description: 'final: {"seraphiel": {"seeds": [101000], "run": "<candidate run dir>", "flip": false}}; candidates: optional {"hero": first_seed}'
         type: string
         default: "{}"
       preset:
-        description: "candidate render preset (tools/artgen/config.py)"
+        description: "render preset (tools/artgen/config.py): standard = Animagine model card; draft = opt-in, half the time"
         type: choice
-        options: [lightning8, lightning8_cfg, lcm8, draft, quality]
-        default: lightning8
+        options: [standard, draft]
+        default: standard
+      style:
+        description: "prompt style overlay: farm (slate background for light heroes, clarity tags) or bible (as written)"
+        type: choice
+        options: [farm, bible]
+        default: farm
+      dtype:
+        description: "UNet dtype: fp32 (default); bf16 only for candidates/bench"
+        type: choice
+        options: [fp32, bf16]
+        default: fp32
       per_job:
         description: "candidates per job (0 = one job per hero); smaller = more parallel jobs"
         type: string
-        default: "0"
+        default: "1"
       label:
         description: "short label for the output folder"
         type: string
         default: ""
 
 permissions: {}
+
+concurrency:
+  group: art-farm-${{ inputs.mode }}
+  cancel-in-progress: false
 
 jobs:
   plan:
@@ -54,8 +78,11 @@ jobs:
       run_dir: ${{ steps.plan.outputs.run_dir }}
       jobs: ${{ steps.plan.outputs.jobs }}
       preset: ${{ steps.plan.outputs.preset }}
+      style: ${{ steps.plan.outputs.style }}
+      dtype: ${{ steps.plan.outputs.dtype }}
+      mode: ${{ steps.plan.outputs.mode }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -71,6 +98,8 @@ jobs:
           ART_COUNT: ${{ inputs.count }}
           ART_SEEDS: ${{ inputs.seeds }}
           ART_PRESET: ${{ inputs.preset }}
+          ART_STYLE: ${{ inputs.style }}
+          ART_DTYPE: ${{ inputs.dtype }}
           ART_PER_JOB: ${{ inputs.per_job }}
           ART_LABEL: ${{ inputs.label }}
         run: python3 tools/artgen/plan.py >> "$GITHUB_OUTPUT"
@@ -85,11 +114,13 @@ jobs:
       contents: read
     strategy:
       fail-fast: false
-      max-parallel: 20
+      max-parallel: 16
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     env:
-      ART_MODE: ${{ inputs.mode }}
+      ART_MODE: ${{ needs.plan.outputs.mode }}
       ART_PRESET: ${{ needs.plan.outputs.preset }}
+      ART_STYLE: ${{ needs.plan.outputs.style }}
+      ART_DTYPE: ${{ needs.plan.outputs.dtype }}
       ART_RUN: ${{ needs.plan.outputs.run_dir }}
       ART_KEY: ${{ matrix.key }}
       ART_HERO: ${{ matrix.hero }}
@@ -103,9 +134,10 @@ jobs:
       HF_HUB_ENABLE_HF_TRANSFER: "0"
       PYTHONUNBUFFERED: "1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 1
+          persist-credentials: false
           sparse-checkout: |
             tools/artgen
             tools/comfy
@@ -114,13 +146,13 @@ jobs:
         run: |
           nproc; free -g; df -h / /mnt 2>/dev/null || df -h /
           lscpu | grep -E "Model name|Flags" | cut -c1-200
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.11"
           cache: pip
           cache-dependency-path: tools/artgen/requirements.txt
       - name: Model cache
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: /home/runner/.cache/artgen-hf
           key: artgen-hf-animagine-xl-4.0-v1
@@ -130,10 +162,7 @@ jobs:
           pip install torch==2.8.0 --index-url https://download.pytorch.org/whl/cpu
           pip install -r tools/artgen/requirements.txt
           python -c "import torch; print('torch', torch.__version__, 'threads', torch.get_num_threads(), torch.backends.cpu.get_cpu_capability())"
-      - name: Fetch published candidates (final mode)
-        if: env.ART_MODE == 'final'
-        run: git fetch --depth=1 origin art-gen-output:refs/remotes/origin/art-gen-output || echo "no art-gen-output branch yet"
-      - name: Exposure filter self-test (fail closed)
+      - name: Exposure filter self-test (fail closed, with the sensitivity canary)
         run: python tools/artgen/safety.py selftest
       - name: Render
         run: |
@@ -141,6 +170,7 @@ jobs:
           if [ "$ART_FLIP" = "1" ]; then args+=(--flip); fi
           if [ -n "$ART_SOURCE_RUN" ]; then args+=(--source-run "$ART_SOURCE_RUN"); fi
           python tools/artgen/gen.py "$ART_MODE" --hero "$ART_HERO" --seeds "$ART_SEEDS" --preset "$ART_PRESET" \
+            --style "$ART_STYLE" --dtype "$ART_DTYPE" --repo "$GITHUB_REPOSITORY" \
             --out "$ART_OUT" --work "$ART_WORK" --key "$ART_KEY" --run "$ART_RUN" \
             --model-cache "$ART_MODEL_CACHE" --max-minutes 270 "${args[@]}"
       - name: Verify upload dir against the filter manifest
@@ -152,27 +182,28 @@ jobs:
           python tools/artgen/safety.py verify "$ART_OUT"
       - name: Upload filtered results
         if: always() && steps.verify.outcome == 'success'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: art-${{ matrix.key }}
           path: artgen_out
           retention-days: 3
           compression-level: 0
           if-no-files-found: warn
+          overwrite: true
 
-  collect:
+  sheets:
     needs: [plan, gen]
     if: always() && needs.plan.result == 'success' && needs.plan.outputs.jobs != '0'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-      contents: write
+      contents: read
     env:
       ART_RUN: ${{ needs.plan.outputs.run_dir }}
       ART_MATRIX: ${{ needs.plan.outputs.matrix }}
       PYTHONUNBUFFERED: "1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -180,20 +211,55 @@ jobs:
             tools/artgen
             tools/comfy
             data
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.11"
           cache: pip
           cache-dependency-path: tools/artgen/requirements-collect.txt
       - name: Install
         run: pip install -r tools/artgen/requirements-collect.txt
-      - name: Download artifacts
+      - name: Download gen artifacts
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           pattern: art-*
           path: incoming
-      - name: Verify, build sheets, commit to art-gen-output
+      - name: Verify, draw filtered contact sheets, build the bundle
+        run: python tools/artgen/collect.py --incoming incoming --run-dir "$ART_RUN" --out bundle
+      - name: Upload the bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: farm-bundle
+          path: bundle
+          retention-days: 3
+          compression-level: 0
+          if-no-files-found: error
+          overwrite: true
+
+  publish:
+    needs: [plan, sheets]
+    if: always() && needs.sheets.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    env:
+      ART_RUN: ${{ needs.plan.outputs.run_dir }}
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout: |
+            tools/artgen/publish.py
+          sparse-checkout-cone-mode: false
+      - name: Download the bundle
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: farm-bundle
+          path: bundle
+      - name: Merge into art-gen-output and push (stdlib only, no pip)
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: python tools/artgen/collect.py --incoming incoming --run-dir "$ART_RUN" --push
+        run: python3 tools/artgen/publish.py --bundle bundle --run-dir "$ART_RUN"

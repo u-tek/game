@@ -148,7 +148,7 @@ func _draw(ci: RID, rect: Rect2) -> void:
 		var k := ornament_size
 		for p: Vector2 in [orect.position, Vector2(orect.end.x, orect.position.y), orect.end, Vector2(orect.position.x, orect.end.y)]:
 			var d := PackedVector2Array([p + Vector2(0, -k), p + Vector2(k, 0), p + Vector2(0, k), p + Vector2(-k, 0)])
-			RenderingServer.canvas_item_add_polygon(ci, d, PackedColorArray([ornament_color]))
+			add_convex(ci, d, ornament_color)
 
 
 func _accent(ci: RID, pts: PackedVector2Array) -> void:
@@ -156,15 +156,11 @@ func _accent(ci: RID, pts: PackedVector2Array) -> void:
 	if accent_left > 0.0:
 		var band := PackedVector2Array([b.position, Vector2(b.position.x + accent_left, b.position.y),
 			Vector2(b.position.x + accent_left, b.end.y), Vector2(b.position.x, b.end.y)])
-		var clipped := clip_convex(band, pts)
-		if clipped.size() >= 3:
-			RenderingServer.canvas_item_add_polygon(ci, clipped, PackedColorArray([accent_color]))
+		add_convex(ci, clip_convex(band, pts), accent_color)
 	if accent_top > 0.0:
 		var band2 := PackedVector2Array([b.position, Vector2(b.end.x, b.position.y),
 			Vector2(b.end.x, b.position.y + accent_top), Vector2(b.position.x, b.position.y + accent_top)])
-		var clipped2 := clip_convex(band2, pts)
-		if clipped2.size() >= 3:
-			RenderingServer.canvas_item_add_polygon(ci, clipped2, PackedColorArray([accent_color]))
+		add_convex(ci, clip_convex(band2, pts), accent_color)
 
 
 func _get_draw_rect(rect: Rect2) -> Rect2:
@@ -237,6 +233,7 @@ static func hex_points(center: Vector2, rad: float, flat: bool = false, squash: 
 ## Moves every vertex of a convex polygon outward (d > 0) or inward (d < 0) along the
 ## corner bisector.
 static func offset_poly(pts: PackedVector2Array, d: float) -> PackedVector2Array:
+	pts = clean_poly(pts)
 	var n := pts.size()
 	if n < 3 or d == 0.0:
 		return pts
@@ -299,14 +296,46 @@ static func stroke_poly(ci: RID, pts: PackedVector2Array, col: Color, width: flo
 
 ## Layered soft shadow for any convex polygon.
 static func soft_shadow(ci: RID, pts: PackedVector2Array, col: Color, size: float, off: Vector2 = Vector2.ZERO) -> void:
+	var base := clean_poly(pts)
+	if base.size() < 3:
+		return
 	var steps := 6
 	for i in steps:
 		var t := float(steps - i) / steps
-		var grown := offset_poly(pts, size * t)
+		var grown := offset_poly(base, size * t)
 		var moved := PackedVector2Array()
 		for p in grown:
 			moved.append(p + off)
-		RenderingServer.canvas_item_add_polygon(ci, moved, PackedColorArray([Color(col, col.a * (1.0 - t) * 0.42)]))
+		add_convex(ci, moved, Color(col, col.a * (1.0 - t) * 0.42))
+
+
+## Drops consecutive points closer than 0.05 px (and a closing duplicate), so offsets and
+## triangulation never see zero-length edges.
+static func clean_poly(pts: PackedVector2Array) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for p in pts:
+		if out.is_empty() or out[out.size() - 1].distance_squared_to(p) > 0.0025:
+			out.append(p)
+	while out.size() > 3 and out[0].distance_squared_to(out[out.size() - 1]) <= 0.0025:
+		out.remove_at(out.size() - 1)
+	return out
+
+
+## Fills a convex polygon with one color as a triangle fan (no triangulation step, so
+## near-degenerate shapes never fail).
+static func add_convex(ci: RID, pts: PackedVector2Array, col: Color) -> void:
+	var p := clean_poly(pts)
+	if p.size() < 3:
+		return
+	var idx := PackedInt32Array()
+	for i in range(1, p.size() - 1):
+		idx.append(0)
+		idx.append(i)
+		idx.append(i + 1)
+	var cols := PackedColorArray()
+	cols.resize(p.size())
+	cols.fill(col)
+	RenderingServer.canvas_item_add_triangle_array(ci, idx, p, cols)
 
 
 ## Clips `subject` to the convex polygon `clip` (Sutherland-Hodgman).

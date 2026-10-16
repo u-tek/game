@@ -37,7 +37,7 @@ func setup(id: String, text: String, icon_name: String, is_center: bool = false)
 		_hex.anchor_right = 0.5
 		_hex.offset_left = -50
 		_hex.offset_right = 50
-		_hex.offset_top = -34
+		_hex.offset_top = -22
 		_hex.offset_bottom = 78
 		_hex.draw.connect(_draw_hex)
 		add_child(_hex)
@@ -54,8 +54,8 @@ func setup(id: String, text: String, icon_name: String, is_center: bool = false)
 		_bar.modulate.a = 0.0
 		add_child(_bar)
 
-	var isz := ICON + (6.0 if center else 0.0)
-	var top := -14.0 if center else 20.0
+	var isz := ICON + (4.0 if center else 0.0)
+	var top := -2.0 if center else 20.0
 	_icon = Kit.icon(icon_name, isz)
 	_icon.anchor_left = 0.5
 	_icon.anchor_right = 0.5
@@ -112,7 +112,7 @@ func _apply(animate: bool) -> void:
 func _draw_hex() -> void:
 	var ci := _hex.get_canvas_item()
 	var c := Vector2(_hex.size.x * 0.5, 50.0)
-	var r := 50.0
+	var r := 48.0
 	var pts := KitBox.hex_points(c, r)
 	if _active:
 		KitBox.soft_shadow(ci, pts, Color(Kit.ACCENT, 0.55), 16.0)

@@ -2,17 +2,20 @@
 """Plan an art farm run: validate the workflow_dispatch inputs and build the job matrix.
 
 Inputs arrive ONLY as environment variables (never interpolated into shell by the workflow):
-    ART_HEROES   "seraphiel,cassiel" or "all"           (candidates; final uses the keys of ART_SEEDS)
-    ART_MODE     candidates | final
-    ART_COUNT    candidates per hero, 1..12
-    ART_SEEDS    JSON. candidates: optional {"hero": first_seed}. final: {"hero": [seed, ...]} or
-                 {"hero": {"seeds": [...], "run": "<run dir>", "flip": true}}
+    ART_HEROES   "seraphiel,cassiel" or "all"           (candidates; final: optional filter on the ART_SEEDS keys;
+                                                         bench: the hero whose prompt is timed, default seraphiel)
+    ART_MODE     candidates | final | bench
+    ART_COUNT    candidates per hero, 1..12 (bench: jobs, 1..3)
+    ART_SEEDS    JSON. candidates: optional {"hero": first_seed}.
+                 final: {"hero": {"seeds": [...], "run": "<candidate run dir>", "flip": true}} (run required)
     ART_LABEL    free text, reduced to [a-z0-9-], max 40 chars
-    ART_PRESET   a config.PRESETS name
+    ART_PRESET   a config.PRESETS name (CFG must pass config.preset_problems: > 1 and within 4-7)
+    ART_STYLE    a config.STYLES name (farm | bible)
+    ART_DTYPE    fp32 | bf16 (bf16: candidates and bench only)
     ART_PER_JOB  candidates per job (0 = one job per hero); splits a hero over parallel jobs
     GITHUB_RUN_ID
-Writes `matrix=<json>`, `run_dir=<name>`, `jobs=<n>` lines for $GITHUB_OUTPUT on stdout and a
-Markdown summary to $GITHUB_STEP_SUMMARY when set. Exit 2 on invalid input.
+Writes `matrix=<json>`, `run_dir=<name>`, `jobs=<n>`, `preset=`, `style=`, `dtype=` lines for
+$GITHUB_OUTPUT on stdout and a Markdown summary to $GITHUB_STEP_SUMMARY when set. Exit 2 on invalid input.
 """
 import json
 import os
@@ -70,11 +73,22 @@ def parse_seeds(raw):
 
 def build(env, bible):
     mode = (env.get("ART_MODE") or "candidates").strip()
-    if mode not in ("candidates", "final"):
-        raise PlanError("mode must be candidates or final")
+    if mode not in ("candidates", "final", "bench"):
+        raise PlanError("mode must be candidates, final or bench")
     preset = (env.get("ART_PRESET") or C.DEFAULT_PRESET).strip()
     if preset not in C.PRESETS:
         raise PlanError("preset must be one of %s" % ", ".join(sorted(C.PRESETS)))
+    probs = C.preset_problems(C.PRESETS[preset])
+    if probs:
+        raise PlanError("preset %s refused: %s" % (preset, "; ".join(probs)))
+    sty = (env.get("ART_STYLE") or C.DEFAULT_STYLE).strip()
+    if sty not in C.STYLES:
+        raise PlanError("style must be one of %s" % ", ".join(sorted(C.STYLES)))
+    dtype = (env.get("ART_DTYPE") or C.DEFAULT_DTYPE).strip()
+    if dtype not in C.DTYPES:
+        raise PlanError("dtype must be one of %s" % ", ".join(C.DTYPES))
+    if mode == "final" and dtype != "fp32":
+        raise PlanError("final mode runs in fp32 only (bf16 is for candidates and bench)")
     count = _int("count", env.get("ART_COUNT"), 1, C.LIMITS["count_max"], 6)
     per_job = _int("per_job", env.get("ART_PER_JOB"), 0, C.LIMITS["per_job_max"], 0)
     seeds = parse_seeds(env.get("ART_SEEDS"))
@@ -92,6 +106,7 @@ def build(env, bible):
     for k in seeds:
         hero_ok(k)
     include = []
+    limit = C.LIMITS["jobs_max"]
     if mode == "candidates":
         raw = (env.get("ART_HEROES") or "").strip().lower()
         heroes = known if raw in ("all", "*") else [hero_ok(x) for x in re.split(r"[\s,]+", raw) if x]
@@ -109,19 +124,28 @@ def build(env, bible):
                 chunk = all_seeds[ci:ci + size]
                 include.append({"key": "%s-c%d" % (hid, ci // size), "hero": hid,
                                 "seeds": ",".join(map(str, chunk)), "flip": "0", "source_run": ""})
+    elif mode == "bench":
+        limit = C.LIMITS["bench_jobs_max"]
+        raw = (env.get("ART_HEROES") or "").strip().lower()
+        hid = hero_ok(re.split(r"[\s,]+", raw)[0]) if raw and raw not in ("all", "*") else "seraphiel"
+        if count > limit:
+            raise PlanError("bench runs at most %d jobs" % limit)
+        for i in range(count):
+            include.append({"key": "bench-%d" % i, "hero": hid, "seeds": "1", "flip": "0", "source_run": ""})
     else:
+        limit = C.LIMITS["final_jobs_max"]
         if not seeds:
-            raise PlanError('final mode needs seeds, e.g. {"seraphiel": [101001]}')
+            raise PlanError('final mode needs seeds, e.g. {"seraphiel": {"seeds": [101000], "run": "<run dir>"}}')
         only = (env.get("ART_HEROES") or "").strip().lower()
         narrow = None if only in ("", "all", "*") else {hero_ok(x) for x in re.split(r"[\s,]+", only) if x}
         for hid, spec in seeds.items():
             if narrow is not None and hid not in narrow:
                 continue
-            flip, run = False, ""
-            if isinstance(spec, dict):
-                flip = spec.get("flip", False)
-                run = spec.get("run", "") or ""
-                spec = spec.get("seeds")
+            if not isinstance(spec, dict):
+                raise PlanError('final seeds for %s must name the candidate run: {"seeds": [...], "run": "<run dir>"}' % hid)
+            flip = spec.get("flip", False)
+            run = spec.get("run", "")
+            spec = spec.get("seeds")
             if isinstance(spec, int) and not isinstance(spec, bool):
                 spec = [spec]
             if not isinstance(spec, list) or not spec:
@@ -130,8 +154,8 @@ def build(env, bible):
                 raise PlanError("at most %d final seeds per hero" % C.LIMITS["final_seeds_max"])
             if not isinstance(flip, bool):
                 raise PlanError("flip must be true/false")
-            if run and (not isinstance(run, str) or not RUN_RE.match(run)):
-                raise PlanError("bad run name for %s" % hid)
+            if not isinstance(run, str) or not RUN_RE.match(run) or not re.match(r"^[0-9]+-candidates", run):
+                raise PlanError("final seeds for %s need \"run\": the candidate run dir (<run id>-candidates[-label])" % hid)
             for s in spec:
                 include.append({"key": "%s-f%d" % (hid, _seed(s)), "hero": hid, "seeds": str(_seed(s)),
                                 "flip": "1" if flip else "0", "source_run": run})
@@ -140,11 +164,11 @@ def build(env, bible):
     keys = [e["key"] for e in include]
     if len(set(keys)) != len(keys):
         raise PlanError("duplicate jobs (same hero and seed twice)")
-    if len(include) > C.LIMITS["jobs_max"]:
-        raise PlanError("%d jobs is more than the limit %d" % (len(include), C.LIMITS["jobs_max"]))
+    if len(include) > limit:
+        raise PlanError("%d jobs is more than the %s limit %d" % (len(include), mode, limit))
     run_dir = "%s-%s%s" % (run_id, mode, "-" + label if label else "")
     return {"matrix": {"include": include}, "run_dir": run_dir, "jobs": len(include), "mode": mode,
-            "preset": preset, "label": label, "count": count}
+            "preset": preset, "style": sty, "dtype": dtype, "label": label, "count": count}
 
 
 def main():
@@ -156,14 +180,18 @@ def main():
     sys.stdout.write("matrix=%s\n" % json.dumps(plan["matrix"], separators=(",", ":")))
     sys.stdout.write("run_dir=%s\n" % plan["run_dir"])
     sys.stdout.write("jobs=%d\n" % plan["jobs"])
-    sys.stdout.write("preset=%s\n" % plan["preset"])
+    for k in ("preset", "style", "dtype", "mode"):
+        sys.stdout.write("%s=%s\n" % (k, plan[k]))
     summ = os.environ.get("GITHUB_STEP_SUMMARY")
     if summ:
+        p = C.PRESETS[plan["preset"]]
         with open(summ, "a") as f:
-            f.write("### Art farm plan: `%s`\n\n%d job(s), preset `%s`\n\n| job | hero | seeds |\n|---|---|---|\n"
-                    % (plan["run_dir"], plan["jobs"], plan["preset"]))
+            f.write("### Art farm plan: `%s`\n\n%d job(s), preset `%s` (%s, %d steps, CFG %g, %dx%d), style `%s`, "
+                    "dtype `%s`\n\n| job | hero | seeds | source run |\n|---|---|---|---|\n"
+                    % (plan["run_dir"], plan["jobs"], plan["preset"], p["sampler"], p["steps"], p["cfg"], p["width"],
+                       p["height"], plan["style"], plan["dtype"]))
             for e in plan["matrix"]["include"]:
-                f.write("| %s | %s | %s |\n" % (e["key"], e["hero"], e["seeds"]))
+                f.write("| %s | %s | %s | %s |\n" % (e["key"], e["hero"], e["seeds"], e["source_run"] or "-"))
     print("plan: %s, %d job(s)" % (plan["run_dir"], plan["jobs"]), file=sys.stderr)
     return 0
 

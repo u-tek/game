@@ -12,6 +12,8 @@ var border_width := 2.0
 var inner := Color(1, 1, 1, 0.0)
 ## Flat-top instead of pointy-top.
 var flat := false
+## Colored roof over the top third (the faction mark on tier numerals; alpha 0 = none).
+var cap := Color(0, 0, 0, 0)
 ## Glow around the plate (alpha 0 = none).
 var glow := Color(0, 0, 0, 0)
 var glow_size := 0.0
@@ -68,7 +70,7 @@ func _layout() -> void:
 	if _label:
 		var fs: int = _label.get_meta("fs", 0)
 		_label.add_theme_font_size_override("font_size", fs if fs > 0 else int(s * 0.5))
-		_label.position = Vector2.ZERO
+		_label.position = Vector2(0, s * 0.07 if cap.a > 0.0 else 0.0)
 		_label.size = size
 	queue_redraw()
 
@@ -81,6 +83,9 @@ func _draw() -> void:
 	if glow.a > 0.0 and glow_size > 0.0:
 		KitBox.soft_shadow(ci, pts, glow, glow_size)
 	KitBox.fill_poly(ci, pts, fill, fill_bottom)
+	if cap.a > 0.0 and not flat:
+		# Pointy top: vertices 3 (210 deg), 4 (270 deg, top), 5 (330 deg).
+		KitBox.add_convex(ci, PackedVector2Array([pts[3], pts[4], pts[5]]), cap)
 	if inner.a > 0.0:
 		KitBox.stroke_poly(ci, KitBox.offset_poly(pts, -maxf(4.0, r * 0.14)), inner, maxf(1.0, border_width * 0.6))
 	if border.a > 0.0 and border_width > 0.0:

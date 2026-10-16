@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
-"""Offline tests for the art farm (no torch, no network): input validation, the exposure filter's
-fail-closed behaviour, the upload gate, prompt chunking, and both render modes end to end with a
-fake model, fake detectors and placeholder figures.
+"""Offline tests for the art farm (no torch, no network): input validation and the content-rule
+guards (CFG range, presets, dtype), step semantics, the style overlay, the cutout, the exposure
+filter's fail-closed behaviour and canary, the upload gate, the sheets bundle and the stdlib publish
+merge, the workflow's hardening, and every render mode end to end with a fake model, fake detectors
+and placeholder figures.
 
     python3 tools/artgen/test_artgen.py
 """
+import ast
+import hashlib
+import io
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -21,14 +27,22 @@ import numpy as np  # noqa: E402
 from PIL import Image, ImageDraw  # noqa: E402
 
 import collect  # noqa: E402
+import cutout  # noqa: E402
 import gen  # noqa: E402
 import pipeline as P  # noqa: E402
 import plan  # noqa: E402
+import post  # noqa: E402
 import prompts  # noqa: E402
+import publish  # noqa: E402
 import safety  # noqa: E402
+import schedule  # noqa: E402
 import sdxl_chunks  # noqa: E402
+import sheet  # noqa: E402
+import style  # noqa: E402
 
 BIBLE = prompts.load_bible()
+WORKFLOW = os.path.join(C.ROOT, ".github", "workflows", "art-gen.yml")
+QUIET = lambda *a: None  # noqa: E731
 
 
 # ------------------------------------------------------------------ fakes
@@ -50,7 +64,7 @@ def red_square_scorer(threshold=0.25):
     return FakeScorer("redsq", ["EXPOSED"], threshold, fn)
 
 
-def fake_filter(log=lambda *a: None):
+def fake_filter(log=QUIET):
     return safety.ExposureFilter([red_square_scorer(), FakeScorer("second")], log=log)
 
 
@@ -66,83 +80,362 @@ class FakeEncoders:
 class FakeEngine:
     load_s = 0.0
 
-    def __init__(self, hero, poison_seed=None):
-        self.hero, self.lora, self.calls, self.poison_seed = hero, None, [], poison_seed
+    def __init__(self, hero, poison_seed=None, fail_text=None):
+        self.hero, self.calls, self.poison_seed, self.fail_text = hero, [], poison_seed, fail_text
+        self.info = {"dtype": "fp32", "bf16_native": False}
+        self.threads = 4
+        self.kw = []
 
-    def set_lora(self, name, scale=1.0, cache_dir=None):
-        self.lora = {"name": name, "scale": scale} if name else None
+    def _check(self, cfg, emb):
+        prob = C.cfg_problem(cfg)
+        if prob:
+            raise ValueError(prob)
+        assert "neg" in emb and emb["neg"], "negative prompt missing"
 
-    def _info(self, what):
-        return {"what": what, "seconds": 0.1, "steps_run": 1, "s_per_step": 0.1, "decode_s": 0.0, "rss_peak_gb": 0.1}
+    def _info(self, what, steps):
+        return {"what": what, "seconds": 0.1, "steps_run": steps, "s_per_step": 0.01, "decode_s": 0.0,
+                "decode": "untiled", "vmhwm_gb": 0.1, "mem_stage": {"vmhwm_gb": 0.1}}
 
     def txt2img(self, emb, seed, steps, cfg, sampler, width, height):
-        self.calls.append(("txt2img", seed, self.lora))
+        self._check(cfg, emb)
+        self.calls.append(("txt2img", seed, steps, cfg, sampler, (width, height)))
         im = P.placeholder_figure(BIBLE, self.hero, seed, (width, height), label="TEST")
         if seed == self.poison_seed:
             ImageDraw.Draw(im).rectangle([300, 500, 420, 620], fill=(255, 0, 0))
-        return im, self._info("txt2img %dx%d" % (width, height))
+        return im, self._info("txt2img %dx%d" % (width, height), steps)
 
-    def img2img(self, emb, image, strength, seed, steps, cfg, sampler):
-        self.calls.append(("img2img", seed, self.lora))
-        return image.copy(), self._info("img2img")
+    def hires(self, emb, image, size, strength, seed, steps, cfg, sampler):
+        self._check(cfg, emb)
+        self.calls.append(("hires", seed, steps, cfg, sampler, tuple(size), strength))
+        return image.convert("RGB").resize(tuple(size), Image.LANCZOS), self._info("hires", steps)
 
     def inpaint(self, emb, image, mask, strength, seed, steps, cfg, sampler):
-        self.calls.append(("inpaint", seed, self.lora))
+        self._check(cfg, emb)
+        self.calls.append(("inpaint", seed, steps, cfg, sampler, image.size, strength))
+        if self.fail_text and self.fail_text in emb["pos"]:
+            raise RuntimeError("forced inpaint failure")
         out = image.copy()
-        tint = Image.new("RGB", image.size, (60, 200, 255))
-        out.paste(tint, (0, 0), mask)
-        return out, self._info("inpaint")
+        out.paste(Image.new("RGB", image.size, (60, 200, 255)), (0, 0), mask)
+        return out, self._info("inpaint", steps)
+
+    def bench(self, emb, steps, cfg, sampler, width, height, seed=1):
+        self._check(cfg, emb)
+        self.calls.append(("bench", self.threads))
+        return None, dict(self._info("bench", steps), s_per_step_steady=0.01 * self.threads)
+
+    def set_threads(self, n):
+        self.threads = n
+
+    def close(self):
+        pass
 
 
-def components(hero, poison_seed=None):
-    eng = FakeEngine(hero, poison_seed)
-    return eng, {"filter": fake_filter, "encoders": FakeEncoders, "engine": lambda: eng,
-                 "cutter": lambda: None, "faces": lambda: None}
+def fake_source(hero="seraphiel", run="38832421932-candidates-bench-draft", bg=(70, 72, 80)):
+    """A fetch component returning a placeholder 'published candidate' (and recording its calls)."""
+    calls = []
+
+    def fetch(repo, r, h, seed):
+        calls.append((repo, r, h, seed))
+        if r != run or h != hero:
+            raise gen.SourceError("not found: runs/%s/%s" % (r, h))
+        sty = style.full_body(BIBLE, hero, "farm")
+        img = P.placeholder_figure(BIBLE, hero, seed, (832, 1216), label="TEST")
+        meta = {"hero": hero, "mode": "candidates", "seed": seed, "width": 832, "height": 1216, "preset": "standard",
+                "preset_settings": C.PRESETS["standard"], "style": sty["style"], "prompt": sty["positive"],
+                "negative": sty["negative"]}
+        src = {"repo": repo, "run": r, "path": "runs/%s/%s/%s_s%d.webp" % (r, hero, hero, seed), "sha256": "ab" * 32,
+               "preset": "standard", "preset_settings": C.PRESETS["standard"], "style": "farm"}
+        return meta, img, src
+    fetch.calls = calls
+    return fetch
 
 
-# ------------------------------------------------------------------ tests
+def components(hero, poison_seed=None, fail_text=None, fetch=None):
+    eng = FakeEngine(hero, poison_seed, fail_text)
+
+    def engine(**kw):
+        eng.kw.append(kw)
+        return eng
+    return eng, {"filter": fake_filter, "encoders": FakeEncoders, "engine": engine,
+                 "cutter": lambda: None, "faces": lambda: None, "fetch": fetch or fake_source(hero)}
+
+
+def images_in(d):
+    return sorted(os.path.relpath(os.path.join(dp, f), d) for dp, _, fs in os.walk(d) for f in fs
+                  if f.endswith((".png", ".webp")))
+
+
+# ------------------------------------------------------------------ config, presets, CFG
+class TestPresets(unittest.TestCase):
+    def test_default_is_the_model_card(self):
+        self.assertEqual(C.DEFAULT_PRESET, "standard")
+        self.assertEqual(C.FINAL_PRESET, "standard")
+        p = C.PRESETS["standard"]
+        self.assertEqual((p["sampler"], p["steps"], p["cfg"], p["width"], p["height"]),
+                         ("euler_ancestral", 28, 5.0, 832, 1216))
+        self.assertEqual(prompts.family_block(BIBLE, C.FAMILY).get("quality_position"), "end")
+
+    def test_every_preset_keeps_negatives_active(self):
+        self.assertEqual(sorted(C.PRESETS), ["draft", "standard"])
+        for name, p in C.PRESETS.items():
+            self.assertEqual(C.preset_problems(p), [], name)
+            self.assertTrue(p["cfg"] > 1.0 and C.CFG_MIN <= p["cfg"] <= C.CFG_MAX, name)
+            self.assertFalse(p.get("lora"), name)
+        self.assertFalse(hasattr(C, "LORAS"))
+        self.assertNotIn("lightning", json.dumps(C.PRESETS).lower())
+
+    def test_cfg_range(self):
+        for bad in (1.0, 0.5, 1.8, 3.9, 7.5, 12, "x", None):
+            self.assertIsNotNone(C.cfg_problem(bad), bad)
+        for ok in (4, 5.0, 7):
+            self.assertIsNone(C.cfg_problem(ok), ok)
+        self.assertTrue(C.preset_problems({"lora": "lightning8", "sampler": "euler_trailing", "steps": 8, "cfg": 1.0,
+                                           "width": 832, "height": 1216}))
+
+    def test_engine_guard_in_source(self):
+        """sdxl.py needs torch, so check its guard statically: _common always checks CFG and always
+        passes the negative embeddings (no 'if cfg > 1' branch)."""
+        src = open(os.path.join(HERE, "sdxl.py")).read()
+        tree = ast.parse(src)
+        fn = next(n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == "_common")
+        body = ast.get_source_segment(src, fn)
+        self.assertIn("check_cfg(cfg)", body)
+        self.assertIn('"negative_prompt_embeds"', body)
+        self.assertNotRegex(body, r"if\s+cfg\s*>")
+        pick = next(n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == "pick_dtype")
+        self.assertNotIn("auto", ast.get_source_segment(src, pick).split('"""')[-1])
+
+
+class TestSchedule(unittest.TestCase):
+    def test_effective_steps(self):
+        self.assertEqual(schedule.total_steps_for(20, 0.4), 50)
+        self.assertEqual(schedule.total_steps_for(16, 0.35), 46)
+        self.assertEqual(schedule.total_steps_for(14, 0.6), 24)
+        self.assertEqual(schedule.total_steps_for(28, 1.0), 28)
+        for eff, st in ((20, 0.4), (16, 0.35), (14, 0.62), (14, 0.58), (13, 0.29), (7, 0.7)):
+            n = schedule.total_steps_for(eff, st)
+            self.assertEqual(schedule.steps_run(n, st), eff, (eff, st))
+            self.assertLess(schedule.steps_run(n - 1, st), eff, (eff, st))
+        for bad in ((0, 0.5), (10, 0.0), (10, 1.5)):
+            with self.assertRaises(ValueError):
+                schedule.total_steps_for(*bad)
+
+    def test_estimates(self):
+        s = schedule.estimate_s(90, 1000, 1000, 10, overhead_s=0)
+        self.assertAlmostEqual(s, 900.0)
+        self.assertAlmostEqual(schedule.ref_from_measure(90, 1000, 1000), 90.0)
+
+
+# ------------------------------------------------------------------ plan.py
 class TestPlan(unittest.TestCase):
     def env(self, **kw):
         e = {"ART_MODE": "candidates", "ART_HEROES": "seraphiel", "ART_COUNT": "2", "ART_SEEDS": "{}",
-             "ART_PRESET": "lightning8", "ART_PER_JOB": "0", "ART_LABEL": "smoke", "GITHUB_RUN_ID": "123"}
+             "ART_PRESET": "", "ART_STYLE": "", "ART_DTYPE": "", "ART_PER_JOB": "0", "ART_LABEL": "smoke",
+             "GITHUB_RUN_ID": "123"}
         e.update(kw)
         return e
 
-    def test_smoke_plan(self):
+    def test_smoke_plan_defaults(self):
         p = plan.build(self.env(), BIBLE)
         self.assertEqual(p["run_dir"], "123-candidates-smoke")
+        self.assertEqual((p["preset"], p["style"], p["dtype"]), ("standard", "farm", "fp32"))
         self.assertEqual(p["matrix"]["include"], [{"key": "seraphiel-c0", "hero": "seraphiel", "seeds": "101000,101001",
                                                    "flip": "0", "source_run": ""}])
 
     def test_all_heroes_and_split(self):
-        p = plan.build(self.env(ART_HEROES="all", ART_COUNT="6", ART_PER_JOB="3"), BIBLE)
+        p = plan.build(self.env(ART_HEROES="all", ART_COUNT="4", ART_PER_JOB="2"), BIBLE)
         self.assertEqual(p["jobs"], 30)
         self.assertEqual(len({e["key"] for e in p["matrix"]["include"]}), 30)
 
     def test_rejects_bad_input(self):
         for kw in ({"ART_HEROES": "seraphiel; rm -rf /"}, {"ART_HEROES": "nobody"}, {"ART_COUNT": "99"},
-                   {"ART_COUNT": "2; echo"}, {"ART_PRESET": "dmd2"}, {"ART_MODE": "shell"},
+                   {"ART_COUNT": "2; echo"}, {"ART_PRESET": "dmd2"}, {"ART_PRESET": "lightning8"},
+                   {"ART_PRESET": "lightning8_cfg"}, {"ART_PRESET": "lcm8"}, {"ART_MODE": "shell"},
+                   {"ART_STYLE": "anime"}, {"ART_DTYPE": "fp16"}, {"ART_DTYPE": "auto"},
                    {"ART_SEEDS": "not json"}, {"ART_SEEDS": '{"seraphiel": "1; ls"}'},
-                   {"ART_MODE": "final", "ART_SEEDS": "{}"}, {"ART_MODE": "final", "ART_SEEDS": '{"seraphiel": [true]}'},
+                   {"ART_MODE": "final", "ART_SEEDS": "{}"},
+                   {"ART_MODE": "final", "ART_SEEDS": '{"seraphiel": {"seeds": [true], "run": "1-candidates"}}'},
                    {"ART_MODE": "final", "ART_SEEDS": '{"seraphiel": {"seeds": [1], "run": "../x"}}'},
                    {"GITHUB_RUN_ID": "1$(id)"}):
             with self.assertRaises(plan.PlanError, msg=str(kw)):
                 plan.build(self.env(**kw), BIBLE)
 
+    def test_injected_low_cfg_preset_is_refused(self):
+        for cfg in (1.0, 1.8, 8.0):
+            C.PRESETS["nocfg"] = dict(C.PRESETS["standard"], cfg=cfg)
+            try:
+                with self.assertRaises(plan.PlanError):
+                    plan.build(self.env(ART_PRESET="nocfg"), BIBLE)
+                rc = gen.main(["candidates", "--hero", "seraphiel", "--seeds", "1", "--preset", "nocfg",
+                               "--out", tempfile.mkdtemp(), "--work", tempfile.mkdtemp()],
+                              components=components("seraphiel")[1])
+                self.assertEqual(rc, 2)
+            finally:
+                del C.PRESETS["nocfg"]
+
     def test_label_is_cleaned(self):
         p = plan.build(self.env(ART_LABEL="$(curl evil) `x` ../../ OK"), BIBLE)
         self.assertRegex(p["run_dir"], r"^123-candidates-[a-z0-9-]+$")
 
-    def test_final_plan(self):
-        p = plan.build(self.env(ART_MODE="final",
-                                ART_SEEDS='{"seraphiel": {"seeds": [101001], "flip": true, "run": "1-candidates-x"}}'), BIBLE)
-        self.assertEqual(p["matrix"]["include"], [{"key": "seraphiel-f101001", "hero": "seraphiel", "seeds": "101001",
-                                                   "flip": "1", "source_run": "1-candidates-x"}])
+    def test_final_plan_needs_the_candidate_run(self):
+        p = plan.build(self.env(ART_MODE="final", ART_SEEDS='{"seraphiel": {"seeds": [101000], "flip": true, '
+                                                            '"run": "38832421932-candidates-bench-draft"}}'), BIBLE)
+        self.assertEqual(p["matrix"]["include"], [{"key": "seraphiel-f101000", "hero": "seraphiel", "seeds": "101000",
+                                                   "flip": "1", "source_run": "38832421932-candidates-bench-draft"}])
+        for seeds in ('{"seraphiel": [101000]}', '{"seraphiel": {"seeds": [101000]}}',
+                      '{"seraphiel": {"seeds": [101000], "run": "1-final-x"}}'):
+            with self.assertRaises(plan.PlanError, msg=seeds):
+                plan.build(self.env(ART_MODE="final", ART_SEEDS=seeds), BIBLE)
+        with self.assertRaises(plan.PlanError):
+            plan.build(self.env(ART_MODE="final", ART_DTYPE="bf16",
+                                ART_SEEDS='{"seraphiel": {"seeds": [1], "run": "1-candidates"}}'), BIBLE)
 
-    def test_no_dmd2(self):
-        self.assertFalse(any("dmd" in json.dumps(v).lower() for v in C.LORAS.values()))
+    def test_final_jobs_limit(self):
+        seeds = {h: {"seeds": [1, 2, 3, 4], "run": "1-candidates"} for h in list(BIBLE["heroes"])[:5]}
+        with self.assertRaises(plan.PlanError):
+            plan.build(self.env(ART_MODE="final", ART_SEEDS=json.dumps(seeds)), BIBLE)
+
+    def test_bench_plan(self):
+        p = plan.build(self.env(ART_MODE="bench", ART_COUNT="2", ART_HEROES=""), BIBLE)
+        self.assertEqual([e["key"] for e in p["matrix"]["include"]], ["bench-0", "bench-1"])
+        self.assertEqual(p["matrix"]["include"][0]["hero"], "seraphiel")
+        with self.assertRaises(plan.PlanError):
+            plan.build(self.env(ART_MODE="bench", ART_COUNT="5"), BIBLE)
 
 
+# ------------------------------------------------------------------ prompts and style
+class TestPrompts(unittest.TestCase):
+    def test_pack_like_comfy(self):
+        words = [([1, 2], 1.0)] * 37 + [([3, 4, 5], 1.2)]    # 74 tokens, then a 3-token word
+        ch = sdxl_chunks.pack_chunks(words)
+        self.assertEqual([len(c) for c in ch], [74, 3])      # the word moves to the next chunk whole
+        self.assertEqual(ch[1][0], (3, 1.2))
+        long_word = [(list(range(10)), 1.0)]
+        ch = sdxl_chunks.pack_chunks([([0] * 70, 1.0)] + long_word)
+        self.assertEqual([len(c) for c in ch], [75, 5])      # >= 8 tokens: split across chunks
+        self.assertEqual(sdxl_chunks.pack_chunks([]), [[]])
+
+    def test_bible_prompts_pass_enforce(self):
+        for hid in BIBLE["heroes"]:
+            pr = prompts.full_body(BIBLE, hid, C.FAMILY)
+            gen.checked(BIBLE, hid, pr["positive"], pr["negative"])     # enforce() passes for all 15
+
+    def test_farm_style_all_heroes(self):
+        fam = prompts.family_block(BIBLE, C.FAMILY)
+        tail = prompts.join_tags(fam["quality"], fam["rating"])
+        slate = set()
+        for hid, h in BIBLE["heroes"].items():
+            r = style.full_body(BIBLE, hid, "farm")
+            gen.checked(BIBLE, hid, r["positive"], r["negative"])
+            self.assertLessEqual(prompts.clip_stats(r["positive"])["chunks"], 3, hid)
+            self.assertTrue(r["positive"].endswith(tail), hid)                     # quality tags at the END
+            self.assertNotIn("cel shading", prompts.tag_weights(r["positive"]), hid)
+            self.assertIn("from side", prompts.tag_weights(r["positive"]), hid)
+            self.assertIn("shadow", prompts.tag_weights(r["negative"]), hid)
+            self.assertEqual(r["style"]["name"], "farm")
+            if r["background_key"] == "slate":
+                slate.add(hid)
+                self.assertEqual(r["bg_rgb"], C.STYLES["farm"]["background"]["rgb"])
+                self.assertIn("dark grey background", r["positive"])
+            else:
+                self.assertEqual(r["background_key"], prompts.background(BIBLE, hid)[0])
+            f = style.face(BIBLE, hid, "farm")
+            gen.checked(BIBLE, hid, f["positive"], f["negative"])
+            self.assertEqual(f["background_key"], r["background_key"])
+            for v in h["variant_set"]:
+                vp = style.face(BIBLE, hid, "farm", variant=v)
+                gen.checked(BIBLE, hid, vp["positive"], vp["negative"])
+                self.assertEqual(prompts.variant_conflicts(BIBLE, hid, v, vp["positive"]), [], (hid, v))
+        expect = {hid for hid in BIBLE["heroes"] if prompts.background(BIBLE, hid)[0] == "grey"
+                  and "white" in prompts.palette(BIBLE, hid)}
+        self.assertEqual(slate, expect)
+        self.assertNotIn("lucen", slate)
+
+    def test_floating_weapon(self):
+        for hid, h in BIBLE["heroes"].items():
+            floats = [t for t in prompts.split_tags(h["weapon"] + ", " + h["accessories"])
+                      if prompts.norm_tag(t).startswith("floating ")]
+            r = style.full_body(BIBLE, hid, "farm")
+            tw = prompts.tag_weights(r["positive"])
+            for t in floats:
+                self.assertAlmostEqual(tw[prompts.norm_tag(t)], 1.2, msg=hid)
+            held = any("holding" in prompts.norm_tag(t) for f in ("weapon", "accessories", "pose")
+                       for t in prompts.split_tags(h.get(f, "")))
+            self.assertEqual("holding weapon" in prompts.tag_weights(r["negative"]), bool(floats) and not held, hid)
+
+    def test_bible_style_is_the_bible(self):
+        for hid in ("seraphiel", "brakka"):
+            r = style.full_body(BIBLE, hid, "bible")
+            pr = prompts.full_body(BIBLE, hid, C.FAMILY)
+            self.assertEqual((r["positive"], r["negative"]), (pr["positive"], pr["negative"]))
+        before = json.dumps(BIBLE, sort_keys=True)
+        style.full_body(BIBLE, "seraphiel", "farm")
+        self.assertEqual(json.dumps(BIBLE, sort_keys=True), before)       # the bible itself is never touched
+
+
+# ------------------------------------------------------------------ cutout
+class TestCutout(unittest.TestCase):
+    BG = (70, 72, 80)
+
+    def figure(self):
+        """A figure with a ring (halo) enclosing background, two legs and a soft grey ground shadow."""
+        im = Image.new("RGB", (400, 700), self.BG)
+        d = ImageDraw.Draw(im)
+        d.ellipse([130, 30, 270, 170], outline=(240, 200, 90), width=14)            # halo ring
+        d.ellipse([170, 70, 230, 140], fill=(250, 225, 210), outline=(30, 20, 40), width=3)   # head
+        d.rectangle([150, 140, 250, 450], fill=(240, 240, 250), outline=(30, 20, 40), width=3)  # gown
+        for x in (165, 205):
+            d.rectangle([x, 450, x + 30, 640], fill=(250, 225, 210), outline=(30, 20, 40), width=3)  # legs
+        arr = np.asarray(im).astype(np.float32)
+        yy, xx = np.mgrid[0:700, 0:400]
+        sh = (((xx - 200) / 120.0) ** 2 + ((yy - 645) / 18.0) ** 2) < 1.0
+        legs = np.zeros_like(sh)
+        legs[450:642, 163:198] = True
+        legs[450:642, 203:238] = True
+        sh &= ~legs
+        arr[sh] = arr[sh] * 0.6                                                      # darker, same chroma
+        return Image.fromarray(arr.astype(np.uint8))
+
+    def isnet(self, img):
+        """Fake isnet: everything not background-coloured, PLUS the ring interior and the shadow (its failure modes)."""
+        a = np.asarray(img).astype(np.float32)
+        m = np.linalg.norm(a - np.array(self.BG, np.float32), axis=2) > 10
+        yy, xx = np.mgrid[0:700, 0:400]
+        m |= ((xx - 200) ** 2 + (yy - 100) ** 2) < 70 ** 2                          # ring interior "figure"
+        return Image.fromarray((m * 255).astype(np.uint8), "L")
+
+    def test_holes_and_shadow(self):
+        img = self.figure()
+        rgba, info = cutout.artgen_cutout(img, self.isnet(img))
+        a = np.asarray(rgba)[..., 3]
+        self.assertEqual(rgba.mode, "RGBA")
+        self.assertLess(a[155, 160], 10, "ring interior beside the head must be transparent")   # inside the ring
+        self.assertLess(a[648, 120], 10, "ground shadow left of the legs must be transparent")
+        self.assertLess(a[648, 280], 10, "ground shadow right of the legs must be transparent")
+        self.assertGreater(a[630, 180], 245, "the legs stay")
+        self.assertGreater(a[300, 200], 245, "the gown stays")
+        self.assertGreater(a[100, 135], 200, "the ring itself stays")
+        self.assertGreater(info["hole_px"], 0)
+        self.assertGreater(info["shadow_px"], 0)
+
+    def test_without_isnet(self):
+        img = self.figure()
+        rgba, info = cutout.artgen_cutout(img, None)
+        a = np.asarray(rgba)[..., 3]
+        self.assertLess(a[648, 120], 10)
+        self.assertGreater(a[630, 180], 245)
+        self.assertEqual(info["method"], "colour flood + shadow")
+
+    def test_white_gown_is_not_shadow(self):
+        im = Image.new("RGB", (300, 500), (128, 128, 128))
+        d = ImageDraw.Draw(im)
+        d.rectangle([100, 50, 200, 480], fill=(150, 150, 150), outline=(20, 20, 20), width=3)   # lighter grey hem
+        rgba, info = cutout.artgen_cutout(im, None)
+        self.assertGreater(np.asarray(rgba)[470, 150, 3], 245)
+        self.assertEqual(info["shadow_px"], 0)
+
+
+# ------------------------------------------------------------------ filter
 class TestFilter(unittest.TestCase):
     def setUp(self):
         self.d = tempfile.mkdtemp()
@@ -166,19 +459,16 @@ class TestFilter(unittest.TestCase):
         self.assertEqual(rep["flagged"][0]["class"], "EXPOSED")
 
     def test_tiles_catch_small_details(self):
-        # 40x40 red in a 1024x2048 image: ~0.08% of the full view, but a large share of a 512 tile
         im = Image.new("RGB", (1024, 2048), (128, 128, 128))
         ImageDraw.Draw(im).rectangle([600, 900, 640, 940], fill=(255, 0, 0))
-        f = fake_filter()
-        ok, rep = f.check_image(im)
+        ok, rep = fake_filter().check_image(im)
         self.assertFalse(ok)
         self.assertTrue(rep["flagged"][0]["view"].startswith("t"))
 
     def test_detector_error_drops(self):
         def boom(img):
             raise RuntimeError("model crashed")
-        f = safety.ExposureFilter([FakeScorer(fn=boom)])
-        ok, rep = f.check_file(self.img("a.png"))
+        ok, rep = safety.ExposureFilter([FakeScorer(fn=boom)]).check_file(self.img("a.png"))
         self.assertFalse(ok)
         self.assertIn("model crashed", rep["error"])
 
@@ -212,6 +502,31 @@ class TestFilter(unittest.TestCase):
         with self.assertRaises(safety.FilterUnavailable):     # a filter that drops everything fails the self-test
             safety.ExposureFilter([FakeScorer(fn=lambda img: {"EXPOSED": 0.99})]).selftest()
 
+    def canary_scorers(self, breast, censor):
+        return [FakeScorer("nudenet", C.FILTER["nudenet_classes"], 0.25,
+                           lambda img: dict({c: 0.001 for c in C.FILTER["nudenet_classes"]},
+                                            FEMALE_BREAST_EXPOSED=breast if img.size[0] > 600 else 0.01)),
+                FakeScorer("anime_censor", C.FILTER["anime_classes"], 0.25,
+                           lambda img: dict({c: 0.001 for c in C.FILTER["anime_classes"]},
+                                            penis=censor if img.size[0] > 600 else 0.01))]
+
+    def test_canary_file_matches_config(self):
+        spec = C.FILTER["canary"]
+        self.assertEqual(safety.sha256_file(os.path.join(HERE, spec["file"])), spec["sha256"])
+        self.assertTrue(spec["bands"]["nudenet"]["FEMALE_BREAST_EXPOSED"][1] <= C.FILTER["nudenet_threshold"])
+
+    def test_canary_bands(self):
+        safety.ExposureFilter(self.canary_scorers(0.2259, 0.1053)).selftest(canary=True)    # measured values
+        for breast, censor in ((0.0, 0.0), (0.02, 0.1), (0.2, 0.001), (0.3, 0.1)):
+            with self.assertRaises(safety.FilterUnavailable, msg=(breast, censor)):
+                safety.ExposureFilter(self.canary_scorers(breast, censor)).selftest(canary=True)
+        bad = dict(C.FILTER["canary"], sha256="0" * 64)
+        with self.assertRaises(safety.FilterUnavailable):
+            safety.ExposureFilter(self.canary_scorers(0.2259, 0.1053)).canary(bad)
+        with self.assertRaises(safety.FilterUnavailable):
+            safety.ExposureFilter(self.canary_scorers(0.2259, 0.1053)).canary(dict(bad, file="testdata/missing.webp"))
+        self.assertFalse(fake_filter().default)          # test detectors: the canary is not part of selftest()
+
     def test_rgba_is_flattened(self):
         im = Image.new("RGBA", (256, 256), (255, 0, 0, 0))      # transparent red = invisible
         self.assertTrue(fake_filter().check_image(im)[0])
@@ -226,56 +541,36 @@ class TestFilter(unittest.TestCase):
         self.assertFalse(os.path.exists(os.path.join(self.d, "b.png")))    # dropped = deleted, not kept
         self.assertFalse(os.path.exists(os.path.join(out, "h", "b.png")))
         pub.write_json("h/g.json", {"a": 1})
-        # sneak files in: an unlisted image, a tampered image, a disallowed type, broken json
         Image.new("RGB", (8, 8)).save(os.path.join(out, "h", "sneak.png"))
         Image.new("RGB", (8, 8)).save(os.path.join(out, "h", "sneak.jpg"))
         with open(os.path.join(out, "h", "note.txt"), "w") as fh:
             fh.write("x")
         with open(os.path.join(out, "h", "bad.json"), "w") as fh:
             fh.write("{")
-        res = safety.verify(out, log=lambda *a: None)
-        left = sorted(os.listdir(os.path.join(out, "h")))
-        self.assertEqual(left, ["g.json", "g.png"])
+        res = safety.verify(out, log=QUIET)
+        self.assertEqual(sorted(os.listdir(os.path.join(out, "h"))), ["g.json", "g.png"])
         self.assertEqual(res["deleted"], 4)
         with open(good, "ab") as fh:                 # changed after the filter
             fh.write(b"\0")
-        safety.verify(out, log=lambda *a: None)
+        safety.verify(out, log=QUIET)
         self.assertFalse(os.path.exists(good))
 
     def test_verify_without_manifest_deletes_images(self):
         out = os.path.join(self.d, "o")
         os.makedirs(out)
         Image.new("RGB", (8, 8)).save(os.path.join(out, "a.png"))
-        safety.verify(out, log=lambda *a: None)
+        safety.verify(out, log=QUIET)
         self.assertEqual(os.listdir(out), [])
 
     def test_publish_rejects_other_types(self):
-        out = os.path.join(self.d, "out")
-        pub = safety.Publisher(fake_filter(), out)
+        pub = safety.Publisher(fake_filter(), os.path.join(self.d, "out"))
         with self.assertRaises(ValueError):
             pub.publish(self.img("g.jpg"), "h/g.jpg")
         with self.assertRaises(ValueError):
             pub.write_json("../escape.json", {})
 
 
-class TestChunks(unittest.TestCase):
-    def test_pack_like_comfy(self):
-        words = [([1, 2], 1.0)] * 37 + [([3, 4, 5], 1.2)]    # 74 tokens, then a 3-token word
-        ch = sdxl_chunks.pack_chunks(words)
-        self.assertEqual([len(c) for c in ch], [74, 3])      # the word moves to the next chunk whole
-        self.assertEqual(ch[1][0], (3, 1.2))
-        long_word = [(list(range(10)), 1.0)]
-        ch = sdxl_chunks.pack_chunks([([0] * 70, 1.0)] + long_word)
-        self.assertEqual([len(c) for c in ch], [75, 5])      # >= 8 tokens: split across chunks
-        self.assertEqual(sdxl_chunks.pack_chunks([]), [[]])
-
-    def test_prompts_fit_two_chunks(self):
-        for hid in BIBLE["heroes"]:
-            pr = prompts.full_body(BIBLE, hid, C.FAMILY)
-            self.assertLessEqual(pr["stats"]["positive"]["chunks"], 2, hid)
-            gen.checked(BIBLE, hid, pr["positive"], pr["negative"])     # enforce() passes for all 15
-
-
+# ------------------------------------------------------------------ render modes
 class TestModes(unittest.TestCase):
     def setUp(self):
         self.d = tempfile.mkdtemp()
@@ -283,8 +578,8 @@ class TestModes(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.d, ignore_errors=True)
 
-    def run_gen(self, args, comps):
-        out, work = os.path.join(self.d, "out"), os.path.join(self.d, "work")
+    def run_gen(self, args, comps, out_name="out"):
+        out, work = os.path.join(self.d, out_name), os.path.join(self.d, "work_" + out_name)
         rc = gen.main(args + ["--out", out, "--work", work, "--key", "k", "--run", "1-test"], components=comps)
         return rc, out
 
@@ -295,15 +590,30 @@ class TestModes(unittest.TestCase):
         files = sorted(os.listdir(os.path.join(out, "seraphiel")))
         self.assertIn("seraphiel_s101000.webp", files)
         self.assertNotIn("seraphiel_s101001.webp", files)            # the poisoned one was dropped
-        meta = json.load(open(os.path.join(out, "seraphiel", "seraphiel_s101001.json")))
-        self.assertTrue(meta["dropped"])
+        self.assertTrue(json.load(open(os.path.join(out, "seraphiel", "seraphiel_s101001.json")))["dropped"])
         meta = json.load(open(os.path.join(out, "seraphiel", "seraphiel_s101000.json")))
-        self.assertEqual(meta["lora"]["name"], "lightning8")
+        self.assertIsNone(meta["lora"])
+        self.assertEqual((meta["preset"], meta["style"]["name"], meta["dtype"]), ("standard", "farm", "fp32"))
+        self.assertEqual((meta["width"], meta["height"]), (832, 1216))
+        self.assertEqual(meta["background"]["key"], "slate")
         self.assertIn("adult", meta["prompt"])
-        man = json.load(open(os.path.join(out, safety.MANIFEST)))
-        self.assertEqual(len(man["dropped"]), 1)
-        self.assertEqual(safety.verify(out, log=lambda *a: None)["deleted"], 0)
-        self.assertEqual([c[0] for c in eng.calls], ["txt2img", "txt2img"])
+        self.assertEqual([c[:6] for c in eng.calls],
+                         [("txt2img", s, 28, 5.0, "euler_ancestral", (832, 1216)) for s in (101000, 101001)])
+        self.assertEqual(eng.kw, [{"dtype": "fp32", "lazy_unet": False}])
+        self.assertEqual(len(json.load(open(os.path.join(out, safety.MANIFEST)))["dropped"]), 1)
+        self.assertEqual(safety.verify(out, log=QUIET)["deleted"], 0)
+        job = json.load(open(os.path.join(out, "seraphiel", "job_k.json")))
+        self.assertEqual(job["exit_code"], 0)
+        self.assertNotIn("loras", job["licenses"])
+
+    def test_draft_opt_in_and_bible_style(self):
+        eng, comps = components("seraphiel")
+        rc, out = self.run_gen(["candidates", "--hero", "seraphiel", "--seeds", "101000", "--preset", "draft",
+                                "--style", "bible"], comps)
+        self.assertEqual(rc, 0)
+        self.assertEqual(eng.calls[0][2:5], (14, 5.0, "dpmpp_2m_karras"))
+        meta = json.load(open(os.path.join(out, "seraphiel", "seraphiel_s101000.json")))
+        self.assertEqual((meta["background"]["key"], meta["style"]["name"]), ("grey", "bible"))
 
     def test_filter_unavailable_refuses_to_render(self):
         eng, comps = components("seraphiel")
@@ -314,41 +624,181 @@ class TestModes(unittest.TestCase):
         rc, out = self.run_gen(["candidates", "--hero", "seraphiel", "--seeds", "101000"], comps)
         self.assertEqual(rc, 3)
         self.assertEqual(eng.calls, [])
-        self.assertFalse(os.path.exists(out) and any(f.endswith((".png", ".webp")) for _, _, fs in os.walk(out) for f in fs))
+        self.assertFalse(os.path.exists(out) and images_in(out))
 
-    def test_final_end_to_end(self):
+    def final_args(self, *extra):
+        return ["final", "--hero", "seraphiel", "--seeds", "101000", "--source-run",
+                "38832421932-candidates-bench-draft", "--face-px", "512", "--variant-px", "512", *extra]
+
+    def test_final_from_published_candidate(self):
         eng, comps = components("seraphiel")
-        rc, out = self.run_gen(["final", "--hero", "seraphiel", "--seeds", "101001", "--no-source",
-                                "--inpaint-px", "256"], comps)
+        rc, out = self.run_gen(self.final_args(), comps)
         self.assertEqual(rc, 0)
-        fd = os.path.join(out, "seraphiel", "final_s101001")
+        self.assertEqual([c[1:] for c in comps["fetch"].calls], [("38832421932-candidates-bench-draft", "seraphiel", 101000)])
+        kinds = [c[0] for c in eng.calls]
+        names = BIBLE["heroes"]["seraphiel"]["variant_set"]
+        self.assertNotIn("txt2img", kinds)                               # the preview is the base
+        self.assertEqual(kinds, ["hires"] + ["inpaint"] * (1 + len(names)))
+        hires = eng.calls[0]
+        hs = prompts.family_block(BIBLE, C.FAMILY)["settings"]["hires"]
+        self.assertEqual(hires[2:7], (hs["steps"], 5.0, "euler_ancestral", (1248, 1824), hs["denoise_model"]))
+        self.assertEqual(eng.calls[1][2], C.FINAL["face_steps"])          # effective steps
+        self.assertEqual(eng.calls[2][2], C.FINAL["variant_steps"])
+        self.assertEqual(eng.kw, [{"dtype": "fp32", "lazy_unet": True}])
+        fd = os.path.join(out, "seraphiel", "final_s101000")
         canvas = Image.open(os.path.join(fd, "seraphiel.png"))
         self.assertEqual((canvas.size, canvas.mode), ((1024, 2048), "RGBA"))
-        names = BIBLE["heroes"]["seraphiel"]["variant_set"]
         for n in names:
             v = Image.open(os.path.join(fd, "variants", n + ".png"))
             self.assertEqual(v.size, canvas.size)
             self.assertTrue(np.array_equal(np.asarray(v)[..., 3], np.asarray(canvas)[..., 3]))   # same alpha
-        with open(os.path.join(fd, "variants", "variants.json")) as fh:
-            vj = json.load(fh)
+        vj = json.load(open(os.path.join(fd, "variants", "variants.json")))
         self.assertEqual(sorted(vj["variants"]), sorted(names))
         for n in names:
             self.assertEqual(vj["variants"][n]["tries"][0]["alignment_problems"], [])
         meta = json.load(open(os.path.join(fd, "seraphiel.json")))
         self.assertEqual(meta["origin"], [512, 1990])
-        kinds = [c[0] for c in eng.calls]
-        self.assertEqual(kinds[:2], ["txt2img", "img2img"])
-        self.assertEqual(eng.calls[0][2]["name"], "lightning8")        # base with the candidate LoRA
-        self.assertIsNone(eng.calls[1][2])                              # quality passes without it
-        self.assertEqual(kinds.count("inpaint"), 1 + len(names))       # face polish + variants
-        self.assertEqual(safety.verify(out, log=lambda *a: None)["deleted"], 0)
-        for p in ("seraphiel_base.webp", "seraphiel_source.webp", "seraphiel_portrait.png", "variants_sheet.png",
-                  "masks/eyes.png"):
+        self.assertEqual(meta["status"], "done")
+        self.assertEqual(meta["source_candidate"]["run"], "38832421932-candidates-bench-draft")
+        self.assertIn("spec", meta)
+        self.assertEqual(meta["spec"]["feet_row"], 1990)
+        self.assertEqual(meta["style"]["name"], "farm")
+        self.assertEqual(safety.verify(out, log=QUIET)["deleted"], 0)
+        for p in ("seraphiel_hires.webp", "seraphiel_source.webp", "seraphiel_portrait.png", "seraphiel_check.webp",
+                  "seraphiel_boxes.webp", "variants_sheet.webp", "masks/eyes.png", "variants/eyes_open_patch.png"):
             self.assertTrue(os.path.exists(os.path.join(fd, p)), p)
+        self.assertFalse(os.path.exists(os.path.join(fd, "seraphiel_base.webp")))    # already on the branch
+        self.assertFalse(os.path.exists(os.path.join(fd, "variants", "candidates")))  # only with --variant-tries > 1
+        self.assertFalse([p for p in images_in(fd) if p.endswith(("_check.png", "_boxes.png", "sheet.png"))])
+        job = json.load(open(os.path.join(out, "seraphiel", "job_k.json")))
+        self.assertTrue(job["stage_mem"])
+        self.assertEqual(job["dtype"], "fp32")
+
+    def test_final_variant_error_is_isolated(self):
+        eng, comps = components("seraphiel", fail_text="singing")       # only mouth_open's prompt has it
+        rc, out = self.run_gen(self.final_args(), comps)
+        self.assertEqual(rc, 5)
+        fd = os.path.join(out, "seraphiel", "final_s101000")
+        self.assertTrue(os.path.exists(os.path.join(fd, "seraphiel.png")))
+        vj = json.load(open(os.path.join(fd, "variants", "variants.json")))
+        self.assertIn("error", vj["variants"]["mouth_open"])
+        for n in ("eyes_open", "smile"):
+            self.assertTrue(os.path.exists(os.path.join(fd, "variants", n + ".png")), n)
+        meta = json.load(open(os.path.join(fd, "seraphiel.json")))
+        self.assertEqual(meta["status"], "done with errors")
+
+    def test_final_missing_source_renders_nothing(self):
+        eng, comps = components("seraphiel")
+        rc, out = self.run_gen(["final", "--hero", "seraphiel", "--seeds", "101000", "--source-run",
+                                "999-candidates-nothing"], comps)
+        self.assertEqual(rc, 6)
+        self.assertEqual(eng.calls, [])
+        self.assertEqual(eng.kw, [])
+        self.assertEqual(images_in(out), [])
+        self.assertEqual(gen.main(["final", "--hero", "seraphiel", "--seeds", "1", "--out", out, "--work", out]), 2)
+
+    def test_final_tiny_budget_skips_hires(self):
+        eng, comps = components("seraphiel")
+        rc, out = self.run_gen(self.final_args("--max-minutes", "0.01"), comps)
+        self.assertEqual(rc, 5)
+        self.assertEqual(eng.calls, [])
+        self.assertFalse(os.path.exists(os.path.join(out, "seraphiel", "final_s101000", "seraphiel.png")))
+        meta = json.load(open(os.path.join(out, "seraphiel", "final_s101000", "seraphiel.json")))
+        self.assertIn("hires: time budget", meta["skipped"])
+
+    def test_final_no_source_renders_a_base(self):
+        eng, comps = components("seraphiel")
+        rc, out = self.run_gen(["final", "--hero", "seraphiel", "--seeds", "101000", "--no-source", "--face-px", "512",
+                                "--variant-px", "512", "--no-variants"], comps)
+        self.assertEqual(rc, 0)
+        self.assertEqual([c[0] for c in eng.calls], ["txt2img", "hires", "inpaint"])
+        self.assertTrue(os.path.exists(os.path.join(out, "seraphiel", "final_s101000", "seraphiel_base.webp")))
+
+    def test_final_refuses_bf16(self):
+        _eng, comps = components("seraphiel")
+        rc, _out = self.run_gen(self.final_args("--dtype", "bf16"), comps)
+        self.assertEqual(rc, 2)
+
+    def test_bench_writes_no_images(self):
+        eng, comps = components("seraphiel")
+        rc, out = self.run_gen(["bench", "--hero", "seraphiel"], comps)
+        self.assertEqual(rc, 0)
+        self.assertEqual(images_in(out), [])
+        job = json.load(open(os.path.join(out, "seraphiel", "job_k.json")))
+        self.assertEqual([r["threads"] for r in job["bench"]["results"]], [4, 2])
+        self.assertEqual(eng.calls, [("bench", 4), ("bench", 2)])
+
+
+class TestFetchCandidate(unittest.TestCase):
+    def store(self, **over):
+        img = P.placeholder_figure(BIBLE, "seraphiel", 101000, (832, 1216), label="TEST")
+        buf = io.BytesIO()
+        img.save(buf, format="WEBP", quality=90)
+        blob = buf.getvalue()
+        meta = {"hero": "seraphiel", "mode": "candidates", "seed": 101000, "image": "seraphiel_s101000.webp",
+                "dropped": False, "width": 832, "height": 1216, "preset": "draft", "preset_settings": C.PRESETS["draft"],
+                "prompt": "p", "negative": "n"}
+        meta.update(over.pop("meta", {}))
+        man = {"files": {"seraphiel/seraphiel_s101000.webp": {"sha256": hashlib.sha256(blob).hexdigest(), "passed": True}}}
+        man.update(over.pop("man", {}))
+        files = {"seraphiel/seraphiel_s101000.json": json.dumps(meta).encode(), safety.MANIFEST: json.dumps(man).encode(),
+                 "seraphiel/seraphiel_s101000.webp": over.pop("blob", blob)}
+
+        def get(url, limit):
+            rel = url.split("/runs/1-candidates-x/", 1)[1]
+            if rel not in files:
+                raise gen.SourceError("not found: " + url)
+            return files[rel]
+        return get
+
+    def test_ok(self):
+        meta, img, src = gen.fetch_candidate("u-tek/game", "1-candidates-x", "seraphiel", 101000, get=self.store())
+        self.assertEqual(img.size, (832, 1216))
+        self.assertEqual(src["style"], "bible")                  # no style recorded = the bible's prompts
+        self.assertEqual(src["path"], "runs/1-candidates-x/seraphiel/seraphiel_s101000.webp")
+
+    def test_rejects(self):
+        cases = [dict(meta={"dropped": True}), dict(meta={"mode": "final"}), dict(meta={"seed": 1}),
+                 dict(meta={"width": 768}), dict(man={"files": {}}), dict(blob=b"RIFF0000WEBPjunk")]
+        for c in cases:
+            with self.assertRaises(gen.SourceError, msg=str(c)[:60]):
+                gen.fetch_candidate("u-tek/game", "1-candidates-x", "seraphiel", 101000, get=self.store(**c))
+        for repo, run in (("u-tek/game;x", "1-candidates-x"), ("u-tek/game", "../x")):
+            with self.assertRaises(gen.SourceError):
+                gen.fetch_candidate(repo, run, "seraphiel", 101000, get=self.store())
+
+
+# ------------------------------------------------------------------ sheets job and publish job
+class TestSheetsAndPublish(unittest.TestCase):
+    def setUp(self):
+        self.d = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.d, ignore_errors=True)
+
+    def candidates_out(self, name, seeds="101000"):
+        _eng, comps = components("seraphiel")
+        out = os.path.join(self.d, name)
+        gen.main(["candidates", "--hero", "seraphiel", "--seeds", seeds, "--out", out, "--work",
+                  os.path.join(self.d, "w_" + name), "--key", name, "--run", "1-test"], components=comps)
+        return out
+
+    def bundle(self, name, seeds="101000", plan_keys=("k",)):
+        incoming = os.path.join(self.d, "in_" + name)
+        os.makedirs(incoming)
+        shutil.copytree(self.candidates_out(name, seeds), os.path.join(incoming, "art-" + name))
+        bdir = os.path.join(self.d, "bundle_" + name)
+        orig = safety.ExposureFilter
+        safety.ExposureFilter = lambda log=None: fake_filter()
+        try:
+            collect.main(["--incoming", incoming, "--run-dir", "1-test", "--out", bdir,
+                          "--plan-json", json.dumps({"include": [{"key": k} for k in plan_keys]})])
+        finally:
+            safety.ExposureFilter = orig
+        return bdir
 
     def test_collect_merges_and_gates(self):
-        _eng, comps = components("seraphiel")
-        _rc, out = self.run_gen(["candidates", "--hero", "seraphiel", "--seeds", "101000"], comps)
+        out = self.candidates_out("k")
         incoming = os.path.join(self.d, "incoming")
         shutil.copytree(out, os.path.join(incoming, "art-seraphiel-c0"))
         Image.new("RGB", (8, 8)).save(os.path.join(incoming, "art-seraphiel-c0", "seraphiel", "rogue.png"))
@@ -357,34 +807,191 @@ class TestModes(unittest.TestCase):
         merged, jobs = collect.merge_artifacts(incoming, stage)
         self.assertNotIn("seraphiel/rogue.png", merged["files"])
         self.assertFalse(os.path.exists(os.path.join(stage, "seraphiel", "rogue.png")))
-        sheets = collect.make_sheets(stage, merged, fake_filter())
-        self.assertIn("seraphiel/contact_sheet.png", sheets)
+        titles = []
+        orig = post.contact_sheet
+        post.contact_sheet = lambda entries, out_path, **kw: (titles.append(kw.get("title")), orig(entries, out_path, **kw))[1]
+        try:
+            sheets = collect.make_sheets(stage, merged, fake_filter(), run_name="1-test")
+        finally:
+            post.contact_sheet = orig
+        self.assertEqual(sorted(sheets), ["overview.webp", "seraphiel/contact_sheet.webp"])
+        self.assertTrue(all("1-test" in t and "artgen_" not in t for t in titles), titles)
         collect.write_manifest(stage, merged)
-        self.assertEqual(safety.verify(stage, log=lambda *a: None)["deleted"], 0)
+        self.assertEqual(safety.verify(stage, log=QUIET)["deleted"], 0)
         idx = collect.run_index("1-test", stage, merged, jobs, {"include": [{"key": "k"}, {"key": "x"}]}, sheets, "")
         self.assertEqual(idx["jobs_missing"], ["x"])
         self.assertEqual(idx["filter_totals"]["published_images"], 3)
 
-    def test_collect_push_to_local_remote(self):
-        _eng, comps = components("seraphiel")
-        _rc, out = self.run_gen(["candidates", "--hero", "seraphiel", "--seeds", "101000"], comps)
-        stage = os.path.join(self.d, "stage")
-        shutil.copytree(out, stage)
+    def test_verify_bundle_rejects(self):
+        b = self.bundle("k")
+        hdir = os.path.join(b, "seraphiel")
+        good = os.path.join(hdir, "seraphiel_s101000.webp")
+        man = json.load(open(os.path.join(b, publish.MANIFEST)))
+        # a recorded name whose bytes are not a WebP, an unrecorded image, a symlink, a bad type, broken JSON
+        fake = os.path.join(hdir, "fake.webp")
+        with open(fake, "wb") as fh:
+            fh.write(b"GIF89a not webp")
+        man["files"]["seraphiel/fake.webp"] = {"sha256": publish.sha256_file(fake), "passed": True}
+        json.dump(man, open(os.path.join(b, publish.MANIFEST), "w"))
+        Image.new("RGB", (8, 8)).save(os.path.join(hdir, "unrecorded.png"))
+        os.symlink(good, os.path.join(hdir, "link.webp"))
+        with open(os.path.join(hdir, "x.sh"), "w") as fh:
+            fh.write("echo")
+        with open(os.path.join(hdir, "bad.json"), "w") as fh:
+            fh.write("{")
+        res, _ = publish.verify_bundle(b)
+        self.assertEqual(res["deleted"], 5)
+        self.assertEqual(sorted(f for f in os.listdir(hdir) if not f.endswith(".json")),
+                         ["contact_sheet.webp", "seraphiel_s101000.webp"])
+        with open(good, "ab") as fh:                       # changed after the filter
+            fh.write(b"\0")
+        publish.verify_bundle(b)
+        self.assertFalse(os.path.exists(good))
+
+    def git_remote(self):
         remote = os.path.join(self.d, "remote.git")
         subprocess.run(["git", "init", "-q", "--bare", remote], check=True)
-        bdir = os.path.join(self.d, "branch")
-        os.makedirs(bdir)
-        subprocess.run(["git", "init", "-q"], cwd=bdir, check=True)
-        subprocess.run(["git", "remote", "add", "origin", remote], cwd=bdir, check=True)
-        subprocess.run(["git", "config", "user.name", "t"], cwd=bdir, check=True)
-        subprocess.run(["git", "config", "user.email", "t@t"], cwd=bdir, check=True)
-        self.assertTrue(collect.push(stage, "1-test", bdir, "x/y", ""))
-        self.assertTrue(collect.push(stage, "2-test", bdir, "x/y", ""))   # second run onto the existing branch
-        ls = subprocess.run(["git", "ls-tree", "-r", "--name-only", "art-gen-output"], cwd=remote,
-                            capture_output=True, text=True, check=True).stdout.split()
-        self.assertIn("runs/1-test/seraphiel/seraphiel_s101000.webp", ls)
-        self.assertIn("runs/2-test/seraphiel/seraphiel_s101000.webp", ls)
-        self.assertIn("index.json", ls)
+        return "file://" + remote
+
+    def ls(self, remote):
+        return subprocess.run(["git", "--git-dir", remote[7:], "ls-tree", "-r", "--name-only", publish.BRANCH],
+                              capture_output=True, text=True, check=True).stdout.split()
+
+    def show(self, remote, path):
+        return subprocess.run(["git", "--git-dir", remote[7:], "show", "%s:%s" % (publish.BRANCH, path)],
+                              capture_output=True, check=True).stdout
+
+    def test_publish_merges_never_deletes(self):
+        remote = self.git_remote()
+        b1 = self.bundle("a", seeds="101000,101001", plan_keys=("a", "b"))
+        publish.verify_bundle(b1)
+        self.assertTrue(publish.publish(b1, "1-test", remote, os.path.join(self.d, "w1")))
+        first = self.ls(remote)
+        self.assertIn("runs/1-test/seraphiel/seraphiel_s101000.webp", first)
+        self.assertIn("runs/1-test/seraphiel/seraphiel_s101001.webp", first)
+        # a re-run that only has job b's (different) output and fewer files: nothing published is deleted
+        b2 = self.bundle("b", seeds="101002", plan_keys=("a", "b"))
+        publish.verify_bundle(b2)
+        self.assertTrue(publish.publish(b2, "1-test", remote, os.path.join(self.d, "w2")))
+        second = self.ls(remote)
+        self.assertTrue(set(first) <= set(second), set(first) - set(second))
+        self.assertIn("runs/1-test/seraphiel/seraphiel_s101002.webp", second)
+        man = json.loads(self.show(remote, "runs/1-test/filter_manifest.json"))
+        for s in (101000, 101001, 101002):
+            self.assertIn("seraphiel/seraphiel_s%d.webp" % s, man["files"])
+        self.assertEqual(sorted(man["jobs"]), ["a", "b"])
+        idx = json.loads(self.show(remote, "runs/1-test/index.json"))
+        self.assertEqual(idx["jobs_missing"], [])
+        self.assertEqual(sorted(j["key"] for j in idx["jobs"]), ["a", "b"])
+        branch = json.loads(self.show(remote, "index.json"))
+        self.assertEqual([r["run"] for r in branch["runs"]], ["1-test"])
+        # a changed file with the same name replaces the old one
+        b3 = self.bundle("c", seeds="101000", plan_keys=("c",))
+        publish.verify_bundle(b3)
+        new_sha = publish.sha256_file(os.path.join(b3, "seraphiel", "seraphiel_s101000.webp"))
+        self.assertTrue(publish.publish(b3, "1-test", remote, os.path.join(self.d, "w3")))
+        self.assertEqual(hashlib.sha256(self.show(remote, "runs/1-test/seraphiel/seraphiel_s101000.webp")).hexdigest(),
+                         new_sha)
+        # another run lands next to it
+        self.assertTrue(publish.publish(b3, "2-test", remote, os.path.join(self.d, "w4")))
+        self.assertIn("runs/1-test/seraphiel/seraphiel_s101001.webp", self.ls(remote))
+        self.assertEqual([r["run"] for r in json.loads(self.show(remote, "index.json"))["runs"]], ["1-test", "2-test"])
+
+    def test_final_gate_refuses_unrecorded(self):
+        remote = self.git_remote()
+        b = self.bundle("a")
+        publish.verify_bundle(b)
+        Image.new("RGB", (8, 8)).save(os.path.join(b, "seraphiel", "sneaked_in_after_verify.png"))
+        self.assertFalse(publish.publish(b, "1-test", remote, os.path.join(self.d, "w")))
+        self.assertEqual(self.ls_or_empty(remote), [])
+
+    def ls_or_empty(self, remote):
+        r = subprocess.run(["git", "--git-dir", remote[7:], "ls-tree", "-r", "--name-only", publish.BRANCH],
+                           capture_output=True, text=True)
+        return r.stdout.split() if r.returncode == 0 else []
+
+    def test_publish_is_stdlib_only_and_in_sync(self):
+        tree = ast.parse(open(os.path.join(HERE, "publish.py")).read())
+        mods = set()
+        for n in ast.walk(tree):
+            if isinstance(n, ast.Import):
+                mods |= {a.name.split(".")[0] for a in n.names}
+            elif isinstance(n, ast.ImportFrom):
+                mods.add((n.module or "").split(".")[0])
+        stdlib = set(getattr(sys, "stdlib_module_names", ())) or {
+            "argparse", "base64", "datetime", "hashlib", "json", "os", "re", "shutil", "subprocess", "sys", "tempfile",
+            "time"}
+        self.assertTrue(mods <= stdlib, mods - stdlib)
+        self.assertEqual(publish.BRANCH, C.BRANCH)
+        self.assertEqual(publish.UPLOAD_IMAGE_EXTS, C.UPLOAD_IMAGE_EXTS)
+        self.assertEqual(publish.UPLOAD_TEXT_EXTS, C.UPLOAD_TEXT_EXTS)
+        self.assertEqual(publish.MANIFEST, safety.MANIFEST)
+
+
+# ------------------------------------------------------------------ workflow hardening
+class TestWorkflow(unittest.TestCase):
+    def setUp(self):
+        try:
+            import yaml
+        except ImportError:
+            self.skipTest("PyYAML not installed")
+        with open(WORKFLOW) as f:
+            self.wf = yaml.safe_load(f)
+        self.jobs = self.wf["jobs"]
+
+    def steps(self):
+        for jname, job in self.jobs.items():
+            for st in job.get("steps", []):
+                yield jname, st
+
+    def test_pinned_actions(self):
+        for jname, st in self.steps():
+            if "uses" in st:
+                self.assertRegex(st["uses"], r"^actions/[a-z-]+@[0-9a-f]{40}$", jname)
+
+    def test_permissions(self):
+        self.assertEqual(self.wf["permissions"], {})
+        writers = [j for j, job in self.jobs.items() if (job.get("permissions") or {}).get("contents") == "write"]
+        self.assertEqual(writers, ["publish"])
+        for j, job in self.jobs.items():
+            self.assertIn("permissions", job, j)
+
+    def test_publish_job_runs_no_third_party_code(self):
+        pub = self.jobs["publish"]
+        text = json.dumps(pub)
+        for bad in ("setup-python", "pip", "actions/cache", "requirements"):
+            self.assertNotIn(bad, text)
+        runs = [st["run"] for st in pub["steps"] if "run" in st]
+        self.assertEqual(len(runs), 1)
+        self.assertIn("tools/artgen/publish.py", runs[0])
+        self.assertIn("GITHUB_TOKEN", json.dumps([st.get("env") for st in pub["steps"] if "run" in st]))
+        others = json.dumps({j: v for j, v in self.jobs.items() if j != "publish"})
+        self.assertNotIn("GITHUB_TOKEN", others)
+        self.assertNotIn("github.token", others)
+
+    def test_checkouts_uploads_and_limits(self):
+        for jname, st in self.steps():
+            if st.get("uses", "").startswith("actions/checkout@"):
+                self.assertIs(st["with"].get("persist-credentials"), False, jname)
+            if st.get("uses", "").startswith("actions/upload-artifact@"):
+                self.assertIs(st["with"].get("overwrite"), True, jname)
+        self.assertEqual(self.jobs["gen"]["strategy"]["max-parallel"], C.LIMITS["max_parallel"])
+        self.assertIs(self.wf["concurrency"]["cancel-in-progress"], False)
+        self.assertIn("inputs.mode", self.wf["concurrency"]["group"])
+
+    def test_inputs_match_config(self):
+        inputs = self.wf[True]["workflow_dispatch"]["inputs"] if True in self.wf else self.wf["on"]["workflow_dispatch"]["inputs"]
+        self.assertEqual(sorted(inputs["preset"]["options"]), sorted(C.PRESETS))
+        self.assertEqual(inputs["preset"]["default"], C.DEFAULT_PRESET)
+        self.assertEqual(sorted(inputs["style"]["options"]), sorted(C.STYLES))
+        self.assertEqual(inputs["style"]["default"], C.DEFAULT_STYLE)
+        self.assertEqual(inputs["dtype"]["options"], list(C.DTYPES))
+        self.assertEqual(inputs["dtype"]["default"], C.DEFAULT_DTYPE)
+
+    def test_no_expressions_in_run(self):
+        for jname, st in self.steps():
+            if "run" in st:
+                self.assertNotIn("${{", st["run"], jname)
 
 
 if __name__ == "__main__":

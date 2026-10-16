@@ -32,6 +32,8 @@ func _ready() -> void:
 
 
 func _draw() -> void:
+	if size.x < 2.0 or size.y < 2.0:
+		return
 	var ci := get_canvas_item()
 	var r := Rect2(Vector2.ZERO, size)
 	match kind:
@@ -67,7 +69,9 @@ func _draw() -> void:
 				var pts := PackedVector2Array([Vector2(0, y0 + h), Vector2(w * 0.5, y0), Vector2(w, y0 + h),
 					Vector2(w - th * 1.1, y0 + h), Vector2(w * 0.5, y0 + th * 1.25), Vector2(th * 1.1, y0 + h)])
 				var c := color.lightened(0.12 * i)
-				draw_colored_polygon(pts, c)
+				# Two convex arms (no triangulation of the concave chevron).
+				KitBox.add_convex(ci, PackedVector2Array([pts[0], pts[1], pts[4], pts[5]]), c)
+				KitBox.add_convex(ci, PackedVector2Array([pts[1], pts[2], pts[3], pts[4]]), c)
 				draw_polyline(_closed(pts), color.darkened(0.35), 1.0, true)
 		"techline":
 			var cy := size.y * 0.5
@@ -87,9 +91,9 @@ func _draw() -> void:
 				var k := d * 0.5
 				var dia := PackedVector2Array([Vector2(cx, cy2 - k), Vector2(cx + k, cy2), Vector2(cx, cy2 + k), Vector2(cx - k, cy2)])
 				if i < filled:
-					draw_colored_polygon(dia, color)
+					KitBox.add_convex(ci, dia, color)
 				else:
-					draw_colored_polygon(dia, Color(color2, color2.a * 0.5))
+					KitBox.add_convex(ci, dia, Color(color2, color2.a * 0.5))
 					draw_polyline(_closed(dia), color2, 1.0, true)
 		"dots":
 			var sq := size.y

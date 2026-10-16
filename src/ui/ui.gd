@@ -17,7 +17,10 @@ extends Node
 ##
 ## Screens fill the content area between the top bar and the bottom nav. A screen that hides
 ## the chrome (battle, summon) fills the whole window and should keep its own controls
-## inside UI.safe_top() / UI.safe_bottom().
+## inside UI.safe_top() / UI.safe_bottom(). A screen that calls UI.set_full_bleed(true)
+## (the lobby) also fills the whole window but keeps the chrome, which turns translucent
+## over its art; it keeps its own controls inside content_top() / content_bottom().
+## Style v2 (docs/dev/ui-style-v2.md): bottom nav Heroes, Team, Lobby (home), Gear, Summon.
 
 const Sfx := preload("res://src/ui/components/sfx.gd")
 
@@ -34,14 +37,21 @@ const SCREENS := {
 	"quests": "res://src/ui/screens/quests_screen.gd",
 	"shop": "res://src/ui/screens/shop_screen.gd",
 	"settings": "res://src/ui/screens/settings_screen.gd",
+	"gear": "res://src/ui/screens/gear_screen.gd",
 	# Widget gallery for UI work (debug builds only; not in the nav).
 	"kit_demo": "res://src/ui/components/kit_demo.gd",
 }
 
-## Bottom-nav tabs. Going to one of these resets the history (back returns home).
-const NAV_ROOTS: Array[String] = ["home", "heroes", "summon", "quests", "shop"]
+## Bottom-nav tabs, left to right (the centre one, "home", is the Lobby).
+const NAV_TABS: Array[String] = ["heroes", "formation", "home", "gear", "summon"]
+## Going to one of these resets the history (back returns home).
+const NAV_ROOTS: Array[String] = ["heroes", "formation", "home", "gear", "summon", "quests", "shop"]
 ## Which nav tab is highlighted for non-tab screens.
-const NAV_PARENT := {"campaign": "home", "battle": "home", "hero_detail": "heroes", "formation": "heroes", "kit_demo": "home"}
+const NAV_PARENT := {"campaign": "home", "battle": "home", "hero_detail": "heroes", "kit_demo": "home",
+	"quests": "home", "shop": "home", "settings": "home"}
+## Currencies shown in the top-bar resource pill per screen (default: gems, gold).
+const TOP_CURRENCIES := {"summon": ["gems", "scrolls"], "heroes": ["gold", "hero_exp"],
+	"hero_detail": ["gold", "hero_exp"], "gear": ["gold", "dust"]}
 ## Screens never kept in history (back from the next screen skips them).
 const NO_HISTORY: Array[String] = ["battle"]
 const FADE_TIME := 0.15
@@ -65,6 +75,8 @@ var history: Array[Dictionary] = []
 var safe_override := Vector2(-1, -1)
 var chrome_top := true
 var chrome_nav := true
+## The current screen fills the window under translucent chrome (set_full_bleed).
+var full_bleed := false
 
 var _fade: Tween
 var _modals: Array[Control] = []
@@ -183,6 +195,7 @@ func _show(screen: String, params: Dictionary) -> void:
 		host.remove_child(current)
 		current.queue_free()
 	current = null
+	full_bleed = false
 	set_chrome(true, true)
 	var s: Variant = (script as Script).new()
 	if not (s is Control):
@@ -216,7 +229,7 @@ func _show(screen: String, params: Dictionary) -> void:
 
 ## Which bottom-nav tab is highlighted for `screen` ("" = none).
 func nav_tab_for(screen: String) -> String:
-	if screen in NAV_ROOTS:
+	if screen in NAV_TABS:
 		return screen
 	return str(NAV_PARENT.get(screen, ""))
 
@@ -229,6 +242,34 @@ func set_chrome(show_top_bar: bool, show_nav: bool) -> void:
 	chrome_nav = show_nav
 	if root and is_instance_valid(root) and root.has_method("apply_chrome"):
 		root.apply_chrome(show_top_bar, show_nav)
+
+
+## Lets the current screen fill the whole window under the (translucent) top bar and nav,
+## for full-screen art like the lobby. Reset to false on every go(). Keep tappable
+## controls between content_top() and content_bottom().
+func set_full_bleed(on: bool) -> void:
+	full_bleed = on
+	if root and is_instance_valid(root) and root.has_method("apply_chrome"):
+		root.apply_chrome(chrome_top, chrome_nav)
+
+
+## Y of the bottom edge of the top bar (window px): where a full-bleed screen's own
+## controls may start. Equals safe_top() when the top bar is hidden.
+func content_top() -> float:
+	var h := _bar_heights()
+	return safe_top() + (h.x if chrome_top else 0.0)
+
+
+## Height from the window bottom to the top edge of the nav (window px).
+func content_bottom() -> float:
+	var h := _bar_heights()
+	return safe_bottom() + (h.y if chrome_nav else 0.0)
+
+
+func _bar_heights() -> Vector2:
+	if root and is_instance_valid(root) and root.has_method("bar_heights"):
+		return root.call("bar_heights")
+	return Vector2.ZERO
 
 
 ## Top inset (notch / status bar) in viewport px.
@@ -266,6 +307,7 @@ func _device_insets() -> Vector2:
 # ------------------------------------------------------------------ toasts
 
 ## Short message at the top of the screen. kind: "info" | "good" | "bad" (icon + accent).
+## Style v2: a dark glass bar with a colored left edge, white text.
 func toast(text: String, kind: String = "info") -> void:
 	var box: Variant = root.get("toast_box") if root and is_instance_valid(root) else null
 	if not (box is Container):
@@ -280,21 +322,26 @@ func toast(text: String, kind: String = "info") -> void:
 	p.theme_type_variation = &"ToastPanel"
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	p.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var accent: Color = {"good": Kit.GOOD, "bad": Kit.EMBER}.get(kind, Kit.ACCENT)
+	var sb := UITheme.style("toast")
+	sb.set("accent_color", accent)
+	p.add_theme_stylebox_override("panel", sb)
 	var row := Kit.hbox(12)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var ic: String = {"good": "check", "bad": "info"}.get(kind, "")
 	if ic != "":
-		row.add_child(Kit.icon(ic, 34, Kit.GOOD if kind == "good" else Color("ff8a70")))
-	var l := Kit.label(text, Kit.SIZE_BODY, Kit.INK, "extrabold")
+		row.add_child(Kit.icon(ic, 32, accent.lightened(0.2)))
+	var l := Kit.label(text, Kit.SIZE_BODY, Color.WHITE, "bold")
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var font := Kit.font("extrabold")
+	var font := Kit.font("bold")
 	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, Kit.SIZE_BODY).x
 	l.custom_minimum_size.x = minf(w + 4.0, 560.0)
 	row.add_child(l)
 	p.add_child(row)
 	host.add_child(p)
 	p.modulate.a = 0.0
+	p.position.y -= 8.0
 	var tw := p.create_tween()
 	tw.tween_property(p, "modulate:a", 1.0, 0.18)
 	tw.tween_interval(2.2)
@@ -319,7 +366,7 @@ func modal(content: Control, dismissable: bool = true, on_closed: Callable = Cal
 	m.set_meta("dismissable", dismissable)
 	m.set_meta("on_closed", on_closed)
 	var dim := ColorRect.new()
-	dim.color = Color(0.02, 0.01, 0.06, 0.8)
+	dim.color = Color(0.02, 0.025, 0.03, 0.72)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	dim.gui_input.connect(func(ev: InputEvent) -> void:
@@ -371,50 +418,34 @@ func _dismiss(m: Control) -> void:
 		(cb as Callable).call()
 
 
-## Standard dialog: ornate panel with a title, close button and your content.
+## Standard dialog (Kit.dialog): blue header with the title and a close X, your content
+## in the body. light = true gives the white v2 body (build content with Kit.TEXT colors);
+## the default graphite body suits content built with light text (Kit.INK).
 ## Returns the modal root (close with close_modal).
-func popup(title: String, content: Control, on_closed: Callable = Callable(), width: float = 640.0) -> Control:
-	var panel := PanelContainer.new()
-	panel.theme_type_variation = &"ModalPanel"
-	panel.custom_minimum_size.x = width
-	var col := Kit.vbox(18)
-	panel.add_child(col)
-	var head := Kit.hbox(8)
-	head.add_child(Kit.spacer(56))
-	var t := Kit.header(title, 38)
-	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	head.add_child(t)
+func popup(title: String, content: Control, on_closed: Callable = Callable(), width: float = 640.0, light: bool = false) -> Control:
+	var panel := Kit.dialog(title, content, width, light)
 	var m_ref: Array[Control] = []
-	var close := Kit.icon_button("close", func() -> void:
+	var close := panel.get_meta("close_button") as Button
+	Kit._connect_pressed(close, func() -> void:
 		if not m_ref.is_empty():
-			_dismiss(m_ref[0]), 64, "round")
-	close.custom_minimum_size = Vector2(64, 64)
-	head.add_child(close)
-	col.add_child(head)
-	col.add_child(Kit.divider())
-	col.add_child(content)
+			_dismiss(m_ref[0]))
 	var m := modal(panel, true, on_closed)
 	m_ref.append(m)
 	return m
 
 
-## In-game yes/no dialog. on_yes runs on confirm, on_no (optional) on cancel/dismiss.
-## danger = red confirm button (destructive actions).
+## In-game yes/no dialog (white v2 dialog). on_yes runs on confirm, on_no (optional) on
+## cancel/dismiss. danger = red confirm button (destructive actions).
 func confirm(text: String, on_yes: Callable, on_no: Callable = Callable(), yes_text: String = "Confirm", no_text: String = "Cancel", danger: bool = false) -> void:
-	var panel := PanelContainer.new()
-	panel.theme_type_variation = &"ModalPanel"
-	panel.custom_minimum_size.x = 600
-	var col := Kit.vbox(26)
-	panel.add_child(col)
-	col.add_child(Kit.section_header("Confirm", 30))
-	var l := Kit.body(text, 30, Kit.INK)
+	var col := Kit.vbox(28)
+	var l := Kit.body(text, 28, Kit.TEXT)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.custom_minimum_size.x = 500
+	col.add_child(Kit.spacer(0, 4))
 	col.add_child(l)
-	var row := Kit.hbox(18)
+	var row := Kit.hbox(16)
 	var m_ref: Array[Control] = []
-	var no_btn := Kit.secondary_button(no_text, func() -> void:
+	var no_btn := Kit.light_button(no_text, func() -> void:
 		if not m_ref.is_empty():
 			_dismiss(m_ref[0]))
 	var yes_cb := func() -> void:
@@ -428,6 +459,11 @@ func confirm(text: String, on_yes: Callable, on_no: Callable = Callable(), yes_t
 	row.add_child(no_btn)
 	row.add_child(yes_btn)
 	col.add_child(row)
+	var panel := Kit.dialog("Confirm", col, 600.0, true, "info")
+	var close := panel.get_meta("close_button") as Button
+	Kit._connect_pressed(close, func() -> void:
+		if not m_ref.is_empty():
+			_dismiss(m_ref[0]))
 	var m := modal(panel, true, on_no)
 	m_ref.append(m)
 
@@ -446,36 +482,47 @@ func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callab
 	_reward_open = true
 	sfx("reward")
 	haptic(25)
-	var col := Kit.vbox(18)
+	var col := Kit.vbox(10)
 	col.custom_minimum_size.x = 660
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
-	# Title with rotating rays behind it.
+	# Title plate with slow cyan rays behind it.
 	var title_box := Control.new()
 	title_box.custom_minimum_size = Vector2(660, 150)
 	title_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var rays := Kit.rays(Kit.GOLD, 560.0, 16)
-	rays.position = Vector2(330 - 280, 75 - 280)
+	var rays := Kit.rays(Kit.ACCENT_HI, 600.0, 18)
+	rays.position = Vector2(330 - 300, 75 - 300)
+	rays.modulate.a = 0.7
 	title_box.add_child(rays)
-	var glow := Kit.glow(Kit.GOLD, 420)
-	glow.position = Vector2(330 - 210, 75 - 210)
-	glow.modulate.a = 0.55
+	var glow := Kit.glow(Kit.ACCENT, 440)
+	glow.position = Vector2(330 - 220, 75 - 220)
+	glow.modulate.a = 0.45
 	title_box.add_child(glow)
-	var banner := Kit.ribbon(title, 560.0)
-	banner.position = Vector2(330 - 280, 75 - 46)
-	banner.size = Vector2(560, 92)
+	var banner := Kit.ribbon(title, 580.0, Kit.ACCENT)
+	banner.position = Vector2(330 - 290, 75 - 46)
+	banner.size = Vector2(580, 92)
 	title_box.add_child(banner)
 	col.add_child(title_box)
 	var panel := PanelContainer.new()
-	panel.theme_type_variation = &"ModalPanel"
-	var inner := Kit.vbox(26)
+	panel.theme_type_variation = &"DialogPanel"
+	panel.add_theme_stylebox_override("panel", UITheme.style("reward_panel"))
+	var inner := Kit.vbox(24)
 	panel.add_child(inner)
+	var head := Kit.hbox(10)
+	head.alignment = BoxContainer.ALIGNMENT_CENTER
+	head.add_child(Kit.deco("techline", Vector2(120, 10), Color(0, 0, 0, 0.25)))
+	head.add_child(Kit.label("REWARD", 22, Kit.TEXT_DIM, "cond_bold"))
+	var tl := Kit.deco("techline", Vector2(120, 10), Color(0, 0, 0, 0.25))
+	tl.scale.x = -1
+	tl.pivot_offset = Vector2(60, 5)
+	head.add_child(tl)
+	inner.add_child(head)
 	var entries := Kit.reward_entries(reward)
 	if entries.is_empty():
-		var none := Kit.body("Nothing this time.", Kit.SIZE_BODY, Kit.INK_DIM)
+		var none := Kit.body("Nothing this time.", Kit.SIZE_BODY, Kit.TEXT_DIM)
 		none.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		inner.add_child(none)
 	else:
-		var list := Kit.reward_list(reward, 112.0 if entries.size() <= 8 else 96.0)
+		var list := Kit.reward_list(reward, 112.0 if entries.size() <= 8 else 96.0, true, true, true)
 		list.custom_minimum_size.x = 580
 		for tile in list.get_children():
 			(tile as Control).modulate.a = 0.0
@@ -484,10 +531,13 @@ func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callab
 	var ok := Kit.primary_button("OK", func() -> void:
 		if not m_ref.is_empty():
 			_dismiss(m_ref[0]))
-	ok.custom_minimum_size.x = 300
+	ok.custom_minimum_size.x = 320
 	ok.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	inner.add_child(ok)
 	col.add_child(panel)
+	var hint := Kit.caption("Tap anywhere to close", 20, Color(1, 1, 1, 0.6))
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(hint)
 	var closed := func() -> void:
 		_reward_open = false
 		if on_closed.is_valid():

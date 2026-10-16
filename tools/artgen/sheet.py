@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Review sheets for art farm results (uses tools/comfy/post.py contact_sheet).
 
-    sheet.py RUN_DIR                 one contact sheet per hero (+ overview.png) inside RUN_DIR
+    sheet.py RUN_DIR                 one contact sheet per hero (+ overview.webp) inside RUN_DIR
     sheet.py RUN_DIR --hero ID       one hero only
     sheet.py RUN_DIR --print         list what would be drawn
+    sheet.py RUN_DIR --run-name N    title the sheets with N (default: the folder name)
 
 RUN_DIR is runs/<run>/ on the art-gen-output branch (or a downloaded artifact): <hero>/<hero>_s<seed>.webp
 candidates with their .json metadata, and/or <hero>/final_s<seed>/ folders. Labels: seed, render time,
-framing flags (CROP / EDGE / FILL from post.candidate_report). In the workflow every sheet passes the
+preset, framing flags (CROP / EDGE / FILL / BG? from post.candidate_report). Sheets are WebP. In the workflow every sheet passes the
 exposure filter before it is committed (collect.py); locally nothing is filtered or uploaded.
 """
 import argparse
@@ -47,6 +48,8 @@ def candidate_entries(hero_dir):
         label = "s%s" % m.group("seed")
         if secs:
             label += "  %.1fm" % (secs / 60.0)
+        if meta.get("preset"):
+            label += "  %s" % meta["preset"]
         if flags:
             label += "  " + " ".join(flags)
         out.append((int(m.group("seed")), os.path.join(hero_dir, fn), label))
@@ -73,18 +76,36 @@ def final_entries(hero_dir, hero):
     return out
 
 
-def hero_sheet(run_dir, hero, out_path=None):
+def _save_webp(png_path, out_path, quality=90):
+    if out_path.lower().endswith(".webp"):
+        with Image.open(png_path) as im:
+            im.load()
+            im.save(out_path, format="WEBP", quality=quality, method=6)
+        os.remove(png_path)
+    return out_path
+
+
+def _draw(entries, out_path, **kw):
+    tmp = out_path[:-5] + ".tmp.png" if out_path.lower().endswith(".webp") else out_path
+    post.contact_sheet(entries, tmp, **kw)
+    return _save_webp(tmp, out_path) if tmp != out_path else out_path
+
+
+def run_title(run_dir, run_name=None):
+    return run_name or os.path.basename(os.path.normpath(run_dir))
+
+
+def hero_sheet(run_dir, hero, out_path=None, run_name=None):
     hdir = os.path.join(run_dir, hero)
     entries = candidate_entries(hdir) + final_entries(hdir, hero)
     if not entries:
         return None
-    out_path = out_path or os.path.join(hdir, "contact_sheet.png")
-    title = "%s  |  %s  |  %d image(s)" % (hero, os.path.basename(os.path.normpath(run_dir)), len(entries))
-    post.contact_sheet(entries, out_path, cols=min(6, max(1, len(entries))), cell_w=300, detail=True, title=title)
-    return out_path
+    out_path = out_path or os.path.join(hdir, "contact_sheet.webp")
+    title = "%s  |  %s  |  %d image(s)" % (hero, run_title(run_dir, run_name), len(entries))
+    return _draw(entries, out_path, cols=min(6, max(1, len(entries))), cell_w=300, detail=True, title=title)
 
 
-def overview(run_dir, out_path=None, cell_w=150):
+def overview(run_dir, out_path=None, cell_w=150, run_name=None):
     entries = []
     for hero in sorted(os.listdir(run_dir)):
         hdir = os.path.join(run_dir, hero)
@@ -92,10 +113,9 @@ def overview(run_dir, out_path=None, cell_w=150):
             entries += [(p, os.path.basename(p)[:-5]) for p, _lab in candidate_entries(hdir)]
     if not entries:
         return None
-    out_path = out_path or os.path.join(run_dir, "overview.png")
-    post.contact_sheet(entries, out_path, cols=min(10, len(entries)), cell_w=cell_w, detail=False,
-                       title="%s: all candidates" % os.path.basename(os.path.normpath(run_dir)))
-    return out_path
+    out_path = out_path or os.path.join(run_dir, "overview.webp")
+    return _draw(entries, out_path, cols=min(10, len(entries)), cell_w=cell_w, detail=False,
+                 title="%s: all candidates" % run_title(run_dir, run_name))
 
 
 def heroes_in(run_dir):
@@ -107,6 +127,7 @@ def main(argv=None):
     ap.add_argument("run_dir")
     ap.add_argument("--hero")
     ap.add_argument("--print", action="store_true")
+    ap.add_argument("--run-name", default=None)
     a = ap.parse_args(argv)
     heroes = [a.hero] if a.hero else heroes_in(a.run_dir)
     for h in heroes:
@@ -115,11 +136,11 @@ def main(argv=None):
             for p, lab in candidate_entries(hdir) + final_entries(hdir, h):
                 print(h, lab, p)
             continue
-        p = hero_sheet(a.run_dir, h)
+        p = hero_sheet(a.run_dir, h, run_name=a.run_name)
         if p:
             print("wrote", p)
     if not a.print and not a.hero:
-        p = overview(a.run_dir)
+        p = overview(a.run_dir, run_name=a.run_name)
         if p:
             print("wrote", p)
     return 0

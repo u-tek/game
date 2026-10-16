@@ -90,20 +90,20 @@ func _build(w: float, h: float) -> void:
 	clip.size = Vector2(w, h)
 	face.add_child(clip)
 
-	# Big faint diagonal band behind the art (studio light).
+	# Faint diagonal light bands behind the art (studio backdrop).
 	var band := Deco.new()
 	band.kind = "hatch"
-	band.color = Color(tint, 0.10)
-	band.spacing = 26.0 * k
-	band.line_width = 10.0 * k
+	band.color = Color(tint, 0.07)
+	band.spacing = 30.0 * k
+	band.line_width = 12.0 * k
 	band.position = Vector2(0, 0)
-	band.size = Vector2(w, h * 0.7)
+	band.size = Vector2(w, h * 0.62)
 	clip.add_child(band)
 
 	var art := TextureRect.new()
 	art.name = "Art"
 	art.mouse_filter = MOUSE_FILTER_IGNORE
-	art.texture = Kit.art_crop(hero_id, w / (h * 0.94))
+	art.texture = Kit.art_crop(hero_id, w / (h * 0.94), 1.3)
 	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
@@ -152,9 +152,11 @@ func _build(w: float, h: float) -> void:
 	bc2.size = Vector2(9.0 * k, 3.0 * k)
 	clip.add_child(bc2)
 
-	# Role hex and faction hex (top-left).
+	# Role hex (white) and the tier numeral hex (dark, faction-colored roof), top-left;
+	# the faction emblem sits under the barcode.
 	var hs := 34.0 * k
 	var role_hex := HexBadge.new()
+	role_hex.name = "RoleHex"
 	role_hex.size = Vector2(hs, hs)
 	role_hex.position = Vector2(6.0 * k, 7.0 * k)
 	role_hex.fill = Color("ffffff")
@@ -163,15 +165,22 @@ func _build(w: float, h: float) -> void:
 	role_hex.border_width = maxf(1.5, 2.0 * k)
 	role_hex.set_icon("role_" + role, Color("1b1d21"), 0.52)
 	clip.add_child(role_hex)
-	var fac_hex := HexBadge.new()
-	fac_hex.size = Vector2(hs, hs)
-	fac_hex.position = Vector2(6.0 * k, 7.0 * k + hs * 0.92)
-	fac_hex.fill = Color("2a2c31")
-	fac_hex.fill_bottom = Color("16171a")
-	fac_hex.border = Color(1, 1, 1, 0.75)
-	fac_hex.border_width = maxf(1.5, 2.0 * k)
-	fac_hex.set_icon("faction_" + faction, Color.WHITE, 0.6)
-	clip.add_child(fac_hex)
+	var tier_hex := HexBadge.new()
+	tier_hex.name = "TierHex"
+	tier_hex.size = Vector2(hs, hs)
+	tier_hex.position = Vector2(6.0 * k, 7.0 * k + hs * 0.94)
+	tier_hex.fill = Color("2a2c31")
+	tier_hex.fill_bottom = Color("16171a")
+	tier_hex.border = Color(1, 1, 1, 0.8)
+	tier_hex.border_width = maxf(1.5, 2.0 * k)
+	tier_hex.cap = Kit.faction_color(faction)
+	tier_hex.set_text(str(Kit.RARITY_TIER.get(rarity, "I")), Color.WHITE, int(15.0 * k), "title")
+	clip.add_child(tier_hex)
+	var fac := Kit.faction_icon(faction, 24.0 * k)
+	fac.name = "Faction"
+	fac.size = Vector2(24.0 * k, 24.0 * k)
+	fac.position = Vector2(w - 31.0 * k, 56.0 * k)
+	clip.add_child(fac)
 
 	# Rarity chevrons + star pips (right, above the name).
 	var chev := Deco.new()

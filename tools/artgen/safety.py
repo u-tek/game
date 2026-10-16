@@ -14,9 +14,14 @@ artifact) or committed (art-gen-output branch). The repo is public, so this FAIL
 - dropped images are deleted on the spot and never moved to the upload dir; only their name,
   scores and reason are logged (drop counts in the manifest and the job log);
 - verify() runs again right before the upload: any image in the upload dir without a matching
-  pass record (path + sha256) is deleted, and so is any file that is not .png/.webp/.json.
+  pass record (path + sha256) is deleted, and so is any file that is not .png/.webp/.json;
+- the self-test also runs a sensitivity canary (positive control, config.FILTER["canary"]): an
+  already-public, filter-passed borderline candidate must still PASS and score inside fixed bands
+  (nudenet FEMALE_BREAST_EXPOSED 0.10-0.25, anime detector max 0.02-0.25). A detector that silently
+  returns near-zero scores (a preprocessing or model regression) therefore fails closed.
 
-    safety.py selftest                 load both detectors, prove a clean image passes and a detector error drops
+    safety.py selftest                 load both detectors, prove a clean image passes, a detector error drops
+                                       and the canary scores inside its bands
     safety.py check IMG [IMG ...]      print scores and the verdict (no files are moved)
     safety.py verify DIR               enforce the manifest on an upload dir (deletes anything unverified)
 """
@@ -203,6 +208,7 @@ def load_default_scorers(nudenet_threshold=None, anime_threshold=None, cache_dir
 class ExposureFilter:
     def __init__(self, scorers=None, log=print, cache_dir=None):
         self.log = log
+        self.default = scorers is None          # the real detectors: the self-test includes the canary
         self.scorers = scorers if scorers is not None else load_default_scorers(cache_dir=cache_dir)
         if not self.scorers:
             raise FilterUnavailable("no detectors")
@@ -251,8 +257,35 @@ class ExposureFilter:
         self.stats["passed" if ok else "dropped"] += 1
         return ok, rep
 
-    def selftest(self):
-        """Prove the detectors run and that a detector error drops the image. Raises FilterUnavailable."""
+    def canary(self, spec=None, base=HERE):
+        """Positive control: the canary image must pass and score inside its bands. Raises FilterUnavailable."""
+        spec = spec or C.FILTER["canary"]
+        path = os.path.join(base, spec["file"])
+        if not os.path.isfile(path):
+            raise FilterUnavailable("canary image %s is missing" % spec["file"])
+        if sha256_file(path) != spec["sha256"]:
+            raise FilterUnavailable("canary image %s does not match its sha256" % spec["file"])
+        saved = dict(self.stats)
+        try:
+            ok, rep = self.check_file(path)
+        finally:
+            self.stats = saved
+        if not ok:
+            raise FilterUnavailable("canary did not pass: %s" % json.dumps(rep.get("flagged") or rep.get("error")))
+        for det, bands in spec["bands"].items():
+            sc = rep["scores"].get(det)
+            if not sc:
+                raise FilterUnavailable("canary: no scores from detector %s" % det)
+            for cls, (lo, hi) in bands.items():
+                v = max(sc.values()) if cls == "_max" else sc.get(cls)
+                if v is None or not lo <= v <= hi:
+                    raise FilterUnavailable("canary: %s %s = %s outside [%.2f, %.2f] (detector sensitivity changed)"
+                                            % (det, cls, v, lo, hi))
+        return rep
+
+    def selftest(self, canary=None):
+        """Prove the detectors run, that a detector error drops the image and (real detectors, or
+        canary=True) that the canary scores inside its bands. Raises FilterUnavailable."""
         import tempfile
 
         class _Broken:
@@ -274,8 +307,10 @@ class ExposureFilter:
             if ok2 or "error" not in rep2:
                 raise FilterUnavailable("self-test: a detector error did not drop the image")
             self.stats = saved
-            self.log("filter self-test ok: %s; forced detector error -> dropped (%s)"
-                     % (json.dumps(rep["scores"]), rep2["error"]))
+            crep = self.canary() if (self.default if canary is None else canary) else None
+            self.log("filter self-test ok: %s; forced detector error -> dropped (%s); canary %s"
+                     % (json.dumps(rep["scores"]), rep2["error"],
+                        json.dumps(crep["scores"]) if crep else "not run (test detectors)"))
             return rep
         finally:
             shutil.rmtree(d, ignore_errors=True)

@@ -76,13 +76,20 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			b.top_color = Color("1b1d21e6")
 			b.bottom_color = Color("17191ce6")
 			m = Vector4(18, 14, 18, 14)
-		"chip", "pill":
+		"chip":
+			b.radius = 8
+			b.top_color = Color("0c0d10b8")
+			b.bottom_color = Color("0c0d10b8")
+			b.border_width = 1.0
+			b.border_color = Color(1, 1, 1, 0.1)
+			m = Vector4(10, 2, 12, 2)
+		"pill":
 			b.radius = 999
 			b.top_color = Color("0c0d10b8")
 			b.bottom_color = Color("0c0d10b8")
 			b.border_width = 1.0
 			b.border_color = Color(1, 1, 1, 0.12)
-			m = Vector4(6, 2, 12, 2)
+			m = Vector4(10, 2, 14, 2)
 		"tag":
 			b.radius = 6
 			b.top_color = Color("2d3036")
@@ -133,15 +140,35 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			m = Vector4(20, 6, 16, 6)
 		"topbar":
 			b.radius = 0
-			b.top_color = Color("0b0c0eeb")
-			b.bottom_color = Color("0b0c0e00")
+			b.top_color = Color("0b0c0e")
+			b.bottom_color = Color("17191d")
+			b.hatch_color = Color(1, 1, 1, 0.025)
+			b.hatch_spacing = 12
+			b.hatch_from = 0.45
+			m = Vector4(0, 0, 0, 0)
+		"topbar_clear":
+			b.radius = 0
+			b.top_color = Color("000000b3")
+			b.bottom_color = Color("00000000")
 			m = Vector4(0, 0, 0, 0)
 		"navbar":
 			b.radius = 0
-			b.top_color = Color("101113e0")
-			b.bottom_color = Color("08090afa")
-			b.border_width = 0
+			b.top_color = Color("1a1c20")
+			b.bottom_color = Color("0a0b0c")
+			b.top_line_color = Color(1, 1, 1, 0.1)
 			m = Vector4(0, 0, 0, 0)
+		"navbar_clear":
+			b.radius = 0
+			b.top_color = Color("00000000")
+			b.bottom_color = Color("000000e6")
+			m = Vector4(0, 0, 0, 0)
+		"power_chip":
+			b.radius = 4
+			b.top_color = Color("101114eb")
+			b.bottom_color = Color("101114eb")
+			b.border_width = 1.0
+			b.border_color = Color(1, 1, 1, 0.25)
+			m = Vector4(6, 0, 8, 0)
 		"disc":
 			b.radius = 10
 			b.top_color = Color("1c1e22d9")
@@ -208,6 +235,150 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			b.border_width = 1.0
 			b.border_color = Color("c9d0d8")
 			m = Vector4(6, 6, 6, 6)
+		"reward_panel":
+			b.radius = 6
+			b.top_color = Color("f7f8fa")
+			b.bottom_color = Color("e9ecf0")
+			b.hatch_color = Color(0, 0, 0, 0.03)
+			b.hatch_spacing = 10
+			b.hatch_from = 0.6
+			b.accent_color = Kit.ACCENT
+			b.accent_top = 4
+			b.shadow_size = 30
+			b.shadow_color = Color(0, 0, 0, 0.5)
+			b.shadow_offset = Vector2(0, 10)
+			m = Vector4(30, 24, 30, 30)
+		"dialog_dark":
+			b.radius = 6
+			b.top_color = Color("1e2025fa")
+			b.bottom_color = Color("16181cfa")
+			b.border_width = 1.0
+			b.border_color = Color(1, 1, 1, 0.1)
+			b.shadow_size = 30
+			b.shadow_color = Color(0, 0, 0, 0.5)
+			b.shadow_offset = Vector2(0, 10)
+			m = Vector4(0, 0, 0, 0)
+		"header_bar":
+			b.radius = 3
+			b.top_color = Color("2c2f35")
+			b.bottom_color = Color("202226")
+			b.hatch_color = Color(1, 1, 1, 0.07)
+			b.hatch_from = 0.72
+			b.hatch_spacing = 7
+			b.accent_color = Kit.ACCENT
+			b.accent_left = 5
+			m = Vector4(18, 6, 12, 6)
+		"plate_level":
+			b.radius = 3
+			b.chamfer = 0
+			b.top_color = Color("2a2c31")
+			b.bottom_color = Color("1c1d21")
+			m = Vector4(14, 2, 14, 2)
+		"plate_name":
+			b.radius = 0
+			b.skew = 0.0
+			b.top_color = Color("0e0f12")
+			b.bottom_color = Color("0e0f12")
+			b.hatch_color = Color(1, 1, 1, 0.06)
+			b.hatch_from = 0.8
+			b.hatch_spacing = 7
+			m = Vector4(18, 2, 18, 2)
+		"tile_dark":
+			b.radius = 12
+			b.top_color = Color("23262bdb")
+			b.bottom_color = Color("15171bdb")
+			b.border_width = 1.5
+			b.border_color = Color(1, 1, 1, 0.22)
+			b.shadow_size = 6
+			b.shadow_color = Color(0, 0, 0, 0.35)
+			b.shadow_offset = Vector2(0, 3)
+			m = Vector4(0, 0, 0, 0)
+		"tile_accent":
+			b.radius = 12
+			b.top_color = Color("2bb7fb")
+			b.bottom_color = Color("0b8de6")
+			b.border_width = 1.5
+			b.border_color = Color("a6e4ff")
+			b.shadow_size = 6
+			b.shadow_color = Color(0, 0.15, 0.35, 0.4)
+			b.shadow_offset = Vector2(0, 3)
+			m = Vector4(0, 0, 0, 0)
+		"tile_orange":
+			b.radius = 12
+			b.top_color = Color("ffb340")
+			b.bottom_color = Color("ff8a18")
+			b.border_width = 1.5
+			b.border_color = Color("ffe0a8")
+			b.shadow_size = 6
+			b.shadow_color = Color(0.3, 0.12, 0, 0.4)
+			b.shadow_offset = Vector2(0, 3)
+			m = Vector4(0, 0, 0, 0)
+		"tile_white":
+			b.radius = 12
+			b.top_color = Color("ffffff")
+			b.bottom_color = Color("e4e8ec")
+			b.border_width = 1.0
+			b.border_color = Color(1, 1, 1, 1)
+			b.shadow_size = 6
+			b.shadow_color = Color(0, 0, 0, 0.35)
+			b.shadow_offset = Vector2(0, 3)
+			m = Vector4(0, 0, 0, 0)
+		"disc_light":
+			b.radius = 10
+			b.top_color = Color("ffffff")
+			b.bottom_color = Color("eceff2")
+			b.border_width = 1.0
+			b.border_color = Color("c9d0d8")
+			b.shadow_size = 4
+			b.shadow_color = Color(0, 0, 0, 0.15)
+			b.shadow_offset = Vector2(0, 2)
+			m = Vector4(0, 0, 0, 0)
+		"notice":
+			b.radius = 6
+			b.top_color = Color("0c0d10c2")
+			b.bottom_color = Color("0c0d10c2")
+			b.border_width = 1.0
+			b.border_color = Color(1, 1, 1, 0.1)
+			m = Vector4(0, 0, 0, 0)
+		"meter":
+			b.radius = 3
+			b.top_color = Color("071a30e6")
+			b.bottom_color = Color("04101fe6")
+			b.border_width = 1.5
+			b.border_color = Color("2a8de0")
+			b.hatch_color = Color(0.4, 0.75, 1.0, 0.08)
+			b.hatch_spacing = 7
+			m = Vector4(10, 6, 14, 6)
+		"avatar":
+			b.radius = 10
+			b.top_color = Color("2a2d33")
+			b.bottom_color = Color("15171a")
+			b.border_width = 2.5
+			b.border_color = Color(1, 1, 1, 0.9)
+			b.shadow_size = 6
+			b.shadow_color = Color(0, 0, 0, 0.45)
+			b.shadow_offset = Vector2(0, 3)
+			m = Vector4(0, 0, 0, 0)
+		"chip_off":
+			b.radius = 8
+			b.top_color = Color("3d4047")
+			b.bottom_color = Color("2c2f34")
+			b.border_width = 1.0
+			b.border_color = Color(1, 1, 1, 0.1)
+			b.shadow_size = 5
+			b.shadow_color = Color(0, 0, 0, 0.28)
+			b.shadow_offset = Vector2(0, 3)
+			m = Vector4(6, 4, 6, 4)
+		"chip_on":
+			b.radius = 8
+			b.top_color = Color("2ab8fb")
+			b.bottom_color = Color("0e9be9")
+			b.border_width = 1.0
+			b.border_color = Color("9fe2ff")
+			b.shadow_size = 7
+			b.shadow_color = Color(0.05, 0.55, 0.95, 0.4)
+			b.shadow_offset = Vector2(0, 2)
+			m = Vector4(6, 4, 6, 4)
 		# ---------------- buttons
 		"btn_primary", "btn_primary_hover", "btn_primary_pressed":
 			b.radius = 8
@@ -318,8 +489,10 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			m = Vector4(18, 8, 18, 6)
 		"tab_off":
 			b.radius = 0
-			b.top_color = Color("1a1c1f00")
-			b.bottom_color = Color("1a1c1f00")
+			b.top_color = Color("1d1f24d9")
+			b.bottom_color = Color("15171bd9")
+			b.accent_color = Color(1, 1, 1, 0.12)
+			b.accent_top = 2
 			m = Vector4(18, 8, 18, 6)
 		"line_edit", "line_edit_focus":
 			b.radius = 6
@@ -408,6 +581,25 @@ static func build() -> Theme:
 	t.set_color("icon_normal_color", "SegmentButton", Color(0.82, 0.84, 0.87))
 	t.set_color("icon_pressed_color", "SegmentButton", Color.WHITE)
 	t.set_color("icon_hover_pressed_color", "SegmentButton", Color.WHITE)
+
+	# Page / dialog tabs (Kit.tab_strip): white active plate with a cyan top bar.
+	t.set_type_variation("TabButton", "Button")
+	for st in ["normal", "hover", "disabled"]:
+		t.set_stylebox(st, "TabButton", style("tab_off"))
+	t.set_stylebox("pressed", "TabButton", style("tab_on"))
+	t.set_stylebox("hover_pressed", "TabButton", style("tab_on"))
+	t.set_stylebox("focus", "TabButton", StyleBoxEmpty.new())
+	t.set_font("font", "TabButton", Kit.font("cond_bold"))
+	t.set_font_size("font_size", "TabButton", 28)
+	t.set_color("font_color", "TabButton", Color("d5d9de"))
+	t.set_color("font_hover_color", "TabButton", Color.WHITE)
+	t.set_color("font_focus_color", "TabButton", Color("d5d9de"))
+	t.set_color("font_pressed_color", "TabButton", Kit.TEXT)
+	t.set_color("font_hover_pressed_color", "TabButton", Kit.TEXT)
+	t.set_color("icon_normal_color", "TabButton", Color("d5d9de"))
+	t.set_color("icon_pressed_color", "TabButton", Kit.ACCENT)
+	t.set_color("icon_hover_pressed_color", "TabButton", Kit.ACCENT)
+	t.set_constant("h_separation", "TabButton", 10)
 
 	t.set_type_variation("BareButton", "Button")
 	for st in ["normal", "hover", "pressed", "hover_pressed", "disabled", "focus"]:
