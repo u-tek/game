@@ -58,7 +58,8 @@ A run folder holds `index.json` (jobs, CPU, exit codes, timings, per-stage memor
 statistics, missing jobs), `filter_manifest.json`, `overview.webp` and per hero
 `contact_sheet.webp` plus:
 - candidates: `<hero>_s<seed>.webp` (preview, WebP q95) + `<hero>_s<seed>.json` (prompt, negative,
-  style, seed, model, preset settings, dtype, render timing, framing flags, filter scores, and
+  style, seed, model, preset settings, dtype, render timing, framing flags (`canvas_fit`: `SMALL nn%`
+  when the composition would fill under 90 % of the canvas spec height), filter scores, and
   `repair` + `cover_prompt` when the image was published after a cover repair, section 3);
 - finals: `final_s<seed>/` with `<hero>_hires.webp` (after the hires pass), `<hero>_source.webp`
   (after the face polish, before the cutout), `<hero>.png` (1024x2048 RGBA canvas, soles at
@@ -163,7 +164,11 @@ candidate missing or invalid (nothing rendered).
      match), minus the ground shadow (bottom 15% of the figure, background chromaticity, 0.06
      tolerance where isnet is unsure because painted shadows are cooler than the backdrop, at
      35-97% of its luminance, flat on the floor, seeds up to 3 px inside a hard edge), then
-     `post.alpha_from_mask` edge unmixing/despill; `post.finalize_local` places it. On run
+     `post.alpha_from_mask` edge unmixing/despill and `cutout.fill_edge_dips` (the anti-aliased
+     pixel between dark line art and a light fill can have the backdrop's colour; unmixing made it
+     a hole and the outline beyond it a dropped speck: beaded edges); `post.finalize_local` places
+     it. Before rendering, `cutout.canvas_fit` measures how much of the spec height the source's
+     composition can fill (`source_fit`, a `::warning::` under 90 %). On run
      38844269897's s101000 source the first version left semi-transparent grey patches between the
      halo and the crown, opaque grey gaps between hair strands and the whole cool-grey floor shadow
      (16 of ~11 000 px found); see section 6. An automatic
@@ -321,6 +326,33 @@ canary image, rescaled by 0.83 and flattened on grey) and with it the variants, 
 (`penis` 0.41 / 0.73 on the review sheets). The canvas cover repair was added after this run.
 `spec`: the s101000 composition is too wide (wings + diagonal sceptre), scaled 0.83 to fit 1024
 px, figure 1445 px tall instead of ~1900, crown at y=655 instead of 108.
+
+**Second final (38852819142, same source, code 56c30c8 with the canvas cover repair):** hires
+144.2 s/step (48 min sampling, VmHWM 13.06 GB), face polish 60.6 s/step (16 min, 14.03 GB),
+cutout 8 s; the canvas scored NudeNet breast 0.2591 (1024 tile), so the cover repair ran on it:
+pass 1 (one 492 px crop over the chest, 509 s) raised it to 0.2862, pass 2 (507 s) passed at 0.2408;
+then three variants at 32.6-33.9 s/step (469-489 s each, 13.85 GB). Job about 110 min, exit 0.
+Checked here (`git fetch`, composites on #120e24 and white):
+- variants: alpha identical to the canvas, RGB changed only inside the eyes / mouth / eyes+mouth
+  regions (2155 / 745 / 3430 px), `variant_alignment` clean; expressions match the base;
+- soles at y=1990, figure centred (bbox centre x 512.5), portrait 512 px head-and-shoulders;
+- the repair changed the design where it painted: a gold gorget with a gem replaced the bare
+  sternum and the hand resting on the chest became a gold vambrace (that hand is gone). It works
+  as designed, but it rewrites art: pick sources whose filter scores are well under 0.25 (this
+  source is the 0.2259 canary itself), so the canvas, which the detectors see at a new scale, does
+  not need it;
+- cutout defects, reproduced locally on the same source and fixed in `cutout.py` afterwards:
+  semi-transparent grey patches between the halo and the crown, opaque grey gaps between hair
+  strands and between a wing and the hair, the cool floor shadow under the feet (2 px removed), and
+  beaded white wing edges (see section 2, step 3);
+- filter drops: `_check.webp` (NudeNet 0.2588 on the checker composite, anime `penis` 0.42),
+  `_boxes.webp` (`penis` 0.73), `mouth_open_patch.png` (NudeNet 0.41 on a 52x39 crop) and
+  `smile_patch.png` (anime `pussy` 0.37): false positives on review images and tiny crops; the
+  import uses `variants/<name>.png`, which all passed;
+- `spec` still fails on the composition (figure 1445 px, right margin 22 px after the width fit).
+  `cutout.canvas_fit` now predicts this before any render: every published 832x1216 Seraphiel
+  candidate fills only 75-77 % of the spec height, so candidates get a `SMALL nn%` sheet flag and
+  a final logs a warning.
 
 **Estimates for the `standard` preset** (28 steps with CFG):
 - one candidate: 28-41 min of sampling + about 1 min decode; with `per_job=1` a hero's
