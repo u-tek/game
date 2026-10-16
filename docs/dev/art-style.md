@@ -6,10 +6,10 @@ one image per hero plus face variants), animated by the HaloRig **warp rig**
 `look` text in `src/data/heroes.gd`). Visual direction of the game: "Twilight cathedral"
 (`docs/dev/architecture.md` section 7): heroes are shown on a deep indigo `#120e24`.
 
-Vector character art is discontinued. `tools/art_hero_seraphiel.py` only produces Seraphiel's
-vector STAND-IN (`assets/art/heroes/seraphiel/standin/`), rasterized into the same files a
-painted delivery provides, so the pipeline is tested end to end. Replace `seraphiel.png` and
-`variants/*.png` with the painted art and rerun `tools/art_warp seraphiel`.
+Vector character art is discontinued. All 15 heroes ship painted art from the art farm
+(`docs/dev/art-farm.md`, section "Imported into the game"); Seraphiel's vector stand-in and its
+generator were removed when her painted version was installed. To replace a hero's art, swap
+`<id>.png` and `variants/*.png`, adjust `<id>.warp_src.json` and rerun `tools/art_warp <id> --regen-masks`.
 
 ---------------------------------------------------------------------------------------------
 

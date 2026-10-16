@@ -1,0 +1,38 @@
+{
+  "_doc": "HaloRig warp rig source for imra (docs/dev/halorig.md section 8). Painted by the art farm (docs/dev/art-farm.md): run 38881543229-final-round1-v3, seed s204000. Coordinates are image pixels of imra.png (1024x2048, soles at the origin). Regions are listed in priority order: where masks overlap, the first one wins.",
+  "image": "imra.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [580, 622, 408],
+  "look_px": [14, 8],
+  "meta": {"weapon": "staff", "fx_color": "#ff8a3d", "art": "farm 38881543229 s204000"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [590, 1060]},
+    {"name": "torso", "parent": "hips", "pivot": [580, 960]},
+    {"name": "chest", "parent": "torso", "pivot": [580, 800]},
+    {"name": "neck", "parent": "chest", "pivot": [590, 700]},
+    {"name": "head", "parent": "neck", "pivot": [572, 692]},
+    {"name": "face", "parent": "head", "pivot": [580, 608]},
+    {"name": "hair_front", "parent": "head", "pivot": [580, 519]},
+    {"name": "weapon", "parent": "hips", "pivot": [190, 1160], "tip": [500, 330], "spring": "weapon"},
+    {"name": "lantern", "parent": "chest", "pivot": [905, 470], "spring": "accessory;limit=8;g=0.6"},
+    {"name": "tail", "parent": "hips", "pivot": [700, 1000], "spring": "tail;limit=10"},
+    {"name": "skirt", "parent": "hips", "pivot": [580, 1080], "spring": "cloth;limit=5;b=0.8"}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [580, 622], "radius": [79, 65], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [580, 544], "radius": [94, 44], "feather": 12}},
+    {"name": "weapon", "rule": {"type": "polygon", "points": [[450, 280], [560, 300], [470, 520], [420, 700], [270, 1000], [240, 1200], [80, 1660], [20, 1650], [130, 1230], [230, 950], [380, 650]], "feather": 8}},
+    {"name": "head", "rule": {"type": "union", "rules": [{"type": "ellipse", "center": [580, 593], "radius": [151, 141]}, {"type": "polygon", "points": [[330, 470], [500, 460], [500, 680], [330, 680]]}], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[502.0, 690], [678.0, 690], [740, 740], [732.0, 940], [692.0, 970], [468.0, 970], [428.0, 940], [420, 740]], "feather": 40}},
+    {"name": "lantern", "rule": {"type": "polygon", "points": [[850, 470], [970, 470], [980, 820], [840, 820]], "feather": 10}},
+    {"name": "tail", "rule": {"type": "polygon", "points": [[690, 840], [860, 860], [1000, 950], [1000, 1140], [880, 1200], [760, 1180], [700, 1100]], "feather": 14}},
+    {"name": "skirt", "rule": {"type": "subtract", "rules": [{"type": "polygon", "points": [[400, 1070], [800, 1070], [830, 1330], [700, 1400], [690, 1960], [500, 1960], [480, 1300], [380, 1300]]}, {"type": "polygon", "points": [[380, 1150], [480, 1160], [480, 1990], [300, 1990]]}], "feather": 22}}
+  ],
+  "overlays": [
+    {"slot": "eyes", "bone": "face", "base": "open", "default": "open", "rect": [504, 569, 154, 64], "z": 10, "variants": {"closed": "variants/eyes_closed.png", "smile": "variants/smile.png"}},
+    {"slot": "mouth", "bone": "face", "base": "default", "default": "default", "rect": [535, 633, 92, 50], "z": 11, "variants": {"open": "variants/mouth_open.png", "smile": "variants/smile.png"}}
+  ]
+}

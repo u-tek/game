@@ -1,0 +1,36 @@
+{
+  "_doc": "HaloRig warp rig source for kessa (docs/dev/halorig.md section 8). Painted by the art farm (docs/dev/art-farm.md): run 38881543229-final-round1-v3, seed s205000. Coordinates are image pixels of kessa.png (1024x2048, soles at the origin). Regions are listed in priority order: where masks overlap, the first one wins.",
+  "image": "kessa.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [522, 754, 424],
+  "look_px": [14, 8],
+  "meta": {"weapon": "sickle", "fx_color": "#ff8a3d", "art": "farm 38881543229 s205000"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [500, 1200]},
+    {"name": "torso", "parent": "hips", "pivot": [520, 1100]},
+    {"name": "chest", "parent": "torso", "pivot": [520, 960]},
+    {"name": "neck", "parent": "chest", "pivot": [520, 850]},
+    {"name": "head", "parent": "neck", "pivot": [515, 820]},
+    {"name": "face", "parent": "head", "pivot": [522, 741]},
+    {"name": "hair_front", "parent": "head", "pivot": [522, 657]},
+    {"name": "weapon", "parent": "hips", "pivot": [825, 1210], "tip": [975, 1060], "spring": "weapon"},
+    {"name": "ribbon", "parent": "chest", "pivot": [470, 810], "spring": "ribbon;limit=12"},
+    {"name": "tail", "parent": "hips", "pivot": [380, 1390], "spring": "tail;limit=14"}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [522, 754], "radius": [82, 61], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [522, 681], "radius": [97, 42], "feather": 12}},
+    {"name": "weapon", "rule": {"type": "polygon", "points": [[740, 1150], [900, 1000], [1015, 1000], [1015, 1420], [860, 1420], [740, 1310]], "feather": 8}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [522, 727], "radius": [157, 132], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[421.0, 840], [619.0, 840], [700, 900], [691.0, 1080], [646.0, 1110], [394.0, 1110], [349.0, 1080], [340, 900]], "feather": 40}},
+    {"name": "ribbon", "rule": {"type": "polygon", "points": [[470, 770], [330, 780], [150, 760], [150, 840], [330, 860], [480, 870]], "feather": 12}},
+    {"name": "tail", "rule": {"type": "polygon", "points": [[400, 1360], [200, 1380], [40, 1430], [30, 1650], [130, 1650], [130, 1470], [300, 1440], [400, 1430]], "feather": 14}}
+  ],
+  "overlays": [
+    {"slot": "eyes", "bone": "face", "base": "open", "default": "open", "rect": [447, 704, 147, 68], "z": 10, "variants": {"closed": "variants/eyes_closed.png", "smile": "variants/smile.png"}},
+    {"slot": "mouth", "bone": "face", "base": "default", "default": "default", "rect": [476, 758, 79, 51], "z": 11, "variants": {"open": "variants/mouth_open.png", "smile": "variants/smile.png"}}
+  ]
+}

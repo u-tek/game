@@ -1,0 +1,42 @@
+{
+  "_doc": "HaloRig warp rig source for vesper (docs/dev/halorig.md section 8). Painted by the art farm (docs/dev/art-farm.md): run 38913405511-final-round1-v3-vesper-props, seed s203000. Coordinates are image pixels of vesper.png (1024x2048, soles at the origin). Regions are listed in priority order: where masks overlap, the first one wins.",
+  "image": "vesper.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [555, 686, 402],
+  "look_px": [14, 8],
+  "meta": {"weapon": "orb", "fx_color": "#ff8a3d", "art": "farm 38913405511 s203000"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [600, 1140]},
+    {"name": "torso", "parent": "hips", "pivot": [580, 1040]},
+    {"name": "chest", "parent": "torso", "pivot": [560, 880]},
+    {"name": "neck", "parent": "chest", "pivot": [560, 760]},
+    {"name": "head", "parent": "neck", "pivot": [548, 755]},
+    {"name": "face", "parent": "head", "pivot": [556, 672]},
+    {"name": "hair_front", "parent": "head", "pivot": [556, 584]},
+    {"name": "weapon", "parent": "chest", "pivot": [840, 565], "tip": [840, 565], "spring": "weapon"},
+    {"name": "hair_back", "parent": "head", "pivot": [420, 780], "spring": "hair_long;limit=12;g=0.9"},
+    {"name": "hair_side_l", "parent": "head", "pivot": [700, 830], "spring": "hair_long;limit=12;g=0.9"},
+    {"name": "wing_r", "parent": "chest", "pivot": [310, 700]},
+    {"name": "cape", "parent": "chest", "pivot": [380, 820], "spring": "cape;limit=6;b=0.7"},
+    {"name": "tail", "parent": "hips", "pivot": [360, 1150], "spring": "tail;limit=12"}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [556, 686], "radius": [77, 64], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [556, 609], "radius": [92, 44], "feather": 12}},
+    {"name": "weapon", "rule": {"type": "ellipse", "center": [840, 562], "radius": [112, 112], "feather": 6}},
+    {"name": "hair_back", "rule": {"type": "polygon", "points": [[400, 740], [450, 760], [420, 900], [380, 1100], [230, 1110], [110, 1000], [150, 850], [300, 770]], "feather": 16}},
+    {"name": "hair_side_l", "rule": {"type": "polygon", "points": [[680, 800], [760, 830], [900, 900], [1000, 1000], [990, 1110], [900, 1100], [800, 1000], [720, 950]], "feather": 16}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [556, 657], "radius": [149, 139], "feather": 22}},
+    {"name": "wing_r", "rule": {"type": "polygon", "points": [[320, 650], [180, 600], [30, 570], [40, 640], [180, 760], [310, 760]], "feather": 16}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[455.5, 750], [664.5, 750], [750, 820], [740.5, 1020], [713.0, 1050], [447.0, 1050], [379.5, 1020], [370, 820]], "feather": 40}},
+    {"name": "cape", "rule": {"type": "subtract", "rules": [{"type": "polygon", "points": [[380, 760], [300, 900], [200, 1150], [40, 1500], [50, 1700], [250, 1710], [330, 1550], [400, 1300]]}, {"type": "polygon", "points": [[400, 1250], [520, 1250], [520, 1990], [300, 1990]]}], "feather": 26}},
+    {"name": "tail", "rule": {"type": "polygon", "points": [[380, 1050], [200, 1050], [30, 1150], [40, 1300], [200, 1360], [380, 1330]], "feather": 14}}
+  ],
+  "overlays": [
+    {"slot": "eyes", "bone": "face", "base": "open", "default": "open", "rect": [482, 635, 148, 70], "z": 10, "variants": {"smile": "variants/smile.png"}},
+    {"slot": "mouth", "bone": "face", "base": "default", "default": "default", "rect": [511, 691, 88, 58], "z": 11, "variants": {"open": "variants/mouth_open.png", "smile": "variants/smile.png"}}
+  ]
+}

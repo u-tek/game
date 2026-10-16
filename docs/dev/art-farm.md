@@ -431,3 +431,38 @@ mode, and this section is updated from them.
   is too wide for 1024 px (wings plus the diagonal sceptre), so it is scaled to fit the width and
   `spec` reports it; the skin heuristic face box landed inside the halo, hence the detector-only
   rule above.
+
+## 7. Imported into the game
+
+All 15 finals are installed in `assets/art/heroes/<id>/` (`<id>.png`, `variants/*.png`) with a
+`<id>.warp_src.json` rig (bones, region rules and overlay rects; the source run and seed are in its
+`_doc` and `meta.art`). Masks, overlays, portraits and `<id>.warp.json` are built by
+`tools/art_warp <id> --regen-masks`. Candidate, review and hires images stay on `art-gen-output`.
+
+| Hero | Run | Seed | Notes |
+|---|---|---|---|
+| seraphiel | 38881543229 | s101000 | collar from the cover repair; grey pockets in the halo windows cleared at import (1.5k px, base and variants) |
+| cassiel | 38881543229 | s102000 | `eyes_closed` is a wink: not used for blinking |
+| liora | 38881543229 | s103000 | cover repair removed the lace bottom under the hem (skirt covers, nothing drawn); bead speck on the stocking top |
+| uriela | 38881543229 | s104001 | smile is a wink |
+| nuriel | 38881543229 | s105001 | masked: eyes slot only; notch in the screen-right wing |
+| mordessa | 38881543229 | s201001 | smallest figure (70 % fit); white rims in the hair |
+| brakka | 38881543229 | s202001 | chest recoloured by the repair; `eyes_closed` is a wink: not used |
+| vesper | 38913405511 | s203000 | orb kept (detached props); `eyes_closed` is a wink: not used |
+| imra | 38881543229 | s204000 | lantern on its own accessory spring |
+| kessa | 38881543229 | s205000 | scarf on a ribbon spring; white rims in the hair |
+| noctaire | 38881543229 | s301000 | soft floor shadow under the feet |
+| orrin | 38902617668 | s302000 | alternate seed (s302002 is dropped by the filter every run); no chest chain |
+| sable | 38902617668 | s303001 | alternate seed (s303000 dropped twice); chains instead of the censer; thigh haze |
+| lucen | 38881543229 | s304000 | |
+| ashra | 38881543229 | s305001 | chest re-shaded by the repair |
+
+Rig conventions used for all 15: `face` ellipse and `hair_front` from the farm's face box, `head`
+ellipse (plus hat/horn polygons where needed), a `halo` bone for haloed heroes, hair masses as
+`hair_back` / `hair_side_l` / `hair_long` polygons with `g` 0.9 springs, `wing_r` / `wing_l`
+polygons pivoting at the shoulder blades, `weapon` = the held or floating item with the gripping
+hand (heroes with sheathed or no weapons get a weapon bone without a region, for the VFX tip),
+cloth (`skirt`, `cape`, `coat_*`), `tail`, `ribbon` and accessory regions with their spring
+presets. Overlay rects come from the variant diffs. Winks are left out of the `eyes` slot, so
+those heroes do not blink. The in-game figure height comes from the rig bounds, so the 70-89 %
+fit only shows in battle, where heroes use the fixed battle scale.

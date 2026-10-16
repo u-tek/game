@@ -398,8 +398,8 @@ limits; big actions are sold with whole-body motion + VFX (`vfx_<kind>` events).
 | `python3 tools/art_gif.py frames out.gif --sheet sheet.png` | GIF (on #120e24) + contact sheet |
 | `python3 tools/art_review.py id label` | detail / 1:1 face / hair crop / battle + portrait sizes |
 | `tools/gd --headless --path . -s tools/art_selftest.gd` | every rig x every animation sanity test |
-| `tools/art_svg2png.gd` | rasterize SVGs with Godot's ThorVG (cutout art, stand-ins) |
-| `tools/art_hero_seraphiel.py`, `tools/art_hero__silhouette.py` | generators: Seraphiel's vector STAND-IN input, the fallback silhouette |
+| `tools/art_svg2png.gd` | rasterize SVGs with Godot's ThorVG (cutout art) |
+| `tools/art_hero__silhouette.py` | generator: the fallback silhouette (cutout SVG) |
 
 ## 10. Unity port notes
 - Load JSON as-is. Convert rig space to Unity: `x_u = x / ppu`, `y_u = -y / ppu`, angles `-deg`.
@@ -407,7 +407,7 @@ limits; big actions are sold with whole-body motion + VFX (`vfx_<kind>` events).
 - Warp: build a `Mesh` from `vertices` (flip y), `uvs` (flip v: `1 - v`), `triangles` (reverse
   winding after the y flip), put `skin` into UV2/UV3 (`(b0, w0, b1, w1)`, `(b2, w2)`), and port
   `warp.gdshader` to a URP 2D shader with `float4 _BoneA[32], _BoneB[32], _BoneC[32]`
-  (`material.SetVectorArray`). Or skin on the CPU in a job (891 vertices for Seraphiel).
+  (`material.SetVectorArray`). Or skin on the CPU in a job (about 650-1050 vertices per painted hero).
 - Cutout: one `SpriteRenderer` per slot sorted by `z`, sprite pivot from the attachment offset.
 - Port `rig_anim.gd` (sampling, easing table, events), the mixing in 5.1, springs in 6.2
   (fixed 1/60 sub-steps), and the tint shader in 6.5. Golden check: play `attack_melee` on the
