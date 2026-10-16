@@ -12,9 +12,19 @@ those would stay as grey patches. artgen_cutout() therefore combines:
            minus isnet's unsure haze (mask <= 0.5) that has the background colour (within `bg_tol`),
              while unsure pixels clearly unlike the background (> `solid_dist`) become solid figure when
              isnet leans figure or they sit in a small gap of the figure (closing by `close_px`);
+           minus isnet's half-sure zones (mask 0.5-`haze_hi`) of background colour (within `haze_tol`),
+             in blobs at least 5 px across only (an opening: the thin seams between two figure parts
+             stay); these were the semi-transparent grey patches between a halo and a crown;
+           minus pockets: enclosed background too small for the holes (between halo spikes, hair
+             strands, wing and arm): flat cores of (2 `pocket_r` + 1)^2 px within `pocket_tol` of the
+             fitted background where isnet is not saturated (< `pocket_m`), grown within `hole_tol`
+             (opened by 1 px), each under `max_hole_frac` of the figure box; skipped on a near-white
+             backdrop (mean luminance >= `pocket_lum`), where white highlights would match it;
            minus the ground shadow: in the bottom `shadow_band` of the figure, smooth pixels with the
-             background's chromaticity and 35-97% of its luminance (darker than the backdrop, so a
-             white gown never matches), flood-filled from the background;
+             background's chromaticity (wider tolerance where isnet is unsure: anime shadows are
+             cooler than the backdrop) and 35-97% of its luminance (darker than the backdrop, so a
+             white gown never matches), flood-filled from the background (seeds up to `seed_gap` px
+             inside a hard-edged shadow);
   then post.alpha_from_mask for the edge unmixing and despill.
 
 Without an isnet mask (rembg failed to load) the colour-flood cutout is the figure mask.
@@ -57,10 +67,13 @@ def _grad(lum):
 
 
 def ground_shadow(arr, bgc, figure, band=0.15, chroma_tol=0.04, lum_range=(0.35, 0.97), grad_max=8.0,
-                  ring_px=2, max_frac=0.8):
+                  ring_px=2, max_frac=0.8, soft=None, soft_max=0.95, soft_chroma_tol=0.06, seed_gap=3):
     """Boolean mask of the cast shadow under the figure (subset of `figure`), and an info dict.
     A shadow lies flat on the floor: a found region that reaches the top of the bottom band (a dark,
-    background-tinted hem or boot rather than a shadow) is left alone."""
+    background-tinted hem or boot rather than a shadow) is left alone. `soft` (isnet's mask, 0-1):
+    where it is below `soft_max` the chromaticity tolerance widens to `soft_chroma_tol` (painted
+    shadows are bluer than the backdrop; run 38844269897's measured 0.018-0.045). Seeds may sit up
+    to `seed_gap` px from the background: the rim of a hard-edged shadow is too steep for `grad_max`."""
     ys, xs = np.nonzero(figure)
     info = {"shadow_px": 0}
     if len(ys) == 0:
@@ -72,9 +85,10 @@ def ground_shadow(arr, bgc, figure, band=0.15, chroma_tol=0.04, lum_range=(0.35,
     lum, blum = _lum(arr), np.maximum(_lum(bgc), 1.0)
     ratio = lum / blum
     cd = np.abs(_chroma(arr) - _chroma(bgc)).max(axis=2)
-    shade = rows & figure & (cd < chroma_tol) & (ratio >= lum_range[0]) & (ratio <= lum_range[1])
+    tol = chroma_tol if soft is None else np.where(soft < soft_max, soft_chroma_tol, chroma_tol)
+    shade = rows & figure & (cd < tol) & (ratio >= lum_range[0]) & (ratio <= lum_range[1])
     cand = shade & (_grad(lum) < grad_max)
-    seed = cand & post.dilate(~figure, 1)
+    seed = cand & post.dilate(~figure, 1 + seed_gap)
     sh = post.flood(seed, cand)
     if ring_px and sh.any():          # hard-edged shadows: take the (steeper) rim of a found shadow too
         sh |= post.dilate(sh, ring_px) & shade
@@ -96,8 +110,31 @@ def ground_shadow(arr, bgc, figure, band=0.15, chroma_tol=0.04, lum_range=(0.35,
     return kept, info
 
 
+def _pockets(arr, bgc, m, dist, hole_tol, max_hole_frac, tol, grad, r, m_max, lum_max):
+    """Boolean mask of the background pockets (see the module docstring) and how many were too big."""
+    none = np.zeros(m.shape, dtype=bool)
+    if float(_lum(bgc).mean()) >= lum_max:
+        return none, 0
+    flat = (m > 0.0) & (m < m_max) & (dist < tol) & (_grad(_lum(arr)) < grad)
+    core = post.erode(flat, r)
+    if not core.any():
+        return none, 0
+    grow = (m > 0.0) & (dist < hole_tol)
+    found = post.flood(core, post.dilate(post.erode(grow, 1), 1) & grow)
+    fy, fx = np.nonzero(m > 0.5)
+    box = max(1, int((fy.max() - fy.min() + 1) * (fx.max() - fx.min() + 1))) if len(fx) else 1
+    kept, big = none.copy(), 0
+    for comp in post.components(found, max_count=400):
+        if comp.sum() > max_hole_frac * box:
+            big += 1
+            continue
+        kept |= comp
+    return kept, big
+
+
 def artgen_cutout(img, isnet_mask=None, hole_tol=12.0, hole_min=24, max_hole_frac=0.06, shadow=True,
-                  bg_tol=26.0, solid_dist=40.0, close_px=8, band_px=2, feather=0.7):
+                  bg_tol=26.0, solid_dist=40.0, close_px=8, band_px=2, feather=0.7, haze_hi=0.9, haze_tol=18.0,
+                  pocket_tol=4.0, pocket_grad=4.0, pocket_r=3, pocket_m=0.995, pocket_lum=235.0):
     """(RGBA Image, info). See the module docstring."""
     rgb = img.convert("RGB")
     arr = post._rgb(rgb)
@@ -110,6 +147,7 @@ def artgen_cutout(img, isnet_mask=None, hole_tol=12.0, hole_min=24, max_hole_fra
         m = soft_mask(isnet_mask, rgb.size)
     else:
         m = (~B).astype(np.float32)
+    m0 = m.copy()
     fig = m > 0.5
     bgc = post.fit_bg_surface(arr, ~post.dilate(fig, 4))
     if isnet_mask is not None:
@@ -121,12 +159,20 @@ def artgen_cutout(img, isnet_mask=None, hole_tol=12.0, hole_min=24, max_hole_fra
         m = np.where(holes, 0.0, m)
         # isnet's unsure zones: background-coloured haze goes, clearly figure-coloured cloth turns solid
         haze = (m > 0.0) & (m <= 0.5) & (dist < bg_tol)
+        near = (m < haze_hi) & (dist < haze_tol)        # half-sure and background-coloured: blobs only
+        half = (m > 0.5) & post.dilate(post.erode(near, 2), 2) & near
+        haze |= half
         closed = post.erode(post.dilate(m > 0.5, close_px), close_px)      # small gaps inside the figure
         firm = (m < 1.0) & (dist > solid_dist) & ((m > 0.5) | closed)
         m = np.where(haze, 0.0, np.where(firm, 1.0, m))
-        info.update({"hole_px": int(holes.sum()), "haze_px": int(haze.sum()), "firmed_px": int(firm.sum())})
+        info.update({"hole_px": int(holes.sum()), "haze_px": int(haze.sum()), "half_sure_px": int(half.sum()),
+                     "firmed_px": int(firm.sum())})
+        pockets, big = _pockets(arr, bgc, m, dist, hole_tol, max_hole_frac, pocket_tol, pocket_grad, pocket_r,
+                                pocket_m, pocket_lum)
+        m = np.where(pockets, 0.0, m)
+        info.update({"pocket_px": int(pockets.sum()), "pockets_kept_as_figure": big})
     if shadow:
-        sh, sinfo = ground_shadow(arr, bgc, m > 0.02)
+        sh, sinfo = ground_shadow(arr, bgc, m > 0.02, soft=m0 if isnet_mask is not None else None)
         m = np.where(sh, 0.0, m)
         info.update(sinfo)
     mask = Image.fromarray(np.clip(m * 255 + 0.5, 0, 255).astype(np.uint8), "L")

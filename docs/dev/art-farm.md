@@ -155,9 +155,18 @@ candidate missing or invalid (nothing rendered).
      and the job exits 5.
   3. **cutout + canvas**: `cutout.artgen_cutout` = rembg `isnet-anime` mask, minus enclosed
      background (halo ring, wing gaps: `post.remove_background`'s colour flood + holes, within 12 of
-     the fitted background), minus isnet's background-coloured haze, minus the ground shadow (bottom
-     15% of the figure, background chromaticity at 35-97% of its luminance, flat on the floor), then
-     `post.alpha_from_mask` edge unmixing/despill; `post.finalize_local` places it. An automatic
+     the fitted background), minus isnet's background-coloured haze (mask ≤ 0.5, and half-sure
+     0.5-0.9 zones within 18 of the background in blobs ≥ 5 px across, never thin seams), minus
+     **pockets** (enclosed background too small for the holes: between halo spikes and the crown,
+     hair strands, wing and arm; flat 7x7 cores within 4 of the fitted background where isnet is
+     not saturated, grown within 12, not on a near-white backdrop where white highlights would
+     match), minus the ground shadow (bottom 15% of the figure, background chromaticity, 0.06
+     tolerance where isnet is unsure because painted shadows are cooler than the backdrop, at
+     35-97% of its luminance, flat on the floor, seeds up to 3 px inside a hard edge), then
+     `post.alpha_from_mask` edge unmixing/despill; `post.finalize_local` places it. On run
+     38844269897's s101000 source the first version left semi-transparent grey patches between the
+     halo and the crown, opaque grey gaps between hair strands and the whole cool-grey floor shadow
+     (16 of ~11 000 px found); see section 6. An automatic
      `spec` report checks 1024x2048 RGBA, soles at 1990, head top ≥ 40, margins ≥ 24.
      → canvas, `_portrait.png`, `_check.webp`, `_boxes.webp`.
   4. **variants** (the hero's `variant_set`): crop inpaint of the eyes/mouth region at 768 px,

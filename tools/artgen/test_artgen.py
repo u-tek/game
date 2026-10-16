@@ -536,6 +536,69 @@ class TestCutout(unittest.TestCase):
         self.assertGreater(a[630, 180], 245)
         self.assertEqual(info["method"], "colour flood + shadow")
 
+    def scene(self, bg, body, patch):
+        """A body with four patches of colour `patch` inside: a pocket (isnet 0.98), a cloth patch isnet
+        is sure of (1.0), a half-sure blob (0.7) and a 2 px seam (0.7). Returns (image, isnet mask)."""
+        im = Image.new("RGB", (400, 700), bg)
+        d = ImageDraw.Draw(im)
+        d.rectangle([100, 100, 300, 600], fill=body, outline=(30, 20, 40), width=3)
+        m = Image.new("L", im.size, 0)
+        dm = ImageDraw.Draw(m)
+        dm.rectangle([100, 100, 300, 600], fill=255)
+        for box, v in (([150, 200, 163, 213], 250), ([230, 200, 243, 213], 255), ([150, 300, 169, 319], 178),
+                       ([240, 300, 241, 360], 178)):
+            d.rectangle(box, fill=patch)
+            dm.rectangle(box, fill=v)
+        return im, m
+
+    def test_pockets_and_half_sure_haze(self):
+        bg = (150, 157, 168)
+        im, m = self.scene(bg, (240, 240, 250), bg)
+        rgba, info = cutout.artgen_cutout(im, m, shadow=False)
+        a = np.asarray(rgba)[..., 3]
+        self.assertLess(a[206, 156], 10, "an enclosed background pocket (isnet 0.98) must be transparent")
+        self.assertGreater(a[206, 236], 245, "a background-coloured patch isnet is sure of stays (cloth)")
+        self.assertLess(a[309, 159], 10, "a half-sure background-coloured blob must be transparent")
+        self.assertGreater(a[330, 240], 150, "a thin half-sure seam between two figure parts stays")
+        self.assertGreater(a[400, 200], 245, "the body stays")
+        self.assertGreater(info["pocket_px"], 0)
+        self.assertGreater(info["half_sure_px"], 0)
+        old = cutout.artgen_cutout(im, m, shadow=False, haze_hi=0.5, pocket_lum=0.0)[0]
+        self.assertGreater(np.asarray(old)[206, 156, 3], 200, "without the new rules the pocket is grey (the bug)")
+
+    def test_no_pockets_on_a_white_backdrop(self):
+        bg = (250, 250, 250)
+        im, m = self.scene(bg, (60, 40, 70), bg)       # white highlights on a dark outfit match a white backdrop
+        rgba, info = cutout.artgen_cutout(im, m, shadow=False)
+        self.assertGreater(np.asarray(rgba)[206, 156, 3], 200)
+        self.assertEqual(info["pocket_px"], 0)
+
+    def test_cool_hard_edged_shadow(self):
+        """Run 38844269897: the painted shadow was bluer than the backdrop (chromaticity 0.018-0.045 off),
+        hard-edged, and isnet half-sure about it (0.53-0.83); it stayed on the canvas."""
+        bg = np.array([148, 155, 167], np.float32)
+        arr = np.ones((700, 400, 3), np.float32) * bg
+        yy, xx = np.mgrid[0:700, 0:400]
+        sh = (((xx - 200) / 120.0) ** 2 + ((yy - 640) / 20.0) ** 2) < 1.0
+        arr[sh] = (70, 82, 102)
+        legs = np.zeros_like(sh)
+        legs[380:650, 165:195] = True
+        legs[380:650, 205:235] = True
+        arr[legs] = (250, 225, 210)
+        arr[150:380, 150:250] = (240, 240, 250)
+        img = Image.fromarray(arr.astype(np.uint8))
+        m = np.zeros(sh.shape, np.float32)
+        m[sh] = 0.7
+        m[legs] = 1.0
+        m[150:380, 150:250] = 1.0
+        isnet = Image.fromarray((m * 255).astype(np.uint8), "L")
+        rgba, info = cutout.artgen_cutout(img, isnet)
+        a = np.asarray(rgba)[..., 3]
+        self.assertLess(a[640, 110], 10, "cool shadow left of the legs must be transparent")
+        self.assertLess(a[640, 290], 10, "cool shadow right of the legs must be transparent")
+        self.assertGreater(a[600, 180], 245, "the legs stay")
+        self.assertGreater(info["shadow_px"], 0)
+
     def test_white_gown_is_not_shadow(self):
         im = Image.new("RGB", (300, 500), (128, 128, 128))
         d = ImageDraw.Draw(im)
