@@ -111,7 +111,7 @@ clearly an adult, never explicit.
   every job starts with a self-test that proves a forced detector error drops the image.
   Dropped images are deleted immediately; only their name, scores and reason are logged
   (`filter_manifest.json`, `job_<key>.json`, run `index.json`).
-- **Upload gate**: renders happen in `$RUNNER_TEMP`, which is never uploaded. Only `artgen_out/` is
+- **Upload gate**: renders happen in a work dir outside the checkout, which is never uploaded. Only `artgen_out/` is
   uploaded, after `safety.py verify` deleted any file without a pass record (path + sha256), any
   non-.png/.webp image and anything that is not .json. `collect.py` verifies every artifact
   again, filters the contact sheets it draws (no filter in collect = no sheets), runs a last
