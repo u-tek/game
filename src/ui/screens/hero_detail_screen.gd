@@ -19,7 +19,7 @@ const HOLD_MIN := 0.045
 const STAT_ORDER: Array[String] = ["hp", "atk", "def", "spd", "crit"]
 const SLOTS: Array[String] = ["weapon", "armor", "helm", "charm"]
 const COL_W := 324.0
-const EDGE := 56.0
+const EDGE := 64.0
 const SHORT_RED := Color("d42a12")
 const TABS := [["equip", "Equip", "equip"], ["skills", "Skills", "skill"], ["story", "Story", "scrolls"]]
 
@@ -226,7 +226,7 @@ func _build() -> void:
 			var d := dir
 			var arrow := Kit.icon_button("chevron_right", func() -> void: _browse_step(d), 64, "round")
 			arrow.name = "Prev" if dir < 0 else "Next"
-			arrow.custom_minimum_size = Vector2(EDGE, 104)
+			arrow.custom_minimum_size = Vector2(EDGE, 112)
 			arrow.size = arrow.custom_minimum_size
 			var g := arrow.get_node("Glyph") as TextureRect
 			g.flip_h = dir < 0
@@ -374,7 +374,7 @@ func _build_status() -> Control:
 
 ## Ultimate (faction-colored hex) and passives (white; locked ones show a lock). Tap = Skills tab.
 func _build_skill_hexes() -> Control:
-	_skill_row = Kit.hbox(8)
+	_skill_row = Kit.hbox(2)
 	_skill_row.name = "SkillHexes"
 	return _skill_row
 
@@ -403,8 +403,8 @@ func _refresh_skill_hexes(stars: int) -> void:
 		var holder := Panel.new()
 		holder.theme_type_variation = &"BareButton"
 		holder.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-		holder.custom_minimum_size = Vector2(sz, maxf(sz, Kit.BUTTON_H))
-		it.position = Vector2(0, (holder.custom_minimum_size.y - sz) * 0.5)
+		holder.custom_minimum_size = Vector2(maxf(sz, 86.0), maxf(sz, Kit.BUTTON_H))
+		it.position = (holder.custom_minimum_size - Vector2(sz, sz)) * 0.5
 		holder.add_child(it)
 		Kit.make_tappable(holder, func() -> void: _select_tab("skills"))
 		_skill_row.add_child(holder)
