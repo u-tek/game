@@ -1,0 +1,14 @@
+{
+ "branch": "art-gen-output",
+ "runs": [
+  {
+   "run": "38831256710-candidates-smoke",
+   "created": "2026-10-16T01:03:51Z",
+   "heroes": [
+    "seraphiel"
+   ],
+   "published_images": 2,
+   "dropped": 2
+  }
+ ]
+}
