@@ -39,6 +39,17 @@
    "published_images": 0,
    "dropped": 2,
    "jobs_missing": []
+  },
+  {
+   "run": "38844281818-candidates-ab-bible",
+   "created": "2026-10-16T04:38:21Z",
+   "updated": "2026-10-16T04:38:32Z",
+   "heroes": [
+    "seraphiel"
+   ],
+   "published_images": 3,
+   "dropped": 1,
+   "jobs_missing": []
   }
  ]
 }
