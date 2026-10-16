@@ -5,9 +5,10 @@ Generated hero art from the art farm (`.github/workflows/art-gen.yml`, docs in
 finals are copied into `assets/art/heroes/<id>/`.
 
 - `runs/<run id>-<mode>[-label]/<hero>/`: candidates (`<hero>_s<seed>.webp` + `.json` metadata) or
-  finals (`final_s<seed>/`: 1024x2048 canvas, portrait, variants, masks, metadata), `contact_sheet.png`.
-- `runs/<run>/index.json`: jobs, timings, filter statistics. `index.json`: all runs.
+  finals (`final_s<seed>/`: `_hires.webp`, `_source.webp`, the 1024x2048 canvas `<hero>.png`, portrait,
+  `_check.webp`, `_boxes.webp`, variants, masks, `variants_sheet.webp`, metadata), `contact_sheet.webp`.
+- `runs/<run>/index.json`: jobs, timings, memory, filter statistics. `index.json`: all runs.
 - Every image passed an automatic exposure filter (NudeNet + anime censor-point detector) on the
   runner before upload; images that failed were deleted and never uploaded (see each run's index).
-- Model: cagliostrolab/animagine-xl-4.0 (CreativeML Open RAIL++-M); candidate rounds may use the
-  SDXL-Lightning or LCM LoRA (OpenRAIL++). Licences per image are in its metadata.
+- Model: cagliostrolab/animagine-xl-4.0 (CreativeML Open RAIL++-M), no LoRA. Settings per image are
+  in its metadata.

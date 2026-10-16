@@ -1,0 +1,170 @@
+{
+ "hero": "seraphiel",
+ "mode": "candidates",
+ "seed": 101001,
+ "image": null,
+ "dropped": true,
+ "width": 832,
+ "height": 1216,
+ "preset": "standard",
+ "preset_settings": {
+  "sampler": "euler_ancestral",
+  "steps": 28,
+  "cfg": 5.0,
+  "width": 832,
+  "height": 1216,
+  "doc": "Animagine XL 4.0 model card: Euler a, 28 steps, CFG 5, 832x1216 (default for candidates and finals; about 25-40 min per image on the 4-vCPU runners)"
+ },
+ "dtype": "fp32",
+ "family": "animagine",
+ "style": {
+  "name": "farm",
+  "spec": {
+   "doc": "farm overlay: dark slate background behind light-palette heroes on grey, face/clarity tags, 3/4 view cue, floating weapons up-weighted, floor/shadow and flat-look negatives",
+   "drop_tags": [
+    "cel shading"
+   ],
+   "style_extra": "game cg, shiny hair",
+   "full_body_extra": "(dramatic lighting:0.8), (from side:0.5), (detailed face:1.1)",
+   "floating_weight": 1.2,
+   "floating_negative": "holding staff, holding weapon",
+   "negative_extra": "shadow, floor, reflection, flat color, low contrast, washed out, sketch",
+   "face_negative_extra": "flat color, low contrast, washed out, sketch",
+   "background": {
+    "key": "slate",
+    "tags": "simple background, dark grey background",
+    "rgb": [
+     70,
+     72,
+     80
+    ],
+    "style_tags": "rim lighting",
+    "when_background": "grey",
+    "when_palette_has": "white"
+   }
+  }
+ },
+ "prompt": "1girl, solo, adult, mature female, full body, standing, contrapposto, looking at viewer, curvy, huge breasts, wide hips, platinum blonde hair, very long hair, closed eyes, seductive smile, halo, spiked halo, gold crown, multiple wings, white wings, head wings, white leotard, highleg leotard, center opening, white pelvic curtain, detached sleeves, barefoot, body chain, scepter, (floating object:1.2), hand up, hand on own chest, white and gold theme, simple background, dark grey background, official art, detailed shading, rim lighting, game cg, shiny hair, (dramatic lighting:0.8), (from side:0.5), (detailed face:1.1), masterpiece, high score, great score, absurdres, sensitive",
+ "negative": "worst quality, low quality, low score, bad score, average score, nsfw, explicit, (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2), lowres, blurry, jpeg artifacts, bad anatomy, bad hands, missing fingers, extra digits, fewer digits, extra arms, error, cropped, feet out of frame, head out of frame, wings out of frame, upper body, cowboy shot, multiple views, scenery, light particles, sparkle, embers, aura, light rays, smoke, speed lines, nude, areolae, pussy, anus, penis, sex, spread legs, see-through, loli, shota, child, underage, teenage, young, aged down, school uniform, text, watermark, signature, username, chibi, 3d, realistic, 1boy, multiple girls, topless, flat chest, pussy peek, pantyshot, upskirt, blue archive, shadow, floor, reflection, flat color, low contrast, washed out, sketch, holding staff, holding weapon",
+ "prompt_chunks": [
+  3,
+  3
+ ],
+ "background": {
+  "key": "slate",
+  "rgb": [
+   70,
+   72,
+   80
+  ]
+ },
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)"
+ },
+ "lora": null,
+ "render": {
+  "what": "txt2img 832x1216",
+  "sample_s": 2370.9,
+  "steps_run": 28,
+  "num_inference_steps": 28,
+  "cfg": 5.0,
+  "sampler": "EulerAncestralDiscreteScheduler",
+  "s_per_step": 84.67,
+  "step_s": [
+   103.05,
+   84.74,
+   84.0,
+   83.75,
+   83.95,
+   84.2,
+   84.45,
+   84.56,
+   83.76,
+   83.89,
+   83.63,
+   83.85,
+   83.57,
+   84.04,
+   84.99,
+   84.89,
+   84.05,
+   84.2,
+   84.16,
+   84.53,
+   84.05,
+   83.47,
+   83.82,
+   83.42,
+   83.42,
+   83.41,
+   83.46,
+   83.55
+  ],
+  "overhead_s": 0.0,
+  "dtype": "fp32",
+  "threads": 4,
+  "mem_sample": {
+   "vmhwm_gb": 11.32,
+   "vmrss_gb": 10.68,
+   "memavail_gb": 4.2
+  },
+  "steps_effective": 28,
+  "decode": "untiled",
+  "memavail_before_decode_gb": 4.195781707763672,
+  "decode_s": 59.9,
+  "seconds": 2431.2,
+  "mem_stage": {
+   "vmhwm_gb": 14.18,
+   "vmrss_gb": 10.56,
+   "memavail_gb": 4.19
+  },
+  "vmhwm_gb": 14.18,
+  "rss_peak_gb": 14.18
+ },
+ "framing": {
+  "touches": [
+   "bottom"
+  ],
+  "edge_low": 0.097,
+  "bg_rgb": [
+   97.0,
+   100.0,
+   109.0
+  ],
+  "bg_off": 48.5,
+  "figure_frac": 0.488,
+  "holes_kept_as_figure": 0,
+  "flags": [
+   "CROP:bottom",
+   "BG?"
+  ]
+ },
+ "filter": {
+  "views": 18,
+  "scores": {
+   "nudenet": {
+    "FEMALE_BREAST_EXPOSED": 0.4806,
+    "FEMALE_GENITALIA_EXPOSED": 0.0068,
+    "MALE_GENITALIA_EXPOSED": 0.0032,
+    "ANUS_EXPOSED": 0.0003,
+    "BUTTOCKS_EXPOSED": 0.0554
+   },
+   "anime_censor": {
+    "nipple_f": 0.0131,
+    "penis": 0.1127,
+    "pussy": 0.1057
+   }
+  },
+  "flagged": [
+   {
+    "detector": "nudenet",
+    "class": "FEMALE_BREAST_EXPOSED",
+    "score": 0.4806,
+    "view": "full"
+   }
+  ]
+ },
+ "run": "38844272140-candidates-ab-farm",
+ "created": "2026-10-16T03:55:31Z"
+}

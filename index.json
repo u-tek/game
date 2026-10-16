@@ -28,6 +28,17 @@
    ],
    "published_images": 0,
    "dropped": 1
+  },
+  {
+   "run": "38844272140-candidates-ab-farm",
+   "created": "2026-10-16T03:56:30Z",
+   "updated": "2026-10-16T03:56:41Z",
+   "heroes": [
+    "seraphiel"
+   ],
+   "published_images": 0,
+   "dropped": 2,
+   "jobs_missing": []
   }
  ]
 }
