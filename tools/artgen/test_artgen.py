@@ -631,6 +631,44 @@ class TestCutout(unittest.TestCase):
         self.assertTrue(wide["flag"].startswith("SMALL "), wide)
         self.assertLess(wide["figure_px"], 1500)
 
+    def test_detached_prop_is_kept(self):
+        """Run 38881543229: isnet dropped Vesper's floating orb (isnet 0.00 on it); the canvas lost the prop.
+        A solid detached blob comes back; a blob isnet half-sees (a shadow), a backdrop-coloured blob, a
+        small speck and a blob cut by the image border stay out."""
+        bg = (255, 255, 255)
+        im = Image.new("RGB", (400, 700), bg)
+        d = ImageDraw.Draw(im)
+        d.rectangle([150, 200, 250, 650], fill=(200, 30, 40), outline=(20, 10, 20), width=3)   # body
+        d.ellipse([262, 110, 332, 180], fill=(120, 60, 200), outline=(30, 10, 60), width=3)   # orb by the shoulder
+        d.ellipse([30, 300, 90, 360], fill=(90, 90, 110))                                      # half-seen blob
+        d.ellipse([30, 450, 90, 510], fill=(246, 246, 246))                                    # backdrop-ish
+        d.ellipse([60, 120, 70, 130], fill=(20, 20, 20))                                       # speck
+        d.rectangle([0, 600, 40, 660], fill=(40, 120, 60))                                     # cut by the border
+        d.rectangle([260, 610, 380, 640], fill=(120, 120, 140))                                # floor line by the feet
+        m = Image.new("L", im.size, 0)
+        dm = ImageDraw.Draw(m)
+        dm.rectangle([150, 200, 250, 650], fill=255)
+        dm.ellipse([30, 300, 90, 360], fill=77)                                                # isnet 0.3
+        rgba, info = cutout.artgen_cutout(im, m, shadow=False)
+        a = np.asarray(rgba)[..., 3]
+        self.assertGreater(a[145, 297], 245, "the floating orb must stay on the canvas")
+        self.assertGreater(a[145, 264], 100, "the orb keeps its outline")
+        self.assertGreater(a[400, 200], 245, "the body stays")
+        self.assertLess(a[330, 60], 10, "a blob isnet half-sees stays isnet's call")
+        self.assertLess(a[480, 60], 10, "a backdrop-coloured blob is not a prop")
+        self.assertLess(a[125, 65], 10, "a speck is not a prop")
+        self.assertLess(a[630, 20], 10, "a blob cut by the image border is not a prop")
+        self.assertLess(a[625, 320], 10, "a floor line beside the feet is not a prop")
+        self.assertEqual(len(info["props"]), 1, info["props"])
+        self.assertLess(abs(info["props"][0]["box"][0] - 262), 4)
+        off = cutout.artgen_cutout(im, m, shadow=False, props_kw={"min_px": 10 ** 9})[0]
+        self.assertLess(np.asarray(off)[145, 297, 3], 10, "without the rescue the orb is lost (the bug)")
+        busy = cutout.artgen_cutout(im, m, shadow=False, props_kw={"max_props": 0})
+        self.assertLess(np.asarray(busy[0])[145, 297, 3], 10, "too many blobs = a busy backdrop: none kept")
+        self.assertTrue(busy[1]["props"] and all("skipped" in p for p in busy[1]["props"]))
+        far = cutout.artgen_cutout(im, m, shadow=False, props_kw={"near_frac": 0.0})[0]
+        self.assertLess(np.asarray(far)[145, 297, 3], 10, "a blob away from the figure is scenery")
+
     def test_white_gown_is_not_shadow(self):
         im = Image.new("RGB", (300, 500), (128, 128, 128))
         d = ImageDraw.Draw(im)

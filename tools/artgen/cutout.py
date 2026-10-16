@@ -20,6 +20,9 @@ those would stay as grey patches. artgen_cutout() therefore combines:
              fitted background where isnet is not saturated (< `pocket_m`), grown within `hole_tol`
              (opened by 1 px), each under `max_hole_frac` of the figure box; skipped on a near-white
              backdrop (mean luminance >= `pocket_lum`), where white highlights would match it;
+           plus detached props isnet drops entirely (a floating orb beside a raised hand): solid blobs
+             the colour flood calls figure, clearly unlike the backdrop, away from isnet's figure, with
+             isnet ~0 throughout, off the image border, above a size floor (detached_props);
            minus the ground shadow: in the bottom `shadow_band` of the figure, smooth pixels with the
              background's chromaticity (wider tolerance where isnet is unsure: anime shadows are
              cooler than the backdrop) and 35-97% of its luminance (darker than the backdrop, so a
@@ -142,6 +145,50 @@ def fill_edge_dips(rgba, arr, figure, dist, band_px=2, min_dip=0.25, max_alpha=0
     return Image.fromarray(out, "RGBA"), int(fix.sum())
 
 
+def detached_props(B, m, dist, solid_dist=40.0, min_px=400, min_frac=0.0015, isnet_max=0.05, gap=6, open_r=3,
+                   border_px=4, floor_band=0.12, near_frac=0.1, max_props=3, min_dist=80.0):
+    """Detached props isnet-anime drops (it segments the character, not what floats beside it): run
+    38881543229 lost Vesper's raised hellfire orb (44 577 px, isnet 0.00 throughout) from the canvas.
+    A prop is a blob the colour flood calls figure (`B` = background), far from the backdrop colour
+    (mean `dist` > max(`min_dist`, `solid_dist`): a white glow disc behind a head on a light grey
+    backdrop, candidate nuriel s105000, stays isnet's call), at least `gap` px from isnet's figure but within `near_frac` of its
+    height (held or floating beside it, not scenery), where isnet is ~0 throughout (mean < `isnet_max`:
+    a blob isnet half-sees, such as a cast shadow, is isnet's call), not touching the image border
+    (background scenery or a cropped object), not starting in the bottom `floor_band` of isnet's
+    figure (floor lines and cast shadows beside the feet: candidates mordessa s201002, cassiel
+    s102002), and at least max(`min_px`, `min_frac` x image) px after an opening by `open_r` (hair
+    wisps and specks stay isnet's call). More than `max_props` such blobs is a busy backdrop (candidate
+    sable s303002's sunburst frame), not props: none are kept. Returns (boolean mask, [{"px", "box"}])."""
+    fig = m > 0.5
+    cand = ~B & (m < 0.5) & ~post.dilate(fig, gap)
+    core = post.dilate(post.erode(cand, open_r), open_r) & cand
+    none = np.zeros(m.shape, dtype=bool)
+    fy = np.nonzero(fig.any(axis=1))[0]
+    if not core.any() or len(fy) == 0:
+        return none, []
+    need = max(min_px, min_frac * m.size)
+    edge = post._border(m.shape, border_px)
+    span = fy.max() - fy.min()
+    floor = fy.max() - floor_band * span
+    near = post.dilate(fig, max(gap + 1, int(near_frac * span)))
+    keep, found = none.copy(), []
+    for comp in post.components(core, max_count=400):
+        if (comp & keep).any():
+            continue
+        n = int(comp.sum())
+        if n < need or (comp & edge).any() or not (comp & near).any() or np.nonzero(comp.any(axis=1))[0].min() >= floor:
+            continue
+        if float(m[comp].mean()) >= isnet_max or float(dist[comp].mean()) <= max(min_dist, solid_dist):
+            continue
+        full = post.flood(comp, cand)
+        ys, xs = np.nonzero(full)
+        keep |= full
+        found.append({"px": int(full.sum()), "box": [int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1]})
+    if len(found) > max_props:
+        return none, [dict(f, skipped="more than %d blobs: a busy backdrop" % max_props) for f in found]
+    return keep, found
+
+
 def _pockets(arr, bgc, m, dist, hole_tol, max_hole_frac, tol, grad, r, m_max, lum_max):
     """Boolean mask of the background pockets (see the module docstring) and how many were too big."""
     none = np.zeros(m.shape, dtype=bool)
@@ -166,8 +213,9 @@ def _pockets(arr, bgc, m, dist, hole_tol, max_hole_frac, tol, grad, r, m_max, lu
 
 def artgen_cutout(img, isnet_mask=None, hole_tol=12.0, hole_min=24, max_hole_frac=0.06, shadow=True,
                   bg_tol=26.0, solid_dist=40.0, close_px=8, band_px=2, feather=0.7, haze_hi=0.9, haze_tol=18.0,
-                  pocket_tol=4.0, pocket_grad=4.0, pocket_r=3, pocket_m=0.995, pocket_lum=235.0):
-    """(RGBA Image, info). See the module docstring."""
+                  pocket_tol=4.0, pocket_grad=4.0, pocket_r=3, pocket_m=0.995, pocket_lum=235.0, props_kw=None):
+    """(RGBA Image, info). See the module docstring. `props_kw`: detached_props settings ({"min_px":
+    10 ** 9} switches the detached-prop rescue off)."""
     rgb = img.convert("RGB")
     arr = post._rgb(rgb)
     flood_rgba, flood_info = post.remove_background(rgb, holes=True, hole_tol=hole_tol, hole_min=hole_min,
@@ -203,6 +251,9 @@ def artgen_cutout(img, isnet_mask=None, hole_tol=12.0, hole_min=24, max_hole_fra
                                 pocket_m, pocket_lum)
         m = np.where(pockets, 0.0, m)
         info.update({"pocket_px": int(pockets.sum()), "pockets_kept_as_figure": big})
+        props, found = detached_props(B, m, dist, solid_dist=solid_dist, **(props_kw or {}))
+        m = np.where(props, 1.0, m)
+        info.update({"props_px": int(props.sum()), "props": found})
     if shadow:
         sh, sinfo = ground_shadow(arr, bgc, m > 0.02, soft=m0 if isnet_mask is not None else None)
         m = np.where(sh, 0.0, m)

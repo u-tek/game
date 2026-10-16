@@ -161,7 +161,11 @@ candidate missing or invalid (nothing rendered).
      **pockets** (enclosed background too small for the holes: between halo spikes and the crown,
      hair strands, wing and arm; flat 7x7 cores within 4 of the fitted background where isnet is
      not saturated, grown within 12, not on a near-white backdrop where white highlights would
-     match), minus the ground shadow (bottom 15% of the figure, background chromaticity, 0.06
+     match), plus **detached props** isnet drops entirely (a floating orb: solid blobs the colour
+     flood calls figure, > 80 off the backdrop, isnet < 0.05 throughout, within 10 % of the figure
+     height from it, off the image border, not starting in the bottom 12 % of the figure, at least
+     0.15 % of the image, at most 3 of them (more = a busy backdrop, none kept)), minus the ground
+     shadow (bottom 15% of the figure, background chromaticity, 0.06
      tolerance where isnet is unsure because painted shadows are cooler than the backdrop, at
      35-97% of its luminance, flat on the floor, seeds up to 3 px inside a hard edge), then
      `post.alpha_from_mask` edge unmixing/despill and `cutout.fill_edge_dips` (the anti-aliased
@@ -364,6 +368,26 @@ canvas with isnet: the patch goes, 865 px cleared, 54 px added) and the speck pa
   `cutout.canvas_fit` now predicts this before any render: every published 832x1216 Seraphiel
   candidate fills only 75-77 % of the spec height, so candidates get a `SMALL nn%` sheet flag and
   a final logs a warning.
+
+**Production finals (38881543229 `final-round1-v3`, code 105e7a4, the 15 round1-v3 picks, style
+bible):** 13 canvases with variants, 2 dropped. Jobs 83-143 min (hires 122-214 s/step, face
+polish 52-98, variants 27-53, cover repair 46-55; the spread is the runner CPU), VmHWM 13.8-14.65
+GB. Canvases: 1024x2048 RGBA, soles at 1989-1991, every figure width-limited at 70-89 % of the
+spec height (margins 22-24 px). Cover repairs: canvas for seraphiel, liora, brakka, ashra (2
+passes each), hires for cassiel. Dropped: orrin's canvas (anime `pussy` 0.319 on the bare sternum
+under the chest chain, a false positive; the two repair passes raised it to 0.49) and sable's
+source (anime `pussy` 0.2515, then NudeNet breast 0.34 / 0.29 after the repairs). The renders are
+deterministic across runner CPUs (two runs of the same hires differ by 0.14 mean / 13 max), so a
+plain re-run repeats a drop. Findings checked here: the repair recoloured brakka's chest (red to
+orange) and replaced liora's visible lace bottom under the hem with skin shading; vesper's floating
+hellfire orb was lost because isnet-anime scores detached props 0.00 (`cutout.detached_props`
+now rescues them: solid, off-border, not in the floor band, isnet ~0; checked on all 13 sources
+(only the orb added) and the 41 round1-v3 candidates (adds a dropped tabard and a coat tail; floor
+lines, cast shadows, a sunburst frame, a white glow disc and lyre strings stay out));
+`eyes_closed` is a one-eyed wink on cassiel, brakka and vesper; the portrait was dropped by the filter for liora and nuriel (the canvas passed); cosmetic alpha
+defects remain: grey pockets inside seraphiel's halo windows, a notch in nuriel's white wing
+(feather fill = backdrop colour, taken as an enclosed hole), white rims inside dark hair on white
+backdrops (mordessa, kessa), a soft floor shadow under noctaire.
 
 **Estimates for the `standard` preset** (28 steps with CFG):
 - one candidate: 28-41 min of sampling + about 1 min decode; with `per_job=1` a hero's
