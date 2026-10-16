@@ -165,6 +165,17 @@
    "published_images": 40,
    "dropped": 12,
    "jobs_missing": []
+  },
+  {
+   "run": "38913405511-final-round1-v3-vesper-props",
+   "created": "2026-10-16T17:48:26Z",
+   "updated": "2026-10-16T17:48:38Z",
+   "heroes": [
+    "vesper"
+   ],
+   "published_images": 12,
+   "dropped": 5,
+   "jobs_missing": []
   }
  ]
 }

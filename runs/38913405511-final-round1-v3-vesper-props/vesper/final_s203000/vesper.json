@@ -1,0 +1,691 @@
+{
+ "hero": "vesper",
+ "mode": "final",
+ "seed": 203000,
+ "status": "done",
+ "source_candidate": {
+  "repo": "u-tek/game",
+  "run": "38859902166-candidates-round1-v3",
+  "path": "runs/38859902166-candidates-round1-v3/vesper/vesper_s203000.webp",
+  "sha256": "982924d4a3388e5e609d49858f270b28800083062873d35addb250fb054befe1",
+  "preset": "standard",
+  "preset_settings": {
+   "sampler": "euler_ancestral",
+   "steps": 28,
+   "cfg": 5.0,
+   "width": 832,
+   "height": 1216,
+   "doc": "Animagine XL 4.0 model card: Euler a, 28 steps, CFG 5, 832x1216 (default for candidates and finals; about 25-40 min per image on the 4-vCPU runners)"
+  },
+  "style": "bible"
+ },
+ "source_fit": {
+  "fit": 0.77,
+  "figure_px": 1463,
+  "aspect": 0.667,
+  "limit": "width",
+  "flag": "SMALL 77%"
+ },
+ "style": {
+  "name": "bible",
+  "spec": {
+   "doc": "the prompt bible exactly as written"
+  }
+ },
+ "settings": {
+  "sampler": "euler_ancestral",
+  "cfg": 5.0,
+  "preset": "standard",
+  "hires_scale": 1.5,
+  "hires_denoise": 0.4,
+  "hires_steps": 20,
+  "face_denoise": 0.35,
+  "face_steps": 16,
+  "face_px": 1024,
+  "variant_steps": 14,
+  "variant_px": 768
+ },
+ "base_settings": {
+  "sampler": "euler_ancestral",
+  "steps": 28,
+  "cfg": 5.0,
+  "width": 832,
+  "height": 1216,
+  "doc": "Animagine XL 4.0 model card: Euler a, 28 steps, CFG 5, 832x1216 (default for candidates and finals; about 25-40 min per image on the 4-vCPU runners)"
+ },
+ "family": "animagine",
+ "prompt": "1girl, solo, adult, mature female, full body, standing, contrapposto, looking at viewer, huge breasts, narrow waist, wide hips, red hair, long hair, purple eyes, half-closed eyes, seductive smile, small horns, glasses, bat wings, demon tail, heart tail, red bodysuit, latex, heart cutout, cleavage, high collar, purple cape, elbow gloves, high heels, floating orb, fireball, hand up, adjusting eyewear, black and purple theme, simple background, white background, official art, detailed shading, masterpiece, high score, great score, absurdres, sensitive",
+ "negative": "worst quality, low quality, low score, bad score, average score, nsfw, explicit, (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (impossible clothes:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2), lowres, blurry, jpeg artifacts, bad anatomy, bad hands, missing fingers, extra digits, fewer digits, extra arms, error, cropped, feet out of frame, head out of frame, wings out of frame, upper body, cowboy shot, multiple views, scenery, light particles, sparkle, embers, aura, light rays, smoke, speed lines, nude, areolae, pussy, anus, penis, sex, spread legs, see-through, loli, shota, child, underage, teenage, young, aged down, school uniform, text, watermark, signature, username, chibi, 3d, realistic, 1boy, multiple girls, topless, flat chest, pussy peek, pantyshot, upskirt",
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)"
+ },
+ "lora": null,
+ "steps": [
+  {
+   "step": "base",
+   "from": "runs/38859902166-candidates-round1-v3/vesper/vesper_s203000.webp",
+   "sha256": "982924d4a3388e5e609d49858f270b28800083062873d35addb250fb054befe1"
+  },
+  {
+   "step": "hires_img2img",
+   "seed": 203001,
+   "what": "hires img2img 1248x1824 @0.40",
+   "sample_s": 4260.4,
+   "steps_run": 20,
+   "num_inference_steps": 50,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 213.02,
+   "step_s": [
+    245.3,
+    210.27,
+    210.04,
+    211.37,
+    211.66,
+    211.89,
+    210.73,
+    209.47,
+    210.27,
+    211.42,
+    210.56,
+    211.79,
+    212.42,
+    212.31,
+    211.72,
+    211.82,
+    211.65,
+    211.16,
+    212.42,
+    212.15
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 12.05,
+    "vmrss_gb": 10.7,
+    "memavail_gb": 4.21
+   },
+   "encode": "untiled",
+   "memavail_before_encode_gb": 11.114513397216797,
+   "mem_encode": {
+    "vmhwm_gb": 9.13,
+    "vmrss_gb": 3.71,
+    "memavail_gb": 11.06
+   },
+   "steps_effective": 20,
+   "strength": 0.4,
+   "size": [
+    1248,
+    1824
+   ],
+   "decode": "untiled",
+   "memavail_before_decode_gb": 7.188144683837891,
+   "decode_s": 139.7,
+   "seconds": 4495.7,
+   "mem_stage": {
+    "vmhwm_gb": 13.17,
+    "vmrss_gb": 7.74,
+    "memavail_gb": 7.07
+   },
+   "vmhwm_gb": 13.17,
+   "rss_peak_gb": 13.17
+  },
+  {
+   "step": "face_polish",
+   "what": "inpaint 1024x1024 @0.35",
+   "sample_s": 1486.6,
+   "steps_run": 16,
+   "num_inference_steps": 46,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 92.91,
+   "step_s": [
+    151.47,
+    88.71,
+    88.53,
+    88.8,
+    88.71,
+    88.74,
+    88.81,
+    89.6,
+    89.96,
+    89.98,
+    89.89,
+    88.81,
+    88.95,
+    88.44,
+    88.4,
+    88.79
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 13.27,
+    "vmrss_gb": 11.13,
+    "memavail_gb": 3.66
+   },
+   "steps_effective": 16,
+   "strength": 0.35,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 3.6605377197265625,
+   "decode_s": 69.1,
+   "seconds": 1569.0,
+   "mem_stage": {
+    "vmhwm_gb": 13.59,
+    "vmrss_gb": 9.83,
+    "memavail_gb": 4.97
+   },
+   "vmhwm_gb": 13.59,
+   "rss_peak_gb": 13.59,
+   "crop": [
+    520,
+    127,
+    313,
+    313
+   ],
+   "denoise": 0.35,
+   "seed": 203007,
+   "px": 1024
+  },
+  {
+   "step": "cutout",
+   "method": "isnet + holes + shadow",
+   "seconds": 13.9,
+   "detail": {
+    "method": "isnet + holes + shadow",
+    "flood": {
+     "bg_rgb": [
+      255.0,
+      255.0,
+      255.0
+     ],
+     "hole_px": 60423,
+     "holes_kept_as_figure": []
+    },
+    "hole_px": 0,
+    "haze_px": 62785,
+    "half_sure_px": 2668,
+    "firmed_px": 836062,
+    "pocket_px": 0,
+    "pockets_kept_as_figure": 0,
+    "props_px": 44589,
+    "props": [
+     {
+      "px": 44589,
+      "box": [
+       894,
+       47,
+       1129,
+       289
+      ]
+     }
+    ],
+    "shadow_px": 99,
+    "dips_filled_px": 484,
+    "figure_px": 924644,
+    "bg_rgb": [
+     255.0,
+     255.0,
+     255.0
+    ]
+   }
+  },
+  {
+   "step": "variant_eyes_closed",
+   "what": "inpaint 768x768 @0.62",
+   "sample_s": 715.8,
+   "steps_run": 14,
+   "num_inference_steps": 23,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 51.13,
+   "step_s": [
+    78.96,
+    48.69,
+    48.8,
+    48.75,
+    48.76,
+    48.82,
+    49.35,
+    50.08,
+    49.36,
+    48.79,
+    48.92,
+    48.81,
+    48.93,
+    48.77
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 13.64,
+    "vmrss_gb": 12.38,
+    "memavail_gb": 2.42
+   },
+   "steps_effective": 14,
+   "strength": 0.62,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 2.4199752807617188,
+   "decode_s": 34.4,
+   "seconds": 750.2,
+   "mem_stage": {
+    "vmhwm_gb": 14.29,
+    "vmrss_gb": 12.08,
+    "memavail_gb": 2.72
+   },
+   "vmhwm_gb": 14.29,
+   "rss_peak_gb": 14.29,
+   "crop": [
+    414,
+    538,
+    283,
+    283
+   ],
+   "denoise": 0.62,
+   "seed": 203500,
+   "px": 768
+  },
+  {
+   "step": "variant_mouth_open",
+   "what": "inpaint 768x768 @0.58",
+   "sample_s": 715.5,
+   "steps_run": 14,
+   "num_inference_steps": 25,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 51.11,
+   "step_s": [
+    80.2,
+    48.82,
+    48.82,
+    48.72,
+    48.98,
+    49.45,
+    50.09,
+    49.83,
+    48.65,
+    48.53,
+    48.37,
+    48.28,
+    48.37,
+    48.42
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 13.35,
+    "vmrss_gb": 12.18,
+    "memavail_gb": 2.63
+   },
+   "steps_effective": 14,
+   "strength": 0.58,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 2.6255149841308594,
+   "decode_s": 33.1,
+   "seconds": 748.6,
+   "mem_stage": {
+    "vmhwm_gb": 14.24,
+    "vmrss_gb": 12.14,
+    "memavail_gb": 2.55
+   },
+   "vmhwm_gb": 14.24,
+   "rss_peak_gb": 14.24,
+   "crop": [
+    414,
+    538,
+    283,
+    283
+   ],
+   "denoise": 0.58,
+   "seed": 203500,
+   "px": 768
+  },
+  {
+   "step": "variant_smile",
+   "what": "inpaint 768x768 @0.60",
+   "sample_s": 709.1,
+   "steps_run": 14,
+   "num_inference_steps": 24,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 50.65,
+   "step_s": [
+    78.74,
+    48.43,
+    48.55,
+    48.29,
+    48.54,
+    48.46,
+    48.5,
+    48.81,
+    48.6,
+    48.46,
+    48.4,
+    48.5,
+    48.45,
+    48.36
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 13.55,
+    "vmrss_gb": 12.19,
+    "memavail_gb": 2.64
+   },
+   "steps_effective": 14,
+   "strength": 0.6,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 2.6367111206054688,
+   "decode_s": 33.0,
+   "seconds": 742.1,
+   "mem_stage": {
+    "vmhwm_gb": 14.29,
+    "vmrss_gb": 12.18,
+    "memavail_gb": 2.63
+   },
+   "vmhwm_gb": 14.29,
+   "rss_peak_gb": 14.29,
+   "crop": [
+    414,
+    538,
+    283,
+    283
+   ],
+   "denoise": 0.6,
+   "seed": 203500,
+   "px": 768
+  }
+ ],
+ "errors": [],
+ "skipped": [],
+ "outputs": [
+  "vesper_hires.webp",
+  "vesper_source.webp",
+  "vesper.png",
+  "vesper_portrait.png",
+  "masks/eyes.png",
+  "variants/eyes_closed.png",
+  "masks/mouth.png",
+  "variants/mouth_open.png",
+  "masks/eyes_mouth.png",
+  "variants/smile.png",
+  "variants/smile_patch.png",
+  "variants_sheet.webp"
+ ],
+ "run": "38913405511-final-round1-v3-vesper-props",
+ "created": "2026-10-16T15:14:37Z",
+ "updated": "2026-10-16T17:47:31Z",
+ "image": "vesper.png",
+ "canvas": [
+  1024,
+  2048
+ ],
+ "origin": [
+  512,
+  1990
+ ],
+ "transform": {
+  "scale": 0.854641,
+  "offset": [
+   -22,
+   437
+  ],
+  "canvas": [
+   1024,
+   2048
+  ],
+  "feet_y": 1990,
+  "figure_h": 1511.0,
+  "notes": [
+   "figure too wide for the canvas: scaled down to fit the width",
+   "shifted left to fit"
+  ],
+  "crown_y": 547.9
+ },
+ "cutout": {
+  "method": "source_alpha"
+ },
+ "face_box": [
+  481,
+  606,
+  149,
+  146
+ ],
+ "face_box_source": "anime face detector 0.88",
+ "face_box_src_pixels": [
+  589,
+  198,
+  174,
+  171
+ ],
+ "flipped": false,
+ "head_px_estimate": 215,
+ "portrait_rect": [
+  354,
+  485,
+  402,
+  402
+ ],
+ "warp_src_hints": {
+  "_doc": "Suggested values for assets/art/heroes/<id>/<id>.warp_src.json (HaloRig warp rig).",
+  "origin": [
+   512,
+   1990
+  ],
+  "portrait": [
+   555,
+   686,
+   402
+  ]
+ },
+ "spec": {
+  "ok": false,
+  "problems": [
+   "left margin 3 px, spec >= 24",
+   "right margin 22 px, spec >= 24",
+   "figure too wide for the canvas: scaled down to fit the width"
+  ],
+  "margins": {
+   "left": 3,
+   "right": 22,
+   "top": 478,
+   "bottom": 57
+  },
+  "feet_row": 1990,
+  "crown_y": 547.9
+ },
+ "bg_measured": [
+  255,
+  255,
+  255
+ ],
+ "cutout_detail": {
+  "method": "isnet + holes + shadow",
+  "flood": {
+   "bg_rgb": [
+    255.0,
+    255.0,
+    255.0
+   ],
+   "hole_px": 60423,
+   "holes_kept_as_figure": []
+  },
+  "hole_px": 0,
+  "haze_px": 62785,
+  "half_sure_px": 2668,
+  "firmed_px": 836062,
+  "pocket_px": 0,
+  "pockets_kept_as_figure": 0,
+  "props_px": 44589,
+  "props": [
+   {
+    "px": 44589,
+    "box": [
+     894,
+     47,
+     1129,
+     289
+    ]
+   }
+  ],
+  "shadow_px": 99,
+  "dips_filled_px": 484,
+  "figure_px": 924644,
+  "bg_rgb": [
+   255.0,
+   255.0,
+   255.0
+  ]
+ },
+ "repairs": {
+  "vesper.png": {
+   "original": {
+    "scores": {
+     "nudenet": {
+      "FEMALE_BREAST_EXPOSED": 0.0965,
+      "FEMALE_GENITALIA_EXPOSED": 0.006,
+      "MALE_GENITALIA_EXPOSED": 0.0019,
+      "ANUS_EXPOSED": 0.0002,
+      "BUTTOCKS_EXPOSED": 0.6384
+     },
+     "anime_censor": {
+      "nipple_f": 0.0071,
+      "penis": 0.0132,
+      "pussy": 0.1319
+     }
+    },
+    "flagged": [
+     {
+      "detector": "nudenet",
+      "class": "BUTTOCKS_EXPOSED",
+      "score": 0.6384,
+      "view": "t512_512_256"
+     }
+    ]
+   },
+   "settings": {
+    "denoise": 0.6,
+    "steps": 14,
+    "px": 768,
+    "pad": 0.25,
+    "context": 2.0,
+    "box_conf_frac": 0.5,
+    "near_frac": 0.8
+   },
+   "attempts": [
+    {
+     "attempt": 1,
+     "classes": {
+      "nudenet": [
+       "BUTTOCKS_EXPOSED"
+      ]
+     },
+     "boxes": [
+      {
+       "detector": "nudenet",
+       "class": "BUTTOCKS_EXPOSED",
+       "score": 0.6384,
+       "view": "t512_512_256",
+       "box": [
+        729.5,
+        471.4,
+        954.6,
+        694.8
+       ]
+      },
+      {
+       "detector": "nudenet",
+       "class": "BUTTOCKS_EXPOSED",
+       "score": 0.4411,
+       "view": "t512_512_512",
+       "box": [
+        725.0,
+        512.1,
+        959.9,
+        689.9
+       ]
+      }
+     ],
+     "regions": [
+      [
+       666,
+       415,
+       1019,
+       751
+      ]
+     ],
+     "area_frac": 0.0566,
+     "crops": [
+      [
+       318,
+       230,
+       1024,
+       936
+      ]
+     ],
+     "seeds": [
+      203700
+     ],
+     "inpaints": [
+      {
+       "seconds": 758.8,
+       "s_per_step": 51.76,
+       "steps_run": 14,
+       "steps_effective": 14,
+       "num_inference_steps": 24,
+       "vmhwm_gb": 13.78,
+       "crop": [
+        318,
+        230,
+        706,
+        706
+       ],
+       "px": 768
+      }
+     ],
+     "seconds": 759.0,
+     "recut": {
+      "box": [
+       0,
+       454,
+       1024,
+       2015
+      ],
+      "alpha_cleared_px": 1133,
+      "alpha_added_px": 1585
+     },
+     "after": {
+      "scores": {
+       "nudenet": {
+        "FEMALE_BREAST_EXPOSED": 0.0977,
+        "FEMALE_GENITALIA_EXPOSED": 0.006,
+        "MALE_GENITALIA_EXPOSED": 0.0012,
+        "ANUS_EXPOSED": 0.0002,
+        "BUTTOCKS_EXPOSED": 0.0199
+       },
+       "anime_censor": {
+        "nipple_f": 0.0072,
+        "penis": 0.0132,
+        "pussy": 0.1236
+       }
+      },
+      "flagged": []
+     }
+    }
+   ],
+   "result": "published after 1 repair pass(es)"
+  }
+ },
+ "dropped": [
+  "vesper_check.webp",
+  "vesper_boxes.webp",
+  "variants/eyes_closed_patch.png",
+  "variants/mouth_open_patch.png"
+ ]
+}
