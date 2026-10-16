@@ -148,7 +148,7 @@ A sampler the server lacks falls back to euler_ancestral/euler.
 ## 5. The prompt bible (`data/art_prompts.json`)
 
 Global blocks:
-- **style**: tags `cel shading, detailed shading, soft lighting, rim lighting, intricate details,
+- **style**: tags `official art, detailed shading` (no `cel shading`: it flattens the rendering), soft lighting, rim lighting, intricate details,
   glint` + a sentence (gacha splash-art rendering, crisp varied-weight lineart, warm key light
   from the upper right, cool rim light on the left, glossy eyes, metal/gem highlights).
 - **composition**: `full body, standing, contrapposto, looking at viewer, centered` + "whole

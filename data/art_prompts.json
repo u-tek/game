@@ -95,7 +95,7 @@
  },
 
  "style": {
-  "tags": "official art, cel shading",
+  "tags": "official art, detailed shading",
   "extra_tags": "",
   "loras": [],
   "_doc": "Roster-wide style slot, applied to every hero and every pass: extra_tags (e.g. an artist or style tag the owner likes) and loras [{\"name\": \"file.safetensors\", \"strength\": 0.6}] from `comfy.py discover`. Fill once, before the first batch, and never change it mid-roster.",
@@ -114,12 +114,12 @@
  "_backgrounds_doc": "Flat background for a clean cutout, chosen per hero for contrast with the figure's EDGES (hair, wings, armour): grey for white/gold designs (Celestial, Lucen), white for dark designs, green (chroma key; the cutout despills the fringe) for silver/grey hair, wings or armour that clash with both (Cassiel, Noctaire, Orrin, Ashra). Never green for green or teal designs (Sable). 'rim lighting' only on grey: on white it brightens the silhouette edge toward the background. A server background-removal node (BiRefNet/RMBG) makes this choice much less critical.",
  "negative": {
   "quality": "lowres, blurry, jpeg artifacts",
-  "anatomy": "bad anatomy, bad hands, extra arms",
+  "anatomy": "bad anatomy, bad hands, missing fingers, extra digits, fewer digits, extra arms, error",
   "framing": "cropped, feet out of frame, head out of frame, wings out of frame, upper body, cowboy shot, multiple views, scenery",
   "effects": "light particles, sparkle, embers, aura, light rays, smoke, speed lines",
   "explicit": "nsfw, explicit, nude, nipples, areolae, covered nipples, nipple slip, areola slip, pussy, cameltoe, anus, penis, pubic hair, sex, spread legs, see-through",
   "childlike": "loli, shota, child, underage, teenage, young, aged down, school uniform",
-  "text": "text, watermark, signature",
+  "text": "text, watermark, signature, username",
   "style": "chibi, 3d, realistic",
   "halo": "blue archive",
   "_doc": "Kept short on purpose (at most 3 CLIP chunks; the safety terms alone are about 70 tokens): the required safety terms (gender-specific ones live in 'gender'), quality, framing and effects. Order: family quality, rating, the hero's negative_extra (first, so its weighted terms win the de-duplication), then these blocks. 'effects' keeps semi-transparent FX (glows, smoke, particles) out of the art: they spill into the flat background and break the cutout, and the rig draws its own VFX. 'halo' is added when the positive has a halo: the Danbooru halo tag is dominated by Blue Archive's school-age cast."
