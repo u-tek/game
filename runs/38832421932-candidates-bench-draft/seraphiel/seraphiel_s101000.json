@@ -1,0 +1,76 @@
+{
+ "hero": "seraphiel",
+ "mode": "candidates",
+ "seed": 101000,
+ "image": "seraphiel_s101000.webp",
+ "dropped": false,
+ "width": 832,
+ "height": 1216,
+ "preset": "draft",
+ "preset_settings": {
+  "lora": null,
+  "sampler": "dpmpp_2m_karras",
+  "steps": 14,
+  "cfg": 5.0,
+  "doc": "no LoRA, DPM++ 2M Karras 14 steps (deterministic; the same seed at more steps keeps the composition)"
+ },
+ "family": "animagine",
+ "prompt": "1girl, solo, adult, mature female, full body, standing, contrapposto, looking at viewer, curvy, large breasts, cleavage, platinum blonde hair, very long hair, closed eyes, light smile, serene, halo, spiked halo, gold crown, multiple wings, white wings, feathered wings, head wings, white dress, plunging neckline, backless dress, side slit, barefoot, anklet, body chain, scepter, floating object, hand up, white and gold theme, simple background, grey background, official art, cel shading, rim lighting, masterpiece, high score, great score, absurdres, sensitive",
+ "negative": "worst quality, low quality, low score, bad score, average score, nsfw, explicit, lowres, blurry, jpeg artifacts, bad anatomy, bad hands, extra arms, cropped, feet out of frame, head out of frame, wings out of frame, upper body, cowboy shot, multiple views, scenery, light particles, sparkle, embers, aura, light rays, smoke, speed lines, nude, nipples, areolae, covered nipples, nipple slip, areola slip, pussy, cameltoe, anus, penis, pubic hair, sex, spread legs, see-through, loli, shota, child, underage, teenage, young, aged down, school uniform, text, watermark, signature, chibi, 3d, realistic, 1boy, multiple girls, topless, flat chest, pussy peek, no panties, pantyshot, upskirt, blue archive",
+ "prompt_chunks": [
+  2,
+  3
+ ],
+ "background": {
+  "key": "grey",
+  "rgb": [
+   128,
+   128,
+   128
+  ]
+ },
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)"
+ },
+ "lora": null,
+ "render": {
+  "what": "txt2img 832x1216",
+  "seconds": 874.2,
+  "steps_run": 14,
+  "s_per_step": 60.02,
+  "decode_s": 34.0,
+  "rss_peak_gb": 14.1
+ },
+ "framing": {
+  "touches": [],
+  "edge_low": 0.083,
+  "bg_rgb": [
+   150.0,
+   157.0,
+   167.0
+  ],
+  "bg_off": 53.3,
+  "figure_frac": 0.47,
+  "holes_kept_as_figure": 0,
+  "flags": [
+   "BG?"
+  ]
+ },
+ "filter": {
+  "nudenet": {
+   "FEMALE_BREAST_EXPOSED": 0.2259,
+   "FEMALE_GENITALIA_EXPOSED": 0.0014,
+   "MALE_GENITALIA_EXPOSED": 0.0058,
+   "ANUS_EXPOSED": 0.0002,
+   "BUTTOCKS_EXPOSED": 0.0231
+  },
+  "anime_censor": {
+   "nipple_f": 0.0082,
+   "penis": 0.1053,
+   "pussy": 0.0038
+  }
+ },
+ "run": "38832421932-candidates-bench-draft",
+ "created": "2026-10-16T01:15:02Z"
+}
