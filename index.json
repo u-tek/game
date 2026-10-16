@@ -153,6 +153,18 @@
    "published_images": 156,
    "dropped": 66,
    "jobs_missing": []
+  },
+  {
+   "run": "38902617668-final-round1-v3-retry",
+   "created": "2026-10-16T15:10:54Z",
+   "updated": "2026-10-16T15:11:07Z",
+   "heroes": [
+    "orrin",
+    "sable"
+   ],
+   "published_images": 40,
+   "dropped": 12,
+   "jobs_missing": []
   }
  ]
 }

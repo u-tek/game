@@ -1,0 +1,540 @@
+{
+ "run": "38902617668-final-round1-v3-retry",
+ "created": "2026-10-16T15:10:54Z",
+ "jobs_expected": [
+  "orrin-f302001",
+  "orrin-f302000",
+  "sable-f303000",
+  "sable-f303001"
+ ],
+ "jobs_missing": [],
+ "heroes": {
+  "orrin": {
+   "images": [
+    "orrin/final_s302000/masks/eyes.png",
+    "orrin/final_s302000/masks/eyes_mouth.png",
+    "orrin/final_s302000/masks/mouth.png",
+    "orrin/final_s302000/orrin.png",
+    "orrin/final_s302000/orrin_hires.webp",
+    "orrin/final_s302000/orrin_portrait.png",
+    "orrin/final_s302000/orrin_source.webp",
+    "orrin/final_s302000/variants/eyes_closed.png",
+    "orrin/final_s302000/variants/eyes_closed_patch.png",
+    "orrin/final_s302000/variants/mouth_open.png",
+    "orrin/final_s302000/variants/smile.png",
+    "orrin/final_s302000/variants/smile_patch.png",
+    "orrin/final_s302001/masks/eyes.png",
+    "orrin/final_s302001/masks/eyes_mouth.png",
+    "orrin/final_s302001/masks/mouth.png",
+    "orrin/final_s302001/orrin.png",
+    "orrin/final_s302001/orrin_hires.webp",
+    "orrin/final_s302001/orrin_portrait.png",
+    "orrin/final_s302001/orrin_source.webp",
+    "orrin/final_s302001/variants/eyes_closed.png",
+    "orrin/final_s302001/variants/eyes_closed_patch.png",
+    "orrin/final_s302001/variants/mouth_open.png",
+    "orrin/final_s302001/variants/smile.png",
+    "orrin/final_s302001/variants/smile_patch.png",
+    "orrin/final_s302001/variants_sheet.webp"
+   ],
+   "dropped": 8
+  },
+  "sable": {
+   "images": [
+    "sable/final_s303000/sable_hires.webp",
+    "sable/final_s303001/masks/eyes.png",
+    "sable/final_s303001/masks/eyes_mouth.png",
+    "sable/final_s303001/masks/mouth.png",
+    "sable/final_s303001/sable.png",
+    "sable/final_s303001/sable_hires.webp",
+    "sable/final_s303001/sable_portrait.png",
+    "sable/final_s303001/sable_source.webp",
+    "sable/final_s303001/variants/eyes_closed.png",
+    "sable/final_s303001/variants/eyes_closed_patch.png",
+    "sable/final_s303001/variants/mouth_open.png",
+    "sable/final_s303001/variants/mouth_open_patch.png",
+    "sable/final_s303001/variants/smile.png",
+    "sable/final_s303001/variants/smile_patch.png",
+    "sable/final_s303001/variants_sheet.webp"
+   ],
+   "dropped": 4
+  }
+ },
+ "sheets": [],
+ "sheet_note": "",
+ "jobs": [
+  {
+   "key": "orrin-f302000",
+   "hero": "orrin",
+   "mode": "final",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 8542.9,
+   "timing": {
+    "download_s": 0.1,
+    "encode_s": 28.8
+   },
+   "filter": {
+    "checked": 16,
+    "passed": 12,
+    "dropped": 4,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "hires img2img 1248x1824 @0.40",
+     "step": "hires_img2img",
+     "seed": 302000,
+     "seconds": 4521.5,
+     "s_per_step": 214.19,
+     "steps_run": 20,
+     "steps_effective": 20,
+     "num_inference_steps": 50,
+     "decode": "untiled",
+     "decode_s": 142.4,
+     "vmhwm_gb": 14.63,
+     "rss_peak_gb": 14.63
+    },
+    {
+     "what": "inpaint 1024x1024 @0.35",
+     "step": "face_polish",
+     "seed": 302000,
+     "seconds": 1582.1,
+     "s_per_step": 93.75,
+     "steps_run": 16,
+     "steps_effective": 16,
+     "num_inference_steps": 46,
+     "decode": "untiled",
+     "decode_s": 64.0,
+     "vmhwm_gb": 14.61,
+     "rss_peak_gb": 14.61
+    },
+    {
+     "step": "cutout",
+     "seed": 302000,
+     "seconds": 10.1
+    },
+    {
+     "what": "inpaint 768x768 @0.62",
+     "step": "variant_eyes_closed",
+     "seed": 302000,
+     "seconds": 751.7,
+     "s_per_step": 51.33,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 23,
+     "decode": "untiled",
+     "decode_s": 33.0,
+     "vmhwm_gb": 13.76,
+     "rss_peak_gb": 13.76
+    },
+    {
+     "what": "inpaint 768x768 @0.58",
+     "step": "variant_mouth_open",
+     "seed": 302000,
+     "seconds": 753.4,
+     "s_per_step": 51.46,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 25,
+     "decode": "untiled",
+     "decode_s": 32.9,
+     "vmhwm_gb": 13.76,
+     "rss_peak_gb": 13.76
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "variant_smile",
+     "seed": 302000,
+     "seconds": 749.9,
+     "s_per_step": 51.23,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 32.7,
+     "vmhwm_gb": 13.76,
+     "rss_peak_gb": 13.76
+    }
+   ]
+  },
+  {
+   "key": "orrin-f302001",
+   "hero": "orrin",
+   "mode": "final",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 6171.2,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 19.3
+   },
+   "filter": {
+    "checked": 18,
+    "passed": 13,
+    "dropped": 5,
+    "errors": 0,
+    "repaired": 2
+   },
+   "cpu": "Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "hires img2img 1248x1824 @0.40",
+     "step": "hires_img2img",
+     "seed": 302001,
+     "seconds": 2810.5,
+     "s_per_step": 132.71,
+     "steps_run": 20,
+     "steps_effective": 20,
+     "num_inference_steps": 50,
+     "decode": "untiled",
+     "decode_s": 86.9,
+     "vmhwm_gb": 14.23,
+     "rss_peak_gb": 14.23
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 302701,
+     "seconds": 518.1,
+     "s_per_step": 33.94,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 23.1,
+     "vmhwm_gb": 12.85,
+     "rss_peak_gb": 12.85
+    },
+    {
+     "what": "inpaint 1024x1024 @0.35",
+     "step": "face_polish",
+     "seed": 302001,
+     "seconds": 890.1,
+     "s_per_step": 53.16,
+     "steps_run": 16,
+     "steps_effective": 16,
+     "num_inference_steps": 46,
+     "decode": "untiled",
+     "decode_s": 39.5,
+     "vmhwm_gb": 14.56,
+     "rss_peak_gb": 14.56
+    },
+    {
+     "step": "cutout",
+     "seed": 302001,
+     "seconds": 17.3
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 302701,
+     "seconds": 461.3,
+     "s_per_step": 31.4,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 21.7,
+     "vmhwm_gb": 13.59,
+     "rss_peak_gb": 13.59
+    },
+    {
+     "what": "inpaint 768x768 @0.62",
+     "step": "variant_eyes_closed",
+     "seed": 302001,
+     "seconds": 439.8,
+     "s_per_step": 29.85,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 23,
+     "decode": "untiled",
+     "decode_s": 21.9,
+     "vmhwm_gb": 14.2,
+     "rss_peak_gb": 14.2
+    },
+    {
+     "what": "inpaint 768x768 @0.58",
+     "step": "variant_mouth_open",
+     "seed": 302001,
+     "seconds": 437.2,
+     "s_per_step": 29.7,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 25,
+     "decode": "untiled",
+     "decode_s": 21.4,
+     "vmhwm_gb": 14.21,
+     "rss_peak_gb": 14.21
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "variant_smile",
+     "seed": 302001,
+     "seconds": 437.6,
+     "s_per_step": 29.71,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 21.7,
+     "vmhwm_gb": 14.21,
+     "rss_peak_gb": 14.21
+    }
+   ]
+  },
+  {
+   "key": "sable-f303000",
+   "hero": "sable",
+   "mode": "final",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 5,
+   "wall_s": 8400.5,
+   "timing": {
+    "download_s": 0.1,
+    "encode_s": 27.7
+   },
+   "filter": {
+    "checked": 4,
+    "passed": 1,
+    "dropped": 3,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "hires img2img 1248x1824 @0.40",
+     "step": "hires_img2img",
+     "seed": 303000,
+     "seconds": 4413.0,
+     "s_per_step": 209.05,
+     "steps_run": 20,
+     "steps_effective": 20,
+     "num_inference_steps": 50,
+     "decode": "untiled",
+     "decode_s": 134.5,
+     "vmhwm_gb": 12.18,
+     "rss_peak_gb": 12.18
+    },
+    {
+     "what": "inpaint 1024x1024 @0.35",
+     "step": "face_polish",
+     "seed": 303000,
+     "seconds": 1536.9,
+     "s_per_step": 91.38,
+     "steps_run": 16,
+     "steps_effective": 16,
+     "num_inference_steps": 46,
+     "decode": "untiled",
+     "decode_s": 63.6,
+     "vmhwm_gb": 13.87,
+     "rss_peak_gb": 13.87
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 303700,
+     "seconds": 781.6,
+     "s_per_step": 53.5,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 32.6,
+     "vmhwm_gb": 13.1,
+     "rss_peak_gb": 13.1
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 303701,
+     "seconds": 776.3,
+     "s_per_step": 53.14,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 32.4,
+     "vmhwm_gb": 13.1,
+     "rss_peak_gb": 13.1
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 303710,
+     "seconds": 776.1,
+     "s_per_step": 53.12,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 32.4,
+     "vmhwm_gb": 13.1,
+     "rss_peak_gb": 13.1
+    }
+   ]
+  },
+  {
+   "key": "sable-f303001",
+   "hero": "sable",
+   "mode": "final",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 8535.1,
+   "timing": {
+    "download_s": 0.1,
+    "encode_s": 28.4
+   },
+   "filter": {
+    "checked": 16,
+    "passed": 14,
+    "dropped": 2,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "hires img2img 1248x1824 @0.40",
+     "step": "hires_img2img",
+     "seed": 303001,
+     "seconds": 4507.7,
+     "s_per_step": 213.81,
+     "steps_run": 20,
+     "steps_effective": 20,
+     "num_inference_steps": 50,
+     "decode": "untiled",
+     "decode_s": 137.8,
+     "vmhwm_gb": 14.15,
+     "rss_peak_gb": 14.15
+    },
+    {
+     "what": "inpaint 1024x1024 @0.35",
+     "step": "face_polish",
+     "seed": 303001,
+     "seconds": 1608.4,
+     "s_per_step": 95.19,
+     "steps_run": 16,
+     "steps_effective": 16,
+     "num_inference_steps": 46,
+     "decode": "untiled",
+     "decode_s": 63.5,
+     "vmhwm_gb": 14.48,
+     "rss_peak_gb": 14.48
+    },
+    {
+     "step": "cutout",
+     "seed": 303001,
+     "seconds": 15.0
+    },
+    {
+     "what": "inpaint 768x768 @0.62",
+     "step": "variant_eyes_closed",
+     "seed": 303001,
+     "seconds": 746.0,
+     "s_per_step": 50.94,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 23,
+     "decode": "untiled",
+     "decode_s": 32.9,
+     "vmhwm_gb": 13.72,
+     "rss_peak_gb": 13.72
+    },
+    {
+     "what": "inpaint 768x768 @0.58",
+     "step": "variant_mouth_open",
+     "seed": 303001,
+     "seconds": 740.7,
+     "s_per_step": 50.57,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 25,
+     "decode": "untiled",
+     "decode_s": 32.7,
+     "vmhwm_gb": 13.87,
+     "rss_peak_gb": 13.87
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "variant_smile",
+     "seed": 303001,
+     "seconds": 745.2,
+     "s_per_step": 50.88,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 32.8,
+     "vmhwm_gb": 13.72,
+     "rss_peak_gb": 13.72
+    }
+   ]
+  }
+ ],
+ "filter_totals": {
+  "published_images": 40,
+  "dropped": 12
+ },
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)",
+  "license_url": "https://huggingface.co/cagliostrolab/animagine-xl-4.0"
+ },
+ "updated": "2026-10-16T15:11:07Z"
+}

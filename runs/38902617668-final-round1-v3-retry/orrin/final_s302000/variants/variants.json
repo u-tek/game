@@ -1,0 +1,200 @@
+{
+ "hero": "orrin",
+ "base": "orrin.png",
+ "base_sha": "4a713f33ca15582bb80b235f85f10fb6aa8f6b2088178133f36fcf55f003c85a",
+ "face_box": [
+  426,
+  580,
+  122,
+  137
+ ],
+ "face_box_source": "anime face detector 0.87",
+ "bg_rgb": [
+  188,
+  220,
+  203
+ ],
+ "variants": {
+  "eyes_closed": {
+   "picked_seed": 302500,
+   "published": true,
+   "region": [
+    431,
+    613,
+    112,
+    52
+   ],
+   "region_name": "eyes",
+   "denoise": 0.62,
+   "prompt": "1boy, solo, male focus, adult, mature male, portrait, close-up, face, grey hair, messy hair, scar across eye, closed eyes, closed mouth, serious, official art, detailed shading, simple background, green background, masterpiece, high score, great score, absurdres, sensitive",
+   "tries": [
+    {
+     "seed": 302500,
+     "alignment_problems": [],
+     "what": "inpaint 768x768 @0.62",
+     "sample_s": 718.6,
+     "steps_run": 14,
+     "num_inference_steps": 23,
+     "cfg": 5.0,
+     "sampler": "EulerAncestralDiscreteScheduler",
+     "s_per_step": 51.33,
+     "overhead_s": 0.0,
+     "dtype": "fp32",
+     "threads": 4,
+     "mem_sample": {
+      "vmhwm_gb": 13.0,
+      "vmrss_gb": 11.63,
+      "memavail_gb": 3.24
+     },
+     "steps_effective": 14,
+     "strength": 0.62,
+     "decode": "untiled",
+     "memavail_before_decode_gb": 3.2374954223632812,
+     "decode_s": 33.0,
+     "seconds": 751.7,
+     "mem_stage": {
+      "vmhwm_gb": 13.76,
+      "vmrss_gb": 11.65,
+      "memavail_gb": 3.14
+     },
+     "vmhwm_gb": 13.76,
+     "rss_peak_gb": 13.76,
+     "crop": [
+      357,
+      518,
+      260,
+      260
+     ],
+     "denoise": 0.62,
+     "px": 768
+    }
+   ]
+  },
+  "mouth_open": {
+   "picked_seed": 302500,
+   "published": true,
+   "region": [
+    456,
+    662,
+    61,
+    44
+   ],
+   "region_name": "mouth",
+   "denoise": 0.58,
+   "prompt": "1boy, solo, male focus, adult, mature male, portrait, close-up, face, grey hair, messy hair, scar across eye, purple eyes, open mouth, teeth, serious, official art, detailed shading, simple background, green background, masterpiece, high score, great score, absurdres, sensitive",
+   "tries": [
+    {
+     "seed": 302500,
+     "alignment_problems": [],
+     "what": "inpaint 768x768 @0.58",
+     "sample_s": 720.4,
+     "steps_run": 14,
+     "num_inference_steps": 25,
+     "cfg": 5.0,
+     "sampler": "EulerAncestralDiscreteScheduler",
+     "s_per_step": 51.46,
+     "overhead_s": 0.0,
+     "dtype": "fp32",
+     "threads": 4,
+     "mem_sample": {
+      "vmhwm_gb": 13.06,
+      "vmrss_gb": 11.63,
+      "memavail_gb": 3.24
+     },
+     "steps_effective": 14,
+     "strength": 0.58,
+     "decode": "untiled",
+     "memavail_before_decode_gb": 3.239643096923828,
+     "decode_s": 32.9,
+     "seconds": 753.4,
+     "mem_stage": {
+      "vmhwm_gb": 13.76,
+      "vmrss_gb": 11.65,
+      "memavail_gb": 3.09
+     },
+     "vmhwm_gb": 13.76,
+     "rss_peak_gb": 13.76,
+     "crop": [
+      357,
+      518,
+      260,
+      260
+     ],
+     "denoise": 0.58,
+     "px": 768
+    }
+   ]
+  },
+  "smile": {
+   "picked_seed": 302500,
+   "published": true,
+   "region": [
+    431,
+    613,
+    112,
+    93
+   ],
+   "region_name": "eyes_mouth",
+   "denoise": 0.6,
+   "prompt": "1boy, solo, male focus, adult, mature male, portrait, close-up, face, grey hair, messy hair, scar across eye, happy, smile, closed eyes, open mouth, official art, detailed shading, simple background, green background, masterpiece, high score, great score, absurdres, sensitive",
+   "tries": [
+    {
+     "seed": 302500,
+     "alignment_problems": [],
+     "what": "inpaint 768x768 @0.60",
+     "sample_s": 717.2,
+     "steps_run": 14,
+     "num_inference_steps": 24,
+     "cfg": 5.0,
+     "sampler": "EulerAncestralDiscreteScheduler",
+     "s_per_step": 51.23,
+     "overhead_s": 0.0,
+     "dtype": "fp32",
+     "threads": 4,
+     "mem_sample": {
+      "vmhwm_gb": 13.06,
+      "vmrss_gb": 11.64,
+      "memavail_gb": 3.23
+     },
+     "steps_effective": 14,
+     "strength": 0.6,
+     "decode": "untiled",
+     "memavail_before_decode_gb": 3.226409912109375,
+     "decode_s": 32.7,
+     "seconds": 749.9,
+     "mem_stage": {
+      "vmhwm_gb": 13.76,
+      "vmrss_gb": 11.65,
+      "memavail_gb": 3.13
+     },
+     "vmhwm_gb": 13.76,
+     "rss_peak_gb": 13.76,
+     "crop": [
+      357,
+      518,
+      260,
+      260
+     ],
+     "denoise": 0.6,
+     "px": 768
+    }
+   ]
+  }
+ },
+ "warp_overlay_hints": {
+  "_doc": "rects for <id>.warp_src.json overlays (eyes / mouth slots)",
+  "eyes": [
+   431,
+   613,
+   112,
+   52
+  ],
+  "mouth": [
+   456,
+   662,
+   61,
+   44
+  ],
+  "base_eyes": "open"
+ }
+}

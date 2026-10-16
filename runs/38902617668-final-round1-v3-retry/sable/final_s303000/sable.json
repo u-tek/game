@@ -1,0 +1,590 @@
+{
+ "hero": "sable",
+ "mode": "final",
+ "seed": 303000,
+ "status": "source dropped",
+ "source_candidate": {
+  "repo": "u-tek/game",
+  "run": "38859902166-candidates-round1-v3",
+  "path": "runs/38859902166-candidates-round1-v3/sable/sable_s303000.webp",
+  "sha256": "5baeea10144a9a4f4901b377d0df2241c7bbdc76f217f4810a5aabda47ed5239",
+  "preset": "standard",
+  "preset_settings": {
+   "sampler": "euler_ancestral",
+   "steps": 28,
+   "cfg": 5.0,
+   "width": 832,
+   "height": 1216,
+   "doc": "Animagine XL 4.0 model card: Euler a, 28 steps, CFG 5, 832x1216 (default for candidates and finals; about 25-40 min per image on the 4-vCPU runners)"
+  },
+  "style": "bible"
+ },
+ "source_fit": {
+  "fit": 0.731,
+  "figure_px": 1389,
+  "aspect": 0.703,
+  "limit": "width",
+  "flag": "SMALL 73%"
+ },
+ "style": {
+  "name": "bible",
+  "spec": {
+   "doc": "the prompt bible exactly as written"
+  }
+ },
+ "settings": {
+  "sampler": "euler_ancestral",
+  "cfg": 5.0,
+  "preset": "standard",
+  "hires_scale": 1.5,
+  "hires_denoise": 0.4,
+  "hires_steps": 20,
+  "face_denoise": 0.35,
+  "face_steps": 16,
+  "face_px": 1024,
+  "variant_steps": 14,
+  "variant_px": 768
+ },
+ "base_settings": {
+  "sampler": "euler_ancestral",
+  "steps": 28,
+  "cfg": 5.0,
+  "width": 832,
+  "height": 1216,
+  "doc": "Animagine XL 4.0 model card: Euler a, 28 steps, CFG 5, 832x1216 (default for candidates and finals; about 25-40 min per image on the 4-vCPU runners)"
+ },
+ "family": "animagine",
+ "prompt": "1girl, solo, adult, mature female, full body, standing, contrapposto, looking at viewer, curvy, huge breasts, wide hips, thick thighs, aqua hair, long hair, grey eyes, sad smile, halo, black veil, grey wings, black bodysuit, skin tight, cleavage cutout, pelvic curtain, black thighhighs, garter straps, cross-laced clothes, high heels, cross necklace, censer, holding chain, head tilt, black and purple theme, simple background, white background, official art, detailed shading, masterpiece, high score, great score, absurdres, sensitive",
+ "negative": "worst quality, low quality, low score, bad score, average score, nsfw, explicit, (blue archive:1.3), (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (impossible clothes:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2), lowres, blurry, jpeg artifacts, bad anatomy, bad hands, missing fingers, extra digits, fewer digits, extra arms, error, cropped, feet out of frame, head out of frame, wings out of frame, upper body, cowboy shot, multiple views, scenery, light particles, sparkle, embers, aura, light rays, smoke, speed lines, nude, areolae, pussy, anus, penis, sex, spread legs, see-through, loli, shota, child, underage, teenage, young, aged down, school uniform, text, watermark, signature, username, chibi, 3d, realistic, 1boy, multiple girls, topless, flat chest, pussy peek, pantyshot, upskirt",
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)"
+ },
+ "lora": null,
+ "steps": [
+  {
+   "step": "base",
+   "from": "runs/38859902166-candidates-round1-v3/sable/sable_s303000.webp",
+   "sha256": "5baeea10144a9a4f4901b377d0df2241c7bbdc76f217f4810a5aabda47ed5239"
+  },
+  {
+   "step": "hires_img2img",
+   "seed": 303001,
+   "what": "hires img2img 1248x1824 @0.40",
+   "sample_s": 4181.1,
+   "steps_run": 20,
+   "num_inference_steps": 50,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 209.05,
+   "step_s": [
+    237.15,
+    206.17,
+    206.63,
+    207.25,
+    207.76,
+    207.8,
+    207.67,
+    207.82,
+    207.83,
+    207.87,
+    207.45,
+    207.55,
+    207.75,
+    207.69,
+    207.54,
+    208.02,
+    207.59,
+    208.07,
+    207.79,
+    207.64
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 12.1,
+    "vmrss_gb": 10.74,
+    "memavail_gb": 4.17
+   },
+   "encode": "untiled",
+   "memavail_before_encode_gb": 11.161697387695312,
+   "mem_encode": {
+    "vmhwm_gb": 8.04,
+    "vmrss_gb": 3.7,
+    "memavail_gb": 11.08
+   },
+   "steps_effective": 20,
+   "strength": 0.4,
+   "size": [
+    1248,
+    1824
+   ],
+   "decode": "untiled",
+   "memavail_before_decode_gb": 7.101997375488281,
+   "decode_s": 134.5,
+   "seconds": 4413.0,
+   "mem_stage": {
+    "vmhwm_gb": 12.18,
+    "vmrss_gb": 7.84,
+    "memavail_gb": 7.05
+   },
+   "vmhwm_gb": 12.18,
+   "rss_peak_gb": 12.18
+  },
+  {
+   "step": "face_polish",
+   "what": "inpaint 1024x1024 @0.35",
+   "sample_s": 1462.1,
+   "steps_run": 16,
+   "num_inference_steps": 46,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 91.38,
+   "step_s": [
+    146.84,
+    87.57,
+    87.64,
+    87.78,
+    87.93,
+    87.51,
+    87.74,
+    87.71,
+    87.65,
+    87.63,
+    87.67,
+    87.8,
+    87.6,
+    87.72,
+    87.69,
+    87.61
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 13.29,
+    "vmrss_gb": 11.07,
+    "memavail_gb": 3.67
+   },
+   "steps_effective": 16,
+   "strength": 0.35,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 3.6690101623535156,
+   "decode_s": 63.6,
+   "seconds": 1536.9,
+   "mem_stage": {
+    "vmhwm_gb": 13.87,
+    "vmrss_gb": 10.09,
+    "memavail_gb": 4.63
+   },
+   "vmhwm_gb": 13.87,
+   "rss_peak_gb": 13.87,
+   "crop": [
+    476,
+    154,
+    286,
+    286
+   ],
+   "denoise": 0.35,
+   "seed": 303007,
+   "px": 1024
+  }
+ ],
+ "errors": [
+  "source image dropped by the exposure filter"
+ ],
+ "skipped": [],
+ "outputs": [
+  "sable_hires.webp"
+ ],
+ "run": "38902617668-final-round1-v3-retry",
+ "created": "2026-10-16T12:48:49Z",
+ "updated": "2026-10-16T15:07:18Z",
+ "repairs": {
+  "sable_source.webp": {
+   "original": {
+    "scores": {
+     "nudenet": {
+      "FEMALE_BREAST_EXPOSED": 0.2122,
+      "FEMALE_GENITALIA_EXPOSED": 0.0029,
+      "MALE_GENITALIA_EXPOSED": 0.0011,
+      "ANUS_EXPOSED": 0.0002,
+      "BUTTOCKS_EXPOSED": 0.1264
+     },
+     "anime_censor": {
+      "nipple_f": 0.0854,
+      "penis": 0.0598,
+      "pussy": 0.2515
+     }
+    },
+    "flagged": [
+     {
+      "detector": "anime_censor",
+      "class": "pussy",
+      "score": 0.2515,
+      "view": "t624_312_936"
+     }
+    ]
+   },
+   "settings": {
+    "denoise": 0.6,
+    "steps": 14,
+    "px": 768,
+    "pad": 0.25,
+    "context": 2.0,
+    "box_conf_frac": 0.5,
+    "near_frac": 0.8
+   },
+   "attempts": [
+    {
+     "attempt": 1,
+     "classes": {
+      "anime_censor": [
+       "pussy"
+      ],
+      "nudenet": [
+       "FEMALE_BREAST_EXPOSED"
+      ]
+     },
+     "boxes": [
+      {
+       "detector": "anime_censor",
+       "class": "pussy",
+       "score": 0.2425,
+       "view": "t624_312_936",
+       "box": [
+        794.0,
+        942.2,
+        812.7,
+        972.8
+       ]
+      },
+      {
+       "detector": "anime_censor",
+       "class": "pussy",
+       "score": 0.2377,
+       "view": "t624_624_936",
+       "box": [
+        793.8,
+        941.9,
+        813.0,
+        973.1
+       ]
+      },
+      {
+       "detector": "nudenet",
+       "class": "FEMALE_BREAST_EXPOSED",
+       "score": 0.1744,
+       "view": "t624_312_0",
+       "box": [
+        410.4,
+        443.0,
+        629.7,
+        624.0
+       ]
+      },
+      {
+       "detector": "nudenet",
+       "class": "FEMALE_BREAST_EXPOSED",
+       "score": 0.1691,
+       "view": "t624_312_312",
+       "box": [
+        423.5,
+        449.5,
+        628.0,
+        673.1
+       ]
+      },
+      {
+       "detector": "nudenet",
+       "class": "FEMALE_BREAST_EXPOSED",
+       "score": 0.1406,
+       "view": "full",
+       "box": [
+        411.3,
+        459.1,
+        630.8,
+        677.2
+       ]
+      },
+      {
+       "detector": "nudenet",
+       "class": "FEMALE_BREAST_EXPOSED",
+       "score": 0.1397,
+       "view": "t1248_0_0",
+       "box": [
+        595.8,
+        433.8,
+        821.7,
+        642.6
+       ]
+      },
+      {
+       "detector": "nudenet",
+       "class": "FEMALE_BREAST_EXPOSED",
+       "score": 0.1296,
+       "view": "t1248_0_0",
+       "box": [
+        408.0,
+        450.3,
+        643.3,
+        676.0
+       ]
+      }
+     ],
+     "regions": [
+      [
+       349,
+       381,
+       878,
+       732
+      ],
+      [
+       779,
+       933,
+       827,
+       982
+      ]
+     ],
+     "area_frac": 0.0826,
+     "crops": [
+      [
+       84,
+       28,
+       1142,
+       1086
+      ],
+      [
+       643,
+       798,
+       963,
+       1118
+      ]
+     ],
+     "seeds": [
+      303700,
+      303701
+     ],
+     "inpaints": [
+      {
+       "seconds": 781.6,
+       "s_per_step": 53.5,
+       "steps_run": 14,
+       "steps_effective": 14,
+       "num_inference_steps": 24,
+       "vmhwm_gb": 13.1,
+       "crop": [
+        84,
+        28,
+        1058,
+        1058
+       ],
+       "px": 768
+      },
+      {
+       "seconds": 776.3,
+       "s_per_step": 53.14,
+       "steps_run": 14,
+       "steps_effective": 14,
+       "num_inference_steps": 24,
+       "vmhwm_gb": 13.1,
+       "crop": [
+        643,
+        798,
+        320,
+        320
+       ],
+       "px": 768
+      }
+     ],
+     "seconds": 1558.2,
+     "after": {
+      "scores": {
+       "nudenet": {
+        "FEMALE_BREAST_EXPOSED": 0.3434,
+        "FEMALE_GENITALIA_EXPOSED": 0.003,
+        "MALE_GENITALIA_EXPOSED": 0.0012,
+        "ANUS_EXPOSED": 0.0002,
+        "BUTTOCKS_EXPOSED": 0.1162
+       },
+       "anime_censor": {
+        "nipple_f": 0.0705,
+        "penis": 0.0689,
+        "pussy": 0.0801
+       }
+      },
+      "flagged": [
+       {
+        "detector": "nudenet",
+        "class": "FEMALE_BREAST_EXPOSED",
+        "score": 0.3434,
+        "view": "t1248_0_0"
+       }
+      ]
+     }
+    },
+    {
+     "attempt": 2,
+     "classes": {
+      "nudenet": [
+       "FEMALE_BREAST_EXPOSED"
+      ]
+     },
+     "boxes": [
+      {
+       "detector": "nudenet",
+       "class": "FEMALE_BREAST_EXPOSED",
+       "score": 0.3419,
+       "view": "full",
+       "box": [
+        600.3,
+        445.2,
+        821.0,
+        641.2
+       ]
+      },
+      {
+       "detector": "nudenet",
+       "class": "FEMALE_BREAST_EXPOSED",
+       "score": 0.3179,
+       "view": "t624_312_0",
+       "box": [
+        416.3,
+        446.5,
+        627.4,
+        624.0
+       ]
+      },
+      {
+       "detector": "nudenet",
+       "class": "FEMALE_BREAST_EXPOSED",
+       "score": 0.3062,
+       "view": "t624_312_312",
+       "box": [
+        423.3,
+        453.0,
+        626.5,
+        672.9
+       ]
+      },
+      {
+       "detector": "nudenet",
+       "class": "FEMALE_BREAST_EXPOSED",
+       "score": 0.2831,
+       "view": "t1248_0_0",
+       "box": [
+        598.9,
+        438.3,
+        822.5,
+        641.6
+       ]
+      },
+      {
+       "detector": "nudenet",
+       "class": "FEMALE_BREAST_EXPOSED",
+       "score": 0.22,
+       "view": "t1248_0_0",
+       "box": [
+        410.0,
+        454.2,
+        641.9,
+        680.8
+       ]
+      },
+      {
+       "detector": "nudenet",
+       "class": "FEMALE_BREAST_EXPOSED",
+       "score": 0.2161,
+       "view": "t624_0_0",
+       "box": [
+        407.5,
+        439.8,
+        623.4,
+        624.0
+       ]
+      },
+      {
+       "detector": "nudenet",
+       "class": "FEMALE_BREAST_EXPOSED",
+       "score": 0.1675,
+       "view": "t624_0_312",
+       "box": [
+        411.0,
+        448.4,
+        623.9,
+        684.6
+       ]
+      }
+     ],
+     "regions": [
+      [
+       352,
+       387,
+       878,
+       744
+      ]
+     ],
+     "area_frac": 0.0825,
+     "crops": [
+      [
+       89,
+       40,
+       1141,
+       1092
+      ]
+     ],
+     "seeds": [
+      303710
+     ],
+     "inpaints": [
+      {
+       "seconds": 776.1,
+       "s_per_step": 53.12,
+       "steps_run": 14,
+       "steps_effective": 14,
+       "num_inference_steps": 24,
+       "vmhwm_gb": 13.1,
+       "crop": [
+        89,
+        40,
+        1052,
+        1052
+       ],
+       "px": 768
+      }
+     ],
+     "seconds": 776.3,
+     "after": {
+      "scores": {
+       "nudenet": {
+        "FEMALE_BREAST_EXPOSED": 0.2902,
+        "FEMALE_GENITALIA_EXPOSED": 0.0019,
+        "MALE_GENITALIA_EXPOSED": 0.0012,
+        "ANUS_EXPOSED": 0.0002,
+        "BUTTOCKS_EXPOSED": 0.1329
+       },
+       "anime_censor": {
+        "nipple_f": 0.0919,
+        "penis": 0.0617,
+        "pussy": 0.0804
+       }
+      },
+      "flagged": [
+       {
+        "detector": "nudenet",
+        "class": "FEMALE_BREAST_EXPOSED",
+        "score": 0.2902,
+        "view": "t1248_0_0"
+       }
+      ]
+     }
+    }
+   ],
+   "result": "dropped: still flagged after 2 repair pass(es)"
+  }
+ },
+ "dropped": [
+  "sable_source.webp"
+ ]
+}
