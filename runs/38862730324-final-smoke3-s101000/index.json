@@ -1,0 +1,22 @@
+{
+ "run": "38862730324-final-smoke3-s101000",
+ "created": "2026-10-16T06:56:54Z",
+ "jobs_expected": [
+  "seraphiel-f101000"
+ ],
+ "jobs_missing": [],
+ "heroes": {},
+ "sheets": [],
+ "sheet_note": "",
+ "jobs": [],
+ "filter_totals": {
+  "published_images": 0,
+  "dropped": 0
+ },
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)",
+  "license_url": "https://huggingface.co/cagliostrolab/animagine-xl-4.0"
+ },
+ "updated": "2026-10-16T06:57:05Z"
+}

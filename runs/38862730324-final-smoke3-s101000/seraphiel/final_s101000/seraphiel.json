@@ -1,0 +1,68 @@
+{
+ "hero": "seraphiel",
+ "mode": "final",
+ "seed": 101000,
+ "status": "base",
+ "source_candidate": {
+  "repo": "u-tek/game",
+  "run": "38832421932-candidates-bench-draft",
+  "path": "runs/38832421932-candidates-bench-draft/seraphiel/seraphiel_s101000.webp",
+  "sha256": "6850479965568fe37d2d1c990c0e0b958cf2ed7bb038261098a7276b44a3fcdc",
+  "preset": "draft",
+  "preset_settings": {
+   "lora": null,
+   "sampler": "dpmpp_2m_karras",
+   "steps": 14,
+   "cfg": 5.0,
+   "doc": "no LoRA, DPM++ 2M Karras 14 steps (deterministic; the same seed at more steps keeps the composition)"
+  },
+  "style": "bible"
+ },
+ "style": {
+  "name": "bible",
+  "spec": {
+   "doc": "the prompt bible exactly as written"
+  }
+ },
+ "settings": {
+  "sampler": "euler_ancestral",
+  "cfg": 5.0,
+  "preset": "standard",
+  "hires_scale": 1.5,
+  "hires_denoise": 0.4,
+  "hires_steps": 20,
+  "face_denoise": 0.35,
+  "face_steps": 16,
+  "face_px": 1024,
+  "variant_steps": 14,
+  "variant_px": 768
+ },
+ "base_settings": {
+  "lora": null,
+  "sampler": "dpmpp_2m_karras",
+  "steps": 14,
+  "cfg": 5.0,
+  "doc": "no LoRA, DPM++ 2M Karras 14 steps (deterministic; the same seed at more steps keeps the composition)"
+ },
+ "family": "animagine",
+ "prompt": "1girl, solo, adult, mature female, full body, standing, contrapposto, looking at viewer, curvy, large breasts, cleavage, platinum blonde hair, very long hair, closed eyes, light smile, serene, halo, spiked halo, gold crown, multiple wings, white wings, feathered wings, head wings, white dress, plunging neckline, backless dress, side slit, barefoot, anklet, body chain, scepter, floating object, hand up, white and gold theme, simple background, grey background, official art, cel shading, rim lighting, masterpiece, high score, great score, absurdres, sensitive",
+ "negative": "worst quality, low quality, low score, bad score, average score, nsfw, explicit, lowres, blurry, jpeg artifacts, bad anatomy, bad hands, extra arms, cropped, feet out of frame, head out of frame, wings out of frame, upper body, cowboy shot, multiple views, scenery, light particles, sparkle, embers, aura, light rays, smoke, speed lines, nude, nipples, areolae, covered nipples, nipple slip, areola slip, pussy, cameltoe, anus, penis, pubic hair, sex, spread legs, see-through, loli, shota, child, underage, teenage, young, aged down, school uniform, text, watermark, signature, chibi, 3d, realistic, 1boy, multiple girls, topless, flat chest, pussy peek, no panties, pantyshot, upskirt, blue archive, missing fingers, extra digits, fewer digits, error, username",
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)"
+ },
+ "lora": null,
+ "steps": [
+  {
+   "step": "base",
+   "from": "runs/38832421932-candidates-bench-draft/seraphiel/seraphiel_s101000.webp",
+   "sha256": "6850479965568fe37d2d1c990c0e0b958cf2ed7bb038261098a7276b44a3fcdc"
+  }
+ ],
+ "errors": [],
+ "skipped": [],
+ "outputs": [],
+ "run": "38862730324-final-smoke3-s101000",
+ "created": "2026-10-16T06:49:46Z",
+ "updated": "2026-10-16T06:49:46Z"
+}

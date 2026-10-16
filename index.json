@@ -83,6 +83,15 @@
    "published_images": 12,
    "dropped": 5,
    "jobs_missing": []
+  },
+  {
+   "run": "38862730324-final-smoke3-s101000",
+   "created": "2026-10-16T06:56:54Z",
+   "updated": "2026-10-16T06:57:05Z",
+   "heroes": [],
+   "published_images": 0,
+   "dropped": 0,
+   "jobs_missing": []
   }
  ]
 }
