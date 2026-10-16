@@ -166,7 +166,8 @@ candidate missing or invalid (nothing rendered).
      35-97% of its luminance, flat on the floor, seeds up to 3 px inside a hard edge), then
      `post.alpha_from_mask` edge unmixing/despill and `cutout.fill_edge_dips` (the anti-aliased
      pixel between dark line art and a light fill can have the backdrop's colour; unmixing made it
-     a hole and the outline beyond it a dropped speck: beaded edges); `post.finalize_local` places
+     a hole and the outline beyond it a dropped speck: beaded edges; then stray specks without a
+     solid core go, loose hair strands with >= 24 opaque px stay); `post.finalize_local` places
      it. Before rendering, `cutout.canvas_fit` measures how much of the spec height the source's
      composition can fill (`source_fit`, a `::warning::` under 90 %). On run
      38844269897's s101000 source the first version left semi-transparent grey patches between the
@@ -216,8 +217,11 @@ clearly an adult, never explicit.
   loosen the threshold to save a render: render more candidates.
 - **Cover repair** (`gen.publish_screened`, `repair.py`, `config.REPAIR`; candidates and the
   final's hires, source and canvas stages; the RGBA canvas is inpainted flattened on its measured
-  background and keeps its own alpha, and its portrait and review images are drawn again from the
-  repaired canvas): when the filter flags an image, the boxes of the flagged
+  background and keeps its own alpha outside the repaired regions; inside them (grown 12 px) it is
+  cut out again from the repaired image (`gen.recut_regions`, same isnet + `artgen_cutout`), because
+  the inpaint can paint backdrop where the figure was (run 38864019250: an opaque grey patch where
+  a forearm had been) or figure where the backdrop was; its portrait and review images are drawn
+  again from the repaired canvas): when the filter flags an image, the boxes of the flagged
   classes (plus any watched class at >= 80 % of its threshold) are taken from every view of the
   check (`ExposureFilter.flag_boxes`: anchors at >= half the threshold, NMS per class, mapped back
   to image pixels; NudeNet's padded-square input and the anime detector's stretched input are both
@@ -349,6 +353,13 @@ Checked here (`git fetch`, composites on #120e24 and white):
   `_boxes.webp` (`penis` 0.73), `mouth_open_patch.png` (NudeNet 0.41 on a 52x39 crop) and
   `smile_patch.png` (anime `pussy` 0.37): false positives on review images and tiny crops; the
   import uses `variants/<name>.png`, which all passed;
+**Third final (38864019250, code 3938fb2: the cutout fixes):** hires 187.1 s/step (62 min), face
+polish 80.6 s/step (23 min), variants 43.9 s/step (11 min each), job about 135 min, exit 0. The
+canvas needed one repair pass (0.2575 before); halo, hair gaps and feet clean (shadow 11 356 px
+removed, background-coloured edge pixels 2.3 % instead of 4.3 %), variants aligned as before. The
+repair again removed the hand on the chest and painted backdrop where the forearm had been, which
+the old alpha kept as a 464 px opaque grey patch: hence `recut_regions` (checked locally on this
+canvas with isnet: the patch goes, 865 px cleared, 54 px added) and the speck pass.
 - `spec` still fails on the composition (figure 1445 px, right margin 22 px after the width fit).
   `cutout.canvas_fit` now predicts this before any render: every published 832x1216 Seraphiel
   candidate fills only 75-77 % of the spec height, so candidates get a `SMALL nn%` sheet flag and

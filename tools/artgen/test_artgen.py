@@ -1005,6 +1005,29 @@ class TestModes(unittest.TestCase):
         self.assertTrue(np.array_equal(np.asarray(canvas)[..., 3], np.asarray(ref)[..., 3]))
         self.assertEqual(safety.verify(out, log=QUIET)["deleted"], 0)
 
+    def test_recut_regions_after_a_canvas_repair(self):
+        """Run 38864019250: the canvas repair painted backdrop where a forearm had been and the old
+        alpha kept it as an opaque grey patch. Inside the repaired regions the canvas is cut again."""
+        bg = (149, 155, 166)
+        canvas = Image.new("RGBA", (400, 700), (0, 0, 0, 0))
+        ImageDraw.Draw(canvas).rectangle([100, 100, 300, 650], fill=(240, 235, 230, 255), outline=(40, 30, 30, 255))
+        flat = P.flat_rgb(canvas, bg)
+        d = ImageDraw.Draw(flat)
+        d.rectangle([260, 300, 300, 360], fill=bg)                       # backdrop painted over the edge
+        d.rectangle([301, 400, 340, 440], fill=(180, 60, 50))            # new figure part outside the old alpha
+        regions = Image.new("L", canvas.size, 0)
+        ImageDraw.Draw(regions).rectangle([250, 290, 345, 450], fill=255)
+        out, info = gen.recut_regions(canvas, flat, regions, lambda im: cutout.artgen_cutout(im, None)[0])
+        a, a0 = np.asarray(out)[..., 3], np.asarray(canvas)[..., 3]
+        self.assertLess(a[330, 285], 10, "backdrop painted inside the old figure must become transparent")
+        self.assertGreater(a[420, 320], 245, "figure painted outside the old alpha must be kept")
+        self.assertGreater(a[330, 200], 245, "the figure inside the region stays")
+        far = np.ones(a.shape, bool)
+        far[290 - 20:450 + 20, 250 - 20:345 + 20] = False
+        self.assertTrue(np.array_equal(np.asarray(out)[far], np.asarray(canvas)[far]), "unchanged outside the regions")
+        self.assertGreater(info["alpha_cleared_px"], 0)
+        self.assertGreater(info["alpha_added_px"], 0)
+
     def test_final_hires_dropped_stops_the_seed(self):
         eng, comps = components("seraphiel", poison_hires=True)
         comps["filter"] = box_filter(stuck=(1248, 1824))

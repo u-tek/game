@@ -111,7 +111,7 @@ def ground_shadow(arr, bgc, figure, band=0.15, chroma_tol=0.04, lum_range=(0.35,
     return kept, info
 
 
-def fill_edge_dips(rgba, arr, figure, dist, band_px=2, min_dip=0.25, max_alpha=0.6, solid_dist=40.0):
+def fill_edge_dips(rgba, arr, figure, dist, band_px=2, min_dip=0.25, max_alpha=0.6, solid_dist=40.0, strand_px=24):
     """Line art next to the backdrop: the anti-aliased pixel between a dark outline and a light fill
     can have the backdrop's colour, and the edge unmixing then makes it transparent, a 1 px hole inside
     the outline; the outline beyond it is then cut off from the figure and dropped as a speck (run
@@ -119,7 +119,8 @@ def fill_edge_dips(rgba, arr, figure, dist, band_px=2, min_dip=0.25, max_alpha=0
     band inside the figure mask: pixels clearly unlike the backdrop (> `solid_dist`) that ended up
     transparent come back opaque, then every alpha dip below its 3x3 grey-level closing (by >=
     `min_dip`, alpha < `max_alpha`) takes the closing's alpha; both keep the image's own colour.
-    Returns (RGBA Image, filled px)."""
+    Last, alpha not connected to a solid 5x5 core is cleared (stray specks) unless it holds
+    `strand_px` opaque pixels (a loose hair strand). Returns (RGBA Image, filled px)."""
     out = np.asarray(rgba).copy()
     band = figure & post.dilate(figure, band_px) & post.dilate(~figure, band_px)
     lost = band & (out[..., 3] < 8) & (dist > solid_dist)
@@ -130,6 +131,14 @@ def fill_edge_dips(rgba, arr, figure, dist, band_px=2, min_dip=0.25, max_alpha=0
     out[dip, 3] = closed[dip]
     fix = lost | dip
     out[fix, :3] = np.clip(arr[fix] + 0.5, 0, 255).astype(np.uint8)
+    # specks: alpha not connected to a solid 5x5 core goes (as post's edge treatment; the mask outside
+    # the edge band is isnet's own and was never filtered), unless it is a real thin part with at least
+    # `strand_px` opaque pixels (a loose hair strand)
+    a = out[..., 3]
+    loose = (a > 5) & ~post.flood(post.erode(a > 127, 2), a > 5)
+    for comp in post.components(loose, max_count=2000):
+        if int((a[comp] > 127).sum()) < strand_px:
+            out[comp] = 0
     return Image.fromarray(out, "RGBA"), int(fix.sum())
 
 

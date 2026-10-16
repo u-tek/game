@@ -328,6 +328,35 @@ def merge_variant(base, out_rgb, mask):
     return Image.fromarray(np.clip(merged + 0.5, 0, 255).astype(np.uint8), "RGBA")
 
 
+def recut_regions(canvas, flat, regions_mask, recut, grow=12, blur=3.0, pad=24):
+    """After a cover repair of the RGBA canvas. The inpaint works on the canvas flattened on the
+    measured backdrop, so it can paint backdrop where the figure was (opaque grey under the old alpha:
+    run 38864019250, a 464 px grey patch where a forearm had been) or figure where the backdrop was
+    (cut off by the old alpha: run 38852819142's vambrace). Inside the repaired regions (grown by
+    `grow`, feathered by `blur`) the canvas takes a fresh cutout (`recut`, RGB -> RGBA) of the
+    repaired image, cut on the figure's box (+`pad`, so the crop border is backdrop as the cutout
+    expects); everywhere else it is unchanged. Blended premultiplied. Returns (RGBA Image, info)."""
+    W, H = canvas.size
+    bb = post.alpha_bbox(canvas) or (0, 0, W, H)
+    box = (max(0, bb[0] - pad), max(0, bb[1] - pad), min(W, bb[2] + pad), min(H, bb[3] + pad))
+    part = recut(flat.convert("RGB").crop(box)).convert("RGBA")
+    new = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+    new.paste(part, box[:2])
+    m = regions_mask.convert("L").filter(ImageFilter.MaxFilter(2 * grow + 1)).filter(ImageFilter.GaussianBlur(blur))
+    m = np.asarray(m).astype(np.float32)[..., None] / 255.0
+    a0 = np.asarray(canvas).astype(np.float32)
+    a1 = np.asarray(new).astype(np.float32)
+    al0, al1 = a0[..., 3:] / 255.0, a1[..., 3:] / 255.0
+    al = al0 * (1 - m) + al1 * m
+    pm = a0[..., :3] * al0 * (1 - m) + a1[..., :3] * al1 * m
+    rgb = np.where(al > 1e-3, pm / np.maximum(al, 1e-3), 0.0)
+    out = np.dstack([rgb, al * 255.0])
+    out = Image.fromarray(np.clip(out + 0.5, 0, 255).astype(np.uint8), "RGBA")
+    d = np.abs(np.asarray(out)[..., 3].astype(np.int32) - np.asarray(canvas)[..., 3].astype(np.int32))
+    return out, {"box": list(box), "alpha_cleared_px": int(((d > 64) & (al[..., 0] < al0[..., 0])).sum()),
+                 "alpha_added_px": int(((d > 64) & (al[..., 0] > al0[..., 0])).sum())}
+
+
 def spec_report(canvas, fmeta):
     """Automatic check of a canvas against docs/dev/art-style.md section 2 (1024x2048 RGBA, soles at
     y=1990, head top >= 40, >= 24 px margins left/right/top, no scale-down notes)."""
@@ -443,12 +472,13 @@ def encode_all(comps, texts, job):
 WEBP_KW = {"format": "WEBP", "quality": 95, "method": 6}
 
 
-def publish_screened(a, pub, eng, cover_emb, img, tmp, rel, seed, est, job, save_kw=None, bg_rgb=None):
+def publish_screened(a, pub, eng, cover_emb, img, tmp, rel, seed, est, job, save_kw=None, bg_rgb=None, recut=None):
     """Publish `img` (already saved at `tmp`, in the work dir) through the exposure filter. When it is
     flagged: cover-repair the flagged regions (config.REPAIR) and publish the repaired image only if it
     passes the full filter again; else record the drop. The unrepaired original is deleted by the filter
     and never reaches the upload dir. An RGBA image (the final canvas) is inpainted flattened on `bg_rgb`
-    and keeps its own alpha (as the expression variants).
+    and keeps its own alpha (as the expression variants) except inside the repaired regions, which are
+    cut out again with `recut` when given (recut_regions).
     Returns (dest or None, the published image or None, repair record or None, last filter report)."""
     save_kw = save_kw or WEBP_KW
     dest = pub.publish(tmp, rel, defer_drop=True)
@@ -510,9 +540,18 @@ def publish_screened(a, pub, eng, cover_emb, img, tmp, rel, seed, est, job, save
             log("ERROR in the cover repair of %s: %s\n%s" % (rel, e, traceback.format_exc()))
             return give_up("repair inpaint failed: %s: %s" % (type(e).__name__, e))
         att["seconds"] = round(time.time() - t0, 1)
-        if rgba:    # repainted RGB inside the (feathered) regions only, the canvas's own alpha everywhere
-            m = repair.mask(cur.size, pl["regions"]).filter(ImageFilter.GaussianBlur(R["feather"]))
-            cur = merge_variant(cur, work, m)
+        if rgba:    # repainted RGB inside the (feathered) regions only, the canvas's own alpha elsewhere
+            rmask = repair.mask(cur.size, pl["regions"])
+            done = False
+            if recut is not None:
+                try:
+                    cur, att["recut"] = recut_regions(cur, work, rmask, recut)
+                    done = True
+                except Exception as e:      # noqa: BLE001  (keep the old alpha, as before)
+                    log("WARNING: re-cut of the repaired regions failed, old alpha kept: %s" % e)
+                    att["recut"] = {"error": "%s: %s" % (type(e).__name__, e)}
+            if not done:
+                cur = merge_variant(cur, work, rmask.filter(ImageFilter.GaussianBlur(R["feather"])))
         else:
             cur = work.convert("RGB")
         tmp2 = save_tmp(os.path.dirname(tmp), cur, os.path.basename(tmp), **save_kw)
@@ -855,9 +894,18 @@ def _final_one(a, bible, pub, job, eng, embs, texts, i, p, fs, names, finder, cu
     fmeta.pop("hero", None)
     meta.update({k: v for k, v in fmeta.items() if k not in ("steps",)})
     meta.update({"image": hero + ".png", "spec": spec, "bg_measured": bg_meas, "cutout_detail": cinfo})
+    def recut(flat):
+        m = None
+        if ct is not None:
+            try:
+                m = ct.mask(flat)
+            except Exception as e:      # noqa: BLE001
+                log("WARNING: isnet mask of the repaired canvas failed, colour flood instead: %s" % e)
+        return cutout.artgen_cutout(flat, m)[0]
+
     canvas_dest, rcanvas, rrec, _rep = publish_screened(a, pub, eng, embs.get("cover:" + p["style"]), canvas,
                                                         canvas_path, "%s/%s.png" % (rel, hero), seed, est, job,
-                                                        save_kw={"format": "PNG"}, bg_rgb=bg_meas)
+                                                        save_kw={"format": "PNG"}, bg_rgb=bg_meas, recut=recut)
     if rrec:
         meta.setdefault("repairs", {})[hero + ".png"] = rrec
     if canvas_dest:
