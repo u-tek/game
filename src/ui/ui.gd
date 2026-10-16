@@ -9,6 +9,7 @@ extends Node
 ##   UI.confirm("Spend 300 gems?", on_yes)           # in-game yes/no dialog
 ##   UI.set_chrome(show_top_bar, show_nav)           # reset to (true, true) on every go()
 ##   UI.safe_top() / UI.safe_bottom()                # notch / home-indicator insets (px)
+##   UI.pinned_bottom_inset()                        # keep bottom-pinned bars clear of the Lobby hex
 ##   UI.sfx("tap")                                   # tap reward summon legendary hit ult victory defeat
 ##   UI.haptic(20)                                   # short vibration on phones
 ## Background music plays by itself and follows Game.setting("music").
@@ -59,6 +60,7 @@ const FADE_TIME := 0.15
 const MUSIC_PATH := "res://assets/art/ui/music_twilight.ogg"
 const MUSIC_DB := -15.0
 const MAX_TOASTS := 3
+const TOAST_W := 540.0
 const SFX_VOLUME_DB := {
 	"tap": -9.0, "hit": -6.0, "reward": -5.0, "summon": -4.0, "legendary": -3.0,
 	"ult": -5.0, "victory": -4.0, "defeat": -5.0,
@@ -266,6 +268,15 @@ func content_bottom() -> float:
 	return safe_bottom() + (h.y if chrome_nav else 0.0)
 
 
+## Extra room a bar pinned to the bottom of the content area must leave above the nav: the
+## raised Lobby hexagon pokes up this far (0 when the nav is hidden). Scrolling lists can run
+## under it; fixed buttons and panels should not.
+func pinned_bottom_inset() -> float:
+	if not chrome_nav or root == null or not is_instance_valid(root) or not root.has_method("nav_rise"):
+		return 0.0
+	return float(root.call("nav_rise"))
+
+
 func _bar_heights() -> Vector2:
 	if root and is_instance_valid(root) and root.has_method("bar_heights"):
 		return root.call("bar_heights")
@@ -334,9 +345,9 @@ func toast(text: String, kind: String = "info") -> void:
 	var l := Kit.label(text, Kit.SIZE_BODY, Color.WHITE, "bold")
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var font := Kit.font("bold")
-	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, Kit.SIZE_BODY).x
-	l.custom_minimum_size.x = minf(w + 4.0, 560.0)
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# Every toast has the same width, so a stack lines up as one column.
+	l.custom_minimum_size.x = TOAST_W - 58.0 - (44.0 if ic != "" else 0.0)
 	row.add_child(l)
 	p.add_child(row)
 	host.add_child(p)

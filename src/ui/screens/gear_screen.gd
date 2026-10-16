@@ -53,7 +53,8 @@ func _exit_tree() -> void:
 
 func _build() -> void:
 	var w := get_viewport_rect().size.x
-	_tile = floorf(minf(150.0, (w - 40.0 - (COLS - 1) * 14.0) / COLS))
+	# Tiles span the whole gutter (16 px page margins, 4 px grid margins), like the heroes grid.
+	_tile = floorf((w - 32.0 - 8.0 - (COLS - 1) * 14.0) / COLS)
 	# Dark header strip with the page tab, then the light page.
 	var head := Kit.hbox(12)
 	head.set_anchors_and_offsets_preset(PRESET_TOP_WIDE)

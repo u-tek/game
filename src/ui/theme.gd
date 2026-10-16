@@ -99,14 +99,16 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			m = Vector4(10, 3, 14, 3)
 		"toast":
 			b.radius = 6
-			b.top_color = Color("15171bf5")
-			b.bottom_color = Color("101215f5")
+			b.top_color = Color("1c1f24f7")
+			b.bottom_color = Color("131519f7")
 			b.border_width = 1.0
-			b.border_color = Color(1, 1, 1, 0.1)
+			b.border_color = Color(1, 1, 1, 0.26)
+			b.inner_color = Color(1, 1, 1, 0.06)
+			b.inner_inset = 3.0
 			b.accent_color = Kit.ACCENT
 			b.accent_left = 6
-			b.shadow_size = 14
-			b.shadow_color = Color(0, 0, 0, 0.45)
+			b.shadow_size = 16
+			b.shadow_color = Color(0, 0, 0, 0.6)
 			b.shadow_offset = Vector2(0, 6)
 			m = Vector4(30, 16, 28, 16)
 		"modal":
@@ -121,8 +123,8 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			m = Vector4(30, 26, 30, 30)
 		"speech":
 			b.radius = 4
-			b.top_color = Color("0d0e11c7")
-			b.bottom_color = Color("0d0e11c7")
+			b.top_color = Color("0d0e1173")
+			b.bottom_color = Color("0d0e1173")
 			b.border_width = 1.0
 			b.border_color = Color(1, 1, 1, 0.08)
 			m = Vector4(26, 16, 26, 20)
@@ -618,21 +620,12 @@ static func build() -> Theme:
 		t.set_type_variation(v, "PanelContainer")
 		t.set_stylebox("panel", v, style(panels[v]))
 
-	# Scrollbars: thin cyan indicator, no arrows.
+	# Scrollbars: invisible and zero-width (touch scrolling needs no chrome; pages show more
+	# content through cut-off rows and bottom fades instead of a debug-looking bar).
 	var none := _blank_icon()
 	for sb in ["VScrollBar", "HScrollBar"]:
-		var track := StyleBoxFlat.new()
-		track.bg_color = Color(0.5, 0.55, 0.6, 0.12)
-		track.set_corner_radius_all(2)
-		track.set_content_margin_all(2)
-		t.set_stylebox("scroll", sb, track)
-		t.set_stylebox("scroll_focus", sb, track)
-		for g: Array in [["grabber", 0.55], ["grabber_highlight", 0.75], ["grabber_pressed", 0.95]]:
-			var grab := StyleBoxFlat.new()
-			grab.bg_color = Color(Kit.ACCENT, g[1])
-			grab.set_corner_radius_all(2)
-			grab.set_content_margin_all(2)
-			t.set_stylebox(g[0], sb, grab)
+		for st in ["scroll", "scroll_focus", "grabber", "grabber_highlight", "grabber_pressed"]:
+			t.set_stylebox(st, sb, StyleBoxEmpty.new())
 		for ic in ["increment", "increment_highlight", "increment_pressed", "decrement", "decrement_highlight", "decrement_pressed"]:
 			t.set_icon(ic, sb, none)
 	t.set_stylebox("panel", "ScrollContainer", StyleBoxEmpty.new())

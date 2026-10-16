@@ -42,6 +42,8 @@ var _head_h := 260.0
 var _faction_tex: Texture2D
 var _icon_cache := {}
 var _bars_alpha := 1.0
+## Bar opacity while the body is away from its spot (attack lunges).
+var _lunge_k := 1.0
 
 
 ## bars_layer: a Node2D drawn above every sprite (same transform as this node's parent);
@@ -250,7 +252,14 @@ func _exit_tree() -> void:
 
 func _process(delta: float) -> void:
 	_t += delta
-	_bars.position = position + body_offset()
+	# The bars lean only a little with attack lunges and fade while the body is far from its
+	# spot, so units bunching up mid-fight never stack their bars into an unreadable pile.
+	var off := body_offset()
+	_bars.position = position + off * 0.3
+	var lk := clampf(1.0 - (off.length() - 40.0) / 160.0, 0.35, 1.0)
+	if absf(lk - _lunge_k) > 0.02:
+		_lunge_k = lk
+		_bars.queue_redraw()
 	var frac := float(hp) / float(max_hp)
 	if _chip > frac:
 		_chip = maxf(frac, _chip - delta * 0.8)
@@ -267,7 +276,7 @@ func _process(delta: float) -> void:
 func _draw_bars() -> void:
 	if _bars_alpha <= 0.01:
 		return
-	var a := _bars_alpha
+	var a := _bars_alpha * _lunge_k
 	var w := BAR_W * (1.35 if is_boss else 1.0) * clampf(depth_scale, 0.85, 1.05)
 	var y := -_head_h - 26.0
 	var x0 := -w * 0.5 + 12.0

@@ -1,11 +1,12 @@
 extends Control
 ## Screen "quests" (top-bar Quests button), style v2: today's daily quests on a light page.
-## A dark header with the DAILY tab and the reset timer; a white progress panel (claimed out
-## of total, with the "complete N quests" bonus as the milestone); then one white row per
-## quest: a hex glyph (cyan when ready, grey when done), the goal, a cyan progress bar, the
-## rewards and an action: Claim (ready, red dot), Go (jumps to where the quest is done) or a
-## disabled Done. Ready quests sort to the top; "Claim All" collects every ready quest in one
-## reward popup.
+## A dark header with the DAILY tab and the reset timer; a white DAILY BONUS panel: the one
+## milestone track ("complete N quests": progress toward it, its reward tiles, and its Claim
+## when reached; the bonus is not repeated as a list row); then one white row per quest: a
+## hex glyph (cyan when ready, grey when done), the goal, a cyan progress bar, the rewards and
+## an action: Claim (ready, red dot), Go (jumps to where the quest is done) or a disabled
+## Done. Ready quests sort to the top; "Claim All" collects every ready quest in one reward
+## popup.
 
 ## Where a quest is done, by the counter that drives it.
 const GO_TO := {
@@ -25,6 +26,8 @@ var _done_label: Label
 var _done_bar: ProgressBar
 var _milestone: HBoxContainer
 var _claim_all_slot: HBoxContainer
+var _bonus_hex: Control
+var _bonus_cap: Label
 var _tick := 0.0
 var _sig := ""
 
@@ -71,19 +74,23 @@ func _build() -> void:
 	col.offset_top = 10 + Kit.BUTTON_H + 16
 	col.offset_left = 16
 	col.offset_right = -16
-	col.offset_bottom = -14
+	col.offset_bottom = -14 - UI.pinned_bottom_inset()
 	add_child(col)
 
-	# Progress panel: claimed / total with the bonus quest as the milestone.
+	# The one milestone track: the "complete N quests" bonus (progress, reward, Claim).
 	var prog := Kit.info_panel(14)
+	prog.name = "BonusPanel"
 	var pv := Kit.vbox(8)
 	prog.add_child(pv)
 	var ph := Kit.hbox(10)
-	ph.add_child(Kit.hex_badge("quests", 56, Kit.ACCENT, Color.WHITE))
+	_bonus_hex = Kit.hex_badge("crown", 56, Color("26282c"), Color.WHITE)
+	_bonus_hex.size_flags_vertical = SIZE_SHRINK_CENTER
+	ph.add_child(_bonus_hex)
 	var pt := Kit.vbox(-4)
 	pt.size_flags_horizontal = SIZE_EXPAND_FILL
 	pt.alignment = BoxContainer.ALIGNMENT_CENTER
-	pt.add_child(Kit.label("DAILY PROGRESS", 18, Kit.TEXT_DIM, "cond_bold"))
+	_bonus_cap = Kit.label("DAILY BONUS", 18, Kit.TEXT_DIM, "cond_bold")
+	pt.add_child(_bonus_cap)
 	_done_label = Kit.label("", 36, Kit.TEXT, "title")
 	pt.add_child(_done_label)
 	ph.add_child(pt)
@@ -147,18 +154,27 @@ func _refresh() -> void:
 		elif bool(q.get("ready", int(q.progress) >= int(q.goal))):
 			ready.append(q)
 	_ready_count = ready.size()
-	Kit.set_progress(_done_bar, done, qs.size(), "", false)
-	_done_label.text = "%d / %d CLAIMED" % [done, qs.size()]
 	for c in _milestone.get_children():
 		_milestone.remove_child(c)
 		c.queue_free()
-	if not bonus.is_empty():
-		var bv := Kit.vbox(0)
-		bv.mouse_filter = MOUSE_FILTER_IGNORE
-		bv.alignment = BoxContainer.ALIGNMENT_CENTER
-		bv.add_child(Kit.label("BONUS AT %d" % int(bonus.goal), 16, Kit.TEXT_DIM, "cond_bold"))
-		bv.add_child(Kit.label("%d / %d" % [mini(int(bonus.progress), int(bonus.goal)), int(bonus.goal)], 22, Kit.ACCENT_DEEP, "cond_bold"))
-		_milestone.add_child(bv)
+	if bonus.is_empty():
+		# No bonus quest in the data: fall back to a plain claimed count.
+		_bonus_cap.text = "DAILY PROGRESS"
+		_done_label.text = "%d / %d CLAIMED" % [done, qs.size()]
+		Kit.set_progress(_done_bar, done, qs.size(), "", false)
+	else:
+		var goal := int(bonus.goal)
+		var have := mini(int(bonus.progress), goal)
+		var b_ready := not bool(bonus.claimed) and int(bonus.progress) >= goal
+		_bonus_cap.text = "DAILY BONUS  ·  COMPLETE %d QUESTS" % goal
+		_done_label.text = "CLAIMED" if bool(bonus.claimed) else "%d / %d" % [have, goal]
+		Kit.set_progress(_done_bar, have, goal, "", false)
+		var hf: Color = Kit.ACCENT if b_ready else Color("2a2c31")
+		_bonus_hex.set("fill", hf.lightened(0.06))
+		_bonus_hex.set("fill_bottom", hf.darkened(0.12))
+		_bonus_hex.set("glow", Color(Kit.ACCENT, 0.45) if b_ready else Color(0, 0, 0, 0))
+		_bonus_hex.set("glow_size", 8.0)
+		_bonus_hex.queue_redraw()
 		var rl := Kit.hbox(6)
 		rl.mouse_filter = MOUSE_FILTER_IGNORE
 		rl.size_flags_vertical = SIZE_SHRINK_CENTER
@@ -167,8 +183,21 @@ func _refresh() -> void:
 		if bool(bonus.claimed):
 			rl.modulate.a = 0.45
 		_milestone.add_child(rl)
+		if b_ready:
+			var bid := str(bonus.id)
+			var cb := Kit.primary_button("Claim", func() -> void: _claim(bid, null))
+			cb.name = "ClaimBonus"
+			cb.custom_minimum_size = Vector2(120, Kit.BUTTON_H)
+			cb.add_theme_font_size_override("font_size", 24)
+			cb.size_flags_vertical = SIZE_SHRINK_CENTER
+			Kit.set_dot(cb, true, 20, Vector2(6, 6))
+			_milestone.add_child(cb)
+			if _ready_count == 1:
+				Guide.mark(cb, Guide.step() == "quests", 0)
 
 	var sorted := qs.duplicate()
+	if not bonus.is_empty():
+		sorted.erase(bonus)
 	sorted.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		var ra := _rank(a)
 		var rb := _rank(b)

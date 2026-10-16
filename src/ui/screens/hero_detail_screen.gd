@@ -19,9 +19,15 @@ const HOLD_MIN := 0.045
 const STAT_ORDER: Array[String] = ["hp", "atk", "def", "spd", "crit"]
 const SLOTS: Array[String] = ["weapon", "armor", "helm", "charm"]
 const COL_W := 324.0
-const EDGE := 64.0
+## Gap between the info column and the right screen edge.
+const COL_PAD := 12.0
+## Side tabs (pinned left of the column) and the browse arrows (88 x 112 touch areas).
+const TAB_W := 96.0
+const TAB_H := 112.0
+const ARROW := Vector2(88, 112)
+const ARROW_TILE := 52.0
 const SHORT_RED := Color("d42a12")
-const TABS := [["equip", "Equip", "equip"], ["skills", "Skills", "skill"], ["story", "Story", "scrolls"]]
+const TABS := [["equip", "Equip", "equip"], ["skills", "Skills", "skill"], ["story", "Story", "codex"]]
 
 ## The lower-panel tab the player picked last (kept for the session).
 static var _pref_tab := "equip"
@@ -45,6 +51,8 @@ var _scroll: ScrollContainer
 var _column: VBoxContainer
 var _fx: Control
 var _arrows: Array[Control] = []
+var _tabs_box: VBoxContainer
+var _more: Control
 var _back_bar: Control
 var _back_btn: Button
 var _home_btn: Button
@@ -203,17 +211,61 @@ func _build() -> void:
 		veil.add_child(t)
 	add_child(veil)
 
-	# The info column (scrolls only when the window is too short for it).
+	# The info column (scrolls only when the window is too short for it). It is exactly
+	# COL_W wide; the 6 px side margins keep the panel shadows inside the scroll clip.
 	_column = Kit.vbox(8 if _compact else 10)
 	_column.name = "Column"
-	var m := Kit.margin(_column, 0, 0)
+	_column.custom_minimum_size.x = COL_W
+	var m := Kit.margin(_column, 6, 0)
 	m.add_theme_constant_override("margin_top", 12 if _compact else 18)
-	m.add_theme_constant_override("margin_bottom", 24)
-	m.add_theme_constant_override("margin_right", 6)
+	m.add_theme_constant_override("margin_bottom", 28)
 	_scroll = Kit.scroll(m)
 	_scroll.name = "InfoScroll"
 	add_child(_scroll)
 	_build_column()
+	_scroll.get_v_scroll_bar().value_changed.connect(func(_v: float) -> void: _place_tabs())
+	_scroll.get_v_scroll_bar().changed.connect(_place_tabs)
+
+	# "More below" fade at the bottom of the column while it can still scroll.
+	_more = Control.new()
+	_more.name = "More"
+	_more.mouse_filter = MOUSE_FILTER_IGNORE
+	var mf := TextureRect.new()
+	mf.mouse_filter = MOUSE_FILTER_IGNORE
+	mf.texture = Kit.vgradient(Color(0.95, 0.957, 0.965, 0.0), Color(0.95, 0.957, 0.965, 0.96))
+	mf.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	mf.stretch_mode = TextureRect.STRETCH_SCALE
+	mf.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	_more.add_child(mf)
+	var chev := Kit.icon("chevron_right", 30, Kit.ACCENT_DEEP)
+	chev.name = "Chevron"
+	chev.pivot_offset = Vector2(15, 15)
+	chev.rotation = PI * 0.5
+	chev.anchor_left = 0.5
+	chev.anchor_right = 0.5
+	chev.anchor_top = 1.0
+	chev.anchor_bottom = 1.0
+	chev.offset_left = -15
+	chev.offset_right = 15
+	chev.offset_top = -36
+	chev.offset_bottom = -6
+	_more.add_child(chev)
+	add_child(_more)
+
+	# Side tabs (Equip / Skills / Story), pinned left of the column: they follow the lower
+	# panel while it is on screen and stop above Back / Home when it scrolls away.
+	_tabs_box = Kit.vbox(4)
+	_tabs_box.name = "SideTabs"
+	for t: Array in TABS:
+		var tid: String = t[0]
+		if tid == "equip" and not _owned:
+			continue
+		var b := Kit.side_button(str(t[2]), str(t[1]), _select_tab.bind(tid), "accent" if tid == _tab else "dark")
+		b.name = "Tab_" + tid
+		b.custom_minimum_size = Vector2(TAB_W, TAB_H)
+		_tabs_box.add_child(b)
+		_tab_btns[tid] = b
+	add_child(_tabs_box)
 
 	_fx = Control.new()
 	_fx.name = "Fx"
@@ -221,13 +273,21 @@ func _build() -> void:
 	_fx.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	add_child(_fx)
 
+	# Browse arrows flank the art (left screen edge, and just left of the column) so they
+	# never sit on the column's buttons. 88 x 112 touch areas around a small dark tile.
 	if _browse.size() > 1:
 		for dir: int in [-1, 1]:
 			var d := dir
-			var arrow := Kit.icon_button("chevron_right", func() -> void: _browse_step(d), 64, "round")
+			var arrow := Kit.icon_button("chevron_right", func() -> void: _browse_step(d), ARROW_TILE / 0.76, "round")
 			arrow.name = "Prev" if dir < 0 else "Next"
-			arrow.custom_minimum_size = Vector2(EDGE, 112)
-			arrow.size = arrow.custom_minimum_size
+			arrow.custom_minimum_size = ARROW
+			arrow.size = ARROW
+			# Slide the visible tile toward the outside of the touch area.
+			var shift := -(ARROW.x - ARROW_TILE) * 0.5 + 8.0 if dir < 0 else (ARROW.x - ARROW_TILE) * 0.5 - 8.0
+			for part: String in ["Disc", "Glyph"]:
+				var c := arrow.get_node(part) as Control
+				c.offset_left += shift
+				c.offset_right += shift
 			var g := arrow.get_node("Glyph") as TextureRect
 			g.flip_h = dir < 0
 			add_child(arrow)
@@ -249,11 +309,17 @@ func _add_back_bar() -> void:
 
 
 ## Top-left technical caption: role hex, "HERO INFORMATION", a technical line, faction and role.
+## It sits on a soft paper scrim above the art, so wings and halos never swallow it.
 func _build_caption() -> void:
+	var scrim := PanelContainer.new()
+	scrim.name = "CaptionScrim"
+	scrim.mouse_filter = MOUSE_FILTER_IGNORE
+	scrim.position = Vector2(10, 8)
+	scrim.add_theme_stylebox_override("panel", Kit.box(Color(0.96, 0.965, 0.97, 0.9), Color(0.96, 0.965, 0.97, 0.8), Color.TRANSPARENT, 6.0, 0, 8))
 	var cap := Kit.vbox(4)
 	cap.name = "Caption"
 	cap.mouse_filter = MOUSE_FILTER_IGNORE
-	cap.position = Vector2(18, 14)
+	scrim.add_child(cap)
 	var top := Kit.hbox(10)
 	top.mouse_filter = MOUSE_FILTER_IGNORE
 	top.add_child(Kit.hex_badge("role_" + str(_def.role), 60, Color("26282c")))
@@ -268,8 +334,8 @@ func _build_caption() -> void:
 	fr.add_child(Kit.label(str(Kit.FACTION_NAMES.get(str(_def.faction), "")).to_upper(), 18, Kit.faction_color(str(_def.faction)).darkened(0.35), "cond_bold"))
 	cap.add_child(fr)
 	cap.add_child(Kit.label(str(Kit.ROLE_NAMES.get(str(_def.role), "")).to_upper(), 18, Kit.TEXT_DIM, "cond_bold"))
-	add_child(cap)
-	_caption = cap
+	add_child(scrim)
+	_caption = scrim
 
 
 func _build_column() -> void:
@@ -277,7 +343,7 @@ func _build_column() -> void:
 	# Rarity mark and star pips.
 	var rr := Kit.hbox(8)
 	rr.mouse_filter = MOUSE_FILTER_IGNORE
-	rr.add_child(Kit.rarity_mark(rarity, 30 if _compact else 34))
+	rr.add_child(Kit.rarity_mark(rarity, 30 if _compact else 32))
 	rr.add_child(Kit.spacer(0, 0, true))
 	_stars_box = Kit.hbox(0)
 	_stars_box.mouse_filter = MOUSE_FILTER_IGNORE
@@ -420,39 +486,41 @@ func _unlocked_passives(stars: int) -> int:
 	return n
 
 
-## Side tabs (Equip / Skills / Story) on the left of the lower panel, over the art.
+## The lower panel (EQUIP / SKILLS / STORY), switched by the pinned side tabs.
 func _build_lower() -> Control:
-	var row := Kit.hbox(6)
-	row.name = "Lower"
-	var tabs := Kit.vbox(4)
-	tabs.size_flags_vertical = SIZE_SHRINK_BEGIN
-	for t: Array in TABS:
-		var tid: String = t[0]
-		if tid == "equip" and not _owned:
-			continue
-		var b := Kit.side_button(str(t[2]), str(t[1]), _select_tab.bind(tid), "accent" if tid == _tab else "dark")
-		b.name = "Tab_" + tid
-		b.custom_minimum_size = Vector2(96, 112)
-		tabs.add_child(b)
-		_tab_btns[tid] = b
-	row.add_child(tabs)
 	_lower = Kit.vbox(8)
-	_lower.custom_minimum_size.x = COL_W
-	row.add_child(_lower)
-	return row
+	_lower.name = "Lower"
+	return _lower
 
 
 func _select_tab(tid: String) -> void:
-	if tid == _tab or not _tab_btns.has(tid):
+	if not _tab_btns.has(tid):
 		return
-	_tab = tid
-	_pref_tab = tid
-	for k: String in _tab_btns:
-		var b := _tab_btns[k] as Button
-		var tile := b.get_node("Face/Tile") as Panel
-		tile.add_theme_stylebox_override("panel", Kit.style("tile_accent" if k == _tab else "tile_dark"))
-	_lower_sig = ""
-	_refresh_lower()
+	if tid != _tab:
+		_tab = tid
+		_pref_tab = tid
+		for k: String in _tab_btns:
+			var b := _tab_btns[k] as Button
+			var tile := b.get_node("Face/Tile") as Panel
+			tile.add_theme_stylebox_override("panel", Kit.style("tile_accent" if k == _tab else "tile_dark"))
+		_lower_sig = ""
+		_refresh_lower()
+	_reveal_lower.call_deferred()
+
+
+## Scrolls the column so the lower panel is in view (short screens).
+func _reveal_lower() -> void:
+	await get_tree().process_frame
+	if not is_instance_valid(_scroll) or not is_instance_valid(_lower):
+		return
+	var top := _lower.get_global_rect().position.y - _scroll.get_global_rect().position.y
+	var bottom := top + _lower.size.y
+	var view := _scroll.size.y
+	if top < 0.0 or bottom > view:
+		var target := _scroll.scroll_vertical + int(top - 12.0)
+		if _lower.size.y < view - 24.0:
+			target = _scroll.scroll_vertical + int(bottom - view + 24.0)
+		_scroll.create_tween().tween_property(_scroll, "scroll_vertical", maxi(target, 0), 0.25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 
 # ------------------------------------------------------------------ layout & motion
@@ -463,15 +531,10 @@ func _layout() -> void:
 	var w := size.x
 	var h := size.y
 	var sb := UI.safe_bottom()
-	var col_x := w - EDGE - COL_W
-	_scroll.position = Vector2(col_x - 102, 0)
+	var avail := h - sb
+	var col_x := w - COL_PAD - COL_W
+	_scroll.position = Vector2(col_x - 6.0, 0)
 	_fit_scroll()
-	# The upper rows of the column line up with the panels (the side tabs hang out left).
-	for i in _column.get_child_count():
-		var c := _column.get_child(i) as Control
-		if c.name != "Lower":
-			c.size_flags_horizontal = SIZE_SHRINK_END
-			c.custom_minimum_size.x = COL_W
 	# Stripes along the bottom.
 	_stripes.position = Vector2(0, h * 0.5)
 	_stripes.size = Vector2(w, h * 0.5)
@@ -490,22 +553,43 @@ func _layout() -> void:
 	var veil := get_node("Veil") as Control
 	veil.position = Vector2(col_x - 100.0, 0)
 	veil.size = Vector2(w - col_x + 100.0, h)
-	_poke.position = Vector2(EDGE, 170)
-	_poke.size = Vector2(col_x - 110 - EDGE, maxf(100.0, h - sb - 290.0))
+	# Browse arrows at chest height: one on the left edge, one just left of the column.
+	var ay := avail * 0.4 - ARROW.y * 0.5
 	for i in _arrows.size():
 		var a := _arrows[i]
-		a.position = Vector2(0.0 if i == 0 else w - EDGE, (h - sb) * 0.46)
+		a.position = Vector2(0.0 if i == 0 else col_x - 8.0 - ARROW.x, ay)
+	_poke.position = Vector2(ARROW.x, 170)
+	_poke.size = Vector2(maxf(60.0, col_x - TAB_W - 20.0 - ARROW.x), maxf(100.0, avail - 290.0))
+	_place_tabs()
 
 
-## The column runs to the bottom when it fits; when it has to scroll, its viewport stops
-## above Back / Home so the side tabs never slide under them.
+## The column runs the full height (Back / Home sit left of it, under the art).
 func _fit_scroll() -> void:
 	if _scroll == null or size.y <= 0.0:
 		return
+	_scroll.size = Vector2(COL_W + 12.0, size.y - UI.safe_bottom())
+	_place_tabs()
+
+
+## Side tabs: level with the top of the lower panel, but never under Back / Home or above
+## the arrow row. Also shows the "more below" fade while the column can still scroll.
+func _place_tabs() -> void:
+	if _tabs_box == null or not is_instance_valid(_lower) or size.y <= 0.0:
+		return
 	var avail := size.y - UI.safe_bottom()
-	var need := (_scroll.get_child(0) as Control).get_combined_minimum_size().y
-	var hgt := avail if need <= avail + 1.0 else avail - Kit.BUTTON_H - 24.0
-	_scroll.size = Vector2(COL_W + 102 + 6, hgt)
+	var tabs_h := _tabs_box.get_combined_minimum_size().y
+	var col_x := size.x - COL_PAD - COL_W
+	var lower_y := _lower.get_global_rect().position.y - get_global_rect().position.y
+	var lo := avail * 0.4 + ARROW.y * 0.5 + 8.0
+	var hi := avail - Kit.BUTTON_H - 14.0 - 16.0 - tabs_h
+	_tabs_box.position = Vector2(col_x - 6.0 - TAB_W, clampf(lower_y, minf(lo, hi), hi))
+	_tabs_box.size = Vector2(TAB_W, tabs_h)
+	if _more:
+		var bar := _scroll.get_v_scroll_bar()
+		var left := bar.max_value - bar.page - bar.value
+		_more.visible = left > 8.0
+		_more.position = Vector2(col_x - 6.0, avail - 64.0)
+		_more.size = Vector2(COL_W + 12.0, 64.0)
 
 
 func _process(delta: float) -> void:
@@ -546,7 +630,7 @@ func _refresh() -> void:
 	for c in _stars_box.get_children():
 		_stars_box.remove_child(c)
 		c.queue_free()
-	_stars_box.add_child(Kit.star_row(stars, Kit.MAX_STARS if _owned else 0, 24))
+	_stars_box.add_child(Kit.star_row(stars, Kit.MAX_STARS if _owned else 0, 22))
 	for c in _plate_slot.get_children():
 		_plate_slot.remove_child(c)
 		c.queue_free()
@@ -768,7 +852,7 @@ func _build_equip() -> void:
 	for b: Button in [q, u]:
 		b.size_flags_horizontal = SIZE_EXPAND_FILL
 		b.custom_minimum_size.x = 0
-		b.add_theme_font_size_override("font_size", 22)
+		Kit.fit_button(b, (COL_W - 20.0 - 8.0) * 0.5, 22, 16)
 		row.add_child(b)
 	v.add_child(row)
 	_lower.add_child(p)

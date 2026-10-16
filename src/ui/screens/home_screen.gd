@@ -18,13 +18,17 @@ const HERO_KEY := "lobby_hero"
 const BANNER_SECS := 5.0
 const BANNER_SIZE := Vector2(330, 132)
 const NOTICE_W := 340.0
-const TOP_PLATE := Vector2(318, 124)
-const BIG_PLATE := Vector2(336, 156)
+## Shortcut plates: about 37% / 42% of the width with a clear gap in the middle, so the
+## hero's legs show between the two columns.
+const TOP_PLATE := Vector2(268, 116)
+const BIG_PLATE := Vector2(304, 150)
 const ROW_GAP := 8.0
-## Gap between the bottom plate row and the nav.
-const PLATE_LIFT := 22.0
+## Plate inset from the screen edges.
+const PLATE_EDGE := 8.0
+## Gap between the bottom plate row and the nav (clears the raised Lobby hexagon).
+const PLATE_LIFT := 28.0
 const SIDE_PITCH := 128.0
-const BUBBLE_W := 460.0
+const BUBBLE_W := 400.0
 ## The hero's head (halo) starts this far below the top bar; the feet end below the window.
 const HEAD_GAP := 140.0
 const FIGURE_VISIBLE := 0.92
@@ -52,7 +56,6 @@ var _side_view: Button
 var _shop: Button
 var _sanctum: Button
 var _meter: PanelContainer
-var _meter_lv: Label
 var _team: Button
 var _campaign: Button
 var _camp_info: VBoxContainer
@@ -139,8 +142,8 @@ func _build() -> void:
 
 	_side_daily = Kit.side_button("quests", "Daily", func() -> void: UI.go("quests"), "dark")
 	_side_offers = Kit.side_button("gift", "Offers", func() -> void: UI.go("shop"), "orange")
-	_side_hero = Kit.side_button("avatar", "Hero", _open_hero, "diamond")
-	_side_view = Kit.side_button("eye_off", "View", _hide_ui, "diamond")
+	_side_hero = Kit.side_button("avatar", "Hero", _open_hero, "dark")
+	_side_view = Kit.side_button("eye_off", "View", _hide_ui, "dark")
 	Kit.add(_ui, [_side_daily, _side_offers, _side_hero, _side_view])
 
 	_speech = Kit.speech_bubble("", "", BUBBLE_W)
@@ -151,13 +154,17 @@ func _build() -> void:
 
 	# Shortcut plates.
 	_shop = Kit.shortcut("Shop", "shop", "blue", func() -> void: UI.go("shop"), {"size": TOP_PLATE})
-	_meter = Kit.percent_meter("Sanctum\nfill", 0.0, "sanctum", "LV.01")
-	for l in _meter.find_children("*", "Label", true, false):
-		if (l as Label).text == "LV.01":
-			_meter_lv = l as Label
+	_meter = Kit.percent_meter("Fill", 0.0, "sanctum")
 	_sanctum = Kit.shortcut("Sanctum", "sanctum", "dark", _open_sanctum, {"size": BIG_PLATE, "sub": _meter})
 	_team = Kit.shortcut("Team", "team", "white", func() -> void: UI.go("formation"), {"size": TOP_PLATE, "side": "right"})
-	_campaign = Kit.shortcut("Campaign", "campaign", "orange", _on_campaign, {"size": BIG_PLATE, "side": "right", "badge": "!"})
+	_campaign = Kit.shortcut("Campaign", "campaign", "orange", _on_campaign, {"size": BIG_PLATE, "side": "right"})
+	# The "!" sits inside the plate's corner, clear of the screen edge.
+	var cbadge := Kit.new_badge(30.0, "!")
+	cbadge.set("round", true)
+	cbadge.set("color", Kit.ACCENT)
+	cbadge.name = "KitNew"
+	cbadge.position = Vector2(BIG_PLATE.x - 40.0, -10.0)
+	_campaign.add_child(cbadge)
 	_camp_info = Kit.vbox(0)
 	_camp_info.name = "StageInfo"
 	_camp_info.mouse_filter = MOUSE_FILTER_IGNORE
@@ -193,10 +200,10 @@ func _layout() -> void:
 
 	# Shortcut grid, ending PLATE_LIFT above the nav.
 	var by := vh - bottom - PLATE_LIFT - (TOP_PLATE.y + ROW_GAP + BIG_PLATE.y)
-	_place(_shop, Vector2(8, by), TOP_PLATE)
-	_place(_sanctum, Vector2(2, by + TOP_PLATE.y + ROW_GAP), BIG_PLATE)
-	_place(_team, Vector2(w - TOP_PLATE.x - 8.0, by), TOP_PLATE)
-	_place(_campaign, Vector2(w - BIG_PLATE.x - 2.0, by + TOP_PLATE.y + ROW_GAP), BIG_PLATE)
+	_place(_shop, Vector2(PLATE_EDGE, by), TOP_PLATE)
+	_place(_sanctum, Vector2(PLATE_EDGE, by + TOP_PLATE.y + ROW_GAP), BIG_PLATE)
+	_place(_team, Vector2(w - TOP_PLATE.x - PLATE_EDGE, by), TOP_PLATE)
+	_place(_campaign, Vector2(w - BIG_PLATE.x - PLATE_EDGE, by + TOP_PLATE.y + ROW_GAP), BIG_PLATE)
 	_camp_info.position = Vector2(BIG_PLATE.x * 0.07, BIG_PLATE.y * 0.6)
 	_camp_info.size = Vector2(BIG_PLATE.x * 0.42, BIG_PLATE.y * 0.34)
 
@@ -208,11 +215,11 @@ func _layout() -> void:
 	_side_hero.position = Vector2(w - sw.x - 6.0, sy)
 	_side_view.position = Vector2(w - sw.x - 6.0, sy + SIDE_PITCH)
 
-	# Speech bubble at the hero's waist, chevrons beside it.
+	# Speech bubble at the hero's waist, left of the centre line; chevrons at the edges.
 	var bh := maxf(_speech.get_combined_minimum_size().y, 96.0)
 	var bub_y := minf(vh * 0.5 - 30.0, by - bh - 40.0)
 	bub_y = maxf(bub_y, sy + SIDE_PITCH * 2.0 - 8.0)
-	_speech.position = Vector2(90, bub_y)
+	_speech.position = Vector2(84, bub_y)
 	_speech.size = Vector2(BUBBLE_W, 0)
 	var cy := bub_y + bh * 0.5 - Kit.BUTTON_H * 0.5
 	_prev_btn.position = Vector2(0, cy)
@@ -276,11 +283,14 @@ func _refresh_badges() -> void:
 ## The objective strip: the guide's next step while it is active, else the next stage.
 func _refresh_objective() -> void:
 	var st := Game.current_stage()
-	var text := "Clear Stage %s" % str(st.get("id", "")) if not st.is_empty() else "All stages cleared"
+	var text := "Next: Stage %s" % str(st.get("id", "")) if not st.is_empty() else "Every stage cleared"
 	var cb := _on_campaign
 	match Guide.step():
 		"claim":
-			text = "Collect the Sanctum"
+			# The first claim is the free Quick Claim inside the Sanctum sheet.
+			var idle: Dictionary = Game.idle_status()
+			var hours := int(idle.get("quick_claim_ms", 7200000)) / 3600000
+			text = "Quick Claim %dh of rewards" % hours
 			cb = _open_sanctum
 		"summon":
 			text = "Summon new heroes"
@@ -297,7 +307,7 @@ func _refresh_objective() -> void:
 	var l := _notice.get_meta("text_label") as Label
 	if l.text != text:
 		l.text = text
-		Kit.fit_label(l, NOTICE_W - 152.0, 24, 18)
+		Kit.fit_label(l, NOTICE_W - 130.0, 24, 18)
 	_notice_cb = cb
 
 
@@ -588,9 +598,9 @@ func _refresh_idle() -> void:
 	var pct := 100.0 * float(elapsed) / float(cap)
 	_full = bool(st.get("full", false))
 	Kit.set_percent_meter(_meter, pct)
-	if _meter_lv:
-		# The Sanctum grows with the campaign: its level is the number of stages cleared.
-		_meter_lv.text = "LV.%02d" % maxi(1, Game.cleared_count())
+	# The Sanctum grows with the campaign: its level (next to the title) is the number of
+	# stages cleared.
+	_sanctum.call("set_title_tag", "LV %d" % maxi(1, Game.cleared_count()))
 	Kit.set_new(_sanctum, _full, 30.0, Vector2(-6, -10))
 	_refresh_sheet(st)
 
@@ -612,7 +622,7 @@ func _open_sanctum() -> void:
 	mid.size_flags_horizontal = SIZE_EXPAND_FILL
 	mid.alignment = BoxContainer.ALIGNMENT_CENTER
 	mid.add_child(Kit.label("SANCTUM FILL", 22, Kit.TEXT_DIM, "cond_bold"))
-	var pct_l := Kit.label("000%", 56, Kit.ACCENT_DEEP, "title")
+	var pct_l := Kit.label("0%", 56, Kit.ACCENT_DEEP, "title")
 	mid.add_child(pct_l)
 	head.add_child(mid)
 	var right := Kit.vbox(2)
@@ -669,7 +679,7 @@ func _refresh_sheet(st: Dictionary) -> void:
 		return
 	var elapsed := int(st.get("elapsed_ms", 0))
 	var cap := maxi(int(st.get("cap_ms", 1)), 1)
-	(_sheet_refs.pct as Label).text = "%03d%%" % int(100.0 * elapsed / cap)
+	(_sheet_refs.pct as Label).text = "%d%%" % int(100.0 * elapsed / cap)
 	(_sheet_refs.time as Label).text = ("FULL  %s" % Kit.format_time(cap)) if bool(st.get("full", false)) else "%s / %s" % [Kit.format_time(elapsed), Kit.format_time(cap)]
 	Kit.set_progress(_sheet_refs.bar as ProgressBar, elapsed, cap, "", false)
 	var pending: Dictionary = st.get("pending", {})

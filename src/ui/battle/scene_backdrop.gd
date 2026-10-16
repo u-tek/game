@@ -109,6 +109,7 @@ func _draw() -> void:
 				"chapter-3":
 					_draw_abyss(w, hy)
 			_draw_floor(w, h, hy)
+			_draw_horizon_blend(w, h, hy)
 	if sigil_y >= 0.0:
 		_draw_sigil(Vector2(w * 0.5, h * sigil_y), w)
 	# Side vignette and optional dim.
@@ -506,6 +507,19 @@ func _draw_floor(w: float, h: float, hy: float) -> void:
 			for i in 4:
 				var y := hy + (h - hy) * (0.15 + i * 0.22)
 				_glow_ellipse(Vector2(w * (0.3 + 0.4 * (i % 2)), y), w * 0.6, (h - hy) * 0.05, Color(0.6, 0.55, 0.95, 0.10))
+
+
+## Ground mist: the bottom of the sky scene fades into the floor's colour and the floor's top
+## edge fades in, so the scene never ends in a hard horizontal cut (the near pillars' feet
+## sink into it too).
+func _draw_horizon_blend(w: float, h: float, hy: float) -> void:
+	var fl: Array = _pal.floor
+	var base: Color = fl[1]
+	var up := minf(hy * 0.4, 170.0)
+	var down := minf((h - hy) * 0.08, 60.0)
+	_vgrad(Rect2(0, hy - up, w, up), Color(base, 0.0), Color(base, 0.92))
+	_vgrad(Rect2(0, hy, w, down + 34.0), Color(base, 0.92), Color(base, 0.0))
+	_glow_ellipse(Vector2(w * 0.5, hy - up * 0.15), w * 0.7, up * 0.35, Color(_pal.haze, 0.16))
 
 
 func _draw_lava_cracks(w: float, h: float, hy: float) -> void:

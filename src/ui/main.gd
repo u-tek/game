@@ -19,6 +19,9 @@ const NavTab := preload("res://src/ui/components/nav_tab.gd")
 ## Heights of the chrome bars, not counting the safe-area insets.
 const TOP_H := 104.0
 const NAV_H := 120.0
+## How far the raised Lobby hexagon (and its glow) pokes up above the nav bar. Bars pinned to
+## the bottom of a screen's content keep this much clear (UI.pinned_bottom_inset()).
+const NAV_RISE := 26.0
 ## Toasts start this far below the top of the content area (clear of screen headers).
 const TOAST_GAP := 112.0
 ## [screen id, label, icon]; the middle one is the raised Lobby hexagon.
@@ -100,6 +103,11 @@ func _notification(what: int) -> void:
 ## Chrome bar heights (x = top bar, y = nav) without the safe-area insets (UI.content_top).
 func bar_heights() -> Vector2:
 	return Vector2(TOP_H, NAV_H)
+
+
+## Height of the Lobby hexagon above the nav bar (see UI.pinned_bottom_inset).
+func nav_rise() -> float:
+	return NAV_RISE
 
 
 # ------------------------------------------------------------------ build
@@ -225,7 +233,7 @@ func _build_top_bar() -> void:
 func _cluster_button(icon_name: String, cb: Callable) -> Button:
 	var b := Kit.icon_button(icon_name, cb, 76, "bare")
 	b.name = "Top_" + icon_name.capitalize()
-	b.custom_minimum_size = Vector2(80, Kit.BUTTON_H)
+	b.custom_minimum_size = Vector2(Kit.BUTTON_H, Kit.BUTTON_H)
 	var g := b.get_node("Glyph") as Control
 	g.modulate = Color(1, 1, 1, 0.92)
 	return b

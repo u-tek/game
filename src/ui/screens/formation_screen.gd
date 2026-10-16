@@ -106,7 +106,7 @@ func _build() -> void:
 	col.offset_top = page_top + 12
 	col.offset_left = 16
 	col.offset_right = -16
-	col.offset_bottom = -14
+	col.offset_bottom = -14 - UI.pinned_bottom_inset()
 	add_child(col)
 	var chips := Kit.hbox(10)
 	var fac_opts: Array = ["ALL"]
@@ -248,9 +248,21 @@ func _refresh_slots() -> void:
 		else:
 			var card := Kit.portrait_card(id, {"size": _slot_w, "on_pressed": func() -> void: _tap_slot(idx)})
 			holder.add_child(card)
+			# The "x" really removes the hero (as a tap on the card does), with an 88 px
+			# touch area around the small hex.
+			var xb := Button.new()
+			xb.name = "Remove"
+			xb.theme_type_variation = &"BareButton"
+			xb.focus_mode = FOCUS_NONE
+			xb.mouse_filter = MOUSE_FILTER_PASS
+			xb.size = Vector2(Kit.BUTTON_H, Kit.BUTTON_H)
+			xb.position = Vector2(_slot_w - 8.0 - Kit.BUTTON_H * 0.5, 6.0 - Kit.BUTTON_H * 0.5)
 			var x := Kit.hex_badge("close", 32, Color("26282c"), Color.WHITE)
-			x.position = Vector2(_slot_w - 24, -10)
-			holder.add_child(x)
+			x.position = Vector2((Kit.BUTTON_H - 32.0) * 0.5, (Kit.BUTTON_H - 32.0) * 0.5)
+			xb.add_child(x)
+			Kit.add_press_fx(xb, x)
+			Kit._connect_pressed(xb, func() -> void: _tap_slot(idx))
+			holder.add_child(xb)
 
 
 func _refresh_summary() -> void:

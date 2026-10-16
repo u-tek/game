@@ -214,12 +214,26 @@ func _build(w: float, h: float) -> void:
 		clip.add_child(num)
 	var nm := str(def.get("name", hero_id))
 	var name_l := Kit.label(nm, int(21.0 * k), Color.WHITE if owned else Color("c8ccd2"), "bold", 0)
+	name_l.name = "Name"
 	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	name_l.position = Vector2(w * 0.38, h - 34.0 * k)
-	name_l.size = Vector2(w * 0.62 - 8.0 * k, 26.0 * k)
-	Kit.fit_label(name_l, name_l.size.x, int(21.0 * k), int(14.0 * k))
+	# Clipped label: its size never grows past the footer slot, whatever the font did while
+	# it was being fitted (small team-slot cards at 112 px included).
+	name_l.clip_text = true
+	name_l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	var name_w := w * 0.62 - 8.0 * k
+	name_l.position = Vector2(w - 8.0 * k - name_w, h - 34.0 * k)
+	Kit.fit_label(name_l, name_w, int(21.0 * k), maxi(10, int(13.0 * k)))
+	name_l.size = Vector2(name_w, 26.0 * k)
 	clip.add_child(name_l)
 
+	if not owned:
+		# Unowned: the whole card goes grey (backdrop, hexes, emblem, chevrons, footer), not
+		# just the art; only the name keeps its colour.
+		art.material = null
+		clip.material = Kit.grayscale_material()
+		for n in clip.find_children("*", "CanvasItem", true, false):
+			if n != name_l:
+				(n as CanvasItem).use_parent_material = true
 	if not owned and not bool(opts.get("hide_unowned_note", false)):
 		var veil := ColorRect.new()
 		veil.mouse_filter = MOUSE_FILTER_IGNORE

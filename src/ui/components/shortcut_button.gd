@@ -4,7 +4,7 @@ extends Button
 ## (side = -1 sits on the left and its right edge is shorter; side = 1 mirrors it).
 ## Looks:
 ##   "blue"    cyan-blue glass, white glyph and text (shop-like primary destinations)
-##   "white"   pale glass, dark glyph inside thin corner brackets, dark text
+##   "white"   pale glass, dark glyph inside a thin hexagon frame, dark text
 ##   "orange"  dark glass with a glowing orange rim (the "go fight" call to action)
 ##   "dark"    deep blue glass with a cyan rim and hatching, cyan text (meters, idle)
 ## A sub control (meter, art strip) can sit in the lower part with set_sub(). The plate,
@@ -28,6 +28,7 @@ var _icon: TextureRect
 var _label: Label
 var _sub: Control
 var _art: Control
+var _title_tag: Control
 var _t := 0.0
 
 
@@ -75,6 +76,22 @@ func set_sub(c: Control) -> void:
 	if c:
 		c.mouse_filter = MOUSE_FILTER_IGNORE
 		face.add_child(c)
+	_layout()
+
+
+## A small tag right after the title text (e.g. the Sanctum's level). "" removes it.
+func set_title_tag(text: String) -> void:
+	if text == "":
+		if _title_tag and is_instance_valid(_title_tag):
+			_title_tag.queue_free()
+		_title_tag = null
+		return
+	if _title_tag == null or not is_instance_valid(_title_tag):
+		_title_tag = Kit.tag(text, Color("10304f"), Color("bfe8ff"), 17)
+		_title_tag.name = "TitleTag"
+		face.add_child(_title_tag)
+	else:
+		(_title_tag.get_child(0) as Label).text = text
 	_layout()
 
 
@@ -149,6 +166,7 @@ func _layout() -> void:
 		_label.position = Vector2(tx, h * 0.04)
 		_label.size = Vector2(maxf(w - tx - w * 0.05, 10.0), h * 0.42)
 		Kit.fit_label(_label, _label.size.x, fs2, int(fs2 * 0.7))
+		_place_title_tag(fs2)
 		var ms := _sub.get_combined_minimum_size()
 		_sub.size = Vector2(minf(ms.x, w * 0.86), ms.y)
 		_sub.position = Vector2(w * 0.04, h - ms.y - h * 0.07)
@@ -172,7 +190,19 @@ func _layout() -> void:
 	_label.position = Vector2(x, 0)
 	_label.size = Vector2(maxf(w - x - w * 0.05, 10.0), body_h)
 	Kit.fit_label(_label, _label.size.x, fs, int(fs * 0.7))
+	_place_title_tag(fs)
 	_plate.queue_redraw()
+
+
+func _place_title_tag(_fs: int) -> void:
+	if _title_tag == null or not is_instance_valid(_title_tag):
+		return
+	var f := _label.get_theme_font("font")
+	var used := _label.get_theme_font_size("font_size")
+	var tw := f.get_string_size(_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, used).x
+	var ts := _title_tag.get_combined_minimum_size()
+	_title_tag.size = ts
+	_title_tag.position = Vector2(_label.position.x + tw + 10.0, _label.position.y + (_label.size.y - ts.y) * 0.5 + 2.0)
 
 
 ## Outline of the plate in local coordinates.
@@ -203,13 +233,20 @@ func _draw_plate() -> void:
 			_top_glint(ci, q, Color(1, 1, 1, 0.35))
 			KitBox.stroke_poly(ci, KitBox.offset_poly(q, -1.0), Color("8fd0ff"), 1.5)
 		"white":
-			KitBox.soft_shadow(ci, q, Color(0, 0, 0, 0.28), 10.0, Vector2(0, 4))
-			KitBox.fill_poly(ci, q, Color("f7f8faeb"), Color("dde1e6e0"), true)
-			KitBox.hatch(ci, q, Color(0, 0, 0, 0.035), 9.0, 2.0, 0.6, 1.0)
+			# Pale glass (about 70% opaque): the art shows through.
+			KitBox.soft_shadow(ci, q, Color(0, 0, 0, 0.22), 10.0, Vector2(0, 4))
+			KitBox.fill_poly(ci, q, Color("f7f8fab8"), Color("dde1e6a3"), true)
+			KitBox.hatch(ci, q, Color(0, 0, 0, 0.04), 9.0, 2.0, 0.6, 1.0)
 			KitBox.stroke_poly(ci, KitBox.offset_poly(q, -1.0), Color(1, 1, 1, 0.9), 1.5)
 			if _icon:
-				var r := Rect2(_icon.position - Vector2(12, 12), _icon.size + Vector2(24, 24))
-				KitBox.corner_marks(ci, r, Color("2a2d33"), r.size.x * 0.22, 3.0)
+				# The glyph sits in a thin hexagon frame with a faint hatched hex behind it.
+				var c := _icon.position + _icon.size * 0.5
+				var hr := _icon.size.x * 0.72
+				var back := KitBox.hex_points(c, hr)
+				KitBox.fill_poly(ci, back, Color(1, 1, 1, 0.35), Color(1, 1, 1, 0.12))
+				KitBox.hatch(ci, back, Color(0, 0, 0, 0.06), 6.0, 1.5, 0.0, 1.0)
+				KitBox.stroke_poly(ci, back, Color("2a2d33"), 2.5)
+				KitBox.stroke_poly(ci, KitBox.hex_points(c, hr + 7.0), Color(0.16, 0.18, 0.2, 0.25), 1.0)
 			_ticks(ci, q, Color(0, 0, 0, 0.3))
 		"orange":
 			var k := 0.5 + 0.5 * sin(_t * 2.6)
@@ -219,8 +256,9 @@ func _draw_plate() -> void:
 			KitBox.stroke_poly(ci, KitBox.offset_poly(q, -1.5), Color("ffa43a"), 3.0)
 			KitBox.stroke_poly(ci, KitBox.offset_poly(q, -6.0), Color(1.0, 0.75, 0.4, 0.3), 1.0)
 		"dark":
-			KitBox.soft_shadow(ci, q, Color(0, 0, 0, 0.3), 8.0, Vector2(0, 3))
-			KitBox.fill_poly(ci, q, Color("0b2b4fc7"), Color("061a33b3"), true)
+			# Deep blue glass (about 55-60% opaque).
+			KitBox.soft_shadow(ci, q, Color(0, 0, 0, 0.24), 8.0, Vector2(0, 3))
+			KitBox.fill_poly(ci, q, Color("0b2b4f9e"), Color("061a338c"), true)
 			KitBox.hatch(ci, q, Color(0.4, 0.75, 1.0, 0.13), 8.0, 2.0, 0.0, 1.0)
 			KitBox.stroke_poly(ci, KitBox.offset_poly(q, -1.0), Color("3aa0ff"), 2.0)
 			_ticks(ci, q, Color("3aa0ff"))

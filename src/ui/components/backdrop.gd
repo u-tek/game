@@ -45,17 +45,17 @@ func _draw() -> void:
 	# Broad diagonal band of hatching across the middle.
 	var band := PackedVector2Array([Vector2(0, h * 0.30), Vector2(w, h * 0.12), Vector2(w, h * 0.44), Vector2(0, h * 0.62)])
 	KitBox.hatch(ci, band, Color(ink, 0.035), 14.0, 3.0)
-	# Technical rule lines with end ticks.
-	var lc := Color(ink, 0.07)
-	for y_k: float in [0.18, 0.71, 0.86]:
+	# Technical rule lines with end ticks (faint: they must never read as UI).
+	var lc := Color(ink, 0.05)
+	for y_k: float in [0.18, 0.86]:
 		var y := roundf(h * y_k)
 		draw_line(Vector2(w * 0.06, y), Vector2(w * 0.94, y), lc, 1.0)
 		draw_rect(Rect2(w * 0.06, y - 4.0, 2.0, 8.0), lc)
 		draw_rect(Rect2(w * 0.94 - 2.0, y - 4.0, 2.0, 8.0), lc)
-	# A few faint hexagon outlines, lower left.
+	# A few very faint hexagon outlines tucked into the bottom-right corner (texture, not UI).
 	for i in 3:
-		var c := Vector2(w * (0.12 + 0.13 * i), h * (0.78 - 0.04 * (i % 2)))
-		KitBox.stroke_poly(ci, KitBox.hex_points(c, w * 0.07), Color(ink, 0.05 - i * 0.01), 2.0)
+		var c := Vector2(w * (1.0 - 0.06 - 0.12 * i), h * (0.97 - 0.035 * (i % 2)))
+		KitBox.stroke_poly(ci, KitBox.hex_points(c, w * 0.065), Color(ink, 0.035 - i * 0.008), 2.0)
 	# Edge vignette.
 	draw_polygon(PackedVector2Array([Vector2(0, h * 0.75), Vector2(w, h * 0.75), Vector2(w, h), Vector2(0, h)]),
 		PackedColorArray([Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, 0.06 if light else 0.3), Color(0, 0, 0, 0.06 if light else 0.3)]))

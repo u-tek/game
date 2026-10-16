@@ -23,6 +23,8 @@ const REVEAL_GAP := 0.2
 const SHOWCASE_TIME := 2.4
 const RARITY_ORDER := {"rare": 0, "epic": 1, "legendary": 2}
 const CARD_RATIO := 1.62
+const TITLE_SIZE := 54
+const TITLE_W := 440.0
 
 var _banner: Dictionary = {}
 var _main: Control
@@ -132,19 +134,33 @@ func _build() -> void:
 	feat.add_child(Kit.rarity_badge("legendary", 20))
 	feat.add_child(Kit.label("FEATURED", 20, Kit.ORANGE_HI, "cond_bold"))
 	_title_box.add_child(feat)
-	var t := Kit.label(str(_banner.get("name", "Summon")).to_upper(), 54, Color.WHITE, "title")
+	# Two balanced lines ("CHOIR OF THE / FALLEN SKY"), never an orphan word.
+	var t := Kit.label(_balanced_title(str(_banner.get("name", "Summon")).to_upper()), TITLE_SIZE, Color.WHITE, "title")
+	t.name = "TitleText"
 	t.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
 	t.add_theme_constant_override("shadow_offset_y", 3)
 	t.add_theme_constant_override("shadow_outline_size", 6)
 	t.add_theme_constant_override("line_spacing", -14)
-	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	t.custom_minimum_size.x = 420
+	_fit_title(t, TITLE_W)
 	_title_box.add_child(t)
-	var sub := Kit.hbox(8)
+	var sub := PanelContainer.new()
 	sub.mouse_filter = MOUSE_FILTER_IGNORE
-	sub.add_child(Kit.deco("techline", Vector2(60, 8), Color(1, 1, 1, 0.5)))
-	sub.add_child(Kit.label("STANDARD PORTAL  ·  EVERY HERO CAN ANSWER", 18, Kit.INK, "cond_bold", 4))
+	sub.size_flags_horizontal = SIZE_SHRINK_BEGIN
+	sub.add_theme_stylebox_override("panel", Kit.box(Color("0c0d10c8"), Color("0c0d10c8"), Color(1, 1, 1, 0.1), 3, 1, 0))
+	var sr := Kit.hbox(8)
+	sr.mouse_filter = MOUSE_FILTER_IGNORE
+	sr.add_child(Kit.deco("techline", Vector2(36, 8), Color(1, 1, 1, 0.5)))
+	sr.add_child(Kit.label("STANDARD PORTAL  ·  EVERY HERO CAN ANSWER", 17, Kit.INK, "cond_bold"))
+	sub.add_child(Kit.margin(sr, 10, 3))
 	_title_box.add_child(sub)
+	# Dark scrim from the left edge behind the title block, so it reads over any art.
+	var scrim := TextureRect.new()
+	scrim.name = "TitleScrim"
+	scrim.mouse_filter = MOUSE_FILTER_IGNORE
+	scrim.texture = _scrim_texture()
+	scrim.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	scrim.stretch_mode = TextureRect.STRETCH_SCALE
+	_main.add_child(scrim)
 	_main.add_child(_title_box)
 
 	# Bottom controls.
@@ -191,7 +207,7 @@ func _build() -> void:
 
 	_free_slot = Kit.vbox(0)
 	_bottom.add_child(_free_slot)
-	_reason = Kit.notice_bar("", func() -> void: UI.go("shop"), 688.0)
+	_reason = Kit.notice_bar("", func() -> void: UI.go("shop"), 688.0, "shop")
 	_reason.name = "Reason"
 	_reason.visible = false
 	_bottom.add_child(_reason)
@@ -222,8 +238,12 @@ func _build_featured() -> void:
 		if k != 0:
 			art.modulate = Color(0.62, 0.64, 0.7)
 		_stage.add_child(art)
-		var plate := Kit.vbox(0)
+		# Name and role on a small dark glass tag (reads on pale art like a white dress).
+		var plate := PanelContainer.new()
 		plate.mouse_filter = MOUSE_FILTER_IGNORE
+		plate.add_theme_stylebox_override("panel", Kit.box(Color("0d0e11c4"), Color("0d0e11c4"), Color(1, 1, 1, 0.1), 4, 1, 0))
+		var pv := Kit.vbox(0)
+		pv.mouse_filter = MOUSE_FILTER_IGNORE
 		var nr := Kit.hbox(6)
 		nr.mouse_filter = MOUSE_FILTER_IGNORE
 		nr.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -231,17 +251,16 @@ func _build_featured() -> void:
 		chev.set("count", 3)
 		chev.size_flags_vertical = SIZE_SHRINK_CENTER
 		nr.add_child(chev)
-		var nm := Kit.label(str(d.get("name", id)).to_upper(), 30 if k == 0 else 22, Color.WHITE, "title")
-		nm.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
-		nm.add_theme_constant_override("shadow_outline_size", 6)
+		var nm := Kit.label(str(d.get("name", id)).to_upper(), 28 if k == 0 else 21, Color.WHITE, "title")
 		nr.add_child(nm)
-		plate.add_child(nr)
+		pv.add_child(nr)
 		var fr := Kit.hbox(4)
 		fr.alignment = BoxContainer.ALIGNMENT_CENTER
 		fr.mouse_filter = MOUSE_FILTER_IGNORE
-		fr.add_child(Kit.faction_icon(str(d.get("faction", "")), 22))
-		fr.add_child(Kit.label(str(Kit.ROLE_NAMES.get(str(d.get("role", "")), "")).to_upper(), 16, Kit.INK, "cond_bold", 4))
-		plate.add_child(fr)
+		fr.add_child(Kit.faction_icon(str(d.get("faction", "")), 20))
+		fr.add_child(Kit.label(str(Kit.ROLE_NAMES.get(str(d.get("role", "")), "")).to_upper(), 15, Kit.INK_DIM, "cond_bold"))
+		pv.add_child(fr)
+		plate.add_child(Kit.margin(pv, 12, 2))
 		_stage.add_child(plate)
 		var hit := Control.new()
 		hit.name = "Hit_" + id
@@ -249,6 +268,54 @@ func _build_featured() -> void:
 		_stage.add_child(hit)
 		Kit.make_tappable(hit, func() -> void: UI.go("hero_detail", {"hero_id": id}))
 		_feat_nodes.append({"slot": k, "art": art, "plate": plate, "hit": hit})
+
+
+## Soft dark oval for behind the title (fades out on every side, strongest top-left).
+static func _scrim_texture() -> GradientTexture2D:
+	var g := Gradient.new()
+	g.set_color(0, Color(0, 0, 0, 0.66))
+	g.set_color(1, Color(0, 0, 0, 0.0))
+	g.add_point(0.55, Color(0, 0, 0, 0.42))
+	var t := GradientTexture2D.new()
+	t.gradient = g
+	t.fill = GradientTexture2D.FILL_RADIAL
+	t.fill_from = Vector2(0.18, 0.42)
+	t.fill_to = Vector2(1.0, 0.42)
+	t.width = 128
+	t.height = 64
+	return t
+
+
+## Splits a title into two lines of similar length at a word break ("CHOIR OF THE\nFALLEN SKY").
+static func _balanced_title(text: String) -> String:
+	var words := text.split(" ", false)
+	if words.size() < 3:
+		return text
+	var best := ""
+	var best_d := 1 << 30
+	for i in range(1, words.size()):
+		var a := " ".join(words.slice(0, i))
+		var b := " ".join(words.slice(i))
+		var d := absi(a.length() - b.length())
+		if d < best_d:
+			best_d = d
+			best = a + "\n" + b
+	return best
+
+
+## Shrinks the title until its longest line fits `width`.
+static func _fit_title(l: Label, width: float) -> void:
+	var f := Kit.font("title")
+	var fs := TITLE_SIZE
+	var longest := 0.0
+	while fs > 34:
+		longest = 0.0
+		for line in l.text.split("\n"):
+			longest = maxf(longest, f.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x)
+		if longest <= width:
+			break
+		fs -= 2
+	l.add_theme_font_size_override("font_size", fs)
 
 
 func _layout() -> void:
@@ -262,7 +329,11 @@ func _layout() -> void:
 	var bh := _bottom.get_combined_minimum_size().y
 	_bottom.position.y = bottom - 14.0 - bh
 	_title_box.position = Vector2(20, top + 12)
-	_title_box.size = Vector2(w * 0.66, 0)
+	_title_box.size = Vector2(TITLE_W, 0)
+	var scrim := _main.get_node("TitleScrim") as Control
+	var th := _title_box.get_combined_minimum_size().y
+	scrim.position = Vector2(-40, top - 30.0)
+	scrim.size = Vector2(w * 0.95, th + 100.0)
 	var shade := _main.get_node("Shade") as Control
 	shade.position = Vector2(0, _bottom.position.y - 260.0)
 	shade.size = Vector2(w, size.y - shade.position.y)
@@ -281,8 +352,9 @@ func _layout() -> void:
 		art.position = Vector2(x - fw * 0.5, y0)
 		art.size = Vector2(fw, fh)
 		var plate := n.plate as Control
-		plate.size = Vector2(260, 60)
-		plate.position = Vector2(x - 130.0, _bottom.position.y - (72.0 if k == 0 else 104.0))
+		var ps := plate.get_combined_minimum_size()
+		plate.size = ps
+		plate.position = Vector2(clampf(x - ps.x * 0.5, 8.0, w - 8.0 - ps.x), _bottom.position.y - ps.y - (12.0 if k == 0 else 44.0))
 		var hit := n.hit as Control
 		hit.position = art.position + Vector2(fw * 0.2, fh * 0.1)
 		hit.size = Vector2(fw * 0.6, maxf(10.0, _bottom.position.y - art.position.y - fh * 0.1 - 10.0))
@@ -312,12 +384,11 @@ func _refresh() -> void:
 		c.queue_free()
 	_free_timer_label = null
 	var guide := Guide.step() == "summon"
-	if Game.free_pull_available():
-		var free := Kit.notice_bar("Free daily summon ready: tap to summon", func() -> void: _do_summon(1, true), 688.0)
+	var free_ready := bool(Game.free_pull_available())
+	if free_ready:
+		var free := Kit.notice_bar("Free daily summon ready: Summon x1 is free", func() -> void: _do_summon(1, true), 688.0, "summon")
 		free.name = "FreePull"
 		_free_slot.add_child(free)
-		Guide.mark(free, guide, 0)
-		guide = false
 	else:
 		var row := Kit.panel("inset", 10)
 		var h := Kit.hbox(10)
@@ -334,7 +405,13 @@ func _refresh() -> void:
 		c.queue_free()
 	var p1 := _price(1)
 	var p10 := _price(10)
-	var b1 := Kit.cost_button("Summon x1", str(p1.currency), int(p1.amount), func() -> void: _try_summon(1), "secondary", bool(p1.ok))
+	var b1: Button
+	if free_ready:
+		# The free daily pull: x1 costs nothing and never spends a scroll.
+		b1 = Kit.cost_button("Summon x1", "scrolls", 0, func() -> void: _do_summon(1, true), "primary")
+		p1 = {"currency": "free", "amount": 0, "ok": true}
+	else:
+		b1 = Kit.cost_button("Summon x1", str(p1.currency), int(p1.amount), func() -> void: _try_summon(1), "secondary", bool(p1.ok))
 	var b10 := Kit.cost_button("Summon x10", str(p10.currency), int(p10.amount), func() -> void: _try_summon(10), "orange", bool(p10.ok))
 	b1.name = "Summon1"
 	b10.name = "Summon10"
@@ -344,8 +421,9 @@ func _refresh() -> void:
 		_buy_row.add_child(b)
 	b1.disabled = not bool(p1.ok)
 	b10.disabled = not bool(p10.ok)
-	# After the free pull, point at the 10-pull the starting scrolls pay for.
-	Guide.mark(b10, guide and str(p10.currency) == "scrolls", 0)
+	# First session: the free x1 first, then the 10-pull the starting scrolls pay for.
+	Guide.mark(b1, guide and free_ready, 0)
+	Guide.mark(b10, guide and not free_ready and str(p10.currency) == "scrolls", 0)
 	if not bool(p1.ok) or not bool(p10.ok):
 		_reason.visible = true
 		var need := "Need %s gems or %d scroll%s" % [Kit.format_full(int(_banner.cost_one)), int(_banner.scroll_cost_one), "" if int(_banner.scroll_cost_one) == 1 else "s"] if not bool(p1.ok) \
@@ -886,6 +964,9 @@ func _show_results() -> void:
 	top.size = Vector2(520, 84)
 	_overlay.add_child(top)
 	Kit.pop_in(top, 0.0, 0.3)
+	var summary := Kit.vbox(6)
+	summary.mouse_filter = MOUSE_FILTER_IGNORE
+	_overlay.add_child(summary)
 
 	_results_box = Kit.vbox(12)
 	_results_box.anchor_left = 0.0
@@ -919,11 +1000,15 @@ func _show_results() -> void:
 	tl2.scale.x = -1
 	tl2.pivot_offset = Vector2(35, 4)
 	srow.add_child(tl2)
-	_results_box.add_child(srow)
+	# A single pull already shows its shards under the card.
+	if _results.size() > 1 and not parts.is_empty():
+		summary.add_child(srow)
+	else:
+		srow.free()
 	var pity_max := int(_banner.get("pity_legendary", 60))
 	var pl := Kit.label("LEGENDARY GUARANTEED WITHIN %d PULLS" % maxi(1, pity_max - Game.pity_count()), 18, Kit.ACCENT_HI, "cond_bold")
 	pl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_results_box.add_child(pl)
+	summary.add_child(pl)
 	var row := Kit.hbox(12)
 	var again_n := 10 if _count >= 10 else 1
 	var p := _price(again_n)
@@ -943,6 +1028,35 @@ func _show_results() -> void:
 		_results_box.add_child(why)
 	_results_box.modulate.a = 0.0
 	_results_box.create_tween().tween_property(_results_box, "modulate:a", 1.0, 0.25)
+	summary.modulate.a = 0.0
+	summary.create_tween().tween_property(summary, "modulate:a", 1.0, 0.25)
+	_stack_results(top, summary)
+
+
+## Ribbon, cards and the shard / pity summary as one block, centred in the space above the
+## buttons (the cards glide there from where they were revealed).
+func _stack_results(ribbon: Control, summary: Control) -> void:
+	if _cards.is_empty() or _grid_box == null:
+		return
+	var st := UI.safe_top()
+	var g_top := INF
+	var g_bot := -INF
+	for h in _cards:
+		g_top = minf(g_top, h.position.y)
+		g_bot = maxf(g_bot, h.position.y + h.size.y)
+	var single := _cards.size() == 1
+	var above := 64.0 if single else 0.0
+	var below := 160.0 if single else 40.0
+	var sum_h := summary.get_combined_minimum_size().y
+	var block := 84.0 + 22.0 + above + (g_bot - g_top) + below + sum_h
+	var region_top := st + 16.0
+	var region_bot := _overlay.size.y + _results_box.offset_bottom - _results_box.get_combined_minimum_size().y - 20.0
+	var want := region_top + maxf(0.0, (region_bot - region_top - block) * 0.5)
+	var dy := (want + 84.0 + 22.0 + above) - (st + g_top)
+	_grid_box.create_tween().tween_property(_grid_box, "position:y", _grid_box.position.y + dy, 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	ribbon.position.y = want
+	summary.position = Vector2(0, want + block - sum_h)
+	summary.size = Vector2(_overlay.size.x, sum_h)
 
 
 func _again(count: int) -> void:

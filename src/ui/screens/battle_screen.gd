@@ -38,6 +38,8 @@ const END_DELAY := 1.4
 const INTRO_TIME := 1.25
 const FRONT_X := [0.31, 0.69]
 const BACK_X := [0.16, 0.5, 0.84]
+## Where repeat numbers on one unit appear (fan slots 0-3, relative to the head).
+const NUM_FAN := [Vector2(0, -10), Vector2(34, -40), Vector2(-34, -70), Vector2(14, -100)]
 const STATUS_TEXT := {
 	"stun": ["Stunned", Color("ffe066")], "burn": ["Burn", Color("ff8a4a")], "regen": ["Regen", Color("5cd6a0")],
 	"taunt": ["Taunt", Color("f2c14e")], "atk_up": ["ATK Up", Color("5cd6a0")], "atk_down": ["ATK Down", Color("ff6a6a")],
@@ -80,6 +82,7 @@ var _shake_amp := 0.0
 var _dim_target := 0.0
 var _manual_hint: Control
 var _num_stack: Dictionary = {}
+var _num_n := 0
 var _shown_secs := -1
 
 
@@ -401,12 +404,14 @@ func _build_bottom() -> void:
 			by_slot[int(u.slot)] = u
 	for s in 5:
 		if not by_slot.has(s):
+			# An unused slot: a dim plain tile (no "+": heroes can't join mid-battle).
 			var e := Control.new()
 			e.custom_minimum_size = Vector2(PORTRAIT_W, 150)
 			e.mouse_filter = MOUSE_FILTER_IGNORE
-			var ph := Kit.empty_slot(PORTRAIT_W)
+			var ph := Panel.new()
 			ph.mouse_filter = MOUSE_FILTER_IGNORE
-			ph.modulate.a = 0.55
+			ph.add_theme_stylebox_override("panel", Kit.box(Color(1, 1, 1, 0.035), Color(1, 1, 1, 0.02), Color(1, 1, 1, 0.08), 4, 1))
+			ph.size = Vector2(PORTRAIT_W, PORTRAIT_W)
 			e.add_child(ph)
 			row.add_child(e)
 			continue
@@ -607,14 +612,14 @@ func _apply(ev: Dictionary) -> void:
 			var hv: Node2D = _views.get(str(ev.target))
 			if hv:
 				hv.call("set_hp", int(ev.hp_after), int(hv.get("shield")))
-				BattleFx.number(_numbers, _num_pos(hv), "+%s" % Kit.format_num(int(ev.amount)), Color("6ff0b0"), 28, 60.0, 0.0, _life())
+				_float_text(hv, "+%s" % Kit.format_num(int(ev.amount)), Color("6ff0b0"), 28, 60.0)
 				BattleFx.burst(_fx, _fx.to_local(hv.call("chest_global")), Color("5cd6a0"), 46.0, 6)
 				_sync_portrait(hv)
 		"shield":
 			var sv: Node2D = _views.get(str(ev.target))
 			if sv:
 				sv.call("set_hp", int(sv.get("hp")), int(ev.shield_after))
-				BattleFx.number(_numbers, _num_pos(sv) + Vector2(0, 26), "+%s" % Kit.format_num(int(ev.amount)), Color("a8e2ff"), 24, 50.0, 0.0, _life())
+				_float_text(sv, "+%s" % Kit.format_num(int(ev.amount)), Color("a8e2ff"), 24, 50.0, 0.0, Vector2(0, 26))
 				BattleFx.burst(_fx, _fx.to_local(sv.call("chest_global")), Color("8fd3ff"), 60.0, 0)
 		"status":
 			var tv: Node2D = _views.get(str(ev.target))
@@ -622,7 +627,7 @@ func _apply(ev: Dictionary) -> void:
 				var st := str(ev.status)
 				tv.call("add_status", st, _display_ms + float(ev.duration_ms))
 				var info: Array = STATUS_TEXT.get(st, [st.capitalize(), Kit.INK])
-				BattleFx.number(_numbers, _num_pos(tv) + Vector2(0, -34), str(info[0]), info[1], 22, 40.0, 0.08, _life())
+				_float_text(tv, str(info[0]), info[1], 22, 40.0, 0.08, Vector2(0, -34))
 		"ultimate":
 			_start_ult(ev)
 		"energy":
@@ -679,7 +684,7 @@ func _on_damage(ev: Dictionary) -> void:
 			text += "!"
 		if ult:
 			fs += 4
-	BattleFx.number(_numbers, _num_pos(dst) + Vector2(randf_range(-26.0, 26.0), 0), text, col, fs, 70.0 if not dot else 44.0, 0.0, _life())
+	_float_text(dst, text, col, fs, 70.0 if not dot else 44.0, 0.0, Vector2(randf_range(-14.0, 14.0), 0))
 	if not dot:
 		dst.call("play_hit")
 		var at: Vector2 = _fx.to_local(dst.call("chest_global"))
@@ -738,14 +743,34 @@ func _lunge_point(src: Node2D, dst: Node2D) -> Vector2:
 
 
 ## Spawn point for a floating number over a unit. Numbers that land on the same unit in
-## quick succession stack upward instead of overlapping.
+## quick succession fan out (up and to alternating sides) instead of piling up; _num_n is
+## the slot used (0-3).
 func _num_pos(v: Node2D) -> Vector2:
 	var uid := str(v.get("uid"))
 	var now := Time.get_ticks_msec()
 	var st: Array = _num_stack.get(uid, [0, 0])
 	var n := int(st[1]) + 1 if now - int(st[0]) < 320 else 0
 	_num_stack[uid] = [now, n % 4]
-	return v.call("head_global") - _numbers.global_position + Vector2(0, -10 - (n % 4) * 30)
+	_num_n = n % 4
+	return v.call("head_global") - _numbers.global_position + NUM_FAN[_num_n]
+
+
+## A floating number or status word over unit `v`, kept below the HUD: when it would rise
+## into the top bar (top-row enemies on short screens) it starts lower, and its fan slot
+## stacks downward instead.
+func _float_text(v: Node2D, text: String, col: Color, fs: int, rise: float, delay: float = 0.0, extra: Vector2 = Vector2.ZERO) -> void:
+	var pos := _num_pos(v) + extra
+	var lo := _hud_bottom() + 8.0 + fs * 0.75 + rise
+	if pos.y < lo:
+		pos.y = lo + _num_n * 30.0 + maxf(extra.y, 0.0)
+	pos.x = clampf(pos.x, 70.0, size.x - 70.0)
+	BattleFx.number(_numbers, pos, text, col, fs, rise, delay, _life())
+
+
+## Bottom edge of the top HUD (and the boss plate) in the numbers layer's space.
+func _hud_bottom() -> float:
+	var b := UI.safe_top() + (TOP_H + BOSS_H - 6.0 if _boss_uid != "" else 8.0 + 96.0)
+	return b - _numbers.global_position.y
 
 
 func _fx_color(v: Node2D) -> Color:

@@ -82,7 +82,7 @@ func _build() -> void:
 	head.offset_right = -16
 	head.offset_top = 10
 	head.offset_bottom = 10 + Kit.BUTTON_H
-	var tabs := Kit.tab_strip([{"text": "Heroes", "icon": "nav_heroes"}, {"text": "Codex", "icon": "scrolls"}], _tab_idx, func(i: int) -> void:
+	var tabs := Kit.tab_strip([{"text": "Heroes", "icon": "nav_heroes"}, {"text": "Codex", "icon": "codex"}], _tab_idx, func(i: int) -> void:
 		_tab_idx = i
 		_refresh(true), 196.0)
 	head.add_child(tabs)
@@ -289,7 +289,7 @@ func _codex_teaser(missing: int) -> Control:
 	t.size_flags_horizontal = SIZE_EXPAND_FILL
 	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	h.add_child(t)
-	var b := Kit.light_button("Codex", _select_tab.bind(1), "scrolls")
+	var b := Kit.light_button("Codex", _select_tab.bind(1), "codex")
 	b.custom_minimum_size.x = 176
 	h.add_child(b)
 	row.add_child(h)

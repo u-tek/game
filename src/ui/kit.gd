@@ -343,7 +343,8 @@ static func icon_button(icon_name: String, on_pressed: Callable = Callable(), si
 ## Button with a label and a price line, e.g. ("Summon x10", "gems", 2700).
 ## look: "primary" | "secondary" | "light" | "orange". The price sits in a small pill under
 ## the label and turns red when the player has less than `amount` (or when affordable =
-## false); the button stays pressable so the screen can explain why.
+## false); the button stays pressable so the screen can explain why. amount <= 0 shows a
+## green "FREE" in the pill instead (free daily summon).
 static func cost_button(text: String, currency_id: String, amount: int, on_pressed: Callable = Callable(), look: String = "primary", affordable: bool = true) -> Button:
 	var b := _button("", _variation(look), on_pressed, "")
 	b.custom_minimum_size = Vector2(240, 108)
@@ -358,8 +359,12 @@ static func cost_button(text: String, currency_id: String, amount: int, on_press
 	var price := hbox(6)
 	price.alignment = BoxContainer.ALIGNMENT_CENTER
 	price.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	price.add_child(currency_icon(currency_id, 30))
-	price.add_child(label(format_full(amount), 24, _price_ink(look, short), "black"))
+	if amount <= 0:
+		var free_ink := Color("12965c") if look in ["primary", "orange", "light"] else GOOD
+		price.add_child(label("FREE", 24, free_ink, "black"))
+	else:
+		price.add_child(currency_icon(currency_id, 30))
+		price.add_child(label(format_full(amount), 24, _price_ink(look, short), "black"))
 	pill.add_child(price)
 	col.add_child(center(pill))
 	col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -418,6 +423,27 @@ static func costs_button(text: String, costs: Dictionary, on_pressed: Callable =
 	col.offset_bottom = -4
 	b.add_child(col)
 	return b
+
+
+## Fits a Kit text button into `width` px (tight rows): narrows its side padding to `pad`
+## and shrinks the font (max_size down to min_size) until the text fits, so the button's
+## minimum width never pushes its row wider than planned.
+static func fit_button(b: Button, width: float, max_size: int = SIZE_BUTTON, min_size: int = 16, pad: float = 10.0) -> void:
+	var bases := {&"PrimaryButton": "btn_primary", &"SecondaryButton": "btn_secondary", &"DangerButton": "btn_danger",
+		&"LightButton": "btn_light", &"OrangeButton": "btn_orange"}
+	var base := str(bases.get(b.theme_type_variation, "btn_secondary"))
+	var suffix := {"normal": "", "hover": "_hover", "pressed": "_pressed", "hover_pressed": "_pressed", "disabled": "_disabled"}
+	for st: String in suffix:
+		var sb := UITheme.style(base + str(suffix[st]))
+		sb.content_margin_left = pad
+		sb.content_margin_right = pad
+		b.add_theme_stylebox_override(st, sb)
+	var f := b.get_theme_font("font")
+	var fs := max_size
+	while fs > min_size and f.get_string_size(b.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > width - pad * 2.0 - 2.0:
+		fs -= 1
+	b.add_theme_font_size_override("font_size", fs)
+	b.custom_minimum_size.x = minf(b.custom_minimum_size.x, width)
 
 
 static func _variation(look: String) -> StringName:
@@ -772,8 +798,8 @@ static func shortcut(text: String, icon_name: String, look: String = "blue", on_
 
 ## Small lobby side button: a 72 px tile with a glyph and a label under it (shadowed white
 ## text), on a 96 x 116 touch area. look: "dark" (glass tile), "accent" (cyan tile),
-## "orange" (orange tile), "white" (white tile, dark glyph), "diamond" (dark diamond with a
-## white rounded tile inside). badge: "N" | "!" | "dot" | "".
+## "orange" (orange tile), "white" (white tile, dark glyph), "diamond" (one dark glass diamond
+## with a white glyph). badge: "N" | "!" | "dot" | "".
 static func side_button(icon_name: String, text: String, on_pressed: Callable = Callable(), look: String = "dark", badge: String = "") -> Button:
 	var b := Button.new()
 	b.theme_type_variation = &"BareButton"
@@ -798,24 +824,23 @@ static func side_button(icon_name: String, text: String, on_pressed: Callable = 
 	tile.offset_bottom = 4 + ts
 	var glyph_tint := Color.WHITE
 	if look == "diamond":
+		# One frame only: a dark glass diamond with the white glyph on it.
+		tile.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 		tile.draw.connect(func() -> void:
 			var ci := tile.get_canvas_item()
 			var c := tile.size * 0.5
-			var r := ts * 0.56
+			var r := ts * 0.5
 			var dia := PackedVector2Array([c + Vector2(0, -r), c + Vector2(r, 0), c + Vector2(0, r), c + Vector2(-r, 0)])
 			KitBox.soft_shadow(ci, dia, Color(0, 0, 0, 0.4), 6.0, Vector2(0, 2))
-			KitBox.fill_poly(ci, dia, Color("1b1d22e0"), Color("0e0f12e0"))
-			KitBox.stroke_poly(ci, dia, Color(1, 1, 1, 0.35), 1.5)
-			var inner := KitBox.shape_points(Rect2(c - Vector2(21, 21), Vector2(42, 42)), 6.0)
-			KitBox.fill_poly(ci, inner, Color.WHITE, Color("e6e9ed")))
-		glyph_tint = Color("1b1d21")
+			KitBox.fill_poly(ci, dia, Color("1b1d22d9"), Color("0e0f12d9"))
+			KitBox.stroke_poly(ci, dia, Color(1, 1, 1, 0.45), 1.5))
 	else:
 		var kind := {"accent": "tile_accent", "orange": "tile_orange", "white": "tile_white"}.get(look, "tile_dark") as String
 		tile.add_theme_stylebox_override("panel", UITheme.style(kind))
 		if look == "white":
 			glyph_tint = Color("1b1d21")
 	face.add_child(tile)
-	var isz := ts * (0.44 if look == "diamond" else 0.6)
+	var isz := ts * (0.46 if look == "diamond" else 0.6)
 	var ic := icon(icon_name, isz, glyph_tint)
 	ic.name = "Glyph"
 	_center_child(tile, ic, Vector2(isz, isz))
@@ -828,8 +853,8 @@ static func side_button(icon_name: String, text: String, on_pressed: Callable = 
 	l.anchor_right = 1.0
 	l.offset_left = -10
 	l.offset_right = 10
-	l.offset_top = 4 + ts + 2
-	l.offset_bottom = 4 + ts + 32
+	l.offset_top = 4 + ts + 6
+	l.offset_bottom = 4 + ts + 34
 	face.add_child(l)
 	add_press_fx(b, face)
 	if on_pressed.is_valid():
@@ -850,9 +875,14 @@ static func speech_bubble(speaker: String, text: String, width: float = 560.0) -
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var n := label(speaker, 26, Color.WHITE, "extrabold")
 	v.add_child(n)
-	var t := body(text, 24, Color("e9ebee"))
+	var t := body(text, 24, Color("f0f2f4"))
 	t.add_theme_constant_override("line_spacing", 2)
 	v.add_child(t)
+	# The glass is light (about 45% black): a soft shadow keeps the words crisp over art.
+	for lab: Label in [n, t]:
+		lab.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.55))
+		lab.add_theme_constant_override("shadow_offset_y", 1)
+		lab.add_theme_constant_override("shadow_outline_size", 3)
 	p.add_child(v)
 	p.set_meta("name_label", n)
 	p.set_meta("text_label", t)
@@ -963,9 +993,10 @@ static func _longest_word(text: String) -> String:
 	return best
 
 
-## Objective strip ("Clear Stage 1-5"): dark glass bar with a cyan "!" disc on the left, the
-## text, and a cyan arrow tile on the right. The whole strip is the 88 px touch target.
-static func notice_bar(text: String, on_pressed: Callable = Callable(), width: float = 420.0) -> Button:
+## Objective strip ("Next: Stage 1-5"): dark glass bar with a cyan hexagon holding a glyph
+## (default the objective flag) on the left, the text, and a white chevron on the right.
+## The whole strip is the 88 px touch target.
+static func notice_bar(text: String, on_pressed: Callable = Callable(), width: float = 420.0, icon_name: String = "flag") -> Button:
 	var b := Button.new()
 	b.theme_type_variation = &"BareButton"
 	b.focus_mode = Control.FOCUS_NONE
@@ -985,40 +1016,31 @@ static func notice_bar(text: String, on_pressed: Callable = Callable(), width: f
 	bar.offset_top = 16
 	bar.offset_bottom = -16
 	face.add_child(bar)
-	var disc := Control.new()
-	disc.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	disc.position = Vector2(0, 12)
-	disc.size = Vector2(64, 64)
-	disc.draw.connect(func() -> void:
-		var c := Vector2(32, 32)
-		disc.draw_circle(c + Vector2(0, 2), 31, Color(0, 0, 0, 0.35), true, -1.0, true)
-		disc.draw_circle(c, 31, Color.WHITE, true, -1.0, true)
-		disc.draw_circle(c, 26, ACCENT, true, -1.0, true)
-		disc.draw_rect(Rect2(c.x - 3.5, c.y - 15, 7, 19), Color.WHITE)
-		disc.draw_circle(c + Vector2(0, 11), 4.0, Color.WHITE, true, -1.0, true))
-	face.add_child(disc)
+	var hx := hex_badge(icon_name, 62, ACCENT, Color.WHITE)
+	hx.name = "Glyph"
+	hx.set("glow", Color(0, 0, 0, 0.35))
+	hx.set("glow_size", 5.0)
+	hx.position = Vector2(0, 13)
+	face.add_child(hx)
 	var l := label(text, 24, Color.WHITE, "extrabold")
 	l.name = "Text"
 	l.anchor_right = 1.0
 	l.anchor_bottom = 1.0
-	l.offset_left = 78
-	l.offset_right = -70
+	l.offset_left = 76
+	l.offset_right = -48
 	l.clip_text = true
 	l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	face.add_child(l)
-	var arrow := Panel.new()
-	arrow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	arrow.add_theme_stylebox_override("panel", UITheme.style("disc_gold"))
-	arrow.anchor_left = 1.0
-	arrow.anchor_right = 1.0
-	arrow.offset_left = -62
-	arrow.offset_right = -10
-	arrow.offset_top = 24
-	arrow.offset_bottom = -24
-	arrow.anchor_bottom = 1.0
-	face.add_child(arrow)
-	var ai := icon("arrow_right", 28)
-	_center_child(arrow, ai, Vector2(28, 28))
+	var ai := icon("chevron_right", 26, Color(1, 1, 1, 0.9))
+	ai.anchor_left = 1.0
+	ai.anchor_right = 1.0
+	ai.anchor_top = 0.5
+	ai.anchor_bottom = 0.5
+	ai.offset_left = -40
+	ai.offset_right = -14
+	ai.offset_top = -13
+	ai.offset_bottom = 13
+	face.add_child(ai)
 	b.set_meta("text_label", l)
 	add_press_fx(b, face)
 	if on_pressed.is_valid():
@@ -1027,7 +1049,7 @@ static func notice_bar(text: String, on_pressed: Callable = Callable(), width: f
 
 
 ## Fill meter plate (the Sanctum fill % on the idle shortcut): dark plate, glyph, a two-line
-## uppercase caption, a big cyan percentage ("031%") and a thin bar; an optional level tag
+## uppercase caption, a big cyan percentage ("41%") and a thin bar; an optional level tag
 ## sits under the glyph. Update with set_percent_meter(m, pct).
 static func percent_meter(caption_text: String, pct: float, icon_name: String = "sanctum", level_text: String = "") -> PanelContainer:
 	var p := PanelContainer.new()
@@ -1064,7 +1086,9 @@ static func percent_meter(caption_text: String, pct: float, icon_name: String = 
 	bar.add_theme_stylebox_override("fill", fg)
 	mid.add_child(bar)
 	row.add_child(mid)
-	var n := label("%03d%%" % int(clampf(pct, 0.0, 999.0)), 46, ACCENT_HI, "cond_bold")
+	var n := label("%d%%" % int(clampf(pct, 0.0, 999.0)), 46, ACCENT_HI, "cond_bold")
+	n.custom_minimum_size.x = 92
+	n.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	n.name = "Percent"
 	row.add_child(n)
 	p.add_child(row)
@@ -1077,7 +1101,7 @@ static func percent_meter(caption_text: String, pct: float, icon_name: String = 
 static func set_percent_meter(m: Control, pct: float) -> void:
 	var n: Label = m.get_meta("percent_label") if m.has_meta("percent_label") else null
 	if n:
-		n.text = "%03d%%" % int(clampf(pct, 0.0, 999.0))
+		n.text = "%d%%" % int(clampf(pct, 0.0, 999.0))
 	var bar: ProgressBar = m.get_meta("bar") if m.has_meta("bar") else null
 	if bar:
 		bar.value = clampf(pct, 0.0, 100.0)
@@ -2173,7 +2197,7 @@ static func screen_header(title_text: String, on_back: Callable = Callable(), ri
 
 ## Stat line: icon, name, value (right aligned). stat: hp/atk/def/spd/crit.
 ## delta (optional) shows a green "+N" after the value (level-up previews).
-## light = dark text for white panels (NIKKE-like status rows).
+## light = dark text for white panels (the info column status rows).
 static func stat_row(stat: String, value: Variant, delta: Variant = null, label_text: String = "", light: bool = false) -> HBoxContainer:
 	var row := hbox(12)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE

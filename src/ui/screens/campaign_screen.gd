@@ -61,11 +61,24 @@ func setup(params: Dictionary) -> void:
 	_scroll = Kit.scroll(Control.new())
 	_scroll.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	map_holder.add_child(_scroll)
+	# Soft scrim under the header strip: map nodes passing beneath fade out instead of
+	# being sliced by its edge.
+	var scrim := TextureRect.new()
+	scrim.name = "HeaderScrim"
+	scrim.mouse_filter = MOUSE_FILTER_IGNORE
+	scrim.texture = Kit.vgradient(Color("15171bf5"), Color("15171b00"))
+	scrim.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	scrim.stretch_mode = TextureRect.STRETCH_SCALE
+	scrim.anchor_right = 1.0
+	scrim.offset_bottom = 46
+	map_holder.add_child(scrim)
 	var panel := Kit.info_panel(18)
 	panel.name = "StagePanel"
 	_panel_body = Kit.vbox(8)
 	panel.add_child(_panel_body)
-	_col.add_child(Kit.margin(panel, 10, 8))
+	var pm := Kit.margin(panel, 10, 8)
+	pm.add_theme_constant_override("margin_bottom", 8 + int(UI.pinned_bottom_inset()))
+	_col.add_child(pm)
 	_place_col()
 	resized.connect(_place_col)
 
@@ -238,7 +251,7 @@ func _title_block(ch: Dictionary) -> Control:
 	v.anchor_right = 1.0
 	v.offset_left = 24
 	v.offset_right = -18
-	v.offset_top = 14
+	v.offset_top = 22
 	var ci := int(ch.get("index", 0))
 	var top := Kit.hbox(10)
 	top.mouse_filter = MOUSE_FILTER_PASS
@@ -393,7 +406,15 @@ func _scroll_to(stage_index: int) -> void:
 		return
 	var n: Control = _nodes[stage_index]
 	var y := n.position.y + n.size.y * 0.5
-	_scroll.scroll_vertical = int(maxf(0.0, y - _scroll.size.y * 0.5))
+	var target := maxf(0.0, y - _scroll.size.y * 0.5)
+	# Never leave the chapter title half under the header: show it whole while the node still
+	# fits below it, otherwise scroll it fully away.
+	var title := _map.get_node_or_null("ChapterTitle") as Control if _map else null
+	if title:
+		var tb := title.position.y + title.get_combined_minimum_size().y + 6.0
+		if target > 0.0 and target < tb:
+			target = 0.0 if y + n.size.y * 0.5 + 56.0 <= _scroll.size.y else tb
+	_scroll.scroll_vertical = int(target)
 
 
 func _on_node(i: int) -> void:

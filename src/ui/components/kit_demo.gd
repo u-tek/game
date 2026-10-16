@@ -252,7 +252,7 @@ func _lobby_widgets(list: VBoxContainer) -> void:
 	var bn := Kit.banner_card("Choir of the Fallen Sky", "Summon now", Callable(), {"hero_id": "seraphiel", "pages": 4, "page": 1})
 	bn.position = Vector2(10, 290)
 	stage.add_child(bn)
-	var nb := Kit.notice_bar("Clear Stage 1-3", Callable(), 320)
+	var nb := Kit.notice_bar("Next: Stage 1-3", Callable(), 320)
 	nb.position = Vector2(350, 300)
 	stage.add_child(nb)
 	var meter := Kit.percent_meter("Sanctum\nfill", 31.0, "sanctum", "LV.01")
@@ -481,7 +481,7 @@ func _mock_lobby() -> void:
 	banner.position = Vector2(14, top)
 	ui.add_child(banner)
 	var st: Dictionary = Game.current_stage()
-	var nb := Kit.notice_bar("Clear Stage %s" % str(st.get("id", "1-1")), func() -> void: UI.go("campaign"), 340)
+	var nb := Kit.notice_bar("Next: Stage %s" % str(st.get("id", "1-1")), func() -> void: UI.go("campaign"), 340)
 	nb.position = Vector2(w - 340 - 10, top + 12)
 	ui.add_child(nb)
 

@@ -154,10 +154,13 @@ icons["hex"] = svg(poly(hex_pts(32, 32, 29)))
 icons["hex_outline"] = svg(path(poly_d(hex_pts(32, 32, 29)) + " " + poly_d(hex_pts(32, 32, 24))))
 
 # Bottom nav (Heroes, Team, Lobby, Gear, Summon). Original glyphs, consistent weight.
-# Heroes: a centered bust with two smaller busts behind, cut by a chevron at the base.
-icons["nav_heroes"] = svg(circ(32, 16, 8.5) + path("M18 46 C18 33 24 28 32 28 C40 28 46 33 46 46 L32 58 Z")
-                          + circ(12, 22, 6) + path("M2 44 C2 35 6 31 12 31 C16 31 19 33 20 37 L16 48 Z", W, ' opacity="0.8"')
-                          + circ(52, 22, 6) + path("M62 44 C62 35 58 31 52 31 C48 31 45 33 44 37 L48 48 Z", W, ' opacity="0.8"'))
+# Heroes: one figure under a halo with a single swept wing behind the shoulder (our angel
+# motif), one tone. Deliberately not a group of busts.
+icons["nav_heroes"] = svg(stroke("M15 9 A11 3.8 0 1 0 37 9 A11 3.8 0 1 0 15 9", 3.4)
+                          + circ(26, 22, 8.2)
+                          + path("M10 58 C10 43 17 35 26 35 C35 35 42 43 42 58 Z")
+                          + path("M39 37 C46 34 50 28 53 18 C55 11 58 7 62 5 C62 14 60 21 57 26 C59 25.5 61 24.5 63 23 "
+                                 "C62 30 58 35 53 37.5 C55.5 37.8 58 37.5 60 37 C56 44 50 47.5 43 48 Z"))
 icons["heroes"] = icons["nav_heroes"]
 # Team: formation board, two front slots and three back slots, as rounded hexes.
 _team = ""
@@ -177,6 +180,12 @@ icons["gear"] = icons["nav_gear"]
 icons["nav_summon"] = svg(path("M8 46 C8 39 19 35 32 35 C45 35 56 39 56 46 C56 53 45 57 32 57 C19 57 8 53 8 46 Z M15 46 C15 49 22 51 32 51 C42 51 49 49 49 46 C49 43 42 41 32 41 C22 41 15 43 15 46 Z")
                           + poly(star_pts(32, 22, 18, 5, 4, -90)) + circ(48, 10, 3) + circ(14, 16, 2.4))
 icons["summon"] = icons["nav_summon"]
+
+# Codex (the hero archive): an open book with a bookmark ribbon.
+icons["codex"] = svg(path("M4 14 C13 10 23 11 30 16 V56 C23 51 13 50 4 54 Z")
+                     + path("M60 14 C51 10 41 11 34 16 V56 C41 51 51 50 60 54 Z M42 13.5 V31 L46.5 27 L51 31 V12.2 C47.8 12.2 44.8 12.6 42 13.5 Z"))
+# Objective flag: a pole and a notched pennant (the lobby objective strip).
+icons["flag"] = svg(rect(12, 6, 6, 52, 2) + path(poly_d([(18, 8), (54, 8), (44, 21), (54, 34), (18, 34)])) + rect(6, 54, 18, 5, 2))
 
 # Lobby side buttons & shortcuts.
 icons["sanctum"] = svg(path("M8 54 V34 C8 20 19 10 32 10 C45 10 56 20 56 34 V54 H44 V36 C44 29 39 24 32 24 C25 24 20 29 20 36 V54 Z")

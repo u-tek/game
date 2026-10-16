@@ -16,6 +16,7 @@ extends Control
 ## The mark is a child of the target laid over it (it re-places itself every frame, so a
 ## Container target works too).
 
+const KitBox := preload("res://src/ui/components/kit_box.gd")
 const MARK_NAME := "GuideMark"
 ## The guide is quiet once this many stages are cleared (end of chapter 1).
 const ACTIVE_UNTIL_CLEARED := 10
@@ -199,6 +200,18 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	var k := 0.5 + 0.5 * sin(_t * 4.2)
+	var host := get_parent() as Control
+	if host and host.has_meta("guide_hex"):
+		# A hexagon target (the raised Lobby tab): a hex ring around it instead of a box.
+		# meta guide_hex = Vector2(centre y in the host, radius); centred horizontally.
+		var hv: Vector2 = host.get_meta("guide_hex")
+		var c := Vector2(host.size.x * 0.5, hv.x) - position
+		var ci := get_canvas_item()
+		# Glow as widening translucent outlines only, so the hex face stays readable.
+		for i in 3:
+			KitBox.stroke_poly(ci, KitBox.hex_points(c, hv.y + 9.0 + i * 3.0), Color(COLOR, (0.22 - i * 0.06) * (0.5 + k)), 4.0)
+		KitBox.stroke_poly(ci, KitBox.hex_points(c, hv.y + 6.0), Color(COLOR.lightened(0.25), 0.55 + 0.45 * k), 4.0)
+		return
 	var r := minf(10.0, size.y * 0.5)
 	_box.set_corner_radius_all(int(r))
 	_box.border_color = Color(COLOR.lightened(0.25), 0.55 + 0.45 * k)

@@ -64,12 +64,19 @@ tools/shoot campaign --res 720x1280 --fresh --safe-area-sim --shoot-params='{"op
 tools/shoot hero_detail --rich --shoot-params='{"hero_id":"seraphiel"}' --out screenshots/hd.png
 ```
 
-Screens: `home`, `campaign`, `battle`, `heroes`, `hero_detail`, `formation`, `summon`, `quests`,
-`shop`, `settings`. Flags: `--fresh` / `--rich` (throwaway saves), `--safe-area-sim` (iPhone
-notch: 108 px top, 62 px bottom), `--shoot-params=<json>` (screen params, e.g.
-`{"stage_index":0}` for battle, `{"pull":10,"skip":true}` for summon, `{"scroll":800}`),
-`--shoot-wait=<seconds>`. It needs `xvfb-run` on a headless Linux box. The `screenshots/`
-folder is git-ignored.
+Screens: `home` (the Lobby), `campaign`, `battle`, `heroes`, `hero_detail`, `formation` (Team),
+`summon`, `gear`, `quests`, `shop`, `settings`, plus the debug-only `kit_demo` (the widget
+gallery and Kit-only mocks: `{"mock":"lobby"}` / `"roster"` / `"detail"`, dialogs with
+`{"show":"reward"}`, `"confirm"`, `"dialog"`, `"popup"`, `"toast"`, `"notices"`, `"menu"`).
+Flags: `--fresh` / `--rich` (throwaway saves), `--safe-area-sim` (iPhone notch: 108 px top,
+62 px bottom), `--shoot-params=<json>` (screen params, e.g. `{"stage_index":0}` for battle,
+`{"pull":10,"skip":true}` or `{"rates":true}` for summon, `{"hero_id":"seraphiel"}` or
+`{"show":"weapon"}` for hero_detail, `{"tab":1}` for heroes (Codex) and shop (Gems),
+`{"open":"first"}` for gear, `{"sheet":true}` for home (the Sanctum sheet),
+`{"open_stage":4,"intro":false}` for campaign, `{"scroll":800}`), `--shoot-wait=<seconds>`.
+It needs `xvfb-run` on a headless Linux box. The `screenshots/` folder is git-ignored. The
+UI style (tokens, components, every screen's layout) is in
+[docs/dev/ui-style-v2.md](docs/dev/ui-style-v2.md).
 
 For a step-by-step picture story of the first session, run the first-session walk rendered:
 
@@ -94,7 +101,8 @@ flock /tmp/halo-godot.lock xvfb-run -a -s "-screen 0 1800x2400x24" godot --path 
 
 | Doc | What's in it |
 |---|---|
-| [Architecture](docs/dev/architecture.md) | The build contract: APIs, data shapes, folder ownership, art rules, visual direction |
+| [Architecture](docs/dev/architecture.md) | The build contract: APIs, data shapes, folder ownership, art rules |
+| [UI style v2](docs/dev/ui-style-v2.md) | The current look: tokens, Kit components, shell, every screen's layout |
 | [Economy v1](docs/dev/economy-v1.md) | Formulas, pacing timeline, stage and kit tables, tuning tools |
 | [Unity port](docs/dev/unity-port.md) | Module map, JSON fields, RNG, battle tick order, save format, fixtures |
 | [HaloRig](docs/dev/halorig.md) | The warp-rig animation system for painted heroes |

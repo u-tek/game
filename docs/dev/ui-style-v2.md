@@ -2,7 +2,8 @@
 
 Style v2 replaces v1's "twilight cathedral" look (dark indigo and gold filigree, see
 architecture.md section 7). The owner asked for a UI that closely follows the **layout and
-visual language** of NIKKE: Goddess of Victory. This document is the contract for that look:
+visual language** of the owner-supplied reference game (its screenshots are kept privately,
+outside the repo; this repo never names it). This document is the contract for that look:
 tokens, components (all built by `Kit`, `src/ui/kit.gd`), the app shell (`src/ui/main.gd`)
 and a layout spec for every screen on the 720 x 1560 canvas.
 
@@ -36,6 +37,20 @@ feel) and none of its protected expression.
   common UI blues and oranges. Rarity names are Rare, Epic and Legendary.
 - **Our own content.** Angels, demons and the fallen, painted in our own art style
   (art-style.md). Character art carries the identity, not the chrome.
+- **Our own signature details.** Each element on its own is generic, but copying many small
+  details at once reproduces a look, so the lobby deliberately differs in these:
+  - Objective strip: our flag glyph in a cyan **hexagon** (not a "!" in a circle), a plain
+    white **chevron** at the end (not an arrow in a square), and our wording ("Next: Stage
+    2-3", or the first-session step such as "Quick Claim 2h of rewards").
+  - White plate (Team): the glyph sits in a thin **hexagon frame** over a faint hatched hex,
+    not in corner brackets.
+  - Sanctum meter: a plain percentage ("41%", no zero padding) under a "FILL" caption, and
+    the Sanctum level as a small tag **next to the plate title** ("Sanctum LV 12").
+  - Heroes nav glyph: a single haloed figure with one swept wing (our angel motif), one
+    tone, never a group of busts.
+  - Side buttons: one frame each (rounded tile), no stacked diamond-and-tile frames.
+- **Code and commits.** Code comments and commit messages say "reference style", never the
+  reference's name.
 
 ## 2. Feature mapping
 
@@ -50,7 +65,7 @@ feel) and none of its protected expression.
 | Campaign | **Campaign** (`campaign`) | Lobby shortcut, orange plate with stage tag and boss art |
 | Second big lobby destination (white plate) | **Quests** (`quests`) | Lobby shortcut, white plate |
 | Shop | **Shop** (`shop`) | Lobby shortcut, blue plate |
-| Mission strip "Clear Stage x-y" | Objective strip (`Kit.notice_bar`) | Lobby, top right |
+| Mission strip | Objective strip (`Kit.notice_bar`): flag hex, "Next: Stage x-y" or the guide step | Lobby, top right |
 | Event banners | Banner card (`Kit.banner_card`): current summon banner | Lobby, top left |
 | Side buttons (messages, events, friends) | Offers (shop), Daily (quests), Team, View (hide UI) | Lobby edges |
 | Player avatar and level | Leader avatar (first team hero) with the **team power** chip (we have no account level) | Top bar, left |
@@ -175,8 +190,9 @@ UI glyphs are **solid white flat shapes** (4-unit strokes, rounded joins, cut-ou
 outlines, no gradients) so code can tint them: `INK` on dark, `TEXT` / `#2a2d33` on light,
 `INK_DIM` inactive. Only meaning-carrying icons are colored (currencies, stars, power,
 crown, faction marks, toggles) with flat 2-3 tone fills. Nav icons are `nav_heroes`,
-`nav_team`, `nav_lobby`, `nav_gear`, `nav_summon`. Add icons in the generator, never by
-hand-editing an SVG, and never by tracing a screenshot.
+`nav_team`, `nav_lobby`, `nav_gear`, `nav_summon`. Other purpose glyphs: `codex` (open
+book: the Codex tab and links, never the scrolls ticket), `flag` (objectives). Add icons in
+the generator, never by hand-editing an SVG, and never by tracing a screenshot.
 
 ## 4. Components
 
@@ -198,7 +214,8 @@ Every builder is static on `Kit` and returns a ready Control. Old names keep wor
 | **new** `orange_button` | orange `#ffa53a` to `#ff7a12` with an orange glow: the one urgent action |
 | `danger_button` | red `#f25a43` to `#d63a24` |
 | disabled | flat `#3a3c40` (light: `#e3e6ea`), dimmed text |
-| `cost_button`, `costs_button` | label over a price pill (white pill with dark amounts on primary / orange / light; dark pill on secondary); short amounts red. `look`: primary, secondary, light, orange, danger |
+| `cost_button`, `costs_button` | label over a price pill (white pill with dark amounts on primary / orange / light; dark pill on secondary); short amounts red; amount 0 shows a green "FREE". `look`: primary, secondary, light, orange, danger |
+| **new** `fit_button(b, width, max, min, pad)` | fits a text button into a tight row: narrower side padding, font shrunk until the text fits, so a row never grows wider than planned |
 | `icon_button(icon, cb, size, look)` | 88 px; `round` dark glass tile, `accent` (or `gold`) cyan tile, `light` white tile with dark glyph, `bare` |
 | **new** `back_bar()` | bottom-left cyan "Back" (exit glyph) + cyan square Home, for screens without the nav |
 | `segmented` | graphite segments, selected = cyan |
@@ -209,22 +226,25 @@ Every builder is static on `Kit` and returns a ready Control. Old names keep wor
 
 ### Lobby widgets (new)
 - `shortcut(text, icon, look, cb, opts)`: the big translucent plates. Tapered quad, glyph,
-  Barlow Bold title. Looks: `blue` (glass cyan-blue), `white` (pale glass, dark glyph in
-  corner brackets, tick marks), `orange` (dark glass, glowing pulsing orange rim, hatching),
-  `dark` (deep blue glass, cyan rim, hatching, cyan text). opts: `size` (318 x 124 top row,
-  336 x 156 bottom row), `side` (left / right), `badge` (N / ! / dot), `sub` (a meter: the
-  glyph turns into a faint watermark), `art` + `art_caption` (framed art strip with a tag).
-- `side_button(icon, text, cb, look, badge)`: 74 px icon tile + shadowed white caption on a
-  104 x 120 hit area. Looks: `dark`, `accent`, `orange`, `white`, `diamond` (dark diamond
-  with a white rounded tile inside).
-- `speech_bubble(name, text, width)`: dark glass `#0d0e11` @ 78%, bold name, SemiBold line.
+  Barlow Bold title. Looks: `blue` (glass cyan-blue), `white` (pale glass about 70% opaque,
+  dark glyph in a thin hexagon frame, tick marks), `orange` (dark glass, glowing pulsing
+  orange rim, hatching), `dark` (deep blue glass about 55-60% opaque, cyan rim, hatching,
+  cyan text). opts: `size` (268 x 116 top row, 304 x 150 bottom row in the lobby), `side`
+  (left / right), `badge` (N / ! / dot), `sub` (a meter: the glyph turns into a faint
+  watermark), `art` + `art_caption` (framed art strip with a tag).
+- `side_button(icon, text, cb, look, badge)`: 74 px icon tile + shadowed white caption 6 px
+  under it, on a 104 x 120 hit area. Looks: `dark`, `accent`, `orange`, `white`, `diamond`
+  (one dark glass diamond, white glyph). One frame per button.
+- `speech_bubble(name, text, width)`: light glass `#0d0e11` @ 45% with soft text shadows,
+  bold name, SemiBold line; 400 px in the lobby, left of the hero's centre line.
 - `banner_card(title, subtitle, cb, opts)`: 330 x 132 dark plate, hatching in `color`, hero
   art crop on the left fading out, condensed uppercase title (auto-fit, 2 lines), colored
   sub-tag, optional carousel pips (`pages`, `page`), `badge`.
-- `notice_bar(text, cb, width)`: objective strip; white-rimmed cyan "!" disc, bold text,
-  cyan arrow tile. 88 px tall hit area.
-- `percent_meter(caption, pct, icon, level_text)`: navy plate with cyan rim, glyph, two-line
-  uppercase caption, thin bar, big cyan `"031%"`; update with `set_percent_meter`.
+- `notice_bar(text, cb, width, icon)`: objective strip; a cyan hexagon with a glyph (default
+  `flag`), bold text, a white chevron at the end. 88 px tall hit area.
+- `percent_meter(caption, pct, icon, level_text)`: navy plate with cyan rim, glyph, uppercase
+  caption, thin bar, big cyan `"41%"` (no zero padding); update with `set_percent_meter`.
+- `ShortcutButton.set_title_tag(text)`: a small tag right after a plate's title ("LV 12").
 - `resource_pill(entries, entry_width)`: one dark glass bar with `[icon] amount +` cells and
   1 px separators; each cell with `on_plus` is tappable; update with
   `set_chip_amount(pill.get_meta("entries")[id], n)`.
@@ -295,14 +315,22 @@ Every builder is static on `Kit` and returns a ready Control. Old names keep wor
 - **Routing**: `UI.NAV_TABS` = heroes, formation, home, gear, summon. `UI.NAV_ROOTS` also
   includes quests and shop (history resets; Back returns to the Lobby). Quests, shop,
   settings and campaign highlight the Lobby tab.
-- **Toasts**: dark glass bar, 6 px left edge in cyan (info), green (good) or red (bad),
+- **Toasts**: dark glass bar 540 px wide (every toast the same width, so a stack lines up),
+  1 px light hairline, soft shadow, 6 px left edge in cyan (info), green (good) or red (bad),
   glyph + white SemiBold text, centred under the top bar.
 - **Modals**: dim black 72%. `UI.popup(title, content, on_closed, width, light)` (Kit.dialog),
   `UI.confirm` (white dialog, light Cancel + cyan Confirm or red for danger),
   `UI.show_reward` (cyan rays and skewed cyan banner, white panel with a cyan top edge,
   "REWARD" technical caption, pale item tiles, cyan OK, "Tap anywhere to close").
 - **Guide marks**: pulsing orange ring (`Guide.mark`). The shell marks nav tabs and the
-  top-bar Quests button.
+  top-bar Quests button. A target with meta `guide_hex` (the raised Lobby tab) gets a
+  hexagon ring around the hex instead of a box.
+- **Pinned bottom bars**: the Lobby hexagon rises 26 px above the nav. Bars pinned to the
+  bottom of a screen (campaign stage panel, quests Claim All, team Auto-fill / Battle) keep
+  `UI.pinned_bottom_inset()` clear; scrolling lists may pass under it.
+- **Scrollbars** are invisible and zero-width (theme). Show "more" with cut-off rows or a
+  bottom fade (hero detail column) instead.
+- **Top bar cluster** buttons (Quests, Notices, Menu) are 88 x 88.
 
 ## 6. Screen layouts (720 x 1560, safe-area sim)
 
@@ -316,17 +344,20 @@ indicator 1498-1560. Without insets (720 x 1280): top bar 0-104, content 104-116
   the nav; a black gradient over the bottom 45%. Painted art will carry the screen; keep
   the centre 360 px column free of widgets between y 380 and 1000.
 - Top-left (content_top + 10): `banner_card` 330 x 132 (current summon banner, hero crop,
-  "SUMMON NOW", 4 carousel pips). Top-right: `notice_bar` 340 ("Clear Stage x-y" to
-  campaign).
-- Left edge (x 6, from content_top + 176, 128 px pitch): `side_button` Offers (orange, N),
-  Daily (dark, dot). Right edge (x 610): Team (diamond), View (diamond, hides all UI and the
-  chrome until the next tap).
-- Mid-left (y ~ window/2 - 40, x 54): `speech_bubble` 520 wide; small white chevrons at both
+  "SUMMON NOW", 3 carousel pips). Top-right: `notice_bar` 340 ("Next: Stage x-y" to the
+  campaign, or the first-session step).
+- Left edge (x 6, from content_top + 176, 128 px pitch): `side_button` Daily (dark, dot),
+  Offers (orange, N). Right edge: Hero (dark), View (dark, hides all UI and the chrome until
+  the next tap).
+- Mid-left (y ~ window/2 - 40, x 84): `speech_bubble` 400 wide; small white chevrons at both
   edges switch the lobby hero.
-- Shortcut grid, bottom row ends 20 px above the nav: left column Shop (`blue`, 318 x 124),
-  Sanctum (`dark`, 336 x 156, `percent_meter` "SANCTUM FILL 041%", N when full); right
-  column Quests (`white`, 318 x 124, dot when claimable), Campaign (`orange`, 336 x 156,
-  "!" badge, art strip with the next boss and a STAGE tag). 8 px between rows.
+- Shortcut grid, bottom row ends 28 px above the nav (clear of the Lobby hex), plates 8 px
+  from the screen edges with a 90-160 px gap in the middle so the hero shows between the
+  columns: left column Shop (`blue`, 268 x 116), Sanctum (`dark`, 304 x 150,
+  `percent_meter` "FILL 41%", "LV n" tag after the title, N when full); right column Team
+  (`white`, 268 x 116, dot when the team can improve), Campaign (`orange`, 304 x 150, "!"
+  badge inside the corner, art strip with the next boss and a STAGE tag). 8 px between
+  rows.
 - Quick claim and claim live in the Sanctum plate's sheet (tap the plate) or as a
   `side_button`; the first-session guide must still be able to mark the claim control.
 
@@ -343,15 +374,19 @@ indicator 1498-1560. Without insets (720 x 1280): top bar 0-104, content 104-116
 - Art: full body, height = content height, left edge at x -60 (the figure stands
   centre-left and is overlapped by the info column).
 - Top-left technical caption: role hex 64, "HERO INFORMATION", techline.
-- Info column (352 wide, right-aligned at 14 px, from y +150; +96 with 128 px equip slots
-  when the content is under 1250 px tall): `rarity_mark` + star pips,
+- Info column (324 wide, 12 px from the right edge; it scrolls when the window is short,
+  with a bottom fade and a down chevron while more is below): `rarity_mark` + star pips,
   `name_plate`, tier hex + "POWER" + condensed 50 px power, white `info_panel` with
   `header_bar("Status")` and alternating `stat_row(..., light = true)` rows, Level Up
   (`light_button`) + Star Up (`primary_button` or `costs_button`), a row of four skill
   `hex_badge`s (ultimate in the faction color), white panel with `header_bar("Equip")` and a
   2 x 2 grid of `equip_slot`s (150).
-- Side tabs (Equip / Skills) as `side_button`s left of the info column at y ~690; `back_bar`
-  bottom-left above the safe inset; faint chevrons at the edges switch heroes.
+- Side tabs (Equip / Skills / Story) as `side_button`s pinned left of the column: level
+  with the lower panel while it is on screen, never under Back / Home (tapping one also
+  scrolls the column to the panel). `back_bar` bottom-left above the safe inset.
+- Browse arrows flank the art at chest height (left screen edge, and just left of the
+  column), 88 x 112 touch areas with a small dark tile; they never sit on the column.
+- The top-left caption sits on a soft paper scrim above the art.
 
 ### Team (`formation`)
 - Dark header: `tab_strip` [TEAM], team power (power glyph + condensed 44) right.
@@ -365,21 +400,27 @@ indicator 1498-1560. Without insets (720 x 1280): top bar 0-104, content 104-116
   with a skewed rarity plate "FEATURED".
 - `percent_meter`-style pity plate (Legendary within N pulls) and a `notice_bar` for the
   free daily pull. Rates as a `light_button` with the info glyph opening a light dialog.
-- Bottom: two `cost_button`s, x1 `secondary` and x10 `primary` (or `orange` when a free
-  pull is waiting), 330 x 112 each.
+- Banner title in two balanced lines (never an orphan word), on a soft dark scrim; the
+  subtitle on a dark glass tag; featured names on small dark glass tags.
+- Bottom: two `cost_button`s, x1 `secondary` and x10 `orange`, 330 x 112 each. While the
+  free daily pull is waiting, x1 is `primary` with a green "FREE" price and spends nothing.
+- Results: the ribbon, the cards and the shard / pity summary form one block centred above
+  Summon Again / Done.
 - Reveal: chrome hidden; cards flip as `hero_card`s with rarity rays (`Kit.rays` in the
   rarity color), results grid of `hero_card`s with N badges; Done = primary.
 
 ### Gear (`gear`)
 - Dark header: `tab_strip` [GEAR], item count right. Light page: `filter_chips` (ALL + slot
-  glyphs), hint, grid 4 x `equip_slot` (150) with name (condensed 18) and wearer (cyan
+  glyphs), hint, grid 4 x `equip_slot` (about 159, spanning the 16 px gutters) with name
+  (condensed 18) and wearer (cyan
   condensed) or SPARE. Tap = light dialog: slot tile, name, tier, score, `header_bar` stats,
   Salvage (`danger_button`) or Open hero. Minimal version shipped in `gear_screen.gd`.
 
 ### Quests (`quests`)
 - Dark header: `tab_strip` [DAILY] [WEEKLY later], reset timer right (timer glyph).
-- Light page: progress strip (`progress_bar(light)`) with milestone `reward_tile`s; quest
-  rows as white `row` panels: `hex_badge` glyph (cyan when done), title (Barlow Bold 26),
+- Light page: one DAILY BONUS panel (the "complete N quests" milestone: progress, reward
+  tiles, its Claim when reached; it is not repeated as a row); quest rows as white `row`
+  panels: `hex_badge` glyph (cyan when done), title (Barlow Bold 26),
   `progress_bar` (cyan, 18), reward chips, Claim (`primary_button`, dot) / Go
   (`light_button`) / Done (disabled). Claim all = `primary_button` at the bottom.
 

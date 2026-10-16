@@ -41,6 +41,8 @@ func setup(id: String, text: String, icon_name: String, is_center: bool = false)
 		_hex.offset_bottom = 78
 		_hex.draw.connect(_draw_hex)
 		add_child(_hex)
+		# First-session guide marks ring the hexagon itself (Guide reads this).
+		set_meta("guide_hex", Vector2(-22.0 + 50.0, 48.0))
 	else:
 		_bar = ColorRect.new()
 		_bar.mouse_filter = MOUSE_FILTER_IGNORE
