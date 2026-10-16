@@ -282,8 +282,9 @@ Every builder is static on `Kit` and returns a ready Control. Old names keep wor
   gold + dust; `+` opens the shop or summon); the right cluster in one dark glass box:
   **Quests**, **Notices** (bell, opens a list of actionable items), **Menu** (grid of every
   destination, Settings included, Kit Preview in debug builds). Red dots on each.
-- **Bottom nav** (120 px above the safe inset): Heroes, Team, **Lobby** (raised flat hexagon,
-  cyan rim and glow when active), Gear, Summon. White flat glyphs (60 px) over uppercase
+- **Bottom nav** (120 px above the safe inset): Heroes, Team, **Lobby** (flat hexagon raised
+  22 px above the bar, cyan rim and glow when active; keep the 100 px above the nav centre
+  free of small text), Gear, Summon. White flat glyphs (60 px) over uppercase
   condensed labels; inactive `#aeb3ba`, active white with a short white bar above.
 - **Chrome modes**: normal screens get solid bars (top: `#0b0c0e` to `#17191d` with faint
   hatching; nav: `#1a1c20` to `#0a0b0c` with a top hairline) and live between them.
@@ -342,7 +343,8 @@ indicator 1498-1560. Without insets (720 x 1280): top bar 0-104, content 104-116
 - Art: full body, height = content height, left edge at x -60 (the figure stands
   centre-left and is overlapped by the info column).
 - Top-left technical caption: role hex 64, "HERO INFORMATION", techline.
-- Info column (352 wide, right-aligned at 14 px, from y +150): `rarity_mark` + star pips,
+- Info column (352 wide, right-aligned at 14 px, from y +150; +96 with 128 px equip slots
+  when the content is under 1250 px tall): `rarity_mark` + star pips,
   `name_plate`, tier hex + "POWER" + condensed 50 px power, white `info_panel` with
   `header_bar("Status")` and alternating `stat_row(..., light = true)` rows, Level Up
   (`light_button`) + Star Up (`primary_button` or `costs_button`), a row of four skill

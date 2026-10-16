@@ -645,8 +645,10 @@ func _mock_detail(hero: String) -> void:
 	add_child(cap)
 
 	var colw := 352.0
-	var info := Kit.vbox(10)
-	info.position = Vector2(720 - colw - 14, 150)
+	var compact := vh < 1250.0
+	var slot_sz := 128.0 if compact else 150.0
+	var info := Kit.vbox(8 if compact else 10)
+	info.position = Vector2(720 - colw - 14, 96.0 if compact else 150.0)
 	info.custom_minimum_size.x = colw
 	add_child(info)
 	var rr := Kit.hbox(8)
@@ -701,12 +703,12 @@ func _mock_detail(hero: String) -> void:
 		for it: Dictionary in Game.gear_items():
 			if str(it.get("equipped_by", "")) == hero and str(it.slot) == slot:
 				item = it
-		eg.add_child(Kit.equip_slot(slot, item, 150))
+		eg.add_child(Kit.equip_slot(slot, item, slot_sz))
 	ev.add_child(Kit.center(eg))
 	info.add_child(eqp)
 	# Side tabs (Equip / Skills), left of the info column.
 	var tabs := Kit.vbox(8)
-	tabs.position = Vector2(720 - colw - 14 - 96, 690)
+	tabs.position = Vector2(720 - colw - 14 - 96, 600.0 if compact else 690.0)
 	tabs.add_child(Kit.side_button("equip", "Equip", Callable(), "accent"))
 	tabs.add_child(Kit.side_button("skill", "Skills", Callable(), "dark"))
 	add_child(tabs)
@@ -717,8 +719,8 @@ func _mock_detail(hero: String) -> void:
 	bb.offset_top = -Kit.BUTTON_H - 14 - UI.safe_bottom()
 	bb.offset_bottom = -14 - UI.safe_bottom()
 	add_child(bb)
-	for side: int in [-1, 1]:
-		var ar := Kit.icon("chevron_right", 44, Color(0, 0, 0, 0.35))
-		ar.flip_h = side < 0
-		ar.position = Vector2(4 if side < 0 else 720 - 48, 560)
-		add_child(ar)
+	# Previous-hero chevron (the next one sits under the info column's right edge).
+	var ar := Kit.icon("chevron_right", 44, Color(0, 0, 0, 0.35))
+	ar.flip_h = true
+	ar.position = Vector2(4, vh * 0.45)
+	add_child(ar)
