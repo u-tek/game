@@ -1,65 +1,70 @@
 extends Control
-## Screen "hero_detail" (params: hero_id, optional browse: [hero ids] for the prev/next arrows).
-## The hero stands large over a faction-tinted cathedral backdrop (animated HeroSprite with its
-## idle motion; tap them for a reaction). The info sheet scrolls up over the art: name plate,
-## power and stats, Level Up (cost shown, hold to repeat, Max), Star Up (shard bar with the
-## dust fallback), ultimate and passives (locked ones greyed with their unlock star), four gear
-## slots with a picker and Auto-equip, and the bio. Unowned heroes get a preview with a link
-## to the Summon portal. Level and star ups are celebrated with a burst, a sound and a
-## floating caption.
+## Screen "hero_detail" (params: hero_id, optional browse: [hero ids] for the prev/next arrows,
+## scroll: px, show: gear slot to open its picker). Style v2 (docs/dev/ui-style-v2.md
+## section 6): a light hatched page with faction-colored stripes along the bottom, the hero's
+## full body large on the centre-left (the animated HeroSprite with its idle motion; tap them
+## for a reaction), a technical caption top-left, and the white info column on the right:
+## rarity mark and stars, the level / name plate, tier hex and power, the STATUS panel (stats
+## with the next level's gain in green, Level Up with its cost: tap, hold to repeat, MAX; the
+## shard bar and Star Up), the skill hexes, and the lower panel switched by side tabs: EQUIP
+## (2 x 2 gear slots with a picker, Quick Equip, Unequip All), SKILLS, STORY. Back / Home sit
+## bottom-left (the nav is hidden here), faint chevrons at the edges browse heroes.
+## Unowned heroes get a greyed preview with a link to the Summon portal.
+
+const Roster := preload("res://src/ui/screens/heroes_screen.gd")
 
 const HOLD_DELAY := 0.42
 const HOLD_START := 0.16
 const HOLD_MIN := 0.045
 const STAT_ORDER: Array[String] = ["hp", "atk", "def", "spd", "crit"]
-const DARK_INK := Color("3d2306")
-const SHORT_RED := Color("ff6a50")
+const SLOTS: Array[String] = ["weapon", "armor", "helm", "charm"]
+const COL_W := 324.0
+const EDGE := 56.0
+const SHORT_RED := Color("d42a12")
+const TABS := [["equip", "Equip", "equip"], ["skills", "Skills", "skill"], ["story", "Story", "scrolls"]]
+
+static var _tab := "equip"
 
 var _id := ""
 var _def: Dictionary = {}
 var _owned := false
-var _plate_name: Label
-var _plate_sub: Label
-var _back_btn: Button
 var _browse: Array[String] = []
 var _faction_col := Kit.GOLD
+var _compact := false
 
-var _backdrop: DetailBackdrop
 var _stage: Control
-var _rays: Control
-var _glow: Control
+var _stripes: Control
 var _anchor: Node2D
 var _sprite: Node2D
+var _poke: Control
+var _caption: Control
 var _scroll: ScrollContainer
-var _top_spacer: Control
+var _column: VBoxContainer
 var _fx: Control
 var _arrows: Array[Control] = []
-var _top_bar: Control
-var _stage_h := 600.0
+var _back_bar: Control
+var _back_btn: Button
+var _home_btn: Button
 
-var _plate_stars: HBoxContainer
+var _stars_box: HBoxContainer
+var _plate_slot: HBoxContainer
 var _team_tag: Control
 var _power_label: Label
 var _power_value := -1
-var _stats_grid: GridContainer
-var _stats_caption: Label
-var _level_label: Label
-var _level_bar: ProgressBar
+var _stat_rows: VBoxContainer
+var _stats_sig := ""
 var _lvl_btn: Button
 var _lvl_inner: VBoxContainer
 var _max_btn: Button
-var _level_note: Label
-var _star_row: HBoxContainer
+var _max_inner: VBoxContainer
 var _shard_bar: ProgressBar
-var _star_note: Label
 var _star_slot: HBoxContainer
-var _passives_box: VBoxContainer
-var _gear_row: HBoxContainer
-var _auto_btn_slot: HBoxContainer
+var _skill_row: HBoxContainer
+var _tab_btns: Dictionary = {}
+var _lower: VBoxContainer
+var _lower_sig := ""
 var _gear_modal: Control
 
-var _passives_sig := -1
-var _gear_sig := ""
 var _holding := false
 var _hold_t := 0.0
 var _hold_next := 0.0
@@ -75,17 +80,24 @@ func setup(params: Dictionary) -> void:
 	if b is Array:
 		for x: Variant in b:
 			_browse.append(str(x))
+	# The nav is hidden here: Back / Home sit bottom-left instead.
+	UI.set_chrome(true, false)
 	if _def.is_empty():
 		_build_missing()
 		return
-	_faction_col = HeroArt.faction_color(str(_def.faction))
+	Roster.mark_seen(_id)
+	_faction_col = Kit.faction_color(str(_def.faction))
 	_owned = Game.owns(_id)
+	if not _owned and _tab == "equip":
+		_tab = "skills"
 	if _browse.is_empty() or not _browse.has(_id):
 		_browse.clear()
 		for h: Dictionary in Game.owned_heroes():
 			_browse.append(str(h.id))
 		if not _browse.has(_id):
 			_browse = [_id]
+	var vh := get_viewport_rect().size.y - UI.content_top()
+	_compact = vh - UI.safe_bottom() < 1180.0
 	_build()
 	resized.connect(_layout)
 	Game.changed.connect(_refresh)
@@ -97,7 +109,7 @@ func setup(params: Dictionary) -> void:
 		_open_gear_picker.call_deferred(str(params["show"]))
 
 
-## Screenshot/testing helper (params.scroll): scroll the sheet once laid out.
+## Screenshot/testing helper (params.scroll): scroll the info column once laid out.
 func _scroll_to(px: int) -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -113,73 +125,93 @@ func _exit_tree() -> void:
 
 
 func _build_missing() -> void:
+	add_child(Kit.page_bg("light"))
 	var col := Kit.vbox(24)
 	col.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	col.offset_left = 24
 	col.offset_right = -24
-	col.offset_top = 14
+	col.offset_top = 40
 	add_child(col)
-	col.add_child(Kit.screen_header("Hero"))
-	col.add_child(Kit.empty_state("This hero could not be found.", "heroes"))
+	col.add_child(Kit.empty_state("This hero could not be found.", "heroes", true))
+	_add_back_bar()
 
 
 # ------------------------------------------------------------------ build
 
 func _build() -> void:
-	_backdrop = DetailBackdrop.new()
-	_backdrop.color = _faction_col
-	_backdrop.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	add_child(_backdrop)
+	add_child(Kit.page_bg("light"))
+	# Faction stripes across the lower part of the page, fading in from above.
+	_stripes = Control.new()
+	_stripes.name = "Stripes"
+	_stripes.mouse_filter = MOUSE_FILTER_IGNORE
+	add_child(_stripes)
+	var hatch := Kit.deco("hatch", Vector2(720, 560), Color(_faction_col, 0.26))
+	hatch.set("spacing", 48.0)
+	hatch.set("line_width", 20.0)
+	hatch.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	_stripes.add_child(hatch)
+	var fade := TextureRect.new()
+	fade.mouse_filter = MOUSE_FILTER_IGNORE
+	fade.texture = Kit.vgradient(Color("f4f6f8"), Color(0.96, 0.965, 0.97, 0.0))
+	fade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	fade.stretch_mode = TextureRect.STRETCH_SCALE
+	fade.anchor_right = 1.0
+	fade.offset_bottom = 220
+	_stripes.add_child(fade)
 
+	# The hero: full body, centre-left.
 	_stage = Control.new()
 	_stage.name = "Stage"
 	_stage.mouse_filter = MOUSE_FILTER_IGNORE
 	_stage.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	add_child(_stage)
-	_rays = Kit.rays(_faction_col, 980.0, 18)
-	_rays.modulate.a = 0.16
-	_stage.add_child(_rays)
-	_glow = Kit.glow(_faction_col, 760)
-	_glow.modulate.a = 0.42
-	_stage.add_child(_glow)
-	var motes := Motes.new()
-	motes.color = _faction_col.lightened(0.35)
-	motes.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	_stage.add_child(motes)
+	var glow := Kit.glow(_faction_col, 720)
+	glow.name = "Glow"
+	glow.modulate.a = 0.22
+	_stage.add_child(glow)
 	_anchor = Node2D.new()
 	_anchor.name = "HeroAnchor"
 	_stage.add_child(_anchor)
 	_sprite = HeroArt.make_sprite(_id)
 	_anchor.add_child(_sprite)
 	if not _owned:
-		_sprite.modulate = Color(0.55, 0.52, 0.66)
+		_sprite.modulate = Color(0.5, 0.52, 0.56, 0.9)
+	_poke = Control.new()
+	_poke.name = "Poke"
+	_poke.mouse_filter = MOUSE_FILTER_PASS
+	add_child(_poke)
+	Kit.make_tappable(_poke, _poke_hero)
 
-	var sheet := Kit.vbox(18)
-	_top_spacer = Control.new()
-	_top_spacer.mouse_filter = MOUSE_FILTER_PASS
-	_top_spacer.custom_minimum_size.y = 420
-	sheet.add_child(_top_spacer)
-	Kit.make_tappable(_top_spacer, _poke_hero)
-	sheet.add_child(_build_plate())
-	var body := Kit.vbox(18)
-	sheet.add_child(Kit.margin(body, 20, 0))
-	# Owned heroes: Level Up comes first so it is on screen without scrolling.
-	if _owned:
-		body.add_child(_build_level_panel())
-		body.add_child(_build_stats_panel())
-		body.add_child(_build_star_panel())
-	else:
-		body.add_child(_build_stats_panel())
-		body.add_child(_build_unowned_panel())
-	body.add_child(_build_skills_panel())
-	if _owned:
-		body.add_child(_build_gear_panel())
-	body.add_child(_build_bio_panel())
-	body.add_child(Kit.spacer(0, 24))
-	_scroll = Kit.scroll(sheet)
-	_scroll.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	_scroll.get_v_scroll_bar().value_changed.connect(_on_scrolled)
+	_build_caption()
+
+	# A soft white veil under the info column so its text reads over any art.
+	var veil := HBoxContainer.new()
+	veil.name = "Veil"
+	veil.mouse_filter = MOUSE_FILTER_IGNORE
+	veil.add_theme_constant_override("separation", 0)
+	var paper := Color(0.96, 0.965, 0.97, 0.62)
+	for tex: Texture2D in [Kit.vgradient(Color(paper, 0.0), paper, true), Kit.vgradient(paper, paper)]:
+		var t := TextureRect.new()
+		t.mouse_filter = MOUSE_FILTER_IGNORE
+		t.texture = tex
+		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		t.stretch_mode = TextureRect.STRETCH_SCALE
+		t.custom_minimum_size.x = 120
+		t.size_flags_horizontal = SIZE_EXPAND_FILL if tex.get_width() == 4 else SIZE_FILL
+		veil.add_child(t)
+	add_child(veil)
+
+	# The info column (scrolls only when the window is too short for it).
+	_column = Kit.vbox(8 if _compact else 10)
+	_column.name = "Column"
+	var m := Kit.margin(_column, 0, 0)
+	m.add_theme_constant_override("margin_top", 12 if _compact else 18)
+	m.add_theme_constant_override("margin_bottom", 24)
+	m.add_theme_constant_override("margin_right", 6)
+	_scroll = Kit.scroll(m)
+	_scroll.name = "InfoScroll"
 	add_child(_scroll)
+	_build_column()
 
 	_fx = Control.new()
 	_fx.name = "Fx"
@@ -187,260 +219,236 @@ func _build() -> void:
 	_fx.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	add_child(_fx)
 
-	# Sticky bar: fades in once the name plate scrolls away, so the back button never floats
-	# over text.
-	_top_bar = Control.new()
-	_top_bar.mouse_filter = MOUSE_FILTER_IGNORE
-	_top_bar.anchor_right = 1.0
-	_top_bar.offset_bottom = 104
-	_top_bar.modulate.a = 0.0
-	var bar_bg := ColorRect.new()
-	bar_bg.mouse_filter = MOUSE_FILTER_IGNORE
-	bar_bg.color = Kit.BG
-	bar_bg.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	_top_bar.add_child(bar_bg)
-	var bar_name := Kit.header(str(_def.name), 38)
-	bar_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	bar_name.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	_top_bar.add_child(bar_name)
-	var line := Kit.divider()
-	line.anchor_right = 1.0
-	line.anchor_top = 1.0
-	line.anchor_bottom = 1.0
-	line.offset_top = -8
-	line.offset_bottom = 4
-	_top_bar.add_child(line)
-	add_child(_top_bar)
-	var back := Kit.icon_button("back", func() -> void: UI.back(), 88, "round")
-	back.position = Vector2(12, 8)
-	add_child(back)
-	_back_btn = back
 	if _browse.size() > 1:
 		for dir: int in [-1, 1]:
 			var d := dir
-			var arrow := Kit.icon_button("chevron_right", func() -> void: _browse_step(d), 96, "bare")
-			arrow.modulate = Kit.GOLD_LIGHT
-			if dir < 0:
-				for c in arrow.get_children():
-					if c is TextureRect:
-						(c as TextureRect).flip_h = true
+			var arrow := Kit.icon_button("chevron_right", func() -> void: _browse_step(d), 64, "round")
+			arrow.name = "Prev" if dir < 0 else "Next"
+			arrow.custom_minimum_size = Vector2(EDGE, 104)
+			arrow.size = arrow.custom_minimum_size
+			var g := arrow.get_node("Glyph") as TextureRect
+			g.flip_h = dir < 0
 			add_child(arrow)
 			_arrows.append(arrow)
+	_add_back_bar()
 
 
-func _build_plate() -> Control:
-	var plate := PanelContainer.new()
-	plate.mouse_filter = MOUSE_FILTER_IGNORE
-	plate.add_theme_stylebox_override("panel", Kit.box(Color(Kit.BG, 0.0), Color(Kit.BG, 0.82), Color.TRANSPARENT, 0.0, 0, 0))
-	var v := Kit.vbox(6)
-	v.mouse_filter = MOUSE_FILTER_IGNORE
-	v.alignment = BoxContainer.ALIGNMENT_END
-	plate.add_child(v)
-	var name_l := Kit.title(str(_def.name), Kit.SIZE_HERO)
-	v.add_child(name_l)
-	var sub := Kit.label(str(_def.title), 26, Kit.INK, "bold", 5)
-	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	v.add_child(sub)
-	_plate_name = name_l
-	_plate_sub = sub
-	_plate_stars = Kit.hbox(8)
-	_plate_stars.alignment = BoxContainer.ALIGNMENT_CENTER
-	_plate_stars.mouse_filter = MOUSE_FILTER_IGNORE
-	_plate_stars.custom_minimum_size.y = 40
-	v.add_child(_plate_stars)
-	var badges := Kit.hbox(14)
-	badges.alignment = BoxContainer.ALIGNMENT_CENTER
-	badges.mouse_filter = MOUSE_FILTER_IGNORE
-	var rb := Kit.rarity_badge(str(_def.rarity), 22)
-	rb.size_flags_vertical = SIZE_SHRINK_CENTER
-	badges.add_child(rb)
-	var fb := Kit.faction_badge(str(_def.faction), 40)
-	badges.add_child(fb)
-	var ro := Kit.role_badge(str(_def.role), 34)
-	ro.size_flags_vertical = SIZE_SHRINK_CENTER
-	badges.add_child(ro)
-	v.add_child(badges)
-	v.add_child(Kit.spacer(0, 6))
-	return plate
+func _add_back_bar() -> void:
+	var bb := Kit.back_bar()
+	bb.anchor_top = 1.0
+	bb.anchor_bottom = 1.0
+	bb.offset_left = 14
+	bb.offset_top = -Kit.BUTTON_H - 14 - UI.safe_bottom()
+	bb.offset_bottom = -14 - UI.safe_bottom()
+	add_child(bb)
+	_back_bar = bb
+	_back_btn = bb.get_node("Back") as Button
+	_home_btn = bb.get_node("Home") as Button
 
 
-func _build_stats_panel() -> Control:
-	var p := Kit.panel("glass", 22)
-	var v := Kit.vbox(12)
-	p.add_child(v)
-	var top := Kit.hbox(12)
-	top.add_child(Kit.icon("power", 52))
-	var pv := Kit.vbox(0)
-	pv.size_flags_horizontal = SIZE_EXPAND_FILL
-	pv.add_child(Kit.caption("Power", 22))
-	_power_label = Kit.number(0, 40, Kit.GOLD_LIGHT)
+## Top-left technical caption: role hex, "HERO INFORMATION", a technical line, faction and role.
+func _build_caption() -> void:
+	var cap := Kit.vbox(4)
+	cap.name = "Caption"
+	cap.mouse_filter = MOUSE_FILTER_IGNORE
+	cap.position = Vector2(18, 14)
+	var top := Kit.hbox(10)
+	top.mouse_filter = MOUSE_FILTER_IGNORE
+	top.add_child(Kit.hex_badge("role_" + str(_def.role), 60, Color("26282c")))
+	var tl := Kit.label("HERO\nINFORMATION", 16, Kit.TEXT_DIM, "cond_bold")
+	tl.add_theme_constant_override("line_spacing", -4)
+	top.add_child(tl)
+	cap.add_child(top)
+	cap.add_child(Kit.deco("techline", Vector2(150, 10), Color(0, 0, 0, 0.3)))
+	var fr := Kit.hbox(6)
+	fr.mouse_filter = MOUSE_FILTER_IGNORE
+	fr.add_child(Kit.faction_icon(str(_def.faction), 28))
+	fr.add_child(Kit.label(str(Kit.FACTION_NAMES.get(str(_def.faction), "")).to_upper(), 18, Kit.faction_color(str(_def.faction)).darkened(0.35), "cond_bold"))
+	cap.add_child(fr)
+	cap.add_child(Kit.label(str(Kit.ROLE_NAMES.get(str(_def.role), "")).to_upper(), 18, Kit.TEXT_DIM, "cond_bold"))
+	add_child(cap)
+	_caption = cap
+
+
+func _build_column() -> void:
+	var rarity := str(_def.rarity)
+	# Rarity mark and star pips.
+	var rr := Kit.hbox(8)
+	rr.mouse_filter = MOUSE_FILTER_IGNORE
+	rr.add_child(Kit.rarity_mark(rarity, 30 if _compact else 34))
+	rr.add_child(Kit.spacer(0, 0, true))
+	_stars_box = Kit.hbox(0)
+	_stars_box.mouse_filter = MOUSE_FILTER_IGNORE
+	_stars_box.size_flags_vertical = SIZE_SHRINK_CENTER
+	rr.add_child(_stars_box)
+	_column.add_child(rr)
+	# Level / name plate (rebuilt on refresh) and the title line.
+	_plate_slot = Kit.hbox(0)
+	_plate_slot.mouse_filter = MOUSE_FILTER_IGNORE
+	_column.add_child(_plate_slot)
+	# Tier numeral hex and power.
+	var pw := Kit.hbox(12)
+	pw.mouse_filter = MOUSE_FILTER_IGNORE
+	var hx := Kit.hex_badge("", 60 if _compact else 66, Color("26282c"), Color.WHITE, str(Kit.RARITY_TIER.get(rarity, "I")))
+	hx.set("cap", _faction_col)
+	pw.add_child(hx)
+	var pv := Kit.vbox(-6)
+	pv.mouse_filter = MOUSE_FILTER_IGNORE
+	pv.alignment = BoxContainer.ALIGNMENT_CENTER
+	pv.add_child(Kit.label("POWER", 18, Kit.TEXT_DIM, "cond_bold"))
+	_power_label = Kit.label("0", 46 if _compact else 52, Kit.TEXT, "title")
 	pv.add_child(_power_label)
-	top.add_child(pv)
-	_team_tag = Kit.tag("In Team", Kit.GOOD, Color("0d2a1d"), 22)
+	pw.add_child(pv)
+	pw.add_child(Kit.spacer(0, 0, true))
+	_team_tag = Kit.tag("IN TEAM", Kit.ACCENT, Color.WHITE, 18)
 	_team_tag.size_flags_vertical = SIZE_SHRINK_CENTER
-	top.add_child(_team_tag)
-	v.add_child(top)
-	v.add_child(Kit.divider())
-	_stats_caption = Kit.caption("", 22)
-	v.add_child(_stats_caption)
-	_stats_grid = Kit.grid(2, 10)
-	_stats_grid.add_theme_constant_override("h_separation", 28)
-	v.add_child(_stats_grid)
-	return p
+	pw.add_child(_team_tag)
+	_column.add_child(pw)
+
+	_column.add_child(_build_status())
+	_column.add_child(_build_skill_hexes())
+	_column.add_child(_build_lower())
 
 
-func _build_level_panel() -> Control:
-	var p := Kit.panel("glass", 22)
-	var v := Kit.vbox(14)
+## STATUS: stat rows, then Level Up / MAX and the star row (owned), or the summon link.
+func _build_status() -> Control:
+	var p := Kit.info_panel(10)
+	var v := Kit.vbox(6)
 	p.add_child(v)
-	var head := Kit.hbox(12)
-	var h := Kit.header("Level", 32)
-	h.size_flags_horizontal = SIZE_EXPAND_FILL
-	head.add_child(h)
-	_level_label = Kit.label("", 30, Kit.INK, "black", 4)
-	head.add_child(_level_label)
-	v.add_child(head)
-	_level_bar = Kit.progress_bar(1, 1, Kit.SKY, 22, "")
-	v.add_child(_level_bar)
-	var row := Kit.hbox(14)
+	v.add_child(Kit.header_bar("Status"))
+	_stat_rows = Kit.vbox(0)
+	v.add_child(_stat_rows)
+	if not _owned:
+		v.add_child(Kit.spacer(0, 2))
+		var t := Kit.body("Not yet summoned. %s answers the Summon portal: every pull has a chance at a %s hero." % [
+			str(_def.name), str(Kit.RARITY_NAMES.get(str(_def.rarity), "")).to_lower()], 20, Kit.TEXT_DIM)
+		v.add_child(t)
+		var go := Kit.primary_button("Go to Summon", func() -> void: UI.go("summon"), "summon")
+		go.add_theme_font_size_override("font_size", 26)
+		v.add_child(go)
+		return p
+	v.add_child(Kit.spacer(0, 2))
+	var row := Kit.hbox(8)
 	_lvl_btn = Kit.primary_button("", _on_level_tap)
-	_lvl_btn.custom_minimum_size = Vector2(0, 108)
+	_lvl_btn.name = "LevelUp"
+	_lvl_btn.custom_minimum_size = Vector2(0, 92 if _compact else 98)
 	_lvl_btn.size_flags_horizontal = SIZE_EXPAND_FILL
 	_lvl_btn.button_down.connect(_on_level_down)
 	_lvl_btn.button_up.connect(func() -> void: _end_hold())
-	_lvl_inner = Kit.vbox(2)
+	_lvl_inner = Kit.vbox(4)
 	_lvl_inner.mouse_filter = MOUSE_FILTER_IGNORE
 	_lvl_inner.alignment = BoxContainer.ALIGNMENT_CENTER
 	_lvl_inner.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	_lvl_inner.offset_bottom = -6
+	_lvl_inner.offset_bottom = -4
 	_lvl_btn.add_child(_lvl_inner)
 	row.add_child(_lvl_btn)
-	_max_btn = Kit.secondary_button("", _on_level_max)
-	_max_btn.custom_minimum_size = Vector2(176, 108)
+	_max_btn = Kit.light_button("", _on_level_max)
+	_max_btn.name = "LevelMax"
+	_max_btn.custom_minimum_size = Vector2(88, 92 if _compact else 98)
+	_max_inner = Kit.vbox(-4)
+	_max_inner.mouse_filter = MOUSE_FILTER_IGNORE
+	_max_inner.alignment = BoxContainer.ALIGNMENT_CENTER
+	_max_inner.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	_max_btn.add_child(_max_inner)
 	row.add_child(_max_btn)
 	v.add_child(row)
-	_level_note = Kit.caption("", 22)
-	_level_note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_level_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	v.add_child(_level_note)
-	return p
-
-
-func _build_star_panel() -> Control:
-	var p := Kit.panel("glass", 22)
-	var v := Kit.vbox(14)
-	p.add_child(v)
-	var head := Kit.hbox(12)
-	var h := Kit.header("Stars", 32)
-	h.size_flags_horizontal = SIZE_EXPAND_FILL
-	head.add_child(h)
-	_star_row = Kit.hbox(0)
-	_star_row.mouse_filter = MOUSE_FILTER_IGNORE
-	head.add_child(_star_row)
-	v.add_child(head)
-	var shards := Kit.hbox(10)
-	shards.add_child(Kit.icon("shard", 44))
-	_shard_bar = Kit.progress_bar(0, 1, Kit.rarity_color(str(_def.rarity)), 30, "")
-	shards.add_child(_shard_bar)
-	v.add_child(shards)
-	_star_note = Kit.body("", 23, Kit.INK_DIM)
-	_star_note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	v.add_child(_star_note)
+	var srow := Kit.hbox(8)
+	var sv := Kit.vbox(2)
+	sv.size_flags_horizontal = SIZE_EXPAND_FILL
+	sv.alignment = BoxContainer.ALIGNMENT_CENTER
+	var sh := Kit.hbox(4)
+	sh.mouse_filter = MOUSE_FILTER_IGNORE
+	sh.add_child(Kit.icon("shard", 26))
+	sh.add_child(Kit.label("SHARDS", 17, Kit.TEXT_DIM, "cond_bold"))
+	sv.add_child(sh)
+	_shard_bar = Kit.progress_bar(0, 1, Kit.rarity_color(str(_def.rarity)), 22, "", true)
+	sv.add_child(_shard_bar)
+	srow.add_child(sv)
 	_star_slot = Kit.hbox(0)
-	v.add_child(_star_slot)
+	srow.add_child(_star_slot)
+	v.add_child(srow)
 	return p
 
 
-func _build_unowned_panel() -> Control:
-	var p := Kit.panel("glass", 26)
-	var v := Kit.vbox(16)
-	p.add_child(v)
-	var h := Kit.header("Not yet summoned", 34)
-	h.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	v.add_child(h)
-	var t := Kit.body("%s answers the call of the Summon portal. Each pull has a chance to bring a %s hero." % [
-		str(_def.name), str(Kit.RARITY_NAMES.get(str(_def.rarity), "")).to_lower()], 24, Kit.INK_DIM)
-	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	v.add_child(t)
-	var b := Kit.primary_button("Go to Summon", func() -> void: UI.go("summon"), "summon")
-	v.add_child(b)
-	return p
+## Ultimate (faction-colored hex) and passives (white; locked ones show a lock). Tap = Skills tab.
+func _build_skill_hexes() -> Control:
+	_skill_row = Kit.hbox(8)
+	_skill_row.name = "SkillHexes"
+	return _skill_row
 
 
-func _build_skills_panel() -> Control:
-	var p := Kit.panel("glass", 22)
-	var v := Kit.vbox(14)
-	p.add_child(v)
-	v.add_child(Kit.section_header("Skills", 30))
-	var ult: Dictionary = _def.get("ultimate", {})
-	v.add_child(_skill_row("power", Kit.GOLD, str(ult.get("name", "")), "Ultimate", str(ult.get("description", "")), true, 0))
-	_passives_box = Kit.vbox(12)
-	v.add_child(_passives_box)
-	return p
+func _refresh_skill_hexes(stars: int) -> void:
+	for c in _skill_row.get_children():
+		c.queue_free()
+	var sz := 62.0 if _compact else 70.0
+	var items: Array[Control] = []
+	var ult := Kit.hex_badge("power", sz, _faction_col.darkened(0.1), Color.WHITE)
+	ult.set("glow", Color(_faction_col, 0.45))
+	ult.set("glow_size", 8.0)
+	items.append(ult)
+	for pas: Dictionary in _def.get("passives", []):
+		var on := _owned and stars >= int(pas.unlock_stars)
+		items.append(Kit.hex_badge("skill" if on else "lock", sz, Color.WHITE, Color("2a2d33") if on else Color(0.16, 0.18, 0.21, 0.45)))
+	var lab := Kit.vbox(-4)
+	lab.mouse_filter = MOUSE_FILTER_IGNORE
+	lab.alignment = BoxContainer.ALIGNMENT_CENTER
+	lab.add_child(Kit.label("SKILLS", 18, Kit.TEXT, "cond_bold"))
+	lab.add_child(Kit.label("%d / %d" % [1 + _unlocked_passives(stars), 1 + (_def.get("passives", []) as Array).size()], 18, Kit.TEXT_DIM, "cond"))
+	_skill_row.add_child(lab)
+	_skill_row.add_child(Kit.spacer(0, 0, true))
+	for it in items:
+		var holder := Panel.new()
+		holder.theme_type_variation = &"BareButton"
+		holder.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+		holder.custom_minimum_size = Vector2(sz, maxf(sz, Kit.BUTTON_H))
+		it.position = Vector2(0, (holder.custom_minimum_size.y - sz) * 0.5)
+		holder.add_child(it)
+		Kit.make_tappable(holder, func() -> void: _select_tab("skills"))
+		_skill_row.add_child(holder)
 
 
-func _skill_row(icon_name: String, accent: Color, title_text: String, kind: String, desc: String, unlocked: bool, unlock_stars: int) -> Control:
-	var card := Kit.panel("inset", 16)
-	var row := Kit.hbox(16)
-	card.add_child(row)
-	var disc := Panel.new()
-	disc.custom_minimum_size = Vector2(76, 76)
-	disc.size_flags_vertical = SIZE_SHRINK_BEGIN
-	disc.mouse_filter = MOUSE_FILTER_IGNORE
-	var col := accent if unlocked else Color("5a5470")
-	disc.add_theme_stylebox_override("panel", Kit.box(col.darkened(0.25), col.darkened(0.75), col.lightened(0.2), 999.0, 3))
-	var ic := Kit.icon(icon_name if unlocked else "lock", 46, Color.WHITE if unlocked else Color(1, 1, 1, 0.8))
-	ic.position = Vector2(15, 15)
-	ic.size = Vector2(46, 46)
-	disc.add_child(ic)
-	row.add_child(disc)
-	var tv := Kit.vbox(4)
-	tv.size_flags_horizontal = SIZE_EXPAND_FILL
-	var head := Kit.hbox(10)
-	var n := Kit.label(title_text, 28, Kit.GOLD_LIGHT if unlocked else Kit.INK_DIM, "extrabold")
-	n.size_flags_horizontal = SIZE_EXPAND_FILL
-	n.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	head.add_child(n)
-	if unlocked:
-		var tg := Kit.tag(kind, accent if kind == "Ultimate" else Kit.GOOD, DARK_INK, 18)
-		tg.size_flags_vertical = SIZE_SHRINK_CENTER
-		head.add_child(tg)
-	else:
-		var lock := Kit.hbox(2)
-		lock.mouse_filter = MOUSE_FILTER_IGNORE
-		lock.add_child(Kit.label("Unlocks at %d" % unlock_stars, 20, Kit.INK_DIM, "black"))
-		lock.add_child(Kit.icon("star", 26))
-		head.add_child(lock)
-	tv.add_child(head)
-	var d := Kit.body(desc, 23, Kit.INK if unlocked else Kit.INK_DIM)
-	tv.add_child(d)
-	row.add_child(tv)
-	if not unlocked:
-		card.modulate = Color(1, 1, 1, 0.72)
-	return card
+func _unlocked_passives(stars: int) -> int:
+	var n := 0
+	if not _owned:
+		return 0
+	for pas: Dictionary in _def.get("passives", []):
+		if stars >= int(pas.unlock_stars):
+			n += 1
+	return n
 
 
-func _build_gear_panel() -> Control:
-	var p := Kit.panel("glass", 22)
-	var v := Kit.vbox(16)
-	p.add_child(v)
-	v.add_child(Kit.section_header("Gear", 30))
-	_gear_row = Kit.hbox(12)
-	_gear_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	v.add_child(_gear_row)
-	_auto_btn_slot = Kit.hbox(0)
-	v.add_child(_auto_btn_slot)
-	return p
+## Side tabs (Equip / Skills / Story) on the left of the lower panel, over the art.
+func _build_lower() -> Control:
+	var row := Kit.hbox(6)
+	row.name = "Lower"
+	var tabs := Kit.vbox(4)
+	tabs.size_flags_vertical = SIZE_SHRINK_BEGIN
+	for t: Array in TABS:
+		var tid: String = t[0]
+		if tid == "equip" and not _owned:
+			continue
+		var b := Kit.side_button(str(t[2]), str(t[1]), _select_tab.bind(tid), "accent" if tid == _tab else "dark")
+		b.name = "Tab_" + tid
+		b.custom_minimum_size = Vector2(96, 112)
+		tabs.add_child(b)
+		_tab_btns[tid] = b
+	row.add_child(tabs)
+	_lower = Kit.vbox(8)
+	_lower.custom_minimum_size.x = COL_W
+	row.add_child(_lower)
+	return row
 
 
-func _build_bio_panel() -> Control:
-	var p := Kit.panel("glass", 24)
-	var v := Kit.vbox(12)
-	p.add_child(v)
-	v.add_child(Kit.section_header("Story", 30))
-	var b := Kit.body(str(_def.get("bio", "")), 25, Kit.INK)
-	v.add_child(b)
-	return p
+func _select_tab(tid: String) -> void:
+	if tid == _tab or not _tab_btns.has(tid):
+		return
+	_tab = tid
+	for k: String in _tab_btns:
+		var b := _tab_btns[k] as Button
+		var tile := b.get_node("Face/Tile") as Panel
+		tile.add_theme_stylebox_override("panel", Kit.style("tile_accent" if k == _tab else "tile_dark"))
+	_lower_sig = ""
+	_refresh_lower()
 
 
 # ------------------------------------------------------------------ layout & motion
@@ -450,52 +458,39 @@ func _layout() -> void:
 		return
 	var w := size.x
 	var h := size.y
-	_stage_h = clampf(h * 0.62, 430.0, 800.0)
-	var feet_y := _stage_h + 150.0
-	var top_y := 36.0
-	var fig_h := feet_y - top_y
-	_anchor.position = Vector2(w * 0.5, feet_y)
+	var sb := UI.safe_bottom()
+	var col_x := w - EDGE - COL_W
+	_scroll.position = Vector2(col_x - 102, 0)
+	_scroll.size = Vector2(COL_W + 102 + 6, h - sb)
+	# The upper rows of the column line up with the panels (the side tabs hang out left).
+	for i in _column.get_child_count():
+		var c := _column.get_child(i) as Control
+		if c.name != "Lower":
+			c.size_flags_horizontal = SIZE_SHRINK_END
+			c.custom_minimum_size.x = COL_W
+	# Stripes along the bottom.
+	_stripes.position = Vector2(0, h * 0.5)
+	_stripes.size = Vector2(w, h * 0.5)
+	# Hero: full body, feet near the bottom, standing centre-left.
+	var feet_y := h - sb - 18.0
+	var fig_h := (h - sb) * (0.94 if _compact else 0.97)
+	_anchor.position = Vector2(w * 0.33, feet_y)
 	if _sprite and is_instance_valid(_sprite):
 		_sprite.scale = Vector2.ONE
 		var hgt: float = _sprite.call("get_height")
 		var k := fig_h / maxf(hgt, 1.0)
 		_sprite.scale = Vector2(k, k)
-	var mid := Vector2(w * 0.5, top_y + fig_h * 0.34)
-	_rays.size = Vector2(980, 980)
-	_rays.position = mid - _rays.size * 0.5
-	_glow.size = Vector2(760, 760)
-	_glow.position = mid - _glow.size * 0.5
-	_backdrop.feet_y = feet_y
-	_backdrop.queue_redraw()
-	# The info sheet starts so the name plate sits over the hero's knees.
-	_top_spacer.custom_minimum_size.y = maxf(120.0, _stage_h - 190.0)
-	# Browse arrows flank the hero's name.
-	var ay := _top_spacer.custom_minimum_size.y + 6.0
+	var glow := _stage.get_node("Glow") as Control
+	glow.size = Vector2(720, 720)
+	glow.position = Vector2(w * 0.33 - 360.0, feet_y - fig_h * 0.62 - 360.0)
+	var veil := get_node("Veil") as Control
+	veil.position = Vector2(col_x - 100.0, 0)
+	veil.size = Vector2(w - col_x + 100.0, h)
+	_poke.position = Vector2(EDGE, 170)
+	_poke.size = Vector2(col_x - 110 - EDGE, maxf(100.0, h - sb - 290.0))
 	for i in _arrows.size():
 		var a := _arrows[i]
-		a.position = Vector2(4.0 if i == 0 else w - a.size.x - 4.0, ay)
-	_on_scrolled(_scroll.scroll_vertical)
-
-
-func _on_scrolled(v: float) -> void:
-	if _stage == null:
-		return
-	_stage.position.y = -v * 0.35
-	_stage.modulate = Color(1, 1, 1).lerp(Color(0.55, 0.52, 0.65), clampf(v / 600.0, 0.0, 1.0))
-	# Large title to small title: the plate's name and title fade out as they reach the top,
-	# then the sticky bar fades in (opaque before the stars and badges slide under it).
-	var sp := _top_spacer.custom_minimum_size.y
-	if _plate_name:
-		_plate_name.modulate.a = clampf((sp - 50.0 - v) / 80.0, 0.0, 1.0)
-	if _plate_sub:
-		_plate_sub.modulate.a = clampf((sp - 10.0 - v) / 80.0, 0.0, 1.0)
-	if _top_bar:
-		_top_bar.modulate.a = clampf((v - sp + 50.0) / 80.0, 0.0, 1.0)
-	var fade := clampf(1.0 - v / 160.0, 0.0, 1.0)
-	for a in _arrows:
-		a.modulate.a = fade
-		a.position.y = _top_spacer.custom_minimum_size.y + 6.0 - v
-		a.visible = fade > 0.02
+		a.position = Vector2(0.0 if i == 0 else w - EDGE, (h - sb) * 0.46)
 
 
 func _process(delta: float) -> void:
@@ -533,26 +528,45 @@ func _refresh() -> void:
 	var level := int(h.get("level", 1))
 	var cap := int(Game.max_level(_id))
 
-	for c in _plate_stars.get_children():
+	for c in _stars_box.get_children():
 		c.queue_free()
-	_plate_stars.add_child(Kit.star_row(stars, Kit.MAX_STARS if _owned else 0, 36))
+	_stars_box.add_child(Kit.star_row(stars, Kit.MAX_STARS if _owned else 0, 24))
+	for c in _plate_slot.get_children():
+		c.queue_free()
+	var plate := Kit.name_plate(level, cap, str(_def.name), 28 if _compact else 30)
+	plate.size_flags_horizontal = SIZE_EXPAND_FILL
+	_plate_slot.add_child(plate)
+	_team_tag.visible = Game.formation().has(_id)
 
-	# Power and stats.
 	var p := int(Game.hero_power(_id))
 	if _power_value >= 0 and p != _power_value:
 		Kit.count_to(_power_label, _power_value, p, 0.5, true)
-		Kit.pulse(_power_label, 1.1)
+		Kit.pulse(_power_label, 1.08)
 	else:
 		_power_label.text = Kit.format_full(p)
 	_power_value = p
-	_team_tag.visible = Game.formation().has(_id)
+
+	_refresh_stats(level, cap, stars)
+	if _owned:
+		_refresh_level(level, cap)
+		_refresh_stars(stars)
+	_refresh_skill_hexes(stars)
+	_refresh_lower()
+	_refresh_guide()
+
+
+func _refresh_stats(level: int, cap: int, stars: int) -> void:
 	var st := Game.hero_stats(_id)
 	var nxt := {}
 	if _owned and level < cap:
 		nxt = Game.hero_stats_at(_id, level + 1, stars)
-	_stats_caption.text = ("Next level adds the green numbers" if not nxt.is_empty() else "Level %d, all gear included" % level) if _owned else "Base stats at level 1"
-	for c in _stats_grid.get_children():
+	var sig := JSON.stringify(st) + JSON.stringify(nxt)
+	if sig == _stats_sig:
+		return
+	_stats_sig = sig
+	for c in _stat_rows.get_children():
 		c.queue_free()
+	var i := 0
 	for k: String in STAT_ORDER:
 		var val := int(st.get(k, 0))
 		var delta: Variant = null
@@ -560,22 +574,21 @@ func _refresh() -> void:
 			var dv := int(nxt.get(k, 0)) - val
 			if dv > 0:
 				delta = _stat_text(k, dv)
-		var row := Kit.stat_row(k, _stat_text(k, val), delta)
-		row.size_flags_horizontal = SIZE_EXPAND_FILL
-		_stats_grid.add_child(row)
-
-	if _owned:
-		_refresh_level(level, cap)
-		_refresh_stars(stars)
-		_refresh_gear()
-	_refresh_passives(stars)
-	_refresh_guide()
+		var rp := Kit.panel("row" if i % 2 == 0 else "light_inset", 0)
+		var sr := Kit.stat_row(k, _stat_text(k, val), delta, "", true)
+		sr.custom_minimum_size.y = 34 if _compact else 37
+		rp.add_child(Kit.margin(sr, 10, 0))
+		_stat_rows.add_child(rp)
+		i += 1
 
 
-## First-session guidance when another team hero should be leveled next: point at the browse
-## arrow toward that hero, or at Back (the hero list rings them).
+## First-session guidance. Level up this hero when the guide wants it (the button is marked
+## in _refresh_level); when another team hero should be leveled, point at the browse arrow
+## toward them or at Back (the roster rings them). Any other step happens elsewhere and the
+## nav is hidden here, so point at Home.
 func _refresh_guide() -> void:
-	var target := Guide.level_target() if Guide.step() == "level" else ""
+	var step := Guide.step()
+	var target := Guide.level_target() if step == "level" else ""
 	var away := target != "" and target != _id and not Guide.should_level(_id)
 	var dir := 0
 	if away and _browse.has(target) and _browse.has(_id) and _arrows.size() == 2:
@@ -584,7 +597,10 @@ func _refresh_guide() -> void:
 		dir = 1 if fwd <= n / 2 else -1
 	for i in _arrows.size():
 		Guide.mark(_arrows[i], away and dir == (-1 if i == 0 else 1), 0)
-	Guide.mark(_back_btn, away and dir == 0, 0)
+	if _back_btn:
+		Guide.mark(_back_btn, away and dir == 0, 0)
+	if _home_btn:
+		Guide.mark(_home_btn, step in ["claim", "summon", "formation", "battle"], 0)
 
 
 func _stat_text(stat: String, v: int) -> String:
@@ -596,113 +612,199 @@ func _stat_text(stat: String, v: int) -> String:
 
 
 func _refresh_level(level: int, cap: int) -> void:
-	_level_label.text = "Lv. %d / %d" % [level, cap]
-	Kit.set_progress(_level_bar, level, cap, "", false)
 	for c in _lvl_inner.get_children():
 		c.queue_free()
 	var cost := Game.level_up_cost(_id)
 	if cost.is_empty():
 		Guide.mark(_lvl_btn, false)
 		_lvl_btn.disabled = true
-		var t := Kit.label("Level Cap", 32, Kit.INK_DIM, "extrabold")
+		var t := Kit.label("Level Cap", 28, Color("9aa1aa"), "extrabold")
 		t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_lvl_inner.add_child(t)
 		_max_btn.disabled = true
-		_max_btn.text = "Max"
-		var stars_now := int(Game.hero(_id).get("stars", 1))
-		_level_note.text = "Level cap reached. Star up to raise it to %d." % Progression.level_cap(stars_now + 1) if Game.star_up_cost(_id).size() > 0 else "Fully ascended: this hero is at the highest level."
+		_set_max_text(0)
 		return
 	_lvl_btn.disabled = false
 	# First-session guidance: level up team heroes (see _refresh_guide for the others).
 	Guide.mark(_lvl_btn, Guide.should_level(_id))
-	var t2 := Kit.label("Level Up", 32, DARK_INK, "extrabold")
+	var t2 := Kit.label("Level Up", 28, Color.WHITE, "extrabold")
 	t2.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_lvl_inner.add_child(t2)
-	_lvl_inner.add_child(Kit.cost_row(cost, 23, DARK_INK, true, Color("a3200e")))
+	var pill := PanelContainer.new()
+	pill.mouse_filter = MOUSE_FILTER_IGNORE
+	pill.add_theme_stylebox_override("panel", Kit.box(Color(1, 1, 1, 0.94), Color(0.94, 0.95, 0.97, 0.94), Color.TRANSPARENT, 999.0, 0, 0))
+	var pm := Kit.margin(Kit.cost_row(cost, 20, Kit.TEXT, true, SHORT_RED), 12, 0)
+	pm.mouse_filter = MOUSE_FILTER_IGNORE
+	pill.add_child(pm)
+	var pc := Kit.center(pill)
+	pc.mouse_filter = MOUSE_FILTER_IGNORE
+	_lvl_inner.add_child(pc)
 	var n := int(Game.affordable_levels(_id))
 	_max_btn.disabled = n < 2
-	_max_btn.text = "Max +%d" % n if n >= 2 else "Max"
-	if Kit.can_afford(cost):
-		_level_note.text = "Hold Level Up to level quickly."
-	else:
-		var short := "gold" if Kit.have("gold") < int(cost.get("gold", 0)) else "hero EXP"
-		_level_note.text = "Not enough %s. Idle rewards and stages give more." % short
+	_set_max_text(n if n >= 2 else 0)
+
+
+## "MAX" over "+N" (the levels it would buy) on the light MAX button.
+func _set_max_text(n: int) -> void:
+	for c in _max_inner.get_children():
+		c.queue_free()
+	var dim := _max_btn.disabled
+	var a := Kit.label("MAX", 26, Color("9aa1aa") if dim else Kit.TEXT, "cond_bold")
+	a.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_max_inner.add_child(a)
+	if n > 0:
+		var b := Kit.label("+%d" % n, 22, Kit.ACCENT_DEEP, "cond_bold")
+		b.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_max_inner.add_child(b)
 
 
 func _refresh_stars(stars: int) -> void:
-	for c in _star_row.get_children():
-		c.queue_free()
-	_star_row.add_child(Kit.star_row(stars, Kit.MAX_STARS, 34))
 	for c in _star_slot.get_children():
 		c.queue_free()
 	var c := Game.star_up_cost(_id)
 	if c.is_empty():
-		Kit.set_progress(_shard_bar, 1, 1, "Max stars", false)
-		_star_note.text = "%s has reached the peak of ascension." % str(_def.name)
-		var done := Kit.secondary_button("Max Stars")
+		Kit.set_progress(_shard_bar, 1, 1, "MAX STARS", false)
+		var done := Kit.light_button("Max Stars")
 		done.disabled = true
-		done.size_flags_horizontal = SIZE_EXPAND_FILL
+		done.custom_minimum_size = Vector2(150, Kit.BUTTON_H)
+		done.add_theme_font_size_override("font_size", 24)
 		_star_slot.add_child(done)
 		return
 	var need := int(c.shards)
 	var have := int(c.shards_have)
-	Kit.set_progress(_shard_bar, mini(have, need), need, "Shards %d / %d" % [have, need], false)
+	Kit.set_progress(_shard_bar, mini(have, need), need, "%d / %d" % [have, need], false)
 	var dust := int(c.dust)
-	var gain := "Next star: level cap %d, stronger stats" % Progression.level_cap(stars + 1)
-	for pas: Dictionary in _def.get("passives", []):
-		if int(pas.unlock_stars) == stars + 1:
-			gain += ", unlocks %s" % str(pas.name)
-	if dust > 0:
-		var missing := need - mini(have, need)
-		_star_note.text = "%s.\nMissing %d shards: dust fills in at %d each." % [gain, missing, int(c.dust_per_shard)]
-		var b := Kit.costs_button("Star Up", {"dust": dust}, _on_star_up)
-		b.size_flags_horizontal = SIZE_EXPAND_FILL
-		_star_slot.add_child(b)
-	else:
-		_star_note.text = gain + "."
-		var b2 := Kit.primary_button("Star Up", _on_star_up, "star")
-		b2.custom_minimum_size.y = 100
-		b2.size_flags_horizontal = SIZE_EXPAND_FILL
-		_star_slot.add_child(b2)
-		Kit.set_dot(b2, true, 24, Vector2(10, 10))
-
-
-func _refresh_passives(stars: int) -> void:
-	if _passives_sig == stars:
-		return
-	_passives_sig = stars
-	for c in _passives_box.get_children():
-		c.queue_free()
-	for pas: Dictionary in _def.get("passives", []):
-		var unlocked := stars >= int(pas.unlock_stars)
-		_passives_box.add_child(_skill_row("star", Kit.GOOD, str(pas.name), "Passive", str(pas.description), unlocked, int(pas.unlock_stars)))
-
-
-func _refresh_gear() -> void:
-	var h := Game.hero(_id)
-	var hg: Dictionary = h.get("gear", {})
-	var sig := JSON.stringify(hg) + "|" + JSON.stringify(Game.gear_items())
-	if sig == _gear_sig:
-		return
-	_gear_sig = sig
-	for c in _gear_row.get_children():
-		c.queue_free()
-	var any_better := false
-	for slot: String in ["weapon", "armor", "helm", "charm"]:
-		var uid := str(hg.get(slot, ""))
-		var better := _better_loose(slot, uid)
-		any_better = any_better or better
-		_gear_row.add_child(_gear_tile(slot, uid, better))
-	for c in _auto_btn_slot.get_children():
-		c.queue_free()
 	var b: Button
-	if any_better:
-		b = Kit.primary_button("Auto-equip", _on_auto_equip, "auto")
-		Kit.set_dot(b, true, 24, Vector2(10, 10))
+	if dust > 0:
+		b = Kit.costs_button("Star Up", {"dust": dust}, _on_star_up, "light")
+		b.custom_minimum_size = Vector2(150, 96)
 	else:
-		b = Kit.secondary_button("Auto-equip", _on_auto_equip, "auto")
-	b.size_flags_horizontal = SIZE_EXPAND_FILL
-	_auto_btn_slot.add_child(b)
+		b = Kit.primary_button("Star Up", _on_star_up, "star")
+		b.custom_minimum_size = Vector2(150, Kit.BUTTON_H)
+		b.add_theme_font_size_override("font_size", 24)
+		Kit.set_dot(b, true, 22, Vector2(6, 6))
+	b.name = "StarUp"
+	_star_slot.add_child(b)
+	if stars < Kit.MAX_STARS:
+		b.tooltip_text = ""
+
+
+# ------------------------------------------------------------------ lower panel (tabs)
+
+func _refresh_lower() -> void:
+	var sig := _tab
+	if _tab == "equip":
+		sig += JSON.stringify(Game.hero(_id).get("gear", {})) + "|" + JSON.stringify(Game.gear_items())
+	elif _tab == "skills":
+		sig += str(Game.hero(_id).get("stars", 0))
+	if sig == _lower_sig:
+		return
+	_lower_sig = sig
+	for c in _lower.get_children():
+		_lower.remove_child(c)
+		c.queue_free()
+	match _tab:
+		"equip":
+			_build_equip()
+		"skills":
+			_build_skills()
+		_:
+			_build_story()
+
+
+func _build_equip() -> void:
+	var p := Kit.info_panel(10)
+	var v := Kit.vbox(8)
+	p.add_child(v)
+	v.add_child(Kit.header_bar("Equip"))
+	var hg: Dictionary = Game.hero(_id).get("gear", {})
+	var g := Kit.grid(2, 10)
+	var any_better := false
+	var any_worn := false
+	var sz := 118.0 if _compact else 132.0
+	for slot: String in SLOTS:
+		var uid := str(hg.get(slot, ""))
+		var item := Game.gear_item(uid) if uid != "" else {}
+		any_worn = any_worn or uid != ""
+		var s := slot
+		var tile := Kit.equip_slot(slot, item, sz, func() -> void: _open_gear_picker(s))
+		if _better_loose(slot, uid):
+			any_better = true
+			Kit.set_dot(tile, true, 22, Vector2(-4, -4))
+		g.add_child(tile)
+	v.add_child(Kit.center(g))
+	var row := Kit.hbox(8)
+	var q: Button
+	if any_better:
+		q = Kit.primary_button("Quick Equip", _on_auto_equip)
+	else:
+		q = Kit.light_button("Quick Equip", _on_auto_equip)
+	q.name = "QuickEquip"
+	var u := Kit.light_button("Unequip All", _on_unequip_all)
+	u.name = "UnequipAll"
+	u.disabled = not any_worn
+	for b: Button in [q, u]:
+		b.size_flags_horizontal = SIZE_EXPAND_FILL
+		b.custom_minimum_size.x = 0
+		b.add_theme_font_size_override("font_size", 22)
+		row.add_child(b)
+	v.add_child(row)
+	_lower.add_child(p)
+
+
+func _build_skills() -> void:
+	var p := Kit.info_panel(10)
+	var v := Kit.vbox(8)
+	p.add_child(v)
+	v.add_child(Kit.header_bar("Skills"))
+	var stars := int(Game.hero(_id).get("stars", Kit.RARITY_STARS.get(str(_def.rarity), 1)))
+	var ult: Dictionary = _def.get("ultimate", {})
+	v.add_child(_skill_entry("power", true, str(ult.get("name", "")), "ULTIMATE", str(ult.get("description", "")), true, 0))
+	for pas: Dictionary in _def.get("passives", []):
+		var on := _owned and stars >= int(pas.unlock_stars)
+		v.add_child(_skill_entry("skill", false, str(pas.name), "PASSIVE", str(pas.description), on, int(pas.unlock_stars)))
+	_lower.add_child(p)
+
+
+func _skill_entry(icon_name: String, ult: bool, title_text: String, kind: String, desc: String, unlocked: bool, unlock_stars: int) -> Control:
+	var rp := Kit.panel("light_inset", 10)
+	var row := Kit.hbox(10)
+	row.mouse_filter = MOUSE_FILTER_IGNORE
+	rp.add_child(row)
+	var hx: Control
+	if ult:
+		hx = Kit.hex_badge(icon_name, 52, _faction_col.darkened(0.1), Color.WHITE)
+	else:
+		hx = Kit.hex_badge(icon_name if unlocked else "lock", 52, Color.WHITE, Color("2a2d33") if unlocked else Color(0.16, 0.18, 0.21, 0.45))
+	hx.size_flags_vertical = SIZE_SHRINK_BEGIN
+	row.add_child(hx)
+	var tv := Kit.vbox(2)
+	tv.size_flags_horizontal = SIZE_EXPAND_FILL
+	tv.mouse_filter = MOUSE_FILTER_IGNORE
+	var head := Kit.hbox(6)
+	head.mouse_filter = MOUSE_FILTER_IGNORE
+	var n := Kit.label(title_text, 22, Kit.TEXT if unlocked else Kit.TEXT_DIM, "extrabold")
+	n.size_flags_horizontal = SIZE_EXPAND_FILL
+	n.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	head.add_child(n)
+	tv.add_child(head)
+	var kt := Kit.label(kind if unlocked else "UNLOCKS AT %d STARS" % unlock_stars, 16, Kit.ACCENT_DEEP if unlocked else Kit.TEXT_DIM, "cond_bold")
+	tv.add_child(kt)
+	var d := Kit.body(desc, 19, Kit.TEXT if unlocked else Kit.TEXT_DIM)
+	tv.add_child(d)
+	row.add_child(tv)
+	return rp
+
+
+func _build_story() -> void:
+	var p := Kit.info_panel(10)
+	var v := Kit.vbox(10)
+	p.add_child(v)
+	v.add_child(Kit.header_bar("Story"))
+	var t := Kit.label(str(_def.get("title", "")).to_upper(), 20, Kit.ACCENT_DEEP, "cond_bold")
+	v.add_child(t)
+	v.add_child(Kit.body(str(_def.get("bio", "")), 21, Kit.TEXT))
+	_lower.add_child(p)
 
 
 ## True when an unworn item of this slot beats what the hero wears.
@@ -714,54 +816,14 @@ func _better_loose(slot: String, worn_uid: String) -> bool:
 	return false
 
 
-func _gear_tile(slot: String, uid: String, better: bool) -> Control:
-	var box := Control.new()
-	box.custom_minimum_size = Vector2(150, 196)
-	box.mouse_filter = MOUSE_FILTER_PASS
-	if uid == "":
-		var e := Kit.empty_slot(140, str(Kit.GEAR_SLOT_NAMES.get(slot, slot)), func() -> void: _open_gear_picker(slot))
-		e.position = Vector2(5, 0)
-		box.add_child(e)
-		var cap := Kit.caption("Empty", 20)
-		cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		cap.position = Vector2(0, 146)
-		cap.size = Vector2(150, 30)
-		box.add_child(cap)
-		if better:
-			Kit.set_dot(e, true, 24, Vector2(-6, -6))
-		return box
-	var item := Game.gear_item(uid)
-	var tile := Kit.reward_tile("gear", uid, 1, 140, true)
-	tile.position = Vector2(5, 0)
-	box.add_child(tile)
-	var stat := Kit.label(_gear_stat_text(item, true), 19, Kit.GOOD, "black", 0)
-	stat.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	stat.clip_text = true
-	stat.position = Vector2(-4, 168)
-	stat.size = Vector2(158, 26)
-	box.add_child(stat)
-	var hit := Control.new()
-	hit.mouse_filter = MOUSE_FILTER_PASS
-	hit.position = Vector2(5, 0)
-	hit.size = Vector2(140, 140)
-	box.add_child(hit)
-	Kit.make_tappable(hit, func() -> void: _open_gear_picker(slot))
-	if better:
-		Kit.set_dot(hit, true, 24, Vector2(-6, -6))
-	return box
-
-
-## "+56 ATK", or every stat in long form ("+56 Attack  +3% Crit").
+## "+56 ATK", or every stat ("+56 ATK  +3% CRIT").
 func _gear_stat_text(item: Dictionary, short: bool) -> String:
 	var parts: Array[String] = []
 	var st: Dictionary = item.get("stats", {})
-	var abbrev := {"hp": "HP", "atk": "ATK", "def": "DEF", "spd": "SPD", "crit": "CRIT"}
 	for k: String in ["atk", "hp", "def", "spd", "crit"]:
 		if not st.has(k):
 			continue
-		var v := int(st[k])
-		var name_s: String = str(abbrev[k]) if short else str(Kit.STAT_NAMES.get(k, k))
-		parts.append("+%s %s" % [_stat_text(k, v), name_s])
+		parts.append("+%s %s" % [_stat_text(k, int(st[k])), str(Kit.STAT_SHORT.get(k, k.to_upper()))])
 		if short:
 			break
 	return "  ".join(parts)
@@ -834,7 +896,8 @@ func _do_level(n: int, quiet: bool) -> bool:
 		return true
 	if not quiet or _hold_gained == 0:
 		UI.toast(str(r.get("error", "Can't level up")), "bad")
-		Kit.shake(_lvl_btn, 8)
+		if _lvl_btn:
+			Kit.shake(_lvl_btn, 8)
 	return false
 
 
@@ -872,7 +935,20 @@ func _on_auto_equip() -> void:
 		_burst(0.7)
 
 
+func _on_unequip_all() -> void:
+	var hg: Dictionary = Game.hero(_id).get("gear", {})
+	var n := 0
+	for slot: String in SLOTS:
+		if str(hg.get(slot, "")) != "":
+			Game.unequip(_id, slot)
+			n += 1
+	if n > 0:
+		UI.toast("Took off %d piece%s of gear" % [n, "" if n == 1 else "s"])
+
+
 func _open_gear_picker(slot: String) -> void:
+	if not _owned:
+		return
 	var items: Array[Dictionary] = []
 	for it: Dictionary in Game.gear_items():
 		if str(it.slot) == slot:
@@ -882,54 +958,67 @@ func _open_gear_picker(slot: String) -> void:
 		var sb := Game.gear_score(str(b.uid))
 		return sa > sb if sa != sb else str(a.uid) < str(b.uid))
 	var worn := str(Game.hero(_id).get("gear", {}).get(slot, ""))
-	var list := Kit.vbox(12)
+	var list := Kit.vbox(8)
 	if worn != "":
-		list.add_child(_gear_pick_row(Game.gear_item(worn), true))
+		list.add_child(Kit.label("EQUIPPED", 18, Kit.ACCENT_DEEP, "cond_bold"))
+		list.add_child(_gear_pick_row(Game.gear_item(worn), true, -1))
+	var cur := Game.gear_score(worn) if worn != "" else -1
 	var others := 0
 	for it in items:
 		if str(it.uid) == worn:
 			continue
+		if others == 0:
+			list.add_child(Kit.label("IN THE BAG", 18, Kit.TEXT_DIM, "cond_bold"))
 		others += 1
-		list.add_child(_gear_pick_row(it, false))
+		list.add_child(_gear_pick_row(it, false, cur))
 	if others == 0:
-		var es := Kit.empty_state("No other %s yet. Gear drops from idle rewards and campaign stages." % str(Kit.GEAR_SLOT_NAMES.get(slot, slot)).to_lower(), "gear_" + slot)
-		es.custom_minimum_size.y = 220
+		var es := Kit.empty_state("No other %s yet. Gear drops from the Sanctum and campaign stages." % str(Kit.GEAR_SLOT_NAMES.get(slot, slot)).to_lower(), "gear_" + slot, true)
+		es.custom_minimum_size.y = 200
 		list.add_child(es)
 	var content: Control = list
 	var rows := others + (1 if worn != "" else 0)
 	if rows > 4:
 		var sc := Kit.scroll(list)
-		sc.custom_minimum_size = Vector2(580, minf(rows * 140.0, size.y * 0.62))
+		sc.custom_minimum_size = Vector2(560, minf(rows * 124.0 + 40.0, get_viewport_rect().size.y * 0.6))
 		content = sc
-	_gear_modal = UI.popup(str(Kit.GEAR_SLOT_NAMES.get(slot, slot)), content, Callable(), 640.0)
+	else:
+		list.custom_minimum_size.x = 560
+	_gear_modal = UI.popup(str(Kit.GEAR_SLOT_NAMES.get(slot, slot)), content, Callable(), 620.0, true)
 
 
-func _gear_pick_row(it: Dictionary, worn_here: bool) -> Control:
-	var card := Kit.card(14)
-	var row := Kit.hbox(14)
+func _gear_pick_row(it: Dictionary, worn_here: bool, cur_score: int) -> Control:
+	var card := Kit.panel("row", 10)
+	var row := Kit.hbox(12)
 	card.add_child(row)
-	row.add_child(Kit.reward_tile("gear", str(it.uid), 1, 100, false))
+	row.add_child(Kit.equip_slot(str(it.slot), it, 96))
 	var info := Kit.vbox(2)
 	info.size_flags_horizontal = SIZE_EXPAND_FILL
 	info.alignment = BoxContainer.ALIGNMENT_CENTER
-	var n := Kit.label(str(it.get("name", "Gear")), 26, Kit.tier_color(int(it.get("tier", 1))).lightened(0.25), "extrabold")
+	var n := Kit.label(str(it.get("name", "Gear")), 24, Kit.TEXT, "extrabold")
 	n.clip_text = true
 	n.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	info.add_child(n)
-	var s := Kit.label(_gear_stat_text(it, false), 21, Kit.GOOD, "black")
+	var s := Kit.label(_gear_stat_text(it, false), 20, Color("1f9e63"), "cond_bold")
 	s.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	info.add_child(s)
+	var meta := Kit.hbox(8)
+	meta.mouse_filter = MOUSE_FILTER_IGNORE
+	meta.add_child(Kit.tag("TIER %s" % Kit.roman(int(it.get("tier", 1))), Kit.tier_color(int(it.get("tier", 1))), Color.WHITE, 16))
+	var score := Game.gear_score(str(it.uid))
+	var sc_t := "SCORE %s" % Kit.format_full(score)
+	if cur_score >= 0 and score != cur_score:
+		sc_t += "  (%s%d)" % ["+" if score > cur_score else "", score - cur_score]
+	meta.add_child(Kit.label(sc_t, 17, Kit.TEXT_DIM if cur_score < 0 or score <= cur_score else Color("1f9e63"), "cond_bold"))
+	info.add_child(meta)
 	var owner := str(it.get("equipped_by", ""))
-	if worn_here:
-		info.add_child(Kit.caption("Worn now", 20, Kit.GOLD_LIGHT))
-	elif owner != "":
-		info.add_child(Kit.caption("Worn by %s" % str(Game.hero_def(owner).get("name", owner)), 20))
+	if owner != "" and not worn_here:
+		info.add_child(Kit.label("Worn by %s" % str(Game.hero_def(owner).get("name", owner)), 18, Kit.ACCENT_DEEP, "bold"))
 	row.add_child(info)
 	var uid := str(it.uid)
 	var slot := str(it.slot)
 	var b: Button
 	if worn_here:
-		b = Kit.secondary_button("Remove", func() -> void:
+		b = Kit.light_button("Remove", func() -> void:
 			Game.unequip(_id, slot)
 			_close_gear_modal())
 	else:
@@ -943,8 +1032,8 @@ func _gear_pick_row(it: Dictionary, worn_here: bool) -> Control:
 					UI.toast("Taken from %s" % str(Game.hero_def(owner).get("name", owner)))
 			else:
 				UI.toast(str(r.get("error", "Can't equip")), "bad"))
-	b.custom_minimum_size = Vector2(150, 88)
-	b.add_theme_font_size_override("font_size", 28)
+	b.custom_minimum_size = Vector2(132, Kit.BUTTON_H)
+	b.add_theme_font_size_override("font_size", 24)
 	b.size_flags_vertical = SIZE_SHRINK_CENTER
 	row.add_child(b)
 	return card
@@ -964,12 +1053,12 @@ func _hero_point() -> Vector2:
 		var local := gp - _fx.global_position
 		if local.y > 40.0 and local.y < size.y - 40.0:
 			return local
-	return Vector2(size.x * 0.5, minf(_stage_h * 0.5, size.y * 0.4))
+	return Vector2(size.x * 0.33, size.y * 0.4)
 
 
 func _burst(strength: float = 1.0, color: Color = Color(0, 0, 0, 0)) -> void:
 	var b := Burst.new()
-	b.color = color if color.a > 0.0 else _faction_col.lightened(0.2)
+	b.color = color if color.a > 0.0 else Kit.ACCENT
 	b.strength = strength
 	b.position = _hero_point()
 	_fx.add_child(b)
@@ -977,9 +1066,11 @@ func _burst(strength: float = 1.0, color: Color = Color(0, 0, 0, 0)) -> void:
 
 func _float_text(text: String, color: Color, size_px: int = 52) -> void:
 	var l := Kit.title(text, size_px, color)
+	l.add_theme_constant_override("outline_size", 8)
+	l.add_theme_color_override("font_outline_color", Color(1, 1, 1, 0.9))
 	l.size = Vector2(600, size_px * 1.6)
 	var p := _hero_point()
-	l.position = Vector2(size.x * 0.5 - 300.0, p.y - 120.0)
+	l.position = Vector2(p.x - 300.0, p.y - 120.0)
 	l.pivot_offset = l.size * 0.5
 	_fx.add_child(l)
 	l.scale = Vector2(0.6, 0.6)
@@ -994,133 +1085,24 @@ func _float_text(text: String, color: Color, size_px: int = 52) -> void:
 func _celebrate_level(gained: int) -> void:
 	var lv := int(Game.hero(_id).get("level", 1))
 	_burst(1.0)
-	_float_text("Level %d" % lv if gained <= 1 else "Level %d  (+%d)" % [lv, gained], Kit.GOLD_LIGHT, 50)
-	Kit.pulse(_level_label, 1.18)
+	_float_text("LV. %d" % lv if gained <= 1 else "LV. %d  (+%d)" % [lv, gained], Kit.ACCENT_DEEP, 50)
+	if _lvl_btn:
+		Kit.pulse(_lvl_btn, 1.04)
 	UI.haptic(15)
 
 
 func _celebrate_star(stars: int) -> void:
 	UI.sfx("victory")
 	UI.haptic(40)
-	_burst(1.4, Kit.GOLD)
-	_burst(0.9, Color.WHITE)
-	_float_text("%d Stars!" % stars, Kit.GOLD_LIGHT, 60)
+	_burst(1.4, Kit.ORANGE)
+	_burst(0.9, Kit.ACCENT_HI)
+	_float_text("%d STARS" % stars, Kit.ORANGE, 60)
 	if _sprite and is_instance_valid(_sprite):
 		_sprite.call("play_victory")
 		_victory_left = 2.4
 	for pas: Dictionary in _def.get("passives", []):
 		if int(pas.unlock_stars) == stars:
 			UI.toast("New passive unlocked: %s" % str(pas.name), "good")
-
-
-# ------------------------------------------------------------------ drawing helpers
-
-## Faction-tinted cathedral backdrop: sky gradient, a gothic window arch behind the hero,
-## light shafts and a glowing floor ring at the hero's feet. Drawn once per resize.
-class DetailBackdrop extends Control:
-	var color := Color("f2c14e")
-	var feet_y := 800.0
-
-	func _ready() -> void:
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
-		resized.connect(queue_redraw)
-
-	func _draw() -> void:
-		var w := size.x
-		var h := size.y
-		var bg := Color("120e24")
-		var top := bg.lerp(color, 0.3).darkened(0.25)
-		var mid := bg.lerp(color, 0.12)
-		var pts := PackedVector2Array([Vector2(0, 0), Vector2(w, 0), Vector2(w, h * 0.55), Vector2(0, h * 0.55)])
-		draw_polygon(pts, PackedColorArray([top, top, mid, mid]))
-		var pts2 := PackedVector2Array([Vector2(0, h * 0.55), Vector2(w, h * 0.55), Vector2(w, h), Vector2(0, h)])
-		draw_polygon(pts2, PackedColorArray([mid, mid, bg, bg]))
-		# Gothic window: pointed arch with tracery, faint gold.
-		var cx := w * 0.5
-		var aw := w * 0.36
-		var base_y := feet_y - 40.0
-		var spring_y := feet_y * 0.38
-		var line := Color(1.0, 0.88, 0.55, 0.16)
-		var fill := Color(color, 0.07)
-		var arch := _arch(cx, aw, spring_y, base_y)
-		draw_colored_polygon(arch, fill)
-		arch.append(arch[0])
-		draw_polyline(arch, line, 3.0, true)
-		var inner := _arch(cx, aw * 0.86, spring_y + aw * 0.1, base_y)
-		inner.append(inner[0])
-		draw_polyline(inner, Color(line, 0.1), 2.0, true)
-		draw_line(Vector2(cx, spring_y - aw * 0.55), Vector2(cx, base_y), Color(line, 0.08), 2.0)
-		draw_arc(Vector2(cx, spring_y + aw * 0.05), aw * 0.38, 0, TAU, 48, Color(line, 0.1), 2.0, true)
-		# Light shafts from above.
-		for i in 3:
-			var x0 := cx + (i - 1) * w * 0.16
-			var shaft := PackedVector2Array([Vector2(x0 - 24, 0), Vector2(x0 + 24, 0), Vector2(x0 + 150 + i * 30, feet_y), Vector2(x0 - 150 - i * 30, feet_y)])
-			draw_colored_polygon(shaft, Color(color.lightened(0.4), 0.035))
-		# Floor ring at the feet.
-		for r in 4:
-			var rx := w * (0.2 + r * 0.09)
-			var ry := rx * 0.18
-			_ellipse(Vector2(cx, feet_y), rx, ry, Color(color, 0.22 - r * 0.045), 2.5 - r * 0.4)
-		_ellipse_fill(Vector2(cx, feet_y), w * 0.3, w * 0.05, Color(color, 0.12))
-
-	func _arch(cx: float, half_w: float, spring_y: float, base_y: float) -> PackedVector2Array:
-		var p := PackedVector2Array()
-		p.append(Vector2(cx - half_w, base_y))
-		var r := half_w * 1.6
-		var steps := 24
-		# Left arc: centre right of the window, from the springing line up to the apex.
-		var lc := Vector2(cx - half_w + r, spring_y)
-		var apex_ang := acos((r - half_w) / r)
-		for i in steps + 1:
-			var a := PI + (apex_ang * float(i) / steps)
-			p.append(lc + Vector2(cos(a), sin(a)) * r)
-		var rc := Vector2(cx + half_w - r, spring_y)
-		for i in steps + 1:
-			var a := (TAU - apex_ang) + (apex_ang * float(i) / steps)
-			p.append(rc + Vector2(cos(a), sin(a)) * r)
-		p.append(Vector2(cx + half_w, base_y))
-		return p
-
-	func _ellipse(c: Vector2, rx: float, ry: float, col: Color, width: float) -> void:
-		var pts := PackedVector2Array()
-		for i in 49:
-			var a := TAU * i / 48.0
-			pts.append(c + Vector2(cos(a) * rx, sin(a) * ry))
-		draw_polyline(pts, col, maxf(width, 1.0), true)
-
-	func _ellipse_fill(c: Vector2, rx: float, ry: float, col: Color) -> void:
-		var pts := PackedVector2Array()
-		for i in 48:
-			var a := TAU * i / 48.0
-			pts.append(c + Vector2(cos(a) * rx, sin(a) * ry))
-		draw_colored_polygon(pts, col)
-
-
-## Slow drifting light motes in the faction color.
-class Motes extends Control:
-	var color := Color.WHITE
-	var _m: Array[Vector4] = []
-	var _t := 0.0
-
-	func _ready() -> void:
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var rng := RandomNumberGenerator.new()
-		rng.seed = 4242
-		for i in 26:
-			_m.append(Vector4(rng.randf(), rng.randf(), rng.randf_range(1.5, 4.0), rng.randf() * TAU))
-
-	func _process(delta: float) -> void:
-		_t += delta
-		queue_redraw()
-
-	func _draw() -> void:
-		var w := size.x
-		var h := size.y * 0.8
-		for m in _m:
-			var y := fposmod(m.y - _t * 0.018 * (m.z / 3.0), 1.0) * h
-			var x := m.x * w + sin(_t * 0.6 + m.w) * 14.0
-			var a := 0.25 + 0.35 * (0.5 + 0.5 * sin(_t * 1.3 + m.w))
-			draw_circle(Vector2(x, y), m.z, Color(color, a))
 
 
 ## One-shot celebration: an expanding ring and sparks flying out (frees itself).
@@ -1146,11 +1128,11 @@ class Burst extends Control:
 	func _draw() -> void:
 		var k := clampf(_t / _dur, 0.0, 1.0)
 		var e := 1.0 - pow(1.0 - k, 3.0)
-		draw_circle(Vector2.ZERO, 90.0 * strength * (1.0 - k), Color(color.lightened(0.5), 0.35 * (1.0 - k)))
+		draw_circle(Vector2.ZERO, 90.0 * strength * (1.0 - k), Color(color.lightened(0.5), 0.3 * (1.0 - k)))
 		draw_arc(Vector2.ZERO, 30.0 + 230.0 * strength * e, 0, TAU, 64, Color(color, 0.85 * (1.0 - k)), 2.0 + 7.0 * (1.0 - k), true)
 		for s in _sparks:
 			var dir := Vector2.from_angle(s.x)
 			var p := dir * s.y * e
 			var tail := dir * s.y * maxf(0.0, e - 0.12)
-			draw_line(tail, p, Color(color.lightened(0.3), 1.0 - k), s.z * (1.0 - k * 0.6), true)
-			draw_circle(p, s.z * 0.6 * (1.0 - k * 0.5), Color(1, 1, 1, 1.0 - k))
+			draw_line(tail, p, Color(color.lightened(0.2), 1.0 - k), s.z * (1.0 - k * 0.6), true)
+			draw_circle(p, s.z * 0.6 * (1.0 - k * 0.5), Color(color.lightened(0.6), 1.0 - k))

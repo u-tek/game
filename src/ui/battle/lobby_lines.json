@@ -1,0 +1,85 @@
+{
+	"version": 1,
+	"note": "Lobby speech-bubble lines, 2-3 per hero (home screen). Short: two lines in a 500 px bubble at 24 px.",
+	"fallback": [
+		"Ready when you are, envoy.",
+		"The sanctum is quiet tonight. Stay a while."
+	],
+	"lines": {
+		"seraphiel": [
+			"Hush. Listen... the sky still hums when you are near.",
+			"Every hymn I sing tonight is for you alone. Stay for the last note.",
+			"Come closer, envoy. Light is warmer when it is shared."
+		],
+		"cassiel": [
+			"Eyes up here, envoy. Well... eventually.",
+			"Nothing gets past my shield. You, I might let through.",
+			"I never take a step back. So you take one toward me."
+		],
+		"liora": [
+			"Did you get hurt? Let me sing it better... slowly.",
+			"I practiced a new song just for you. Promise you won't laugh?",
+			"My hands are warm, see? Healing works best up close."
+		],
+		"uriela": [
+			"Point me at the enemy and watch me shine.",
+			"The old stories say I can't be beaten. Shall we make them true?",
+			"You keep staring at my spear. It's fine. Everyone does."
+		],
+		"nuriel": [
+			"...You didn't hear me come in. Good.",
+			"Dawn is my hour. Spend it with me.",
+			"I don't talk much. Stay anyway."
+		],
+		"mordessa": [
+			"Kneel if you like, darling. I do enjoy the view.",
+			"I lost a war. I have no intention of losing you.",
+			"Keep my furnace fed and I'll keep you warm."
+		],
+		"brakka": [
+			"Brakka guards you. Brakka also guards the snacks.",
+			"Hide is hard. Heart is soft. Don't tell the Queen.",
+			"You fed Brakka once. Now Brakka follows you forever."
+		],
+		"vesper": [
+			"The ash says you'll stay a little longer. The ash is never wrong.",
+			"I read your future, sweet thing. It runs very hot.",
+			"Sit with me. I'll whisper what the embers say about you."
+		],
+		"imra": [
+			"A deal! Your smile for my luck. Fair-ish, I promise.",
+			"Sign here, here and... there. Kidding! Mostly.",
+			"Every pact needs a witness. Lucky you, it's me."
+		],
+		"kessa": [
+			"Twelve trophies. You'd make a lovely thirteenth page.",
+			"Relax, envoy. I only purr for people I like.",
+			"Got a contract for me? Or did you just want to look?"
+		],
+		"noctaire": [
+			"I cut my wings over one refusal. Don't make me regret the rest.",
+			"Stand close. My blade knows whom to spare.",
+			"Heaven gave me orders. You only ever ask. I like that."
+		],
+		"orrin": [
+			"My oath outlived its gate. It found you instead.",
+			"Lean on me. These chains have held worse.",
+			"Rest. I'll keep watch until the last star goes out."
+		],
+		"sable": [
+			"Confess something to me, envoy. I'll keep it... mostly.",
+			"The ghosts come every week. You could come more often.",
+			"Light a candle with me. The dark is kinder in pairs."
+		],
+		"lucen": [
+			"One wing white, one wing black. Both of them like you.",
+			"I haven't picked a side yet. I might pick you.",
+			"En garde! ...No? Then dance with me instead."
+		],
+		"ashra": [
+			"Stand back a little. Or don't. I'm careful now. Mostly.",
+			"I burned one heaven by accident. You, I'd warm on purpose.",
+			"Fire is just attention you can see."
+		]
+	}
+}

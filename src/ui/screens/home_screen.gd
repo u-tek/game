@@ -1,67 +1,86 @@
 extends Control
-## Screen "home": the hub. The team leader idles on a glowing dais over the home scene, the
-## idle chest fills while the player is away (claim / quick claim), and a big Battle button
-## leads to the next campaign stage. Shortcuts: Campaign, Formation. Refreshes on
-## Game.changed and once a second (idle timer).
+## Screen "home": the Lobby (style v2, docs/dev/ui-style-v2.md section 6). Full bleed under
+## the translucent chrome: the lobby hero stands full body (animated HeroSprite, cropped by
+## the nav) in the sanctum hall, with a speech bubble. Top left: a banner carousel (summon
+## banner, offers, chapter); top right: the objective strip (the guide's next step, else
+## "Clear Stage x-y"). Side buttons: Daily and Offers on the left, Hero and View (hide the
+## UI) on the right. The four shortcut plates: Shop and Sanctum (idle rewards, fill %, tap
+## for the claim sheet with Quick Claim) bottom left, Team and Campaign (next stage preview)
+## bottom right. Tap the hero for another line; the edge chevrons switch the lobby hero
+## (saved as the "lobby_hero" setting). Refreshes on Game.changed and once a second.
 
 const SceneBackdrop := preload("res://src/ui/battle/scene_backdrop.gd")
-const Dais := preload("res://src/ui/battle/dais.gd")
+const LobbyLines := preload("res://src/ui/battle/lobby_lines.gd")
+const StageInfo := preload("res://src/ui/battle/stage_info.gd")
 
-const SHORT_RED := Color("ff6a50")
-const DARK_INK := Color("3d2306")
+## Game setting holding the hero the player picked for the lobby.
+const HERO_KEY := "lobby_hero"
+const BANNER_SECS := 5.0
+const BANNER_SIZE := Vector2(330, 132)
+const NOTICE_W := 340.0
+const TOP_PLATE := Vector2(318, 124)
+const BIG_PLATE := Vector2(336, 156)
+const ROW_GAP := 8.0
+## Gap between the bottom plate row and the nav.
+const PLATE_LIFT := 22.0
+const SIDE_PITCH := 128.0
+const BUBBLE_W := 460.0
+## The hero's head (halo) starts this far below the top bar; the feet end below the window.
+const HEAD_GAP := 140.0
+const FIGURE_VISIBLE := 0.92
 
 var _backdrop: Control
-var _stage: Control
-var _dais: Control
-var _rays: Control
-var _back_glow: Control
+var _shade: TextureRect
 var _anchor: Node2D
 var _sprite: Node2D
-var _leader_id := ""
-var _name_plate: VBoxContainer
-var _leader_name: Label
-var _leader_title: Label
-var _leader_stars: HBoxContainer
-
-var _chapter_title: Label
-var _chapter_caption: Label
-var _chapter_bar: ProgressBar
-
-var _chest_box: Control
-var _chest_glow: Control
-var _chest_icon: Control
-var _chest_tag: Control
-var _idle_bar: ProgressBar
-var _rate_label: Label
-var _pending_row: HBoxContainer
-var _quick_slot: HBoxContainer
-var _quick_btn: Button
-var _claim_btn: Button
-var _formation_btn: Button
-var _quick_sig := ""
-var _pending_sig := ""
+var _hero_id := ""
+var _hero_hit: Button
+var _ui: Control
+var _banner_slot: Control
+var _banner_page := 0
+var _banner_t := 0.0
+var _notice: Button
+var _notice_cb := Callable()
+var _speech: PanelContainer
+var _line := 0
+var _prev_btn: Button
+var _next_btn: Button
+var _side_daily: Button
+var _side_offers: Button
+var _side_hero: Button
+var _side_view: Button
+var _shop: Button
+var _sanctum: Button
+var _meter: PanelContainer
+var _team: Button
+var _campaign: Button
+var _camp_info: VBoxContainer
+var _camp_sig := ""
 var _full := false
-
-var _power_row: HBoxContainer
-var _battle_btn: Button
-var _battle_title: Label
-var _battle_sub: Label
-var _battle_ready := false
-
+var _restore: Button
+var _sheet: Control
+var _sheet_refs: Dictionary = {}
 var _t := 0.0
 var _tick := 0.0
 var _cheer_left := 0.0
 
 
-func setup(_params: Dictionary) -> void:
+## params: sheet (bool) opens the Sanctum sheet (screenshots).
+func setup(params: Dictionary) -> void:
+	UI.set_full_bleed(true)
 	_build()
 	Game.changed.connect(_refresh)
+	resized.connect(_layout)
 	_refresh()
+	_layout.call_deferred()
+	if bool(params.get("sheet", false)):
+		_open_sanctum.call_deferred()
 
 
 func _exit_tree() -> void:
 	if Game.changed.is_connected(_refresh):
 		Game.changed.disconnect(_refresh)
+	_close_sheet()
 
 
 # ------------------------------------------------------------------ build
@@ -69,234 +88,150 @@ func _exit_tree() -> void:
 func _build() -> void:
 	_backdrop = SceneBackdrop.new()
 	_backdrop.kind = "home"
-	_backdrop.horizon = 0.52
+	_backdrop.horizon = 0.64
+	_backdrop.floor_shade = 0.0
 	_backdrop.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	add_child(_backdrop)
 
-	var col := Kit.vbox(12)
-	col.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	col.offset_left = 18
-	col.offset_right = -18
-	col.offset_top = 14
-	col.offset_bottom = -14
-	add_child(col)
-
-	col.add_child(_build_chapter_card())
-
-	_stage = Control.new()
-	_stage.name = "Stage"
-	_stage.size_flags_vertical = SIZE_EXPAND_FILL
-	_stage.custom_minimum_size.y = 300
-	_stage.mouse_filter = MOUSE_FILTER_PASS
-	_stage.resized.connect(_place_leader)
-	col.add_child(_stage)
-	_build_stage()
-
-	col.add_child(_build_idle_panel())
-	col.add_child(_build_battle_cta())
-
-
-func _build_chapter_card() -> Control:
-	var card := Kit.card(0)
-	card.custom_minimum_size.y = 96
-	var m := Kit.margin(null, 20, 10)
-	card.add_child(m)
-	var row := Kit.hbox(14)
-	row.mouse_filter = MOUSE_FILTER_IGNORE
-	m.add_child(row)
-	var ic := Kit.icon("map", 56)
-	ic.size_flags_vertical = SIZE_SHRINK_CENTER
-	row.add_child(ic)
-	var info := Kit.vbox(2)
-	info.mouse_filter = MOUSE_FILTER_IGNORE
-	info.size_flags_horizontal = SIZE_EXPAND_FILL
-	info.alignment = BoxContainer.ALIGNMENT_CENTER
-	_chapter_caption = Kit.caption("", 21)
-	_chapter_title = Kit.header("", 32)
-	_chapter_title.clip_text = true
-	_chapter_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	info.add_child(_chapter_caption)
-	info.add_child(_chapter_title)
-	row.add_child(info)
-	var right := Kit.vbox(6)
-	right.mouse_filter = MOUSE_FILTER_IGNORE
-	right.alignment = BoxContainer.ALIGNMENT_CENTER
-	right.custom_minimum_size.x = 170
-	_chapter_bar = Kit.progress_bar(0, 10, Kit.GOLD, 26, "")
-	right.add_child(_chapter_bar)
-	var go := Kit.hbox(4)
-	go.mouse_filter = MOUSE_FILTER_IGNORE
-	go.alignment = BoxContainer.ALIGNMENT_END
-	go.add_child(Kit.caption("Campaign", 21, Kit.GOLD_LIGHT))
-	go.add_child(Kit.icon("chevron_right", 24, Kit.GOLD_LIGHT))
-	right.add_child(go)
-	row.add_child(right)
-	Kit.make_tappable(card, func() -> void: UI.go("campaign"))
-	return card
-
-
-func _build_stage() -> void:
-	# Backlight: slow rays and a soft glow behind the leader.
-	_rays = Kit.rays(Kit.GOLD, 620.0, 16)
-	_rays.modulate.a = 0.22
-	_stage.add_child(_rays)
-	_back_glow = Kit.glow(Kit.GOLD, 520)
-	_back_glow.modulate.a = 0.3
-	_stage.add_child(_back_glow)
-	_dais = Dais.new()
-	_dais.mouse_filter = MOUSE_FILTER_IGNORE
-	_stage.add_child(_dais)
-
 	_anchor = Node2D.new()
-	_anchor.name = "LeaderAnchor"
-	_stage.add_child(_anchor)
+	_anchor.name = "LobbyHero"
+	add_child(_anchor)
 
-	# Tap the leader to open their page.
-	var hit := Button.new()
-	hit.name = "LeaderHit"
-	hit.theme_type_variation = &"BareButton"
-	hit.focus_mode = FOCUS_NONE
-	hit.mouse_filter = MOUSE_FILTER_PASS
-	hit.anchor_left = 0.27
-	hit.anchor_right = 0.73
-	hit.anchor_top = 0.05
-	hit.anchor_bottom = 1.0
-	hit.pressed.connect(func() -> void:
-		if _leader_id != "":
-			UI.sfx("tap")
-			UI.go("hero_detail", {"hero_id": _leader_id}))
-	_stage.add_child(hit)
+	# Shade behind the shortcut plates so they read over any art.
+	_shade = TextureRect.new()
+	_shade.name = "Shade"
+	_shade.texture = Kit.vgradient(Color(Kit.CHROME, 0.0), Color(Kit.CHROME, 0.86))
+	_shade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_shade.stretch_mode = TextureRect.STRETCH_SCALE
+	_shade.mouse_filter = MOUSE_FILTER_IGNORE
+	_shade.anchor_top = 0.56
+	_shade.anchor_right = 1.0
+	_shade.anchor_bottom = 1.0
+	add_child(_shade)
 
-	_name_plate = Kit.vbox(0)
-	_name_plate.mouse_filter = MOUSE_FILTER_IGNORE
-	_name_plate.alignment = BoxContainer.ALIGNMENT_END
-	_name_plate.anchor_left = 0.0
-	_name_plate.anchor_right = 1.0
-	_name_plate.anchor_top = 1.0
-	_name_plate.anchor_bottom = 1.0
-	_name_plate.offset_top = -86
-	_name_plate.offset_bottom = -4
-	_leader_name = Kit.title("", 44)
-	_leader_stars = Kit.hbox(10)
-	_leader_stars.alignment = BoxContainer.ALIGNMENT_CENTER
-	_leader_stars.mouse_filter = MOUSE_FILTER_IGNORE
-	_leader_title = Kit.label("", 22, Kit.INK, "bold", 5)
-	_name_plate.add_child(_leader_name)
-	_name_plate.add_child(_leader_stars)
-	_stage.add_child(_name_plate)
+	# Tap the hero: another line and a little reaction.
+	_hero_hit = Button.new()
+	_hero_hit.name = "HeroHit"
+	_hero_hit.theme_type_variation = &"BareButton"
+	_hero_hit.focus_mode = FOCUS_NONE
+	_hero_hit.mouse_filter = MOUSE_FILTER_PASS
+	_hero_hit.pressed.connect(_on_hero_tap)
+	add_child(_hero_hit)
 
-	_stage.add_child(_side_button("map", "Campaign", Vector2(0, 0), func() -> void: UI.go("campaign")))
-	var fbox := _side_button("heroes", "Formation", Vector2(1, 0), func() -> void: UI.go("formation"))
-	_formation_btn = fbox.get_child(0) as Button
-	_stage.add_child(fbox)
+	_ui = Control.new()
+	_ui.name = "LobbyUI"
+	_ui.mouse_filter = MOUSE_FILTER_IGNORE
+	_ui.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	add_child(_ui)
 
+	_banner_slot = Control.new()
+	_banner_slot.name = "BannerSlot"
+	_banner_slot.mouse_filter = MOUSE_FILTER_IGNORE
+	_banner_slot.size = Vector2(BANNER_SIZE.x, BANNER_SIZE.y + 22.0)
+	_ui.add_child(_banner_slot)
+	_show_banner(0, false)
 
-## Round shortcut button with a caption, pinned to a top corner of the stage area.
-func _side_button(icon_name: String, text: String, corner: Vector2, cb: Callable) -> Control:
-	var box := Kit.vbox(2)
-	box.mouse_filter = MOUSE_FILTER_IGNORE
-	box.custom_minimum_size = Vector2(120, 0)
-	var b := Kit.icon_button(icon_name, cb, 96, "round")
-	b.size_flags_horizontal = SIZE_SHRINK_CENTER
-	box.add_child(b)
-	var l := Kit.label(text, 22, Kit.GOLD_LIGHT, "extrabold", 5)
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	box.add_child(l)
-	box.anchor_left = corner.x
-	box.anchor_right = corner.x
-	box.anchor_top = corner.y
-	box.anchor_bottom = corner.y
-	box.grow_horizontal = GROW_DIRECTION_BEGIN if corner.x > 0.5 else GROW_DIRECTION_END
-	box.offset_left = -120.0 if corner.x > 0.5 else 0.0
-	box.offset_right = 0.0 if corner.x > 0.5 else 120.0
-	box.offset_top = 8
-	return box
+	_notice = Kit.notice_bar("", func() -> void:
+		if _notice_cb.is_valid():
+			_notice_cb.call(), NOTICE_W)
+	_ui.add_child(_notice)
 
+	_side_daily = Kit.side_button("quests", "Daily", func() -> void: UI.go("quests"), "dark")
+	_side_offers = Kit.side_button("gift", "Offers", func() -> void: UI.go("shop"), "orange")
+	_side_hero = Kit.side_button("avatar", "Hero", _open_hero, "diamond")
+	_side_view = Kit.side_button("eye_off", "View", _hide_ui, "diamond")
+	Kit.add(_ui, [_side_daily, _side_offers, _side_hero, _side_view])
 
-func _build_idle_panel() -> Control:
-	var panel := Kit.panel("glass", 18)
-	var v := Kit.vbox(12)
-	panel.add_child(v)
-	var top := Kit.hbox(16)
-	v.add_child(top)
+	_speech = Kit.speech_bubble("", "", BUBBLE_W)
+	_ui.add_child(_speech)
+	_prev_btn = _chevron(-1)
+	_next_btn = _chevron(1)
+	Kit.add(_ui, [_prev_btn, _next_btn])
 
-	_chest_box = Control.new()
-	_chest_box.custom_minimum_size = Vector2(128, 128)
-	_chest_box.mouse_filter = MOUSE_FILTER_PASS
-	_chest_glow = Kit.glow(Kit.GOLD, 190)
-	_chest_glow.position = Vector2(64 - 95, 64 - 95)
-	_chest_glow.size = Vector2(190, 190)
-	_chest_glow.modulate.a = 0.35
-	_chest_box.add_child(_chest_glow)
-	_chest_icon = Kit.icon("chest", 116)
-	_chest_icon.position = Vector2(6, 8)
-	_chest_icon.size = Vector2(116, 116)
-	_chest_icon.pivot_offset = Vector2(58, 100)
-	_chest_box.add_child(_chest_icon)
-	_chest_tag = Kit.tag("FULL", Kit.EMBER, Color.WHITE, 20)
-	_chest_tag.position = Vector2(30, -6)
-	_chest_tag.visible = false
-	_chest_box.add_child(_chest_tag)
-	Kit.make_tappable(_chest_box, _claim)
-	top.add_child(_chest_box)
-
-	var info := Kit.vbox(8)
-	info.size_flags_horizontal = SIZE_EXPAND_FILL
-	info.alignment = BoxContainer.ALIGNMENT_CENTER
-	var head := Kit.hbox(8)
-	var h := Kit.header("Idle Rewards", 32)
-	h.size_flags_horizontal = SIZE_EXPAND_FILL
-	head.add_child(h)
-	head.add_child(Kit.currency_icon("gold", 30))
-	_rate_label = Kit.label("", 22, Kit.GOLD_LIGHT, "black", 4)
-	head.add_child(_rate_label)
-	info.add_child(head)
-	_idle_bar = Kit.progress_bar(0, 1, Kit.GOLD, 32, "")
-	info.add_child(_idle_bar)
-	_pending_row = Kit.hbox(14)
-	_pending_row.custom_minimum_size.y = 40
-	info.add_child(_pending_row)
-	top.add_child(info)
-
-	var buttons := Kit.hbox(14)
-	_quick_slot = Kit.hbox(0)
-	_quick_slot.size_flags_horizontal = SIZE_EXPAND_FILL
-	buttons.add_child(_quick_slot)
-	_claim_btn = Kit.primary_button("Claim", _claim, "chest")
-	_claim_btn.size_flags_horizontal = SIZE_EXPAND_FILL
-	_claim_btn.custom_minimum_size.y = 96
-	buttons.add_child(_claim_btn)
-	v.add_child(buttons)
-	return panel
+	# Shortcut plates.
+	_shop = Kit.shortcut("Shop", "shop", "blue", func() -> void: UI.go("shop"), {"size": TOP_PLATE})
+	_meter = Kit.percent_meter("Sanctum\nfill", 0.0, "sanctum", "LV.01")
+	_sanctum = Kit.shortcut("Sanctum", "sanctum", "dark", _open_sanctum, {"size": BIG_PLATE, "sub": _meter})
+	_team = Kit.shortcut("Team", "team", "white", func() -> void: UI.go("formation"), {"size": TOP_PLATE, "side": "right"})
+	_campaign = Kit.shortcut("Campaign", "campaign", "orange", _on_campaign, {"size": BIG_PLATE, "side": "right", "badge": "!"})
+	_camp_info = Kit.vbox(0)
+	_camp_info.name = "StageInfo"
+	_camp_info.mouse_filter = MOUSE_FILTER_IGNORE
+	(_campaign.get("face") as Control).add_child(_camp_info)
+	Kit.add(_ui, [_shop, _sanctum, _team, _campaign])
 
 
-func _build_battle_cta() -> Control:
-	var v := Kit.vbox(8)
-	_power_row = Kit.hbox(10)
-	_power_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	_power_row.custom_minimum_size.y = 40
-	v.add_child(_power_row)
-	_battle_btn = Kit.primary_button("", _on_battle)
-	_battle_btn.custom_minimum_size.y = 124
-	var row := Kit.hbox(18)
-	row.mouse_filter = MOUSE_FILTER_IGNORE
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	row.offset_bottom = -8
-	var ic := Kit.icon("sword", 64)
-	ic.size_flags_vertical = SIZE_SHRINK_CENTER
-	row.add_child(ic)
-	var tv := Kit.vbox(0)
-	tv.mouse_filter = MOUSE_FILTER_IGNORE
-	tv.alignment = BoxContainer.ALIGNMENT_CENTER
-	_battle_title = Kit.label("Battle", 42, DARK_INK, "title")
-	_battle_sub = Kit.label("", 24, Color("5a3a0e"), "extrabold")
-	tv.add_child(_battle_title)
-	tv.add_child(_battle_sub)
-	row.add_child(tv)
-	_battle_btn.add_child(row)
-	v.add_child(_battle_btn)
-	return v
+## Bare chevron button at a screen edge (switches the lobby hero). dir -1 = previous.
+func _chevron(dir: int) -> Button:
+	var b := Kit.icon_button("chevron_right", func() -> void: _switch_hero(dir), Kit.BUTTON_H, "bare")
+	b.name = "Prev" if dir < 0 else "Next"
+	var g := b.get_node("Glyph") as TextureRect
+	g.flip_h = dir < 0
+	g.modulate = Color(1, 1, 1, 0.85)
+	for k: String in ["offset_left", "offset_top"]:
+		g.set(k, -22.0)
+	for k: String in ["offset_right", "offset_bottom"]:
+		g.set(k, 22.0)
+	return b
+
+
+func _layout() -> void:
+	if _ui == null or size.x <= 0.0 or size.y <= 0.0:
+		return
+	var w := size.x
+	var vh := size.y
+	var top := UI.content_top() + 10.0
+	var bottom := UI.content_bottom()
+
+	_banner_slot.position = Vector2(14, top)
+	_notice.position = Vector2(w - NOTICE_W - 8.0, top + 10.0)
+	_notice.size = Vector2(NOTICE_W, Kit.BUTTON_H)
+
+	# Shortcut grid, ending PLATE_LIFT above the nav.
+	var by := vh - bottom - PLATE_LIFT - (TOP_PLATE.y + ROW_GAP + BIG_PLATE.y)
+	_place(_shop, Vector2(8, by), TOP_PLATE)
+	_place(_sanctum, Vector2(2, by + TOP_PLATE.y + ROW_GAP), BIG_PLATE)
+	_place(_team, Vector2(w - TOP_PLATE.x - 8.0, by), TOP_PLATE)
+	_place(_campaign, Vector2(w - BIG_PLATE.x - 2.0, by + TOP_PLATE.y + ROW_GAP), BIG_PLATE)
+	_camp_info.position = Vector2(BIG_PLATE.x * 0.07, BIG_PLATE.y * 0.6)
+	_camp_info.size = Vector2(BIG_PLATE.x * 0.42, BIG_PLATE.y * 0.34)
+
+	# Side buttons under the banner.
+	var sy := top + BANNER_SIZE.y + 40.0
+	var sw := _side_daily.get_combined_minimum_size()
+	_side_daily.position = Vector2(6, sy)
+	_side_offers.position = Vector2(6, sy + SIDE_PITCH)
+	_side_hero.position = Vector2(w - sw.x - 6.0, sy)
+	_side_view.position = Vector2(w - sw.x - 6.0, sy + SIDE_PITCH)
+
+	# Speech bubble at the hero's waist, chevrons beside it.
+	var bh := maxf(_speech.get_combined_minimum_size().y, 96.0)
+	var bub_y := minf(vh * 0.5 - 30.0, by - bh - 40.0)
+	bub_y = maxf(bub_y, sy + SIDE_PITCH * 2.0 - 8.0)
+	_speech.position = Vector2(90, bub_y)
+	_speech.size = Vector2(BUBBLE_W, 0)
+	var cy := bub_y + bh * 0.5 - Kit.BUTTON_H * 0.5
+	_prev_btn.position = Vector2(0, cy)
+	_next_btn.position = Vector2(w - Kit.BUTTON_H, cy)
+
+	# The hero: full body, head under the banner row, cropped by the nav.
+	var head := UI.content_top() + HEAD_GAP
+	var fig_h := (vh - head) / FIGURE_VISIBLE
+	_anchor.position = Vector2(w * 0.5, head + fig_h)
+	if _sprite and is_instance_valid(_sprite):
+		_sprite.scale = Vector2.ONE
+		var base_h: float = _sprite.call("get_height")
+		var k := fig_h / maxf(base_h, 1.0)
+		_sprite.scale = Vector2(k, k)
+	_hero_hit.position = Vector2(w * 0.24, head)
+	_hero_hit.size = Vector2(w * 0.52, maxf(by - head - 12.0, 120.0))
+	if _restore:
+		_restore.size = size
+
+
+func _place(c: Control, at: Vector2, sz: Vector2) -> void:
+	c.position = at
+	c.size = sz
 
 
 # ------------------------------------------------------------------ refresh
@@ -304,36 +239,72 @@ func _build_battle_cta() -> Control:
 func _refresh() -> void:
 	if not is_inside_tree():
 		return
-	_refresh_chapter()
-	_refresh_leader()
+	_refresh_hero()
 	_refresh_idle()
-	_refresh_battle()
+	_refresh_campaign()
+	_refresh_badges()
 	_refresh_guide()
 
 
-## First-session guidance: highlight the suggested next tap (see Guide).
+## First-session guidance: the Sanctum (free quick claim), Team and Campaign plates; the
+## Sanctum sheet marks its Quick Claim button.
 func _refresh_guide() -> void:
 	var step := Guide.step()
-	Guide.mark(_quick_btn, step == "claim")
-	Guide.mark(_formation_btn, step == "formation", 1)
-	Guide.mark(_battle_btn, step == "battle", 0)
+	Guide.mark(_sanctum, step == "claim", 0)
+	Guide.mark(_team, step == "formation", 0)
+	Guide.mark(_campaign, step == "battle", 0)
+	var q: Variant = _sheet_refs.get("quick", null)
+	if q is Control and is_instance_valid(q):
+		Guide.mark(q as Control, step == "claim", 0)
 
 
-func _refresh_chapter() -> void:
-	var cleared := Game.cleared_count()
-	var total := Game.stages().size()
-	var chs := Game.chapters()
-	var ci := mini(cleared / 10, chs.size() - 1)
-	if chs.is_empty():
-		return
-	var ch: Dictionary = chs[ci]
-	var in_ch := clampi(cleared - int(ch.get("first_stage", ci * 10)), 0, int(ch.get("stage_count", 10)))
-	_chapter_caption.text = "Chapter %d of %d" % [ci + 1, chs.size()] if cleared < total else "Campaign complete"
-	_chapter_title.text = str(ch.get("name", ""))
-	Kit.set_progress(_chapter_bar, in_ch, int(ch.get("stage_count", 10)), "%d / %d" % [in_ch, int(ch.get("stage_count", 10))], false)
+func _refresh_badges() -> void:
+	Kit.set_dot(_side_daily.get_node("Face/Tile") as Control, int(Game.quests_ready_count()) > 0, 20.0, Vector2(-8, -6))
+	var gift := false
+	for o: Dictionary in Game.offers():
+		if str(o.get("price_label", "")) == "Free" and bool(o.get("available", false)):
+			gift = true
+	Kit.set_new(_side_offers.get_node("Face/Tile") as Control, gift, 28.0, Vector2(-12, -10))
+	Kit.set_dot(_team, Guide.formation_can_improve(), 21.0, Vector2(-2, -6))
+	_refresh_objective()
 
 
-func _pick_leader() -> String:
+## The objective strip: the guide's next step while it is active, else the next stage.
+func _refresh_objective() -> void:
+	var st := Game.current_stage()
+	var text := "Clear Stage %s" % str(st.get("id", "")) if not st.is_empty() else "All stages cleared"
+	var cb := _on_campaign
+	match Guide.step():
+		"claim":
+			text = "Collect the Sanctum"
+			cb = _open_sanctum
+		"summon":
+			text = "Summon new heroes"
+			cb = func() -> void: UI.go("summon")
+		"formation":
+			text = "Fill your team"
+			cb = func() -> void: UI.go("formation")
+		"level":
+			text = "Level up heroes"
+			cb = func() -> void: UI.go("heroes")
+		"quests":
+			text = "Claim quest rewards"
+			cb = func() -> void: UI.go("quests")
+	var l := _notice.get_meta("text_label") as Label
+	if l.text != text:
+		l.text = text
+		Kit.fit_label(l, NOTICE_W - 152.0, 24, 18)
+	_notice_cb = cb
+
+
+# ------------------------------------------------------------------ the lobby hero
+
+## The hero shown in the lobby: the player's pick if still owned, else the strongest team
+## hero (heroes with painted art first).
+func _pick_hero() -> String:
+	var want: Variant = Game.setting(HERO_KEY)
+	if want is String and want != "" and Game.owns(want):
+		return want
 	var best := ""
 	var best_score := -1
 	for id: String in Game.formation():
@@ -350,127 +321,398 @@ func _pick_leader() -> String:
 	return best
 
 
-func _refresh_leader() -> void:
-	var id := _pick_leader()
-	if id != _leader_id:
-		_leader_id = id
-		if _sprite and is_instance_valid(_sprite):
-			_sprite.queue_free()
-		_sprite = null
-		if id != "":
-			_sprite = HeroArt.make_sprite(id)
-			_anchor.add_child(_sprite)
-			_dais.set("color", HeroArt.faction_color(str(Game.hero_def(id).get("faction", "celestial"))))
-			_place_leader()
-	if id == "":
-		_name_plate.visible = false
-		return
-	_name_plate.visible = true
-	var d := Game.hero_def(id)
-	var h := Game.hero(id)
-	_leader_name.text = str(d.get("name", id))
-	_leader_title.text = "%s  ·  Lv.%d" % [str(d.get("title", "")), int(h.get("level", 1))]
-	for c in _leader_stars.get_children():
-		if c != _leader_title:
-			c.queue_free()
-	if _leader_title.get_parent() == null:
-		_leader_stars.add_child(_leader_title)
-	_leader_stars.add_child(Kit.star_row(int(h.get("stars", 1)), 0, 24))
-	var fc := HeroArt.faction_color(str(d.get("faction", "celestial")))
-	_rays.set("color", fc)
-	_rays.queue_redraw()
-	_back_glow.modulate = Color(fc, 0.3)
+## Owned heroes in lobby order: the team first (slot order), then the rest by power.
+func _hero_order() -> Array[String]:
+	var out: Array[String] = []
+	for id: String in Game.formation():
+		if id != "" and not out.has(id):
+			out.append(id)
+	var rest: Array[String] = []
+	for h: Dictionary in Game.owned_heroes():
+		var id := str(h.get("id", ""))
+		if id != "" and not out.has(id):
+			rest.append(id)
+	rest.sort_custom(func(a: String, b: String) -> bool: return int(Game.hero_power(a)) > int(Game.hero_power(b)))
+	out.append_array(rest)
+	return out
 
 
-func _place_leader() -> void:
-	if _stage == null or _anchor == null or _dais == null:
+func _refresh_hero() -> void:
+	var id := _pick_hero()
+	var many := _hero_order().size() > 1
+	_prev_btn.visible = many
+	_next_btn.visible = many
+	if id == _hero_id:
 		return
-	var sz := _stage.size
-	var feet := Vector2(sz.x * 0.5, sz.y - 84.0)
-	_anchor.position = feet
-	var want := clampf(sz.y - 100.0, 220.0, 560.0)
-	var mid := Vector2(feet.x, feet.y - want * 0.62)
-	_rays.position = mid - _rays.size * 0.5
-	_back_glow.position = mid - _back_glow.size * 0.5
-	_dais.size = Vector2(sz.x * 0.86, 120)
-	_dais.position = Vector2(feet.x - _dais.size.x * 0.5, feet.y - 60)
+	_hero_id = id
 	if _sprite and is_instance_valid(_sprite):
-		_sprite.scale = Vector2.ONE
-		var hgt: float = _sprite.call("get_height")
-		var k := want / maxf(hgt, 1.0)
-		_sprite.scale = Vector2(k, k)
+		_sprite.queue_free()
+	_sprite = null
+	_cheer_left = 0.0
+	if id == "":
+		_speech.visible = false
+		return
+	_sprite = HeroArt.make_sprite(id)
+	_anchor.add_child(_sprite)
+	_speech.visible = true
+	(_speech.get_meta("name_label") as Label).text = str(Game.hero_def(id).get("name", id))
+	_line = int(Time.get_unix_time_from_system() / 60.0) % LobbyLines.lines(id).size()
+	_say(LobbyLines.lines(id)[_line])
+	_layout()
 
+
+func _say(text: String) -> void:
+	var l := _speech.get_meta("text_label") as Label
+	l.text = text
+	l.visible_ratio = 0.0
+	var tw := l.create_tween()
+	tw.tween_property(l, "visible_ratio", 1.0, clampf(text.length() * 0.018, 0.25, 1.1))
+
+
+func _on_hero_tap() -> void:
+	if _hero_id == "":
+		return
+	var lines := LobbyLines.lines(_hero_id)
+	_line = (_line + 1) % lines.size()
+	_say(lines[_line])
+	_cheer()
+
+
+func _switch_hero(dir: int) -> void:
+	var order := _hero_order()
+	if order.size() < 2:
+		return
+	var i := order.find(_hero_id)
+	var nxt := order[posmod(i + dir, order.size())]
+	Game.set_setting(HERO_KEY, nxt)
+
+
+func _open_hero() -> void:
+	if _hero_id != "":
+		UI.go("hero_detail", {"hero_id": _hero_id, "browse": _hero_order()})
+
+
+## Hides the lobby UI and the chrome to look at the hero; any tap brings them back.
+func _hide_ui() -> void:
+	_ui.visible = false
+	_shade.visible = false
+	UI.set_chrome(false, false)
+	_restore = Button.new()
+	_restore.name = "ShowUI"
+	_restore.theme_type_variation = &"BareButton"
+	_restore.focus_mode = FOCUS_NONE
+	_restore.position = Vector2.ZERO
+	_restore.size = size
+	add_child(_restore)
+	_restore.pressed.connect(func() -> void:
+		_restore.queue_free()
+		_restore = null
+		_ui.visible = true
+		_shade.visible = true
+		UI.set_chrome(true, true))
+
+
+## The hero celebrates for a moment (claims, taps).
+func _cheer() -> void:
+	if _sprite and is_instance_valid(_sprite) and _sprite.has_method("play_victory"):
+		_sprite.call("play_victory")
+		_cheer_left = 2.6
+
+
+# ------------------------------------------------------------------ banner carousel
+
+## Shows banner page `page` (0 summon, 1 offers, 2 chapter) in the top-left slot.
+func _show_banner(page: int, animate: bool = true) -> void:
+	_banner_page = posmod(page, 3)
+	_banner_t = 0.0
+	var old: Array[Node] = _banner_slot.get_children()
+	var b := _make_banner(_banner_page)
+	_banner_slot.add_child(b)
+	for o in old:
+		if animate and o is Control:
+			var tw := (o as Control).create_tween()
+			tw.tween_property(o, "modulate:a", 0.0, 0.2)
+			tw.tween_callback(o.queue_free)
+		else:
+			o.queue_free()
+	if animate:
+		b.modulate.a = 0.0
+		b.position.x = 18.0
+		var tw2 := b.create_tween().set_parallel(true)
+		tw2.tween_property(b, "modulate:a", 1.0, 0.25)
+		tw2.tween_property(b, "position:x", 0.0, 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+
+func _make_banner(page: int) -> Button:
+	var opts := {"size": BANNER_SIZE, "pages": 3, "page": page}
+	var title := ""
+	var sub := ""
+	var cb := Callable()
+	var badge := false
+	match page:
+		0:
+			var bn := Game.banner()
+			title = str(bn.get("name", "Summon"))
+			var free := bool(Game.free_pull_available())
+			sub = "Free pull ready" if free else "Summon now"
+			opts["hero_id"] = _featured(int(Time.get_unix_time_from_system() / BANNER_SECS / 3.0))
+			badge = free
+			cb = func() -> void: UI.go("summon")
+		1:
+			var offer := _featured_offer()
+			title = str(offer.get("name", "Offers"))
+			sub = "Free gift" if str(offer.get("price_label", "")) == "Free" else str(offer.get("tag", "Offer"))
+			opts["color"] = Kit.ORANGE
+			opts["hero_id"] = "liora"
+			badge = bool(offer.get("available", false)) and str(offer.get("price_label", "")) == "Free"
+			cb = func() -> void: UI.go("shop")
+		_:
+			var st := Game.current_stage()
+			var chs := Game.chapters()
+			var ci := clampi(int(st.get("chapter", chs.size() - 1)), 0, chs.size() - 1)
+			var ch: Dictionary = chs[ci]
+			title = "Chapter %d  %s" % [ci + 1, str(ch.get("name", ""))]
+			var first := int(ch.get("first_stage", ci * 10))
+			var count := int(ch.get("stage_count", 10))
+			sub = "%d / %d cleared" % [clampi(Game.cleared_count() - first, 0, count), count]
+			opts["color"] = HeroArt.faction_color(str(ch.get("faction", "celestial")))
+			opts["sub_color"] = Kit.ACCENT_HI
+			var boss := _boss_of(Game.stage(first + count - 1))
+			if boss != "":
+				opts["hero_id"] = boss
+			cb = _on_campaign
+	var b := Kit.banner_card(title, sub, cb, opts)
+	b.name = "Banner"
+	# The "N" sits on the corner, clear of the title.
+	Kit.set_new(b, badge, 30.0, Vector2(-12, -12))
+	return b
+
+
+## A featured (legendary) hero of the summon banner, rotating with `turn`.
+func _featured(turn: int) -> String:
+	var pool: Array = Game.banner().get("pool", [])
+	var legends: Array[String] = []
+	for id: Variant in pool:
+		if str(Game.hero_def(str(id)).get("rarity", "")) == "legendary":
+			legends.append(str(id))
+	if legends.is_empty():
+		return str(pool[0]) if not pool.is_empty() else ""
+	return legends[posmod(turn, legends.size())]
+
+
+## The offer worth showing: a free gift waiting, else the first offer still available.
+func _featured_offer() -> Dictionary:
+	var first := {}
+	for o: Dictionary in Game.offers():
+		if not bool(o.get("available", false)):
+			continue
+		if str(o.get("price_label", "")) == "Free":
+			return o
+		if first.is_empty():
+			first = o
+	return first if not first.is_empty() else {"name": "Shop", "tag": "Offers", "available": false}
+
+
+# ------------------------------------------------------------------ campaign plate
+
+func _refresh_campaign() -> void:
+	var st := Game.current_stage()
+	var team := int(Game.team_power())
+	var rec := int(st.get("recommended_power", 0))
+	var verdict := StageInfo.verdict(team, rec)
+	var sig := "%s|%d|%s" % [str(st.get("id", "")), rec, str(verdict[0])]
+	var badge := _campaign.get_node_or_null("KitNew") as Control
+	if badge:
+		badge.visible = not st.is_empty() and team >= rec
+	if sig == _camp_sig:
+		return
+	_camp_sig = sig
+	for c in _camp_info.get_children():
+		c.queue_free()
+	if st.is_empty():
+		_campaign.call("set_art", null, "")
+		var done := Kit.label("ALL STAGES CLEARED", 20, Color(1, 1, 1, 0.85), "cond_bold")
+		_camp_info.add_child(done)
+		return
+	var boss := _boss_of(st)
+	_campaign.call("set_art", Kit.art_crop(boss, 2.2, 1.4) if boss != "" else null, "STAGE %s" % str(st.id))
+	var nm := Kit.label(str(st.get("name", "")).to_upper(), 20, Color(1, 1, 1, 0.88), "cond_bold")
+	nm.clip_text = true
+	nm.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	nm.custom_minimum_size.x = BIG_PLATE.x * 0.42
+	_camp_info.add_child(nm)
+	var row := Kit.hbox(4)
+	row.mouse_filter = MOUSE_FILTER_IGNORE
+	row.add_child(Kit.icon("power", 24))
+	var col: Color = verdict[1]
+	row.add_child(Kit.label(Kit.format_num(rec), 24, col.lerp(Color.WHITE, 0.15), "cond_bold"))
+	if bool(st.get("is_boss", false)):
+		row.add_child(Kit.tag("BOSS", Kit.EMBER, Color.WHITE, 16))
+	_camp_info.add_child(row)
+
+
+## The boss of a stage (or its first enemy) as a hero id.
+func _boss_of(st: Dictionary) -> String:
+	var first := ""
+	for e: Variant in st.get("enemies", []):
+		if not (e is Dictionary):
+			continue
+		var d := e as Dictionary
+		if first == "":
+			first = str(d.get("hero_id", ""))
+		if bool(d.get("is_boss", false)):
+			return str(d.get("hero_id", ""))
+	return first
+
+
+func _on_campaign() -> void:
+	var st := Game.current_stage()
+	if st.is_empty():
+		UI.go("campaign")
+		return
+	UI.go("campaign", {"open_stage": int(st.index)})
+
+
+# ------------------------------------------------------------------ sanctum (idle rewards)
 
 func _refresh_idle() -> void:
 	var st: Dictionary = Game.idle_status()
 	var elapsed := int(st.get("elapsed_ms", 0))
-	var cap := int(st.get("cap_ms", 1))
+	var cap := maxi(int(st.get("cap_ms", 1)), 1)
+	var pct := 100.0 * float(elapsed) / float(cap)
 	_full = bool(st.get("full", false))
-	var txt := "%s / %s" % [Kit.format_time(elapsed), Kit.format_time(cap)]
-	if _full:
-		txt = "Full! %s" % Kit.format_time(cap)
-	Kit.set_progress(_idle_bar, elapsed, cap, txt, false)
-	_chest_tag.visible = _full
+	Kit.set_percent_meter(_meter, pct)
+	var lv := _meter.find_children("*", "Label", true, false)
+	for l in lv:
+		if (l as Label).text.begins_with("LV."):
+			(l as Label).text = "LV.%02d" % maxi(1, Game.cleared_count())
+	Kit.set_new(_sanctum, _full, 30.0, Vector2(-6, -10))
+	_refresh_sheet(st)
+
+
+## The Sanctum sheet: fill meter, rate, pending rewards, Quick Claim and Claim.
+func _open_sanctum() -> void:
+	if _sheet and is_instance_valid(_sheet):
+		return
+	var st: Dictionary = Game.idle_status()
+	var col := Kit.vbox(18)
+	col.custom_minimum_size.x = 580
+	var head := Kit.hbox(16)
+	head.mouse_filter = MOUSE_FILTER_IGNORE
+	var hx := Kit.hex_badge("sanctum", 84, Kit.ACCENT_DEEP, Color.WHITE)
+	hx.size_flags_vertical = SIZE_SHRINK_CENTER
+	head.add_child(hx)
+	var mid := Kit.vbox(0)
+	mid.mouse_filter = MOUSE_FILTER_IGNORE
+	mid.size_flags_horizontal = SIZE_EXPAND_FILL
+	mid.alignment = BoxContainer.ALIGNMENT_CENTER
+	mid.add_child(Kit.label("SANCTUM FILL", 22, Kit.TEXT_DIM, "cond_bold"))
+	var pct_l := Kit.label("000%", 56, Kit.ACCENT_DEEP, "title")
+	mid.add_child(pct_l)
+	head.add_child(mid)
+	var right := Kit.vbox(2)
+	right.mouse_filter = MOUSE_FILTER_IGNORE
+	right.alignment = BoxContainer.ALIGNMENT_CENTER
+	var time_l := Kit.label("", 26, Kit.TEXT, "cond_bold")
+	time_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	right.add_child(time_l)
+	var rate := Kit.hbox(4)
+	rate.alignment = BoxContainer.ALIGNMENT_END
+	rate.mouse_filter = MOUSE_FILTER_IGNORE
+	rate.add_child(Kit.currency_icon("gold", 28))
 	var per_hour: Dictionary = st.get("per_hour", {})
-	_rate_label.text = "+%s/h" % Kit.format_num(int(per_hour.get("gold", 0)))
-	# Pending rewards (rebuilt only when the numbers change).
+	rate.add_child(Kit.label("+%s / h" % Kit.format_full(int(per_hour.get("gold", 0))), 24, Kit.TEXT_DIM, "cond_bold"))
+	right.add_child(rate)
+	head.add_child(right)
+	col.add_child(head)
+	var bar := Kit.progress_bar(0, 1, Kit.ACCENT, 18, "", true)
+	col.add_child(bar)
+	col.add_child(Kit.header_bar("Ready to collect", null, "chest"))
+	var pending := Kit.vbox(0)
+	pending.custom_minimum_size.y = 150
+	pending.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_child(pending)
+	var hint := Kit.body("The Sanctum fills for %s while you are away. Clearing stages raises its rate." % Kit.format_time(int(st.get("cap_ms", 0))), 21, Kit.TEXT_DIM)
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(hint)
+	var row := Kit.hbox(14)
+	var quick_slot := Kit.hbox(0)
+	quick_slot.size_flags_horizontal = SIZE_EXPAND_FILL
+	row.add_child(quick_slot)
+	var claim := Kit.primary_button("Claim", _claim, "chest")
+	claim.size_flags_horizontal = SIZE_EXPAND_FILL
+	claim.custom_minimum_size.y = 108
+	row.add_child(claim)
+	col.add_child(row)
+	_sheet_refs = {"pct": pct_l, "time": time_l, "bar": bar, "pending": pending, "quick_slot": quick_slot,
+		"claim": claim, "pending_sig": "-", "quick_sig": "-"}
+	_sheet = UI.popup("Sanctum", col, func() -> void:
+		_sheet = null
+		_sheet_refs = {}, 640.0, true)
+	_refresh_sheet(st)
+	_refresh_guide()
+
+
+func _close_sheet() -> void:
+	if _sheet and is_instance_valid(_sheet):
+		UI.close_modal(_sheet)
+	_sheet = null
+	_sheet_refs = {}
+
+
+func _refresh_sheet(st: Dictionary) -> void:
+	if _sheet_refs.is_empty() or _sheet == null or not is_instance_valid(_sheet):
+		return
+	var elapsed := int(st.get("elapsed_ms", 0))
+	var cap := maxi(int(st.get("cap_ms", 1)), 1)
+	(_sheet_refs.pct as Label).text = "%03d%%" % int(100.0 * elapsed / cap)
+	(_sheet_refs.time as Label).text = ("FULL  %s" % Kit.format_time(cap)) if bool(st.get("full", false)) else "%s / %s" % [Kit.format_time(elapsed), Kit.format_time(cap)]
+	Kit.set_progress(_sheet_refs.bar as ProgressBar, elapsed, cap, "", false)
 	var pending: Dictionary = st.get("pending", {})
 	var sig := JSON.stringify(pending)
-	if sig != _pending_sig:
-		_pending_sig = sig
-		for c in _pending_row.get_children():
+	if sig != str(_sheet_refs.pending_sig):
+		_sheet_refs.pending_sig = sig
+		var box := _sheet_refs.pending as VBoxContainer
+		for c in box.get_children():
 			c.queue_free()
 		var any := false
-		for cur: String in ["gold", "hero_exp", "dust", "gems"]:
-			var n := int(pending.get(cur, 0))
-			if n <= 0:
-				continue
-			any = true
-			_pending_row.add_child(_pending_pair(Kit.currency_icon(cur, 34), Kit.format_num(n)))
-		var gear_n := int(pending.get("gear_count", 0))
-		if gear_n > 0:
-			any = true
-			_pending_row.add_child(_pending_pair(Kit.icon("gear_weapon", 34), "x%d" % gear_n))
-		if not any:
-			_pending_row.add_child(Kit.caption("Your heroes are gathering rewards...", 22))
-		# Nothing to collect yet: the Claim button rests until rewards build up.
-		_claim_btn.disabled = not any
-	# Quick claim button (rebuilt when its price changes).
+		for k: String in pending:
+			if int(pending[k]) > 0:
+				any = true
+		if any:
+			box.add_child(Kit.reward_list(pending, 104, true, true, true))
+		else:
+			box.add_child(Kit.empty_state("Your heroes are gathering rewards...", "sanctum", true))
+		(_sheet_refs.claim as Button).disabled = not any
 	var cost := int(st.get("quick_claim_cost", -1))
 	var left := int(st.get("quick_claims_left", 0))
 	var qsig := "%d/%d" % [cost, left]
-	if qsig != _quick_sig:
-		_quick_sig = qsig
-		for c in _quick_slot.get_children():
+	if qsig != str(_sheet_refs.quick_sig):
+		_sheet_refs.quick_sig = qsig
+		var slot := _sheet_refs.quick_slot as HBoxContainer
+		for c in slot.get_children():
 			c.queue_free()
-		_quick_btn = _make_quick_button(cost, left, int(st.get("quick_claim_ms", 7200000)))
-		_quick_slot.add_child(_quick_btn)
-		if is_inside_tree():
-			Guide.mark(_quick_btn, Guide.step() == "claim")
-
-
-func _pending_pair(ic: Control, text: String) -> Control:
-	var p := Kit.hbox(4)
-	p.mouse_filter = MOUSE_FILTER_IGNORE
-	p.add_child(ic)
-	p.add_child(Kit.label(text, 24, Kit.INK, "black", 4))
-	return p
+		var q := _make_quick_button(cost, left, int(st.get("quick_claim_ms", 7200000)))
+		slot.add_child(q)
+		_sheet_refs["quick"] = q
+		Guide.mark(q, Guide.step() == "claim", 0)
 
 
 func _make_quick_button(cost: int, left: int, ms: int) -> Button:
 	var hours := "%dh" % (ms / 3600000)
 	var b: Button
 	if cost < 0 or left <= 0:
-		b = Kit.secondary_button("")
+		b = Kit.light_button("")
 		b.disabled = true
-		_two_line(b, "Quick Claim", "None left today", Kit.INK_DIM, Kit.INK_DIM)
+		_two_line(b, "Quick Claim", "NONE LEFT TODAY", Kit.TEXT_DIM, Kit.TEXT_DIM)
 	elif cost == 0:
-		b = Kit.secondary_button("", _quick_claim)
-		_two_line(b, "Quick Claim", "Free  ·  %s now" % hours, Kit.INK, Kit.GOOD)
+		b = Kit.light_button("", _quick_claim)
+		_two_line(b, "Quick Claim", "FREE  ·  %s NOW" % hours.to_upper(), Kit.TEXT, Color("1f9e63"))
 	else:
-		b = Kit.cost_button("Quick Claim %s" % hours, "gems", cost, _quick_claim, "secondary")
+		b = Kit.cost_button("Quick Claim %s" % hours, "gems", cost, _quick_claim, "light")
+	b.name = "QuickClaim"
 	b.size_flags_horizontal = SIZE_EXPAND_FILL
-	b.custom_minimum_size = Vector2(0, 96)
+	b.custom_minimum_size = Vector2(0, 108)
 	return b
 
 
@@ -480,41 +722,14 @@ func _two_line(b: Button, line1: String, line2: String, c1: Color, c2: Color) ->
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	var a := Kit.label(line1, 30, c1, "extrabold")
 	a.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var s := Kit.label(line2, 22, c2, "black")
+	var s := Kit.label(line2, 22, c2, "cond_bold")
 	s.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(a)
 	v.add_child(s)
 	v.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	v.offset_bottom = -6
+	v.offset_bottom = -4
 	b.add_child(v)
 
-
-func _refresh_battle() -> void:
-	for c in _power_row.get_children():
-		c.queue_free()
-	var st := Game.current_stage()
-	var team := int(Game.team_power())
-	if st.is_empty():
-		_battle_title.text = "Campaign"
-		_battle_sub.text = "Every stage cleared. Replay any stage."
-		_power_row.add_child(Kit.icon("power", 32))
-		_power_row.add_child(Kit.label("Team power %s" % Kit.format_full(team), 24, Kit.GOLD_LIGHT, "black", 4))
-		_battle_ready = false
-		return
-	_battle_title.text = "Battle  %s" % str(st.id)
-	_battle_sub.text = str(st.name) + ("  ·  Boss" if bool(st.get("is_boss", false)) else "")
-	var rec := int(st.get("recommended_power", 0))
-	var col := Kit.GOOD if team >= rec else (Kit.GOLD if team * 100 >= rec * 85 else SHORT_RED)
-	_battle_ready = team >= rec
-	_power_row.add_child(Kit.icon("power", 32))
-	_power_row.add_child(Kit.label("Team %s" % Kit.format_full(team), 24, col, "black", 4))
-	_power_row.add_child(Kit.caption("vs", 22))
-	_power_row.add_child(Kit.label("Recommended %s" % Kit.format_full(rec), 24, Kit.INK, "black", 4))
-	if team < rec:
-		_power_row.add_child(Kit.tag("Tough", Color("c0392b") if col == SHORT_RED else Kit.GOLD, Color.WHITE if col == SHORT_RED else DARK_INK, 18))
-
-
-# ------------------------------------------------------------------ actions
 
 func _claim() -> void:
 	var st: Dictionary = Game.idle_status()
@@ -524,11 +739,11 @@ func _claim() -> void:
 		if int(pending[k]) > 0:
 			has_any = true
 	if not has_any:
-		UI.toast("Nothing to claim yet. Rewards build up every minute.")
-		Kit.shake(_chest_box, 8)
+		UI.toast("Nothing to collect yet. The Sanctum fills every minute.")
 		return
+	_close_sheet()
 	var reward: Dictionary = Game.claim_idle()
-	UI.show_reward("Idle Rewards", reward)
+	UI.show_reward("Sanctum Rewards", reward)
 	_cheer()
 
 
@@ -543,6 +758,7 @@ func _quick_claim() -> void:
 		UI.toast("Not enough gems", "bad")
 		return
 	var run := func() -> void:
+		_close_sheet()
 		var res: Dictionary = Game.quick_claim()
 		if not bool(res.get("ok", false)):
 			UI.toast(str(res.get("error", "Quick claim failed")), "bad")
@@ -552,22 +768,7 @@ func _quick_claim() -> void:
 	if cost == 0:
 		run.call()
 	else:
-		UI.confirm("Spend %s gems to collect %d hours of idle rewards now?" % [Kit.format_full(cost), hours], run, Callable(), "Spend %s" % Kit.format_full(cost))
-
-
-func _on_battle() -> void:
-	var st := Game.current_stage()
-	if st.is_empty():
-		UI.go("campaign")
-		return
-	UI.go("campaign", {"open_stage": int(st.index)})
-
-
-## The leader celebrates for a moment after a claim.
-func _cheer() -> void:
-	if _sprite and is_instance_valid(_sprite) and _sprite.has_method("play_victory"):
-		_sprite.call("play_victory")
-		_cheer_left = 2.6
+		UI.confirm("Spend %s gems to collect %d hours of Sanctum rewards now?" % [Kit.format_full(cost), hours], run, Callable(), "Spend %s" % Kit.format_full(cost))
 
 
 # ------------------------------------------------------------------ motion
@@ -578,23 +779,17 @@ func _process(delta: float) -> void:
 	if _tick >= 1.0:
 		_tick = 0.0
 		_refresh_idle()
+	if _ui.visible:
+		_banner_t += delta
+		if _banner_t >= BANNER_SECS:
+			_show_banner(_banner_page + 1)
 	if _cheer_left > 0.0:
 		_cheer_left -= delta
 		if _cheer_left <= 0.0 and _sprite and is_instance_valid(_sprite):
 			_sprite.call("play_idle")
-	# Chest: breathing glow, stronger and with a wiggle when full.
-	var k := 0.5 + 0.5 * sin(_t * (3.2 if _full else 1.6))
-	_chest_glow.modulate.a = (0.55 + 0.4 * k) if _full else (0.22 + 0.16 * k)
-	_chest_glow.scale = Vector2.ONE * (1.0 + 0.08 * k)
-	_chest_glow.pivot_offset = _chest_glow.size * 0.5
-	var wig := 0.0
-	var cyc := fmod(_t, 2.4 if _full else 5.0)
-	if cyc < 0.5 and _pending_sig != "{}":
-		wig = sin(cyc * TAU * 4.0) * (1.0 - cyc * 2.0) * (0.12 if _full else 0.06)
-	_chest_icon.rotation = wig
-	# Battle button: a gentle "ready" breath.
-	if _battle_ready:
-		var b := 1.0 + 0.015 * sin(_t * 2.4)
-		_battle_btn.pivot_offset = _battle_btn.size * 0.5
-		if not _battle_btn.is_pressed():
-			_battle_btn.scale = Vector2(b, b)
+	# A full Sanctum breathes.
+	if _full:
+		var k := 0.5 + 0.5 * sin(_t * 3.2)
+		_meter.modulate = Color(1, 1, 1).lerp(Color(1.25, 1.25, 1.35), k)
+	else:
+		_meter.modulate = Color.WHITE

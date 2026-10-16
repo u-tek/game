@@ -49,11 +49,13 @@ const PALETTES := {
 		"floor": [Color("31285e"), Color("0f0c24")], "line": Color(0.6, 0.55, 1.0, 0.12),
 		"sigil": Color("a98bff"), "mote": Color("c7b2ff"), "rise": -0.6, "stars": 80,
 	},
+	# The lobby: the sanctum hall, a cool steel-and-stone interior (style v2).
 	"home": {
-		"sky": [Color("110c28"), Color("2a1f58"), Color("6b4f9a")],
-		"haze": Color("7a62b0"), "far": Color("2c2258"), "near": Color("120d29"),
-		"floor": [Color("2e2558"), Color("120e26")], "line": Color(0.95, 0.78, 0.45, 0.1),
-		"sigil": Color("f2c14e"), "mote": Color("ffe7b0"), "rise": 0.5, "stars": 110,
+		"sky": [Color("141920"), Color("2c3540"), Color("5c6876")],
+		"haze": Color("b9d6ea"), "far": Color("232a33"), "near": Color("0f1318"),
+		"floor": [Color("5a6571"), Color("161a20")], "line": Color(0.8, 0.92, 1.0, 0.07),
+		"sigil": Color("6fd8ff"), "mote": Color("e4f6ff"), "rise": 0.3, "stars": 0,
+		"vignette": Color(0.01, 0.015, 0.02, 0.5),
 	},
 }
 
@@ -95,21 +97,22 @@ func _draw() -> void:
 		_draw_cover(_tex)
 		_vgrad(Rect2(0, 0, w, h * 0.25), Color(0, 0, 0, 0.35), Color(0, 0, 0, 0))
 	else:
-		_draw_sky(w, hy)
-		match kind:
-			"chapter-1":
-				_draw_sanctum(w, hy)
-			"chapter-2":
-				_draw_wastes(w, hy)
-			"chapter-3":
-				_draw_abyss(w, hy)
-			_:
-				_draw_home_sky(w, hy)
-		_draw_floor(w, h, hy)
+		if kind == "home":
+			_draw_hall(w, h, hy)
+		else:
+			_draw_sky(w, hy)
+			match kind:
+				"chapter-1":
+					_draw_sanctum(w, hy)
+				"chapter-2":
+					_draw_wastes(w, hy)
+				"chapter-3":
+					_draw_abyss(w, hy)
+			_draw_floor(w, h, hy)
 	if sigil_y >= 0.0:
 		_draw_sigil(Vector2(w * 0.5, h * sigil_y), w)
 	# Side vignette and optional dim.
-	var vg := Color(0.02, 0.0, 0.06, 0.45)
+	var vg: Color = _pal.get("vignette", Color(0.02, 0.0, 0.06, 0.45))
 	draw_polygon(PackedVector2Array([Vector2(0, 0), Vector2(w * 0.16, 0), Vector2(w * 0.16, h), Vector2(0, h)]),
 		PackedColorArray([vg, Color(vg, 0.0), Color(vg, 0.0), vg]))
 	draw_polygon(PackedVector2Array([Vector2(w * 0.84, 0), Vector2(w, 0), Vector2(w, h), Vector2(w * 0.84, h)]),
@@ -307,47 +310,173 @@ func _draw_abyss(w: float, hy: float) -> void:
 	_glow_ellipse(Vector2(w * 0.5, hy), w * 0.85, hy * 0.1, Color(0.45, 0.75, 0.85, 0.3))
 
 
-## Home: a night sky over the sanctuary skyline.
-func _draw_home_sky(w: float, hy: float) -> void:
-	# Aurora ribbons.
-	for i in 3:
-		var y0 := hy * (0.18 + i * 0.1)
-		var pts := PackedVector2Array()
-		for k in 21:
-			var x := w * k / 20.0
-			pts.append(Vector2(x, y0 + sin(k * 0.55 + i * 1.3) * hy * 0.05))
-		var col: Color = [Color(0.45, 0.85, 0.9, 0.12), Color(0.7, 0.5, 1.0, 0.12), Color(1.0, 0.8, 0.5, 0.08)][i]
-		draw_polyline(pts, col, hy * 0.06, true)
-	# Full moon with a soft halo, right of center (clear of the shortcut buttons).
-	var mc := Vector2(w * 0.8, hy * 0.6)
-	var mr := w * 0.06
-	_glow_ellipse(mc, mr * 4.5, mr * 4.5, Color(0.85, 0.8, 1.0, 0.28))
-	draw_circle(mc, mr, Color("efe8ff"), true, -1.0, true)
-	for cr: Array in [[-0.3, -0.2, 0.22], [0.25, 0.1, 0.3], [-0.05, 0.42, 0.16], [0.4, -0.38, 0.12]]:
-		draw_circle(mc + Vector2(float(cr[0]), float(cr[1])) * mr, mr * float(cr[2]), Color("d6cdf2"), true, -1.0, true)
-	draw_arc(mc, mr, deg_to_rad(100), deg_to_rad(260), 32, Color(0.6, 0.55, 0.85, 0.5), mr * 0.18, true)
-	# Skyline of the sanctuary: two layers of spires along the horizon, a few lit windows.
+## Home (the lobby): the sanctum hall. A tall steel-and-stone interior: a great arched
+## window of pale morning light with spires beyond, light shafts across the floor, dark side
+## pylons with indicator lights and hatched hazard bands, a ceiling truss, and a technical
+## halo ring hanging behind the lobby hero's head. Cool greys so the dark chrome and the
+## hero's colors read on top.
+func _draw_hall(w: float, h: float, hy: float) -> void:
+	var sky: Array = _pal.sky
+	var haze: Color = _pal.haze
+	var near: Color = _pal.near
+	_vgrad(Rect2(0, 0, w, hy * 0.45), sky[0], sky[1])
+	_vgrad(Rect2(0, hy * 0.45, w, hy * 0.55 + 1.0), sky[1], sky[2])
+	# Wall panel seams.
+	for i in range(1, 12):
+		var x := w * i / 12.0
+		draw_line(Vector2(x, hy * 0.06), Vector2(x, hy), Color(1, 1, 1, 0.03), 2.0)
+	for k in 3:
+		var y := hy * (0.3 + k * 0.24)
+		draw_line(Vector2(0, y), Vector2(w, y), Color(0, 0, 0, 0.12), 3.0)
+		draw_line(Vector2(0, y + 3.0), Vector2(w, y + 3.0), Color(1, 1, 1, 0.04), 1.0)
+	# The great window.
+	var ww := w * 0.6
+	var win := Rect2(w * 0.5 - ww * 0.5, hy * 0.1, ww, hy * 0.86)
+	_glow_ellipse(Vector2(w * 0.5, win.position.y + win.size.y * 0.55), ww * 1.05, win.size.y * 0.75, Color(0.78, 0.9, 1.0, 0.22))
+	var arch := _arch_points(win)
+	var cols := PackedColorArray()
+	for p in arch:
+		var t := clampf((p.y - win.position.y) / win.size.y, 0.0, 1.0)
+		cols.append(Color("8fb9d8").lerp(Color("eef6fb"), pow(t, 0.8)))
+	draw_polygon(arch, cols)
+	# Beyond the glass: soft clouds and pale spires in the light.
 	var r := RandomNumberGenerator.new()
-	r.seed = 2024
-	for layer in 2:
-		var col: Color = _pal.haze.darkened(0.35) if layer == 0 else _pal.far
-		col.a = 0.75 if layer == 0 else 1.0
-		var x := -10.0
-		while x < w + 10.0:
-			var bw := w * r.randf_range(0.035, 0.07)
-			var ht := hy * r.randf_range(0.06, 0.16) * (1.3 if layer == 0 else 1.0)
-			if r.randf() < 0.18:
-				ht *= 1.8
-			var base := hy + 2.0
-			draw_rect(Rect2(x, base - ht, bw, ht), col)
-			draw_polygon(PackedVector2Array([Vector2(x - 2, base - ht), Vector2(x + bw * 0.5, base - ht - bw * 1.3), Vector2(x + bw + 2, base - ht)]), PackedColorArray([col]))
-			if layer == 1 and r.randf() < 0.55:
-				draw_rect(Rect2(x + bw * 0.38, base - ht * 0.7, bw * 0.24, ht * 0.22), Color(1.0, 0.8, 0.45, 0.55))
-			x += bw + w * r.randf_range(0.0, 0.03)
-	# Distant clouds at the horizon.
-	for k in 9:
-		var cx := w * (k / 8.0)
-		draw_circle(Vector2(cx, hy + 6), w * 0.09, Color(_pal.haze, 0.18), true, -1.0, true)
+	r.seed = 5150
+	var base := win.end.y
+	var x := win.position.x
+	while x < win.end.x:
+		var bw := ww * r.randf_range(0.05, 0.1)
+		var ht := win.size.y * r.randf_range(0.08, 0.2) * (1.8 if r.randf() < 0.2 else 1.0)
+		var col := Color(haze.darkened(0.15), 0.55)
+		var x1 := minf(x + bw, win.end.x)
+		draw_rect(Rect2(x, base - ht, x1 - x, ht), col)
+		draw_polygon(PackedVector2Array([Vector2(x, base - ht), Vector2((x + x1) * 0.5, base - ht - bw * 1.4), Vector2(x1, base - ht)]), PackedColorArray([col]))
+		x += bw + ww * r.randf_range(0.0, 0.04)
+	for k in 6:
+		var c := Vector2(win.position.x + ww * r.randf(), win.position.y + win.size.y * r.randf_range(0.35, 0.8))
+		_glow_ellipse(c, ww * r.randf_range(0.18, 0.3), ww * 0.05, Color(1, 1, 1, 0.35))
+	# Mullions, transoms and tracery.
+	var frame := Color("1a2027")
+	for k in range(1, 4):
+		var mx := win.position.x + ww * k / 4.0
+		var top_y := _arch_y(win, mx)
+		draw_line(Vector2(mx, top_y), Vector2(mx, win.end.y), frame, 7.0)
+	for ty: float in [0.5, 0.74]:
+		var yy := win.position.y + win.size.y * ty
+		draw_line(Vector2(win.position.x, yy), Vector2(win.end.x, yy), frame, 6.0)
+	var rc := Vector2(w * 0.5, win.position.y + ww * 0.36)
+	draw_arc(rc, ww * 0.17, 0, TAU, 48, frame, 6.0, true)
+	draw_arc(rc, ww * 0.07, 0, TAU, 32, frame, 5.0, true)
+	for k in 8:
+		var a := TAU * k / 8.0
+		draw_line(rc + Vector2(cos(a), sin(a)) * ww * 0.07, rc + Vector2(cos(a), sin(a)) * ww * 0.17, frame, 4.0, true)
+	var closed := arch.duplicate()
+	closed.append(arch[0])
+	draw_polyline(closed, frame, 12.0, true)
+	draw_polyline(closed, Color(1, 1, 1, 0.22), 2.0, true)
+	# Light shafts falling from the window to the floor.
+	for k in 5:
+		var x0 := win.position.x + ww * (0.08 + k * 0.2)
+		var x1 := x0 + ww * 0.1
+		var spread := w * (0.1 + k * 0.05)
+		var lc := Color(0.86, 0.95, 1.0, 0.07)
+		draw_polygon(PackedVector2Array([Vector2(x0, win.position.y + win.size.y * 0.3), Vector2(x1, win.position.y + win.size.y * 0.3),
+			Vector2(x1 + spread, h * 0.98), Vector2(x0 + spread * 0.6, h * 0.98)]),
+			PackedColorArray([lc, lc, Color(lc, 0.0), Color(lc, 0.0)]))
+	# Floor: polished stone with the window's light pool and technical guide lines.
+	var fl: Array = _pal.floor
+	_vgrad(Rect2(0, hy, w, h - hy), fl[0], fl[1])
+	_glow_ellipse(Vector2(w * 0.5, hy + (h - hy) * 0.22), w * 0.62, (h - hy) * 0.2, Color(0.85, 0.95, 1.0, 0.3))
+	var line: Color = _pal.line
+	var vp := Vector2(w * 0.5, hy - (h - hy) * 0.7)
+	for i in 13:
+		var bx := w * (-0.7 + i * 0.2)
+		var a2 := (hy - vp.y) / (h - vp.y)
+		draw_line(vp.lerp(Vector2(bx, h), a2), Vector2(bx, h), line, 1.5, true)
+	for i in range(1, 10):
+		var t := pow(i / 9.0, 1.8)
+		var yy := hy + (h - hy) * t
+		draw_line(Vector2(0, yy), Vector2(w, yy), Color(line, line.a * (0.5 + t)), 1.5, true)
+	var cy := Color(0.43, 0.85, 1.0, 0.22)
+	for s: float in [-1.0, 1.0]:
+		draw_line(Vector2(w * 0.5 + s * w * 0.18, hy + 4.0), Vector2(w * 0.5 + s * w * 0.62, h), cy, 3.0, true)
+	draw_rect(Rect2(0, hy - 2.0, w, 4.0), Color(0, 0, 0, 0.25))
+	# Side pylons.
+	for side: float in [-1.0, 1.0]:
+		var pw := w * 0.15
+		var px := 0.0 if side < 0.0 else w - pw
+		var pr := Rect2(px, 0, pw, hy + (h - hy) * 0.08)
+		_vgrad(pr, near, Color("1e252e"))
+		var edge := px + pw if side < 0.0 else px
+		draw_line(Vector2(edge, 0), Vector2(edge, pr.end.y), Color(0.6, 0.85, 1.0, 0.22), 2.0)
+		draw_line(Vector2(edge - side * 8.0, 0), Vector2(edge - side * 8.0, pr.end.y), Color(1, 1, 1, 0.05), 1.0)
+		var yy := 90.0
+		while yy < pr.end.y:
+			draw_line(Vector2(px, yy), Vector2(px + pw, yy), Color(1, 1, 1, 0.05), 1.0)
+			yy += 110.0
+		# Hatched hazard band.
+		var band := Rect2(px, hy * 0.7, pw, 26.0)
+		draw_rect(band, Color(0, 0, 0, 0.3))
+		var hx := band.position.x - band.size.y
+		while hx < band.end.x:
+			var a3 := Vector2(maxf(hx, band.position.x), band.end.y - (maxf(hx, band.position.x) - hx))
+			var b3 := Vector2(minf(hx + band.size.y, band.end.x), band.position.y + (hx + band.size.y - minf(hx + band.size.y, band.end.x)))
+			draw_line(a3, b3, Color(0.43, 0.85, 1.0, 0.35), 4.0)
+			hx += 14.0
+		# Indicator lights.
+		for k in 5:
+			var ly := hy * (0.16 + k * 0.11)
+			var lx := px + (pw - 26.0 if side < 0.0 else 12.0)
+			var lc2 := Color("6fd8ff") if k % 3 != 1 else Color("ffb24a")
+			draw_rect(Rect2(lx, ly, 14.0, 4.0), Color(lc2, 0.85))
+			_glow_ellipse(Vector2(lx + 7.0, ly + 2.0), 22.0, 8.0, Color(lc2, 0.35))
+	# Ceiling truss.
+	var tb := hy * 0.07
+	_vgrad(Rect2(0, 0, w, tb), Color("0b0e12"), Color("181e25"))
+	draw_line(Vector2(0, tb), Vector2(w, tb), Color(1, 1, 1, 0.1), 2.0)
+	var step := w / 10.0
+	for k in 10:
+		var x0 := k * step
+		draw_line(Vector2(x0, tb - 4.0), Vector2(x0 + step * 0.5, 8.0), Color(1, 1, 1, 0.07), 3.0)
+		draw_line(Vector2(x0 + step * 0.5, 8.0), Vector2(x0 + step, tb - 4.0), Color(1, 1, 1, 0.07), 3.0)
+	# The technical halo ring behind the hero's head.
+	var hc := Vector2(w * 0.5, hy * 0.36)
+	var hr := w * 0.34
+	_glow_ellipse(hc, hr * 1.2, hr * 1.2, Color(0.43, 0.85, 1.0, 0.1))
+	var ring := Color(0.55, 0.88, 1.0, 0.5)
+	for k in 6:
+		var a0 := TAU * k / 6.0 + 0.12
+		draw_arc(hc, hr, a0, a0 + TAU / 6.0 - 0.18, 24, ring, 3.0, true)
+	draw_arc(hc, hr + 12.0, 0, TAU, 96, Color(ring, 0.18), 1.0, true)
+	draw_arc(hc, hr - 10.0, deg_to_rad(200), deg_to_rad(340), 48, Color(ring, 0.35), 6.0, true)
+	for k in 60:
+		var a := TAU * k / 60.0
+		var d := Vector2(cos(a), sin(a))
+		var l := 10.0 if k % 5 == 0 else 5.0
+		draw_line(hc + d * (hr + 14.0), hc + d * (hr + 14.0 + l), Color(ring, 0.4 if k % 5 == 0 else 0.22), 1.5, true)
+
+
+func _arch_points(r: Rect2) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	pts.append(Vector2(r.position.x, r.end.y))
+	var n := 24
+	for k in n + 1:
+		var x := r.position.x + r.size.x * k / float(n)
+		pts.append(Vector2(x, _arch_y(r, x)))
+	pts.append(Vector2(r.end.x, r.end.y))
+	return pts
+
+
+## Top edge at x of a pointed (two-centred) arch whose apex touches the top of r.
+func _arch_y(r: Rect2, x: float) -> float:
+	var w := r.size.x
+	var rad := w * 0.75
+	var rise := sqrt(rad * rad - pow(w * 0.5 - rad, 2.0))
+	var spring := r.position.y + rise
+	# Each half is an arc centred on the opposite side of the span.
+	var cx := r.position.x + (rad if x - r.position.x <= w * 0.5 else w - rad)
+	var dx := x - cx
+	return spring - sqrt(maxf(rad * rad - dx * dx, 0.0))
 
 
 func _draw_floor(w: float, h: float, hy: float) -> void:
@@ -377,9 +506,6 @@ func _draw_floor(w: float, h: float, hy: float) -> void:
 			for i in 4:
 				var y := hy + (h - hy) * (0.15 + i * 0.22)
 				_glow_ellipse(Vector2(w * (0.3 + 0.4 * (i % 2)), y), w * 0.6, (h - hy) * 0.05, Color(0.6, 0.55, 0.95, 0.10))
-		"home":
-			var dc := Vector2(w * 0.5, hy + (h - hy) * 0.42)
-			_glow_ellipse(dc, w * 0.46, (h - hy) * 0.16, Color(1.0, 0.82, 0.5, 0.22))
 
 
 func _draw_lava_cracks(w: float, h: float, hy: float) -> void:
