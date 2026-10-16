@@ -142,12 +142,16 @@ FILTER = {
                         "ANUS_EXPOSED", "BUTTOCKS_EXPOSED"],
     "anime_classes": ["nipple_f", "penis", "pussy"],
     "max_threshold": 0.5,        # plan.py/gen.py refuse looser settings
-    # Sensitivity canary (positive control): an already-public, filter-passed borderline candidate
-    # (runs/38832421932-candidates-bench-draft/seraphiel/seraphiel_s101000.webp, measured 0.2259 /
-    # 0.1053). The self-test requires it to PASS and its scores to stay inside these bands, so a
-    # detector that silently returns near-zero scores fails closed.
+    # Sensitivity canary (positive control): an already-public, filter-passed borderline candidate on the
+    # art-gen-output branch (measured nudenet 0.2259 / anime censor 0.1053). It is loaded at run time
+    # (safety.fetch_canary) and never committed to the code branch. The self-test requires it to PASS
+    # and its scores to stay inside these bands, so a detector that silently returns near-zero scores
+    # fails closed. If it cannot be fetched, only the canary is skipped (with a warning line).
     "canary": {
-        "file": "testdata/canary_seraphiel_s101000.webp",
+        "repo": "u-tek/game",
+        "branch": BRANCH,
+        "ref": "origin/" + BRANCH,
+        "path": "runs/38832421932-candidates-bench-draft/seraphiel/seraphiel_s101000.webp",
         "sha256": "6850479965568fe37d2d1c990c0e0b958cf2ed7bb038261098a7276b44a3fcdc",
         "bands": {"nudenet": {"FEMALE_BREAST_EXPOSED": [0.10, 0.25]},
                   "anime_censor": {"_max": [0.02, 0.25]}},

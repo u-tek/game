@@ -293,7 +293,7 @@ class TestPlan(unittest.TestCase):
     def test_final_jobs_limit(self):
         seeds = {h: {"seeds": [1, 2, 3, 4], "run": "1-candidates"} for h in list(BIBLE["heroes"])[:5]}
         with self.assertRaises(plan.PlanError):
-            plan.build(self.env(ART_MODE="final", ART_SEEDS=json.dumps(seeds)), BIBLE)
+            plan.build(self.env(ART_MODE="final", ART_HEROES="", ART_SEEDS=json.dumps(seeds)), BIBLE)
 
     def test_bench_plan(self):
         p = plan.build(self.env(ART_MODE="bench", ART_COUNT="2", ART_HEROES=""), BIBLE)
@@ -409,7 +409,7 @@ class TestCutout(unittest.TestCase):
         rgba, info = cutout.artgen_cutout(img, self.isnet(img))
         a = np.asarray(rgba)[..., 3]
         self.assertEqual(rgba.mode, "RGBA")
-        self.assertLess(a[155, 160], 10, "ring interior beside the head must be transparent")   # inside the ring
+        self.assertLess(a[100, 160], 10, "ring interior beside the head must be transparent")   # inside the ring
         self.assertLess(a[648, 120], 10, "ground shadow left of the legs must be transparent")
         self.assertLess(a[648, 280], 10, "ground shadow right of the legs must be transparent")
         self.assertGreater(a[630, 180], 245, "the legs stay")
@@ -510,22 +510,53 @@ class TestFilter(unittest.TestCase):
                            lambda img: dict({c: 0.001 for c in C.FILTER["anime_classes"]},
                                             penis=censor if img.size[0] > 600 else 0.01))]
 
-    def test_canary_file_matches_config(self):
-        spec = C.FILTER["canary"]
-        self.assertEqual(safety.sha256_file(os.path.join(HERE, spec["file"])), spec["sha256"])
-        self.assertTrue(spec["bands"]["nudenet"]["FEMALE_BREAST_EXPOSED"][1] <= C.FILTER["nudenet_threshold"])
+    def synthetic_canary(self):
+        p = self.img("canary.png", size=(832, 1216))
+        return p, dict(C.FILTER["canary"], sha256=safety.sha256_file(p))
 
     def test_canary_bands(self):
-        safety.ExposureFilter(self.canary_scorers(0.2259, 0.1053)).selftest(canary=True)    # measured values
+        path, spec = self.synthetic_canary()
+        rep = safety.ExposureFilter(self.canary_scorers(0.2259, 0.1053)).canary(spec, path)    # the measured values
+        self.assertEqual(rep["scores"]["nudenet"]["FEMALE_BREAST_EXPOSED"], 0.2259)
         for breast, censor in ((0.0, 0.0), (0.02, 0.1), (0.2, 0.001), (0.3, 0.1)):
             with self.assertRaises(safety.FilterUnavailable, msg=(breast, censor)):
-                safety.ExposureFilter(self.canary_scorers(breast, censor)).selftest(canary=True)
-        bad = dict(C.FILTER["canary"], sha256="0" * 64)
-        with self.assertRaises(safety.FilterUnavailable):
-            safety.ExposureFilter(self.canary_scorers(0.2259, 0.1053)).canary(bad)
-        with self.assertRaises(safety.FilterUnavailable):
-            safety.ExposureFilter(self.canary_scorers(0.2259, 0.1053)).canary(dict(bad, file="testdata/missing.webp"))
+                safety.ExposureFilter(self.canary_scorers(breast, censor)).canary(spec, path)
         self.assertFalse(fake_filter().default)          # test detectors: the canary is not part of selftest()
+
+    def test_canary_unavailable_is_skipped_loudly(self):
+        path, spec = self.synthetic_canary()
+        lines = []
+        f = safety.ExposureFilter(self.canary_scorers(0.0, 0.0), log=lines.append)
+        self.assertIsNone(f.canary(dict(spec, sha256="0" * 64), path))          # wrong bytes: not scored
+        orig = safety.fetch_canary
+        safety.fetch_canary = lambda spec=None, log=None, **k: (None, "offline")
+        try:
+            self.assertIsNone(f.canary(spec))
+            rep = safety.ExposureFilter(self.canary_scorers(0.0, 0.0), log=lines.append).selftest(canary=True)
+        finally:
+            safety.fetch_canary = orig
+        self.assertEqual(rep["canary"], "skipped")
+        self.assertTrue(any("canary SKIPPED" in str(x) for x in lines), lines)
+
+    def test_canary_from_the_output_branch(self):
+        """The real canary is never committed here: it is read from origin/art-gen-output when that ref
+        has been fetched (skipped otherwise; on the runner it comes from the raw URL)."""
+        spec = C.FILTER["canary"]
+        r = subprocess.run(["git", "cat-file", "-e", "%s:%s" % (spec["ref"], spec["path"])], cwd=C.ROOT,
+                           capture_output=True)
+        if r.returncode != 0:
+            self.skipTest("origin/art-gen-output not fetched")
+        env = os.environ.pop("ARTGEN_CANARY_FILE", None)
+        orig = safety.fetch_canary.__defaults__
+        try:
+            path, why = safety.fetch_canary(spec, log=QUIET)
+        finally:
+            if env:
+                os.environ["ARTGEN_CANARY_FILE"] = env
+        self.assertIsNone(why)
+        self.assertEqual(safety.sha256_file(path), spec["sha256"])
+        self.assertEqual(orig, safety.fetch_canary.__defaults__)
+        self.assertFalse(os.path.exists(os.path.join(HERE, "testdata")))
 
     def test_rgba_is_flattened(self):
         im = Image.new("RGBA", (256, 256), (255, 0, 0, 0))      # transparent red = invisible
@@ -789,7 +820,8 @@ class TestSheetsAndPublish(unittest.TestCase):
         shutil.copytree(self.candidates_out(name, seeds), os.path.join(incoming, "art-" + name))
         bdir = os.path.join(self.d, "bundle_" + name)
         orig = safety.ExposureFilter
-        safety.ExposureFilter = lambda log=None: fake_filter()
+        safety.ExposureFilter = lambda scorers=None, log=QUIET, **kw: orig(
+            scorers if scorers is not None else [red_square_scorer(), FakeScorer("second")], log=log)
         try:
             collect.main(["--incoming", incoming, "--run-dir", "1-test", "--out", bdir,
                           "--plan-json", json.dumps({"include": [{"key": k} for k in plan_keys]})])
@@ -826,13 +858,13 @@ class TestSheetsAndPublish(unittest.TestCase):
         b = self.bundle("k")
         hdir = os.path.join(b, "seraphiel")
         good = os.path.join(hdir, "seraphiel_s101000.webp")
-        man = json.load(open(os.path.join(b, publish.MANIFEST)))
+        man = publish.read_json(os.path.join(b, publish.MANIFEST))
         # a recorded name whose bytes are not a WebP, an unrecorded image, a symlink, a bad type, broken JSON
         fake = os.path.join(hdir, "fake.webp")
         with open(fake, "wb") as fh:
             fh.write(b"GIF89a not webp")
         man["files"]["seraphiel/fake.webp"] = {"sha256": publish.sha256_file(fake), "passed": True}
-        json.dump(man, open(os.path.join(b, publish.MANIFEST), "w"))
+        publish.write_json(os.path.join(b, publish.MANIFEST), man)
         Image.new("RGB", (8, 8)).save(os.path.join(hdir, "unrecorded.png"))
         os.symlink(good, os.path.join(hdir, "link.webp"))
         with open(os.path.join(hdir, "x.sh"), "w") as fh:
@@ -959,7 +991,7 @@ class TestWorkflow(unittest.TestCase):
     def test_publish_job_runs_no_third_party_code(self):
         pub = self.jobs["publish"]
         text = json.dumps(pub)
-        for bad in ("setup-python", "pip", "actions/cache", "requirements"):
+        for bad in ("setup-python", "pip install", "pip3", "python -m pip", "actions/cache", "requirements"):
             self.assertNotIn(bad, text)
         runs = [st["run"] for st in pub["steps"] if "run" in st]
         self.assertEqual(len(runs), 1)

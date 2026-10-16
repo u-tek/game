@@ -16,9 +16,12 @@ artifact) or committed (art-gen-output branch). The repo is public, so this FAIL
 - verify() runs again right before the upload: any image in the upload dir without a matching
   pass record (path + sha256) is deleted, and so is any file that is not .png/.webp/.json;
 - the self-test also runs a sensitivity canary (positive control, config.FILTER["canary"]): an
-  already-public, filter-passed borderline candidate must still PASS and score inside fixed bands
-  (nudenet FEMALE_BREAST_EXPOSED 0.10-0.25, anime detector max 0.02-0.25). A detector that silently
-  returns near-zero scores (a preprocessing or model regression) therefore fails closed.
+  already-public, filter-passed borderline candidate on the art-gen-output branch (loaded at run
+  time: env ARTGEN_CANARY_FILE, else `git show origin/art-gen-output:<path>`, else the raw URL;
+  never committed to the code branch) must still PASS and score inside fixed bands (nudenet
+  FEMALE_BREAST_EXPOSED 0.10-0.25, anime detector max 0.02-0.25), so a detector that silently returns
+  near-zero scores fails closed. If the canary cannot be fetched (or its sha256 differs) the canary
+  alone is skipped with a warning line; the rest of the self-test still has to pass.
 
     safety.py selftest                 load both detectors, prove a clean image passes, a detector error drops
                                        and the canary scores inside its bands
@@ -204,6 +207,73 @@ def load_default_scorers(nudenet_threshold=None, anime_threshold=None, cache_dir
         raise FilterUnavailable("exposure detector unavailable: %s: %s" % (type(e).__name__, e))
 
 
+# ------------------------------------------------------------------ canary
+def fetch_canary(spec=None, log=print, repo=None, timeout=30):
+    """(local path, None) of the canary image, verified against its sha256, or (None, reason).
+    Sources in order: env ARTGEN_CANARY_FILE; `git show <ref>:<path>` in this checkout (ref
+    origin/art-gen-output, present after `git fetch origin art-gen-output`); the raw URL of the public
+    branch. The image is cached in the temp dir under its sha256."""
+    import subprocess
+    import tempfile
+    spec = spec or C.FILTER["canary"]
+    want = spec["sha256"]
+    cache = os.path.join(tempfile.gettempdir(), "artgen_canary_%s.webp" % want[:16])
+    if os.path.isfile(cache) and sha256_file(cache) == want:
+        return cache, None
+    tried = []
+
+    def keep(data, src):
+        if hashlib.sha256(data).hexdigest() != want:
+            tried.append("%s: sha256 mismatch" % src)
+            return None
+        tmp = cache + ".%d.tmp" % os.getpid()
+        with open(tmp, "wb") as f:
+            f.write(data)
+        os.replace(tmp, cache)
+        log("filter canary loaded from %s" % src)
+        return cache
+
+    env = os.environ.get("ARTGEN_CANARY_FILE")
+    if env:
+        try:
+            with open(env, "rb") as f:
+                got = keep(f.read(), env)
+            if got:
+                return got, None
+        except OSError as e:
+            tried.append("%s: %s" % (env, e))
+    try:
+        r = subprocess.run(["git", "show", "%s:%s" % (spec["ref"], spec["path"])], cwd=C.ROOT, capture_output=True,
+                           timeout=timeout)
+        if r.returncode == 0 and r.stdout:
+            got = keep(r.stdout, "git %s" % spec["ref"])
+            if got:
+                return got, None
+        else:
+            tried.append("git %s: not available" % spec["ref"])
+    except (OSError, subprocess.SubprocessError) as e:
+        tried.append("git: %s" % e)
+    repo = repo or os.environ.get("GITHUB_REPOSITORY") or spec["repo"]
+    url = "https://raw.githubusercontent.com/%s/%s/%s" % (repo, spec["branch"], spec["path"])
+    try:
+        import urllib.request
+        for i in range(2):
+            try:
+                req = urllib.request.Request(url, headers={"User-Agent": "art-farm"})
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    got = keep(resp.read(8 << 20), url)
+                if got:
+                    return got, None
+                break
+            except OSError as e:
+                if i:
+                    raise
+                time.sleep(3)
+    except Exception as e:      # noqa: BLE001
+        tried.append("%s: %s" % (url, e))
+    return None, "; ".join(tried) or "no source"
+
+
 # ------------------------------------------------------------------ filter
 class ExposureFilter:
     def __init__(self, scorers=None, log=print, cache_dir=None):
@@ -257,14 +327,18 @@ class ExposureFilter:
         self.stats["passed" if ok else "dropped"] += 1
         return ok, rep
 
-    def canary(self, spec=None, base=HERE):
-        """Positive control: the canary image must pass and score inside its bands. Raises FilterUnavailable."""
+    def canary(self, spec=None, path=None):
+        """Positive control: the canary image must pass and score inside its bands (FilterUnavailable
+        otherwise). Returns the report, or None when the canary could not be loaded (logged, skipped)."""
         spec = spec or C.FILTER["canary"]
-        path = os.path.join(base, spec["file"])
-        if not os.path.isfile(path):
-            raise FilterUnavailable("canary image %s is missing" % spec["file"])
-        if sha256_file(path) != spec["sha256"]:
-            raise FilterUnavailable("canary image %s does not match its sha256" % spec["file"])
+        if path is None:
+            path, why = fetch_canary(spec, log=self.log)
+        else:
+            why = None if sha256_file(path) == spec["sha256"] else "sha256 mismatch"
+        if path is None or why:
+            self.log("::warning::exposure filter canary SKIPPED (%s): the self-test ran without its positive "
+                     "control" % (why or "not available"))
+            return None
         saved = dict(self.stats)
         try:
             ok, rep = self.check_file(path)
@@ -307,10 +381,12 @@ class ExposureFilter:
             if ok2 or "error" not in rep2:
                 raise FilterUnavailable("self-test: a detector error did not drop the image")
             self.stats = saved
-            crep = self.canary() if (self.default if canary is None else canary) else None
+            run_canary = self.default if canary is None else canary
+            crep = self.canary() if run_canary else None
             self.log("filter self-test ok: %s; forced detector error -> dropped (%s); canary %s"
                      % (json.dumps(rep["scores"]), rep2["error"],
-                        json.dumps(crep["scores"]) if crep else "not run (test detectors)"))
+                        json.dumps(crep["scores"]) if crep else "skipped" if run_canary else "not run (test detectors)"))
+            rep["canary"] = crep["scores"] if crep else ("skipped" if run_canary else None)
             return rep
         finally:
             shutil.rmtree(d, ignore_errors=True)

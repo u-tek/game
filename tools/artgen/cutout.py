@@ -57,8 +57,10 @@ def _grad(lum):
 
 
 def ground_shadow(arr, bgc, figure, band=0.15, chroma_tol=0.04, lum_range=(0.35, 0.97), grad_max=8.0,
-                  ring_px=2, max_frac=0.5):
-    """Boolean mask of the cast shadow under the figure (subset of `figure`), and an info dict."""
+                  ring_px=2, max_frac=0.8):
+    """Boolean mask of the cast shadow under the figure (subset of `figure`), and an info dict.
+    A shadow lies flat on the floor: a found region that reaches the top of the bottom band (a dark,
+    background-tinted hem or boot rather than a shadow) is left alone."""
     ys, xs = np.nonzero(figure)
     info = {"shadow_px": 0}
     if len(ys) == 0:
@@ -76,13 +78,22 @@ def ground_shadow(arr, bgc, figure, band=0.15, chroma_tol=0.04, lum_range=(0.35,
     sh = post.flood(seed, cand)
     if ring_px and sh.any():          # hard-edged shadows: take the (steeper) rim of a found shadow too
         sh |= post.dilate(sh, ring_px) & shade
+    kept = np.zeros_like(sh)
+    tall = 0
+    for comp in post.components(sh, max_count=64):
+        cy = np.nonzero(comp.any(axis=1))[0]
+        if cy.min() <= top + 2:
+            tall += int(comp.sum())
+            continue
+        kept |= comp
+    if tall:
+        info["shadow_left_px"] = tall
     band_fig = int((figure & rows).sum())
-    if band_fig and sh.sum() > max_frac * band_fig:
-        info.update({"shadow_skipped": "%d px is more than %.0f%% of the figure's bottom band" % (
-            int(sh.sum()), 100 * max_frac)})
+    if band_fig and kept.sum() > max_frac * band_fig:
+        info["shadow_skipped"] = "%d px is more than %.0f%% of the figure's bottom band" % (int(kept.sum()), 100 * max_frac)
         return np.zeros_like(figure), info
-    info["shadow_px"] = int(sh.sum())
-    return sh, info
+    info["shadow_px"] = int(kept.sum())
+    return kept, info
 
 
 def artgen_cutout(img, isnet_mask=None, hole_tol=12.0, hole_min=24, max_hole_frac=0.06, shadow=True,

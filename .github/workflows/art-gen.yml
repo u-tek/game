@@ -259,7 +259,7 @@ jobs:
         with:
           name: farm-bundle
           path: bundle
-      - name: Merge into art-gen-output and push (stdlib only, no pip)
+      - name: Merge into art-gen-output and push (stdlib only, no third-party packages)
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: python3 tools/artgen/publish.py --bundle bundle --run-dir "$ART_RUN"

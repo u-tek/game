@@ -426,6 +426,7 @@ class Engine:
         lat, info = self._sample(pipe, kw, times, "hires img2img %dx%d @%.2f" % (W, H, strength))
         info.update(einfo)
         info.update({"steps_effective": int(steps), "strength": float(strength), "size": [W, H]})
+        del pipe, kw, lat0          # no local reference may keep the UNet alive through the untiled decode
         return self._finish(lat, info, t0, release_first=True)
 
     def inpaint(self, emb, image, mask, strength, seed, steps, cfg, sampler):
