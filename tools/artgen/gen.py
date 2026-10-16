@@ -422,7 +422,8 @@ def run_final(a, bible, pub, comps, job):
                 continue
             spec = prompts.variant_spec(bible, hero, n)
             region = post.region_box(fbc, spec["region_frac"])
-            vmask = P.ellipse_mask(canvas.size, region, feather=max(3, region[3] // 10))
+            feather = max(3, region[3] // 10)
+            vmask = P.ellipse_mask(canvas.size, region, feather=feather)
             vmask.save(os.path.join(mdir, "%s.png" % spec["region"]))
             tries = []
             for k in range(max(1, a.variant_tries)):
@@ -430,7 +431,7 @@ def run_final(a, bible, pub, comps, job):
                 out_rgb, info = crop_inpaint(eng, embs["v:" + n], rgb, vcrop, vmask, spec["denoise"], vseed, q,
                                              target=a.inpaint_px)
                 var = merge_variant(canvas, out_rgb, vmask)
-                probs = post.variant_alignment(canvas, var, allowed_rect=region, margin=12)
+                probs = post.variant_alignment(canvas, var, allowed_rect=region, margin=3 * feather + 2)
                 tp = os.path.join(vdir, "candidates", "%s_s%d.png" % (n, vseed))
                 os.makedirs(os.path.dirname(tp), exist_ok=True)
                 var.save(tp)
