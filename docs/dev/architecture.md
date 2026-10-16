@@ -27,7 +27,7 @@ script errors, so a "successful" run can still be broken.
 
 | Path | Owner | Notes |
 |---|---|---|
-| `src/core/**`, `src/data/**` (except identity fields in `heroes.gd`) | core logic | Rules, state, save, battle sim, data tables |
+| `src/core/**`, `src/data/**`, `data/**` (except hero identity fields in `data/heroes.json`) | core logic | Rules, state, save, battle sim, data tables and their JSON |
 | `tests/**` | core logic (others may add tests) | `tests/unit/test_*.gd` |
 | `src/ui/ui.gd`, `src/ui/main.gd`, `src/main.tscn`, `src/ui/kit.gd`, `src/ui/theme.gd`, `src/ui/components/**`, `assets/art/ui/**` | UI shell | Router, theme, shared widgets, icons |
 | `src/ui/screens/home_screen.gd`, `campaign_screen.gd`, `battle_screen.gd`, `src/ui/battle/**` | screens A | Core loop screens |
@@ -66,6 +66,14 @@ Write code so a later Unity port can reuse the content and reproduce the rules e
   (event logs, summon results, cost tables). Unit tests check them; a Unity port must too.
 - **Art stays engine-neutral**: SVG sources plus PNG exports; animation described by
   parameters (durations, offsets), not engine-specific animation files.
+
+Where this lives today: the rules and state are in `GameModel` (`src/core/game_model.gd`)
+plus small rule classes (`progression.gd`, `idle_rules.gd`, `summon_rules.gd`, `gear_rules.gd`);
+`game.gd` only adds the clock, saving and signals. Loaded data is **read-only**
+(`duplicate(true)` before changing a dictionary from `Game.stage()`, `HeroData.get_def()` or
+`EconomyData`). JSON-backed tuning values are `static var`s, so never use them in a `const`
+or `match` pattern. `tests/unit/test_fixtures.gd` checks the golden fixtures; regenerate
+them with `tests/tools/make_fixtures.gd` only after an intended rules or data change.
 
 See `docs/dev/unity-port.md` for the module-by-module port map.
 
@@ -217,7 +225,7 @@ canvas: 22 small, 26 body, 32 button, 40 header, 56 hero name.
 
 ## 8. v1 scope and numbers (starting points; core may tune)
 
-- 15 heroes (see `src/data/heroes.gd`); start with 3 owned (one per faction): **uriela,
+- 15 heroes (see `data/heroes.json`); start with 3 owned (one per faction): **uriela,
   kessa, lucen** (all Rare) plus 1,800 gems (6 pulls), 10 scrolls (one 10-pull) and one free daily pull.
 - Campaign: 3 chapters × 10 stages; stages 5 and 10 of each chapter are bosses. Enemies
   are "echoes" of roster heroes.

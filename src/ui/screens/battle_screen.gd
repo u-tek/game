@@ -725,7 +725,9 @@ func _start_ult(ev: Dictionary) -> void:
 	if v == null or v.get("dead"):
 		return
 	var ally := str(v.get("side")) == "ally"
-	var cs := minf(float(_speed), 2.0)
+	# The caster's wind-up plays during the hold; enemy ultimates wind up faster so the
+	# player's own heroes get the longer, bigger moment.
+	var cs := minf(float(_speed), 2.0) * (1.0 if ally else 1.6)
 	var hit_s: float = float(v.get("ult_hit_s"))
 	var d := (hit_s if hit_s > 0.0 else ULT_HIT_S) / cs
 	_hold = d
@@ -959,6 +961,13 @@ func _on_result_action(action_name: String) -> void:
 			UI.go("campaign")
 		"heroes":
 			UI.go("heroes")
+		"level":
+			# Straight to the team hero who most needs a level (else the hero list).
+			var lid := Guide.level_target()
+			if lid != "":
+				UI.go("hero_detail", {"hero_id": lid, "browse": Game.formation().filter(func(x: Variant) -> bool: return str(x) != "")})
+			else:
+				UI.go("heroes")
 		"formation":
 			UI.go("formation")
 

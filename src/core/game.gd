@@ -522,7 +522,7 @@ func summon(count: int, use_free: bool = false) -> Dictionary:
 
 # ---------------------------------------------------------------- quests & shop
 
-## Array of {id, title, progress, goal, reward, claimed} (+ ready: bool)
+## Array of {id, title, counter, progress, goal, reward, claimed, ready}
 func quests() -> Array[Dictionary]:
 	var r := model.quests()
 	_flush()

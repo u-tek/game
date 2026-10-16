@@ -785,6 +785,19 @@ static func reward_entries(reward: Dictionary) -> Array[Dictionary]:
 			out.append({"kind": "currency", "id": c, "amount": int(reward[c])})
 	for g: Variant in reward.get("gear", []):
 		out.append({"kind": "gear", "id": str(g), "amount": 1})
+	# Previews: stage first-clear gear_drops [{slot, tier}] (grouped) and idle gear_count.
+	var drops := {}
+	var order: Array[String] = []
+	for d: Variant in reward.get("gear_drops", []):
+		if d is Dictionary:
+			var key := "%s:%d" % [str(d.get("slot", "")), int(d.get("tier", 1))]
+			if not drops.has(key):
+				order.append(key)
+			drops[key] = int(drops.get(key, 0)) + 1
+	for key in order:
+		out.append({"kind": "gear_drop", "id": key, "amount": int(drops[key])})
+	if int(reward.get("gear_count", 0)) > 0:
+		out.append({"kind": "gear_drop", "id": ":0", "amount": int(reward.gear_count)})
 	return out
 
 
@@ -798,7 +811,8 @@ static func reward_list(reward: Dictionary, tile: float = 112.0, show_names: boo
 
 
 ## One reward tile. kind: "currency" (id = currency id), "hero", "shard" (id = hero id),
-## "gear" (id = gear uid). show_name adds a caption under the tile.
+## "gear" (id = gear uid), "gear_drop" (preview, id = "slot:tier"; empty slot = any slot,
+## tier 0 = unknown; amount = how many). show_name adds a caption under the tile.
 static func reward_tile(kind: String, id: String, amount: int, tile: float = 112.0, show_name: bool = true) -> Control:
 	var col := vbox(4)
 	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -823,6 +837,21 @@ static func reward_tile(kind: String, id: String, amount: int, tile: float = 112
 			var tl := label("T%d" % tier, int(tile * 0.18), tier_color(tier).lightened(0.3), "black", 4)
 			_corner(face, tl, Vector2(0, 0), Vector2(8, 2))
 			name_text = str(item.get("name", GEAR_SLOT_NAMES.get(slot, "Gear")))
+		"gear_drop":
+			var parts := id.split(":")
+			var slot := parts[0] if parts.size() > 0 else ""
+			var tier := int(parts[1]) if parts.size() > 1 else 0
+			var accent := tier_color(tier) if tier > 0 else SKY
+			face = _tile_box(tile, accent)
+			var gi := icon("gear_" + (slot if slot != "" else "weapon"), tile * 0.62)
+			_center_child(face, gi, gi.custom_minimum_size)
+			if tier > 0:
+				var tl := label("T%d" % tier, int(tile * 0.18), accent.lightened(0.3), "black", 4)
+				_corner(face, tl, Vector2(0, 0), Vector2(8, 2))
+			if amount > 1 or slot == "":
+				var amt := label("x%d" % amount, int(tile * 0.22), INK, "black", 5)
+				_corner(face, amt, Vector2(1, 1), Vector2(-8, -2))
+			name_text = str(GEAR_SLOT_NAMES.get(slot, "Gear")) if slot != "" else "Gear"
 		_:
 			var accent := {"gold": GOLD, "gems": SKY, "scrolls": VIOLET, "hero_exp": GOOD, "dust": EPIC}
 			face = _tile_box(tile, accent.get(id, GOLD))

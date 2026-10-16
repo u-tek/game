@@ -336,6 +336,7 @@
 				{
 					"id": "dq_idle",
 					"title": "Collect idle rewards twice",
+					"counter": "idle_claims",
 					"progress": 1,
 					"goal": 2,
 					"reward": {"gems": 40, "gold": 3000},
@@ -345,6 +346,7 @@
 				{
 					"id": "dq_win",
 					"title": "Win 3 battles",
+					"counter": "battles_won",
 					"progress": 3,
 					"goal": 3,
 					"reward": {"gems": 60, "hero_exp": 1500},
@@ -354,6 +356,7 @@
 				{
 					"id": "dq_summon",
 					"title": "Summon a hero",
+					"counter": "summons",
 					"progress": 1,
 					"goal": 1,
 					"reward": {"gems": 50},
@@ -363,6 +366,7 @@
 				{
 					"id": "dq_level",
 					"title": "Level up heroes 5 times",
+					"counter": "level_ups",
 					"progress": 5,
 					"goal": 5,
 					"reward": {"gold": 5000, "hero_exp": 2000},
@@ -372,6 +376,7 @@
 				{
 					"id": "dq_quick",
 					"title": "Use a Quick Claim",
+					"counter": "quick_claims",
 					"progress": 1,
 					"goal": 1,
 					"reward": {"gems": 40},
@@ -381,6 +386,7 @@
 				{
 					"id": "dq_all",
 					"title": "Complete 5 daily quests",
+					"counter": "daily_quests_done",
 					"progress": 0,
 					"goal": 5,
 					"reward": {"gems": 100, "scrolls": 1},
@@ -512,6 +518,7 @@
 				{
 					"id": "dq_idle",
 					"title": "Collect idle rewards twice",
+					"counter": "idle_claims",
 					"progress": 0,
 					"goal": 2,
 					"reward": {"gems": 40, "gold": 3000},
@@ -521,6 +528,7 @@
 				{
 					"id": "dq_win",
 					"title": "Win 3 battles",
+					"counter": "battles_won",
 					"progress": 0,
 					"goal": 3,
 					"reward": {"gems": 60, "hero_exp": 1500},
@@ -530,6 +538,7 @@
 				{
 					"id": "dq_summon",
 					"title": "Summon a hero",
+					"counter": "summons",
 					"progress": 0,
 					"goal": 1,
 					"reward": {"gems": 50},
@@ -539,6 +548,7 @@
 				{
 					"id": "dq_level",
 					"title": "Level up heroes 5 times",
+					"counter": "level_ups",
 					"progress": 0,
 					"goal": 5,
 					"reward": {"gold": 5000, "hero_exp": 2000},
@@ -548,6 +558,7 @@
 				{
 					"id": "dq_quick",
 					"title": "Use a Quick Claim",
+					"counter": "quick_claims",
 					"progress": 0,
 					"goal": 1,
 					"reward": {"gems": 40},
@@ -557,6 +568,7 @@
 				{
 					"id": "dq_all",
 					"title": "Complete 5 daily quests",
+					"counter": "daily_quests_done",
 					"progress": 0,
 					"goal": 5,
 					"reward": {"gems": 100, "scrolls": 1},

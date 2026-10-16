@@ -488,6 +488,25 @@ icons["sound_off"] = svg(
     shape("path", 'd="M8 24 H18 L31 12 V52 L18 40 H8 Z"', "url(#g)") +
     stroke2("M40 24 L54 40 M54 24 L40 40", 10, 5), CREAM)
 
+# Music: two beamed eighth notes.
+icons["music"] = svg(
+    shape("path", 'd="M22 14 L52 7 V17 L22 24 Z"', "url(#g)", 2.6) +
+    stroke2("M24 20 V45", 9, 4.5, "#f3ecdf", "butt") + stroke2("M50 13 V39", 9, 4.5, "#f3ecdf", "butt") +
+    shape("ellipse", 'cx="17" cy="46" rx="9.5" ry="7.5" transform="rotate(-20 17 46)"', "url(#g)") +
+    shape("ellipse", 'cx="43" cy="40" rx="9.5" ry="7.5" transform="rotate(-20 43 40)"', "url(#g)") +
+    sparkle(10, 13, 5), CREAM)
+# Vibration: a phone with buzz marks on both sides.
+icons["vibrate"] = svg(
+    shape("rect", 'x="20" y="6" width="24" height="52" rx="5"', "url(#g)") +
+    '<rect x="24" y="12" width="16" height="34" rx="2" fill="#3b2f63"/>' +
+    '<circle cx="32" cy="52" r="2.6" fill="#3b2f63"/>' +
+    stroke2("M12 22 L7 27 L12 32 L7 37 L12 42", 8, 4, "#f2c14e") +
+    stroke2("M52 22 L57 27 L52 32 L57 37 L52 42", 8, 4, "#f2c14e"), CREAM)
+# Guidance pointer: a gold arrow pointing down at the suggested button.
+icons["pointer"] = svg(
+    shape("path", 'd="M22 4 H42 V30 H55 L32 60 L9 30 H22 Z"', "url(#gold)") +
+    '<path d="M27 9 V31" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.8"/>', GOLD)
+
 # Toggle switch for CheckButton (drawn at native size 100x56).
 icons["toggle_off"] = svg(
     '<rect x="3" y="7" width="94" height="42" rx="21" fill="#0d0a1c" stroke="#6b5c9e" stroke-width="3"/>'

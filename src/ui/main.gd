@@ -13,6 +13,8 @@ const NavTab := preload("res://src/ui/components/nav_tab.gd")
 ## Heights of the chrome bars, not counting the safe-area insets.
 const TOP_H := 92.0
 const NAV_H := 116.0
+## Toasts start this far below the top of the content area (clear of screen headers).
+const TOAST_GAP := 112.0
 const TABS := [
 	["home", "Home"], ["heroes", "Heroes"], ["summon", "Summon"], ["quests", "Quests"], ["shop", "Shop"],
 ]
@@ -237,7 +239,8 @@ func _layout() -> void:
 	nav_bar.offset_bottom = 0
 	content.offset_top = (st + TOP_H) if UI.chrome_top else 0.0
 	content.offset_bottom = -(NAV_H + sb) if UI.chrome_nav else 0.0
-	toast_box.offset_top = (st + TOP_H if UI.chrome_top else st) + 16
+	# Below a sub-screen's header row (back button, title), so toasts never hide it.
+	toast_box.offset_top = (st + TOP_H if UI.chrome_top else st) + TOAST_GAP
 
 
 # ------------------------------------------------------------------ refresh
@@ -270,6 +273,31 @@ func _refresh_dots() -> void:
 	(_tabs["summon"] as NavTab).set_dot(bool(Game.free_pull_available()))
 	var idle: Variant = Game.idle_status()
 	(_tabs["home"] as NavTab).set_dot(idle is Dictionary and bool((idle as Dictionary).get("full", false)))
+	_refresh_guide()
+
+
+## First-session guidance on the nav: point at the tab that leads to the suggested step,
+## unless the player is already on a screen that shows it.
+func _refresh_guide() -> void:
+	var step := Guide.step()
+	var here := UI.current_name
+	var tab := ""
+	match step:
+		"claim":
+			tab = "" if here == "home" else "home"
+		"summon":
+			tab = "" if here == "summon" else "summon"
+		"formation":
+			tab = "" if here in ["home", "heroes", "formation"] else "heroes"
+		"level":
+			tab = "" if here in ["heroes", "hero_detail"] else "heroes"
+		"quests":
+			tab = "" if here == "quests" else "quests"
+		"battle":
+			tab = "" if here in ["home", "campaign", "battle"] else "home"
+	# Ring only: an arrow above the nav would cover the screen's bottom buttons.
+	for id: String in _tabs:
+		Guide.mark(_tabs[id] as Control, id == tab, 0)
 
 
 ## Global feedback for one-shot Game events that can happen on any screen.
@@ -325,4 +353,7 @@ func _run_shoot() -> void:
 	DirAccess.make_dir_recursive_absolute(out.get_base_dir())
 	var err := img.save_png(out)
 	print("[shoot] %s -> %s (%dx%d) %s" % [screen, out, img.get_width(), img.get_height(), error_string(err)])
+	UI.release_audio()
+	# Give the audio thread a moment to drop its playbacks (else they leak at exit).
+	await get_tree().create_timer(0.3).timeout
 	get_tree().quit(0 if err == OK else 1)

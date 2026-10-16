@@ -1,6 +1,6 @@
 # Character Briefs (art direction v2)
 
-These briefs **override the `look` field in `src/data/heroes.gd`** for all art work.
+These briefs **override the `look` field in `data/heroes.json`** for all art work.
 
 ## Content direction
 

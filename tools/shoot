@@ -15,8 +15,11 @@ while [ $# -gt 0 ]; do
   esac
 done
 mkdir -p "$(dirname "$out")"
-NOISE='ALSA|audio_driver_alsa|All audio drivers failed|audio_server.cpp|init_output_device|^\s*at: (init_output_device|initialize) '
-log=$(timeout 120 flock /tmp/halo-godot.lock xvfb-run -a -s "-screen 0 1800x2400x24" \
+# Never report a stale PNG from an earlier run as this run's result.
+rm -f "$out"
+NOISE='ALSA|audio_driver_alsa|All audio drivers failed|audio_server.cpp|init_output_device|Condition "status < 0" is true|^\s*at: (init_output_device|initialize) '
+# The lock wait is not limited (other agents may hold it); the render itself gets 120 s.
+log=$(flock /tmp/halo-godot.lock timeout 120 xvfb-run -a -s "-screen 0 1800x2400x24" \
   godot --path . --rendering-driver opengl3 --resolution "$res" -- \
   --shoot="$screen" --shoot-out="$(realpath -m "$out")" "${extra[@]}" 2>&1 | grep -vE "$NOISE")
 echo "$log" | grep -E -A2 "SCRIPT ERROR|Parse Error|ERROR:" | head -30

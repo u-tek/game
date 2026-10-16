@@ -1,8 +1,8 @@
-extends Button
+extends Control
 ## Campaign map medallion for one stage. status: "cleared" | "current" | "locked".
 ## Cleared: gold ring, faction-tinted face, check badge. Current: bright pulsing ring and a
 ## bobbing "NEXT" marker. Locked: dim with a lock. Bosses are bigger, ember-ringed, with a
-## crown. Built with setup(); tap handling is the screen's (Kit press animation included).
+## crown. Built with setup(); the screen makes it tappable with Kit.make_tappable.
 
 var stage_id := ""
 var status := "locked"
@@ -20,8 +20,6 @@ func setup(id: String, st: String, boss: bool, faction_tint: Color, diameter: fl
 	status = st
 	is_boss = boss
 	tint = faction_tint
-	theme_type_variation = &"BareButton"
-	focus_mode = FOCUS_NONE
 	mouse_filter = MOUSE_FILTER_PASS
 	custom_minimum_size = Vector2(diameter, diameter)
 	size = custom_minimum_size
@@ -29,7 +27,6 @@ func setup(id: String, st: String, boss: bool, faction_tint: Color, diameter: fl
 	_check = Kit.icon_texture("check")
 	_lock = Kit.icon_texture("lock")
 	_crown = Kit.icon_texture("crown")
-	Kit.add_press_fx(self)
 	set_process(status == "current")
 
 

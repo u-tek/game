@@ -14,11 +14,18 @@ CLI:
     python3 tools/comfy/comfy.py discover [--object-info FILE]
                      list checkpoints/LoRAs/upscalers/custom nodes, pick a checkpoint + family,
                      cache to art_src/_server/discovery.json (+ object_info.json)
+    python3 tools/comfy/comfy.py pin CHECKPOINT [--family F]
+                     pin the model for the whole roster (art_src/_server/pin.json; survives new shells).
+                     Precedence everywhere: --ckpt > COMFYUI_CKPT > pin > discovery's recommendation.
     python3 tools/comfy/comfy.py queue GRAPH.json [--out DIR] [--dry-run]
-                     send a saved API graph (e.g. one written by --dry-run) and download outputs
+                     re-send a saved API graph from a LIVE run (candidates/<id>_s<seed>.api.json) and
+                     download its outputs. Dry-run JSON cannot be re-sent: it names a placeholder
+                     checkpoint and images that were never uploaded (refused with a message).
 
 Every request goes to the URL in COMFYUI_URL only. In --dry-run mode nothing is sent: queue() writes
 the exact POST /prompt body to art_src/_dryrun/<label>.json and returns a fake prompt id.
+Every graph -- composed by the pipeline or loaded from a file -- passes prompts.check_graph() (the
+content rules in data/art_prompts.json) before it is written or sent.
 """
 import base64
 import json
@@ -79,7 +86,8 @@ REMBG_PREFERENCE = KNOWN_CUSTOM["background_removal"]
 CKPT_BAD = ["refiner", "inpaint", "turbo", "lightning", "lcm", "hyper", "sd15", "sd_15", "v1-5", "v1_5",
             "sd1.5", "svd", "sd3", "flux", "cascade", "realistic", "realvis", "photo", "juggernaut", "pixart"]
 CKPT_GOOD = [("noob", 10), ("illustrious", 10), ("illu", 9), ("ilxl", 9), ("wai", 6), ("pony", 7),
-             ("pdxl", 7), ("autismmix", 7), ("animagine", 6), ("anime", 3), ("xl", 1)]
+             ("pdxl", 7), ("autismmix", 7), ("animagine", 6)]
+CKPT_BONUS = [("anime", 3), ("xl", 1)]
 DEFAULT_FAMILY_PATTERNS = [
     ("noobai_vpred", [r"v[-_ ]?pred"]),
     ("pony", [r"pony", r"pdxl", r"autismmix"]),
@@ -109,13 +117,40 @@ def detect_family(ckpt_name, families=None):
     return "illustrious", True
 
 
-def rank_checkpoints(names):
-    """Best-first list of (score, name) for picking an anime SDXL checkpoint."""
+def checkpoint_arch(meta):
+    """Architecture from a checkpoint's safetensors metadata (GET /view_metadata/checkpoints):
+    "sdxl", "sd1", "sd2", "sd3", "flux", other modelspec strings, or None when unknown."""
+    if not isinstance(meta, dict):
+        return None
+    arch = str(meta.get("modelspec.architecture") or "").lower()
+    base = str(meta.get("ss_base_model_version") or "").lower()
+    if "flux" in arch or base.startswith("flux"):
+        return "flux"
+    if "stable-diffusion-3" in arch or base.startswith("sd3"):
+        return "sd3"
+    if "xl" in arch or base.startswith("sdxl"):
+        return "sdxl"
+    if "stable-diffusion-v1" in arch or base.startswith("sd_v1"):
+        return "sd1"
+    if "stable-diffusion-v2" in arch or base.startswith("sd_v2"):
+        return "sd2"
+    return arch or None
+
+
+def rank_checkpoints(names, arch=None):
+    """Best-first list of (score, name) for picking an anime SDXL checkpoint. `arch` {name: arch}
+    from checkpoint_arch() adds +5 for SDXL and -50 for anything else (SD1.5, Flux, SD3)."""
     out = []
+    arch = arch or {}
     for n in names:
         low = n.lower()
-        s = sum(w for k, w in CKPT_GOOD if k in low)
+        s = max([w for k, w in CKPT_GOOD if k in low] or [0]) + sum(w for k, w in CKPT_BONUS if k in low)
         if any(b in low for b in CKPT_BAD):
+            s -= 50
+        a = arch.get(n)
+        if a == "sdxl":
+            s += 5
+        elif a:
             s -= 50
         out.append((s, n))
     out.sort(key=lambda t: (-t[0], t[1].lower()))
@@ -185,8 +220,9 @@ def rembg_recipe(object_info):
     return None
 
 
-def parse_object_info(object_info, families=None):
-    """Summarize a /object_info payload: model files, samplers, custom nodes, recommendations."""
+def parse_object_info(object_info, families=None, arch=None):
+    """Summarize a /object_info payload: model files, samplers, custom nodes, recommendations.
+    arch: optional {checkpoint: architecture} from the server's safetensors metadata."""
     oi = object_info or {}
     d = {
         "node_count": len(oi),
@@ -201,14 +237,17 @@ def parse_object_info(object_info, families=None):
         "custom": {k: [c for c in v if c in oi] for k, v in KNOWN_CUSTOM.items()},
         "missing_core": [c for c in core_nodes.CORE if c not in oi],
     }
-    ranked = rank_checkpoints(d["checkpoints"])
+    ranked = rank_checkpoints(d["checkpoints"], arch)
+    d["checkpoint_arch"] = dict(arch or {})
     ckpt = ranked[0][1] if ranked else None
     fam, guessed = detect_family(ckpt, families) if ckpt else (None, True)
     ups = rank_upscalers(d["upscale_models"])
     ipa = all(c in oi for c in ("IPAdapterUnifiedLoader", "IPAdapterAdvanced"))
     d["recommended"] = {
         "checkpoint": ckpt, "family": fam, "family_guessed": guessed,
+        "checkpoint_score": ranked[0][0] if ranked else None,
         "checkpoint_ranking": [n for _, n in ranked[:10]],
+        "checkpoint_scores": [[sc, n] for sc, n in ranked[:10]],
         "upscale_model": ups[0][1] if ups else None,
         "upscale_model_scale": upscaler_scale(ups[0][1]) if ups else None,
         "rembg": rembg_recipe(oi),
@@ -243,6 +282,37 @@ def _ssl_context():
     return ctx
 
 
+def url_warnings(url):
+    """This environment's egress proxy only passes HTTPS on port 443 (see /root/.ccr/README.md), so
+    an http:// URL or a custom port fails with an opaque connection error. Warn up front."""
+    if not url:
+        return []
+    out = []
+    u = urllib.parse.urlsplit(url)
+    if u.scheme == "http" and u.hostname not in ("localhost", "127.0.0.1", "::1"):
+        out.append("COMFYUI_URL is http://; the cloud environment's proxy only allows https:// "
+                   "(use the tunnel's https address)")
+    try:
+        port = u.port
+    except ValueError:
+        port = None
+    if port not in (None, 443) and u.hostname not in ("localhost", "127.0.0.1", "::1"):
+        out.append("COMFYUI_URL uses port %d; tunnels serve ComfyUI on 443 (drop ':%d' -- the tunnel "
+                   "forwards to 8188 on your PC)" % (port, port))
+    return out
+
+
+def content_problems(graph):
+    """Content-rule violations of a graph's prompts (prompts.check_graph); fails closed."""
+    if not any("TextEncode" in str(n.get("class_type", "")) for n in graph.values()):
+        return []
+    try:
+        import prompts
+        return prompts.check_graph(prompts.load_bible(), graph)
+    except Exception as e:  # noqa: BLE001  -- no rules, no sending
+        return ["cannot load the content rules from data/art_prompts.json (%s)" % e]
+
+
 def encode_multipart(fields, files):
     """fields: {name: str}; files: {name: (filename, bytes, content_type)} -> (body, content_type)."""
     boundary = "----halohorn" + uuid.uuid4().hex
@@ -263,7 +333,7 @@ def format_prompt_error(payload):
     lines = []
     e = payload.get("error")
     if isinstance(e, dict):
-        lines.append("%s: %s %s" % (e.get("type", "error"), e.get("message", ""), e.get("details", "")).strip())
+        lines.append(("%s: %s %s" % (e.get("type", "error"), e.get("message", ""), e.get("details", ""))).strip())
     elif e:
         lines.append(str(e))
     for nid, ne in (payload.get("node_errors") or {}).items():
@@ -322,6 +392,8 @@ class Comfy:
                              "or use --dry-run")
         if self.url and not re.match(r"^https?://", self.url):
             raise ComfyError("COMFYUI_URL must start with http:// or https:// (got %r)" % self.url)
+        for w in url_warnings(self.url):
+            self.log("warning: " + w)
         self._ctx = _ssl_context()
 
     def log(self, *a):
@@ -403,7 +475,16 @@ class Comfy:
         except ComfyError as e:
             self.log("warning: /system_stats failed: %s" % e)
         oi = self.object_info(refresh=True)
-        d = parse_object_info(oi, families)
+        arch = {}
+        for _, name in rank_checkpoints(combo_options(oi, "CheckpointLoaderSimple", "ckpt_name"))[:6]:
+            try:      # safetensors header: modelspec.architecture / ss_base_model_version (often absent)
+                meta = self.get_json("/view_metadata/checkpoints?filename=" + urllib.parse.quote(name), retries=1)
+                a = checkpoint_arch(meta)
+                if a:
+                    arch[name] = a
+            except (ComfyError, ValueError):
+                pass
+        d = parse_object_info(oi, families, arch)
         try:
             folders = self.get_json("/models", retries=1)
             d["model_folders"] = folders
@@ -452,7 +533,15 @@ class Comfy:
         return core_nodes.validate_graph(graph)
 
     def queue(self, graph, label="job"):
-        """POST /prompt. Returns the prompt id. In dry-run, writes art_src/_dryrun/<label>.json."""
+        """POST /prompt. Returns the prompt id. In dry-run, writes art_src/_dryrun/<label>.json.
+        Refuses graphs whose prompts break the content rules, and (live) dry-run placeholders."""
+        problems = content_problems(graph)
+        if problems:
+            raise ComfyError("refusing to queue %s: its prompts break the content rules "
+                             "(docs/dev/art-generation.md section 1):\n  %s" % (label, "\n  ".join(problems)))
+        if not self.dry_run and "DRYRUN_PLACEHOLDER" in json.dumps(graph):
+            raise ComfyError("%s is a dry-run graph (placeholder checkpoint, images never uploaded); re-run the "
+                             "pipeline step without --dry-run instead of re-queueing it" % label)
         errs = self.validate(graph)
         if errs:
             raise ComfyError("workflow failed validation (%s):\n  %s" % (label, "\n  ".join(errs)))
@@ -467,8 +556,13 @@ class Comfy:
             return "dryrun:" + label
         res = self.request("POST", "/prompt", body=json.dumps(body).encode(),
                            headers={"Content-Type": "application/json"}, retries=1)
+        if not isinstance(res, dict):
+            raise ComfyError("POST /prompt returned %r instead of a prompt id (is COMFYUI_URL a ComfyUI "
+                             "server, not a proxy or login page?)" % (res if res is None else str(res)[:200]))
         if res.get("node_errors"):
             raise ComfyError("server reported node errors:\n" + format_prompt_error(res))
+        if not res.get("prompt_id"):
+            raise ComfyError("POST /prompt answered without a prompt_id: %s" % json.dumps(res)[:300])
         return res["prompt_id"]
 
     def _queue_state(self, prompt_id):
@@ -532,8 +626,11 @@ class Comfy:
         """queue + wait + download every saved image. Returns local paths ([] in dry-run)."""
         pid = self.queue(graph, label)
         entry = self.wait(pid, timeout=timeout)
+        images = history_images(entry)
+        if not images and not self.dry_run:
+            raise ComfyError("job %s (%s) finished without saving an image" % (pid, label))
         paths = []
-        for i, im in enumerate(history_images(entry)):
+        for i, im in enumerate(images):
             name = names[i] if names and i < len(names) else "%s_%d.png" % (os.path.basename(label), i)
             paths.append(self.download(im, os.path.join(dest_dir, name)))
         return paths
@@ -550,6 +647,19 @@ def upload_image(path, **kw):
 
 def queue(prompt_json, label="job", dry_run=False):
     return Comfy(dry_run=dry_run).queue(prompt_json, label)
+
+
+def pin_path():
+    return os.path.join(server_dir(), "pin.json")
+
+
+def load_pin():
+    """{"checkpoint", "family"} pinned with `comfy.py pin`, or None."""
+    p = pin_path()
+    if not os.path.exists(p):
+        return None
+    with open(p) as f:
+        return json.load(f)
 
 
 def load_cached_discovery():
@@ -579,8 +689,11 @@ def _print_discovery(d):
         print("%-15s %d  %s" % (k + ":", len(v), ", ".join(v[:8]) + (" ..." if len(v) > 8 else "")))
     for k, v in d["custom"].items():
         print("%-25s %s" % ("custom/" + k + ":", ", ".join(v) or "-"))
-    print("recommended checkpoint: %s  (family %s%s)" % (r["checkpoint"], r["family"],
-                                                        ", guessed from name" if r["family_guessed"] else ""))
+    print("recommended checkpoint: %s  (family %s%s, score %s)" % (
+        r["checkpoint"], r["family"], ", guessed from name" if r["family_guessed"] else "", r.get("checkpoint_score")))
+    if (r.get("checkpoint_score") or 0) < 5 and r.get("checkpoint"):
+        print("  WARNING: not recognisably an anime SDXL checkpoint; the pipeline will stop until you pass "
+              "--ckpt NAME (or export COMFYUI_CKPT). Architectures seen: %s" % (d.get("checkpoint_arch") or "none"))
     print("recommended upscaler:   %s" % r["upscale_model"])
     print("background removal:     %s" % ((r["rembg"] or {}).get("class") or "none (local flood fill)"))
     print("IPAdapter:              %s" % ("yes" if r["ipadapter"] else "no"))
@@ -594,6 +707,9 @@ def main(argv=None):
     dp = sub.add_parser("discover")
     dp.add_argument("--object-info", help="parse a saved /object_info JSON file instead of the server")
     dp.add_argument("--json", action="store_true", help="print the full discovery JSON")
+    pp = sub.add_parser("pin", help="pin the checkpoint (and family) for every later command")
+    pp.add_argument("checkpoint", help="file name as listed by discover; 'none' removes the pin")
+    pp.add_argument("--family", help="family from data/art_prompts.json (default: detected from the name)")
     qp = sub.add_parser("queue")
     qp.add_argument("graph", help="API graph JSON (either the graph itself or a {prompt: ...} body)")
     qp.add_argument("--out", default=None, help="download folder (default art_src/_downloads)")
@@ -619,6 +735,23 @@ def main(argv=None):
             _print_discovery(d)
             if not a.object_info:
                 print("cached: %s" % os.path.relpath(os.path.join(server_dir(), "discovery.json"), ROOT))
+        elif a.cmd == "pin":
+            if a.checkpoint.lower() == "none":
+                if os.path.exists(pin_path()):
+                    os.remove(pin_path())
+                print("pin removed")
+                return 0
+            disc, _ = load_cached_discovery()
+            if disc and disc.get("checkpoints") and a.checkpoint not in disc["checkpoints"]:
+                raise ComfyError("%r is not in the last discovery. Checkpoints: %s" % (a.checkpoint, ", ".join(disc["checkpoints"])))
+            if a.family and families and a.family not in families:
+                raise ComfyError("unknown family %r (known: %s)" % (a.family, ", ".join(families)))
+            fam, guessed = (a.family, False) if a.family else detect_family(a.checkpoint, families)
+            os.makedirs(server_dir(), exist_ok=True)
+            with open(pin_path(), "w") as f:
+                json.dump({"checkpoint": a.checkpoint, "family": fam, "pinned": time.strftime("%Y-%m-%dT%H:%M:%S")}, f, indent=1)
+            print("pinned %s (family %s%s) in %s" % (a.checkpoint, fam, ", guessed from the name: pass --family if wrong"
+                                                     if guessed else "", os.path.relpath(pin_path(), ROOT)))
         elif a.cmd == "queue":
             body = json.load(open(a.graph))
             graph = body.get("prompt", body)
@@ -626,6 +759,8 @@ def main(argv=None):
             if not a.dry_run:
                 c.object_info()
             label = os.path.splitext(os.path.basename(a.graph))[0]
+            if label.endswith(".api"):
+                label = label[:-4]
             paths = c.run(graph, label, a.out or os.path.join(art_src(), "_downloads"), timeout=a.timeout)
             for p in paths:
                 print(p)

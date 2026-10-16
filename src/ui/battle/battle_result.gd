@@ -2,7 +2,8 @@ extends Control
 ## Battle result overlay. show_victory(): ribbon, stars by survivors, MVP, first-clear
 ## rewards, Next Stage / Home. show_defeat(): what to try next (level up, formation,
 ## counter faction) with shortcuts, Retry / Home. Buttons call on_action(name) with
-## "home" | "next" | "retry" | "campaign" | "heroes" | "formation".
+## "home" | "next" | "retry" | "campaign" | "heroes" | "formation" | "level" (the team hero
+## Guide.level_target() names). Early on, Guide highlights the suggested button.
 
 const StageInfo := preload("res://src/ui/battle/stage_info.gd")
 const DARK_INK := Color("3d2306")
@@ -116,14 +117,25 @@ func show_victory(data: Dictionary) -> void:
 		pv.add_child(c)
 	_col.add_child(panel)
 
+	# First-session guidance: after the early wins, point at leveling up (with a shortcut to
+	# the hero), at Home when something waits there, or at the next stage.
+	var step := Guide.step()
+	if step == "level":
+		var lid := Guide.level_target()
+		var lname := str(Game.hero_def(lid).get("name", "your heroes")) if lid != "" else "your heroes"
+		var tip := _tip(Kit.icon("arrow_up", 52), "Level up %s" % lname, "Your rewards pay for it. Stronger heroes clear the next stages.", "level")
+		_col.add_child(tip)
+		Guide.mark(tip, true, 0)
 	var btns := Kit.hbox(16)
 	var home := Kit.secondary_button("Home", func() -> void: _emit("home"), "home")
 	home.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	btns.add_child(home)
+	Guide.mark(home, step in ["claim", "summon", "formation", "quests"], 0)
 	if bool(data.get("has_next", false)):
 		var nxt := Kit.primary_button(str(data.get("next_text", "Next Stage")), func() -> void: _emit("next"), "sword")
 		nxt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		btns.add_child(nxt)
+		Guide.mark(nxt, step == "battle", 0)
 	else:
 		var camp := Kit.primary_button("Campaign", func() -> void: _emit("campaign"), "map")
 		camp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -167,7 +179,9 @@ func show_defeat(data: Dictionary) -> void:
 	var pv := Kit.vbox(12)
 	panel.add_child(pv)
 	pv.add_child(Kit.section_header("How to win", 26))
-	pv.add_child(_tip(Kit.icon("arrow_up", 52), "Level up your heroes", "Spend gold and hero EXP from idle rewards.", "heroes"))
+	var lvl_tip := _tip(Kit.icon("arrow_up", 52), "Level up your heroes", "Spend gold and hero EXP from idle rewards.", "level")
+	pv.add_child(lvl_tip)
+	Guide.mark(lvl_tip, Guide.step() == "level", 0)
 	pv.add_child(_tip(Kit.icon("heroes", 52), "Change your formation", "Sturdy guardians in front, damage dealers behind.", "formation"))
 	var foe := StageInfo.main_faction(st)
 	var ctr := StageInfo.counter_of(foe)

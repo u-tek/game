@@ -1038,7 +1038,8 @@ func summon(count: int, use_free: bool = false) -> Dictionary:
 
 # ---------------------------------------------------------------- quests & shop
 
-## Array of {id, title, progress, goal, reward, claimed, ready}
+## Array of {id, title, counter, progress, goal, reward, claimed, ready}. counter names what the
+## quest counts ("idle_claims", "battles_won", ...), so the UI can pick an icon and a Go target.
 func quests() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	if state.is_empty():
@@ -1047,7 +1048,7 @@ func quests() -> Array[Dictionary]:
 	for q in EconomyData.DAILY_QUESTS:
 		var p: int = int(state.quests.progress.get(q.id, 0))
 		var claimed: bool = state.quests.claimed.has(q.id)
-		out.append({"id": q.id, "title": q.title, "progress": mini(p, int(q.goal)), "goal": int(q.goal),
+		out.append({"id": q.id, "title": q.title, "counter": str(q.counter), "progress": mini(p, int(q.goal)), "goal": int(q.goal),
 			"reward": q.reward.duplicate(), "claimed": claimed, "ready": p >= int(q.goal) and not claimed})
 	return out
 
@@ -1151,6 +1152,9 @@ func set_setting(key: String, value: Variant) -> void:
 			state.settings.battle_speed = v
 		"sound", "music", "haptics", "auto_ultimates":
 			state.settings[key] = bool(value)
+		"chapter_intro_seen":
+			# Highest chapter index whose story intro the player has seen (campaign screen).
+			state.settings[key] = maxi(int(value), int(state.settings.get(key, -1)))
 		"player_name":
 			state.player_name = str(value).strip_edges().left(16)
 		_:

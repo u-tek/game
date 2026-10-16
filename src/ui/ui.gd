@@ -34,6 +34,7 @@ const SCREENS := {
 	"quests": "res://src/ui/screens/quests_screen.gd",
 	"shop": "res://src/ui/screens/shop_screen.gd",
 	"settings": "res://src/ui/screens/settings_screen.gd",
+	# Widget gallery for UI work (debug builds only; not in the nav).
 	"kit_demo": "res://src/ui/components/kit_demo.gd",
 }
 
@@ -79,6 +80,8 @@ var _sfx_rng := RandomNumberGenerator.new()
 var _music: AudioStreamPlayer
 var _music_tw: Tween
 var _music_wanted := false
+## Set by release_audio() (app is quitting): no sound or music starts again.
+var _audio_released := false
 
 
 func _ready() -> void:
@@ -100,14 +103,7 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
-	if _music_tw and _music_tw.is_valid():
-		_music_tw.kill()
-	if _music:
-		_music.stop()
-		_music.stream = null
-	for p in _players:
-		p.stop()
-		p.stream = null
+	release_audio()
 	if _gen_task >= 0:
 		WorkerThreadPool.wait_for_task_completion(_gen_task)
 		_gen_task = -1
@@ -122,7 +118,7 @@ func attach(app_root: Control) -> void:
 
 ## Navigate to a screen by name with optional params.
 func go(screen: String, params: Dictionary = {}) -> void:
-	if not SCREENS.has(screen):
+	if not SCREENS.has(screen) or (screen == "kit_demo" and not OS.is_debug_build()):
 		push_error("UI.go: unknown screen '%s'" % screen)
 		toast("That screen doesn't exist yet")
 		return
@@ -533,7 +529,7 @@ func has_modal() -> bool:
 ## Plays a short generated sound: tap, reward, summon, legendary, hit, ult, victory, defeat.
 ## Silent when Game.setting("sound") is false.
 func sfx(sound_name: String) -> void:
-	if not _sound_on():
+	if _audio_released or not _sound_on():
 		return
 	# The same sound within 45 ms only gets louder, not better (fast battles): skip it.
 	var now := Time.get_ticks_msec()
@@ -551,6 +547,21 @@ func sfx(sound_name: String) -> void:
 	p.play()
 
 
+## Stops the music and every sound player and drops their streams. Call (then wait a frame)
+## before quitting, so the audio thread lets go of its playbacks and nothing leaks at exit.
+func release_audio() -> void:
+	if _music_tw and _music_tw.is_valid():
+		_music_tw.kill()
+	if _music:
+		_music.stop()
+		_music.stream = null
+	_music_wanted = false
+	_audio_released = true
+	for p in _players:
+		p.stop()
+		p.stream = null
+
+
 ## Short vibration (phones only).
 func haptic(ms: int = 20) -> void:
 	if not OS.has_feature("mobile"):
@@ -563,6 +574,8 @@ func haptic(ms: int = 20) -> void:
 
 ## Starts/stops the ambient music to match Game.setting("music") (null = on).
 func _sync_music() -> void:
+	if _audio_released:
+		return
 	var v: Variant = Game.setting("music") if Game.has_method("setting") else null
 	var want: bool = not (v is bool and v == false)
 	if DisplayServer.get_name() == "headless":

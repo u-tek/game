@@ -133,40 +133,10 @@ static func team_slots() -> Array:
 	return out
 
 
-## Reward tiles for a stage's first-clear reward preview (currencies plus gear drops).
+## Reward tiles for a stage's first-clear reward preview (currencies plus gear drops; Kit
+## renders gear_drops [{slot, tier}] as gear tiles).
 static func reward_preview(reward: Dictionary, tile: float) -> HFlowContainer:
-	var f := Kit.reward_list(reward, tile, true)
-	for d: Dictionary in reward.get("gear_drops", []):
-		f.add_child(gear_tile(str(d.get("slot", "weapon")), int(d.get("tier", 1)), tile))
-	return f
-
-
-## A gear tile for a drop that doesn't exist yet (slot + tier).
-static func gear_tile(slot: String, tier: int, tile: float) -> Control:
-	var col := Kit.vbox(4)
-	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var acc := Kit.tier_color(tier)
-	var face := Panel.new()
-	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	face.custom_minimum_size = Vector2(tile, tile)
-	face.add_theme_stylebox_override("panel", Kit.box(acc.darkened(0.55).lerp(Kit.PANEL_HI, 0.35), Color("100c22"), acc.darkened(0.1), 14, 3))
-	var ic := Kit.icon("gear_" + slot, tile * 0.62)
-	ic.set_anchors_preset(Control.PRESET_CENTER)
-	ic.offset_left = -tile * 0.31
-	ic.offset_right = tile * 0.31
-	ic.offset_top = -tile * 0.31
-	ic.offset_bottom = tile * 0.31
-	face.add_child(ic)
-	var tl := Kit.label("T%d" % tier, int(tile * 0.18), acc.lightened(0.3), "black", 4)
-	tl.position = Vector2(8, 2)
-	face.add_child(tl)
-	col.add_child(face)
-	var n := Kit.caption(str(Kit.GEAR_SLOT_NAMES.get(slot, "Gear")), 18, Kit.INK_DIM)
-	n.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	n.custom_minimum_size.x = tile
-	col.add_child(n)
-	col.custom_minimum_size.x = tile
-	return col
+	return Kit.reward_list(reward, tile, true)
 
 
 ## "Bring X" counter hint block for a stage (inset panel).

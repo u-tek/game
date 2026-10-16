@@ -110,7 +110,7 @@ func _chapter_section(ch: Dictionary) -> Control:
 		var n := StageNode.new()
 		n.setup(str(st.id), status, boss, tint, BOSS_NODE if boss else NODE)
 		var idx := i
-		Kit._connect_pressed(n, func() -> void: _on_node(idx))
+		Kit.make_tappable(n, func() -> void: _on_node(idx))
 		map.add_child(n)
 		_nodes[i] = n
 		var lab := _node_label(st, status)
@@ -429,6 +429,8 @@ func _open_stage(i: int) -> void:
 	fight.size_flags_horizontal = SIZE_EXPAND_FILL
 	row.add_child(edit)
 	row.add_child(fight)
+	# First-session guidance: the next stage's Fight button.
+	Guide.mark(fight, status == "current" and Guide.step() == "battle", 0)
 	v.add_child(row)
 	_popup = UI.popup("%s  %s" % [str(st.id), str(st.name)], v, Callable(), 680)
 	m_ref.append(_popup)

@@ -35,7 +35,9 @@ var _idle_bar: ProgressBar
 var _rate_label: Label
 var _pending_row: HBoxContainer
 var _quick_slot: HBoxContainer
+var _quick_btn: Button
 var _claim_btn: Button
+var _formation_btn: Button
 var _quick_sig := ""
 var _pending_sig := ""
 var _full := false
@@ -184,7 +186,9 @@ func _build_stage() -> void:
 	_stage.add_child(_name_plate)
 
 	_stage.add_child(_side_button("map", "Campaign", Vector2(0, 0), func() -> void: UI.go("campaign")))
-	_stage.add_child(_side_button("heroes", "Formation", Vector2(1, 0), func() -> void: UI.go("formation")))
+	var fbox := _side_button("heroes", "Formation", Vector2(1, 0), func() -> void: UI.go("formation"))
+	_formation_btn = fbox.get_child(0) as Button
+	_stage.add_child(fbox)
 
 
 ## Round shortcut button with a caption, pinned to a top corner of the stage area.
@@ -304,6 +308,15 @@ func _refresh() -> void:
 	_refresh_leader()
 	_refresh_idle()
 	_refresh_battle()
+	_refresh_guide()
+
+
+## First-session guidance: highlight the suggested next tap (see Guide).
+func _refresh_guide() -> void:
+	var step := Guide.step()
+	Guide.mark(_quick_btn, step == "claim")
+	Guide.mark(_formation_btn, step == "formation", 1)
+	Guide.mark(_battle_btn, step == "battle", 0)
 
 
 func _refresh_chapter() -> void:
@@ -420,6 +433,8 @@ func _refresh_idle() -> void:
 			_pending_row.add_child(_pending_pair(Kit.icon("gear_weapon", 34), "x%d" % gear_n))
 		if not any:
 			_pending_row.add_child(Kit.caption("Your heroes are gathering rewards...", 22))
+		# Nothing to collect yet: the Claim button rests until rewards build up.
+		_claim_btn.disabled = not any
 	# Quick claim button (rebuilt when its price changes).
 	var cost := int(st.get("quick_claim_cost", -1))
 	var left := int(st.get("quick_claims_left", 0))
@@ -428,7 +443,10 @@ func _refresh_idle() -> void:
 		_quick_sig = qsig
 		for c in _quick_slot.get_children():
 			c.queue_free()
-		_quick_slot.add_child(_make_quick_button(cost, left, int(st.get("quick_claim_ms", 7200000))))
+		_quick_btn = _make_quick_button(cost, left, int(st.get("quick_claim_ms", 7200000)))
+		_quick_slot.add_child(_quick_btn)
+		if is_inside_tree():
+			Guide.mark(_quick_btn, Guide.step() == "claim")
 
 
 func _pending_pair(ic: Control, text: String) -> Control:

@@ -1,16 +1,22 @@
 # Halo & Horn: Economy and Balance v1
 
-Owner: core logic. Every number below lives in code; this page explains the formulas and
-the intended pacing. Source of truth:
+Owner: core logic. Every number below lives in the JSON data under `data/` (loaded read-only
+by thin GDScript loaders); this page explains the formulas and the intended pacing. Source of
+truth:
 
 | What | File |
 |---|---|
-| Currencies, costs, idle, summon, gear, quests, shop | `src/data/economy.gd` (`EconomyData`) |
-| Hero base stats, ultimates, passives | `src/data/hero_kits.gd` (`HeroKits`) |
+| Currencies, costs, idle, gear, stats growth | `data/economy.json` (`EconomyData`) |
+| Summon banner (cost, rates, pity, pool) | `data/banner.json` |
+| Daily quests | `data/quests.json` |
+| Shop offers | `data/offers.json` |
+| Hero identity, base stats, ultimates, passives | `data/heroes.json` (`HeroData`, `HeroKits`) |
+| Battle tuning (timer, counters, faction bonus, boss) | `data/battle.json` (`BattleSim`) |
+| Campaign, enemy echoes, first-clear rewards | `data/stages.json` (`StageData`) |
 | Stat and power formulas | `src/core/stat_calc.gd` (`StatCalc`) |
 | Battle rules | `src/core/battle_sim.gd` (`BattleSim`) |
-| Campaign, enemy echoes, first-clear rewards | `src/data/stages.gd` (`StageData`) |
 | Pacing model (the "free player" the curve is tuned for) | `tests/tools/pacing_bot.gd` |
+| "Never hard-stuck" guard (a reasonable new player) | `tests/unit/test_playthrough.gd` |
 
 All numbers are ints; percentages are basis points (10000 = 100%).
 
@@ -59,7 +65,7 @@ stages in an afternoon; this version pays ~48k in total.
     spd  = base_spd + (stars - 1) + gear spd, then * (1 + passive %)
     crit = base_crit + gear crit + passive crit   (cap 75%)
 
-`base_stats` in `hero_kits.gd` are level 1, 1-star values. Epics start at 2 stars and
+`base_stats` in `data/heroes.json` are level 1, 1-star values. Epics start at 2 stars and
 Legendaries at 3 stars (with their first passive) with higher base numbers.
 
 **Power** (`StatCalc.power`, shown in the UI): `(hp/2 + 8*atk + 6*def) * spd/100 * (1 + crit/2) / 5`.
@@ -101,7 +107,8 @@ Legendary reach 6 stars from idle dust in about three days).
 ### Kits
 
 Every hero has one ultimate (fires at 1,000 energy) and two passives (3 and 5 stars). Effect
-types are documented at the top of `hero_kits.gd`; `BattleSim` implements all of them.
+types are documented at the top of `src/data/hero_kits.gd` and in `docs/dev/unity-port.md`
+section 3.1; the kits themselves are in `data/heroes.json`. `BattleSim` implements all of them.
 
 | Hero | Rarity | Role | Ultimate | 3-star passive | 5-star passive |
 |---|---|---|---|---|---|
@@ -153,7 +160,8 @@ the stage's `pw` (echo strength). Each chapter's echoes come from one faction (c
 Celestial, 2 Infernal, 3 Fallen) with a few guests, so counter-picking pays (+20%); each stage's
 `hint` says which faction to bring.
 
-`lv`, `pw` and `rec` per stage are produced by `tests/tools/calibrate_stages.gd`:
+`lv`, `pw` and `rec` per stage (the `level`, `strength_bp` and `recommended_power` fields in
+`data/stages.json`) are produced by `tests/tools/calibrate_stages.gd`:
 
 1. Four pacing bots with different summon luck replay the target timeline (`TIMELINE_H`),
    clearing each stage at its hour; just before that, each bot's formation is recorded.
@@ -297,13 +305,17 @@ gems (11 pulls) a month.
 
     tools/gd --headless --path . -s tests/tools/calibrate_stages.gd [-- stages=3-29 seeds=12]
     tools/gd --headless --path . -s tests/tools/playthrough.gd [-- days=10 bots=4]
+    tools/gd --headless --path . -s tests/tools/playthrough_report.gd [-- stages=10]
     tools/gd --headless --path . -s tests/tools/balance_report.gd [-- seeds=8 stages=0-29]
     tools/gd --headless --path . -s tests/tools/inspect_battle.gd -- stage=9 plv=16 seed=1
     tools/gd --headless --path . -s tests/tools/bench_sim.gd
 
 - **calibrate_stages**: re-solves `lv`, `pw` and `rec` after changing kits, enemy teams,
-  battle rules or the economy. Paste its output into `StageData.STAGES` (keep 1-1 gentle).
+  battle rules or the economy. Run it with `write` to update `data/stages.json`, then
+  regenerate the golden fixtures with `tests/tools/make_fixtures.gd` (keep 1-1 gentle).
 - **playthrough**: checks the result against the timeline with freely playing bots.
+- **playthrough_report**: what the new-player bot of `test_playthrough.gd` does per summon
+  luck (tries and sessions per stage, hours to clear chapter 1).
 - **balance_report**: for every stage, the lowest uniform level at which several fixed team
   profiles (no gear) win 70%.
 - **inspect_battle**: per-unit damage, healing, ultimates and deaths for one battle.
@@ -312,3 +324,10 @@ Unit tests (`tests/unit/test_balance.gd`) guard the key promises: L1 starters wi
 (>= 18/20 seeds) and lose 1-4, unupgraded starters lose 1-10, the `--rich` state wins 1-10,
 three starters at L12 lose 1-6, enemy levels and recommended power never drop, and a pacing
 bot clears about chapter 1 on day 1 without finishing chapter 2 on day 2.
+`tests/unit/test_playthrough.gd` plays a fresh game through the Game API like a reasonable new
+player (summons with what it has, Auto-fill, levels up, retries, waits when stuck) and checks
+that the starters win 1-1, 1-1..1-3 fall at the first try, the first session clears at least
+1-4 but not the whole chapter, no chapter 1 stage blocks for more than three check-ins, and
+chapter 1 is done within two days (three for a player who never spends gems on summons).
+
+Idle gear: each idle gear drop rolls its own slot, so a long claim brings mixed pieces.
