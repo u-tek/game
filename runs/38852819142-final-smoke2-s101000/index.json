@@ -1,0 +1,179 @@
+{
+ "run": "38852819142-final-smoke2-s101000",
+ "created": "2026-10-16T06:45:27Z",
+ "jobs_expected": [
+  "seraphiel-f101000"
+ ],
+ "jobs_missing": [],
+ "heroes": {
+  "seraphiel": {
+   "images": [
+    "seraphiel/final_s101000/masks/eyes.png",
+    "seraphiel/final_s101000/masks/eyes_mouth.png",
+    "seraphiel/final_s101000/masks/mouth.png",
+    "seraphiel/final_s101000/seraphiel.png",
+    "seraphiel/final_s101000/seraphiel_hires.webp",
+    "seraphiel/final_s101000/seraphiel_portrait.png",
+    "seraphiel/final_s101000/seraphiel_source.webp",
+    "seraphiel/final_s101000/variants/eyes_open.png",
+    "seraphiel/final_s101000/variants/eyes_open_patch.png",
+    "seraphiel/final_s101000/variants/mouth_open.png",
+    "seraphiel/final_s101000/variants/smile.png",
+    "seraphiel/final_s101000/variants_sheet.webp"
+   ],
+   "dropped": 5
+  }
+ },
+ "sheets": [],
+ "sheet_note": "",
+ "jobs": [
+  {
+   "key": "seraphiel-f101000",
+   "hero": "seraphiel",
+   "mode": "final",
+   "preset": "standard",
+   "style": "farm",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 6589.9,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 24.1
+   },
+   "filter": {
+    "checked": 18,
+    "passed": 12,
+    "dropped": 6,
+    "errors": 0,
+    "repaired": 1
+   },
+   "cpu": "AMD EPYC 9V45 96-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "hires img2img 1248x1824 @0.40",
+     "step": "hires_img2img",
+     "seed": 101000,
+     "seconds": 2999.7,
+     "s_per_step": 144.22,
+     "steps_run": 20,
+     "steps_effective": 20,
+     "num_inference_steps": 50,
+     "decode": "untiled",
+     "decode_s": 57.8,
+     "vmhwm_gb": 13.06,
+     "rss_peak_gb": 13.06
+    },
+    {
+     "what": "inpaint 1024x1024 @0.35",
+     "step": "face_polish",
+     "seed": 101000,
+     "seconds": 1009.3,
+     "s_per_step": 60.63,
+     "steps_run": 16,
+     "steps_effective": 16,
+     "num_inference_steps": 46,
+     "decode": "untiled",
+     "decode_s": 28.8,
+     "vmhwm_gb": 14.03,
+     "rss_peak_gb": 14.03
+    },
+    {
+     "step": "cutout",
+     "seed": 101000,
+     "seconds": 8.0
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 101700,
+     "seconds": 508.7,
+     "s_per_step": 35.37,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 13.5,
+     "vmhwm_gb": 13.84,
+     "rss_peak_gb": 13.84
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 101710,
+     "seconds": 506.7,
+     "s_per_step": 35.25,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 13.2,
+     "vmhwm_gb": 13.84,
+     "rss_peak_gb": 13.84
+    },
+    {
+     "what": "inpaint 768x768 @0.62",
+     "step": "variant_eyes_open",
+     "seed": 101000,
+     "seconds": 469.0,
+     "s_per_step": 32.55,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 23,
+     "decode": "untiled",
+     "decode_s": 13.3,
+     "vmhwm_gb": 13.85,
+     "rss_peak_gb": 13.85
+    },
+    {
+     "what": "inpaint 768x768 @0.58",
+     "step": "variant_mouth_open",
+     "seed": 101000,
+     "seconds": 485.2,
+     "s_per_step": 33.7,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 25,
+     "decode": "untiled",
+     "decode_s": 13.4,
+     "vmhwm_gb": 13.85,
+     "rss_peak_gb": 13.85
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "variant_smile",
+     "seed": 101000,
+     "seconds": 489.0,
+     "s_per_step": 33.94,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 13.8,
+     "vmhwm_gb": 13.85,
+     "rss_peak_gb": 13.85
+    }
+   ]
+  }
+ ],
+ "filter_totals": {
+  "published_images": 12,
+  "dropped": 5
+ },
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)",
+  "license_url": "https://huggingface.co/cagliostrolab/animagine-xl-4.0"
+ },
+ "updated": "2026-10-16T06:45:39Z"
+}

@@ -1,0 +1,200 @@
+{
+ "hero": "seraphiel",
+ "base": "seraphiel.png",
+ "base_sha": "aab7d071e9039fc78b96b15e3009189a9ef6d14f84673499981d6e498eafc0a7",
+ "face_box": [
+  450,
+  704,
+  105,
+  121
+ ],
+ "face_box_source": "anime face detector 0.86",
+ "bg_rgb": [
+  149,
+  155,
+  166
+ ],
+ "variants": {
+  "eyes_open": {
+   "picked_seed": 101500,
+   "published": true,
+   "region": [
+    454,
+    733,
+    97,
+    46
+   ],
+   "region_name": "eyes",
+   "denoise": 0.62,
+   "prompt": "1girl, solo, adult, mature female, portrait, close-up, face, platinum blonde hair, spiked halo, yellow eyes, open eyes, looking at viewer, seductive smile, serene, official art, detailed shading, rim lighting, simple background, grey background, masterpiece, high score, great score, absurdres, sensitive",
+   "tries": [
+    {
+     "seed": 101500,
+     "alignment_problems": [],
+     "what": "inpaint 768x768 @0.62",
+     "sample_s": 455.7,
+     "steps_run": 14,
+     "num_inference_steps": 23,
+     "cfg": 5.0,
+     "sampler": "EulerAncestralDiscreteScheduler",
+     "s_per_step": 32.55,
+     "overhead_s": 0.0,
+     "dtype": "fp32",
+     "threads": 4,
+     "mem_sample": {
+      "vmhwm_gb": 13.14,
+      "vmrss_gb": 11.74,
+      "memavail_gb": 3.09
+     },
+     "steps_effective": 14,
+     "strength": 0.62,
+     "decode": "untiled",
+     "memavail_before_decode_gb": 3.0866775512695312,
+     "decode_s": 13.3,
+     "seconds": 469.0,
+     "mem_stage": {
+      "vmhwm_gb": 13.85,
+      "vmrss_gb": 11.74,
+      "memavail_gb": 2.96
+     },
+     "vmhwm_gb": 13.85,
+     "rss_peak_gb": 13.85,
+     "crop": [
+      388,
+      650,
+      230,
+      230
+     ],
+     "denoise": 0.62,
+     "px": 768
+    }
+   ]
+  },
+  "mouth_open": {
+   "picked_seed": 101500,
+   "published": true,
+   "region": [
+    476,
+    777,
+    52,
+    39
+   ],
+   "region_name": "mouth",
+   "denoise": 0.58,
+   "prompt": "1girl, solo, adult, mature female, portrait, close-up, face, platinum blonde hair, spiked halo, closed eyes, open mouth, singing, serene, official art, detailed shading, rim lighting, simple background, grey background, masterpiece, high score, great score, absurdres, sensitive",
+   "tries": [
+    {
+     "seed": 101500,
+     "alignment_problems": [],
+     "what": "inpaint 768x768 @0.58",
+     "sample_s": 471.8,
+     "steps_run": 14,
+     "num_inference_steps": 25,
+     "cfg": 5.0,
+     "sampler": "EulerAncestralDiscreteScheduler",
+     "s_per_step": 33.7,
+     "overhead_s": 0.0,
+     "dtype": "fp32",
+     "threads": 4,
+     "mem_sample": {
+      "vmhwm_gb": 13.15,
+      "vmrss_gb": 11.74,
+      "memavail_gb": 3.09
+     },
+     "steps_effective": 14,
+     "strength": 0.58,
+     "decode": "untiled",
+     "memavail_before_decode_gb": 3.090015411376953,
+     "decode_s": 13.4,
+     "seconds": 485.2,
+     "mem_stage": {
+      "vmhwm_gb": 13.85,
+      "vmrss_gb": 11.74,
+      "memavail_gb": 3.07
+     },
+     "vmhwm_gb": 13.85,
+     "rss_peak_gb": 13.85,
+     "crop": [
+      388,
+      650,
+      230,
+      230
+     ],
+     "denoise": 0.58,
+     "px": 768
+    }
+   ]
+  },
+  "smile": {
+   "picked_seed": 101500,
+   "published": true,
+   "region": [
+    454,
+    733,
+    97,
+    82
+   ],
+   "region_name": "eyes_mouth",
+   "denoise": 0.6,
+   "prompt": "1girl, solo, adult, mature female, portrait, close-up, face, platinum blonde hair, spiked halo, happy, smile, closed eyes, open mouth, official art, detailed shading, rim lighting, simple background, grey background, masterpiece, high score, great score, absurdres, sensitive",
+   "tries": [
+    {
+     "seed": 101500,
+     "alignment_problems": [],
+     "what": "inpaint 768x768 @0.60",
+     "sample_s": 475.2,
+     "steps_run": 14,
+     "num_inference_steps": 24,
+     "cfg": 5.0,
+     "sampler": "EulerAncestralDiscreteScheduler",
+     "s_per_step": 33.94,
+     "overhead_s": 0.0,
+     "dtype": "fp32",
+     "threads": 4,
+     "mem_sample": {
+      "vmhwm_gb": 13.15,
+      "vmrss_gb": 11.75,
+      "memavail_gb": 3.07
+     },
+     "steps_effective": 14,
+     "strength": 0.6,
+     "decode": "untiled",
+     "memavail_before_decode_gb": 3.0725631713867188,
+     "decode_s": 13.8,
+     "seconds": 489.0,
+     "mem_stage": {
+      "vmhwm_gb": 13.85,
+      "vmrss_gb": 11.75,
+      "memavail_gb": 3.05
+     },
+     "vmhwm_gb": 13.85,
+     "rss_peak_gb": 13.85,
+     "crop": [
+      388,
+      650,
+      230,
+      230
+     ],
+     "denoise": 0.6,
+     "px": 768
+    }
+   ]
+  }
+ },
+ "warp_overlay_hints": {
+  "_doc": "rects for <id>.warp_src.json overlays (eyes / mouth slots)",
+  "eyes": [
+   454,
+   733,
+   97,
+   46
+  ],
+  "mouth": [
+   476,
+   777,
+   52,
+   39
+  ],
+  "base_eyes": "closed"
+ }
+}

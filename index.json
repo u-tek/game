@@ -72,6 +72,17 @@
    "published_images": 0,
    "dropped": 2,
    "jobs_missing": []
+  },
+  {
+   "run": "38852819142-final-smoke2-s101000",
+   "created": "2026-10-16T06:45:27Z",
+   "updated": "2026-10-16T06:45:39Z",
+   "heroes": [
+    "seraphiel"
+   ],
+   "published_images": 12,
+   "dropped": 5,
+   "jobs_missing": []
   }
  ]
 }
