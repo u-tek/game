@@ -372,6 +372,17 @@ def face_problem(box, fm):
     return None
 
 
+def canvas_extras(canvas, face_box, fdir, hero):
+    """_portrait.png, _check.png, _boxes.png of a canvas (as post.finalize_local draws them)."""
+    base = os.path.join(fdir, hero)
+    por, prect = post.portrait(canvas, face_box)
+    por.save(base + "_portrait.png")
+    post.cutout_preview(canvas, 1000).save(base + "_check.png")
+    post.draw_boxes(post.cutout_preview(canvas, 2048).crop((0, 0, canvas.width, canvas.height)),
+                    [(*face_box, (0, 220, 255), "face"), (*prect, (242, 193, 78), "portrait")]).save(base + "_boxes.png")
+    return prect
+
+
 def proportional_face_box(fm):
     """A face box from body proportions only (no inpainting is done with it; placement then ignores
     the crown, as post.place_on_canvas does for 'proportions-only (low)')."""
@@ -432,11 +443,12 @@ def encode_all(comps, texts, job):
 WEBP_KW = {"format": "WEBP", "quality": 95, "method": 6}
 
 
-def publish_screened(a, pub, eng, cover_emb, img, tmp, rel, seed, est, job, save_kw=None):
+def publish_screened(a, pub, eng, cover_emb, img, tmp, rel, seed, est, job, save_kw=None, bg_rgb=None):
     """Publish `img` (already saved at `tmp`, in the work dir) through the exposure filter. When it is
     flagged: cover-repair the flagged regions (config.REPAIR) and publish the repaired image only if it
     passes the full filter again; else record the drop. The unrepaired original is deleted by the filter
-    and never reaches the upload dir.
+    and never reaches the upload dir. An RGBA image (the final canvas) is inpainted flattened on `bg_rgb`
+    and keeps its own alpha (as the expression variants).
     Returns (dest or None, the published image or None, repair record or None, last filter report)."""
     save_kw = save_kw or WEBP_KW
     dest = pub.publish(tmp, rel, defer_drop=True)
@@ -460,7 +472,8 @@ def publish_screened(a, pub, eng, cover_emb, img, tmp, rel, seed, est, job, save
     if cover_emb is None:
         return give_up("repair off (%s)" % ("--no-repair" if a.no_repair else "bf16 run: inpaint is fp32 only"))
     fs = preset_settings(C.FINAL_PRESET)
-    cur, last = img.convert("RGB"), first
+    rgba = img.mode == "RGBA"
+    cur, last = (img if rgba else img.convert("RGB")), first
     for k in range(R["attempts"]):
         classes = pub.filt.cover_classes(last, R["near_frac"])
         try:
@@ -481,11 +494,12 @@ def publish_screened(a, pub, eng, cover_emb, img, tmp, rel, seed, est, job, save
         log("  cover repair of %s, pass %d: %s -> %d region(s) %s in %d crop(s)" % (
             rel, k + 1, json.dumps(classes), len(pl["regions"]), pl["regions"], len(pl["clusters"])))
         t0 = time.time()
+        work = P.flat_rgb(cur, bg_rgb or (128, 128, 128)) if rgba else cur
         try:
             for ci, cl in enumerate(pl["clusters"]):
                 s = seed + R["seed_offset"] + 10 * k + ci
-                cur, info = crop_inpaint(eng, cover_emb, cur, tuple(cl["crop"]), repair.mask(cur.size, cl["regions"]),
-                                         R["denoise"], s, fs, R["steps"], R["px"], grow=4, feather=R["feather"])
+                work, info = crop_inpaint(eng, cover_emb, work, tuple(cl["crop"]), repair.mask(work.size, cl["regions"]),
+                                          R["denoise"], s, fs, R["steps"], R["px"], grow=4, feather=R["feather"])
                 est.learn(info, R["px"], R["px"])
                 att["seeds"].append(s)
                 att["inpaints"].append({k2: info.get(k2) for k2 in ("seconds", "s_per_step", "steps_run", "steps_effective",
@@ -496,7 +510,11 @@ def publish_screened(a, pub, eng, cover_emb, img, tmp, rel, seed, est, job, save
             log("ERROR in the cover repair of %s: %s\n%s" % (rel, e, traceback.format_exc()))
             return give_up("repair inpaint failed: %s: %s" % (type(e).__name__, e))
         att["seconds"] = round(time.time() - t0, 1)
-        cur = cur.convert("RGB")
+        if rgba:    # repainted RGB inside the (feathered) regions only, the canvas's own alpha everywhere
+            m = repair.mask(cur.size, pl["regions"]).filter(ImageFilter.GaussianBlur(R["feather"]))
+            cur = merge_variant(cur, work, m)
+        else:
+            cur = work.convert("RGB")
         tmp2 = save_tmp(os.path.dirname(tmp), cur, os.path.basename(tmp), **save_kw)
         summary = {"repair": {"passes": k + 1, "regions": pl["regions"], "classes": classes,
                               "original_scores": first.get("scores")}}
@@ -825,10 +843,23 @@ def _final_one(a, bible, pub, job, eng, embs, texts, i, p, fs, names, finder, cu
     fmeta.pop("hero", None)
     meta.update({k: v for k, v in fmeta.items() if k not in ("steps",)})
     meta.update({"image": hero + ".png", "spec": spec, "bg_measured": bg_meas, "cutout_detail": cinfo})
-    canvas_dest = publish(canvas_path, hero + ".png")
-    publish(os.path.join(fdir, hero + "_portrait.png"), hero + "_portrait.png")
-    for kind in ("check", "boxes"):
-        publish(to_webp(os.path.join(fdir, "%s_%s.png" % (hero, kind))), "%s_%s.webp" % (hero, kind))
+    canvas_dest, rcanvas, rrec, _rep = publish_screened(a, pub, eng, embs.get("cover:" + p["style"]), canvas,
+                                                        canvas_path, "%s/%s.png" % (rel, hero), seed, est, job,
+                                                        save_kw={"format": "PNG"}, bg_rgb=bg_meas)
+    if rrec:
+        meta.setdefault("repairs", {})[hero + ".png"] = rrec
+    if canvas_dest:
+        meta["outputs"].append(hero + ".png")
+    else:
+        meta.setdefault("dropped", []).append(hero + ".png")
+    if canvas_dest and rcanvas is not canvas:
+        # repaired: the portrait and the review images are drawn again from the published canvas
+        canvas = rcanvas
+        canvas_extras(canvas, meta["face_box"], fdir, hero)
+    if canvas_dest:
+        publish(os.path.join(fdir, hero + "_portrait.png"), hero + "_portrait.png")
+        for kind in ("check", "boxes"):
+            publish(to_webp(os.path.join(fdir, "%s_%s.png" % (hero, kind))), "%s_%s.webp" % (hero, kind))
     save("canvas")
     if not canvas_dest:
         log("  the canvas was dropped by the filter: no variants for this seed")

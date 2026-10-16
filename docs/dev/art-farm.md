@@ -201,7 +201,9 @@ clearly an adult, never explicit.
   Dropped images are deleted immediately; only their name, scores and reason are logged. Never
   loosen the threshold to save a render: render more candidates.
 - **Cover repair** (`gen.publish_screened`, `repair.py`, `config.REPAIR`; candidates and the
-  final's hires and source stages): when the filter flags an image, the boxes of the flagged
+  final's hires, source and canvas stages; the RGBA canvas is inpainted flattened on its measured
+  background and keeps its own alpha, and its portrait and review images are drawn again from the
+  repaired canvas): when the filter flags an image, the boxes of the flagged
   classes (plus any watched class at >= 80 % of its threshold) are taken from every view of the
   check (`ExposureFilter.flag_boxes`: anchors at >= half the threshold, NMS per class, mapped back
   to image pixels; NudeNet's padded-square input and the anime detector's stretched input are both
@@ -290,6 +292,26 @@ With CFG (2 UNet passes per step) a step costs about 60 s (Zen 5) to 87 s (Zen 3
 the same per step as DPM++. Filter outcomes so far: Lightning 2 of 3 dropped (breast 0.276 and
 0.366), draft 0 of 1 (0.226); one overview sheet dropped as a false positive (anime censor
 0.273). Cleavage-heavy designs score near the 0.25 threshold, so render more candidates.
+
+**Standard preset, v3 outfits (before the exposure hardening), same seeds 101000/101001:**
+- 38844272140 `style=farm`: both dropped (NudeNet breast 0.384 / 0.481, anime `nipple_f` 0.444);
+  75.9 s/step (Zen 4 9V74, 2176 s per image) and 84.7 s/step (Zen 3 7763, 2431 s); VmHWM 14.0-14.2 GB
+  (the 832x1216 decode, untiled).
+- 38844281818 `style=bible`: both passed (0.198 / 0.213; `nipple_f` 0.165 / 0.068); 77.0 s/step
+  (9V74) and 56.2 s/step (Zen 5 9V45, 1599 s). Same seeds and outfit: the farm overlay (dark
+  background, dramatic/rim lighting) raised the exposure scores, hence the hardening above.
+
+**First final (38844269897, s101000 of 38832421932, Zen 4 9V74, fp32, code before the cover
+repair):** text encode 21 s; UNet load 25 s (load peak 14.2 GB); hires 1248x1824, 20 of 50 steps,
+**188.7 s/step, 3977 s** (66 min), VAE encode untiled (VmHWM 9.1 GB), decode untiled 116 s with 7.4
+GB available, stage VmHWM **13.98 GB**; face detector box 0.86 (plausible); face polish 1024 px,
+16 of 46 steps, **82.0 s/step, 1387 s**, VmHWM **14.46 GB** (UNet reload 18 s); isnet download 2 s +
+cutout 10 s. The canvas was then **dropped** (NudeNet breast 0.2598 in a 1024 tile: the 0.2259
+canary image, rescaled by 0.83 and flattened on grey) and with it the variants, so the job ended at
+91 min, exit 5; `_check.webp` / `_boxes.webp` were dropped as anime-detector false positives
+(`penis` 0.41 / 0.73 on the review sheets). The canvas cover repair was added after this run.
+`spec`: the s101000 composition is too wide (wings + diagonal sceptre), scaled 0.83 to fit 1024
+px, figure 1445 px tall instead of ~1900, crown at y=655 instead of 108.
 
 **Estimates for the `standard` preset** (28 steps with CFG):
 - one candidate: 28-41 min of sampling + about 1 min decode; with `per_job=1` a hero's

@@ -75,10 +75,14 @@ def red_bbox(img):
     return None if not len(ys) else (int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1)
 
 
-def red_box_scorer(threshold=0.25, stuck=None):
+def red_box_scorer(threshold=0.25, stuck=None, only_sizes=None):
     """red_square_scorer that can also localise (class_boxes), like the real detectors. stuck=(w, h):
-    always flags, with one fixed box seen only in the full view of a w x h image (a repair never helps)."""
+    always flags, with one fixed box seen only in the full view of a w x h image (a repair never helps).
+    only_sizes: views of other sizes score 0 (e.g. only the canvas and its tiles are 'seen')."""
     base = red_square_scorer(threshold)
+    if only_sizes:
+        fn0 = base.fn
+        base.fn = lambda img: fn0(img) if img.size in only_sizes else {"EXPOSED": 0.0}
     if stuck:          # flags anything with content (the self-test's flat grey image still passes)
         base.fn = lambda img: {"EXPOSED": 0.9 if np.asarray(img.convert("L")).std() > 1 else 0.0}
 
@@ -93,8 +97,9 @@ def red_box_scorer(threshold=0.25, stuck=None):
     return base
 
 
-def box_filter(stuck=None):
-    return lambda: safety.ExposureFilter([red_box_scorer(stuck=stuck), FakeScorer("second")], log=QUIET)
+def box_filter(stuck=None, only_sizes=None):
+    return lambda: safety.ExposureFilter([red_box_scorer(stuck=stuck, only_sizes=only_sizes), FakeScorer("second")],
+                                         log=QUIET)
 
 
 class FakeEncoders:
@@ -875,6 +880,34 @@ class TestModes(unittest.TestCase):
         meta = json.load(open(os.path.join(fd, "seraphiel.json")))
         self.assertIn("seraphiel_hires.webp", meta["repairs"])
         self.assertEqual(meta["status"], "done")
+
+    def test_final_canvas_cover_repair_keeps_alpha(self):
+        eng, comps = components("seraphiel", poison_hires=True)
+        comps["filter"] = box_filter(only_sizes={(1024, 2048), (1024, 1024), (512, 512)})   # canvas views only
+        rc, out = self.run_gen(self.final_args("--no-variants"), comps)
+        self.assertEqual(rc, 0)
+        self.assertEqual([c[0] for c in eng.calls], ["hires", "inpaint", "inpaint"])   # face polish, canvas repair
+        fd = os.path.join(out, "seraphiel", "final_s101000")
+        meta = json.load(open(os.path.join(fd, "seraphiel.json")))
+        self.assertIn("seraphiel.png", meta["repairs"])
+        self.assertTrue(meta["repairs"]["seraphiel.png"]["result"].startswith("published after 1"))
+        canvas = Image.open(os.path.join(fd, "seraphiel.png"))
+        self.assertEqual((canvas.size, canvas.mode), ((1024, 2048), "RGBA"))
+        self.assertIsNone(red_bbox(canvas))
+        src = Image.open(os.path.join(fd, "seraphiel_source.webp"))
+        self.assertIsNotNone(red_bbox(src))            # the hires/source views were not flagged by this filter
+        man = json.load(open(os.path.join(out, safety.MANIFEST)))
+        self.assertEqual(man["files"]["seraphiel/final_s101000/seraphiel.png"]["repair"]["passes"], 1)
+        por = Image.open(os.path.join(fd, "seraphiel_portrait.png"))
+        self.assertIsNone(red_bbox(por))               # drawn again from the repaired canvas
+        # alpha unchanged by the repair: compare with a no-repair cutout of the same source
+        eng2, comps2 = components("seraphiel", poison_hires=True)
+        comps2["filter"] = lambda: safety.ExposureFilter([FakeScorer("blind")], log=QUIET)
+        rc2, out2 = self.run_gen(self.final_args("--no-variants"), comps2, out_name="ref")
+        self.assertEqual([c[0] for c in eng2.calls], ["hires", "inpaint"])
+        ref = Image.open(os.path.join(out2, "seraphiel", "final_s101000", "seraphiel.png"))
+        self.assertTrue(np.array_equal(np.asarray(canvas)[..., 3], np.asarray(ref)[..., 3]))
+        self.assertEqual(safety.verify(out, log=QUIET)["deleted"], 0)
 
     def test_final_hires_dropped_stops_the_seed(self):
         eng, comps = components("seraphiel", poison_hires=True)
