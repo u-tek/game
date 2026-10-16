@@ -6,8 +6,8 @@ extends Button
 
 const KitBox := preload("res://src/ui/components/kit_box.gd")
 
-const ICON := 54.0
-const DIM := Color("8b9098")
+const ICON := 60.0
+const DIM := Color("aeb3ba")
 
 var tab_id := ""
 var center := false
@@ -55,7 +55,7 @@ func setup(id: String, text: String, icon_name: String, is_center: bool = false)
 		add_child(_bar)
 
 	var isz := ICON + (4.0 if center else 0.0)
-	var top := -2.0 if center else 20.0
+	var top := -2.0 if center else 14.0
 	_icon = Kit.icon(icon_name, isz)
 	_icon.anchor_left = 0.5
 	_icon.anchor_right = 0.5
@@ -66,7 +66,7 @@ func setup(id: String, text: String, icon_name: String, is_center: bool = false)
 	_icon.pivot_offset = Vector2(isz, isz) * 0.5
 	add_child(_icon)
 
-	_label = Kit.label(text.to_upper(), 22, DIM, "cond", 0)
+	_label = Kit.label(text.to_upper(), 23, DIM, "cond_bold", 0)
 	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_label.anchor_left = 0.0
 	_label.anchor_right = 1.0

@@ -749,6 +749,7 @@ static func back_bar(on_back: Callable = Callable(), on_home: Callable = Callabl
 ##   size: Vector2 = (330, 150)   side: "left" | "right" (which screen edge it hugs)
 ##   badge: "N" | "!" | "dot" | ""  sub: Control (a meter or art strip under the title)
 ##   title_size: int              icon_k: float (glyph size / plate height)
+##   art: Texture2D               framed art strip in the lower right (art_caption: tag text)
 static func shortcut(text: String, icon_name: String, look: String = "blue", on_pressed: Callable = Callable(), opts: Dictionary = {}) -> Button:
 	var b := ShortcutButton.new()
 	var sz: Vector2 = opts.get("size", Vector2(330, 150))
@@ -759,6 +760,9 @@ static func shortcut(text: String, icon_name: String, look: String = "blue", on_
 	var sub: Variant = opts.get("sub", null)
 	if sub is Control:
 		b.set_sub(sub)
+	var art: Variant = opts.get("art", null)
+	if art is Texture2D:
+		b.set_art(art, str(opts.get("art_caption", "")))
 	add_press_fx(b, b.face)
 	if on_pressed.is_valid():
 		_connect_pressed(b, on_pressed)
@@ -1417,8 +1421,7 @@ static func dialog(title_text: String, content: Control, width: float = 640.0, l
 	var t := label(title_text, 30, Color.WHITE, "extrabold")
 	t.name = "Title"
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	t.clip_text = true
-	t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	fit_label(t, width - 170.0 - (44.0 if icon_name != "" else 0.0), 30, 20)
 	mid.add_child(t)
 	hrow.add_child(mid)
 	var close := icon_button("close", Callable(), BUTTON_H, "bare")
@@ -1470,7 +1473,7 @@ static func progress_bar(value: float, max_value: float, color: Color = GOOD, he
 		fg.hatch_color = Color(1, 1, 1, 0.12)
 		fg.hatch_spacing = 8.0
 	bar.add_theme_stylebox_override("fill", fg.commit())
-	var l := label(text, int(clampf(height * 0.78, 16, 26)), Color.WHITE, "cond_bold", 4)
+	var l := label(text, int(clampf(height * 0.8, 16, 26)), Color.WHITE, "cond_bold", 3)
 	l.name = "Text"
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

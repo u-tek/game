@@ -347,6 +347,30 @@ def spec_report(canvas, fmeta):
     return {"ok": not probs, "problems": probs, "margins": margins, "feet_row": feet, "crown_y": crown}
 
 
+def face_problem(box, fm):
+    """None when `box` (x, y, w, h) looks like the head of a standing full-body figure with metrics
+    `fm` (post.figure_metrics), else the reason."""
+    x, y, w, h = box
+    fig_h = max(1.0, float(fm["feet"] - fm["top"]))
+    frac = (y + h / 2.0 - fm["top"]) / fig_h
+    if not 0.0 <= frac <= 0.3:
+        return "face centre at %.0f%% of the figure height (expected the top 30%%)" % (100 * frac)
+    if not 0.025 <= h / fig_h <= 0.2:
+        return "face height is %.1f%% of the figure (expected 2.5-20%%)" % (100 * h / fig_h)
+    x0, _y0, x1, _y1 = fm["bbox"]
+    if x + w / 2.0 < x0 or x + w / 2.0 > x1:
+        return "face centre outside the figure"
+    return None
+
+
+def proportional_face_box(fm):
+    """A face box from body proportions only (no inpainting is done with it; placement then ignores
+    the crown, as post.place_on_canvas does for 'proportions-only (low)')."""
+    hh = (fm["feet"] - fm["top"]) / 7.6
+    return [int(round(fm["axis_x"] - 0.35 * hh)), int(round(fm["top"] + 0.35 * hh)), int(round(0.7 * hh)),
+            int(round(0.68 * hh))]
+
+
 def env_info():
     info = {"python": platform.python_version(), "machine": platform.machine(), "cpus": os.cpu_count()}
     try:
@@ -594,23 +618,35 @@ def _final_one(a, bible, pub, job, eng, embs, texts, i, p, fs, names, finder, cu
     publish(save_tmp(wdir, img, "%s_hires.webp" % hero, format="WEBP", quality=95, method=6), "%s_hires.webp" % hero)
     save("hires")
 
-    # 2. face box + face polish
+    # 2. face box + face polish. Only a plausible detector box is used for inpainting: the skin
+    #    heuristic can land on the chest or inside a halo, and a "face" painted there is worse than none.
     face_box, conf = None, None
+    quick, _ = post.remove_background(img, holes=False, feather=0)
+    fm = post.figure_metrics(quick)
     fd = finder.get()
     if fd is not None:
         try:
             found = fd.find(img)
             if found:
-                face_box, conf = found
+                why = face_problem(found[0], fm)
+                if why:
+                    log("WARNING: detector face box %s rejected: %s" % (found[0], why))
+                    meta["errors"].append("face box %s rejected: %s" % (found[0], why))
+                else:
+                    face_box, conf = found
         except Exception as e:      # noqa: BLE001
             log("WARNING: face detector failed: %s" % e)
-    if face_box is None:
-        quick, _ = post.remove_background(img, holes=False, feather=0)
-        face_box, conf = post.estimate_face_box(quick, P.skin_profile(bible, hero))
+            meta["errors"].append("face detector failed: %s" % e)
+    face_ok = face_box is not None
+    if not face_ok:
+        face_box, conf = proportional_face_box(fm), "proportions-only (low)"
+        meta["skipped"] += ["face polish: no face box", "variants: no face box"]
+        meta["errors"].append("no usable face box (detector unavailable or implausible)")
+        log("  no usable face box: no face polish, no variants; canvas placed by proportions")
     log("  face box %s (%s)" % (face_box, conf))
     if a.no_face_polish:
         meta["skipped"].append("face polish: --no-face-polish")
-    else:
+    elif face_ok:
         crop = P.square_box(face_box, img.size, scale=C.FINAL["face_crop_scale"])
         need = est.seconds(fs["face_px"], fs["face_px"], fs["face_steps"]) + 300
         if not a.deadline.allows(need):
@@ -661,6 +697,9 @@ def _final_one(a, bible, pub, job, eng, embs, texts, i, p, fs, names, finder, cu
 
     # 4. expression variants on the canvas, each isolated
     rc = 0
+    if not face_ok:
+        names = []
+        rc = 5
     fbc = meta["face_box"]
     vrec = {"hero": hero, "base": "%s.png" % hero, "base_sha": safety.sha256_file(canvas_dest), "face_box": fbc,
             "face_box_source": meta.get("face_box_source"), "bg_rgb": bg_meas, "variants": {},

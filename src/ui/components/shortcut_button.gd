@@ -27,6 +27,7 @@ var _plate: Control
 var _icon: TextureRect
 var _label: Label
 var _sub: Control
+var _art: Control
 var _t := 0.0
 
 
@@ -77,6 +78,46 @@ func set_sub(c: Control) -> void:
 	_layout()
 
 
+## A small framed art strip in the lower right (event / boss art), like a mini banner
+## stuck on the plate. caption = optional tag text on it.
+func set_art(tex: Texture2D, caption: String = "") -> void:
+	if _art and is_instance_valid(_art):
+		_art.queue_free()
+	_art = null
+	if tex == null:
+		return
+	var frame := Panel.new()
+	frame.name = "ArtStrip"
+	frame.mouse_filter = MOUSE_FILTER_IGNORE
+	frame.clip_contents = true
+	var bx := KitBox.new()
+	bx.radius = 2
+	bx.top_color = Color("1a1c21")
+	bx.bottom_color = Color("0d0e11")
+	bx.border_width = 1.5
+	bx.border_color = Color(1, 1, 1, 0.75)
+	frame.add_theme_stylebox_override("panel", bx.commit())
+	var tr := TextureRect.new()
+	tr.texture = tex
+	tr.mouse_filter = MOUSE_FILTER_IGNORE
+	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	tr.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	tr.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	tr.offset_left = 2
+	tr.offset_top = 2
+	tr.offset_right = -2
+	tr.offset_bottom = -2
+	frame.add_child(tr)
+	if caption != "":
+		var t := Kit.tag(caption, Kit.ORANGE_HI, Kit.TEXT, 18)
+		t.position = Vector2(4, 4)
+		frame.add_child(t)
+	face.add_child(frame)
+	_art = frame
+	_layout()
+
+
 func _fg(text: bool = false) -> Color:
 	match look:
 		"white":
@@ -113,16 +154,23 @@ func _layout() -> void:
 		_sub.position = Vector2(w * 0.04, h - ms.y - h * 0.07)
 		_plate.queue_redraw()
 		return
-	var isz := h * icon_k
+	if _art:
+		var aw := w * 0.46
+		var ah := h * 0.46
+		_art.size = Vector2(aw, ah)
+		_art.position = Vector2(w - aw - w * 0.03, h - ah - h * 0.06)
+	var body_h := h * (0.58 if _art else 1.0)
+	var isz := body_h * icon_k * (1.25 if _art else 1.0)
 	if _icon:
 		_icon.custom_minimum_size = Vector2(isz, isz)
 		_icon.size = Vector2(isz, isz)
-		_icon.position = Vector2(x + (12.0 if look == "white" else 0.0), (h - isz) * 0.5 + 2.0)
-		x += isz + (34.0 if look == "white" else 16.0)
+		_icon.position = Vector2(x + (12.0 if look == "white" else 0.0), (h - isz) * 0.5 + 2.0 if not _art else h * 0.06)
+		_icon.modulate = Color(_fg(), 0.5 if _art else 1.0)
+		x += isz * (0.72 if _art else 1.0) + (34.0 if look == "white" else 16.0)
 	var fs := title_size if title_size > 0 else int(clampf(h * 0.3, 24.0, 46.0))
 	_label.add_theme_font_size_override("font_size", fs)
 	_label.position = Vector2(x, 0)
-	_label.size = Vector2(maxf(w - x - w * 0.05, 10.0), h)
+	_label.size = Vector2(maxf(w - x - w * 0.05, 10.0), body_h)
 	Kit.fit_label(_label, _label.size.x, fs, int(fs * 0.7))
 	_plate.queue_redraw()
 

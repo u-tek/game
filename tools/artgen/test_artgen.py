@@ -150,14 +150,27 @@ def fake_source(hero="seraphiel", run="38832421932-candidates-bench-draft", bg=(
     return fetch
 
 
-def components(hero, poison_seed=None, fail_text=None, fetch=None):
+class FakeFaces:
+    """Face box of a placeholder figure (pipeline.placeholder_figure geometry), like the detector would."""
+
+    def find(self, img):
+        a = np.asarray(img.convert("RGB")).astype(np.int16)
+        skin = (np.abs(a - np.array([253, 232, 220])).max(axis=2) < 6)
+        ys, xs = np.nonzero(skin[: img.height // 3])
+        if not len(ys):
+            return None
+        y0, y1, x0, x1 = ys.min(), ys.max(), xs.min(), xs.max()
+        return [int(x0), int(y0), int(x1 - x0), int(min(y1 - y0, 1.1 * (x1 - x0)))], "fake detector"
+
+
+def components(hero, poison_seed=None, fail_text=None, fetch=None, faces=True):
     eng = FakeEngine(hero, poison_seed, fail_text)
 
     def engine(**kw):
         eng.kw.append(kw)
         return eng
-    return eng, {"filter": fake_filter, "encoders": FakeEncoders, "engine": engine,
-                 "cutter": lambda: None, "faces": lambda: None, "fetch": fetch or fake_source(hero)}
+    return eng, {"filter": fake_filter, "encoders": FakeEncoders, "engine": engine, "cutter": lambda: None,
+                 "faces": FakeFaces if faces else (lambda: None), "fetch": fetch or fake_source(hero)}
 
 
 def images_in(d):
@@ -717,6 +730,25 @@ class TestModes(unittest.TestCase):
             self.assertTrue(os.path.exists(os.path.join(fd, "variants", n + ".png")), n)
         meta = json.load(open(os.path.join(fd, "seraphiel.json")))
         self.assertEqual(meta["status"], "done with errors")
+
+    def test_final_without_a_face_box_paints_no_face(self):
+        eng, comps = components("seraphiel", faces=False)
+        rc, out = self.run_gen(self.final_args(), comps)
+        self.assertEqual(rc, 5)
+        self.assertEqual([c[0] for c in eng.calls], ["hires"])          # no face polish, no variants
+        fd = os.path.join(out, "seraphiel", "final_s101000")
+        self.assertTrue(os.path.exists(os.path.join(fd, "seraphiel.png")))
+        meta = json.load(open(os.path.join(fd, "seraphiel.json")))
+        self.assertEqual(meta["face_box_source"], "proportions-only (low)")
+        self.assertIn("variants: no face box", meta["skipped"])
+        self.assertFalse(os.path.exists(os.path.join(fd, "variants", "eyes_open.png")))
+
+    def test_face_box_plausibility(self):
+        fm = {"top": 40, "feet": 1790, "bbox": [20, 40, 1200, 1790], "axis_x": 600}
+        self.assertIsNone(gen.face_problem([560, 150, 100, 110], fm))
+        self.assertIsNotNone(gen.face_problem([560, 700, 100, 110], fm))       # chest
+        self.assertIsNotNone(gen.face_problem([560, 150, 600, 600], fm))       # far too big
+        self.assertIsNotNone(gen.face_problem([1500, 150, 100, 110], fm))      # beside the figure
 
     def test_final_missing_source_renders_nothing(self):
         eng, comps = components("seraphiel")

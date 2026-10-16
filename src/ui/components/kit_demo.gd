@@ -537,12 +537,16 @@ func _mock_lobby() -> void:
 	var quests := Kit.shortcut("Quests", "quests", "white", func() -> void: UI.go("quests"), {"size": Vector2(318, 124), "side": "right", "badge": "dot" if Game.quests_ready_count() > 0 else ""})
 	quests.position = Vector2(w - 318 - 8, by)
 	ui.add_child(quests)
-	var camp := Kit.shortcut("Campaign", "campaign", "orange", func() -> void: UI.go("campaign"), {"size": Vector2(336, 156), "side": "right", "badge": "!"})
+	var boss := ""
+	for e: Variant in st.get("enemies", []):
+		if e is Dictionary and bool((e as Dictionary).get("is_boss", false)):
+			boss = str((e as Dictionary).get("hero_id", ""))
+	if boss == "" and not (st.get("enemies", []) as Array).is_empty():
+		boss = str(((st.get("enemies", []) as Array)[0] as Dictionary).get("hero_id", ""))
+	var camp := Kit.shortcut("Campaign", "campaign", "orange", func() -> void: UI.go("campaign"), {"size": Vector2(336, 156), "side": "right", "badge": "!",
+		"art": Kit.art_crop(boss, 2.2, 1.4) if boss != "" else null, "art_caption": "STAGE %s" % str(st.get("id", "1-1"))})
 	camp.position = Vector2(w - 336 - 2, by + 132)
 	ui.add_child(camp)
-	var stage_tag := Kit.tag("STAGE %s" % str(st.get("id", "1-1")), Kit.ORANGE_HI, Kit.TEXT, 20)
-	stage_tag.position = Vector2(118, 100)
-	(camp.get_node("Face") as Control).add_child(stage_tag)
 
 
 # ------------------------------------------------------------------ mock: roster
