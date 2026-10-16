@@ -23,8 +23,9 @@ We follow the reference's layout and general visual language (where things go an
 feel) and none of its protected expression.
 
 - **No names or terms from the reference.** Not the game name, its characters, its places or its
-  systems (Outpost, Ark, Nikkepedia, Burst, Union, Advise...). "Lobby" is a generic word and is
-  fine. Our terms are in section 2.
+  systems (its idle base, its city, its in-game encyclopedia, its skill-chain mechanic, its
+  guilds, its advice feature...); the owner's brief lists the exact words. "Lobby" is a
+  generic word and is fine. Our terms are in section 2.
 - **No logos, icons or graphics traced or cut from screenshots.** Every icon is an original SVG
   drawn from code (`assets/art/ui/src/make_icons.py`). Every decoration (hatching, barcodes,
   brackets, hexes, chevrons) is generic geometry drawn by `KitBox` / `Deco`. The rarity mark

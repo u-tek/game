@@ -153,7 +153,8 @@ UI.safe_top() / UI.safe_bottom() -> float         # insets in viewport px
 
 Screens are `Control` scripts in `src/ui/screens/<name>_screen.gd` with
 `func setup(params: Dictionary) -> void`. They fill the content area between the top bar
-(currencies) and bottom nav (Home, Heroes, Summon, Quests, Shop). `src/ui/kit.gd`
+(currencies) and bottom nav (Heroes, Team, Lobby, Gear, Summon; Quests, Shop and Settings hang off
+the Lobby and top bar; see `docs/dev/ui-style-v2.md`). `src/ui/kit.gd`
 (`class_name Kit`) provides styled builders: buttons (primary/secondary/danger), panels,
 labels by role (title/body/number), currency chips, hero cards, rarity frames, progress
 bars, faction/role badges, scroll lists. **Use them; don't hand-style.**
@@ -212,28 +213,13 @@ Full spec: `docs/dev/halorig.md`.
 - In game: battle ~275 px tall (node scale 1), hero detail about 4x, cards use a
   head-and-shoulders portrait.
 
-## 7. Visual direction: "Twilight cathedral"
+## 7. Visual direction (v2)
 
-Deep indigo night sky, gold-leaf filigree, stained-glass color. Dark UI, one look (no light theme).
-
-| Token | Color | Use |
-|---|---|---|
-| bg | `#120e24` | app background |
-| panel | `#1d1738` (90% alpha) | panels, cards |
-| panel_hi | `#2a2150` | raised/hover |
-| line | `#e8c36a` at 35% | hairline borders |
-| ink | `#f3ecdf` | main text |
-| ink_dim | `#a99fc4` | secondary text |
-| gold | `#f2c14e` | primary accent, primary buttons, Celestial |
-| ember | `#d9412b` | Infernal, danger |
-| violet | `#8e6ce0` | Fallen |
-| sky | `#6fc3e8` | info, Celestial secondary |
-| rare / epic / legendary | `#4fa3e0` / `#b36bf0` / `#f5b83d` | rarity frames |
-| good | `#5cd6a0` | success, HP |
-
-Fonts (`assets/fonts`): **Marcellus SC** for titles, hero names, screen headers;
-**Nunito** (Regular/Bold/ExtraBold/Black) for body, numbers and buttons. Sizes on the 720 px
-canvas: 22 small, 26 body, 32 button, 40 header, 56 hero name.
+The UI follows the owner's reference style: dark translucent chrome over full-bleed character art,
+light pages with near-black text, one cyan-blue accent, skewed/tapered plates, hex badges, tall
+portrait hero cards, a hex-centred bottom nav. Fonts: **Barlow** and **Barlow Condensed** (OFL).
+The full spec (tokens, type scale, geometry, every component, all 13 screen layouts on 720x1560,
+and the App Store 4.1 copycat guardrails) is **`docs/dev/ui-style-v2.md`**; build screens with Kit.
 
 ## 8. v1 scope and numbers (starting points; core may tune)
 
