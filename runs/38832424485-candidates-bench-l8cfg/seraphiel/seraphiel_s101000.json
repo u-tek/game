@@ -1,0 +1,95 @@
+{
+ "hero": "seraphiel",
+ "mode": "candidates",
+ "seed": 101000,
+ "image": null,
+ "dropped": true,
+ "width": 832,
+ "height": 1216,
+ "preset": "lightning8_cfg",
+ "preset_settings": {
+  "lora": "lightning8",
+  "lora_scale": 1.0,
+  "sampler": "euler_trailing",
+  "steps": 8,
+  "cfg": 1.8,
+  "doc": "SDXL-Lightning 8-step LoRA with light CFG (negatives active; 2 passes per step)"
+ },
+ "family": "animagine",
+ "prompt": "1girl, solo, adult, mature female, full body, standing, contrapposto, looking at viewer, curvy, large breasts, cleavage, platinum blonde hair, very long hair, closed eyes, light smile, serene, halo, spiked halo, gold crown, multiple wings, white wings, feathered wings, head wings, white dress, plunging neckline, backless dress, side slit, barefoot, anklet, body chain, scepter, floating object, hand up, white and gold theme, simple background, grey background, official art, cel shading, rim lighting, masterpiece, high score, great score, absurdres, sensitive",
+ "negative": "worst quality, low quality, low score, bad score, average score, nsfw, explicit, lowres, blurry, jpeg artifacts, bad anatomy, bad hands, extra arms, cropped, feet out of frame, head out of frame, wings out of frame, upper body, cowboy shot, multiple views, scenery, light particles, sparkle, embers, aura, light rays, smoke, speed lines, nude, nipples, areolae, covered nipples, nipple slip, areola slip, pussy, cameltoe, anus, penis, pubic hair, sex, spread legs, see-through, loli, shota, child, underage, teenage, young, aged down, school uniform, text, watermark, signature, chibi, 3d, realistic, 1boy, multiple girls, topless, flat chest, pussy peek, no panties, pantyshot, upskirt, blue archive",
+ "prompt_chunks": [
+  2,
+  3
+ ],
+ "background": {
+  "key": "grey",
+  "rgb": [
+   128,
+   128,
+   128
+  ]
+ },
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)"
+ },
+ "lora": {
+  "name": "lightning8",
+  "scale": 1.0,
+  "repo": "ByteDance/SDXL-Lightning",
+  "file": "sdxl_lightning_8step_lora.safetensors",
+  "license": "OpenRAIL++ (CreativeML Open RAIL++-M)"
+ },
+ "render": {
+  "what": "txt2img 832x1216",
+  "seconds": 779.3,
+  "steps_run": 8,
+  "s_per_step": 86.77,
+  "decode_s": 85.1,
+  "rss_peak_gb": 14.11
+ },
+ "framing": {
+  "touches": [],
+  "edge_low": 0.424,
+  "bg_rgb": [
+   170.0,
+   170.0,
+   165.0
+  ],
+  "bg_off": 70.0,
+  "figure_frac": 0.354,
+  "holes_kept_as_figure": 0,
+  "flags": [
+   "EDGE 42%",
+   "BG?"
+  ]
+ },
+ "filter": {
+  "views": 18,
+  "scores": {
+   "nudenet": {
+    "FEMALE_BREAST_EXPOSED": 0.3661,
+    "FEMALE_GENITALIA_EXPOSED": 0.0071,
+    "MALE_GENITALIA_EXPOSED": 0.0041,
+    "ANUS_EXPOSED": 0.0002,
+    "BUTTOCKS_EXPOSED": 0.0186
+   },
+   "anime_censor": {
+    "nipple_f": 0.1711,
+    "penis": 0.1164,
+    "pussy": 0.0176
+   }
+  },
+  "flagged": [
+   {
+    "detector": "nudenet",
+    "class": "FEMALE_BREAST_EXPOSED",
+    "score": 0.3661,
+    "view": "t832_0_0"
+   }
+  ]
+ },
+ "run": "38832424485-candidates-bench-l8cfg",
+ "created": "2026-10-16T01:13:45Z"
+}

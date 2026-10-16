@@ -1,0 +1,105 @@
+{
+ "key": "seraphiel-c0",
+ "run": "38832424485-candidates-bench-l8cfg",
+ "hero": "seraphiel",
+ "mode": "candidates",
+ "seeds": [
+  101000
+ ],
+ "preset": "lightning8_cfg",
+ "env": {
+  "python": "3.11.17",
+  "machine": "x86_64",
+  "cpus": 4,
+  "cpu": "AMD EPYC 7763 64-Core Processor",
+  "mem_gb": 15.6,
+  "torch": "2.8.0+cpu",
+  "diffusers": "0.35.2",
+  "transformers": "4.56.2",
+  "peft": "0.17.1",
+  "rembg": "2.0.85",
+  "onnxruntime": "1.23.2"
+ },
+ "timing": {
+  "download_s": 25.3,
+  "encode_s": 6.2,
+  "engine_load_s": 17.1,
+  "lora_s": 20.4,
+  "last_image_s": 779.3,
+  "s_per_txt2img": 779.3
+ },
+ "images": [
+  {
+   "what": "txt2img 832x1216",
+   "seconds": 779.3,
+   "steps_run": 8,
+   "s_per_step": 86.77,
+   "decode_s": 85.1,
+   "rss_peak_gb": 14.11,
+   "seed": 101000
+  }
+ ],
+ "skipped": [],
+ "started": "2026-10-16T00:59:31Z",
+ "licenses": {
+  "model": {
+   "repo": "cagliostrolab/animagine-xl-4.0",
+   "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)",
+   "license_url": "https://huggingface.co/cagliostrolab/animagine-xl-4.0"
+  },
+  "loras": {
+   "lightning8": {
+    "repo": "ByteDance/SDXL-Lightning",
+    "file": "sdxl_lightning_8step_lora.safetensors",
+    "license": "OpenRAIL++ (CreativeML Open RAIL++-M)",
+    "license_url": "https://huggingface.co/ByteDance/SDXL-Lightning"
+   },
+   "lcm": {
+    "repo": "latent-consistency/lcm-lora-sdxl",
+    "file": "pytorch_lora_weights.safetensors",
+    "license": "OpenRAIL++ (CreativeML Open RAIL++-M)",
+    "license_url": "https://huggingface.co/latent-consistency/lcm-lora-sdxl"
+   }
+  },
+  "aux": {
+   "cutout": {
+    "name": "rembg isnet-anime",
+    "license": "rembg MIT; IS-Net anime model Apache-2.0 (SkyTNT/anime-segmentation)"
+   },
+   "nudenet": {
+    "name": "NudeNet 3.4.2 detector (320n)",
+    "license": "MIT (weights bundled in the pip package)"
+   },
+   "anime_censor": {
+    "repo": "deepghs/anime_censor_detection",
+    "model": "censor_detect_v1.0_s",
+    "name": "deepghs anime censor-point detector (YOLOv8)"
+   },
+   "anime_face": {
+    "repo": "deepghs/anime_face_detection",
+    "model": "face_detect_v1.4_s",
+    "name": "deepghs anime face detector (YOLOv8)"
+   }
+  }
+ },
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)",
+  "variants": {
+   "unet": null,
+   "vae": null,
+   "text_encoder": null,
+   "text_encoder_2": null
+  },
+  "download_s": 25.3,
+  "size_gb": 6.94
+ },
+ "filter": {
+  "checked": 1,
+  "passed": 0,
+  "dropped": 1,
+  "errors": 0
+ },
+ "finished": "2026-10-16T01:13:45Z",
+ "wall_s": 914.5
+}

@@ -1,0 +1,89 @@
+{
+ "files": {},
+ "dropped": [
+  {
+   "rel": "seraphiel/seraphiel_s101000.webp",
+   "report": {
+    "views": 18,
+    "scores": {
+     "nudenet": {
+      "FEMALE_BREAST_EXPOSED": 0.3661,
+      "FEMALE_GENITALIA_EXPOSED": 0.0071,
+      "MALE_GENITALIA_EXPOSED": 0.0041,
+      "ANUS_EXPOSED": 0.0002,
+      "BUTTOCKS_EXPOSED": 0.0186
+     },
+     "anime_censor": {
+      "nipple_f": 0.1711,
+      "penis": 0.1164,
+      "pussy": 0.0176
+     }
+    },
+    "flagged": [
+     {
+      "detector": "nudenet",
+      "class": "FEMALE_BREAST_EXPOSED",
+      "score": 0.3661,
+      "view": "t832_0_0"
+     }
+    ]
+   },
+   "job": "seraphiel-c0"
+  }
+ ],
+ "jobs": {
+  "seraphiel-c0": {
+   "artifact": "art-seraphiel-c0",
+   "verify": {
+    "kept": 3,
+    "deleted": 0
+   },
+   "stats": {
+    "checked": 1,
+    "passed": 0,
+    "dropped": 1,
+    "errors": 0
+   },
+   "filter": {
+    "nudenet": {
+     "threshold": 0.25,
+     "classes": [
+      "FEMALE_BREAST_EXPOSED",
+      "FEMALE_GENITALIA_EXPOSED",
+      "MALE_GENITALIA_EXPOSED",
+      "ANUS_EXPOSED",
+      "BUTTOCKS_EXPOSED"
+     ]
+    },
+    "anime_censor": {
+     "threshold": 0.25,
+     "classes": [
+      "nipple_f",
+      "penis",
+      "pussy"
+     ]
+    }
+   }
+  }
+ },
+ "filter": {
+  "nudenet": {
+   "threshold": 0.25,
+   "classes": [
+    "FEMALE_BREAST_EXPOSED",
+    "FEMALE_GENITALIA_EXPOSED",
+    "MALE_GENITALIA_EXPOSED",
+    "ANUS_EXPOSED",
+    "BUTTOCKS_EXPOSED"
+   ]
+  },
+  "anime_censor": {
+   "threshold": 0.25,
+   "classes": [
+    "nipple_f",
+    "penis",
+    "pussy"
+   ]
+  }
+ }
+}

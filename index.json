@@ -9,6 +9,15 @@
    ],
    "published_images": 2,
    "dropped": 2
+  },
+  {
+   "run": "38832424485-candidates-bench-l8cfg",
+   "created": "2026-10-16T01:14:52Z",
+   "heroes": [
+    "seraphiel"
+   ],
+   "published_images": 0,
+   "dropped": 1
   }
  ]
 }

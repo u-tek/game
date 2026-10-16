@@ -1,0 +1,74 @@
+{
+ "run": "38832424485-candidates-bench-l8cfg",
+ "created": "2026-10-16T01:14:52Z",
+ "jobs_expected": [
+  "seraphiel-c0"
+ ],
+ "jobs_missing": [],
+ "heroes": {
+  "seraphiel": {
+   "images": [],
+   "dropped": 1
+  }
+ },
+ "sheets": [],
+ "sheet_note": "",
+ "jobs": [
+  {
+   "key": "seraphiel-c0",
+   "hero": "seraphiel",
+   "mode": "candidates",
+   "preset": "lightning8_cfg",
+   "wall_s": 914.5,
+   "timing": {
+    "download_s": 25.3,
+    "encode_s": 6.2,
+    "engine_load_s": 17.1,
+    "lora_s": 20.4,
+    "last_image_s": 779.3,
+    "s_per_txt2img": 779.3
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 0,
+    "dropped": 1,
+    "errors": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 101000,
+     "seconds": 779.3,
+     "s_per_step": 86.77,
+     "steps_run": 8,
+     "rss_peak_gb": 14.11
+    }
+   ]
+  }
+ ],
+ "filter_totals": {
+  "published_images": 0,
+  "dropped": 1
+ },
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)",
+  "license_url": "https://huggingface.co/cagliostrolab/animagine-xl-4.0"
+ },
+ "loras": {
+  "lightning8": {
+   "repo": "ByteDance/SDXL-Lightning",
+   "file": "sdxl_lightning_8step_lora.safetensors",
+   "license": "OpenRAIL++ (CreativeML Open RAIL++-M)",
+   "license_url": "https://huggingface.co/ByteDance/SDXL-Lightning"
+  },
+  "lcm": {
+   "repo": "latent-consistency/lcm-lora-sdxl",
+   "file": "pytorch_lora_weights.safetensors",
+   "license": "OpenRAIL++ (CreativeML Open RAIL++-M)",
+   "license_url": "https://huggingface.co/latent-consistency/lcm-lora-sdxl"
+  }
+ }
+}
