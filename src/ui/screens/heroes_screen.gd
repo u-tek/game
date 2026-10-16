@@ -8,6 +8,7 @@ extends Control
 ## A red dot marks a team hero who can level or star up now, an "N" a hero summoned this
 ## session and not opened yet. Tap a card to open hero_detail (browse = the shown order).
 ## Tabs, filters, sort and scroll position are remembered for the session (static vars).
+## Params: tab: 0 | 1 (Heroes / Codex).
 
 const COLS := 4
 const CARD_GAP := 12
@@ -51,7 +52,9 @@ static func is_new(hero_id: String) -> bool:
 	return _new_ids.has(hero_id)
 
 
-func setup(_params: Dictionary) -> void:
+func setup(params: Dictionary) -> void:
+	if params.has("tab"):
+		_tab_idx = clampi(int(params["tab"]), 0, 1)
 	_build()
 	Game.changed.connect(_refresh)
 	_refresh()
@@ -147,6 +150,7 @@ func _refresh(reset_scroll: bool = false) -> void:
 	_filter_chip.set_pressed_no_signal(_faction_idx > 0 or _rarity_idx > 0)
 	for c in _filter_chip.get_children():
 		if c.name == "FacMark":
+			_filter_chip.remove_child(c)
 			c.queue_free()
 	if _faction_idx > 0:
 		var fm := Kit.faction_icon(Kit.FACTIONS[_faction_idx - 1], 30)

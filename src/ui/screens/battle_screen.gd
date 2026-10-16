@@ -1,5 +1,6 @@
 extends Control
-## Screen "battle": plays a campaign stage. params: stage_index (int).
+## Screen "battle": plays a campaign stage. params: stage_index (int); skip (bool, for
+## screenshots: skips to the result right away).
 ##
 ## The BattleSim runs a little ahead of what the player sees (SIM_LEAD_MS of battle time).
 ## Every event is scheduled on a display clock so animations line up with their results:
@@ -31,6 +32,8 @@ const ULT_HIT_S := 0.98
 const TOP_H := 112.0
 const BOSS_H := 58.0
 const BOTTOM_H := 196.0
+## Width of an ally card on the bottom rail.
+const PORTRAIT_W := 120.0
 const END_DELAY := 1.4
 const INTRO_TIME := 1.25
 const FRONT_X := [0.31, 0.69]
@@ -106,6 +109,9 @@ func setup(params: Dictionary) -> void:
 	_build()
 	_layout_units()
 	_start_intro()
+	# Screenshots: jump to the result (params skip = true).
+	if bool(params.get("skip", false)):
+		get_tree().create_timer(0.4).timeout.connect(_skip)
 
 
 func _exit_tree() -> void:
@@ -138,7 +144,7 @@ func _build() -> void:
 	_units.name = "Units"
 	_world.add_child(_units)
 	_dim = ColorRect.new()
-	_dim.color = Color(0.02, 0.0, 0.06, 1.0)
+	_dim.color = Color(0.02, 0.025, 0.035, 1.0)
 	_dim.modulate.a = 0.0
 	_dim.mouse_filter = MOUSE_FILTER_IGNORE
 	_dim.size = Vector2(4000, 4000)
@@ -236,6 +242,8 @@ func _layout_units() -> void:
 	_units.move_child(_dim, -1)
 
 
+## Top HUD (style v2): exit, the stage plate (cyan stage tag, timer, name) on dark glass,
+## then Auto / speed / Skip on the right; a boss plate with its HP bar under it.
 func _build_hud() -> void:
 	_hud = Control.new()
 	_hud.name = "Hud"
@@ -244,40 +252,45 @@ func _build_hud() -> void:
 	add_child(_hud)
 	var top := UI.safe_top()
 	# Top shade so the controls read on any backdrop.
-	var shade := Panel.new()
+	var shade := TextureRect.new()
+	shade.texture = Kit.vgradient(Color(Kit.CHROME, 0.88), Color(Kit.CHROME, 0.0))
+	shade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	shade.stretch_mode = TextureRect.STRETCH_SCALE
 	shade.mouse_filter = MOUSE_FILTER_IGNORE
-	shade.add_theme_stylebox_override("panel", Kit.box(Color(0.03, 0.01, 0.08, 0.85), Color(0.03, 0.01, 0.08, 0.0), Color.TRANSPARENT, 0))
 	shade.anchor_right = 1.0
-	shade.offset_bottom = top + TOP_H + 30.0
+	shade.offset_bottom = top + TOP_H + 40.0
 	_hud.add_child(shade)
 
-	var row := Kit.hbox(8)
+	var row := Kit.hbox(6)
 	row.anchor_right = 1.0
-	row.offset_left = 12
-	row.offset_right = -12
+	row.offset_left = 10
+	row.offset_right = -10
 	row.offset_top = top + 8
 	row.offset_bottom = top + 8 + 96
 	_hud.add_child(row)
-	var back := Kit.icon_button("back", _ask_retreat, 76, "round")
-	back.custom_minimum_size = Vector2(76, 88)
-	back.size_flags_vertical = SIZE_SHRINK_CENTER
+	var back := _hud_button("exit", "Exit", _ask_retreat)
 	row.add_child(back)
+	var plate := PanelContainer.new()
+	plate.mouse_filter = MOUSE_FILTER_IGNORE
+	plate.add_theme_stylebox_override("panel", Kit.style("notice"))
+	plate.size_flags_horizontal = SIZE_EXPAND_FILL
+	plate.size_flags_vertical = SIZE_SHRINK_CENTER
 	var info := Kit.vbox(0)
 	info.mouse_filter = MOUSE_FILTER_IGNORE
-	info.size_flags_horizontal = SIZE_EXPAND_FILL
-	info.alignment = BoxContainer.ALIGNMENT_CENTER
-	var t1 := Kit.hbox(8)
+	var t1 := Kit.hbox(10)
 	t1.mouse_filter = MOUSE_FILTER_IGNORE
-	t1.add_child(Kit.label(str(_stage.get("id", "")), 30, Kit.GOLD_LIGHT, "black", 5))
-	_timer_label = Kit.label("1:30", 26, Kit.INK, "black", 5)
+	t1.add_child(Kit.tag(str(_stage.get("id", "")), Kit.ACCENT, Color.WHITE, 24))
+	_timer_label = Kit.label("1:30", 30, Color.WHITE, "cond_bold")
+	t1.add_child(Kit.icon("timer", 24, Kit.INK_DIM))
 	t1.add_child(_timer_label)
 	info.add_child(t1)
-	var nm := Kit.label(str(_stage.get("name", "")), 21, Kit.INK_DIM, "bold", 4)
+	var nm := Kit.label(str(_stage.get("name", "")).to_upper(), 18, Kit.INK_DIM, "cond_bold")
 	nm.clip_text = true
 	nm.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	nm.custom_minimum_size.x = 120
 	info.add_child(nm)
-	row.add_child(info)
+	plate.add_child(Kit.margin(info, 14, 8))
+	row.add_child(plate)
 	_auto_slot = Control.new()
 	_auto_slot.custom_minimum_size = Vector2(84, 96)
 	row.add_child(_auto_slot)
@@ -290,36 +303,47 @@ func _build_hud() -> void:
 
 	if _boss_uid != "":
 		var bv: Node2D = _views[_boss_uid]
+		var bp := PanelContainer.new()
+		bp.mouse_filter = MOUSE_FILTER_IGNORE
+		bp.add_theme_stylebox_override("panel", Kit.style("notice"))
+		bp.anchor_left = 0.5
+		bp.anchor_right = 0.5
+		bp.offset_left = -260
+		bp.offset_right = 260
+		bp.offset_top = top + TOP_H - 2
+		bp.offset_bottom = top + TOP_H + BOSS_H - 6
 		var box := Kit.vbox(2)
 		box.mouse_filter = MOUSE_FILTER_IGNORE
-		box.anchor_left = 0.5
-		box.anchor_right = 0.5
-		box.offset_left = -250
-		box.offset_right = 250
-		box.offset_top = top + TOP_H - 6
-		box.offset_bottom = top + TOP_H + BOSS_H - 6
 		var nrow := Kit.hbox(8)
-		nrow.alignment = BoxContainer.ALIGNMENT_CENTER
 		nrow.mouse_filter = MOUSE_FILTER_IGNORE
 		nrow.add_child(Kit.tag("BOSS", Kit.EMBER, Color.WHITE, 16))
-		nrow.add_child(Kit.label(str(Game.hero_def(str(bv.get("hero_id"))).get("name", "")), 22, Kit.INK, "extrabold", 5))
+		var bn := Kit.label(str(Game.hero_def(str(bv.get("hero_id"))).get("name", "")).to_upper(), 20, Color.WHITE, "cond_bold")
+		bn.size_flags_horizontal = SIZE_EXPAND_FILL
+		nrow.add_child(bn)
+		nrow.add_child(Kit.deco("barcode", Vector2(60, 14), Color(1, 1, 1, 0.35)))
 		box.add_child(nrow)
-		_boss_bar = Kit.progress_bar(1.0, 1.0, Color("e5483a"), 18)
+		_boss_bar = Kit.progress_bar(1.0, 1.0, Kit.EMBER, 14)
 		box.add_child(_boss_bar)
-		_hud.add_child(box)
+		bp.add_child(Kit.margin(box, 12, 5))
+		_hud.add_child(bp)
 
 
-## Round HUD button with a small caption under the icon. Caption label in meta "caption".
+## HUD button: an 76 px glass (or cyan) tile with an uppercase caption under it. The
+## caption Label is in meta "caption" (its text keeps its case; it displays uppercase).
 func _hud_button(icon_name: String, caption: String, cb: Callable, look: String = "round") -> Control:
-	var b := Kit.icon_button(icon_name, cb, 78, look)
-	b.custom_minimum_size = Vector2(84, 96)
-	var l := Kit.label(caption, 18, Kit.INK, "black", 5)
+	var b := Kit.icon_button(icon_name, cb, 76, look)
+	b.name = "Hud_" + (caption if caption != "" else icon_name).to_pascal_case()
+	b.custom_minimum_size = Vector2(80, 96)
+	var l := Kit.label(caption, 17, Color.WHITE, "cond_bold")
+	l.uppercase = true
+	l.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	l.add_theme_constant_override("shadow_outline_size", 4)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.anchor_left = 0.0
 	l.anchor_right = 1.0
 	l.anchor_top = 1.0
 	l.anchor_bottom = 1.0
-	l.offset_top = -24
+	l.offset_top = -22
 	l.offset_bottom = 2
 	b.add_child(l)
 	b.set_meta("caption", l)
@@ -330,11 +354,13 @@ func _rebuild_auto() -> void:
 	for c in _auto_slot.get_children():
 		c.queue_free()
 	var on := _sim.auto_ultimates
-	var b := _hud_button("auto", "Auto" if on else "Manual", _toggle_auto, "gold" if on else "round")
+	var b := _hud_button("auto", "Auto" if on else "Manual", _toggle_auto, "accent" if on else "round")
 	b.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	_auto_slot.add_child(b)
 
 
+## Bottom rail (style v2): the five ally cards on a dark glass band with a technical top
+## line; the faction bonus tag above its left end; the manual-mode hint above its centre.
 func _build_bottom() -> void:
 	_bottom = Control.new()
 	_bottom.name = "Bottom"
@@ -344,22 +370,30 @@ func _build_bottom() -> void:
 	_bottom.anchor_bottom = 1.0
 	_bottom.offset_top = -(BOTTOM_H + UI.safe_bottom())
 	add_child(_bottom)
-	var bg := Panel.new()
+	var bg := TextureRect.new()
+	bg.texture = Kit.vgradient(Color(Kit.CHROME, 0.0), Color(Kit.CHROME, 0.94))
+	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bg.stretch_mode = TextureRect.STRETCH_SCALE
 	bg.mouse_filter = MOUSE_FILTER_IGNORE
-	bg.add_theme_stylebox_override("panel", Kit.box(Color(0.05, 0.03, 0.12, 0.0), Color(0.03, 0.02, 0.08, 0.92), Color.TRANSPARENT, 0))
 	bg.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	bg.offset_top = -40
+	bg.offset_top = -50
 	_bottom.add_child(bg)
-	var line := Kit.divider()
+	var rail := Panel.new()
+	rail.mouse_filter = MOUSE_FILTER_IGNORE
+	rail.add_theme_stylebox_override("panel", Kit.box(Color(0.06, 0.065, 0.075, 0.72), Color(0.03, 0.035, 0.04, 0.85), Color.TRANSPARENT, 0))
+	rail.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	rail.offset_top = 8
+	_bottom.add_child(rail)
+	var line := Kit.deco("techline", Vector2(720, 10), Color(1, 1, 1, 0.35))
 	line.anchor_right = 1.0
-	line.offset_top = 6
-	line.offset_bottom = 18
+	line.offset_top = 3
+	line.offset_bottom = 13
 	_bottom.add_child(line)
-	var row := Kit.hbox(6)
+	var row := Kit.hbox(8)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.anchor_right = 1.0
-	row.offset_top = 22
-	row.offset_bottom = 22 + 172
+	row.offset_top = 26
+	row.offset_bottom = 26 + 164
 	_bottom.add_child(row)
 	var by_slot := {}
 	for u: Dictionary in _sim.units:
@@ -368,45 +402,46 @@ func _build_bottom() -> void:
 	for s in 5:
 		if not by_slot.has(s):
 			var e := Control.new()
-			e.custom_minimum_size = Vector2(130, 164)
+			e.custom_minimum_size = Vector2(PORTRAIT_W, 150)
 			e.mouse_filter = MOUSE_FILTER_IGNORE
-			var ph := Kit.empty_slot(100)
+			var ph := Kit.empty_slot(PORTRAIT_W)
 			ph.mouse_filter = MOUSE_FILTER_IGNORE
-			ph.position = Vector2(15, 12)
-			ph.modulate.a = 0.5
+			ph.modulate.a = 0.55
 			e.add_child(ph)
 			row.add_child(e)
 			continue
 		var u: Dictionary = by_slot[s]
 		var p: Button = AllyPortrait.new()
-		p.call("setup", u, 130.0)
+		p.call("setup", u, PORTRAIT_W)
 		p.set("manual", not _sim.auto_ultimates)
 		var uid := str(u.uid)
 		p.pressed.connect(func() -> void: _on_portrait(uid))
 		row.add_child(p)
 		_portraits[uid] = p
-	# Faction bonus chip.
+	# Faction bonus tag.
 	var fb := _sim.faction_bonus("ally")
 	if not fb.is_empty():
-		var chip := Kit.panel("inset", 8)
+		var chip := PanelContainer.new()
+		chip.mouse_filter = MOUSE_FILTER_IGNORE
+		chip.add_theme_stylebox_override("panel", Kit.style("notice"))
 		var r2 := Kit.hbox(6)
 		r2.mouse_filter = MOUSE_FILTER_IGNORE
-		r2.add_child(Kit.faction_icon(str(fb.faction), 28))
-		r2.add_child(Kit.label("x%d  +%d%% HP & ATK" % [int(fb.count), int(fb.bonus_bp) / 100], 19, Kit.GOOD, "black", 4))
-		chip.add_child(r2)
-		chip.position = Vector2(12, -34)
+		r2.add_child(Kit.faction_icon(str(fb.faction), 26))
+		r2.add_child(Kit.label("x%d  +%d%% HP & ATK" % [int(fb.count), int(fb.bonus_bp) / 100], 19, Kit.GOOD, "cond_bold"))
+		chip.add_child(Kit.margin(r2, 10, 2))
+		chip.position = Vector2(12, -36)
 		_bottom.add_child(chip)
 	var hint := PanelContainer.new()
 	hint.mouse_filter = MOUSE_FILTER_IGNORE
-	hint.add_theme_stylebox_override("panel", Kit.box(Color("2d2459f2"), Color("1a1437f2"), Color(Kit.GOLD, 0.6), 999, 2, 0))
-	var hl := Kit.label("Manual: tap a glowing portrait to cast", 20, Kit.GOLD_LIGHT, "extrabold")
+	hint.add_theme_stylebox_override("panel", Kit.box(Color("0c0d10e6"), Color("0c0d10e6"), Kit.ACCENT, 6, 2, 0))
+	var hl := Kit.label("Manual: tap a glowing card to cast", 20, Color.WHITE, "extrabold")
 	hl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_child(Kit.margin(hl, 18, 4))
 	hint.anchor_left = 0.5
 	hint.anchor_right = 0.5
 	hint.grow_horizontal = GROW_DIRECTION_BOTH
-	hint.offset_top = -6
-	hint.offset_bottom = 30
+	hint.offset_top = -44
+	hint.offset_bottom = -8
 	hint.visible = false
 	_bottom.add_child(hint)
 	_manual_hint = hint
@@ -443,9 +478,9 @@ func _start_intro() -> void:
 	var banner := Kit.vbox(4)
 	banner.mouse_filter = MOUSE_FILTER_IGNORE
 	banner.alignment = BoxContainer.ALIGNMENT_CENTER
-	var rib := Kit.ribbon("Stage %s" % str(_stage.get("id", "")), 440, Kit.GOLD, Color("3d2306"), 40)
+	var rib := Kit.ribbon("Stage %s" % str(_stage.get("id", "")), 440, Kit.ACCENT, Color.WHITE, 40)
 	banner.add_child(rib)
-	var nm := Kit.label(str(_stage.get("name", "")), 30, Kit.INK, "extrabold", 6)
+	var nm := Kit.label(str(_stage.get("name", "")).to_upper(), 30, Color.WHITE, "cond_bold", 6)
 	nm.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	banner.add_child(nm)
 	banner.set_anchors_and_offsets_preset(PRESET_CENTER)
@@ -460,7 +495,10 @@ func _start_intro() -> void:
 	tw2.tween_interval(0.85)
 	tw2.tween_property(banner, "modulate:a", 0.0, 0.2)
 	tw2.tween_callback(banner.queue_free)
-	var fight := Kit.title("FIGHT!", 84, Kit.GOLD_LIGHT)
+	var fight := Kit.title("FIGHT", 96, Color.WHITE)
+	fight.add_theme_color_override("font_outline_color", Kit.ACCENT_DEEP)
+	fight.add_theme_constant_override("outline_size", 10)
+	fight.add_theme_color_override("font_shadow_color", Color(Kit.ACCENT, 0.6))
 	fight.set_anchors_and_offsets_preset(PRESET_CENTER)
 	fight.offset_left = -260
 	fight.offset_right = 260
@@ -646,7 +684,7 @@ func _on_damage(ev: Dictionary) -> void:
 		dst.call("play_hit")
 		var at: Vector2 = _fx.to_local(dst.call("chest_global"))
 		if ult:
-			BattleFx.burst(_fx, at, _fx_color(src) if src else Kit.GOLD, 80.0, 10)
+			BattleFx.burst(_fx, at, _fx_color(src) if src else Kit.ACCENT_HI, 80.0, 10)
 		elif src and str(src.call("attack_anim")) != "attack_ranged" and not bool(src.get("has_swing_vfx")):
 			BattleFx.slash(_fx, at, Color(1.0, 0.95, 0.85), str(src.get("side")) == "enemy", 64.0 * float(dst.get("depth_scale")))
 		UI.sfx("hit")
@@ -712,7 +750,7 @@ func _num_pos(v: Node2D) -> Vector2:
 
 func _fx_color(v: Node2D) -> Color:
 	if v == null:
-		return Kit.GOLD
+		return Kit.ACCENT_HI
 	if str(v.get("side")) == "enemy":
 		return Color("b48cff")
 	return HeroArt.faction_color(str(v.get("faction"))).lightened(0.3)

@@ -23,7 +23,10 @@ const EDGE := 56.0
 const SHORT_RED := Color("d42a12")
 const TABS := [["equip", "Equip", "equip"], ["skills", "Skills", "skill"], ["story", "Story", "scrolls"]]
 
-static var _tab := "equip"
+## The lower-panel tab the player picked last (kept for the session).
+static var _pref_tab := "equip"
+
+var _tab := "equip"
 
 var _id := ""
 var _def: Dictionary = {}
@@ -88,8 +91,7 @@ func setup(params: Dictionary) -> void:
 	Roster.mark_seen(_id)
 	_faction_col = Kit.faction_color(str(_def.faction))
 	_owned = Game.owns(_id)
-	if not _owned and _tab == "equip":
-		_tab = "skills"
+	_tab = "skills" if not _owned and _pref_tab == "equip" else _pref_tab
 	if _browse.is_empty() or not _browse.has(_id):
 		_browse.clear()
 		for h: Dictionary in Game.owned_heroes():
@@ -145,7 +147,7 @@ func _build() -> void:
 	_stripes.name = "Stripes"
 	_stripes.mouse_filter = MOUSE_FILTER_IGNORE
 	add_child(_stripes)
-	var hatch := Kit.deco("hatch", Vector2(720, 560), Color(_faction_col, 0.26))
+	var hatch := Kit.deco("hatch", Vector2(720, 560), Color(_faction_col, 0.32))
 	hatch.set("spacing", 48.0)
 	hatch.set("line_width", 20.0)
 	hatch.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
@@ -175,7 +177,7 @@ func _build() -> void:
 	_sprite = HeroArt.make_sprite(_id)
 	_anchor.add_child(_sprite)
 	if not _owned:
-		_sprite.modulate = Color(0.5, 0.52, 0.56, 0.9)
+		_sprite.modulate = Color(0.46, 0.48, 0.53, 0.85)
 	_poke = Control.new()
 	_poke.name = "Poke"
 	_poke.mouse_filter = MOUSE_FILTER_PASS
@@ -379,6 +381,7 @@ func _build_skill_hexes() -> Control:
 
 func _refresh_skill_hexes(stars: int) -> void:
 	for c in _skill_row.get_children():
+		_skill_row.remove_child(c)
 		c.queue_free()
 	var sz := 62.0 if _compact else 70.0
 	var items: Array[Control] = []
@@ -443,6 +446,7 @@ func _select_tab(tid: String) -> void:
 	if tid == _tab or not _tab_btns.has(tid):
 		return
 	_tab = tid
+	_pref_tab = tid
 	for k: String in _tab_btns:
 		var b := _tab_btns[k] as Button
 		var tile := b.get_node("Face/Tile") as Panel
@@ -461,7 +465,7 @@ func _layout() -> void:
 	var sb := UI.safe_bottom()
 	var col_x := w - EDGE - COL_W
 	_scroll.position = Vector2(col_x - 102, 0)
-	_scroll.size = Vector2(COL_W + 102 + 6, h - sb)
+	_fit_scroll()
 	# The upper rows of the column line up with the panels (the side tabs hang out left).
 	for i in _column.get_child_count():
 		var c := _column.get_child(i) as Control
@@ -491,6 +495,17 @@ func _layout() -> void:
 	for i in _arrows.size():
 		var a := _arrows[i]
 		a.position = Vector2(0.0 if i == 0 else w - EDGE, (h - sb) * 0.46)
+
+
+## The column runs to the bottom when it fits; when it has to scroll, its viewport stops
+## above Back / Home so the side tabs never slide under them.
+func _fit_scroll() -> void:
+	if _scroll == null or size.y <= 0.0:
+		return
+	var avail := size.y - UI.safe_bottom()
+	var need := (_scroll.get_child(0) as Control).get_combined_minimum_size().y
+	var hgt := avail if need <= avail + 1.0 else avail - Kit.BUTTON_H - 24.0
+	_scroll.size = Vector2(COL_W + 102 + 6, hgt)
 
 
 func _process(delta: float) -> void:
@@ -529,9 +544,11 @@ func _refresh() -> void:
 	var cap := int(Game.max_level(_id))
 
 	for c in _stars_box.get_children():
+		_stars_box.remove_child(c)
 		c.queue_free()
 	_stars_box.add_child(Kit.star_row(stars, Kit.MAX_STARS if _owned else 0, 24))
 	for c in _plate_slot.get_children():
+		_plate_slot.remove_child(c)
 		c.queue_free()
 	var plate := Kit.name_plate(level, cap, str(_def.name), 28 if _compact else 30)
 	plate.size_flags_horizontal = SIZE_EXPAND_FILL
@@ -565,6 +582,7 @@ func _refresh_stats(level: int, cap: int, stars: int) -> void:
 		return
 	_stats_sig = sig
 	for c in _stat_rows.get_children():
+		_stat_rows.remove_child(c)
 		c.queue_free()
 	var i := 0
 	for k: String in STAT_ORDER:
@@ -613,6 +631,7 @@ func _stat_text(stat: String, v: int) -> String:
 
 func _refresh_level(level: int, cap: int) -> void:
 	for c in _lvl_inner.get_children():
+		_lvl_inner.remove_child(c)
 		c.queue_free()
 	var cost := Game.level_up_cost(_id)
 	if cost.is_empty():
@@ -647,6 +666,7 @@ func _refresh_level(level: int, cap: int) -> void:
 ## "MAX" over "+N" (the levels it would buy) on the light MAX button.
 func _set_max_text(n: int) -> void:
 	for c in _max_inner.get_children():
+		_max_inner.remove_child(c)
 		c.queue_free()
 	var dim := _max_btn.disabled
 	var a := Kit.label("MAX", 26, Color("9aa1aa") if dim else Kit.TEXT, "cond_bold")
@@ -660,6 +680,7 @@ func _set_max_text(n: int) -> void:
 
 func _refresh_stars(stars: int) -> void:
 	for c in _star_slot.get_children():
+		_star_slot.remove_child(c)
 		c.queue_free()
 	var c := Game.star_up_cost(_id)
 	if c.is_empty():
@@ -710,6 +731,7 @@ func _refresh_lower() -> void:
 			_build_skills()
 		_:
 			_build_story()
+	_fit_scroll.call_deferred()
 
 
 func _build_equip() -> void:

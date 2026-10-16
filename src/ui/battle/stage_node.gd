@@ -1,32 +1,46 @@
 extends Control
-## Campaign map medallion for one stage. status: "cleared" | "current" | "locked".
-## Cleared: gold ring, faction-tinted face, check badge. Current: bright pulsing ring and a
-## bobbing "NEXT" marker. Locked: dim with a lock. Bosses are bigger, ember-ringed, with a
-## crown. Built with setup(); the screen makes it tappable with Kit.make_tappable.
+## Campaign map node for one stage (style v2): a flat-top hexagon.
+##   cleared  cyan hex, white stage id, small check badge
+##   current  dark hex with a glowing, pulsing orange rim
+##   locked   dim graphite hex with a lock
+## Bosses are bigger with a red "roof" band and the boss's face cropped into the hex.
+## `selected` adds cyan corner brackets around the node. Built with setup(); the screen makes
+## it tappable with Kit.make_tappable.
+
+const KitBox := preload("res://src/ui/components/kit_box.gd")
 
 var stage_id := ""
 var status := "locked"
 var is_boss := false
 var tint := Color("f2c14e")
+var boss_id := ""
+var selected := false:
+	set(v):
+		selected = v
+		queue_redraw()
 var _t := 0.0
 var _font: Font
 var _check: Texture2D
 var _lock: Texture2D
-var _crown: Texture2D
+var _crop: AtlasTexture
 
 
-func setup(id: String, st: String, boss: bool, faction_tint: Color, diameter: float) -> void:
+func setup(id: String, st: String, boss: bool, faction_tint: Color, diameter: float, boss_hero: String = "") -> void:
 	stage_id = id
 	status = st
 	is_boss = boss
 	tint = faction_tint
+	boss_id = boss_hero
 	mouse_filter = MOUSE_FILTER_PASS
 	custom_minimum_size = Vector2(diameter, diameter)
 	size = custom_minimum_size
-	_font = Kit.font("black")
+	_font = Kit.font("cond_black")
 	_check = Kit.icon_texture("check")
 	_lock = Kit.icon_texture("lock")
-	_crown = Kit.icon_texture("crown")
+	if is_boss and boss_id != "":
+		var c: Variant = Kit.art_crop(boss_id, 1.0, 1.5)
+		if c is AtlasTexture:
+			_crop = c
 	set_process(status == "current")
 
 
@@ -36,56 +50,85 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
+	var ci := get_canvas_item()
 	var c := size * 0.5
-	var r := minf(size.x, size.y) * 0.5 - 6.0
+	var r := minf(size.x, size.y) * 0.5 - 8.0
+	var hex := KitBox.hex_points(c, r, true)
 	var locked := status == "locked"
 	var current := status == "current"
-	var ring := Kit.GOLD
-	if is_boss:
-		ring = Color("ff7a52") if not locked else Color("7a4a52")
-	elif locked:
-		ring = Color("5a5078")
+	var cleared := status == "cleared"
 	var pulse := 0.5 + 0.5 * sin(_t * 3.4)
-	# Glow behind the current stage.
+	# Glow and shadow.
 	if current:
-		for i in 6:
-			var t := i / 6.0
-			draw_circle(c, r * (1.55 - t * 0.5), Color(Kit.GOLD_LIGHT, (0.05 + 0.04 * pulse)), true, -1.0, true)
-	# Drop shadow.
-	draw_circle(c + Vector2(0, 5), r + 3, Color(0, 0, 0, 0.45), true, -1.0, true)
-	# Rim.
-	draw_circle(c, r + 2, ring.darkened(0.55), true, -1.0, true)
-	draw_circle(c, r, ring if not current else ring.lerp(Color.WHITE, 0.25 * pulse), true, -1.0, true)
+		KitBox.soft_shadow(ci, hex, Color(1.0, 0.55, 0.1, 0.35 + 0.25 * pulse), 18.0)
+	KitBox.soft_shadow(ci, hex, Color(0, 0, 0, 0.45), 8.0, Vector2(0, 4))
 	# Face.
-	var face_top := tint.darkened(0.25) if not locked else Color("2a2448")
-	var face_bot := tint.darkened(0.72) if not locked else Color("13102a")
-	var fr := r * 0.8
-	var steps := 10
-	for i in steps:
-		var t := i / float(steps - 1)
-		draw_circle(c + Vector2(0, -fr * 0.15 * (1.0 - t)), fr * (1.0 - t * 0.55), face_bot.lerp(face_top, t), true, -1.0, true)
-	draw_arc(c, fr, 0, TAU, 48, Color(1, 1, 1, 0.18 if not locked else 0.06), 2.0, true)
-	# Gloss.
-	draw_arc(c, fr * 0.78, deg_to_rad(200), deg_to_rad(330), 24, Color(1, 1, 1, 0.16 if not locked else 0.05), fr * 0.12, true)
+	if cleared:
+		KitBox.fill_poly(ci, hex, Kit.ACCENT.lightened(0.1), Kit.ACCENT_DEEP)
+	elif current:
+		KitBox.fill_poly(ci, hex, Color("2a2c31"), Color("141518"))
+	else:
+		KitBox.fill_poly(ci, hex, Color("26282d"), Color("16171a"))
+	# Boss face (clipped to the hex) under a red roof band.
+	if is_boss and _crop and not locked:
+		_draw_crop(KitBox.hex_points(c, r - 3.0, true), Color(1, 1, 1, 0.9 if not cleared else 0.55))
+	if is_boss:
+		var roof := KitBox.clip_convex(hex, PackedVector2Array([Vector2(0, 0), Vector2(size.x, 0), Vector2(size.x, c.y - r * 0.5), Vector2(0, c.y - r * 0.5)]))
+		if roof.size() >= 3:
+			KitBox.fill_poly(ci, roof, Color(Kit.EMBER, 0.95 if not locked else 0.45), Color(Kit.EMBER.darkened(0.3), 0.95 if not locked else 0.45))
+			_draw_text("BOSS", Vector2(c.x, c.y - r * 0.62), int(r * 0.26), Color.WHITE)
+	if cleared:
+		KitBox.hatch(ci, hex, Color(1, 1, 1, 0.14), 8.0, 2.0, 0.55, 1.0)
+	# Rim.
+	if current:
+		KitBox.stroke_poly(ci, hex, Kit.ORANGE.lerp(Kit.ORANGE_HI, 0.4 * pulse), 4.0)
+		KitBox.stroke_poly(ci, KitBox.offset_poly(hex, -7.0), Color(1.0, 0.7, 0.3, 0.35), 1.5)
+	elif cleared:
+		KitBox.stroke_poly(ci, hex, Color(1, 1, 1, 0.85), 2.0)
+	else:
+		KitBox.stroke_poly(ci, hex, Color(1, 1, 1, 0.22), 1.5)
 	# Label or lock.
 	if locked:
 		if _lock:
-			var ls := r * 0.9
-			draw_texture_rect(_lock, Rect2(c - Vector2(ls, ls) * 0.5, Vector2(ls, ls)), false, Color(1, 1, 1, 0.55))
+			var ls := r * 0.72
+			draw_texture_rect(_lock, Rect2(c - Vector2(ls, ls) * 0.5 + Vector2(0, r * 0.08), Vector2(ls, ls)), false, Color(1, 1, 1, 0.45))
+	elif not (is_boss and _crop):
+		_draw_text(stage_id, c + Vector2(0, r * 0.06), int(r * (0.58 if stage_id.length() <= 3 else 0.48)), Color.WHITE)
 	else:
-		var fs := int(r * (0.5 if stage_id.length() <= 3 else 0.42))
-		var tw := _font.get_string_size(stage_id, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-		var base := c + Vector2(-tw * 0.5, fs * 0.36)
-		draw_string_outline(_font, base, stage_id, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 6, Kit.OUTLINE)
-		draw_string(_font, base, stage_id, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Kit.INK)
-	# Crown for bosses.
-	if is_boss and _crown:
-		var cs := r * 0.85
-		draw_texture_rect(_crown, Rect2(c + Vector2(-cs * 0.5, -r - cs * 0.62), Vector2(cs, cs)), false, Color(1, 1, 1, 1.0 if not locked else 0.5))
+		# Boss: the id on a dark tab at the bottom of the hex.
+		var tab := Rect2(c.x - r * 0.55, c.y + r * 0.42, r * 1.1, r * 0.4)
+		draw_rect(tab, Color(0, 0, 0, 0.7))
+		_draw_text(stage_id, Vector2(c.x, tab.get_center().y), int(r * 0.32), Color.WHITE)
 	# Cleared badge.
-	if status == "cleared" and _check:
-		var bs := r * 0.62
-		var bc := c + Vector2(r * 0.68, r * 0.62)
-		draw_circle(bc, bs * 0.55, Kit.OUTLINE, true, -1.0, true)
-		draw_circle(bc, bs * 0.47, Color("2e9e6e"), true, -1.0, true)
-		draw_texture_rect(_check, Rect2(bc - Vector2(bs, bs) * 0.36, Vector2(bs, bs) * 0.72), false)
+	if cleared and _check:
+		var bc := c + Vector2(r * 0.72, r * 0.6)
+		var br := r * 0.26
+		draw_circle(bc, br + 2.0, Color.WHITE, true, -1.0, true)
+		draw_circle(bc, br, Color("1f9e63"), true, -1.0, true)
+		draw_texture_rect(_check, Rect2(bc - Vector2(br, br) * 0.7, Vector2(br, br) * 1.4), false)
+	# Selection brackets.
+	if selected:
+		var sr := Rect2(c - Vector2(r + 7.0, r + 7.0), Vector2(r + 7.0, r + 7.0) * 2.0)
+		KitBox.corner_marks(ci, sr, Kit.ACCENT_HI, r * 0.36, 3.0)
+
+
+func _draw_text(text: String, center: Vector2, fs: int, col: Color) -> void:
+	var sz := _font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs)
+	var base := Vector2(center.x - sz.x * 0.5, center.y + fs * 0.34)
+	draw_string_outline(_font, base, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 4, Color(0, 0, 0, 0.55))
+	draw_string(_font, base, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
+
+
+## Draws the boss crop clipped to `poly` (UVs map the hex's bounds onto the crop region).
+func _draw_crop(poly: PackedVector2Array, col: Color) -> void:
+	var atlas := _crop.atlas
+	if atlas == null:
+		return
+	var reg := _crop.region
+	var ts := Vector2(atlas.get_width(), atlas.get_height())
+	var b := KitBox._bounds(poly)
+	var uvs := PackedVector2Array()
+	for p in poly:
+		var k := (p - b.position) / b.size
+		uvs.append((reg.position + k * reg.size) / ts)
+	draw_colored_polygon(poly, col, uvs, atlas)

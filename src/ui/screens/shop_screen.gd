@@ -1,22 +1,27 @@
 extends Control
-## Screen "shop": prototype offers as illustrated cards with tags (best value, monthly,
-## limited, popular, free). Every purchase button reads "Test purchase: no charge" because
-## this build has no real payments: buying calls Game.buy_offer and shows the reward popup.
-## Limits ("1 per account", "2 of 3 left", "Claimed today") and the Moonlit Pass days left are
-## shown on each card. The free daily gift sits at the top.
+## Screen "shop", style v2: prototype offers on a light page. A dark header with the page
+## tabs (OFFERS: the daily gift, packs and the Moonlit Pass; GEMS: gem packs in a 2-column
+## grid). Offer cards are white panels with a dark art band (glyph, name, tag) over the
+## rewards, the limit and the price button. Every paid button reads "Test purchase: no
+## charge" because this build has no real payments: buying calls Game.buy_offer and shows
+## the reward popup. Limits ("Once per account", "2 of 3 left", "Claimed today") and the
+## Moonlit Pass days left are shown on each card; the free daily gift is the orange button.
 
-const DARK_INK := Color("3d2306")
 const TAG_COLORS := {
-	"best value": Color("f2c14e"), "monthly": Color("6fc3e8"), "limited": Color("d9412b"),
-	"popular": Color("b36bf0"), "free": Color("5cd6a0"),
+	"best value": Kit.ORANGE, "monthly": Kit.ACCENT, "limited": Kit.EMBER,
+	"popular": Kit.EPIC, "free": Kit.GOOD,
 }
-## Big art icon per offer (falls back to its main reward currency).
+## Big glyph per offer (falls back to its main reward currency).
 const OFFER_ICONS := {
 	"daily_gift": "gift", "starter_pack": "chest", "monthly_card": "crown", "scroll_bundle": "scrolls",
 }
 
-var _list: VBoxContainer
-var _scroll: ScrollContainer
+static var _tab := 0
+
+var _pages: Array[Control] = []
+var _offers_list: VBoxContainer
+var _gems_grid: GridContainer
+var _scrolls: Array[ScrollContainer] = []
 var _sig := ""
 var _tick := 0.0
 var _reset_labels: Array[Label] = []
@@ -26,6 +31,8 @@ func setup(params: Dictionary) -> void:
 	_build()
 	Game.changed.connect(_refresh)
 	_refresh()
+	if params.has("tab"):
+		_select_tab(int(params["tab"]))
 	if params.has("scroll"):
 		_scroll_to.call_deferred(int(params["scroll"]))
 
@@ -34,8 +41,9 @@ func setup(params: Dictionary) -> void:
 func _scroll_to(px: int) -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
-	if is_instance_valid(_scroll):
-		_scroll.scroll_vertical = px
+	var sc := _scrolls[_tab] if _tab < _scrolls.size() else null
+	if is_instance_valid(sc):
+		sc.scroll_vertical = px
 
 
 func _exit_tree() -> void:
@@ -44,28 +52,73 @@ func _exit_tree() -> void:
 
 
 func _build() -> void:
-	var col := Kit.vbox(12)
+	var head := Kit.hbox(10)
+	head.set_anchors_and_offsets_preset(PRESET_TOP_WIDE)
+	head.offset_left = 16
+	head.offset_right = -16
+	head.offset_top = 10
+	head.offset_bottom = 10 + Kit.BUTTON_H
+	var tabs := Kit.tab_strip([{"text": "Offers", "icon": "gift"}, {"text": "Gems", "icon": "gems"}], _tab, func(i: int) -> void:
+		_tab = i
+		_show_page(), 196.0)
+	head.add_child(tabs)
+	head.add_child(Kit.spacer(0, 0, true))
+	var tb := Kit.vbox(-4)
+	tb.mouse_filter = MOUSE_FILTER_IGNORE
+	tb.alignment = BoxContainer.ALIGNMENT_CENTER
+	tb.add_child(Kit.label("PROTOTYPE", 16, Kit.INK_DIM, "cond_bold"))
+	tb.add_child(Kit.label("TEST SHOP", 26, Kit.GOOD, "cond_bold"))
+	head.add_child(tb)
+	add_child(head)
+
+	var page := Kit.page_bg("light")
+	page.offset_top = 10 + Kit.BUTTON_H
+	add_child(page)
+
+	var col := Kit.vbox(10)
 	col.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	col.offset_left = 22
-	col.offset_right = -22
-	col.offset_top = 14
+	col.offset_top = 10 + Kit.BUTTON_H + 14
+	col.offset_left = 16
+	col.offset_right = -16
 	add_child(col)
-	var head := Kit.hbox(12)
-	head.add_child(Kit.icon("shop", 64))
-	var tv := Kit.vbox(0)
-	tv.size_flags_horizontal = SIZE_EXPAND_FILL
-	tv.add_child(Kit.header("Shop", 44))
-	var note := Kit.caption("Prototype build: every purchase is a free test purchase.", 21, Kit.GOOD)
-	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	tv.add_child(note)
-	head.add_child(tv)
-	col.add_child(head)
-	_list = Kit.vbox(18)
-	var m := Kit.margin(_list, 0, 0)
-	m.add_theme_constant_override("margin_top", 6)
-	m.add_theme_constant_override("margin_bottom", 26)
-	_scroll = Kit.scroll(m)
-	col.add_child(_scroll)
+	var note := Kit.panel("light_inset", 10)
+	var nr := Kit.hbox(10)
+	nr.mouse_filter = MOUSE_FILTER_IGNORE
+	nr.add_child(Kit.icon("info", 30, Kit.ACCENT_DEEP))
+	var nl := Kit.label("Prototype build: every purchase is a free test purchase.", 20, Kit.TEXT_DIM, "bold")
+	nl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	nl.size_flags_horizontal = SIZE_EXPAND_FILL
+	nr.add_child(nl)
+	note.add_child(nr)
+	col.add_child(note)
+
+	var stack := Control.new()
+	stack.size_flags_vertical = SIZE_EXPAND_FILL
+	stack.mouse_filter = MOUSE_FILTER_PASS
+	col.add_child(stack)
+	_offers_list = Kit.vbox(16)
+	_gems_grid = Kit.grid(2, 14)
+	for content: Control in [_offers_list, _gems_grid]:
+		var m := Kit.margin(content, 2, 0)
+		m.add_theme_constant_override("margin_top", 4)
+		m.add_theme_constant_override("margin_bottom", 26)
+		var sc := Kit.scroll(m)
+		sc.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+		stack.add_child(sc)
+		_scrolls.append(sc)
+		_pages.append(sc)
+	_show_page()
+
+
+func _show_page() -> void:
+	for i in _pages.size():
+		_pages[i].visible = i == _tab
+
+
+func _select_tab(i: int) -> void:
+	var tabs := find_child("TabStrip", true, false) as HBoxContainer
+	if tabs and i >= 0 and i < tabs.get_child_count():
+		(tabs.get_child(i) as Button).button_pressed = true
 
 
 func _process(delta: float) -> void:
@@ -80,40 +133,36 @@ func _process(delta: float) -> void:
 # ------------------------------------------------------------------ refresh
 
 func _refresh() -> void:
-	if not is_inside_tree() or _list == null:
+	if not is_inside_tree() or _offers_list == null:
 		return
 	var offers := Game.offers()
 	var sig := JSON.stringify(offers) + str(Game.monthly_card_days_left())
 	if sig == _sig:
 		return
 	_sig = sig
-	var keep := _scroll.scroll_vertical
-	for c in _list.get_children():
-		_list.remove_child(c)
-		c.queue_free()
+	var keep: Array[int] = []
+	for sc in _scrolls:
+		keep.append(sc.scroll_vertical)
+	for box: Control in [_offers_list, _gems_grid]:
+		for c in box.get_children():
+			box.remove_child(c)
+			c.queue_free()
 	_reset_labels.clear()
-	var featured: Array[Dictionary] = []
-	var packs: Array[Dictionary] = []
 	for o in offers:
 		if _is_gem_pack(o):
-			packs.append(o)
+			_gems_grid.add_child(_pack_tile(o))
 		else:
-			featured.append(o)
-	for o in featured:
-		_list.add_child(_offer_card(o))
-	if not packs.is_empty():
-		_list.add_child(Kit.section_header("Gems", 30))
-		for o in packs:
-			_list.add_child(_pack_row(o))
+			_offers_list.add_child(_offer_card(o))
 	_restore.call_deferred(keep)
 
 
-func _restore(y: int) -> void:
-	if is_instance_valid(_scroll):
-		_scroll.scroll_vertical = y
+func _restore(ys: Array[int]) -> void:
+	for i in mini(ys.size(), _scrolls.size()):
+		if is_instance_valid(_scrolls[i]):
+			_scrolls[i].scroll_vertical = ys[i]
 
 
-## A plain gems-for-money pack (only gems in the reward, no tag but "popular").
+## A plain gems-for-money pack (only gems in the reward, not the pass or a free gift).
 static func _is_gem_pack(o: Dictionary) -> bool:
 	var r: Dictionary = o.get("reward", {})
 	return r.size() == 1 and r.has("gems") and str(o.id) != "monthly_card" and str(o.get("price_label", "")) != "Free"
@@ -122,115 +171,130 @@ static func _is_gem_pack(o: Dictionary) -> bool:
 func _offer_card(o: Dictionary) -> Control:
 	var id := str(o.id)
 	var tag := str(o.get("tag", ""))
-	var accent: Color = TAG_COLORS.get(tag, Kit.GOLD)
+	var accent: Color = TAG_COLORS.get(tag, Kit.ACCENT)
 	var available := bool(o.get("available", true))
-	var card := PanelContainer.new()
-	card.mouse_filter = MOUSE_FILTER_PASS
-	card.add_theme_stylebox_override("panel", Kit.box(accent.darkened(0.62).lerp(Kit.PANEL_HI, 0.35), Color("120d26"), accent.darkened(0.05), 20.0, 3, 20))
-	var v := Kit.vbox(12)
+	var card := Kit.info_panel(0)
+	card.name = "Offer_" + id
+	var v := Kit.vbox(0)
 	card.add_child(v)
-
-	var top := Kit.hbox(16)
-	var art := Control.new()
-	art.custom_minimum_size = Vector2(128, 128)
-	art.mouse_filter = MOUSE_FILTER_IGNORE
-	var gl := Kit.glow(accent, 170)
-	gl.position = Vector2(-21, -21)
-	gl.size = Vector2(170, 170)
-	gl.modulate.a = 0.55
-	art.add_child(gl)
-	var icon_name := str(OFFER_ICONS.get(id, _main_currency(o)))
-	var ic := Kit.icon(icon_name, 112)
-	ic.position = Vector2(8, 8)
-	ic.size = Vector2(112, 112)
-	art.add_child(ic)
-	top.add_child(art)
-	var info := Kit.vbox(4)
-	info.size_flags_horizontal = SIZE_EXPAND_FILL
-	var nrow := Kit.hbox(8)
-	var n := Kit.header(str(o.name), 32)
-	n.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	n.size_flags_horizontal = SIZE_EXPAND_FILL
-	nrow.add_child(n)
-	if tag != "":
-		var tg := Kit.tag(tag.to_upper(), accent, DARK_INK if accent.get_luminance() > 0.5 else Color.WHITE, 18)
-		tg.size_flags_vertical = SIZE_SHRINK_BEGIN
-		nrow.add_child(tg)
-	info.add_child(nrow)
-	var d := Kit.body(str(o.get("description", "")), 22, Kit.INK_DIM)
-	info.add_child(d)
-	top.add_child(info)
-	v.add_child(top)
-
-	var rewards := Kit.reward_list(o.get("reward", {}), 92.0, true, false)
-	var side_by_side := Kit.reward_entries(o.get("reward", {})).size() <= 3
-	var bottom := Kit.hbox(14)
-	var status := Kit.vbox(6)
+	v.add_child(_art_band(str(o.name), tag, accent, str(OFFER_ICONS.get(id, _main_currency(o)))))
+	var body := Kit.vbox(10)
+	v.add_child(Kit.margin(body, 18, 14))
+	var d := Kit.body(str(o.get("description", "")), 21, Kit.TEXT_DIM)
+	body.add_child(d)
+	body.add_child(Kit.reward_list(o.get("reward", {}), 84.0, true, false, true))
+	var bottom := Kit.hbox(12)
+	var status := Kit.vbox(4)
 	status.size_flags_horizontal = SIZE_EXPAND_FILL
 	status.alignment = BoxContainer.ALIGNMENT_CENTER
-	if side_by_side:
-		status.add_child(rewards)
-	else:
-		v.add_child(rewards)
-	var lim := Kit.caption(_limit_text(o), 21, Kit.INK)
+	var lim := Kit.label(_limit_text(o).to_upper(), 19, Kit.TEXT, "cond_bold")
 	lim.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	status.add_child(lim)
 	if id == "monthly_card":
 		var days := int(o.get("days_left", Game.monthly_card_days_left()))
-		var dl := Kit.label("Active: %d days left" % days if days > 0 else "Not active yet", 22, Kit.GOOD if days > 0 else Kit.INK_DIM, "extrabold")
-		status.add_child(dl)
+		status.add_child(Kit.label("ACTIVE: %d DAYS LEFT" % days if days > 0 else "NOT ACTIVE YET", 19, Kit.ACCENT_DEEP if days > 0 else Kit.TEXT_DIM, "cond_bold"))
 	if not available and str(o.get("period", "")) == "day":
-		var rl := Kit.caption("", 21, Kit.INK_DIM)
-		rl.text = "Back in %s" % Kit.format_time(Game.ms_until_reset())
+		var rl := Kit.label("Back in %s" % Kit.format_time(Game.ms_until_reset()), 19, Kit.TEXT_DIM, "bold")
 		_reset_labels.append(rl)
 		status.add_child(rl)
 	bottom.add_child(status)
 	var bb := _buy_button(o, 300.0)
-	bb.size_flags_vertical = SIZE_SHRINK_END
 	bottom.add_child(bb)
-	v.add_child(bottom)
+	body.add_child(bottom)
 	if not available:
-		card.modulate = Color(0.75, 0.73, 0.8)
+		card.modulate = Color(1, 1, 1, 0.78)
 	return card
 
 
-func _pack_row(o: Dictionary) -> Control:
+## Dark art band at the top of an offer card: hatching in the tag color, the glyph in a
+## glow, the name in condensed caps and the tag.
+func _art_band(title: String, tag: String, accent: Color, icon_name: String) -> Control:
+	var band := PanelContainer.new()
+	band.mouse_filter = MOUSE_FILTER_IGNORE
+	band.add_theme_stylebox_override("panel", Kit.box(Color("24272d"), Color("111316"), Color.TRANSPARENT, 6.0, 0, 0))
+	band.custom_minimum_size.y = 132
+	band.clip_contents = true
+	var layer := Control.new()
+	layer.mouse_filter = MOUSE_FILTER_IGNORE
+	band.add_child(layer)
+	var hatch := Kit.deco("hatch", Vector2(700, 132), Color(accent, 0.16))
+	hatch.set("spacing", 12.0)
+	hatch.position = Vector2(300, 0)
+	layer.add_child(hatch)
+	var gl := Kit.glow(accent, 220)
+	gl.position = Vector2(-20, -44)
+	gl.size = Vector2(220, 220)
+	gl.modulate.a = 0.55
+	layer.add_child(gl)
+	var ic := Kit.icon(icon_name, 104)
+	ic.position = Vector2(38, 14)
+	ic.size = Vector2(104, 104)
+	layer.add_child(ic)
+	var tv := Kit.vbox(4)
+	tv.mouse_filter = MOUSE_FILTER_IGNORE
+	tv.position = Vector2(170, 0)
+	tv.size = Vector2(470, 132)
+	tv.alignment = BoxContainer.ALIGNMENT_CENTER
+	if tag != "":
+		var tg := Kit.tag(tag.to_upper(), accent, Color.WHITE, 18)
+		tg.size_flags_horizontal = SIZE_SHRINK_BEGIN
+		tv.add_child(tg)
+	var n := Kit.label(title.to_upper(), 36, Color.WHITE, "title")
+	n.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	n.add_theme_constant_override("line_spacing", -8)
+	tv.add_child(n)
+	tv.add_child(Kit.deco("techline", Vector2(160, 8), Color(1, 1, 1, 0.35)))
+	layer.add_child(tv)
+	return band
+
+
+func _pack_tile(o: Dictionary) -> Control:
 	var tag := str(o.get("tag", ""))
-	var accent: Color = TAG_COLORS.get(tag, Kit.SKY)
-	var card := Kit.card(16)
-	var row := Kit.hbox(14)
-	card.add_child(row)
-	var art := Control.new()
-	art.custom_minimum_size = Vector2(96, 96)
+	var card := Kit.info_panel(12)
+	card.name = "Pack_" + str(o.id)
+	card.size_flags_horizontal = SIZE_EXPAND_FILL
+	var v := Kit.vbox(6)
+	card.add_child(v)
+	var art := Panel.new()
 	art.mouse_filter = MOUSE_FILTER_IGNORE
-	var gl := Kit.glow(Kit.SKY, 130)
-	gl.position = Vector2(-17, -17)
-	gl.size = Vector2(130, 130)
-	gl.modulate.a = 0.4
-	art.add_child(gl)
+	art.custom_minimum_size = Vector2(0, 130)
+	art.add_theme_stylebox_override("panel", Kit.style("slot"))
 	var gems := int(o.get("reward", {}).get("gems", 0))
 	var count := 1 if gems < 1000 else (2 if gems < 3000 else 3)
+	var holder := Control.new()
+	holder.mouse_filter = MOUSE_FILTER_IGNORE
+	holder.set_anchors_preset(PRESET_CENTER)
+	art.add_child(holder)
+	var gl := Kit.glow(Kit.ACCENT, 170)
+	gl.position = Vector2(-85, -85)
+	gl.size = Vector2(170, 170)
+	gl.modulate.a = 0.4
+	holder.add_child(gl)
 	for i in count:
-		var ic := Kit.icon("gems", 70 - i * 6)
-		ic.position = Vector2(12 + (i - (count - 1) * 0.5) * 18, 14 - i * 6 + (count - 1) * 4)
-		ic.size = ic.custom_minimum_size
-		art.add_child(ic)
-	row.add_child(art)
-	var info := Kit.vbox(2)
-	info.size_flags_horizontal = SIZE_EXPAND_FILL
-	info.alignment = BoxContainer.ALIGNMENT_CENTER
-	var amt := Kit.hbox(8)
-	amt.add_child(Kit.label(Kit.format_full(gems), 34, Kit.INK, "black", 4))
-	amt.add_child(Kit.caption("gems", 22))
-	info.add_child(amt)
+		var sz := 84.0 - i * 10.0
+		var ic := Kit.icon("gems", sz)
+		ic.size = Vector2(sz, sz)
+		ic.position = Vector2(-sz * 0.5 + (i - (count - 1) * 0.5) * 34.0, -sz * 0.5 + (8.0 if i > 0 else 0.0))
+		holder.add_child(ic)
 	if tag != "":
-		var tg := Kit.tag(tag.to_upper(), accent, Color.WHITE, 15)
+		var tg := Kit.tag(tag.to_upper(), TAG_COLORS.get(tag, Kit.ACCENT), Color.WHITE, 16)
+		tg.position = Vector2(8, 8)
 		art.add_child(tg)
-		var ts := tg.get_combined_minimum_size()
-		tg.position = Vector2(48 - ts.x * 0.5, 96 - ts.y + 6)
-	info.add_child(Kit.caption(str(o.name), 22, Kit.INK_DIM))
-	row.add_child(info)
-	row.add_child(_buy_button(o, 266.0))
+	v.add_child(art)
+	var amt := Kit.hbox(6)
+	amt.alignment = BoxContainer.ALIGNMENT_CENTER
+	amt.add_child(Kit.label(Kit.format_full(gems), 40, Kit.TEXT, "title"))
+	var gl2 := Kit.label("GEMS", 18, Kit.TEXT_DIM, "cond_bold")
+	gl2.size_flags_vertical = SIZE_SHRINK_END
+	gl2.custom_minimum_size.y = 34
+	amt.add_child(gl2)
+	v.add_child(amt)
+	var nm := Kit.label(str(o.name), 19, Kit.TEXT_DIM, "bold")
+	nm.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(nm)
+	var b := _buy_button(o, 0.0)
+	b.size_flags_horizontal = SIZE_EXPAND_FILL
+	v.add_child(b)
 	return card
 
 
@@ -238,18 +302,25 @@ func _buy_button(o: Dictionary, width: float) -> Button:
 	var id := str(o.id)
 	var available := bool(o.get("available", true))
 	var free := not bool(o.get("test_purchase", true))
-	var b := Kit.primary_button("", func() -> void: _buy(id)) if available else Kit.secondary_button("")
-	b.custom_minimum_size = Vector2(width, 104)
+	var b: Button
+	if not available:
+		b = Kit.light_button("")
+		b.disabled = true
+	elif free:
+		b = Kit.orange_button("", func() -> void: _buy(id))
+	else:
+		b = Kit.primary_button("", func() -> void: _buy(id))
+	b.name = "Buy_" + id
+	b.custom_minimum_size = Vector2(width, 100)
 	var v := Kit.vbox(0)
 	v.mouse_filter = MOUSE_FILTER_IGNORE
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	v.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	v.offset_bottom = -6
+	v.offset_bottom = -4
 	var line1 := ""
 	var line2 := ""
 	if not available:
-		b.disabled = true
-		line1 = "Claimed" if str(o.get("period", "")) == "day" else "Sold out"
+		line1 = "Claimed" if str(o.get("period", "")) == "day" else "Sold Out"
 		line2 = "Come back tomorrow" if str(o.get("period", "")) == "day" else "Limit reached"
 	elif free:
 		line1 = "Claim Free"
@@ -257,11 +328,11 @@ func _buy_button(o: Dictionary, width: float) -> Button:
 	else:
 		line1 = "Buy  %s" % str(o.get("price_label", ""))
 		line2 = "Test purchase: no charge"
-	var c1 := DARK_INK if available else Kit.INK_DIM
-	var a := Kit.label(line1, 30, c1, "extrabold")
+	var c1 := Color("9aa1aa") if not available else Color.WHITE
+	var a := Kit.label(line1, 28, c1, "extrabold")
 	a.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(a)
-	var s := Kit.label(line2, 19, Color("5a3a0e") if available else Kit.INK_DIM, "black")
+	var s := Kit.label(line2, 17, Color("9aa1aa") if not available else Color(1, 1, 1, 0.88), "cond_bold")
 	s.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(s)
 	b.add_child(v)

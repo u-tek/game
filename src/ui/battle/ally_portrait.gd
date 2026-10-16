@@ -1,14 +1,13 @@
 extends Button
-## Battle bottom-bar portrait for one ally: round face, energy ring that fills and glows
-## when the ultimate is ready, HP bar, and a "TAP" hint in manual mode. Greyed out with a
-## cross when the hero falls. The battle screen calls set_hp / set_energy / set_dead.
+## Battle bottom-rail card for one ally (style v2): a Kit hero card with an HP bar and a cyan
+## energy bar under it. A full energy bar gives the card a cyan glow ring and a pulsing "ULT"
+## tag ("READY" once the tap queued the ultimate). A fallen hero turns grey with a dark veil.
+## The battle screen calls set_hp / set_energy / set_dead / mark_queued and reads energy,
+## dead, queued; manual = manual-ultimate mode.
 
-const RING_W := 8.0
-const MASK_SHADER := "shader_type canvas_item;\nvoid fragment() {\n\tfloat d = distance(UV, vec2(0.5));\n\tvec4 c = texture(TEXTURE, UV) * COLOR;\n\tc.a *= smoothstep(0.5, 0.47, d);\n\tCOLOR = c;\n}\n"
-const GRAY_SHADER := "shader_type canvas_item;\nvoid fragment() {\n\tfloat d = distance(UV, vec2(0.5));\n\tvec4 c = texture(TEXTURE, UV) * COLOR;\n\tfloat g = dot(c.rgb, vec3(0.3, 0.59, 0.11)) * 0.55;\n\tc.rgb = vec3(g);\n\tc.a *= smoothstep(0.5, 0.47, d);\n\tCOLOR = c;\n}\n"
-
-static var _mask_mat: ShaderMaterial
-static var _gray_mat: ShaderMaterial
+const BAR_GAP := 6.0
+const HP_H := 10.0
+const EN_H := 7.0
 
 var uid := ""
 var hero_id := ""
@@ -18,12 +17,12 @@ var energy := 0
 var dead := false
 var manual := false
 var queued := false
-var _face: Control
+var _card: Control
 var _over: Control
 var _t := 0.0
 var _flash := 0.0
 var _font: Font
-var _rarity_col := Color.WHITE
+var _w := 120.0
 
 
 func setup(u: Dictionary, w: float) -> void:
@@ -32,28 +31,22 @@ func setup(u: Dictionary, w: float) -> void:
 	max_hp = maxi(1, int(u.max_hp))
 	hp = int(u.hp)
 	energy = int(u.get("energy", 0))
+	_w = w
 	theme_type_variation = &"BareButton"
 	focus_mode = FOCUS_NONE
 	mouse_filter = MOUSE_FILTER_STOP
-	custom_minimum_size = Vector2(w, w + 34.0)
-	_font = Kit.font("black")
-	_rarity_col = Kit.rarity_color(str(Game.hero_def(hero_id).get("rarity", "rare")))
-	var d := w - 28.0
-	_face = HeroArt.make_portrait(hero_id, d)
-	_face.mouse_filter = MOUSE_FILTER_IGNORE
-	_face.position = Vector2(14, 10)
-	_face.size = Vector2(d, d)
-	if _mask_mat == null:
-		var sh := Shader.new()
-		sh.code = MASK_SHADER
-		_mask_mat = ShaderMaterial.new()
-		_mask_mat.shader = sh
-		var sh2 := Shader.new()
-		sh2.code = GRAY_SHADER
-		_gray_mat = ShaderMaterial.new()
-		_gray_mat.shader = sh2
-	_face.material = _mask_mat
-	add_child(_face)
+	custom_minimum_size = Vector2(w, w + BAR_GAP + HP_H + 4.0 + EN_H + 6.0)
+	_font = Kit.font("cond_black")
+	var opts := {"size": w, "owned": true, "show_faction": true}
+	if u.has("level"):
+		opts["level"] = int(u.level)
+	if u.has("stars"):
+		opts["stars"] = int(u.stars)
+	_card = Kit.hero_card(hero_id, opts)
+	_card.mouse_filter = MOUSE_FILTER_IGNORE
+	_card.position = Vector2.ZERO
+	_card.size = Vector2(w, w)
+	add_child(_card)
 	_over = Control.new()
 	_over.mouse_filter = MOUSE_FILTER_IGNORE
 	_over.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
@@ -74,8 +67,9 @@ func set_energy(v: int) -> void:
 		queued = false
 	if energy >= 1000 and not was_full:
 		_flash = 1.0
-		Kit.pulse(self, 1.1)
+		Kit.pulse(self, 1.08)
 	queue_redraw()
+	_over.queue_redraw()
 
 
 func set_dead() -> void:
@@ -83,85 +77,77 @@ func set_dead() -> void:
 	hp = 0
 	energy = 0
 	queued = false
-	_face.material = _gray_mat
+	_card.material = Kit.grayscale_material()
+	for c in _card.find_children("*", "CanvasItem", true, false):
+		(c as CanvasItem).use_parent_material = true
 	queue_redraw()
+	_over.queue_redraw()
 
 
 ## Visual feedback for a tap that queued the ultimate.
 func mark_queued() -> void:
 	queued = true
 	_flash = 1.0
-	Kit.pulse(self, 1.12)
+	Kit.pulse(self, 1.1)
+	_over.queue_redraw()
 
 
 func _process(delta: float) -> void:
 	_t += delta
 	if _flash > 0.0:
 		_flash = maxf(0.0, _flash - delta * 2.5)
-	if energy >= 1000 or _flash > 0.0:
+	if (energy >= 1000 and not dead) or _flash > 0.0:
 		queue_redraw()
+		_over.queue_redraw()
 
 
+## Behind the card: the ready glow. Under it: HP and energy bars.
 func _draw() -> void:
-	var w := size.x
-	var d := w - 28.0
-	var c := Vector2(w * 0.5, 10.0 + d * 0.5)
-	var r := d * 0.5
 	var ready := energy >= 1000 and not dead
 	var pulse := 0.5 + 0.5 * sin(_t * 6.0)
-	# Glow behind a ready portrait.
+	var cr := Rect2(Vector2.ZERO, Vector2(_w, _w))
 	if ready:
-		for i in 5:
-			draw_circle(c, r + 18.0 - i * 3.0, Color(1.0, 0.85, 0.4, 0.06 + 0.05 * pulse), true, -1.0, true)
-	# Back disc and rarity rim.
-	draw_circle(c, r + 2.0, Color(0.05, 0.03, 0.1, 0.95), true, -1.0, true)
-	draw_circle(c, r, _rarity_col.darkened(0.6) if not dead else Color(0.15, 0.13, 0.2), true, -1.0, true)
-	# Energy ring.
-	var ring_r := r + 6.0
-	draw_arc(c, ring_r, 0, TAU, 64, Color(0.05, 0.03, 0.1, 0.95), RING_W + 4.0, true)
-	draw_arc(c, ring_r, 0, TAU, 64, Color(0.25, 0.22, 0.38), RING_W, true)
-	if not dead and energy > 0:
-		var ef := float(energy) / 1000.0
-		var col := Color("6fc3e8") if not ready else Color("ffd45e").lerp(Color.WHITE, 0.35 * pulse)
-		draw_arc(c, ring_r, -PI * 0.5, -PI * 0.5 + TAU * ef, 64, col, RING_W, true)
-		if ready:
-			var a := _t * 3.0
-			draw_circle(c + Vector2(cos(a), sin(a)) * ring_r, 5.0, Color(1, 1, 1, 0.95), true, -1.0, true)
-	if _flash > 0.0:
-		draw_arc(c, ring_r + 4.0 + (1.0 - _flash) * 14.0, 0, TAU, 64, Color(1, 0.95, 0.7, _flash), 4.0, true)
-	# HP bar.
-	var by := 10.0 + d + 14.0
-	var br := Rect2(10, by, w - 20, 12)
-	draw_rect(br.grow(2.0), Color(0.03, 0.02, 0.07, 0.95))
-	draw_rect(br, Color(0.16, 0.12, 0.24))
+		for i in 4:
+			var g := 4.0 + i * 4.0
+			draw_rect(cr.grow(g), Color(Kit.ACCENT_HI, (0.16 - i * 0.035) * (0.6 + 0.4 * pulse)), true)
+	var y := _w + BAR_GAP
+	var hr := Rect2(2, y, _w - 4, HP_H)
+	draw_rect(hr.grow(2.0), Color(0.03, 0.035, 0.04, 0.92))
+	draw_rect(hr, Color(0.17, 0.18, 0.2))
 	var hf := float(hp) / float(max_hp)
-	var hc := Color("4fd68f") if hf >= 0.3 else Color("f2a23a")
-	draw_rect(Rect2(br.position, Vector2(br.size.x * hf, br.size.y)), hc)
-	draw_rect(Rect2(br.position, Vector2(br.size.x * hf, br.size.y * 0.4)), Color(1, 1, 1, 0.22))
-	_over.queue_redraw()
+	draw_rect(Rect2(hr.position, Vector2(hr.size.x * hf, hr.size.y)), Kit.GOOD if hf >= 0.3 else Kit.ORANGE)
+	draw_rect(Rect2(hr.position, Vector2(hr.size.x * hf, 2.0)), Color(1, 1, 1, 0.4))
+	var er := Rect2(2, y + HP_H + 4.0, _w - 4, EN_H)
+	draw_rect(er.grow(2.0), Color(0.03, 0.035, 0.04, 0.92))
+	var ef := float(energy) / 1000.0 if not dead else 0.0
+	var ec := Kit.ACCENT if ef < 1.0 else Kit.ACCENT_HI.lerp(Color.WHITE, 0.5 * pulse)
+	draw_rect(Rect2(er.position, Vector2(er.size.x * ef, er.size.y)), ec)
 
 
-## Drawn above the face: the fallen cross and the TAP / READY badge.
+## Over the card: the ready ring and ULT / READY tag, or the fallen veil.
 func _draw_over() -> void:
-	var w := size.x
-	var d := w - 28.0
-	var c := Vector2(w * 0.5, 10.0 + d * 0.5)
-	var r := d * 0.5
-	var ready := energy >= 1000 and not dead
+	var cr := Rect2(Vector2.ZERO, Vector2(_w, _w))
 	if dead:
-		var k := r * 0.55
-		_over.draw_line(c - Vector2(k, k), c + Vector2(k, k), Color(0.9, 0.25, 0.2, 0.9), 7.0, true)
-		_over.draw_line(c + Vector2(-k, k), c + Vector2(k, -k), Color(0.9, 0.25, 0.2, 0.9), 7.0, true)
-	elif ready and manual and not queued:
-		_badge(Vector2(c.x, c.y + r - 2.0), "TAP", Color("ffd45e"), Color("3d2306"))
-	elif ready and queued:
-		_badge(Vector2(c.x, c.y + r - 2.0), "READY", Color.WHITE, Color("3d2306"))
+		_over.draw_rect(cr, Color(0.02, 0.02, 0.03, 0.5))
+		_tag(Vector2(_w * 0.5, _w * 0.5), "DOWN", Color(0.12, 0.13, 0.15, 0.95), Color(1, 1, 1, 0.7))
+		return
+	var ready := energy >= 1000
+	if ready:
+		var pulse := 0.5 + 0.5 * sin(_t * 6.0)
+		_over.draw_rect(cr.grow(1.0), Color(Kit.ACCENT_HI, 0.75 + 0.25 * pulse), false, 3.0)
+		if queued:
+			_tag(Vector2(_w * 0.5, 4.0), "READY", Color.WHITE, Kit.ACCENT_DEEP)
+		else:
+			var bg := Kit.ACCENT.lerp(Kit.ACCENT_HI, pulse * 0.6)
+			_tag(Vector2(_w * 0.5, 4.0), "ULT" if not manual else "TAP ULT", bg, Color.WHITE)
+	if _flash > 0.0:
+		_over.draw_rect(cr.grow(4.0 + (1.0 - _flash) * 10.0), Color(1, 1, 1, _flash * 0.8), false, 3.0)
 
 
-func _badge(at: Vector2, text: String, bg: Color, fg: Color) -> void:
-	var fs := 18
+func _tag(at: Vector2, text: String, bg: Color, fg: Color) -> void:
+	var fs := 19
 	var tw := _font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-	var rect := Rect2(at.x - tw * 0.5 - 10, at.y - 12, tw + 20, 24)
-	_over.draw_rect(rect.grow(2.0), Color(0.05, 0.02, 0.1, 0.9))
+	var rect := Rect2(at.x - tw * 0.5 - 10, at.y - 13, tw + 20, 26)
+	_over.draw_rect(rect.grow(1.5), Color(0, 0, 0, 0.5))
 	_over.draw_rect(rect, bg)
-	_over.draw_string(_font, Vector2(rect.position.x + 10, rect.position.y + 18), text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, fg)
+	_over.draw_string(_font, Vector2(rect.position.x + 10, rect.position.y + 20), text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, fg)

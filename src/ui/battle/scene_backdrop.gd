@@ -32,10 +32,10 @@ var _t := 0.0
 
 const PALETTES := {
 	"chapter-1": {
-		"sky": [Color("17123a"), Color("3b2f6e"), Color("d9a25e")],
-		"haze": Color("8c6fa8"), "far": Color("3a2d63"), "near": Color("150f2c"),
-		"floor": [Color("4a3d78"), Color("1a1433")], "line": Color(0.95, 0.78, 0.45, 0.16),
-		"sigil": Color("f2c14e"), "mote": Color("ffe3a0"), "rise": 1.0, "stars": 50,
+		"sky": [Color("131a26"), Color("34445f"), Color("d8b98a")],
+		"haze": Color("8ea5c2"), "far": Color("2b3650"), "near": Color("10141e"),
+		"floor": [Color("3b4862"), Color("151a26")], "line": Color(0.85, 0.93, 1.0, 0.12),
+		"sigil": Color("8fdcff"), "mote": Color("fff0c8"), "rise": 1.0, "stars": 50,
 	},
 	"chapter-2": {
 		"sky": [Color("12070e"), Color("4a1420"), Color("ff7a33")],
@@ -112,13 +112,13 @@ func _draw() -> void:
 	if sigil_y >= 0.0:
 		_draw_sigil(Vector2(w * 0.5, h * sigil_y), w)
 	# Side vignette and optional dim.
-	var vg: Color = _pal.get("vignette", Color(0.02, 0.0, 0.06, 0.45))
+	var vg: Color = _pal.get("vignette", Color(0.01, 0.012, 0.02, 0.45))
 	draw_polygon(PackedVector2Array([Vector2(0, 0), Vector2(w * 0.16, 0), Vector2(w * 0.16, h), Vector2(0, h)]),
 		PackedColorArray([vg, Color(vg, 0.0), Color(vg, 0.0), vg]))
 	draw_polygon(PackedVector2Array([Vector2(w * 0.84, 0), Vector2(w, 0), Vector2(w, h), Vector2(w * 0.84, h)]),
 		PackedColorArray([Color(vg, 0.0), vg, vg, Color(vg, 0.0)]))
 	if dim > 0.0:
-		draw_rect(Rect2(0, 0, w, h), Color(0.03, 0.02, 0.08, dim))
+		draw_rect(Rect2(0, 0, w, h), Color(0.02, 0.025, 0.035, dim))
 
 
 func _draw_cover(tex: Texture2D) -> void:
@@ -526,18 +526,25 @@ func _draw_lava_cracks(w: float, h: float, hy: float) -> void:
 		draw_polyline(pts, Color(1.0, 0.65, 0.25, 0.55), 2.0 * (0.5 + d), true)
 
 
+## The battle ring on the floor: a technical targeting ring (segmented rim, ticks, inner
+## ring and side cross-hairs) in the chapter's sigil color.
 func _draw_sigil(c: Vector2, w: float) -> void:
 	var col: Color = _pal.sigil
 	var rx := w * 0.44
 	draw_set_transform(c, 0.0, Vector2(1.0, 0.26))
-	draw_circle(Vector2.ZERO, rx, Color(col, 0.05), true, -1.0, true)
-	draw_arc(Vector2.ZERO, rx, 0, TAU, 96, Color(col, 0.35), 4.0, true)
-	draw_arc(Vector2.ZERO, rx * 0.92, 0, TAU, 96, Color(col, 0.18), 2.0, true)
-	draw_arc(Vector2.ZERO, rx * 0.55, 0, TAU, 72, Color(col, 0.2), 2.0, true)
-	for i in 16:
-		var a := TAU * i / 16.0
+	draw_circle(Vector2.ZERO, rx, Color(col, 0.04), true, -1.0, true)
+	for k in 8:
+		var a0 := TAU * k / 8.0 + 0.08
+		draw_arc(Vector2.ZERO, rx, a0, a0 + TAU / 8.0 - 0.16, 24, Color(col, 0.45), 4.0, true)
+	draw_arc(Vector2.ZERO, rx * 1.05, 0, TAU, 96, Color(col, 0.14), 1.5, true)
+	draw_arc(Vector2.ZERO, rx * 0.6, 0, TAU, 72, Color(col, 0.2), 2.0, true)
+	for i in 48:
+		var a := TAU * i / 48.0
 		var d := Vector2(cos(a), sin(a))
-		draw_line(d * rx * 0.58, d * rx * (0.88 if i % 2 == 0 else 0.76), Color(col, 0.16), 2.0, true)
+		var l := 0.08 if i % 4 == 0 else 0.04
+		draw_line(d * rx * (0.93 - l), d * rx * 0.93, Color(col, 0.3 if i % 4 == 0 else 0.15), 2.0, true)
+	for s: float in [-1.0, 1.0]:
+		draw_line(Vector2(s * rx * 0.68, 0), Vector2(s * rx * 1.12, 0), Color(col, 0.28), 2.0, true)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 

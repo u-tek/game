@@ -1,29 +1,37 @@
 extends Control
-## Screen "summon": the gacha portal. Shows the banner with its three featured Legendaries,
-## the pity counter, a Rates panel (exact odds from Game.banner(), pity, 10-pull and duplicate
-## rules), the free daily pull and x1 / x10 summons (scrolls first, then gems; disabled with a
-## reason when unaffordable; gem spending asks first).
+## Screen "summon" (bottom-nav Summon tab), style v2: a full-bleed banner under the
+## translucent chrome. The banner title sits top-left over its art (the three featured
+## Legendaries, the centre one large, on light rays in the Legendary color); at the bottom,
+## the pity meter (Legendary guaranteed within N pulls) with the Rates button, the free daily
+## pull strip (or the time until the next one), and the two summon buttons: x1 (graphite) and
+## x10 (orange). Prices use scrolls first, then gems; gem spending asks first; when the player
+## can't pay, a strip explains it and links to the Shop.
 ##
-## Summoning plays a full-screen sequence with the chrome hidden: the portal charges up (its
-## color hints at the best result), a flash, then cards flip one by one (tap to reveal all).
-## Epic cards glow violet; a Legendary bursts in gold with its own sound, a haptic and a
-## full-body showcase. Results show NEW or "+N shards"; then Summon again or Done.
+## Summoning plays a full-screen sequence with the chrome hidden: the portal charges (its
+## color hints at the best result), a flash, then card backs flip one by one into tall
+## portrait cards (tap to reveal all). Epic cards glow violet; a Legendary bursts in orange
+## rays with its own sound, a haptic and a full-body showcase. Results show "N" for new
+## heroes or "+N shards"; then Summon again or Done.
 ##
 ## Shot params: rates: true (open the odds), pull: 1|10 (summon right away), skip: true
 ## (jump straight to the results).
 
+const Roster := preload("res://src/ui/screens/heroes_screen.gd")
+
 const CHARGE_TIME := 1.9
 const REVEAL_GAP := 0.2
 const SHOWCASE_TIME := 2.4
-const DARK_INK := Color("3d2306")
-const SHORT_RED := Color("ff6a50")
 const RARITY_ORDER := {"rare": 0, "epic": 1, "legendary": 2}
+const CARD_RATIO := 1.62
 
 var _banner: Dictionary = {}
-var _backdrop: SummonBackdrop
-var _main: VBoxContainer
-var _featured: Control
+var _main: Control
+var _stage: Control
+var _rays: Control
+var _glow: Control
+var _title_box: VBoxContainer
 var _feat_nodes: Array[Dictionary] = []
+var _bottom: VBoxContainer
 var _pity_label: Label
 var _pity_bar: ProgressBar
 var _free_slot: VBoxContainer
@@ -53,9 +61,12 @@ var _hint_label: Label
 
 func setup(params: Dictionary) -> void:
 	_banner = Game.banner()
+	UI.set_full_bleed(true)
 	_build()
+	resized.connect(_layout)
 	Game.changed.connect(_refresh)
 	_refresh()
+	_layout.call_deferred()
 	if bool(params.get("rates", false)):
 		_open_rates.call_deferred()
 	if params.has("pull"):
@@ -78,76 +89,120 @@ func _shot_pull(count: int, skip: bool) -> void:
 # ------------------------------------------------------------------ build
 
 func _build() -> void:
-	_backdrop = SummonBackdrop.new()
-	_backdrop.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	add_child(_backdrop)
-
-	_main = Kit.vbox(12)
+	add_child(Kit.page_bg("dark"))
+	_main = Control.new()
+	_main.name = "Banner"
+	_main.mouse_filter = MOUSE_FILTER_IGNORE
 	_main.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	_main.offset_left = 20
-	_main.offset_right = -20
-	_main.offset_top = 10
-	_main.offset_bottom = -14
 	add_child(_main)
 
-	var title := Kit.title(str(_banner.get("name", "Summon")), 44)
-	_main.add_child(title)
-	var sub := Kit.label("Standard Portal  ·  every hero can answer", 22, Kit.INK, "bold", 4)
-	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_main.add_child(sub)
-
-	_featured = Control.new()
-	_featured.size_flags_vertical = SIZE_EXPAND_FILL
-	_featured.custom_minimum_size.y = 260
-	_featured.mouse_filter = MOUSE_FILTER_IGNORE
-	_featured.resized.connect(_layout_featured)
-	_main.add_child(_featured)
+	# The banner art: rays and a glow in the Legendary color behind the featured heroes.
+	_stage = Control.new()
+	_stage.name = "Stage"
+	_stage.mouse_filter = MOUSE_FILTER_IGNORE
+	_stage.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	_main.add_child(_stage)
+	_rays = Kit.rays(Kit.LEGENDARY, 1200.0, 16)
+	_rays.modulate.a = 0.22
+	_stage.add_child(_rays)
+	_glow = Kit.glow(Kit.ORANGE, 760.0)
+	_glow.modulate.a = 0.35
+	_stage.add_child(_glow)
+	var band := Kit.deco("hatch", Vector2(720, 420), Color(Kit.LEGENDARY, 0.07))
+	band.name = "Band"
+	band.set("spacing", 26.0)
+	band.set("line_width", 8.0)
+	_stage.add_child(band)
 	_build_featured()
+	# Shade under the bottom controls and the translucent nav.
+	var shade := TextureRect.new()
+	shade.name = "Shade"
+	shade.mouse_filter = MOUSE_FILTER_IGNORE
+	shade.texture = Kit.vgradient(Color(0, 0, 0, 0), Color(0, 0, 0, 0.82))
+	shade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	shade.stretch_mode = TextureRect.STRETCH_SCALE
+	_main.add_child(shade)
 
-	# Pity + rates.
-	var pity := Kit.panel("glass", 16)
-	var prow := Kit.hbox(14)
-	pity.add_child(prow)
-	var pv := Kit.vbox(6)
-	pv.size_flags_horizontal = SIZE_EXPAND_FILL
+	# Title block, top-left over the art.
+	_title_box = Kit.vbox(4)
+	_title_box.name = "Title"
+	_title_box.mouse_filter = MOUSE_FILTER_IGNORE
+	var feat := Kit.hbox(8)
+	feat.mouse_filter = MOUSE_FILTER_IGNORE
+	feat.add_child(Kit.rarity_badge("legendary", 20))
+	feat.add_child(Kit.label("FEATURED", 20, Kit.ORANGE_HI, "cond_bold"))
+	_title_box.add_child(feat)
+	var t := Kit.label(str(_banner.get("name", "Summon")).to_upper(), 54, Color.WHITE, "title")
+	t.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
+	t.add_theme_constant_override("shadow_offset_y", 3)
+	t.add_theme_constant_override("shadow_outline_size", 6)
+	t.add_theme_constant_override("line_spacing", -14)
+	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	t.custom_minimum_size.x = 420
+	_title_box.add_child(t)
+	var sub := Kit.hbox(8)
+	sub.mouse_filter = MOUSE_FILTER_IGNORE
+	sub.add_child(Kit.deco("techline", Vector2(60, 8), Color(1, 1, 1, 0.5)))
+	sub.add_child(Kit.label("STANDARD PORTAL  ·  EVERY HERO CAN ANSWER", 18, Kit.INK, "cond_bold", 4))
+	_title_box.add_child(sub)
+	_main.add_child(_title_box)
+
+	# Bottom controls.
+	_bottom = Kit.vbox(10)
+	_bottom.name = "Bottom"
+	_main.add_child(_bottom)
+	var pity_row := Kit.hbox(10)
+	var pity := PanelContainer.new()
+	pity.name = "Pity"
+	pity.mouse_filter = MOUSE_FILTER_IGNORE
+	pity.add_theme_stylebox_override("panel", Kit.style("meter"))
+	pity.size_flags_horizontal = SIZE_EXPAND_FILL
+	var prow := Kit.hbox(12)
+	prow.mouse_filter = MOUSE_FILTER_IGNORE
+	prow.add_child(Kit.icon("crown", 46))
+	var pv := Kit.vbox(4)
+	pv.mouse_filter = MOUSE_FILTER_IGNORE
 	pv.alignment = BoxContainer.ALIGNMENT_CENTER
-	_pity_label = Kit.label("", 24, Kit.GOLD_LIGHT, "extrabold")
-	_pity_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	pv.add_child(_pity_label)
-	_pity_bar = Kit.progress_bar(0, 1, Kit.LEGENDARY, 22, "")
+	pv.size_flags_horizontal = SIZE_EXPAND_FILL
+	var cap := Kit.label("LEGENDARY\nGUARANTEED WITHIN", 18, Color.WHITE, "cond_bold")
+	cap.add_theme_constant_override("line_spacing", -6)
+	pv.add_child(cap)
+	_pity_bar = Kit.progress_bar(0, 1, Kit.ACCENT, 6)
 	pv.add_child(_pity_bar)
 	prow.add_child(pv)
-	var rates := Kit.secondary_button("Rates", _open_rates, "info")
-	rates.custom_minimum_size = Vector2(170, 88)
+	var nv := Kit.hbox(4)
+	nv.mouse_filter = MOUSE_FILTER_IGNORE
+	_pity_label = Kit.label("60", 48, Kit.ACCENT_HI, "cond_bold")
+	nv.add_child(_pity_label)
+	var pl := Kit.label("PULLS", 18, Kit.ACCENT_HI, "cond_bold")
+	pl.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	pl.size_flags_vertical = SIZE_FILL
+	pl.custom_minimum_size.y = 46
+	nv.add_child(pl)
+	prow.add_child(nv)
+	pity.add_child(prow)
+	pity_row.add_child(pity)
+	var rates := Kit.light_button("Rates", _open_rates, "info")
+	rates.name = "Rates"
+	rates.custom_minimum_size = Vector2(170, Kit.BUTTON_H)
 	rates.size_flags_vertical = SIZE_SHRINK_CENTER
-	prow.add_child(rates)
-	_main.add_child(pity)
+	pity_row.add_child(rates)
+	_bottom.add_child(pity_row)
 
 	_free_slot = Kit.vbox(0)
-	_main.add_child(_free_slot)
-	_buy_row = Kit.hbox(14)
-	_main.add_child(_buy_row)
-	_reason = Button.new()
-	_reason.theme_type_variation = &"BareButton"
-	_reason.focus_mode = FOCUS_NONE
-	_reason.mouse_filter = MOUSE_FILTER_PASS
-	_reason.custom_minimum_size.y = 88
-	_reason.add_theme_font_override("font", Kit.font("extrabold"))
-	_reason.add_theme_font_size_override("font_size", 22)
-	_reason.add_theme_color_override("font_color", SHORT_RED)
-	_reason.add_theme_color_override("font_hover_color", SHORT_RED)
-	_reason.add_theme_color_override("font_pressed_color", SHORT_RED)
-	_reason.pressed.connect(func() -> void:
-		UI.sfx("tap")
-		UI.go("shop"))
+	_bottom.add_child(_free_slot)
+	_reason = Kit.notice_bar("", func() -> void: UI.go("shop"), 688.0)
+	_reason.name = "Reason"
 	_reason.visible = false
-	_main.add_child(_reason)
+	_bottom.add_child(_reason)
+	_buy_row = Kit.hbox(12)
+	_bottom.add_child(_buy_row)
 
 
+## The three featured Legendaries: the first one large in the centre, the others behind.
 func _build_featured() -> void:
 	var pool: Dictionary = _banner.get("pool_by_rarity", {})
 	var legends: Array = pool.get("legendary", [])
-	# Draw order: sides first, the centre hero in front.
 	var order: Array[int] = []
 	if legends.size() >= 3:
 		order = [1, 2, 0]
@@ -157,73 +212,88 @@ func _build_featured() -> void:
 	for k in order:
 		var id := str(legends[k])
 		var d := Game.hero_def(id)
-		var fc := HeroArt.faction_color(str(d.get("faction", "celestial")))
-		var glow := Kit.glow(fc, 300)
-		glow.modulate.a = 0.5
-		_featured.add_child(glow)
 		var art := TextureRect.new()
+		art.name = "Art_" + id
 		art.texture = HeroArt.texture(id)
 		art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 		art.mouse_filter = MOUSE_FILTER_IGNORE
 		if k != 0:
-			art.modulate = Color(0.82, 0.8, 0.9)
-		_featured.add_child(art)
+			art.modulate = Color(0.62, 0.64, 0.7)
+		_stage.add_child(art)
 		var plate := Kit.vbox(0)
 		plate.mouse_filter = MOUSE_FILTER_IGNORE
-		var nm := Kit.label(str(d.get("name", id)), 30 if k == 0 else 25, Kit.GOLD_LIGHT, "title", 6)
-		nm.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		plate.add_child(nm)
+		var nr := Kit.hbox(6)
+		nr.mouse_filter = MOUSE_FILTER_IGNORE
+		nr.alignment = BoxContainer.ALIGNMENT_CENTER
+		var chev := Kit.deco("chevrons", Vector2(22, 18), Kit.LEGENDARY)
+		chev.set("count", 3)
+		chev.size_flags_vertical = SIZE_SHRINK_CENTER
+		nr.add_child(chev)
+		var nm := Kit.label(str(d.get("name", id)).to_upper(), 30 if k == 0 else 22, Color.WHITE, "title")
+		nm.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+		nm.add_theme_constant_override("shadow_outline_size", 6)
+		nr.add_child(nm)
+		plate.add_child(nr)
 		var fr := Kit.hbox(4)
 		fr.alignment = BoxContainer.ALIGNMENT_CENTER
 		fr.mouse_filter = MOUSE_FILTER_IGNORE
-		fr.add_child(Kit.faction_icon(str(d.get("faction", "")), 26))
-		fr.add_child(Kit.label(str(Kit.ROLE_NAMES.get(str(d.get("role", "")), "")), 19, Kit.INK, "extrabold", 4))
+		fr.add_child(Kit.faction_icon(str(d.get("faction", "")), 22))
+		fr.add_child(Kit.label(str(Kit.ROLE_NAMES.get(str(d.get("role", "")), "")).to_upper(), 16, Kit.INK, "cond_bold", 4))
 		plate.add_child(fr)
-		_featured.add_child(plate)
+		_stage.add_child(plate)
 		var hit := Control.new()
+		hit.name = "Hit_" + id
 		hit.mouse_filter = MOUSE_FILTER_PASS
-		_featured.add_child(hit)
+		_stage.add_child(hit)
 		Kit.make_tappable(hit, func() -> void: UI.go("hero_detail", {"hero_id": id}))
-		_feat_nodes.append({"slot": k, "glow": glow, "art": art, "plate": plate, "hit": hit})
-	var tg := Kit.tag("FEATURED LEGENDARIES", Kit.LEGENDARY, DARK_INK, 20)
-	tg.name = "FeaturedTag"
-	_featured.add_child(tg)
+		_feat_nodes.append({"slot": k, "art": art, "plate": plate, "hit": hit})
 
 
-func _layout_featured() -> void:
-	var w := _featured.size.x
-	var h := _featured.size.y
-	if h <= 0.0:
+func _layout() -> void:
+	if _main == null or size.y <= 0.0:
 		return
-	var cx := w * 0.5
+	var w := size.x
+	var top := UI.content_top()
+	var bottom := size.y - UI.content_bottom()
+	_bottom.position = Vector2(16, 0)
+	_bottom.size = Vector2(w - 32, 0)
+	var bh := _bottom.get_combined_minimum_size().y
+	_bottom.position.y = bottom - 14.0 - bh
+	_title_box.position = Vector2(20, top + 12)
+	_title_box.size = Vector2(w * 0.66, 0)
+	var shade := _main.get_node("Shade") as Control
+	shade.position = Vector2(0, _bottom.position.y - 260.0)
+	shade.size = Vector2(w, size.y - shade.position.y)
+	# Featured heroes: the centre one fills from under the title to below the pity meter.
+	var art_top := top + 96.0
+	var art_bottom := _bottom.position.y + 150.0
+	var fh_main := art_bottom - art_top
+	var cx := w * 0.56
 	for n in _feat_nodes:
 		var k := int(n.slot)
-		var fh := (h - 34.0) * (1.0 if k == 0 else 0.84)
+		var fh := fh_main * (1.0 if k == 0 else 0.8)
 		var fw := fh * 0.5
-		var x := cx + (0.0 if k == 0 else (-1.0 if k == 1 else 1.0) * w * 0.3)
-		var top := h - fh - (0.0 if k == 0 else h * 0.02)
+		var x := cx + (0.0 if k == 0 else (-1.0 if k == 1 else 1.0) * w * 0.33)
+		var y0 := art_bottom - fh - (0.0 if k == 0 else fh_main * 0.06)
 		var art := n.art as Control
-		art.position = Vector2(x - fw * 0.5, top)
+		art.position = Vector2(x - fw * 0.5, y0)
 		art.size = Vector2(fw, fh)
-		var glow := n.glow as Control
-		var gs := fh * 0.75
-		glow.size = Vector2(gs, gs)
-		glow.position = Vector2(x - gs * 0.5, top + fh * 0.12)
 		var plate := n.plate as Control
-		var pw := 230.0
-		plate.size = Vector2(pw, 64)
-		plate.position = Vector2(x - pw * 0.5, h - 66.0 + (0.0 if k == 0 else -h * 0.03))
+		plate.size = Vector2(260, 60)
+		plate.position = Vector2(x - 130.0, _bottom.position.y - (72.0 if k == 0 else 104.0))
 		var hit := n.hit as Control
-		hit.position = art.position + Vector2(fw * 0.15, fh * 0.05)
-		hit.size = Vector2(fw * 0.7, fh * 0.9)
-	var tg := _featured.get_node_or_null("FeaturedTag") as Control
-	if tg:
-		var ts := tg.get_combined_minimum_size()
-		tg.position = Vector2(cx - ts.x * 0.5, 4)
-	_backdrop.portal_center = Vector2(cx, _featured.position.y + h * 0.5) + _main.position
-	_backdrop.queue_redraw()
+		hit.position = art.position + Vector2(fw * 0.2, fh * 0.1)
+		hit.size = Vector2(fw * 0.6, maxf(10.0, _bottom.position.y - art.position.y - fh * 0.1 - 10.0))
+	var mid := Vector2(cx, art_top + fh_main * 0.36)
+	_rays.size = Vector2(1200, 1200)
+	_rays.position = mid - _rays.size * 0.5
+	_glow.size = Vector2(760, 760)
+	_glow.position = mid - _glow.size * 0.5
+	var band := _stage.get_node("Band") as Control
+	band.position = Vector2(0, mid.y - 120.0)
+	band.size = Vector2(w, 420)
 
 
 # ------------------------------------------------------------------ refresh
@@ -234,40 +304,43 @@ func _refresh() -> void:
 	var pity_max := int(_banner.get("pity_legendary", 60))
 	var pity := int(Game.pity_count())
 	var left := maxi(1, pity_max - pity)
-	_pity_label.text = "Legendary guaranteed within %d pull%s" % [left, "" if left == 1 else "s"]
-	Kit.set_progress(_pity_bar, pity, pity_max, "%d / %d" % [pity, pity_max], false)
+	_pity_label.text = "%02d" % left
+	Kit.set_progress(_pity_bar, pity, pity_max, "", false)
 
 	for c in _free_slot.get_children():
+		_free_slot.remove_child(c)
 		c.queue_free()
 	_free_timer_label = null
 	var guide := Guide.step() == "summon"
 	if Game.free_pull_available():
-		var free := Kit.primary_button("Free Daily Summon", func() -> void: _do_summon(1, true), "gift")
-		free.custom_minimum_size.y = 96
-		Kit.set_dot(free, true, 26, Vector2(12, 12))
+		var free := Kit.notice_bar("Free daily summon ready: tap to summon", func() -> void: _do_summon(1, true), 688.0)
+		free.name = "FreePull"
 		_free_slot.add_child(free)
-		Guide.mark(free, guide)
+		Guide.mark(free, guide, 0)
 		guide = false
 	else:
-		var row := Kit.card(12)
+		var row := Kit.panel("inset", 10)
 		var h := Kit.hbox(10)
-		h.alignment = BoxContainer.ALIGNMENT_CENTER
-		h.add_child(Kit.icon("gift", 34, Color(1, 1, 1, 0.6)))
-		_free_timer_label = Kit.label("", 22, Kit.INK_DIM, "extrabold")
+		h.mouse_filter = MOUSE_FILTER_IGNORE
+		h.add_child(Kit.icon("timer", 30, Kit.INK_DIM))
+		_free_timer_label = Kit.label("", 21, Kit.INK_DIM, "bold")
 		h.add_child(_free_timer_label)
 		row.add_child(h)
 		_free_slot.add_child(row)
 		_update_free_timer()
 
 	for c in _buy_row.get_children():
+		_buy_row.remove_child(c)
 		c.queue_free()
 	var p1 := _price(1)
 	var p10 := _price(10)
 	var b1 := Kit.cost_button("Summon x1", str(p1.currency), int(p1.amount), func() -> void: _try_summon(1), "secondary", bool(p1.ok))
-	var b10 := Kit.cost_button("Summon x10", str(p10.currency), int(p10.amount), func() -> void: _try_summon(10), "primary", bool(p10.ok))
+	var b10 := Kit.cost_button("Summon x10", str(p10.currency), int(p10.amount), func() -> void: _try_summon(10), "orange", bool(p10.ok))
+	b1.name = "Summon1"
+	b10.name = "Summon10"
 	for b: Button in [b1, b10]:
 		b.size_flags_horizontal = SIZE_EXPAND_FILL
-		b.custom_minimum_size.y = 108
+		b.custom_minimum_size.y = 112
 		_buy_row.add_child(b)
 	b1.disabled = not bool(p1.ok)
 	b10.disabled = not bool(p10.ok)
@@ -277,9 +350,10 @@ func _refresh() -> void:
 		_reason.visible = true
 		var need := "Need %s gems or %d scroll%s" % [Kit.format_full(int(_banner.cost_one)), int(_banner.scroll_cost_one), "" if int(_banner.scroll_cost_one) == 1 else "s"] if not bool(p1.ok) \
 			else "x10 needs %s gems or %d scrolls" % [Kit.format_full(int(_banner.cost_ten)), int(_banner.scroll_cost_ten)]
-		_reason.text = need + ".  Get more in the Shop  >"
+		(_reason.get_meta("text_label") as Label).text = need + ". Get more in the Shop"
 	else:
 		_reason.visible = false
+	_layout.call_deferred()
 
 
 ## Price of a summon: scrolls when the player has enough, else gems. ok = affordable.
@@ -309,34 +383,33 @@ func _process(delta: float) -> void:
 # ------------------------------------------------------------------ rates
 
 func _open_rates() -> void:
-	var v := Kit.vbox(16)
-	v.custom_minimum_size.x = 560
+	var v := Kit.vbox(14)
+	v.custom_minimum_size.x = 540
 	var rates: Dictionary = _banner.get("rates", {})
 	var pool: Dictionary = _banner.get("pool_by_rarity", {})
-	v.add_child(Kit.body("Every pull rolls a rarity first, then one hero of that rarity with equal chance.", 22, Kit.INK_DIM))
+	v.add_child(Kit.body("Every pull rolls a rarity first, then one hero of that rarity with equal chance.", 21, Kit.TEXT_DIM))
 	for r: String in ["legendary", "epic", "rare"]:
-		var card := Kit.panel("inset", 14)
+		var card := Kit.panel("light_inset", 12)
 		var cv := Kit.vbox(8)
 		card.add_child(cv)
 		var head := Kit.hbox(10)
-		head.add_child(Kit.rarity_badge(r, 22))
-		var sp := Kit.spacer(0, 0, true)
-		head.add_child(sp)
-		head.add_child(Kit.label(_pct(float(int(rates.get(r, 0)))), 30, Kit.rarity_color(r).lightened(0.2), "black", 4))
+		head.add_child(Kit.rarity_mark(r, 26))
+		head.add_child(Kit.spacer(0, 0, true))
+		head.add_child(Kit.label(_pct(float(int(rates.get(r, 0)))), 32, Kit.rarity_color(r).darkened(0.15), "cond_bold"))
 		cv.add_child(head)
 		var ids: Array = pool.get(r, [])
 		if not ids.is_empty():
 			var each := float(int(rates.get(r, 0))) / float(ids.size())
-			var g := Kit.grid(2, 6)
-			g.add_theme_constant_override("h_separation", 24)
+			var g := Kit.grid(2, 4)
+			g.add_theme_constant_override("h_separation", 20)
 			for id: Variant in ids:
 				var row := Kit.hbox(6)
 				row.size_flags_horizontal = SIZE_EXPAND_FILL
-				row.add_child(Kit.faction_icon(str(Game.hero_def(str(id)).get("faction", "")), 26))
-				var n := Kit.label(str(Game.hero_def(str(id)).get("name", id)), 22, Kit.INK, "bold")
+				row.add_child(Kit.faction_icon(str(Game.hero_def(str(id)).get("faction", "")), 24))
+				var n := Kit.label(str(Game.hero_def(str(id)).get("name", id)), 21, Kit.TEXT, "bold")
 				n.size_flags_horizontal = SIZE_EXPAND_FILL
 				row.add_child(n)
-				row.add_child(Kit.label(_pct(each), 22, Kit.INK_DIM, "extrabold"))
+				row.add_child(Kit.label(_pct(each), 20, Kit.TEXT_DIM, "cond_bold"))
 				g.add_child(row)
 			cv.add_child(g)
 		v.add_child(card)
@@ -354,14 +427,14 @@ func _open_rates() -> void:
 		["Costs", "1 pull: %d scroll or %s gems. 10 pulls: %d scrolls or %s gems. Scrolls are always used first. The free daily summon uses the same rates." % [int(_banner.scroll_cost_one), Kit.format_full(int(_banner.cost_one)), int(_banner.scroll_cost_ten), Kit.format_full(int(_banner.cost_ten))]],
 	]
 	for rule in rules:
-		var rv := Kit.vbox(2)
-		rv.add_child(Kit.label(str(rule[0]), 24, Kit.GOLD_LIGHT, "extrabold"))
-		rv.add_child(Kit.body(str(rule[1]), 22, Kit.INK))
+		var rv := Kit.vbox(4)
+		rv.add_child(Kit.header_bar(str(rule[0])))
+		rv.add_child(Kit.body(str(rule[1]), 21, Kit.TEXT))
 		v.add_child(rv)
-	var sc := Kit.scroll(Kit.margin(v, 6, 4))
+	var sc := Kit.scroll(Kit.margin(v, 4, 4))
 	var vh: float = get_viewport_rect().size.y
-	sc.custom_minimum_size = Vector2(590, minf(vh * 0.62, 1000.0))
-	UI.popup("Summon Rates", sc, Callable(), 660.0)
+	sc.custom_minimum_size = Vector2(560, minf(vh * 0.62, 1000.0))
+	UI.popup("Summon Rates", sc, Callable(), 640.0, true)
 
 
 ## Basis points (may be fractional) as a percentage with up to 3 decimals: 200 -> "2%",
@@ -405,6 +478,9 @@ func _do_summon(count: int, free: bool) -> void:
 	_results = r.get("value", [])
 	if _results.is_empty():
 		return
+	for x: Variant in _results:
+		if x is Dictionary and bool((x as Dictionary).get("is_new", false)):
+			Roster.mark_new(str((x as Dictionary).get("hero_id", "")))
 	_count = _results.size()
 	_start_sequence()
 
@@ -432,24 +508,22 @@ func _start_sequence() -> void:
 	_overlay.mouse_filter = MOUSE_FILTER_STOP
 	_overlay.gui_input.connect(_on_overlay_input)
 	add_child(_overlay)
+	var bg := Kit.page_bg("dark")
+	_overlay.add_child(bg)
 	var dim := ColorRect.new()
-	dim.color = Color(0.03, 0.02, 0.08, 0.72)
+	dim.color = Color(0.02, 0.025, 0.035, 0.55)
 	dim.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	dim.mouse_filter = MOUSE_FILTER_IGNORE
 	_overlay.add_child(dim)
-	dim.modulate.a = 0.0
-	dim.create_tween().tween_property(dim, "modulate:a", 1.0, 0.25)
-	var bd := SummonBackdrop.new()
-	bd.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	bd.stars_only = true
-	_overlay.add_child(bd)
+	_overlay.modulate.a = 0.0
+	_overlay.create_tween().tween_property(_overlay, "modulate:a", 1.0, 0.22)
 
 	_portal = PortalFx.new()
 	_portal.target = Kit.rarity_color(_best_rarity())
 	_overlay.add_child(_portal)
 	_place_portal.call_deferred()
 
-	_hint_label = Kit.label("Tap to skip", 24, Kit.INK_DIM, "extrabold", 4)
+	_hint_label = Kit.label("TAP TO SKIP", 22, Kit.INK_DIM, "cond_bold", 4)
 	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hint_label.anchor_left = 0.0
 	_hint_label.anchor_right = 1.0
@@ -460,7 +534,7 @@ func _start_sequence() -> void:
 	_overlay.add_child(_hint_label)
 
 	_flash = ColorRect.new()
-	_flash.color = Color(1, 0.97, 0.9, 0.0)
+	_flash.color = Color(0.92, 0.97, 1.0, 0.0)
 	_flash.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	_flash.mouse_filter = MOUSE_FILTER_IGNORE
 	_overlay.add_child(_flash)
@@ -472,10 +546,10 @@ func _start_sequence() -> void:
 	UI.haptic(20)
 
 
-## Vertical centre of the sequence (portal, cards); the backdrop's rune ring follows it.
+## Vertical centre of the sequence (portal, cards).
 func _focus_y() -> float:
 	var st := UI.safe_top()
-	return st + (_overlay.size.y - st - UI.safe_bottom()) * 0.42
+	return st + (_overlay.size.y - st - UI.safe_bottom()) * 0.44
 
 
 func _place_portal() -> void:
@@ -484,8 +558,6 @@ func _place_portal() -> void:
 		var fy := _focus_y()
 		_portal.size = Vector2(s.x, s.x)
 		_portal.position = Vector2(0, fy - s.x * 0.5)
-		_backdrop.portal_center = Vector2(s.x * 0.5, fy)
-		_backdrop.queue_redraw()
 
 
 func _on_overlay_input(ev: InputEvent) -> void:
@@ -538,7 +610,7 @@ func _start_reveal() -> void:
 		tw.tween_property(_portal, "modulate:a", 0.0, 0.3)
 		tw.tween_callback(_portal.queue_free)
 	_portal = null
-	_hint_label.text = "Tap to reveal all"
+	_hint_label.text = "TAP TO REVEAL ALL"
 	_build_card_backs()
 
 
@@ -553,24 +625,23 @@ func _build_card_backs() -> void:
 	_overlay.move_child(_flash, -1)
 	var area := _overlay.size - Vector2(0, st + UI.safe_bottom())
 	var single := _results.size() == 1
-	var cs := 300.0 if single else 124.0
 	var cols := 1 if single else 5
-	var gap := Vector2(10, 64)
+	var cw := 250.0 if single else floorf(minf(128.0, (area.x - 40.0 - 4 * 10.0) / 5.0))
+	var ch := roundf(cw * CARD_RATIO)
+	var gap := Vector2(10, 52)
 	var rows := ceili(float(_results.size()) / cols)
-	var total_w := cols * cs + (cols - 1) * gap.x
-	var total_h := rows * cs + (rows - 1) * gap.y
-	var origin := Vector2((area.x - total_w) * 0.5, _focus_y() - st - total_h * 0.5 - (30.0 if single else 0.0))
+	var total_w := cols * cw + (cols - 1) * gap.x
+	var total_h := rows * ch + (rows - 1) * gap.y
+	var origin := Vector2((area.x - total_w) * 0.5, _focus_y() - st - total_h * 0.5 - (40.0 if single else 10.0))
 	for i in _results.size():
 		var cxy := Vector2(i % cols, i / cols)
 		var holder := Control.new()
 		holder.mouse_filter = MOUSE_FILTER_IGNORE
-		holder.position = origin + cxy * (Vector2(cs, cs) + gap)
-		holder.size = Vector2(cs, cs)
-		holder.set_meta("cs", cs)
+		holder.position = origin + cxy * (Vector2(cw, ch) + gap)
+		holder.size = Vector2(cw, ch)
+		holder.set_meta("cw", cw)
 		_grid_box.add_child(holder)
-		var back := CardBack.new()
-		back.size = Vector2(cs, cs)
-		back.pivot_offset = Vector2(cs, cs) * 0.5
+		var back := _card_back(Vector2(cw, ch))
 		holder.add_child(back)
 		holder.set_meta("back", back)
 		_cards.append(holder)
@@ -582,65 +653,93 @@ func _build_card_backs() -> void:
 		tw.tween_property(back, "position:y", 0.0, 0.25).set_delay(i * 0.03).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
+## Back of an unrevealed card, from Kit parts: graphite plate with a cyan rim, hatching,
+## corner brackets, a barcode and the summon glyph in a hexagon.
+func _card_back(sz: Vector2) -> Control:
+	var p := Panel.new()
+	p.mouse_filter = MOUSE_FILTER_IGNORE
+	p.size = sz
+	p.pivot_offset = sz * 0.5
+	p.add_theme_stylebox_override("panel", Kit.box(Color("2a2e35"), Color("121418"), Color(Kit.ACCENT, 0.85), 4.0, 2))
+	var hatch := Kit.deco("hatch", sz, Color(Kit.ACCENT, 0.08))
+	hatch.set("spacing", 12.0)
+	p.add_child(hatch)
+	var br := Kit.deco("brackets", sz - Vector2(14, 14), Color(1, 1, 1, 0.5))
+	br.position = Vector2(7, 7)
+	p.add_child(br)
+	var hs := sz.x * 0.46
+	var hx := Kit.hex_badge("summon", hs, Color("1b1d21"), Kit.ACCENT_HI)
+	hx.set("glow", Color(Kit.ACCENT, 0.5))
+	hx.set("glow_size", hs * 0.2)
+	hx.position = (sz - Vector2(hs, hs)) * 0.5
+	p.add_child(hx)
+	var bc := Kit.deco("barcode", Vector2(sz.x * 0.08, sz.y * 0.16), Color(1, 1, 1, 0.35))
+	bc.position = Vector2(sz.x * 0.86, sz.y * 0.06)
+	p.add_child(bc)
+	return p
+
+
 func _reveal_card(i: int, instant: bool) -> void:
 	var holder := _cards[i]
 	var res: Dictionary = _results[i]
 	var id := str(res.get("hero_id", ""))
 	var rarity := str(res.get("rarity", "rare"))
-	var cs: float = holder.get_meta("cs")
+	var cw: float = holder.get_meta("cw")
+	var ch := roundf(cw * CARD_RATIO)
 	var back: Variant = holder.get_meta("back") if holder.has_meta("back") else null
 	holder.remove_meta("back")
 	var rc := Kit.rarity_color(rarity)
+	var mid := Vector2(cw, ch) * 0.5
 	# Glow (and rays for Legendaries) behind the card.
 	if rarity != "rare":
-		var gl := Kit.glow(rc, cs * (2.2 if rarity == "legendary" else 1.7))
-		gl.position = Vector2(cs, cs) * 0.5 - gl.custom_minimum_size * 0.5
+		var gl := Kit.glow(rc, cw * (2.6 if rarity == "legendary" else 2.0))
 		gl.size = gl.custom_minimum_size
+		gl.position = mid - gl.size * 0.5
 		gl.modulate.a = 0.9 if rarity == "legendary" else 0.7
 		holder.add_child(gl)
 		holder.move_child(gl, 0)
 		if rarity == "legendary":
-			var rays := Kit.rays(rc, cs * 2.6, 14)
-			rays.position = Vector2(cs, cs) * 0.5 - rays.size * 0.5
+			var rays := Kit.rays(rc, cw * 3.2, 14)
+			rays.position = mid - rays.size * 0.5
 			rays.modulate.a = 0.55
 			holder.add_child(rays)
 			holder.move_child(rays, 0)
-	var opts := {"size": cs, "show_name": true, "owned": true, "tag": "NEW" if bool(res.get("is_new", false)) else ""}
-	var lv := int(Game.hero(id).get("level", 1))
-	opts["level"] = lv
-	var face := Kit.hero_card(id, opts)
+	var is_new := bool(res.get("is_new", false))
+	var face := Kit.portrait_card(id, {"size": cw, "owned": true, "level": int(Game.hero(id).get("level", 1)), "new": is_new})
 	face.mouse_filter = MOUSE_FILTER_IGNORE
 	face.focus_mode = FOCUS_NONE
 	holder.add_child(face)
 	var note := ""
-	if not bool(res.get("is_new", false)):
-		note = "+%d shards" % int(res.get("shards", 0))
+	if not is_new:
+		note = "+%d SHARDS" % int(res.get("shards", 0))
 		if int(res.get("dust", 0)) > 0:
-			note = "+%d dust" % int(res.get("dust", 0)) if int(res.get("shards", 0)) == int(res.get("dust", 0)) else note + ", +%d dust" % int(res.get("dust", 0))
+			note = "+%d DUST" % int(res.get("dust", 0)) if int(res.get("shards", 0)) == int(res.get("dust", 0)) else note + "  +%d DUST" % int(res.get("dust", 0))
+	elif cw < 200.0:
+		note = "NEW HERO"
 	if note != "":
-		var nl := Kit.label(note, 20 if cs < 200 else 26, Kit.SKY.lightened(0.3), "black", 4)
+		var nl := Kit.label(note, 18 if cw < 200 else 24, Kit.ORANGE_HI if is_new else Kit.ACCENT_HI, "cond_bold", 4)
 		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		nl.position = Vector2(-20, cs + cs * 0.15 + 8)
-		nl.size = Vector2(cs + 40, 28)
+		nl.position = Vector2(-20, ch + 6)
+		nl.size = Vector2(cw + 40, 26)
 		holder.add_child(nl)
-	if cs >= 200.0:
-		var badge := Kit.rarity_badge(rarity, 24)
+	if cw >= 200.0:
+		# Single pull: rarity on top, the hero's title and badges under the card.
+		var badge := Kit.rarity_mark(rarity, 30)
 		holder.add_child(badge)
-		badge.position = Vector2(cs * 0.5 - badge.get_combined_minimum_size().x * 0.5, -48)
-		# Single pull: the hero's title and badges under the card.
+		badge.position = Vector2(cw * 0.5 - badge.get_combined_minimum_size().x * 0.5, -54)
 		var d := Game.hero_def(id)
 		var info := Kit.vbox(8)
 		info.mouse_filter = MOUSE_FILTER_IGNORE
-		info.position = Vector2(cs * 0.5 - 300.0, cs + cs * 0.15 + (44.0 if note != "" else 12.0))
+		info.position = Vector2(cw * 0.5 - 300.0, ch + (40.0 if note != "" else 14.0))
 		info.size = Vector2(600, 100)
-		var tl := Kit.label(str(d.get("title", "")), 28, Kit.INK, "bold", 5)
+		var tl := Kit.label(str(d.get("title", "")).to_upper(), 24, Kit.INK, "cond_bold", 4)
 		tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		info.add_child(tl)
 		var br := Kit.hbox(12)
 		br.alignment = BoxContainer.ALIGNMENT_CENTER
 		br.mouse_filter = MOUSE_FILTER_IGNORE
-		br.add_child(Kit.faction_badge(str(d.get("faction", "")), 38))
-		var rb := Kit.role_badge(str(d.get("role", "")), 32)
+		br.add_child(Kit.faction_badge(str(d.get("faction", "")), 34))
+		var rb := Kit.role_badge(str(d.get("role", "")), 30)
 		rb.size_flags_vertical = SIZE_SHRINK_CENTER
 		br.add_child(rb)
 		info.add_child(br)
@@ -650,7 +749,7 @@ func _reveal_card(i: int, instant: bool) -> void:
 	if instant:
 		return
 	# Flip in: squeeze from the side, overshoot a little.
-	face.pivot_offset = Vector2(cs, cs) * 0.5
+	face.pivot_offset = Vector2(cw, ch) * 0.5
 	face.scale = Vector2(0.05, 1.08)
 	var tw := face.create_tween()
 	tw.tween_property(face, "scale", Vector2(1.08, 1.08), 0.14).set_trans(Tween.TRANS_SINE)
@@ -660,13 +759,13 @@ func _reveal_card(i: int, instant: bool) -> void:
 		"legendary":
 			UI.sfx("legendary")
 			UI.haptic(70)
-			_spark_burst(holder.global_position - _overlay.global_position + Vector2(cs, cs) * 0.5, rc, 1.4)
+			_spark_burst(holder.global_position - _overlay.global_position + mid, rc, 1.4)
 			Kit.shake(_grid_box, 14)
 			_open_showcase(id)
 		"epic":
 			UI.sfx("reward")
 			UI.haptic(25)
-			_spark_burst(holder.global_position - _overlay.global_position + Vector2(cs, cs) * 0.5, rc, 0.8)
+			_spark_burst(holder.global_position - _overlay.global_position + mid, rc, 0.8)
 			_reveal_wait += 0.15
 		_:
 			UI.sfx("tap")
@@ -688,6 +787,7 @@ func _reveal_everything() -> void:
 	_show_results()
 
 
+## A Legendary's full-body showcase: orange rays, the art sliding in, a ribbon with the name.
 func _open_showcase(id: String) -> void:
 	if _skip_all:
 		return
@@ -698,18 +798,25 @@ func _open_showcase(id: String) -> void:
 	_overlay.add_child(_showcase)
 	_overlay.move_child(_flash, -1)
 	var shade := ColorRect.new()
-	shade.color = Color(0.04, 0.02, 0.08, 0.86)
+	shade.color = Color(0.02, 0.025, 0.035, 0.88)
 	shade.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	shade.mouse_filter = MOUSE_FILTER_IGNORE
 	_showcase.add_child(shade)
 	var s := _overlay.size
-	var rays := Kit.rays(Kit.LEGENDARY, s.x * 1.6, 18)
-	rays.position = Vector2(s.x * 0.5, s.y * 0.42) - rays.size * 0.5
+	var c := Vector2(s.x * 0.5, s.y * 0.42)
+	var band := Kit.deco("hatch", Vector2(s.x, s.y * 0.5), Color(Kit.LEGENDARY, 0.1))
+	band.set("spacing", 30.0)
+	band.set("line_width", 12.0)
+	band.position = Vector2(0, s.y * 0.25)
+	_showcase.add_child(band)
+	var rays := Kit.rays(Kit.LEGENDARY, s.x * 1.7, 18)
+	rays.position = c - rays.size * 0.5
 	rays.modulate.a = 0.5
 	_showcase.add_child(rays)
-	var glow := Kit.glow(HeroArt.faction_color(str(d.get("faction", ""))), s.x * 1.1)
+	var glow := Kit.glow(Kit.ORANGE, s.x * 1.1)
 	glow.size = glow.custom_minimum_size
-	glow.position = Vector2(s.x * 0.5, s.y * 0.42) - glow.size * 0.5
+	glow.position = c - glow.size * 0.5
+	glow.modulate.a = 0.6
 	_showcase.add_child(glow)
 	var art := TextureRect.new()
 	art.texture = HeroArt.texture(id)
@@ -717,7 +824,7 @@ func _open_showcase(id: String) -> void:
 	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	art.mouse_filter = MOUSE_FILTER_IGNORE
-	var ah := minf(s.y * 0.72, s.x * 1.9)
+	var ah := minf(s.y * 0.74, s.x * 1.9)
 	art.size = Vector2(ah * 0.5, ah)
 	art.position = Vector2(s.x * 0.5 - ah * 0.25, UI.safe_top() + 30.0)
 	_showcase.add_child(art)
@@ -725,22 +832,25 @@ func _open_showcase(id: String) -> void:
 	plate.mouse_filter = MOUSE_FILTER_IGNORE
 	plate.position = Vector2(0, art.position.y + ah - 150.0)
 	plate.size = Vector2(s.x, 220)
-	var rb := Kit.ribbon(str(d.get("name", id)), 520.0, Kit.LEGENDARY, DARK_INK, 48)
+	var mark := Kit.rarity_mark("legendary", 34)
+	mark.alignment = BoxContainer.ALIGNMENT_CENTER
+	plate.add_child(mark)
+	var rb := Kit.ribbon(str(d.get("name", id)).to_upper(), 520.0, Kit.LEGENDARY, Color.WHITE, 48)
 	rb.size_flags_horizontal = SIZE_SHRINK_CENTER
 	plate.add_child(rb)
-	var t := Kit.label(str(d.get("title", "")), 28, Kit.INK, "bold", 5)
+	var t := Kit.label(str(d.get("title", "")).to_upper(), 24, Kit.INK, "cond_bold", 4)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	plate.add_child(t)
 	var row := Kit.hbox(12)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.mouse_filter = MOUSE_FILTER_IGNORE
-	var rbg := Kit.rarity_badge("legendary", 24)
-	rbg.size_flags_vertical = SIZE_SHRINK_CENTER
-	row.add_child(rbg)
-	row.add_child(Kit.faction_badge(str(d.get("faction", "")), 38))
+	row.add_child(Kit.faction_badge(str(d.get("faction", "")), 34))
+	var rlb := Kit.role_badge(str(d.get("role", "")), 30)
+	rlb.size_flags_vertical = SIZE_SHRINK_CENTER
+	row.add_child(rlb)
 	plate.add_child(row)
 	_showcase.add_child(plate)
-	_spark_burst(Vector2(s.x * 0.5, s.y * 0.42), Kit.LEGENDARY, 2.0)
+	_spark_burst(c, Kit.LEGENDARY, 2.0)
 	# Slide in.
 	art.modulate.a = 0.0
 	var ax := art.position.x
@@ -768,21 +878,24 @@ func _show_results() -> void:
 		_hint_label.visible = false
 	var st := UI.safe_top()
 	var sb := UI.safe_bottom()
-	var top := Kit.ribbon("Summon Results" if _results.size() > 1 else "You Summoned", 520.0, Kit.GOLD, DARK_INK, 40)
+	var title := "SUMMON RESULTS"
+	if _results.size() == 1:
+		title = "NEW HERO" if bool((_results[0] as Dictionary).get("is_new", false)) else "SUMMON RESULT"
+	var top := Kit.ribbon(title, 520.0, Kit.ACCENT, Color.WHITE, 40)
 	top.position = Vector2(_overlay.size.x * 0.5 - 260.0, st + 24.0)
 	top.size = Vector2(520, 84)
 	_overlay.add_child(top)
 	Kit.pop_in(top, 0.0, 0.3)
 
-	_results_box = Kit.vbox(14)
+	_results_box = Kit.vbox(12)
 	_results_box.anchor_left = 0.0
 	_results_box.anchor_right = 1.0
 	_results_box.anchor_top = 1.0
 	_results_box.anchor_bottom = 1.0
-	_results_box.offset_left = 24
-	_results_box.offset_right = -24
-	_results_box.offset_bottom = -sb - 24.0
-	_results_box.offset_top = -sb - 24.0 - 250.0
+	_results_box.offset_left = 20
+	_results_box.offset_right = -20
+	_results_box.offset_bottom = -sb - 20.0
+	_results_box.offset_top = -sb - 20.0 - 250.0
 	_results_box.alignment = BoxContainer.ALIGNMENT_END
 	_overlay.add_child(_results_box)
 	var news := 0
@@ -794,30 +907,38 @@ func _show_results() -> void:
 		shards += int(d.get("shards", 0))
 	var parts: Array[String] = []
 	if news > 0:
-		parts.append("%d new hero%s" % [news, "" if news == 1 else "es"])
+		parts.append("%d NEW HERO%s" % [news, "" if news == 1 else "ES"])
 	if shards > 0:
-		parts.append("+%d shards" % shards)
-	var summary := Kit.label("  ·  ".join(parts), 26, Kit.GOLD_LIGHT, "extrabold", 4)
-	summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_results_box.add_child(summary)
+		parts.append("+%d SHARDS" % shards)
+	var srow := Kit.hbox(10)
+	srow.alignment = BoxContainer.ALIGNMENT_CENTER
+	srow.mouse_filter = MOUSE_FILTER_IGNORE
+	srow.add_child(Kit.deco("techline", Vector2(70, 8), Color(1, 1, 1, 0.4)))
+	srow.add_child(Kit.label("  ·  ".join(parts), 24, Color.WHITE, "cond_bold", 4))
+	var tl2 := Kit.deco("techline", Vector2(70, 8), Color(1, 1, 1, 0.4))
+	tl2.scale.x = -1
+	tl2.pivot_offset = Vector2(35, 4)
+	srow.add_child(tl2)
+	_results_box.add_child(srow)
 	var pity_max := int(_banner.get("pity_legendary", 60))
-	var pl := Kit.caption("Legendary guaranteed within %d pulls" % maxi(1, pity_max - Game.pity_count()), 22)
+	var pl := Kit.label("LEGENDARY GUARANTEED WITHIN %d PULLS" % maxi(1, pity_max - Game.pity_count()), 18, Kit.ACCENT_HI, "cond_bold")
 	pl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_results_box.add_child(pl)
-	var row := Kit.hbox(14)
+	var row := Kit.hbox(12)
 	var again_n := 10 if _count >= 10 else 1
 	var p := _price(again_n)
-	var again := Kit.cost_button("Summon x%d again" % again_n, str(p.currency), int(p.amount), func() -> void: _again(again_n), "secondary", bool(p.ok))
+	var again := Kit.cost_button("Summon x%d Again" % again_n, str(p.currency), int(p.amount), func() -> void: _again(again_n), "secondary", bool(p.ok))
 	again.disabled = not bool(p.ok)
 	again.size_flags_horizontal = SIZE_EXPAND_FILL
 	row.add_child(again)
 	var done := Kit.primary_button("Done", _finish, "check")
-	done.custom_minimum_size.y = 104
+	done.name = "Done"
+	done.custom_minimum_size.y = 108
 	done.size_flags_horizontal = SIZE_EXPAND_FILL
 	row.add_child(done)
 	_results_box.add_child(row)
 	if not bool(p.ok):
-		var why := Kit.caption("Not enough gems or scrolls for another x%d." % again_n, 22, SHORT_RED)
+		var why := Kit.label("Not enough gems or scrolls for another x%d." % again_n, 20, Color("ff6a50"), "bold")
 		why.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_results_box.add_child(why)
 	_results_box.modulate.a = 0.0
@@ -851,7 +972,7 @@ func _finish() -> void:
 	UI.set_chrome(true, true)
 	_main.visible = true
 	_refresh()
-	_layout_featured.call_deferred()
+	_layout.call_deferred()
 
 
 func _spark_burst(at: Vector2, color: Color, strength: float) -> void:
@@ -862,115 +983,14 @@ func _spark_burst(at: Vector2, color: Color, strength: float) -> void:
 	_overlay.add_child(b)
 
 
-# ------------------------------------------------------------------ drawing helpers
+# ------------------------------------------------------------------ effects
 
-## Night sky with a rune circle behind the featured heroes (the portal at rest).
-class SummonBackdrop extends Control:
-	var portal_center := Vector2(360, 480)
-	var stars_only := false
-	var _stars: Array[Vector3] = []
-	var _ring: Control
-	var _tex: Texture2D
-
-	func _ready() -> void:
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
-		if not stars_only:
-			_tex = HeroArt.background("summon")
-		var rng := RandomNumberGenerator.new()
-		rng.seed = 909
-		for i in 90:
-			_stars.append(Vector3(rng.randf(), rng.randf(), rng.randf()))
-		if not stars_only:
-			_ring = RuneRing.new()
-			_ring.speed = 0.06
-			add_child(_ring)
-		resized.connect(queue_redraw)
-
-	func _process(_delta: float) -> void:
-		if _ring:
-			var r := minf(size.x * 0.48, 340.0)
-			_ring.size = Vector2(r * 2.0, r * 2.0)
-			_ring.position = portal_center - Vector2(r, r)
-			_ring.pivot_offset = Vector2(r, r)
-
-	func _draw() -> void:
-		var w := size.x
-		var h := size.y
-		if _tex:
-			# Painted summon art when the art team ships it: scale to cover.
-			var ts := _tex.get_size()
-			var k := maxf(w / maxf(ts.x, 1.0), h / maxf(ts.y, 1.0))
-			var d := ts * k
-			draw_texture_rect(_tex, Rect2((Vector2(w, h) - d) * 0.5, d), false)
-			draw_rect(Rect2(0, 0, w, h), Color(0.07, 0.05, 0.14, 0.35))
-		elif not stars_only:
-			var top := Color("0a0720")
-			var mid := Color("2a1658")
-			var low := Color("120e24")
-			draw_polygon(PackedVector2Array([Vector2(0, 0), Vector2(w, 0), Vector2(w, h * 0.5), Vector2(0, h * 0.5)]), PackedColorArray([top, top, mid, mid]))
-			draw_polygon(PackedVector2Array([Vector2(0, h * 0.5), Vector2(w, h * 0.5), Vector2(w, h), Vector2(0, h)]), PackedColorArray([mid, mid, low, low]))
-		for s in _stars:
-			var a := 0.25 + 0.6 * s.z
-			draw_circle(Vector2(s.x * w, s.y * h), 0.8 + 1.6 * s.z, Color(1, 0.95, 0.85, a))
-		if not stars_only:
-			# Soft portal glow and a floor of light.
-			for i in 6:
-				var r := 360.0 - i * 50.0
-				draw_circle(portal_center, r, Color(0.56, 0.42, 0.88, 0.035))
-			var fy := portal_center.y + minf(size.x * 0.48, 340.0) * 0.95
-			var pts := PackedVector2Array()
-			for i in 48:
-				var a := TAU * i / 48.0
-				pts.append(Vector2(w * 0.5 + cos(a) * w * 0.45, fy + sin(a) * 34.0))
-			draw_colored_polygon(pts, Color(0.95, 0.75, 0.35, 0.08))
-
-
-## Rotating circle of runes (drawn once, rotated by its node rotation).
-class RuneRing extends Control:
-	var speed := 0.1
-	var color := Color(0.95, 0.8, 0.5, 0.32)
-
-	func _ready() -> void:
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
-		resized.connect(queue_redraw)
-
-	func _process(delta: float) -> void:
-		rotation += speed * delta
-
-	func _draw() -> void:
-		var c := size * 0.5
-		var r := size.x * 0.5
-		draw_arc(c, r * 0.98, 0, TAU, 96, color, 3.0, true)
-		draw_arc(c, r * 0.9, 0, TAU, 96, Color(color, color.a * 0.6), 1.5, true)
-		draw_arc(c, r * 0.62, 0, TAU, 72, Color(color, color.a * 0.5), 2.0, true)
-		for i in 24:
-			var a := TAU * i / 24.0
-			var p1 := c + Vector2.from_angle(a) * r * 0.9
-			var p2 := c + Vector2.from_angle(a) * r * (0.98 if i % 2 == 0 else 0.94)
-			draw_line(p1, p2, color, 2.0, true)
-			if i % 3 == 0:
-				var pm := c + Vector2.from_angle(a + TAU / 48.0) * r * 0.76
-				_rune(pm, a, r * 0.05)
-		# Hexagram.
-		for k in 2:
-			var pts := PackedVector2Array()
-			for i in 4:
-				pts.append(c + Vector2.from_angle(-PI / 2.0 + k * PI / 3.0 + TAU * i / 3.0) * r * 0.62)
-			draw_polyline(pts, Color(color, color.a * 0.55), 2.0, true)
-
-	func _rune(p: Vector2, a: float, s: float) -> void:
-		var d := Vector2.from_angle(a)
-		var n := Vector2(-d.y, d.x)
-		draw_line(p - n * s, p + n * s, color, 2.0, true)
-		draw_line(p + n * s, p + d * s * 0.8, color, 2.0, true)
-		draw_circle(p - d * s * 0.5, s * 0.25, color)
-
-
-## The portal charging up: spinning rings, a growing core and motes spiralling inward. Its
-## color drifts toward `target` (the best rarity of the results) as `charge` goes 0 -> 1.
+## The portal charging up: spinning segmented rings, a hexagon frame, a growing core and
+## motes spiralling inward. Its color drifts from cyan toward `target` (the best rarity of
+## the results) as `charge` goes 0 -> 1.
 class PortalFx extends Control:
 	var charge := 0.0
-	var target := Color("4fa3e0")
+	var target := Color("3b9cf2")
 	var _t := 0.0
 	var _motes: Array[Vector3] = []
 
@@ -985,23 +1005,28 @@ class PortalFx extends Control:
 
 	func _draw() -> void:
 		var c := size * 0.5
-		var base := Color("8e6ce0")
+		var base := Kit.ACCENT
 		var col := base.lerp(target, clampf((charge - 0.35) / 0.5, 0.0, 1.0))
 		var r := size.x * 0.42
 		var spin := _t * (1.0 + charge * 6.0)
 		# Core glow.
 		for i in 8:
 			var rr := r * (0.15 + 0.12 * i) * (0.6 + charge * 0.7)
-			draw_circle(c, rr, Color(col.lightened(0.4), 0.06 + 0.05 * charge))
+			draw_circle(c, rr, Color(col.lightened(0.4), 0.05 + 0.05 * charge))
 		draw_circle(c, r * 0.12 * (0.5 + charge * 1.4), Color(1, 1, 1, 0.5 + 0.5 * charge))
-		# Rings.
+		# Hexagon frame, turning slowly.
+		var hex := PackedVector2Array()
+		for i in 7:
+			hex.append(c + Vector2.from_angle(-PI / 2.0 + spin * 0.15 + TAU * i / 6.0) * r * 0.98)
+		draw_polyline(hex, Color(col, 0.3 + 0.4 * charge), 2.0, true)
+		# Segmented rings.
 		for k in 3:
-			var rk := r * (0.55 + 0.22 * k)
+			var rk := r * (0.5 + 0.2 * k)
 			var dir := 1.0 if k % 2 == 0 else -1.0
 			var seg := 6 + k * 3
 			for i in seg:
 				var a0 := spin * dir * (1.0 - k * 0.2) + TAU * i / seg
-				draw_arc(c, rk, a0, a0 + TAU / seg * 0.6, 16, Color(col, 0.35 + 0.5 * charge), 3.0 + 2.0 * charge, true)
+				draw_arc(c, rk, a0, a0 + TAU / seg * 0.55, 16, Color(col, 0.35 + 0.5 * charge), 3.0 + 2.0 * charge, true)
 		# Motes spiralling in.
 		for m in _motes:
 			var life := fposmod(m.y + _t * (0.35 + charge * 0.9), 1.0)
@@ -1009,32 +1034,6 @@ class PortalFx extends Control:
 			var ang := m.x + life * 3.0
 			var p := c + Vector2.from_angle(ang) * dist
 			draw_circle(p, m.z * (0.4 + life), Color(col.lightened(0.5), life * (0.5 + 0.5 * charge)))
-
-
-## Back of an unrevealed summon card: dark plate, gold frame, a winged sigil.
-class CardBack extends Control:
-	func _ready() -> void:
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	func _draw() -> void:
-		var s := size
-		var sb := Kit.box(Color("2a2150"), Color("0e0a1c"), Color("e8c36a"), maxf(10.0, s.x * 0.08), maxi(2, int(s.x * 0.025)))
-		draw_style_box(sb, Rect2(Vector2.ZERO, s))
-		var c := s * 0.5
-		var r := s.x * 0.26
-		var gold := Color(0.95, 0.78, 0.4, 0.85)
-		draw_arc(c, r, 0, TAU, 48, gold, maxf(2.0, s.x * 0.02), true)
-		draw_arc(c, r * 0.7, 0, TAU, 48, Color(gold, 0.5), maxf(1.5, s.x * 0.012), true)
-		var star := PackedVector2Array()
-		for i in 9:
-			var a := -PI / 2.0 + TAU * i / 8.0
-			var rr := r * (0.62 if i % 2 == 0 else 0.26)
-			star.append(c + Vector2.from_angle(a) * rr)
-		draw_colored_polygon(star, Color(gold, 0.75))
-		for side in [-1.0, 1.0]:
-			var wing := PackedVector2Array([c + Vector2(side * r * 1.05, -r * 0.1), c + Vector2(side * r * 1.75, -r * 0.55),
-				c + Vector2(side * r * 1.55, 0.0), c + Vector2(side * r * 1.75, r * 0.35)])
-			draw_polyline(wing, Color(gold, 0.6), maxf(1.5, s.x * 0.012), true)
 
 
 ## Sparks flying out from a point (frees itself).

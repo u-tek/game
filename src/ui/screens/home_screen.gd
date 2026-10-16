@@ -52,6 +52,7 @@ var _side_view: Button
 var _shop: Button
 var _sanctum: Button
 var _meter: PanelContainer
+var _meter_lv: Label
 var _team: Button
 var _campaign: Button
 var _camp_info: VBoxContainer
@@ -151,6 +152,9 @@ func _build() -> void:
 	# Shortcut plates.
 	_shop = Kit.shortcut("Shop", "shop", "blue", func() -> void: UI.go("shop"), {"size": TOP_PLATE})
 	_meter = Kit.percent_meter("Sanctum\nfill", 0.0, "sanctum", "LV.01")
+	for l in _meter.find_children("*", "Label", true, false):
+		if (l as Label).text == "LV.01":
+			_meter_lv = l as Label
 	_sanctum = Kit.shortcut("Sanctum", "sanctum", "dark", _open_sanctum, {"size": BIG_PLATE, "sub": _meter})
 	_team = Kit.shortcut("Team", "team", "white", func() -> void: UI.go("formation"), {"size": TOP_PLATE, "side": "right"})
 	_campaign = Kit.shortcut("Campaign", "campaign", "orange", _on_campaign, {"size": BIG_PLATE, "side": "right", "badge": "!"})
@@ -168,10 +172,10 @@ func _chevron(dir: int) -> Button:
 	var g := b.get_node("Glyph") as TextureRect
 	g.flip_h = dir < 0
 	g.modulate = Color(1, 1, 1, 0.85)
-	for k: String in ["offset_left", "offset_top"]:
-		g.set(k, -22.0)
-	for k: String in ["offset_right", "offset_bottom"]:
-		g.set(k, 22.0)
+	g.offset_left = -22.0
+	g.offset_top = -22.0
+	g.offset_right = 22.0
+	g.offset_bottom = 22.0
 	return b
 
 
@@ -367,6 +371,8 @@ func _say(text: String) -> void:
 	l.visible_ratio = 0.0
 	var tw := l.create_tween()
 	tw.tween_property(l, "visible_ratio", 1.0, clampf(text.length() * 0.018, 0.25, 1.1))
+	# A longer line can wrap to another row: keep the chevrons centred on the bubble.
+	_layout.call_deferred()
 
 
 func _on_hero_tap() -> void:
@@ -582,10 +588,9 @@ func _refresh_idle() -> void:
 	var pct := 100.0 * float(elapsed) / float(cap)
 	_full = bool(st.get("full", false))
 	Kit.set_percent_meter(_meter, pct)
-	var lv := _meter.find_children("*", "Label", true, false)
-	for l in lv:
-		if (l as Label).text.begins_with("LV."):
-			(l as Label).text = "LV.%02d" % maxi(1, Game.cleared_count())
+	if _meter_lv:
+		# The Sanctum grows with the campaign: its level is the number of stages cleared.
+		_meter_lv.text = "LV.%02d" % maxi(1, Game.cleared_count())
 	Kit.set_new(_sanctum, _full, 30.0, Vector2(-6, -10))
 	_refresh_sheet(st)
 
@@ -639,13 +644,12 @@ func _open_sanctum() -> void:
 	var quick_slot := Kit.hbox(0)
 	quick_slot.size_flags_horizontal = SIZE_EXPAND_FILL
 	row.add_child(quick_slot)
-	var claim := Kit.primary_button("Claim", _claim, "chest")
-	claim.size_flags_horizontal = SIZE_EXPAND_FILL
-	claim.custom_minimum_size.y = 108
-	row.add_child(claim)
+	var claim_slot := Kit.hbox(0)
+	claim_slot.size_flags_horizontal = SIZE_EXPAND_FILL
+	row.add_child(claim_slot)
 	col.add_child(row)
 	_sheet_refs = {"pct": pct_l, "time": time_l, "bar": bar, "pending": pending, "quick_slot": quick_slot,
-		"claim": claim, "pending_sig": "-", "quick_sig": "-"}
+		"claim_slot": claim_slot, "pending_sig": "-", "quick_sig": "-"}
 	_sheet = UI.popup("Sanctum", col, func() -> void:
 		_sheet = null
 		_sheet_refs = {}, 640.0, true)
@@ -683,7 +687,16 @@ func _refresh_sheet(st: Dictionary) -> void:
 			box.add_child(Kit.reward_list(pending, 104, true, true, true))
 		else:
 			box.add_child(Kit.empty_state("Your heroes are gathering rewards...", "sanctum", true))
-		(_sheet_refs.claim as Button).disabled = not any
+		# Claim: cyan when there is something to collect, a resting light button otherwise.
+		var cs := _sheet_refs.claim_slot as HBoxContainer
+		for c in cs.get_children():
+			c.queue_free()
+		var claim := Kit.primary_button("Claim", _claim, "chest") if any else Kit.light_button("Claim", Callable(), "chest")
+		claim.name = "Claim"
+		claim.disabled = not any
+		claim.size_flags_horizontal = SIZE_EXPAND_FILL
+		claim.custom_minimum_size.y = 108
+		cs.add_child(claim)
 	var cost := int(st.get("quick_claim_cost", -1))
 	var left := int(st.get("quick_claims_left", 0))
 	var qsig := "%d/%d" % [cost, left]

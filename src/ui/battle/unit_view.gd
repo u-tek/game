@@ -95,22 +95,25 @@ func _read_timing() -> void:
 		ult_hit_s = ult.event_time("hit")
 
 
-## Ground ring (green for allies, red for enemies) and a soft backlight in the faction
-## color, drawn behind the sprite so every unit reads on any floor.
+## Ground marker (cyan for allies, red for enemies) and a soft backlight in the faction
+## color, drawn behind the sprite so every unit reads on any floor. Style v2: a thin
+## technical ring with four gaps and a faint fill.
 func _draw() -> void:
 	if dead:
 		return
 	var k := float(sprite.scale.y) if sprite else 1.0
 	var rx := 62.0 * k * (1.3 if is_boss else 1.0)
 	var ry := rx * 0.3
-	var col := Color("5cd6a0") if side == "ally" else Color("ff5a4a")
+	var col := Kit.ACCENT_HI if side == "ally" else Color("ff5a4a")
 	var glow := BattleFxRef.glow_texture()
 	var gs := Vector2(_head_h * 0.95, _head_h * 1.1)
-	draw_texture_rect(glow, Rect2(Vector2(-gs.x * 0.5, -_head_h * 0.55 - gs.y * 0.5), gs), false, Color(HeroArt.faction_color(faction), 0.16))
+	draw_texture_rect(glow, Rect2(Vector2(-gs.x * 0.5, -_head_h * 0.55 - gs.y * 0.5), gs), false, Color(HeroArt.faction_color(faction), 0.14))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, ry / rx))
-	draw_circle(Vector2.ZERO, rx, Color(col, 0.16), true, -1.0, true)
-	draw_arc(Vector2.ZERO, rx, 0, TAU, 48, Color(col, 0.75), 3.0, true)
-	draw_arc(Vector2.ZERO, rx * 0.8, 0, TAU, 48, Color(col, 0.3), 2.0, true)
+	draw_circle(Vector2.ZERO, rx, Color(col, 0.12), true, -1.0, true)
+	for q in 4:
+		var a0 := TAU * q / 4.0 + 0.18
+		draw_arc(Vector2.ZERO, rx, a0, a0 + TAU / 4.0 - 0.36, 16, Color(col, 0.8), 3.0, true)
+	draw_arc(Vector2.ZERO, rx * 0.78, 0, TAU, 48, Color(col, 0.25), 1.5, true)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
@@ -258,6 +261,9 @@ func _process(delta: float) -> void:
 		_bars.queue_redraw()
 
 
+## Overhead bars (style v2): a faction hex at the left, a flat HP bar (allies green,
+## enemies red, a pale trailing chip), a shield line, the cyan energy bar (pulsing white when
+## the ultimate is ready), status chips above.
 func _draw_bars() -> void:
 	if _bars_alpha <= 0.01:
 		return
@@ -265,34 +271,46 @@ func _draw_bars() -> void:
 	var w := BAR_W * (1.35 if is_boss else 1.0) * clampf(depth_scale, 0.85, 1.05)
 	var y := -_head_h - 26.0
 	var x0 := -w * 0.5 + 12.0
-	# Faction emblem at the left end.
+	var frame := Color(0.03, 0.035, 0.04, 0.9 * a)
+	# Faction emblem in a small dark hex at the left end.
 	if _faction_tex:
-		_bars.draw_circle(Vector2(x0 - 14, y + 7), 15, Color(0.05, 0.03, 0.1, 0.85 * a), true, -1.0, true)
-		_bars.draw_texture_rect(_faction_tex, Rect2(Vector2(x0 - 27, y - 6), Vector2(26, 26)), false, Color(1, 1, 1, a))
-	# HP frame.
-	var hp_h := 13.0
+		var hc0 := Vector2(x0 - 14, y + 8)
+		var hx := PackedVector2Array()
+		for i in 6:
+			var ang := TAU * i / 6.0
+			hx.append(hc0 + Vector2(cos(ang), sin(ang)) * 16.0)
+		_bars.draw_colored_polygon(hx, Color(0.1, 0.11, 0.13, 0.92 * a))
+		hx.append(hx[0])
+		_bars.draw_polyline(hx, Color(1, 1, 1, 0.45 * a), 1.5, true)
+		_bars.draw_texture_rect(_faction_tex, Rect2(hc0 - Vector2(12, 12), Vector2(24, 24)), false, Color(1, 1, 1, a))
+	# HP.
+	var hp_h := 12.0
 	var r := Rect2(x0, y, w - 10.0, hp_h)
-	_bars.draw_rect(r.grow(2.0), Color(0.03, 0.02, 0.07, 0.9 * a))
-	_bars.draw_rect(r, Color(0.16, 0.12, 0.24, a))
+	_bars.draw_rect(r.grow(2.0), frame)
+	_bars.draw_rect(r, Color(0.17, 0.18, 0.2, a))
 	var frac := float(hp) / float(max_hp)
 	if _chip > frac:
-		_bars.draw_rect(Rect2(r.position + Vector2(r.size.x * frac, 0), Vector2(r.size.x * (_chip - frac), hp_h)), Color(1.0, 0.92, 0.7, 0.9 * a))
-	var hc := Color("4fd68f") if side == "ally" else Color("e5483a")
+		_bars.draw_rect(Rect2(r.position + Vector2(r.size.x * frac, 0), Vector2(r.size.x * (_chip - frac), hp_h)), Color(1.0, 0.96, 0.88, 0.9 * a))
+	var hc := Kit.GOOD if side == "ally" else Kit.EMBER
 	if frac < 0.3 and side == "ally":
-		hc = Color("f2a23a")
+		hc = Kit.ORANGE
 	_bars.draw_rect(Rect2(r.position, Vector2(r.size.x * frac, hp_h)), Color(hc, a))
-	_bars.draw_rect(Rect2(r.position, Vector2(r.size.x * frac, hp_h * 0.4)), Color(1, 1, 1, 0.22 * a))
-	# Shield: bright overlay from the left, capped at the bar width.
+	_bars.draw_rect(Rect2(r.position, Vector2(r.size.x * frac, 2.0)), Color(1, 1, 1, 0.4 * a))
+	# Segment ticks every 25%.
+	for q in range(1, 4):
+		var tx := r.position.x + r.size.x * q / 4.0
+		_bars.draw_line(Vector2(tx, r.position.y), Vector2(tx, r.end.y), Color(0, 0, 0, 0.35 * a), 1.0)
+	# Shield: bright line on top, capped at the bar width.
 	if shield > 0:
 		var sf := minf(1.0, float(shield) / float(max_hp))
-		_bars.draw_rect(Rect2(r.position + Vector2(0, -5), Vector2(r.size.x * sf, 5)), Color(0.75, 0.92, 1.0, 0.95 * a))
+		_bars.draw_rect(Rect2(r.position + Vector2(0, -5), Vector2(r.size.x * sf, 4)), Color(0.85, 0.95, 1.0, 0.95 * a))
 	# Energy.
-	var er := Rect2(x0, y + hp_h + 4, w - 10.0, 6)
-	_bars.draw_rect(er.grow(1.5), Color(0.03, 0.02, 0.07, 0.9 * a))
+	var er := Rect2(x0, y + hp_h + 4, w - 10.0, 5)
+	_bars.draw_rect(er.grow(1.5), frame)
 	var ef := float(energy) / 1000.0
-	var ec := Color("6fc3e8") if ef < 1.0 else Color("ffe08a").lerp(Color.WHITE, 0.5 + 0.5 * sin(_t * 8.0))
+	var ec := Kit.ACCENT if ef < 1.0 else Kit.ACCENT_HI.lerp(Color.WHITE, 0.5 + 0.5 * sin(_t * 8.0))
 	_bars.draw_rect(Rect2(er.position, Vector2(er.size.x * ef, er.size.y)), Color(ec, a))
-	# Status icons above the bar.
+	# Status chips above the bar.
 	var ix := x0
 	for st: String in statuses:
 		var tex := _status_tex(st)
@@ -300,15 +318,17 @@ func _draw_bars() -> void:
 			continue
 		var bad := DEBUFFS.has(st)
 		var ip := Vector2(ix, y - 30)
-		_bars.draw_circle(ip + Vector2(11, 11), 12, Color(0.35, 0.05, 0.08, 0.85 * a) if bad else Color(0.05, 0.2, 0.15, 0.85 * a), true, -1.0, true)
-		_bars.draw_texture_rect(tex, Rect2(ip + Vector2(2, 2), Vector2(18, 18)), false, Color(1, 1, 1, a))
+		var chip := Rect2(ip, Vector2(23, 23))
+		_bars.draw_rect(chip, Color(0.08, 0.09, 0.1, 0.9 * a))
+		_bars.draw_rect(Rect2(chip.position + Vector2(0, chip.size.y - 3), Vector2(chip.size.x, 3)), Color(Kit.EMBER if bad else Kit.GOOD, a))
+		_bars.draw_texture_rect(tex, Rect2(ip + Vector2(3, 2), Vector2(17, 17)), false, Color(1, 1, 1, a))
 		if st.ends_with("_up") or st.ends_with("_down"):
 			var up := st.ends_with("_up")
-			var tp := ip + Vector2(19, 18)
-			var col := Color("5cd6a0") if up else Color("ff5a4a")
+			var tp := ip + Vector2(19, 17)
+			var col := Kit.GOOD if up else Color("ff5a4a")
 			var pts := PackedVector2Array([tp + Vector2(-5, 3), tp + Vector2(5, 3), tp + Vector2(0, -5)]) if up else PackedVector2Array([tp + Vector2(-5, -3), tp + Vector2(5, -3), tp + Vector2(0, 5)])
 			_bars.draw_colored_polygon(pts, Color(col, a))
-		ix += 25.0
+		ix += 26.0
 	# Stun: little stars circling the head.
 	if statuses.has("stun") and not dead:
 		var hc2 := Vector2(0, y + 40)

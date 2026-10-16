@@ -1,11 +1,12 @@
 extends Control
-## The winding road between campaign stage nodes. `points` are node centers (local px);
-## segments up to `reached` (the index of the furthest unlocked node) are a gilded road,
-## later ones a faint dotted trail.
+## The route between campaign stage nodes (style v2): a technical line. `points` are node
+## centres (local px); segments up to `reached` (the index of the furthest unlocked node) are
+## a solid cyan line with a soft glow and a white core, later ones a dashed grey trail.
+## Small tick marks sit at each segment's midpoint.
 
 var points := PackedVector2Array()
 var reached := 0
-var color := Color("f2c14e")
+var color := Color("12a8f4")
 
 
 func _ready() -> void:
@@ -24,24 +25,41 @@ func _draw() -> void:
 	for i in points.size() - 1:
 		var curve := _segment(points[i], points[i + 1])
 		if i + 1 <= reached:
-			draw_polyline(curve, Color(0.05, 0.02, 0.1, 0.55), 22.0, true)
-			draw_polyline(curve, color.darkened(0.35), 14.0, true)
-			draw_polyline(curve, color, 8.0, true)
-			draw_polyline(curve, Color(1, 0.95, 0.8, 0.55), 2.5, true)
+			draw_polyline(curve, Color(color, 0.18), 16.0, true)
+			draw_polyline(curve, Color(0, 0, 0, 0.45), 8.0, true)
+			draw_polyline(curve, color, 5.0, true)
+			draw_polyline(curve, Color(1, 1, 1, 0.75), 1.5, true)
 		else:
-			draw_polyline(curve, Color(0.05, 0.02, 0.1, 0.35), 12.0, true)
-			# Dots along the curve at even spacing.
-			var total := 0.0
-			var next_dot := 10.0
-			for k in range(1, curve.size()):
-				var a2 := curve[k - 1]
-				var b2 := curve[k]
-				var seg2 := a2.distance_to(b2)
-				while next_dot <= total + seg2:
-					var p := a2.lerp(b2, (next_dot - total) / maxf(seg2, 0.001))
-					draw_circle(p, 4.0, Color(0.75, 0.7, 0.95, 0.45), true, -1.0, true)
-					next_dot += 24.0
-				total += seg2
+			_dashed(curve, Color(0, 0, 0, 0.45), 7.0)
+			_dashed(curve, Color(0.78, 0.82, 0.88, 0.55), 3.0)
+		# Tick pair at the midpoint, across the line.
+		var m := curve[curve.size() / 2]
+		var d := (curve[curve.size() / 2 + 1] - curve[curve.size() / 2 - 1]).normalized()
+		var n := Vector2(-d.y, d.x)
+		var tc := Color(1, 1, 1, 0.6) if i + 1 <= reached else Color(1, 1, 1, 0.25)
+		for s: float in [-5.0, 5.0]:
+			draw_line(m + d * s - n * 9.0, m + d * s + n * 9.0, tc, 2.0, true)
+
+
+func _dashed(curve: PackedVector2Array, col: Color, width: float) -> void:
+	var on := true
+	var left := 14.0
+	for k in range(1, curve.size()):
+		var a := curve[k - 1]
+		var b := curve[k]
+		var seg := a.distance_to(b)
+		var t := 0.0
+		while t < seg:
+			var step := minf(left, seg - t)
+			var p0 := a.lerp(b, t / seg)
+			var p1 := a.lerp(b, (t + step) / seg)
+			if on:
+				draw_line(p0, p1, col, width, true)
+			t += step
+			left -= step
+			if left <= 0.0:
+				on = not on
+				left = 14.0 if on else 10.0
 
 
 ## A gentle S-curve from a to b (cubic with vertical tangents).

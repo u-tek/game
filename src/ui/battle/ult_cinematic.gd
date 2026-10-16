@@ -108,7 +108,7 @@ func _draw() -> void:
 	var top_r := Vector2(w, _cy - h * 0.5 - skew)
 	var bot_r := Vector2(w, _cy + h * 0.5 - skew)
 	var bot_l := Vector2(0, _cy + h * 0.5 + skew)
-	var dark := Color(0.05, 0.02, 0.1, 0.92)
+	var dark := Color(0.03, 0.035, 0.045, 0.92)
 	var mid := Color(_color.darkened(0.55), 0.95)
 	draw_polygon(PackedVector2Array([top_l, top_r, bot_r, bot_l]), PackedColorArray([mid, dark, dark, mid]))
 	# Bright edges.

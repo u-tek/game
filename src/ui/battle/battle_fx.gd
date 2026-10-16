@@ -34,7 +34,7 @@ static func number(layer: Node, pos: Vector2, text: String, color: Color, size: 
 	l.add_theme_font_size_override("font_size", size)
 	l.add_theme_color_override("font_color", color)
 	l.add_theme_constant_override("outline_size", maxi(6, size / 5))
-	l.add_theme_color_override("font_outline_color", Color(0.06, 0.02, 0.1))
+	l.add_theme_color_override("font_outline_color", Color(0.03, 0.035, 0.045))
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var w := Kit.font("black").get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 16.0

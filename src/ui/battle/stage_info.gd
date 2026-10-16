@@ -47,15 +47,28 @@ static func team_factions() -> Dictionary:
 	return out
 
 
-## [label, color] comparing team power with the recommendation.
+## [label, color] comparing team power with the recommendation (colors for dark chrome).
 static func verdict(team: int, rec: int) -> Array:
 	if rec <= 0 or team * 100 >= rec * 130:
 		return ["Easy", Kit.GOOD]
 	if team >= rec:
 		return ["Fair", Kit.GOOD]
 	if team * 100 >= rec * 85:
-		return ["Tough", Kit.GOLD]
+		return ["Tough", Kit.ORANGE_HI]
 	return ["Very hard", SHORT_RED]
+
+
+## verdict() with darker colors that read on white panels.
+static func verdict_light(team: int, rec: int) -> Array:
+	var v := verdict(team, rec)
+	var c: Color = v[1]
+	if c == Kit.GOOD:
+		c = Color("1f9e63")
+	elif c == Kit.ORANGE_HI:
+		c = Color("d9790f")
+	else:
+		c = Color("d63a24")
+	return [v[0], c]
 
 
 static func power_color(team: int, rec: int) -> Color:
@@ -64,26 +77,26 @@ static func power_color(team: int, rec: int) -> Color:
 
 ## Lineup strip: front row (slots 0-1) and back row (slots 2-4) as hero cards.
 ## units: Array of 5 Dictionaries indexed by slot ({} = empty) with hero_id, level, stars,
-## is_boss. echo = enemy echo tint.
-static func lineup(units: Array, card: float, echo: bool) -> HBoxContainer:
+## is_boss. echo = enemy echo tint. light = captions and divider for white panels.
+static func lineup(units: Array, card: float, echo: bool, light: bool = false) -> HBoxContainer:
 	var row := Kit.hbox(10)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(_group("Front", units, [0, 1], card, echo))
+	row.add_child(_group("Front", units, [0, 1], card, echo, light))
 	var sep := ColorRect.new()
-	sep.color = Color(Kit.GOLD, 0.25)
+	sep.color = Color(0, 0, 0, 0.16) if light else Color(1, 1, 1, 0.18)
 	sep.custom_minimum_size = Vector2(2, card * 0.8)
 	sep.size_flags_vertical = Control.SIZE_SHRINK_END
 	sep.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(sep)
-	row.add_child(_group("Back", units, [2, 3, 4], card, echo))
+	row.add_child(_group("Back", units, [2, 3, 4], card, echo, light))
 	return row
 
 
-static func _group(title: String, units: Array, slots: Array, card: float, echo: bool) -> VBoxContainer:
+static func _group(title: String, units: Array, slots: Array, card: float, echo: bool, light: bool = false) -> VBoxContainer:
 	var v := Kit.vbox(4)
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var t := Kit.caption(title.to_upper(), 17, Color(Kit.INK_DIM, 0.9))
+	var t := Kit.label(title.to_upper(), 17, Kit.TEXT_DIM if light else Color(Kit.INK_DIM, 0.9), "cond_bold")
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(t)
 	var h := Kit.hbox(6)
@@ -91,6 +104,13 @@ static func _group(title: String, units: Array, slots: Array, card: float, echo:
 	for s: int in slots:
 		var u: Dictionary = units[s] if s < units.size() else {}
 		if u.is_empty():
+			if light:
+				var ph := Panel.new()
+				ph.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				ph.custom_minimum_size = Vector2(card, card)
+				ph.add_theme_stylebox_override("panel", Kit.style("slot"))
+				h.add_child(ph)
+				continue
 			var e := Kit.empty_slot(card)
 			e.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			h.add_child(e)

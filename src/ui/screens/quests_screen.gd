@@ -1,8 +1,11 @@
 extends Control
-## Screen "quests": today's daily quests. Each card shows an icon, the goal, a progress bar,
-## its rewards and an action: Claim (ready), Go (jumps to where the quest is done) or a
-## Claimed check. Ready quests sort to the top; "Claim all" collects every ready quest in one
-## reward popup. A header counts completed quests and when they reset (local midnight).
+## Screen "quests" (top-bar Quests button), style v2: today's daily quests on a light page.
+## A dark header with the DAILY tab and the reset timer; a white progress panel (claimed out
+## of total, with the "complete N quests" bonus as the milestone); then one white row per
+## quest: a hex glyph (cyan when ready, grey when done), the goal, a cyan progress bar, the
+## rewards and an action: Claim (ready, red dot), Go (jumps to where the quest is done) or a
+## disabled Done. Ready quests sort to the top; "Claim All" collects every ready quest in one
+## reward popup.
 
 ## Where a quest is done, by the counter that drives it.
 const GO_TO := {
@@ -10,8 +13,8 @@ const GO_TO := {
 	"summons": "summon", "level_ups": "heroes",
 }
 const ICONS := {
-	"idle_claims": "chest", "quick_claims": "speed", "battles_won": "sword", "summons": "summon",
-	"level_ups": "arrow_up", "daily_quests_done": "crown",
+	"idle_claims": "sanctum", "quick_claims": "speed", "battles_won": "sword", "summons": "summon",
+	"level_ups": "upgrade", "daily_quests_done": "crown",
 }
 
 var _ready_count := 0
@@ -20,6 +23,7 @@ var _scroll: ScrollContainer
 var _reset_label: Label
 var _done_label: Label
 var _done_bar: ProgressBar
+var _milestone: HBoxContainer
 var _claim_all_slot: HBoxContainer
 var _tick := 0.0
 var _sig := ""
@@ -37,36 +41,61 @@ func _exit_tree() -> void:
 
 
 func _build() -> void:
-	var col := Kit.vbox(14)
+	var head := Kit.hbox(12)
+	head.set_anchors_and_offsets_preset(PRESET_TOP_WIDE)
+	head.offset_left = 16
+	head.offset_right = -16
+	head.offset_top = 10
+	head.offset_bottom = 10 + Kit.BUTTON_H
+	head.add_child(Kit.tab_strip([{"text": "Daily", "icon": "quests"}], 0, Callable(), 210.0))
+	head.add_child(Kit.spacer(0, 0, true))
+	var rt := Kit.hbox(8)
+	rt.mouse_filter = MOUSE_FILTER_IGNORE
+	rt.size_flags_vertical = SIZE_SHRINK_CENTER
+	rt.add_child(Kit.icon("timer", 34, Kit.INK_DIM))
+	var rv := Kit.vbox(-6)
+	rv.mouse_filter = MOUSE_FILTER_IGNORE
+	rv.add_child(Kit.label("RESETS IN", 16, Kit.INK_DIM, "cond_bold"))
+	_reset_label = Kit.label("", 30, Kit.INK, "cond_bold")
+	rv.add_child(_reset_label)
+	rt.add_child(rv)
+	head.add_child(rt)
+	add_child(head)
+
+	var page := Kit.page_bg("light")
+	page.offset_top = 10 + Kit.BUTTON_H
+	add_child(page)
+
+	var col := Kit.vbox(12)
 	col.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	col.offset_left = 22
-	col.offset_right = -22
-	col.offset_top = 14
-	col.offset_bottom = -12
+	col.offset_top = 10 + Kit.BUTTON_H + 16
+	col.offset_left = 16
+	col.offset_right = -16
+	col.offset_bottom = -14
 	add_child(col)
 
-	var head := Kit.panel("glass", 18)
-	var hv := Kit.vbox(10)
-	head.add_child(hv)
-	var top := Kit.hbox(12)
-	top.add_child(Kit.icon("quests", 64))
-	var tv := Kit.vbox(0)
-	tv.size_flags_horizontal = SIZE_EXPAND_FILL
-	tv.alignment = BoxContainer.ALIGNMENT_CENTER
-	tv.add_child(Kit.header("Daily Quests", 40))
-	_reset_label = Kit.caption("", 22)
-	tv.add_child(_reset_label)
-	top.add_child(tv)
-	hv.add_child(top)
-	var prog := Kit.hbox(12)
-	_done_bar = Kit.progress_bar(0, 1, Kit.GOLD, 26, "")
-	prog.add_child(_done_bar)
-	_done_label = Kit.label("", 24, Kit.GOLD_LIGHT, "black", 4)
-	prog.add_child(_done_label)
-	hv.add_child(prog)
-	col.add_child(head)
+	# Progress panel: claimed / total with the bonus quest as the milestone.
+	var prog := Kit.info_panel(14)
+	var pv := Kit.vbox(8)
+	prog.add_child(pv)
+	var ph := Kit.hbox(10)
+	ph.add_child(Kit.hex_badge("quests", 56, Kit.ACCENT, Color.WHITE))
+	var pt := Kit.vbox(-4)
+	pt.size_flags_horizontal = SIZE_EXPAND_FILL
+	pt.alignment = BoxContainer.ALIGNMENT_CENTER
+	pt.add_child(Kit.label("DAILY PROGRESS", 18, Kit.TEXT_DIM, "cond_bold"))
+	_done_label = Kit.label("", 36, Kit.TEXT, "title")
+	pt.add_child(_done_label)
+	ph.add_child(pt)
+	_milestone = Kit.hbox(6)
+	_milestone.mouse_filter = MOUSE_FILTER_IGNORE
+	ph.add_child(_milestone)
+	pv.add_child(ph)
+	_done_bar = Kit.progress_bar(0, 1, Kit.ACCENT, 16, "", true)
+	pv.add_child(_done_bar)
+	col.add_child(prog)
 
-	_list = Kit.vbox(14)
+	_list = Kit.vbox(10)
 	var m := Kit.margin(_list, 0, 0)
 	m.add_theme_constant_override("margin_bottom", 16)
 	_scroll = Kit.scroll(m)
@@ -85,7 +114,7 @@ func _process(delta: float) -> void:
 
 func _update_reset() -> void:
 	if _reset_label:
-		_reset_label.text = "Resets in %s" % _hm(Game.ms_until_reset())
+		_reset_label.text = _hm(Game.ms_until_reset())
 
 
 ## "5h 12m" (or "12m" under an hour).
@@ -109,14 +138,35 @@ func _refresh() -> void:
 	_sig = sig
 	var done := 0
 	var ready: Array[Dictionary] = []
+	var bonus: Dictionary = {}
 	for q in qs:
+		if str(q.get("counter", "")) == "daily_quests_done":
+			bonus = q
 		if bool(q.claimed):
 			done += 1
 		elif bool(q.get("ready", int(q.progress) >= int(q.goal))):
 			ready.append(q)
 	_ready_count = ready.size()
 	Kit.set_progress(_done_bar, done, qs.size(), "", false)
-	_done_label.text = "%d / %d claimed" % [done, qs.size()]
+	_done_label.text = "%d / %d CLAIMED" % [done, qs.size()]
+	for c in _milestone.get_children():
+		_milestone.remove_child(c)
+		c.queue_free()
+	if not bonus.is_empty():
+		var bv := Kit.vbox(0)
+		bv.mouse_filter = MOUSE_FILTER_IGNORE
+		bv.alignment = BoxContainer.ALIGNMENT_CENTER
+		bv.add_child(Kit.label("BONUS AT %d" % int(bonus.goal), 16, Kit.TEXT_DIM, "cond_bold"))
+		bv.add_child(Kit.label("%d / %d" % [mini(int(bonus.progress), int(bonus.goal)), int(bonus.goal)], 22, Kit.ACCENT_DEEP, "cond_bold"))
+		_milestone.add_child(bv)
+		var rl := Kit.hbox(6)
+		rl.mouse_filter = MOUSE_FILTER_IGNORE
+		rl.size_flags_vertical = SIZE_SHRINK_CENTER
+		for e: Dictionary in Kit.reward_entries(bonus.get("reward", {})):
+			rl.add_child(Kit.reward_tile(str(e.kind), str(e.id), int(e.amount), 64.0, false, true))
+		if bool(bonus.claimed):
+			rl.modulate.a = 0.45
+		_milestone.add_child(rl)
 
 	var sorted := qs.duplicate()
 	sorted.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
@@ -128,15 +178,17 @@ func _refresh() -> void:
 		_list.remove_child(c)
 		c.queue_free()
 	for q: Dictionary in sorted:
-		_list.add_child(_quest_card(q))
+		_list.add_child(_quest_row(q))
 	if qs.is_empty():
-		_list.add_child(Kit.empty_state("No quests today.", "quests"))
+		_list.add_child(Kit.empty_state("No quests today.", "quests", true))
 	_restore.call_deferred(keep)
 
 	for c in _claim_all_slot.get_children():
+		_claim_all_slot.remove_child(c)
 		c.queue_free()
 	if ready.size() >= 2:
-		var b := Kit.primary_button("Claim all (%d)" % ready.size(), _claim_all, "gift")
+		var b := Kit.primary_button("Claim All (%d)" % ready.size(), _claim_all, "gift")
+		b.name = "ClaimAll"
 		b.size_flags_horizontal = SIZE_EXPAND_FILL
 		b.custom_minimum_size.y = 96
 		_claim_all_slot.add_child(b)
@@ -156,35 +208,31 @@ static func _rank(q: Dictionary) -> int:
 	return 0 if int(q.progress) >= int(q.goal) else 1
 
 
-func _quest_card(q: Dictionary) -> Control:
+func _quest_row(q: Dictionary) -> Control:
 	var claimed := bool(q.claimed)
 	var ready := not claimed and int(q.progress) >= int(q.goal)
 	var counter := str(q.get("counter", ""))
-	var card := Kit.card(16)
-	if ready:
-		card.add_theme_stylebox_override("panel", Kit.box(Color("3a2c5e"), Color("231a44"), Kit.GOLD, 16.0, 3, 16))
+	var card := Kit.info_panel(12)
+	card.name = "Quest_" + str(q.id)
 	var row := Kit.hbox(14)
 	card.add_child(row)
 
-	var disc := Panel.new()
-	disc.custom_minimum_size = Vector2(84, 84)
-	disc.size_flags_vertical = SIZE_SHRINK_CENTER
-	disc.mouse_filter = MOUSE_FILTER_IGNORE
-	var acc := Kit.GOLD if ready else (Kit.GOOD if claimed else Kit.VIOLET)
-	disc.add_theme_stylebox_override("panel", Kit.box(acc.darkened(0.45), acc.darkened(0.8), acc.darkened(0.1), 999.0, 3))
-	var ic := Kit.icon(str(ICONS.get(counter, "quests")), 54)
-	ic.position = Vector2(15, 15)
-	ic.size = Vector2(54, 54)
-	disc.add_child(ic)
-	row.add_child(disc)
+	var hx_fill := Kit.ACCENT if ready else (Color("d9dee4") if claimed else Color("26282c"))
+	var hx := Kit.hex_badge(str(ICONS.get(counter, "quests")) if not claimed else "check", 72, hx_fill, Kit.TEXT if claimed else Color.WHITE)
+	if ready:
+		hx.set("glow", Color(Kit.ACCENT, 0.45))
+		hx.set("glow_size", 8.0)
+	hx.size_flags_vertical = SIZE_SHRINK_CENTER
+	row.add_child(hx)
 
-	var mid := Kit.vbox(8)
+	var mid := Kit.vbox(6)
 	mid.size_flags_horizontal = SIZE_EXPAND_FILL
-	var t := Kit.label(str(q.title), 26, Kit.INK if not claimed else Kit.INK_DIM, "extrabold")
+	mid.mouse_filter = MOUSE_FILTER_IGNORE
+	var t := Kit.label(str(q.title), 25, Kit.TEXT if not claimed else Kit.TEXT_DIM, "extrabold")
 	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	mid.add_child(t)
 	var p := mini(int(q.progress), int(q.goal))
-	var bar := Kit.progress_bar(p, int(q.goal), Kit.GOLD if ready else (Kit.GOOD if claimed else Kit.SKY), 24, "%d / %d" % [p, int(q.goal)])
+	var bar := Kit.progress_bar(p, int(q.goal), Kit.ACCENT if not claimed else Color("9aa1aa"), 18, "%d / %d" % [p, int(q.goal)], true)
 	mid.add_child(bar)
 	var rw := Kit.hbox(12)
 	rw.mouse_filter = MOUSE_FILTER_IGNORE
@@ -193,8 +241,8 @@ func _quest_card(q: Dictionary) -> Control:
 			continue
 		var pair := Kit.hbox(4)
 		pair.mouse_filter = MOUSE_FILTER_IGNORE
-		pair.add_child(Kit.currency_icon(str(e.id), 32))
-		pair.add_child(Kit.label(Kit.format_num(int(e.amount)), 22, Kit.INK if not claimed else Kit.INK_DIM, "black", 4))
+		pair.add_child(Kit.currency_icon(str(e.id), 30))
+		pair.add_child(Kit.label(Kit.format_num(int(e.amount)), 22, Kit.TEXT if not claimed else Kit.TEXT_DIM, "cond_bold"))
 		rw.add_child(pair)
 	mid.add_child(rw)
 	row.add_child(mid)
@@ -202,26 +250,26 @@ func _quest_card(q: Dictionary) -> Control:
 	var qid := str(q.id)
 	var b: Button
 	if claimed:
-		b = Kit.secondary_button("Done", Callable(), "check")
+		b = Kit.light_button("Done", Callable(), "check")
 		b.disabled = true
 	elif ready:
 		b = Kit.primary_button("Claim", func() -> void: _claim(qid, card))
-		Kit.set_dot(b, true, 24, Vector2(8, 8))
-		# A single finished quest: ring its Claim button (Claim all takes over for two or more).
+		Kit.set_dot(b, true, 22, Vector2(6, 6))
+		# A single finished quest: ring its Claim button (Claim All takes over for two or more).
 		if _ready_count == 1:
 			Guide.mark(b, Guide.step() == "quests", 0)
 	elif GO_TO.has(counter):
 		var dest: String = GO_TO[counter]
-		b = Kit.secondary_button("Go", func() -> void: UI.go(dest), "chevron_right")
+		b = Kit.light_button("Go", func() -> void: UI.go(dest), "arrow_right")
 	else:
-		b = Kit.secondary_button("Go")
+		b = Kit.light_button("%d left" % (int(q.goal) - p))
 		b.disabled = true
-		b.text = "%d left" % (int(q.goal) - p)
-	b.custom_minimum_size = Vector2(150, 88)
+	b.custom_minimum_size = Vector2(140, Kit.BUTTON_H)
+	b.add_theme_font_size_override("font_size", 26)
 	b.size_flags_vertical = SIZE_SHRINK_CENTER
 	row.add_child(b)
 	if claimed:
-		card.modulate = Color(1, 1, 1, 0.66)
+		card.modulate = Color(1, 1, 1, 0.72)
 	return card
 
 
