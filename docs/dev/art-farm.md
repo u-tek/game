@@ -388,6 +388,13 @@ lines, cast shadows, a sunburst frame, a white glow disc and lyre strings stay o
 defects remain: grey pockets inside seraphiel's halo windows, a notch in nuriel's white wing
 (feather fill = backdrop colour, taken as an enclosed hole), white rims inside dark hair on white
 backdrops (mordessa, kessa), a soft floor shadow under noctaire.
+Follow-ups: run 38902617668 (`round1-v3-retry`, alternates) dropped sable s303000 again at the
+same 0.2515 and delivered orrin s302000 (clean, no chest chain), orrin s302001 (chest chain added
+by the repair, tower shield cut flat at the bottom, purple floor splash) and sable s303001
+(chains instead of the censer; a semi-transparent patch on the inner thigh where a pale highlight
+matches the white backdrop). Run 38913405511 (code 4405f7e) re-rendered vesper s203000 with the
+orb; NudeNet then called the orb `BUTTOCKS_EXPOSED` 0.64 and one repair pass repainted the orb's
+interior (still an orb, the hand intact).
 
 **Estimates for the `standard` preset** (28 steps with CFG):
 - one candidate: 28-41 min of sampling + about 1 min decode; with `per_job=1` a hero's
