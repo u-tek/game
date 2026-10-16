@@ -255,7 +255,7 @@ func _lobby_widgets(list: VBoxContainer) -> void:
 	var nb := Kit.notice_bar("Next: Stage 1-3", Callable(), 320)
 	nb.position = Vector2(350, 300)
 	stage.add_child(nb)
-	var meter := Kit.percent_meter("Sanctum\nfill", 31.0, "sanctum", "LV.01")
+	var meter := Kit.percent_meter("Fill", 31.0, "sanctum")
 	var s1 := Kit.shortcut("Shop", "shop", "blue", Callable(), {"size": Vector2(320, 128)})
 	s1.position = Vector2(4, 470)
 	stage.add_child(s1)
@@ -494,10 +494,10 @@ func _mock_lobby() -> void:
 	s2.position = Vector2(lx, ly + 128)
 	ui.add_child(s2)
 	var rx := w - 104.0 - 6.0
-	var r1 := Kit.side_button("team", "Team", func() -> void: UI.go("formation"), "diamond", "dot")
+	var r1 := Kit.side_button("team", "Team", func() -> void: UI.go("formation"), "dark", "dot")
 	r1.position = Vector2(rx, ly)
 	ui.add_child(r1)
-	var r2 := Kit.side_button("eye_off", "View", Callable(), "diamond")
+	var r2 := Kit.side_button("eye_off", "View", Callable(), "dark")
 	r2.position = Vector2(rx, ly + 128)
 	ui.add_child(r2)
 	r2.pressed.connect(func() -> void:
@@ -519,23 +519,24 @@ func _mock_lobby() -> void:
 		ar.position = Vector2(8 if side < 0 else w - 52, vh * 0.5 - 22)
 		ui.add_child(ar)
 
-	var speech := Kit.speech_bubble(str(Game.hero_def(hero).get("name", hero)), "The sky holds as long as we do. Shall we go?", 520)
-	speech.position = Vector2(54, vh * 0.5 - 40)
+	var speech := Kit.speech_bubble(str(Game.hero_def(hero).get("name", hero)), "The sky holds as long as we do. Shall we go?", 400)
+	speech.position = Vector2(84, vh * 0.5 - 40)
 	ui.add_child(speech)
 
 	# Shortcut plates, bottom-left and bottom-right.
-	var by := vh - bottom - 318.0
+	var by := vh - bottom - 302.0
 	var idle: Dictionary = Game.idle_status()
 	var pct := 100.0 * float(idle.get("elapsed_ms", 0)) / maxf(float(idle.get("cap_ms", 1)), 1.0)
-	var meter := Kit.percent_meter("Sanctum\nfill", pct, "sanctum", "LV.%02d" % (Game.cleared_count() + 1))
-	var shop := Kit.shortcut("Shop", "shop", "blue", func() -> void: UI.go("shop"), {"size": Vector2(318, 124)})
+	var meter := Kit.percent_meter("Fill", pct, "sanctum")
+	var shop := Kit.shortcut("Shop", "shop", "blue", func() -> void: UI.go("shop"), {"size": Vector2(268, 116)})
 	shop.position = Vector2(8, by)
 	ui.add_child(shop)
-	var sanctum := Kit.shortcut("Sanctum", "sanctum", "dark", func() -> void: UI.go("home"), {"size": Vector2(336, 156), "sub": meter, "badge": "N" if bool(idle.get("full", false)) else ""})
-	sanctum.position = Vector2(2, by + 132)
+	var sanctum := Kit.shortcut("Sanctum", "sanctum", "dark", func() -> void: UI.go("home"), {"size": Vector2(304, 150), "sub": meter, "badge": "N" if bool(idle.get("full", false)) else ""})
+	sanctum.position = Vector2(8, by + 124)
+	sanctum.call("set_title_tag", "LV %d" % (Game.cleared_count() + 1))
 	ui.add_child(sanctum)
-	var quests := Kit.shortcut("Quests", "quests", "white", func() -> void: UI.go("quests"), {"size": Vector2(318, 124), "side": "right", "badge": "dot" if Game.quests_ready_count() > 0 else ""})
-	quests.position = Vector2(w - 318 - 8, by)
+	var quests := Kit.shortcut("Quests", "quests", "white", func() -> void: UI.go("quests"), {"size": Vector2(268, 116), "side": "right", "badge": "dot" if Game.quests_ready_count() > 0 else ""})
+	quests.position = Vector2(w - 268 - 8, by)
 	ui.add_child(quests)
 	var boss := ""
 	for e: Variant in st.get("enemies", []):
@@ -543,9 +544,9 @@ func _mock_lobby() -> void:
 			boss = str((e as Dictionary).get("hero_id", ""))
 	if boss == "" and not (st.get("enemies", []) as Array).is_empty():
 		boss = str(((st.get("enemies", []) as Array)[0] as Dictionary).get("hero_id", ""))
-	var camp := Kit.shortcut("Campaign", "campaign", "orange", func() -> void: UI.go("campaign"), {"size": Vector2(336, 156), "side": "right", "badge": "!",
+	var camp := Kit.shortcut("Campaign", "campaign", "orange", func() -> void: UI.go("campaign"), {"size": Vector2(304, 150), "side": "right", "badge": "!",
 		"art": Kit.art_crop(boss, 2.2, 1.4) if boss != "" else null, "art_caption": "STAGE %s" % str(st.get("id", "1-1"))})
-	camp.position = Vector2(w - 336 - 2, by + 132)
+	camp.position = Vector2(w - 304 - 8, by + 124)
 	ui.add_child(camp)
 
 
@@ -565,7 +566,7 @@ func _mock_roster() -> void:
 	var team := Kit.secondary_button("Team", func() -> void: UI.go("formation"), "team")
 	team.custom_minimum_size.x = 176
 	head.add_child(team)
-	var codex := Kit.secondary_button("Codex", Callable(), "scrolls")
+	var codex := Kit.secondary_button("Codex", Callable(), "codex")
 	codex.custom_minimum_size.x = 176
 	head.add_child(codex)
 	add_child(head)
