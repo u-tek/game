@@ -1,0 +1,244 @@
+{
+ "key": "sable-c2",
+ "run": "38859902166-candidates-round1-v3",
+ "hero": "sable",
+ "mode": "candidates",
+ "seeds": [
+  303002
+ ],
+ "preset": "standard",
+ "preset_settings": {
+  "sampler": "euler_ancestral",
+  "steps": 28,
+  "cfg": 5.0,
+  "width": 832,
+  "height": 1216,
+  "doc": "Animagine XL 4.0 model card: Euler a, 28 steps, CFG 5, 832x1216 (default for candidates and finals; about 25-40 min per image on the 4-vCPU runners)"
+ },
+ "style": "bible",
+ "dtype": "fp32",
+ "env": {
+  "python": "3.11.17",
+  "machine": "x86_64",
+  "cpus": 4,
+  "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+  "mem_gb": 15.6,
+  "torch": "2.8.0+cpu",
+  "diffusers": "0.35.2",
+  "transformers": "4.56.2",
+  "rembg": "2.0.85",
+  "onnxruntime": "1.23.2"
+ },
+ "timing": {
+  "download_s": 0.2,
+  "encode_s": 8.0,
+  "engine_load_s": 14.6,
+  "last_image_s": 1265.6,
+  "s_per_txt2img": 1265.6
+ },
+ "images": [
+  {
+   "what": "txt2img 832x1216",
+   "sample_s": 1228.6,
+   "steps_run": 28,
+   "num_inference_steps": 28,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 43.88,
+   "step_s": [
+    61.24,
+    42.78,
+    42.2,
+    43.02,
+    44.3,
+    42.32,
+    43.01,
+    43.93,
+    44.58,
+    44.07,
+    42.98,
+    43.08,
+    44.71,
+    44.84,
+    45.73,
+    44.79,
+    43.63,
+    44.14,
+    42.2,
+    42.08,
+    41.86,
+    41.15,
+    40.94,
+    39.76,
+    40.85,
+    44.11,
+    45.42,
+    44.89
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 11.0,
+    "vmrss_gb": 10.28,
+    "memavail_gb": 4.6
+   },
+   "steps_effective": 28,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 4.599216461181641,
+   "decode_s": 36.2,
+   "seconds": 1265.6,
+   "mem_stage": {
+    "vmhwm_gb": 13.95,
+    "vmrss_gb": 10.3,
+    "memavail_gb": 4.26
+   },
+   "vmhwm_gb": 13.95,
+   "rss_peak_gb": 13.95,
+   "seed": 303002
+  },
+  {
+   "what": "inpaint 768x768 @0.60",
+   "sample_s": 380.5,
+   "steps_run": 14,
+   "num_inference_steps": 24,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 27.18,
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 11.96,
+    "vmrss_gb": 10.66,
+    "memavail_gb": 4.09
+   },
+   "steps_effective": 14,
+   "strength": 0.6,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 4.093898773193359,
+   "decode_s": 18.9,
+   "seconds": 399.3,
+   "mem_stage": {
+    "vmhwm_gb": 12.76,
+    "vmrss_gb": 10.66,
+    "memavail_gb": 3.93
+   },
+   "vmhwm_gb": 12.76,
+   "rss_peak_gb": 12.76,
+   "crop": [
+    20,
+    171,
+    466,
+    466
+   ],
+   "denoise": 0.6,
+   "seed": 303702,
+   "px": 768,
+   "step": "cover_repair",
+   "rel": "sable/sable_s303002.webp"
+  },
+  {
+   "what": "inpaint 768x768 @0.60",
+   "sample_s": 383.4,
+   "steps_run": 14,
+   "num_inference_steps": 24,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 27.39,
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 12.06,
+    "vmrss_gb": 10.66,
+    "memavail_gb": 4.11
+   },
+   "steps_effective": 14,
+   "strength": 0.6,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 4.106761932373047,
+   "decode_s": 19.1,
+   "seconds": 402.5,
+   "mem_stage": {
+    "vmhwm_gb": 12.76,
+    "vmrss_gb": 10.66,
+    "memavail_gb": 4.02
+   },
+   "vmhwm_gb": 12.76,
+   "rss_peak_gb": 12.76,
+   "crop": [
+    61,
+    626,
+    320,
+    320
+   ],
+   "denoise": 0.6,
+   "seed": 303703,
+   "px": 768,
+   "step": "cover_repair",
+   "rel": "sable/sable_s303002.webp"
+  }
+ ],
+ "stage_mem": [],
+ "skipped": [],
+ "errors": [],
+ "started": "2026-10-16T07:41:52Z",
+ "licenses": {
+  "model": {
+   "repo": "cagliostrolab/animagine-xl-4.0",
+   "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)",
+   "license_url": "https://huggingface.co/cagliostrolab/animagine-xl-4.0"
+  },
+  "aux": {
+   "cutout": {
+    "name": "rembg isnet-anime",
+    "license": "rembg MIT; IS-Net anime model Apache-2.0 (SkyTNT/anime-segmentation)"
+   },
+   "nudenet": {
+    "name": "NudeNet 3.4.2 detector (320n)",
+    "license": "MIT (weights bundled in the pip package)"
+   },
+   "anime_censor": {
+    "repo": "deepghs/anime_censor_detection",
+    "model": "censor_detect_v1.0_s",
+    "name": "deepghs anime censor-point detector (YOLOv8)"
+   },
+   "anime_face": {
+    "repo": "deepghs/anime_face_detection",
+    "model": "face_detect_v1.4_s",
+    "name": "deepghs anime face detector (YOLOv8)"
+   }
+  }
+ },
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)",
+  "variants": {
+   "unet": null,
+   "vae": null,
+   "text_encoder": null,
+   "text_encoder_2": null
+  },
+  "download_s": 0.2,
+  "size_gb": 6.94
+ },
+ "engine": {
+  "dtype": "fp32",
+  "threads": 4,
+  "vae_dtype": "fp32",
+  "vae_force_upcast": false,
+  "vae_scaling_factor": 0.13025,
+  "bf16_native": true
+ },
+ "filter": {
+  "checked": 2,
+  "passed": 1,
+  "dropped": 1,
+  "errors": 0,
+  "repaired": 1
+ },
+ "finished": "2026-10-16T08:16:53Z",
+ "wall_s": 2155.5,
+ "exit_code": 0
+}

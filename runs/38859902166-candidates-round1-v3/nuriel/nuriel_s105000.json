@@ -1,0 +1,266 @@
+{
+ "hero": "nuriel",
+ "mode": "candidates",
+ "seed": 105000,
+ "image": "nuriel_s105000.webp",
+ "dropped": false,
+ "width": 832,
+ "height": 1216,
+ "preset": "standard",
+ "preset_settings": {
+  "sampler": "euler_ancestral",
+  "steps": 28,
+  "cfg": 5.0,
+  "width": 832,
+  "height": 1216,
+  "doc": "Animagine XL 4.0 model card: Euler a, 28 steps, CFG 5, 832x1216 (default for candidates and finals; about 25-40 min per image on the 4-vCPU runners)"
+ },
+ "dtype": "fp32",
+ "family": "animagine",
+ "style": {
+  "name": "bible",
+  "spec": {
+   "doc": "the prompt bible exactly as written"
+  }
+ },
+ "prompt": "1boy, solo, male focus, adult, mature male, full body, standing, contrapposto, looking at viewer, toned male, abs, pectorals, blonde hair, short hair, messy hair, blue eyes, serious, halo, mouth mask, small wings, white wings, hooded jacket, sleeveless, open jacket, blue jacket, no shirt, chest harness, multiple belts, black pants, boots, dagger, dual wielding, reverse grip, crossed arms, white and gold theme, simple background, grey background, official art, detailed shading, rim lighting, masterpiece, high score, great score, absurdres, sensitive",
+ "negative": "worst quality, low quality, low score, bad score, average score, nsfw, explicit, (blue archive:1.3), (bulge:1.3), (penis:1.2), lowres, blurry, jpeg artifacts, bad anatomy, bad hands, missing fingers, extra digits, fewer digits, extra arms, error, cropped, feet out of frame, head out of frame, wings out of frame, upper body, cowboy shot, multiple views, scenery, light particles, sparkle, embers, aura, light rays, smoke, speed lines, nude, nipples, areolae, covered nipples, nipple slip, areola slip, pussy, cameltoe, anus, pubic hair, sex, spread legs, see-through, loli, shota, child, underage, teenage, young, aged down, school uniform, text, watermark, signature, username, chibi, 3d, realistic, 1girl, multiple boys, breasts",
+ "prompt_chunks": [
+  2,
+  3
+ ],
+ "background": {
+  "key": "grey",
+  "rgb": [
+   128,
+   128,
+   128
+  ]
+ },
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)"
+ },
+ "lora": null,
+ "render": {
+  "what": "txt2img 832x1216",
+  "sample_s": 1654.8,
+  "steps_run": 28,
+  "num_inference_steps": 28,
+  "cfg": 5.0,
+  "sampler": "EulerAncestralDiscreteScheduler",
+  "s_per_step": 59.1,
+  "step_s": [
+   71.91,
+   58.02,
+   57.73,
+   56.77,
+   57.49,
+   58.7,
+   58.21,
+   58.1,
+   57.39,
+   57.05,
+   59.06,
+   60.71,
+   60.4,
+   59.77,
+   58.93,
+   58.64,
+   55.61,
+   57.04,
+   58.74,
+   59.19,
+   59.3,
+   58.79,
+   59.35,
+   60.25,
+   59.97,
+   59.43,
+   59.97,
+   58.33
+  ],
+  "overhead_s": 0.0,
+  "dtype": "fp32",
+  "threads": 4,
+  "mem_sample": {
+   "vmhwm_gb": 11.55,
+   "vmrss_gb": 10.84,
+   "memavail_gb": 4.06
+  },
+  "steps_effective": 28,
+  "decode": "untiled",
+  "memavail_before_decode_gb": 4.063385009765625,
+  "decode_s": 25.0,
+  "seconds": 1680.2,
+  "mem_stage": {
+   "vmhwm_gb": 14.36,
+   "vmrss_gb": 10.74,
+   "memavail_gb": 3.8
+  },
+  "vmhwm_gb": 14.36,
+  "rss_peak_gb": 14.36
+ },
+ "framing": {
+  "touches": [],
+  "edge_low": 0.186,
+  "bg_rgb": [
+   231.0,
+   231.0,
+   231.0
+  ],
+  "bg_off": 178.4,
+  "figure_frac": 0.26,
+  "holes_kept_as_figure": 0,
+  "flags": [
+   "BG?"
+  ]
+ },
+ "filter": {
+  "nudenet": {
+   "FEMALE_BREAST_EXPOSED": 0.073,
+   "FEMALE_GENITALIA_EXPOSED": 0.0006,
+   "MALE_GENITALIA_EXPOSED": 0.0018,
+   "ANUS_EXPOSED": 0.0001,
+   "BUTTOCKS_EXPOSED": 0.0041
+  },
+  "anime_censor": {
+   "nipple_f": 0.2274,
+   "penis": 0.0016,
+   "pussy": 0.0016
+  }
+ },
+ "repair": {
+  "original": {
+   "scores": {
+    "nudenet": {
+     "FEMALE_BREAST_EXPOSED": 0.0613,
+     "FEMALE_GENITALIA_EXPOSED": 0.0006,
+     "MALE_GENITALIA_EXPOSED": 0.0018,
+     "ANUS_EXPOSED": 0.0001,
+     "BUTTOCKS_EXPOSED": 0.0045
+    },
+    "anime_censor": {
+     "nipple_f": 0.4881,
+     "penis": 0.0013,
+     "pussy": 0.0016
+    }
+   },
+   "flagged": [
+    {
+     "detector": "anime_censor",
+     "class": "nipple_f",
+     "score": 0.4881,
+     "view": "full"
+    }
+   ]
+  },
+  "settings": {
+   "denoise": 0.6,
+   "steps": 14,
+   "px": 768,
+   "pad": 0.25,
+   "context": 2.0,
+   "box_conf_frac": 0.5,
+   "near_frac": 0.8
+  },
+  "attempts": [
+   {
+    "attempt": 1,
+    "classes": {
+     "anime_censor": [
+      "nipple_f"
+     ]
+    },
+    "boxes": [
+     {
+      "detector": "anime_censor",
+      "class": "nipple_f",
+      "score": 0.4799,
+      "view": "full",
+      "box": [
+       382.4,
+       305.7,
+       399.6,
+       322.1
+      ]
+     },
+     {
+      "detector": "anime_censor",
+      "class": "nipple_f",
+      "score": 0.2264,
+      "view": "t832_0_0",
+      "box": [
+       382.4,
+       306.9,
+       399.9,
+       320.8
+      ]
+     }
+    ],
+    "regions": [
+     [
+      367,
+      289,
+      415,
+      338
+     ]
+    ],
+    "area_frac": 0.0023,
+    "crops": [
+     [
+      231,
+      154,
+      551,
+      474
+     ]
+    ],
+    "seeds": [
+     105700
+    ],
+    "inpaints": [
+     {
+      "seconds": 505.8,
+      "s_per_step": 35.19,
+      "steps_run": 14,
+      "steps_effective": 14,
+      "num_inference_steps": 24,
+      "vmhwm_gb": 13.04,
+      "crop": [
+       231,
+       154,
+       320,
+       320
+      ],
+      "px": 768
+     }
+    ],
+    "seconds": 505.8,
+    "after": {
+     "scores": {
+      "nudenet": {
+       "FEMALE_BREAST_EXPOSED": 0.073,
+       "FEMALE_GENITALIA_EXPOSED": 0.0006,
+       "MALE_GENITALIA_EXPOSED": 0.0018,
+       "ANUS_EXPOSED": 0.0001,
+       "BUTTOCKS_EXPOSED": 0.0041
+      },
+      "anime_censor": {
+       "nipple_f": 0.2274,
+       "penis": 0.0016,
+       "pussy": 0.0016
+      }
+     },
+     "flagged": []
+    }
+   }
+  ],
+  "result": "published after 1 repair pass(es)"
+ },
+ "cover_prompt": {
+  "positive": "1boy, solo, male focus, adult, mature male, blue glossy fabric, gold filigree panels, clothed, blonde hair, short hair, messy hair, hooded jacket, sleeveless, blue jacket, chest harness, multiple belts, black pants, boots, dagger, dual wielding, reverse grip, official art, detailed shading, rim lighting, simple background, grey background, masterpiece, high score, great score, absurdres, sensitive",
+  "negative": "(nude:1.4), (penis:1.5), (nsfw:1.3), (bulge:1.3), (pubic hair:1.3), worst quality, low quality, low score, bad score, average score, explicit, (blue archive:1.3), lowres, blurry, jpeg artifacts, bad anatomy, bad hands, missing fingers, extra digits, fewer digits, extra arms, error, light particles, sparkle, embers, aura, light rays, smoke, speed lines, nipples, areolae, covered nipples, nipple slip, areola slip, pussy, cameltoe, anus, sex, spread legs, see-through, loli, shota, child, underage, teenage, young, aged down, school uniform, text, watermark, signature, username, chibi, 3d, realistic, 1girl, multiple boys, breasts"
+ },
+ "run": "38859902166-candidates-round1-v3",
+ "created": "2026-10-16T06:52:12Z"
+}

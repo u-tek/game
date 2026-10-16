@@ -1,0 +1,203 @@
+{
+ "key": "nuriel-c0",
+ "run": "38859902166-candidates-round1-v3",
+ "hero": "nuriel",
+ "mode": "candidates",
+ "seeds": [
+  105000
+ ],
+ "preset": "standard",
+ "preset_settings": {
+  "sampler": "euler_ancestral",
+  "steps": 28,
+  "cfg": 5.0,
+  "width": 832,
+  "height": 1216,
+  "doc": "Animagine XL 4.0 model card: Euler a, 28 steps, CFG 5, 832x1216 (default for candidates and finals; about 25-40 min per image on the 4-vCPU runners)"
+ },
+ "style": "bible",
+ "dtype": "fp32",
+ "env": {
+  "python": "3.11.17",
+  "machine": "x86_64",
+  "cpus": 4,
+  "cpu": "AMD EPYC 9V45 96-Core Processor",
+  "mem_gb": 15.6,
+  "torch": "2.8.0+cpu",
+  "diffusers": "0.35.2",
+  "transformers": "4.56.2",
+  "rembg": "2.0.85",
+  "onnxruntime": "1.23.2"
+ },
+ "timing": {
+  "download_s": 0.1,
+  "encode_s": 9.0,
+  "engine_load_s": 15.5,
+  "last_image_s": 1680.2,
+  "s_per_txt2img": 1680.2
+ },
+ "images": [
+  {
+   "what": "txt2img 832x1216",
+   "sample_s": 1654.8,
+   "steps_run": 28,
+   "num_inference_steps": 28,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 59.1,
+   "step_s": [
+    71.91,
+    58.02,
+    57.73,
+    56.77,
+    57.49,
+    58.7,
+    58.21,
+    58.1,
+    57.39,
+    57.05,
+    59.06,
+    60.71,
+    60.4,
+    59.77,
+    58.93,
+    58.64,
+    55.61,
+    57.04,
+    58.74,
+    59.19,
+    59.3,
+    58.79,
+    59.35,
+    60.25,
+    59.97,
+    59.43,
+    59.97,
+    58.33
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 11.55,
+    "vmrss_gb": 10.84,
+    "memavail_gb": 4.06
+   },
+   "steps_effective": 28,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 4.063385009765625,
+   "decode_s": 25.0,
+   "seconds": 1680.2,
+   "mem_stage": {
+    "vmhwm_gb": 14.36,
+    "vmrss_gb": 10.74,
+    "memavail_gb": 3.8
+   },
+   "vmhwm_gb": 14.36,
+   "rss_peak_gb": 14.36,
+   "seed": 105000
+  },
+  {
+   "what": "inpaint 768x768 @0.60",
+   "sample_s": 492.7,
+   "steps_run": 14,
+   "num_inference_steps": 24,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 35.19,
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 12.21,
+    "vmrss_gb": 10.94,
+    "memavail_gb": 3.88
+   },
+   "steps_effective": 14,
+   "strength": 0.6,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 3.884998321533203,
+   "decode_s": 13.1,
+   "seconds": 505.8,
+   "mem_stage": {
+    "vmhwm_gb": 13.04,
+    "vmrss_gb": 10.93,
+    "memavail_gb": 3.71
+   },
+   "vmhwm_gb": 13.04,
+   "rss_peak_gb": 13.04,
+   "crop": [
+    231,
+    154,
+    320,
+    320
+   ],
+   "denoise": 0.6,
+   "seed": 105700,
+   "px": 768,
+   "step": "cover_repair",
+   "rel": "nuriel/nuriel_s105000.webp"
+  }
+ ],
+ "stage_mem": [],
+ "skipped": [],
+ "errors": [],
+ "started": "2026-10-16T06:15:15Z",
+ "licenses": {
+  "model": {
+   "repo": "cagliostrolab/animagine-xl-4.0",
+   "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)",
+   "license_url": "https://huggingface.co/cagliostrolab/animagine-xl-4.0"
+  },
+  "aux": {
+   "cutout": {
+    "name": "rembg isnet-anime",
+    "license": "rembg MIT; IS-Net anime model Apache-2.0 (SkyTNT/anime-segmentation)"
+   },
+   "nudenet": {
+    "name": "NudeNet 3.4.2 detector (320n)",
+    "license": "MIT (weights bundled in the pip package)"
+   },
+   "anime_censor": {
+    "repo": "deepghs/anime_censor_detection",
+    "model": "censor_detect_v1.0_s",
+    "name": "deepghs anime censor-point detector (YOLOv8)"
+   },
+   "anime_face": {
+    "repo": "deepghs/anime_face_detection",
+    "model": "face_detect_v1.4_s",
+    "name": "deepghs anime face detector (YOLOv8)"
+   }
+  }
+ },
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)",
+  "variants": {
+   "unet": null,
+   "vae": null,
+   "text_encoder": null,
+   "text_encoder_2": null
+  },
+  "download_s": 0.1,
+  "size_gb": 6.94
+ },
+ "engine": {
+  "dtype": "fp32",
+  "threads": 4,
+  "vae_dtype": "fp32",
+  "vae_force_upcast": false,
+  "vae_scaling_factor": 0.13025,
+  "bf16_native": true
+ },
+ "filter": {
+  "checked": 2,
+  "passed": 1,
+  "dropped": 1,
+  "errors": 0,
+  "repaired": 1
+ },
+ "finished": "2026-10-16T06:52:12Z",
+ "wall_s": 2256.7,
+ "exit_code": 0
+}

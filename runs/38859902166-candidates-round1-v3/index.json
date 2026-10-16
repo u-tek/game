@@ -1,0 +1,2825 @@
+{
+ "run": "38859902166-candidates-round1-v3",
+ "created": "2026-10-16T08:51:43Z",
+ "jobs_expected": [
+  "seraphiel-c0",
+  "seraphiel-c1",
+  "seraphiel-c2",
+  "cassiel-c0",
+  "cassiel-c1",
+  "cassiel-c2",
+  "liora-c0",
+  "liora-c1",
+  "liora-c2",
+  "uriela-c0",
+  "uriela-c1",
+  "uriela-c2",
+  "nuriel-c0",
+  "nuriel-c1",
+  "nuriel-c2",
+  "mordessa-c0",
+  "mordessa-c1",
+  "mordessa-c2",
+  "brakka-c0",
+  "brakka-c1",
+  "brakka-c2",
+  "vesper-c0",
+  "vesper-c1",
+  "vesper-c2",
+  "imra-c0",
+  "imra-c1",
+  "imra-c2",
+  "kessa-c0",
+  "kessa-c1",
+  "kessa-c2",
+  "noctaire-c0",
+  "noctaire-c1",
+  "noctaire-c2",
+  "orrin-c0",
+  "orrin-c1",
+  "orrin-c2",
+  "sable-c0",
+  "sable-c1",
+  "sable-c2",
+  "lucen-c0",
+  "lucen-c1",
+  "lucen-c2",
+  "ashra-c0",
+  "ashra-c1",
+  "ashra-c2"
+ ],
+ "jobs_missing": [],
+ "heroes": {
+  "ashra": {
+   "images": [
+    "ashra/ashra_s305000.webp",
+    "ashra/ashra_s305001.webp",
+    "ashra/ashra_s305002.webp"
+   ],
+   "dropped": 1
+  },
+  "brakka": {
+   "images": [
+    "brakka/brakka_s202000.webp",
+    "brakka/brakka_s202001.webp",
+    "brakka/contact_sheet.webp"
+   ],
+   "dropped": 1
+  },
+  "cassiel": {
+   "images": [
+    "cassiel/cassiel_s102000.webp",
+    "cassiel/cassiel_s102001.webp",
+    "cassiel/cassiel_s102002.webp"
+   ],
+   "dropped": 1
+  },
+  "imra": {
+   "images": [
+    "imra/contact_sheet.webp",
+    "imra/imra_s204000.webp",
+    "imra/imra_s204001.webp",
+    "imra/imra_s204002.webp"
+   ],
+   "dropped": 0
+  },
+  "kessa": {
+   "images": [
+    "kessa/contact_sheet.webp",
+    "kessa/kessa_s205000.webp",
+    "kessa/kessa_s205001.webp",
+    "kessa/kessa_s205002.webp"
+   ],
+   "dropped": 0
+  },
+  "liora": {
+   "images": [
+    "liora/contact_sheet.webp",
+    "liora/liora_s103000.webp",
+    "liora/liora_s103002.webp"
+   ],
+   "dropped": 1
+  },
+  "lucen": {
+   "images": [
+    "lucen/lucen_s304000.webp",
+    "lucen/lucen_s304001.webp",
+    "lucen/lucen_s304002.webp"
+   ],
+   "dropped": 1
+  },
+  "mordessa": {
+   "images": [
+    "mordessa/contact_sheet.webp",
+    "mordessa/mordessa_s201000.webp",
+    "mordessa/mordessa_s201001.webp",
+    "mordessa/mordessa_s201002.webp"
+   ],
+   "dropped": 0
+  },
+  "noctaire": {
+   "images": [
+    "noctaire/contact_sheet.webp",
+    "noctaire/noctaire_s301000.webp",
+    "noctaire/noctaire_s301001.webp",
+    "noctaire/noctaire_s301002.webp"
+   ],
+   "dropped": 0
+  },
+  "nuriel": {
+   "images": [
+    "nuriel/contact_sheet.webp",
+    "nuriel/nuriel_s105000.webp",
+    "nuriel/nuriel_s105001.webp",
+    "nuriel/nuriel_s105002.webp"
+   ],
+   "dropped": 0
+  },
+  "orrin": {
+   "images": [
+    "orrin/contact_sheet.webp",
+    "orrin/orrin_s302000.webp",
+    "orrin/orrin_s302001.webp",
+    "orrin/orrin_s302002.webp"
+   ],
+   "dropped": 0
+  },
+  "sable": {
+   "images": [
+    "sable/contact_sheet.webp",
+    "sable/sable_s303000.webp",
+    "sable/sable_s303001.webp",
+    "sable/sable_s303002.webp"
+   ],
+   "dropped": 0
+  },
+  "seraphiel": {
+   "images": [
+    "seraphiel/seraphiel_s101000.webp",
+    "seraphiel/seraphiel_s101001.webp"
+   ],
+   "dropped": 2
+  },
+  "uriela": {
+   "images": [
+    "uriela/contact_sheet.webp",
+    "uriela/uriela_s104000.webp",
+    "uriela/uriela_s104001.webp",
+    "uriela/uriela_s104002.webp"
+   ],
+   "dropped": 0
+  },
+  "vesper": {
+   "images": [
+    "vesper/contact_sheet.webp",
+    "vesper/vesper_s203000.webp",
+    "vesper/vesper_s203002.webp"
+   ],
+   "dropped": 1
+  }
+ },
+ "sheets": [
+  "brakka/contact_sheet.webp",
+  "imra/contact_sheet.webp",
+  "kessa/contact_sheet.webp",
+  "liora/contact_sheet.webp",
+  "mordessa/contact_sheet.webp",
+  "noctaire/contact_sheet.webp",
+  "nuriel/contact_sheet.webp",
+  "orrin/contact_sheet.webp",
+  "overview.webp",
+  "sable/contact_sheet.webp",
+  "uriela/contact_sheet.webp",
+  "vesper/contact_sheet.webp"
+ ],
+ "sheet_note": "",
+ "jobs": [
+  {
+   "key": "ashra-c0",
+   "hero": "ashra",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 3427.2,
+   "timing": {
+    "download_s": 0.1,
+    "encode_s": 11.6,
+    "engine_load_s": 15.4,
+    "last_image_s": 2539.0,
+    "s_per_txt2img": 2539.0
+   },
+   "filter": {
+    "checked": 2,
+    "passed": 1,
+    "dropped": 1,
+    "errors": 0,
+    "repaired": 1
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 305000,
+     "seconds": 2539.0,
+     "s_per_step": 88.44,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 62.3,
+     "vmhwm_gb": 14.17,
+     "rss_peak_gb": 14.17
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 305700,
+     "seconds": 787.0,
+     "s_per_step": 53.87,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 32.8,
+     "vmhwm_gb": 12.83,
+     "rss_peak_gb": 12.83
+    }
+   ]
+  },
+  {
+   "key": "ashra-c1",
+   "hero": "ashra",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2690.0,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 11.9,
+    "engine_load_s": 16.6,
+    "last_image_s": 2588.5,
+    "s_per_txt2img": 2588.5
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 305001,
+     "seconds": 2588.5,
+     "s_per_step": 90.15,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 63.5,
+     "vmhwm_gb": 14.07,
+     "rss_peak_gb": 14.07
+    }
+   ]
+  },
+  {
+   "key": "ashra-c2",
+   "hero": "ashra",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2629.7,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 11.6,
+    "engine_load_s": 16.8,
+    "last_image_s": 2530.9,
+    "s_per_txt2img": 2530.9
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 305002,
+     "seconds": 2530.9,
+     "s_per_step": 88.2,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 60.6,
+     "vmhwm_gb": 13.93,
+     "rss_peak_gb": 13.93
+    }
+   ]
+  },
+  {
+   "key": "brakka-c0",
+   "hero": "brakka",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 1778.7,
+   "timing": {
+    "download_s": 0.1,
+    "encode_s": 9.7,
+    "engine_load_s": 14.8,
+    "last_image_s": 1707.6,
+    "s_per_txt2img": 1707.6
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 9V45 96-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 202000,
+     "seconds": 1707.6,
+     "s_per_step": 60.01,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 26.8,
+     "vmhwm_gb": 14.22,
+     "rss_peak_gb": 14.22
+    }
+   ]
+  },
+  {
+   "key": "brakka-c1",
+   "hero": "brakka",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2645.3,
+   "timing": {
+    "download_s": 0.1,
+    "encode_s": 11.6,
+    "engine_load_s": 20.0,
+    "last_image_s": 2544.7,
+    "s_per_txt2img": 2544.7
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 202001,
+     "seconds": 2544.7,
+     "s_per_step": 88.61,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 63.0,
+     "vmhwm_gb": 14.33,
+     "rss_peak_gb": 14.33
+    }
+   ]
+  },
+  {
+   "key": "brakka-c2",
+   "hero": "brakka",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 1840.6,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 6.3,
+    "engine_load_s": 14.6,
+    "last_image_s": 1094.6,
+    "s_per_txt2img": 1094.6
+   },
+   "filter": {
+    "checked": 3,
+    "passed": 0,
+    "dropped": 3,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 202002,
+     "seconds": 1094.6,
+     "s_per_step": 37.97,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 30.8,
+     "vmhwm_gb": 14.02,
+     "rss_peak_gb": 14.02
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 202702,
+     "seconds": 333.0,
+     "s_per_step": 22.61,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 16.5,
+     "vmhwm_gb": 12.77,
+     "rss_peak_gb": 12.77
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 202712,
+     "seconds": 333.8,
+     "s_per_step": 22.67,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 16.4,
+     "vmhwm_gb": 12.78,
+     "rss_peak_gb": 12.78
+    }
+   ]
+  },
+  {
+   "key": "cassiel-c0",
+   "hero": "cassiel",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2452.4,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 10.6,
+    "engine_load_s": 12.4,
+    "last_image_s": 2366.8,
+    "s_per_txt2img": 2366.8
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 102000,
+     "seconds": 2366.8,
+     "s_per_step": 82.45,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 57.8,
+     "vmhwm_gb": 14.17,
+     "rss_peak_gb": 14.17
+    }
+   ]
+  },
+  {
+   "key": "cassiel-c1",
+   "hero": "cassiel",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 1760.0,
+   "timing": {
+    "download_s": 0.1,
+    "encode_s": 9.3,
+    "engine_load_s": 15.6,
+    "last_image_s": 1692.3,
+    "s_per_txt2img": 1692.3
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 9V45 96-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 102001,
+     "seconds": 1692.3,
+     "s_per_step": 59.53,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 25.2,
+     "vmhwm_gb": 14.14,
+     "rss_peak_gb": 14.14
+    }
+   ]
+  },
+  {
+   "key": "cassiel-c2",
+   "hero": "cassiel",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2664.0,
+   "timing": {
+    "download_s": 0.1,
+    "encode_s": 11.5,
+    "engine_load_s": 16.8,
+    "last_image_s": 2564.8,
+    "s_per_txt2img": 2564.8
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 102002,
+     "seconds": 2564.8,
+     "s_per_step": 89.37,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 62.2,
+     "vmhwm_gb": 14.15,
+     "rss_peak_gb": 14.15
+    }
+   ]
+  },
+  {
+   "key": "imra-c0",
+   "hero": "imra",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2614.4,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 11.4,
+    "engine_load_s": 17.7,
+    "last_image_s": 2514.4,
+    "s_per_txt2img": 2514.4
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 204000,
+     "seconds": 2514.4,
+     "s_per_step": 87.61,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 60.9,
+     "vmhwm_gb": 14.01,
+     "rss_peak_gb": 14.01
+    }
+   ]
+  },
+  {
+   "key": "imra-c1",
+   "hero": "imra",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 1742.2,
+   "timing": {
+    "download_s": 0.1,
+    "encode_s": 9.4,
+    "engine_load_s": 14.3,
+    "last_image_s": 1672.8,
+    "s_per_txt2img": 1672.8
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 9V45 96-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 204001,
+     "seconds": 1672.8,
+     "s_per_step": 58.71,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 28.3,
+     "vmhwm_gb": 14.12,
+     "rss_peak_gb": 14.12
+    }
+   ]
+  },
+  {
+   "key": "imra-c2",
+   "hero": "imra",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2606.2,
+   "timing": {
+    "download_s": 0.1,
+    "encode_s": 11.3,
+    "engine_load_s": 12.6,
+    "last_image_s": 2514.3,
+    "s_per_txt2img": 2514.3
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 204002,
+     "seconds": 2514.3,
+     "s_per_step": 87.59,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 61.3,
+     "vmhwm_gb": 14.35,
+     "rss_peak_gb": 14.35
+    }
+   ]
+  },
+  {
+   "key": "kessa-c0",
+   "hero": "kessa",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2643.2,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 11.4,
+    "engine_load_s": 18.2,
+    "last_image_s": 2542.7,
+    "s_per_txt2img": 2542.7
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 205000,
+     "seconds": 2542.7,
+     "s_per_step": 88.65,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 60.2,
+     "vmhwm_gb": 13.94,
+     "rss_peak_gb": 13.94
+    }
+   ]
+  },
+  {
+   "key": "kessa-c1",
+   "hero": "kessa",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2639.8,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 11.4,
+    "engine_load_s": 17.6,
+    "last_image_s": 2541.0,
+    "s_per_txt2img": 2541.0
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 205001,
+     "seconds": 2541.0,
+     "s_per_step": 88.59,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 60.1,
+     "vmhwm_gb": 14.17,
+     "rss_peak_gb": 14.17
+    }
+   ]
+  },
+  {
+   "key": "kessa-c2",
+   "hero": "kessa",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2612.9,
+   "timing": {
+    "download_s": 0.1,
+    "encode_s": 11.4,
+    "engine_load_s": 18.8,
+    "last_image_s": 2514.4,
+    "s_per_txt2img": 2514.4
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 205002,
+     "seconds": 2514.4,
+     "s_per_step": 87.58,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 61.9,
+     "vmhwm_gb": 14.18,
+     "rss_peak_gb": 14.18
+    }
+   ]
+  },
+  {
+   "key": "liora-c0",
+   "hero": "liora",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2125.2,
+   "timing": {
+    "download_s": 0.1,
+    "encode_s": 7.5,
+    "engine_load_s": 18.9,
+    "last_image_s": 1247.2,
+    "s_per_txt2img": 1247.2
+   },
+   "filter": {
+    "checked": 2,
+    "passed": 1,
+    "dropped": 1,
+    "errors": 0,
+    "repaired": 1
+   },
+   "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 103000,
+     "seconds": 1247.2,
+     "s_per_step": 43.28,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 34.7,
+     "vmhwm_gb": 14.06,
+     "rss_peak_gb": 14.06
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 103700,
+     "seconds": 398.4,
+     "s_per_step": 27.09,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 19.1,
+     "vmhwm_gb": 12.95,
+     "rss_peak_gb": 12.95
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 103701,
+     "seconds": 388.7,
+     "s_per_step": 26.44,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 18.6,
+     "vmhwm_gb": 12.93,
+     "rss_peak_gb": 12.93
+    }
+   ]
+  },
+  {
+   "key": "liora-c1",
+   "hero": "liora",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 4972.1,
+   "timing": {
+    "download_s": 0.1,
+    "encode_s": 11.3,
+    "engine_load_s": 15.7,
+    "last_image_s": 2520.1,
+    "s_per_txt2img": 2520.1
+   },
+   "filter": {
+    "checked": 3,
+    "passed": 0,
+    "dropped": 3,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 103001,
+     "seconds": 2520.1,
+     "s_per_step": 87.79,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 61.5,
+     "vmhwm_gb": 14.13,
+     "rss_peak_gb": 14.13
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 103701,
+     "seconds": 784.6,
+     "s_per_step": 53.71,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 32.6,
+     "vmhwm_gb": 12.86,
+     "rss_peak_gb": 12.86
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 103702,
+     "seconds": 779.1,
+     "s_per_step": 53.33,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 32.5,
+     "vmhwm_gb": 12.83,
+     "rss_peak_gb": 12.83
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 103711,
+     "seconds": 780.7,
+     "s_per_step": 53.45,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 32.4,
+     "vmhwm_gb": 12.79,
+     "rss_peak_gb": 12.79
+    }
+   ]
+  },
+  {
+   "key": "liora-c2",
+   "hero": "liora",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 4995.0,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 11.8,
+    "engine_load_s": 16.6,
+    "last_image_s": 2540.0,
+    "s_per_txt2img": 2540.0
+   },
+   "filter": {
+    "checked": 2,
+    "passed": 1,
+    "dropped": 1,
+    "errors": 0,
+    "repaired": 1
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 103002,
+     "seconds": 2540.0,
+     "s_per_step": 88.49,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 61.9,
+     "vmhwm_gb": 14.16,
+     "rss_peak_gb": 14.16
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 103702,
+     "seconds": 785.9,
+     "s_per_step": 53.79,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 32.9,
+     "vmhwm_gb": 12.95,
+     "rss_peak_gb": 12.95
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 103703,
+     "seconds": 782.2,
+     "s_per_step": 53.55,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 32.5,
+     "vmhwm_gb": 12.9,
+     "rss_peak_gb": 12.9
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 103704,
+     "seconds": 779.4,
+     "s_per_step": 53.34,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 32.7,
+     "vmhwm_gb": 12.86,
+     "rss_peak_gb": 12.86
+    }
+   ]
+  },
+  {
+   "key": "lucen-c0",
+   "hero": "lucen",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2281.6,
+   "timing": {
+    "download_s": 0.1,
+    "encode_s": 10.2,
+    "engine_load_s": 16.0,
+    "last_image_s": 2197.8,
+    "s_per_txt2img": 2197.8
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 9V74 80-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 304000,
+     "seconds": 2197.8,
+     "s_per_step": 76.6,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 51.5,
+     "vmhwm_gb": 14.05,
+     "rss_peak_gb": 14.05
+    }
+   ]
+  },
+  {
+   "key": "lucen-c1",
+   "hero": "lucen",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2623.8,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 11.5,
+    "engine_load_s": 20.6,
+    "last_image_s": 2521.9,
+    "s_per_txt2img": 2521.9
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 304001,
+     "seconds": 2521.9,
+     "s_per_step": 87.83,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 62.4,
+     "vmhwm_gb": 14.17,
+     "rss_peak_gb": 14.17
+    }
+   ]
+  },
+  {
+   "key": "lucen-c2",
+   "hero": "lucen",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 1773.9,
+   "timing": {
+    "download_s": 0.1,
+    "encode_s": 9.3,
+    "engine_load_s": 16.7,
+    "last_image_s": 1703.6,
+    "s_per_txt2img": 1703.6
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 9V45 96-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 304002,
+     "seconds": 1703.6,
+     "s_per_step": 59.9,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 26.0,
+     "vmhwm_gb": 14.19,
+     "rss_peak_gb": 14.19
+    }
+   ]
+  },
+  {
+   "key": "mordessa-c0",
+   "hero": "mordessa",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2628.7,
+   "timing": {
+    "download_s": 0.1,
+    "encode_s": 11.6,
+    "engine_load_s": 17.4,
+    "last_image_s": 2528.4,
+    "s_per_txt2img": 2528.4
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 201000,
+     "seconds": 2528.4,
+     "s_per_step": 88.17,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 59.4,
+     "vmhwm_gb": 14.14,
+     "rss_peak_gb": 14.14
+    }
+   ]
+  },
+  {
+   "key": "mordessa-c1",
+   "hero": "mordessa",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2278.4,
+   "timing": {
+    "download_s": 0.1,
+    "encode_s": 10.1,
+    "engine_load_s": 16.2,
+    "last_image_s": 2195.5,
+    "s_per_txt2img": 2195.5
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 9V74 80-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 201001,
+     "seconds": 2195.5,
+     "s_per_step": 76.6,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 50.3,
+     "vmhwm_gb": 13.94,
+     "rss_peak_gb": 13.94
+    }
+   ]
+  },
+  {
+   "key": "mordessa-c2",
+   "hero": "mordessa",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2621.3,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 11.5,
+    "engine_load_s": 15.9,
+    "last_image_s": 2524.3,
+    "s_per_txt2img": 2524.3
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 201002,
+     "seconds": 2524.3,
+     "s_per_step": 87.95,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 61.2,
+     "vmhwm_gb": 14.21,
+     "rss_peak_gb": 14.21
+    }
+   ]
+  },
+  {
+   "key": "noctaire-c0",
+   "hero": "noctaire",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 1258.3,
+   "timing": {
+    "download_s": 0.1,
+    "encode_s": 6.3,
+    "engine_load_s": 12.6,
+    "last_image_s": 1192.7,
+    "s_per_txt2img": 1192.7
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "Intel(R) Xeon(R) 6973P-C",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 301000,
+     "seconds": 1192.7,
+     "s_per_step": 41.37,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 33.4,
+     "vmhwm_gb": 14.07,
+     "rss_peak_gb": 14.07
+    }
+   ]
+  },
+  {
+   "key": "noctaire-c1",
+   "hero": "noctaire",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 1601.3,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 8.7,
+    "engine_load_s": 13.5,
+    "last_image_s": 1517.2,
+    "s_per_txt2img": 1517.2
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 301001,
+     "seconds": 1517.2,
+     "s_per_step": 52.73,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 40.2,
+     "vmhwm_gb": 14.07,
+     "rss_peak_gb": 14.07
+    }
+   ]
+  },
+  {
+   "key": "noctaire-c2",
+   "hero": "noctaire",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2635.9,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 11.5,
+    "engine_load_s": 17.0,
+    "last_image_s": 2537.7,
+    "s_per_txt2img": 2537.7
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 301002,
+     "seconds": 2537.7,
+     "s_per_step": 88.39,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 62.1,
+     "vmhwm_gb": 14.12,
+     "rss_peak_gb": 14.12
+    }
+   ]
+  },
+  {
+   "key": "nuriel-c0",
+   "hero": "nuriel",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2256.7,
+   "timing": {
+    "download_s": 0.1,
+    "encode_s": 9.0,
+    "engine_load_s": 15.5,
+    "last_image_s": 1680.2,
+    "s_per_txt2img": 1680.2
+   },
+   "filter": {
+    "checked": 2,
+    "passed": 1,
+    "dropped": 1,
+    "errors": 0,
+    "repaired": 1
+   },
+   "cpu": "AMD EPYC 9V45 96-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 105000,
+     "seconds": 1680.2,
+     "s_per_step": 59.1,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 25.0,
+     "vmhwm_gb": 14.36,
+     "rss_peak_gb": 14.36
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 105700,
+     "seconds": 505.8,
+     "s_per_step": 35.19,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 13.1,
+     "vmhwm_gb": 13.04,
+     "rss_peak_gb": 13.04
+    }
+   ]
+  },
+  {
+   "key": "nuriel-c1",
+   "hero": "nuriel",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2349.7,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 11.2,
+    "engine_load_s": 22.6,
+    "last_image_s": 2253.8,
+    "s_per_txt2img": 2253.8
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 9V74 80-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 105001,
+     "seconds": 2253.8,
+     "s_per_step": 78.64,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 51.0,
+     "vmhwm_gb": 14.19,
+     "rss_peak_gb": 14.19
+    }
+   ]
+  },
+  {
+   "key": "nuriel-c2",
+   "hero": "nuriel",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 1797.3,
+   "timing": {
+    "download_s": 0.1,
+    "encode_s": 9.5,
+    "engine_load_s": 17.3,
+    "last_image_s": 1722.1,
+    "s_per_txt2img": 1722.1
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 9V45 96-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 105002,
+     "seconds": 1722.1,
+     "s_per_step": 60.56,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 25.7,
+     "vmhwm_gb": 14.21,
+     "rss_peak_gb": 14.21
+    }
+   ]
+  },
+  {
+   "key": "orrin-c0",
+   "hero": "orrin",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 3404.0,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 11.4,
+    "engine_load_s": 19.6,
+    "last_image_s": 2520.3,
+    "s_per_txt2img": 2520.3
+   },
+   "filter": {
+    "checked": 2,
+    "passed": 1,
+    "dropped": 1,
+    "errors": 0,
+    "repaired": 1
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 302000,
+     "seconds": 2520.3,
+     "s_per_step": 87.78,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 62.2,
+     "vmhwm_gb": 14.45,
+     "rss_peak_gb": 14.45
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 302700,
+     "seconds": 779.5,
+     "s_per_step": 53.37,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 32.4,
+     "vmhwm_gb": 13.0,
+     "rss_peak_gb": 13.0
+    }
+   ]
+  },
+  {
+   "key": "orrin-c1",
+   "hero": "orrin",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2638.2,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 11.9,
+    "engine_load_s": 18.2,
+    "last_image_s": 2536.9,
+    "s_per_txt2img": 2536.9
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 302001,
+     "seconds": 2536.9,
+     "s_per_step": 88.34,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 63.0,
+     "vmhwm_gb": 14.28,
+     "rss_peak_gb": 14.28
+    }
+   ]
+  },
+  {
+   "key": "orrin-c2",
+   "hero": "orrin",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2628.7,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 11.4,
+    "engine_load_s": 17.7,
+    "last_image_s": 2529.8,
+    "s_per_txt2img": 2529.8
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 302002,
+     "seconds": 2529.8,
+     "s_per_step": 88.13,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 61.6,
+     "vmhwm_gb": 14.16,
+     "rss_peak_gb": 14.16
+    }
+   ]
+  },
+  {
+   "key": "sable-c0",
+   "hero": "sable",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2071.4,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 8.4,
+    "engine_load_s": 10.2,
+    "last_image_s": 1517.0,
+    "s_per_txt2img": 1517.0
+   },
+   "filter": {
+    "checked": 2,
+    "passed": 1,
+    "dropped": 1,
+    "errors": 0,
+    "repaired": 1
+   },
+   "cpu": "Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 303000,
+     "seconds": 1517.0,
+     "s_per_step": 52.72,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 40.3,
+     "vmhwm_gb": 14.03,
+     "rss_peak_gb": 14.03
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 303700,
+     "seconds": 471.5,
+     "s_per_step": 32.11,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 21.9,
+     "vmhwm_gb": 12.72,
+     "rss_peak_gb": 12.72
+    }
+   ]
+  },
+  {
+   "key": "sable-c1",
+   "hero": "sable",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 4177.7,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 11.3,
+    "engine_load_s": 16.9,
+    "last_image_s": 2515.8,
+    "s_per_txt2img": 2515.8
+   },
+   "filter": {
+    "checked": 2,
+    "passed": 1,
+    "dropped": 1,
+    "errors": 0,
+    "repaired": 1
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 303001,
+     "seconds": 2515.8,
+     "s_per_step": 87.69,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 60.2,
+     "vmhwm_gb": 14.25,
+     "rss_peak_gb": 14.25
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 303701,
+     "seconds": 778.7,
+     "s_per_step": 53.3,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 32.5,
+     "vmhwm_gb": 12.98,
+     "rss_peak_gb": 12.98
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 303702,
+     "seconds": 778.5,
+     "s_per_step": 53.29,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 32.4,
+     "vmhwm_gb": 12.98,
+     "rss_peak_gb": 12.98
+    }
+   ]
+  },
+  {
+   "key": "sable-c2",
+   "hero": "sable",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2155.5,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 8.0,
+    "engine_load_s": 14.6,
+    "last_image_s": 1265.6,
+    "s_per_txt2img": 1265.6
+   },
+   "filter": {
+    "checked": 2,
+    "passed": 1,
+    "dropped": 1,
+    "errors": 0,
+    "repaired": 1
+   },
+   "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 303002,
+     "seconds": 1265.6,
+     "s_per_step": 43.88,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 36.2,
+     "vmhwm_gb": 13.95,
+     "rss_peak_gb": 13.95
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 303702,
+     "seconds": 399.3,
+     "s_per_step": 27.18,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 18.9,
+     "vmhwm_gb": 12.76,
+     "rss_peak_gb": 12.76
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 303703,
+     "seconds": 402.5,
+     "s_per_step": 27.39,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 19.1,
+     "vmhwm_gb": 12.76,
+     "rss_peak_gb": 12.76
+    }
+   ]
+  },
+  {
+   "key": "seraphiel-c0",
+   "hero": "seraphiel",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 1309.0,
+   "timing": {
+    "download_s": 0.1,
+    "encode_s": 7.3,
+    "engine_load_s": 13.8,
+    "last_image_s": 1238.0,
+    "s_per_txt2img": 1238.0
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "Intel(R) Xeon(R) 6973P-C",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 101000,
+     "seconds": 1238.0,
+     "s_per_step": 42.96,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 34.5,
+     "vmhwm_gb": 14.1,
+     "rss_peak_gb": 14.1
+    }
+   ]
+  },
+  {
+   "key": "seraphiel-c1",
+   "hero": "seraphiel",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2349.6,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 10.8,
+    "engine_load_s": 18.2,
+    "last_image_s": 2259.6,
+    "s_per_txt2img": 2259.6
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 9V74 80-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 101001,
+     "seconds": 2259.6,
+     "s_per_step": 78.89,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 50.0,
+     "vmhwm_gb": 13.94,
+     "rss_peak_gb": 13.94
+    }
+   ]
+  },
+  {
+   "key": "seraphiel-c2",
+   "hero": "seraphiel",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 3605.5,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 10.1,
+    "engine_load_s": 15.0,
+    "last_image_s": 2174.2,
+    "s_per_txt2img": 2174.2
+   },
+   "filter": {
+    "checked": 3,
+    "passed": 0,
+    "dropped": 3,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 9V74 80-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 101002,
+     "seconds": 2174.2,
+     "s_per_step": 75.82,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 50.9,
+     "vmhwm_gb": 14.18,
+     "rss_peak_gb": 14.18
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 101702,
+     "seconds": 671.6,
+     "s_per_step": 46.04,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 27.0,
+     "vmhwm_gb": 12.91,
+     "rss_peak_gb": 12.91
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 101712,
+     "seconds": 670.3,
+     "s_per_step": 45.94,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 27.1,
+     "vmhwm_gb": 12.89,
+     "rss_peak_gb": 12.89
+    }
+   ]
+  },
+  {
+   "key": "uriela-c0",
+   "hero": "uriela",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2619.0,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 11.3,
+    "engine_load_s": 16.1,
+    "last_image_s": 2522.0,
+    "s_per_txt2img": 2522.0
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 7763 64-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": false
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 104000,
+     "seconds": 2522.0,
+     "s_per_step": 87.89,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 60.6,
+     "vmhwm_gb": 14.16,
+     "rss_peak_gb": 14.16
+    }
+   ]
+  },
+  {
+   "key": "uriela-c1",
+   "hero": "uriela",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2397.6,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 10.4,
+    "engine_load_s": 24.2,
+    "last_image_s": 2301.6,
+    "s_per_txt2img": 2301.6
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 9V74 80-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 104001,
+     "seconds": 2301.6,
+     "s_per_step": 80.15,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 55.5,
+     "vmhwm_gb": 14.11,
+     "rss_peak_gb": 14.11
+    }
+   ]
+  },
+  {
+   "key": "uriela-c2",
+   "hero": "uriela",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 1774.0,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 9.1,
+    "engine_load_s": 14.7,
+    "last_image_s": 1706.7,
+    "s_per_txt2img": 1706.7
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 9V45 96-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 104002,
+     "seconds": 1706.7,
+     "s_per_step": 60.03,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 25.4,
+     "vmhwm_gb": 14.19,
+     "rss_peak_gb": 14.19
+    }
+   ]
+  },
+  {
+   "key": "vesper-c0",
+   "hero": "vesper",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 3002.4,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 9.8,
+    "engine_load_s": 18.6,
+    "last_image_s": 2254.6,
+    "s_per_txt2img": 2254.6
+   },
+   "filter": {
+    "checked": 2,
+    "passed": 1,
+    "dropped": 1,
+    "errors": 0,
+    "repaired": 1
+   },
+   "cpu": "AMD EPYC 9V74 80-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 203000,
+     "seconds": 2254.6,
+     "s_per_step": 78.57,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 53.1,
+     "vmhwm_gb": 14.21,
+     "rss_peak_gb": 14.21
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 203700,
+     "seconds": 654.2,
+     "s_per_step": 44.77,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 27.4,
+     "vmhwm_gb": 12.83,
+     "rss_peak_gb": 12.83
+    }
+   ]
+  },
+  {
+   "key": "vesper-c1",
+   "hero": "vesper",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 3618.6,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 9.6,
+    "engine_load_s": 20.9,
+    "last_image_s": 2221.6,
+    "s_per_txt2img": 2221.6
+   },
+   "filter": {
+    "checked": 3,
+    "passed": 0,
+    "dropped": 3,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 9V74 80-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 203001,
+     "seconds": 2221.6,
+     "s_per_step": 77.42,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 53.5,
+     "vmhwm_gb": 14.17,
+     "rss_peak_gb": 14.17
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 203701,
+     "seconds": 648.0,
+     "s_per_step": 44.33,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 27.4,
+     "vmhwm_gb": 12.82,
+     "rss_peak_gb": 12.82
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 203711,
+     "seconds": 648.6,
+     "s_per_step": 44.39,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 27.2,
+     "vmhwm_gb": 12.79,
+     "rss_peak_gb": 12.79
+    }
+   ]
+  },
+  {
+   "key": "vesper-c2",
+   "hero": "vesper",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "bible",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 1708.3,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 8.8,
+    "engine_load_s": 14.1,
+    "last_image_s": 1639.8,
+    "s_per_txt2img": 1639.8
+   },
+   "filter": {
+    "checked": 1,
+    "passed": 1,
+    "dropped": 0,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "AMD EPYC 9V45 96-Core Processor",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 203002,
+     "seconds": 1639.8,
+     "s_per_step": 57.59,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 26.5,
+     "vmhwm_gb": 14.19,
+     "rss_peak_gb": 14.19
+    }
+   ]
+  }
+ ],
+ "filter_totals": {
+  "published_images": 53,
+  "dropped": 8
+ },
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)",
+  "license_url": "https://huggingface.co/cagliostrolab/animagine-xl-4.0"
+ },
+ "updated": "2026-10-16T08:51:55Z"
+}

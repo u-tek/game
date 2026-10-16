@@ -85,6 +85,31 @@
    "jobs_missing": []
   },
   {
+   "run": "38859902166-candidates-round1-v3",
+   "created": "2026-10-16T08:51:43Z",
+   "updated": "2026-10-16T08:51:55Z",
+   "heroes": [
+    "ashra",
+    "brakka",
+    "cassiel",
+    "imra",
+    "kessa",
+    "liora",
+    "lucen",
+    "mordessa",
+    "noctaire",
+    "nuriel",
+    "orrin",
+    "sable",
+    "seraphiel",
+    "uriela",
+    "vesper"
+   ],
+   "published_images": 53,
+   "dropped": 8,
+   "jobs_missing": []
+  },
+  {
    "run": "38862730324-final-smoke3-s101000",
    "created": "2026-10-16T06:56:54Z",
    "updated": "2026-10-16T06:57:05Z",

@@ -1,0 +1,483 @@
+{
+ "hero": "liora",
+ "mode": "candidates",
+ "seed": 103001,
+ "image": null,
+ "dropped": true,
+ "width": 832,
+ "height": 1216,
+ "preset": "standard",
+ "preset_settings": {
+  "sampler": "euler_ancestral",
+  "steps": 28,
+  "cfg": 5.0,
+  "width": 832,
+  "height": 1216,
+  "doc": "Animagine XL 4.0 model card: Euler a, 28 steps, CFG 5, 832x1216 (default for candidates and finals; about 25-40 min per image on the 4-vCPU runners)"
+ },
+ "dtype": "fp32",
+ "family": "animagine",
+ "style": {
+  "name": "bible",
+  "spec": {
+   "doc": "the prompt bible exactly as written"
+  }
+ },
+ "prompt": "1girl, solo, adult, mature female, makeup, lipstick, eyeliner, long eyelashes, full body, standing, contrapposto, looking at viewer, curvy, large breasts, wide hips, pink hair, long hair, side braid, aqua eyes, seductive smile, head wreath, halo, white wings, strapless dress, corset, cleavage, short dress, white thighhighs, garter straps, high heels, lyre, holding instrument, leaning forward, white and gold theme, simple background, grey background, official art, detailed shading, rim lighting, masterpiece, high score, great score, absurdres, sensitive",
+ "negative": "worst quality, low quality, low score, bad score, average score, nsfw, explicit, (blue archive:1.3), (loli:1.3), (child:1.3), (aged down:1.2), (teenage:1.2), (petite:1.2), (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (downblouse:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2), (pantyshot:1.25), (upskirt:1.25), lowres, blurry, jpeg artifacts, bad anatomy, bad hands, missing fingers, extra digits, fewer digits, extra arms, error, cropped, feet out of frame, head out of frame, wings out of frame, upper body, cowboy shot, multiple views, scenery, light particles, sparkle, embers, aura, light rays, smoke, speed lines, nude, areolae, pussy, anus, penis, sex, spread legs, see-through, shota, underage, young, school uniform, text, watermark, signature, username, chibi, 3d, realistic, 1boy, multiple girls, topless, flat chest, pussy peek",
+ "prompt_chunks": [
+  2,
+  3
+ ],
+ "background": {
+  "key": "grey",
+  "rgb": [
+   128,
+   128,
+   128
+  ]
+ },
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)"
+ },
+ "lora": null,
+ "render": {
+  "what": "txt2img 832x1216",
+  "sample_s": 2458.3,
+  "steps_run": 28,
+  "num_inference_steps": 28,
+  "cfg": 5.0,
+  "sampler": "EulerAncestralDiscreteScheduler",
+  "s_per_step": 87.79,
+  "step_s": [
+   115.09,
+   86.84,
+   86.6,
+   86.1,
+   86.6,
+   86.58,
+   86.79,
+   86.4,
+   86.87,
+   86.55,
+   86.83,
+   87.16,
+   86.69,
+   86.72,
+   86.89,
+   86.64,
+   86.71,
+   86.83,
+   86.73,
+   86.82,
+   86.54,
+   87.26,
+   87.15,
+   86.87,
+   87.0,
+   87.08,
+   86.78,
+   87.14
+  ],
+  "overhead_s": 0.0,
+  "dtype": "fp32",
+  "threads": 4,
+  "mem_sample": {
+   "vmhwm_gb": 11.23,
+   "vmrss_gb": 10.53,
+   "memavail_gb": 4.3
+  },
+  "steps_effective": 28,
+  "decode": "untiled",
+  "memavail_before_decode_gb": 4.299846649169922,
+  "decode_s": 61.5,
+  "seconds": 2520.1,
+  "mem_stage": {
+   "vmhwm_gb": 14.13,
+   "vmrss_gb": 10.51,
+   "memavail_gb": 4.26
+  },
+  "vmhwm_gb": 14.13,
+  "rss_peak_gb": 14.13
+ },
+ "framing": {
+  "touches": [],
+  "edge_low": 0.102,
+  "bg_rgb": [
+   211.0,
+   212.0,
+   214.0
+  ],
+  "bg_off": 146.1,
+  "figure_frac": 0.382,
+  "holes_kept_as_figure": 0,
+  "flags": [
+   "BG?"
+  ]
+ },
+ "filter": {
+  "views": 18,
+  "scores": {
+   "nudenet": {
+    "FEMALE_BREAST_EXPOSED": 0.368,
+    "FEMALE_GENITALIA_EXPOSED": 0.003,
+    "MALE_GENITALIA_EXPOSED": 0.0019,
+    "ANUS_EXPOSED": 0.0005,
+    "BUTTOCKS_EXPOSED": 0.0388
+   },
+   "anime_censor": {
+    "nipple_f": 0.5017,
+    "penis": 0.0158,
+    "pussy": 0.0825
+   }
+  },
+  "flagged": [
+   {
+    "detector": "nudenet",
+    "class": "FEMALE_BREAST_EXPOSED",
+    "score": 0.368,
+    "view": "t832_0_0"
+   },
+   {
+    "detector": "anime_censor",
+    "class": "nipple_f",
+    "score": 0.5017,
+    "view": "full"
+   }
+  ]
+ },
+ "repair": {
+  "original": {
+   "scores": {
+    "nudenet": {
+     "FEMALE_BREAST_EXPOSED": 0.33,
+     "FEMALE_GENITALIA_EXPOSED": 0.0014,
+     "MALE_GENITALIA_EXPOSED": 0.0032,
+     "ANUS_EXPOSED": 0.0004,
+     "BUTTOCKS_EXPOSED": 0.0372
+    },
+    "anime_censor": {
+     "nipple_f": 0.021,
+     "penis": 0.0618,
+     "pussy": 0.2139
+    }
+   },
+   "flagged": [
+    {
+     "detector": "nudenet",
+     "class": "FEMALE_BREAST_EXPOSED",
+     "score": 0.33,
+     "view": "t832_0_0"
+    }
+   ]
+  },
+  "settings": {
+   "denoise": 0.6,
+   "steps": 14,
+   "px": 768,
+   "pad": 0.25,
+   "context": 2.0,
+   "box_conf_frac": 0.5,
+   "near_frac": 0.8
+  },
+  "attempts": [
+   {
+    "attempt": 1,
+    "classes": {
+     "nudenet": [
+      "FEMALE_BREAST_EXPOSED"
+     ],
+     "anime_censor": [
+      "pussy"
+     ]
+    },
+    "boxes": [
+     {
+      "detector": "nudenet",
+      "class": "FEMALE_BREAST_EXPOSED",
+      "score": 0.3372,
+      "view": "t832_0_0",
+      "box": [
+       261.1,
+       317.7,
+       397.9,
+       462.6
+      ]
+     },
+     {
+      "detector": "anime_censor",
+      "class": "pussy",
+      "score": 0.2252,
+      "view": "t416_208_416",
+      "box": [
+       418.6,
+       670.7,
+       442.6,
+       704.7
+      ]
+     },
+     {
+      "detector": "anime_censor",
+      "class": "pussy",
+      "score": 0.1812,
+      "view": "t416_208_624",
+      "box": [
+       418.6,
+       671.0,
+       441.7,
+       704.7
+      ]
+     },
+     {
+      "detector": "nudenet",
+      "class": "FEMALE_BREAST_EXPOSED",
+      "score": 0.1517,
+      "view": "t416_208_0",
+      "box": [
+       252.2,
+       311.8,
+       402.5,
+       416.0
+      ]
+     },
+     {
+      "detector": "nudenet",
+      "class": "FEMALE_BREAST_EXPOSED",
+      "score": 0.1297,
+      "view": "full",
+      "box": [
+       259.4,
+       314.0,
+       397.6,
+       462.0
+      ]
+     },
+     {
+      "detector": "nudenet",
+      "class": "FEMALE_BREAST_EXPOSED",
+      "score": 0.1256,
+      "view": "t416_0_0",
+      "box": [
+       249.6,
+       311.2,
+       405.3,
+       416.0
+      ]
+     }
+    ],
+    "regions": [
+     [
+      210,
+      277,
+      444,
+      499
+     ],
+     [
+      406,
+      662,
+      455,
+      713
+     ]
+    ],
+    "area_frac": 0.0538,
+    "crops": [
+     [
+      93,
+      154,
+      561,
+      622
+     ],
+     [
+      270,
+      528,
+      590,
+      848
+     ]
+    ],
+    "seeds": [
+     103701,
+     103702
+    ],
+    "inpaints": [
+     {
+      "seconds": 784.6,
+      "s_per_step": 53.71,
+      "steps_run": 14,
+      "steps_effective": 14,
+      "num_inference_steps": 24,
+      "vmhwm_gb": 12.86,
+      "crop": [
+       93,
+       154,
+       468,
+       468
+      ],
+      "px": 768
+     },
+     {
+      "seconds": 779.1,
+      "s_per_step": 53.33,
+      "steps_run": 14,
+      "steps_effective": 14,
+      "num_inference_steps": 24,
+      "vmhwm_gb": 12.83,
+      "crop": [
+       270,
+       528,
+       320,
+       320
+      ],
+      "px": 768
+     }
+    ],
+    "seconds": 1564.0,
+    "after": {
+     "scores": {
+      "nudenet": {
+       "FEMALE_BREAST_EXPOSED": 0.3668,
+       "FEMALE_GENITALIA_EXPOSED": 0.0029,
+       "MALE_GENITALIA_EXPOSED": 0.002,
+       "ANUS_EXPOSED": 0.0005,
+       "BUTTOCKS_EXPOSED": 0.0381
+      },
+      "anime_censor": {
+       "nipple_f": 0.1645,
+       "penis": 0.0167,
+       "pussy": 0.0834
+      }
+     },
+     "flagged": [
+      {
+       "detector": "nudenet",
+       "class": "FEMALE_BREAST_EXPOSED",
+       "score": 0.3668,
+       "view": "t832_0_0"
+      }
+     ]
+    }
+   },
+   {
+    "attempt": 2,
+    "classes": {
+     "nudenet": [
+      "FEMALE_BREAST_EXPOSED"
+     ]
+    },
+    "boxes": [
+     {
+      "detector": "nudenet",
+      "class": "FEMALE_BREAST_EXPOSED",
+      "score": 0.3625,
+      "view": "t832_0_0",
+      "box": [
+       259.0,
+       311.3,
+       397.4,
+       458.8
+      ]
+     },
+     {
+      "detector": "nudenet",
+      "class": "FEMALE_BREAST_EXPOSED",
+      "score": 0.2043,
+      "view": "full",
+      "box": [
+       256.3,
+       304.5,
+       397.0,
+       461.2
+      ]
+     },
+     {
+      "detector": "nudenet",
+      "class": "FEMALE_BREAST_EXPOSED",
+      "score": 0.1369,
+      "view": "t416_208_208",
+      "box": [
+       252.6,
+       312.9,
+       402.4,
+       465.1
+      ]
+     }
+    ],
+    "regions": [
+     [
+      215,
+      265,
+      440,
+      503
+     ]
+    ],
+    "area_frac": 0.0529,
+    "crops": [
+     [
+      90,
+      146,
+      566,
+      622
+     ]
+    ],
+    "seeds": [
+     103711
+    ],
+    "inpaints": [
+     {
+      "seconds": 780.7,
+      "s_per_step": 53.45,
+      "steps_run": 14,
+      "steps_effective": 14,
+      "num_inference_steps": 24,
+      "vmhwm_gb": 12.79,
+      "crop": [
+       90,
+       146,
+       476,
+       476
+      ],
+      "px": 768
+     }
+    ],
+    "seconds": 780.9,
+    "after": {
+     "scores": {
+      "nudenet": {
+       "FEMALE_BREAST_EXPOSED": 0.368,
+       "FEMALE_GENITALIA_EXPOSED": 0.003,
+       "MALE_GENITALIA_EXPOSED": 0.0019,
+       "ANUS_EXPOSED": 0.0005,
+       "BUTTOCKS_EXPOSED": 0.0388
+      },
+      "anime_censor": {
+       "nipple_f": 0.5017,
+       "penis": 0.0158,
+       "pussy": 0.0825
+      }
+     },
+     "flagged": [
+      {
+       "detector": "nudenet",
+       "class": "FEMALE_BREAST_EXPOSED",
+       "score": 0.368,
+       "view": "t832_0_0"
+      },
+      {
+       "detector": "anime_censor",
+       "class": "nipple_f",
+       "score": 0.5017,
+       "view": "full"
+      }
+     ]
+    }
+   }
+  ],
+  "result": "dropped: still flagged after 2 repair pass(es)"
+ },
+ "cover_prompt": {
+  "positive": "1girl, solo, adult, mature female, white glossy fabric, gold filigree panels, clothed, pink hair, long hair, side braid, strapless dress, corset, short dress, white thighhighs, garter straps, high heels, lyre, holding instrument, official art, detailed shading, rim lighting, simple background, grey background, masterpiece, high score, great score, absurdres, sensitive",
+  "negative": "(nipples:1.5), (areolae:1.5), (nude:1.4), (topless:1.4), (nipple slip:1.4), (nsfw:1.3), (covered nipples:1.3), worst quality, low quality, low score, bad score, average score, explicit, (blue archive:1.3), (loli:1.3), (child:1.3), (aged down:1.2), (teenage:1.2), (petite:1.2), (areola slip:1.2), (downblouse:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2), (pantyshot:1.25), (upskirt:1.25), lowres, blurry, jpeg artifacts, bad anatomy, bad hands, missing fingers, extra digits, fewer digits, extra arms, error, light particles, sparkle, embers, aura, light rays, smoke, speed lines, pussy, anus, penis, sex, spread legs, see-through, shota, underage, young, school uniform, text, watermark, signature, username, chibi, 3d, realistic, 1boy, multiple girls, flat chest, pussy peek"
+ },
+ "run": "38859902166-candidates-round1-v3",
+ "created": "2026-10-16T07:37:18Z"
+}
