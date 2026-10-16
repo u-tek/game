@@ -36,6 +36,7 @@ var _power_value := -1
 var _chips: Dictionary = {}
 var _tabs: Dictionary = {}
 var _shoot: Dictionary = {}
+var _held_toasts: Array[String] = []
 
 
 func _ready() -> void:
@@ -223,6 +224,8 @@ func _build_nav() -> void:
 ## Called by UI.set_chrome.
 func apply_chrome(_show_top: bool, _show_nav: bool) -> void:
 	_layout()
+	# Deferred: go() shows the chrome before a full-screen screen hides it again.
+	_flush_held_toasts.call_deferred()
 
 
 func _layout() -> void:
@@ -300,14 +303,36 @@ func _refresh_guide() -> void:
 		Guide.mark(_tabs[id] as Control, id == tab, 0)
 
 
-## Global feedback for one-shot Game events that can happen on any screen.
+## Global feedback for one-shot Game events that can happen on any screen. During full-screen
+## moments (chrome hidden: battle, summon reveal) the toast waits until the chrome is back, so
+## it never covers a Victory banner or summon results.
 func _on_notify(event: Dictionary) -> void:
+	var msg := ""
 	match str(event.get("type", "")):
 		"quest_ready":
-			UI.toast("Quest complete: %s" % str(event.get("title", "")), "good")
+			msg = "Quest complete: %s" % str(event.get("title", ""))
 		"monthly_card":
-			UI.toast("Monthly Card: +%s gems" % Kit.format_full(int(event.get("gems", 0))), "good")
+			msg = "Monthly Card: +%s gems" % Kit.format_full(int(event.get("gems", 0)))
+	if msg != "":
+		# Deferred: an action that starts a full-screen moment (a summon) hides the chrome
+		# right after the Game call that produced this event.
+		_toast_or_hold.call_deferred(msg)
 	_refresh_dots()
+
+
+func _toast_or_hold(msg: String) -> void:
+	if UI.chrome_top:
+		UI.toast(msg, "good")
+	elif not _held_toasts.has(msg):
+		_held_toasts.append(msg)
+
+
+func _flush_held_toasts() -> void:
+	if not UI.chrome_top or _held_toasts.is_empty():
+		return
+	for msg in _held_toasts:
+		UI.toast(msg, "good")
+	_held_toasts.clear()
 
 
 func _on_screen_changed(screen: String) -> void:

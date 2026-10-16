@@ -18,6 +18,8 @@ const SHORT_RED := Color("ff6a50")
 var _id := ""
 var _def: Dictionary = {}
 var _owned := false
+var _plate_name: Label
+var _plate_sub: Label
 var _back_btn: Button
 var _browse: Array[String] = []
 var _faction_col := Kit.GOLD
@@ -239,6 +241,8 @@ func _build_plate() -> Control:
 	var sub := Kit.label(str(_def.title), 26, Kit.INK, "bold", 5)
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(sub)
+	_plate_name = name_l
+	_plate_sub = sub
 	_plate_stars = Kit.hbox(8)
 	_plate_stars.alignment = BoxContainer.ALIGNMENT_CENTER
 	_plate_stars.mouse_filter = MOUSE_FILTER_IGNORE
@@ -478,9 +482,15 @@ func _on_scrolled(v: float) -> void:
 		return
 	_stage.position.y = -v * 0.35
 	_stage.modulate = Color(1, 1, 1).lerp(Color(0.55, 0.52, 0.65), clampf(v / 600.0, 0.0, 1.0))
+	# Large title to small title: the plate's name and title fade out as they reach the top,
+	# then the sticky bar fades in (opaque before the stars and badges slide under it).
+	var sp := _top_spacer.custom_minimum_size.y
+	if _plate_name:
+		_plate_name.modulate.a = clampf((sp - 50.0 - v) / 80.0, 0.0, 1.0)
+	if _plate_sub:
+		_plate_sub.modulate.a = clampf((sp - 10.0 - v) / 80.0, 0.0, 1.0)
 	if _top_bar:
-		# Opaque by the time the name plate's lower rows (stars, badges) slide under it.
-		_top_bar.modulate.a = clampf((v - _top_spacer.custom_minimum_size.y + 40.0) / 100.0, 0.0, 1.0)
+		_top_bar.modulate.a = clampf((v - sp + 50.0) / 80.0, 0.0, 1.0)
 	var fade := clampf(1.0 - v / 160.0, 0.0, 1.0)
 	for a in _arrows:
 		a.modulate.a = fade

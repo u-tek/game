@@ -194,6 +194,7 @@ func show_defeat(data: Dictionary) -> void:
 	var home := Kit.secondary_button("Home", func() -> void: _emit("home"), "home")
 	home.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	btns.add_child(home)
+	Guide.mark(home, Guide.step() in ["claim", "summon", "formation", "quests"], 0)
 	var retry := Kit.primary_button("Retry", func() -> void: _emit("retry"), "refresh")
 	retry.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	btns.add_child(retry)

@@ -19,7 +19,7 @@ extends Control
 const MARK_NAME := "GuideMark"
 ## The guide is quiet once this many stages are cleared (end of chapter 1).
 const ACTIVE_UNTIL_CLEARED := 10
-## The Battle button only gets the arrow for the first few stages.
+## "battle" (the Battle / Fight / Next Stage highlight) is suggested for the first stages only.
 const BATTLE_POINTER_UNTIL := 3
 ## After this many level-ups the guide only suggests leveling when the team is underpowered.
 const LEVEL_UPS_TAUGHT := 5
@@ -28,9 +28,9 @@ const BENCH_GAIN_PCT := 3
 
 const COLOR := Color("f2c14e")
 
-## Show the bobbing arrow above the target (the ring always shows).
+## Show the bobbing arrow (the ring always shows).
 var arrow := true
-## Arrow side: -1 above the target pointing down, 1 below pointing up.
+## Arrow side: -1 above the target pointing down, 1 below it pointing up.
 var arrow_side := -1
 var _t := 0.0
 var _arrow: TextureRect
@@ -166,7 +166,8 @@ func _ready() -> void:
 	offset_top = -6
 	offset_right = 6
 	offset_bottom = 6
-	z_index = 2
+	# No z_index: a raised mark would draw over popups. As the target's last child it
+	# already draws over the target itself.
 	_box.draw_center = false
 	_box.set_border_width_all(4)
 	_box.anti_aliasing = true

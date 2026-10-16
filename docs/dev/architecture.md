@@ -14,6 +14,11 @@ xvfb-run -a -s "-screen 0 1600x2000x24" godot --path . --rendering-driver opengl
   --resolution 720x1560 -- --shoot=home --shoot-out=/home/user/game/screenshots/home.png
 ```
 
+Day to day, use the wrappers (they hold a shared lock so parallel agents don't collide):
+`tools/check` (import + tests + boot; `tools/check e2e` adds the end-to-end scripts),
+`tools/shoot <screen> [--res 720x1280] [--out path] [game args]` and `tools/gd <godot args>`.
+See README.md for the full list.
+
 `--shoot` options (implemented in `src/ui/main.gd`): `--shoot=<screen>`,
 `--shoot-out=<png path>`, `--shoot-params=<json>`, `--shoot-wait=<seconds, default 1.0>`,
 `--fresh` (use a throwaway save with a new game), `--rich` (throwaway save with lots of
@@ -152,6 +157,13 @@ Screens are `Control` scripts in `src/ui/screens/<name>_screen.gd` with
 (`class_name Kit`) provides styled builders: buttons (primary/secondary/danger), panels,
 labels by role (title/body/number), currency chips, hero cards, rarity frames, progress
 bars, faction/role badges, scroll lists. **Use them; don't hand-style.**
+
+**First-session guidance** (`src/ui/components/guide.gd`, `class_name Guide`): `Guide.step()`
+names the next suggested action for a new player (claim, summon, formation, battle, level,
+quests, or "" once chapter 1 is cleared) and `Guide.mark(control, on)` puts a pulsing gold ring
+(and optional arrow) on the control that does it. Screens mark their own buttons on refresh;
+`main.gd` marks the nav tabs. `tests/tools/first_session_e2e.gd` follows the marks from a fresh
+save, so keep every step reachable by taps.
 
 Touch targets ≥ 88 px tall (viewport is 720 px wide, so this is about 48 pt on a phone).
 
