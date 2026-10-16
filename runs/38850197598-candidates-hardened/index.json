@@ -1,0 +1,215 @@
+{
+ "run": "38850197598-candidates-hardened",
+ "created": "2026-10-16T05:24:00Z",
+ "jobs_expected": [
+  "seraphiel-c0",
+  "seraphiel-c1"
+ ],
+ "jobs_missing": [],
+ "heroes": {
+  "seraphiel": {
+   "images": [],
+   "dropped": 2
+  }
+ },
+ "sheets": [],
+ "sheet_note": "",
+ "jobs": [
+  {
+   "key": "seraphiel-c0",
+   "hero": "seraphiel",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "farm",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 2524.4,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 6.7,
+    "engine_load_s": 14.9,
+    "last_image_s": 1079.5,
+    "s_per_txt2img": 1079.5
+   },
+   "filter": {
+    "checked": 3,
+    "passed": 0,
+    "dropped": 3,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 101000,
+     "seconds": 1079.5,
+     "s_per_step": 37.39,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 31.8,
+     "vmhwm_gb": 14.28,
+     "rss_peak_gb": 14.28
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 101700,
+     "seconds": 341.1,
+     "s_per_step": 23.17,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 16.8,
+     "vmhwm_gb": 12.85,
+     "rss_peak_gb": 12.85
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 101701,
+     "seconds": 339.5,
+     "s_per_step": 23.06,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 16.6,
+     "vmhwm_gb": 12.85,
+     "rss_peak_gb": 12.85
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 101702,
+     "seconds": 340.1,
+     "s_per_step": 23.11,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 16.6,
+     "vmhwm_gb": 12.85,
+     "rss_peak_gb": 12.85
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 101710,
+     "seconds": 341.6,
+     "s_per_step": 23.2,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 16.8,
+     "vmhwm_gb": 12.85,
+     "rss_peak_gb": 12.85
+    }
+   ]
+  },
+  {
+   "key": "seraphiel-c1",
+   "hero": "seraphiel",
+   "mode": "candidates",
+   "preset": "standard",
+   "style": "farm",
+   "dtype": "fp32",
+   "exit_code": 0,
+   "wall_s": 1856.9,
+   "timing": {
+    "download_s": 0.2,
+    "encode_s": 6.7,
+    "engine_load_s": 16.8,
+    "last_image_s": 1104.7,
+    "s_per_txt2img": 1104.7
+   },
+   "filter": {
+    "checked": 3,
+    "passed": 0,
+    "dropped": 3,
+    "errors": 0,
+    "repaired": 0
+   },
+   "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+   "skipped": [],
+   "errors": [],
+   "engine": {
+    "dtype": "fp32",
+    "threads": 4,
+    "vae_dtype": "fp32",
+    "vae_force_upcast": false,
+    "vae_scaling_factor": 0.13025,
+    "bf16_native": true
+   },
+   "bench": null,
+   "images": [
+    {
+     "what": "txt2img 832x1216",
+     "seed": 101001,
+     "seconds": 1104.7,
+     "s_per_step": 38.34,
+     "steps_run": 28,
+     "steps_effective": 28,
+     "num_inference_steps": 28,
+     "decode": "untiled",
+     "decode_s": 30.4,
+     "vmhwm_gb": 14.01,
+     "rss_peak_gb": 14.01
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 101701,
+     "seconds": 335.6,
+     "s_per_step": 22.8,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 16.5,
+     "vmhwm_gb": 12.78,
+     "rss_peak_gb": 12.78
+    },
+    {
+     "what": "inpaint 768x768 @0.60",
+     "step": "cover_repair",
+     "seed": 101711,
+     "seconds": 336.8,
+     "s_per_step": 22.88,
+     "steps_run": 14,
+     "steps_effective": 14,
+     "num_inference_steps": 24,
+     "decode": "untiled",
+     "decode_s": 16.5,
+     "vmhwm_gb": 12.78,
+     "rss_peak_gb": 12.78
+    }
+   ]
+  }
+ ],
+ "filter_totals": {
+  "published_images": 0,
+  "dropped": 2
+ },
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)",
+  "license_url": "https://huggingface.co/cagliostrolab/animagine-xl-4.0"
+ },
+ "updated": "2026-10-16T05:24:09Z"
+}

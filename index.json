@@ -61,6 +61,17 @@
    "published_images": 3,
    "dropped": 1,
    "jobs_missing": []
+  },
+  {
+   "run": "38850197598-candidates-hardened",
+   "created": "2026-10-16T05:24:00Z",
+   "updated": "2026-10-16T05:24:09Z",
+   "heroes": [
+    "seraphiel"
+   ],
+   "published_images": 0,
+   "dropped": 2,
+   "jobs_missing": []
   }
  ]
 }
