@@ -11,7 +11,7 @@ numpy==2.3.5
 pillow==12.1.0
 # exposure filter (fail closed) and anime face detection
 nudenet==3.4.2
-opencv-python-headless==4.12.0.88
+opencv-python-headless==4.13.0.92
 onnxruntime==1.23.2
 # background removal (isnet-anime)
 rembg==2.0.85
