@@ -1,6 +1,6 @@
 class_name Guide
 extends Control
-## First-session guidance: a pulsing gold ring and a bobbing arrow on the one control a new
+## First-session guidance: a pulsing orange ring and a bobbing arrow on the one control a new
 ## player should tap next. No dialogs, nothing blocks input; it simply goes quiet once the
 ## player is past chapter 1.
 ##
@@ -26,7 +26,7 @@ const LEVEL_UPS_TAUGHT := 5
 ## Auto-fill is suggested when the best five heroes are this much stronger (percent).
 const BENCH_GAIN_PCT := 3
 
-const COLOR := Color("f2c14e")
+const COLOR := Color("ff9a2e")
 
 ## Show the bobbing arrow (the ring always shows).
 var arrow := true
@@ -199,7 +199,7 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	var k := 0.5 + 0.5 * sin(_t * 4.2)
-	var r := minf(26.0, size.y * 0.5)
+	var r := minf(10.0, size.y * 0.5)
 	_box.set_corner_radius_all(int(r))
 	_box.border_color = Color(COLOR.lightened(0.25), 0.55 + 0.45 * k)
 	_box.shadow_color = Color(COLOR, 0.25 + 0.35 * k)

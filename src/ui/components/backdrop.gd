@@ -1,80 +1,61 @@
 extends Control
-## App background: twilight sky gradient, faint stars, a high halo glow and the outline of
-## a cathedral rose window. Drawn once (no per-frame cost). Screens with their own art
-## simply cover it.
+## App background (style v2), drawn once. mode "dark" (default): graphite gradient, a soft
+## cyan light from the upper right, a broad band of faint diagonal hatching and a few thin
+## technical rule lines. mode "light": the same grammar on pale paper, for light pages.
+## Screens with their own art simply cover it.
 
-const SKY_TOP := Color("231a4a")
-const SKY_MID := Color("140f2b")
-const SKY_LOW := Color("0a0716")
+const KitBox := preload("res://src/ui/components/kit_box.gd")
 
-var _stars: Array[Vector3] = []
+var mode := "dark":
+	set(v):
+		mode = v
+		queue_redraw()
+
 var _glow: GradientTexture2D
-var _warm: GradientTexture2D
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 7741
-	for i in 110:
-		_stars.append(Vector3(rng.randf(), rng.randf() * 0.85, rng.randf()))
-	_glow = _radial(Color(0.5, 0.38, 0.85, 0.32))
-	_warm = _radial(Color(1.0, 0.82, 0.5, 0.12))
+	var g := Gradient.new()
+	g.set_color(0, Color(0.07, 0.62, 0.95, 0.16))
+	g.set_color(1, Color(0.07, 0.62, 0.95, 0.0))
+	_glow = GradientTexture2D.new()
+	_glow.gradient = g
+	_glow.fill = GradientTexture2D.FILL_RADIAL
+	_glow.fill_from = Vector2(0.5, 0.5)
+	_glow.fill_to = Vector2(0.5, 0.0)
+	_glow.width = 256
+	_glow.height = 256
 	resized.connect(queue_redraw)
 
 
-static func _radial(c: Color) -> GradientTexture2D:
-	var g := Gradient.new()
-	g.set_color(0, c)
-	g.set_color(1, Color(c, 0.0))
-	g.add_point(0.45, Color(c, c.a * 0.45))
-	var t := GradientTexture2D.new()
-	t.gradient = g
-	t.fill = GradientTexture2D.FILL_RADIAL
-	t.fill_from = Vector2(0.5, 0.5)
-	t.fill_to = Vector2(0.5, 0.0)
-	t.width = 256
-	t.height = 256
-	return t
-
-
 func _draw() -> void:
+	var ci := get_canvas_item()
 	var w := size.x
 	var h := size.y
-	# Sky gradient in three bands.
-	var mid := h * 0.42
-	draw_polygon(PackedVector2Array([Vector2(0, 0), Vector2(w, 0), Vector2(w, mid), Vector2(0, mid)]),
-		PackedColorArray([SKY_TOP, SKY_TOP, SKY_MID, SKY_MID]))
-	draw_polygon(PackedVector2Array([Vector2(0, mid), Vector2(w, mid), Vector2(w, h), Vector2(0, h)]),
-		PackedColorArray([SKY_MID, SKY_MID, SKY_LOW, SKY_LOW]))
-	# High halo glow (smooth radial textures).
-	var gc := Vector2(w * 0.5, h * 0.22)
-	var gr := w * 1.1
-	draw_texture_rect(_glow, Rect2(gc - Vector2(gr, gr), Vector2(gr, gr) * 2.0), false)
-	var wr := w * 0.45
-	draw_texture_rect(_warm, Rect2(gc - Vector2(wr, wr), Vector2(wr, wr) * 2.0), false)
-	# Stars.
-	for s in _stars:
-		var p := Vector2(s.x * w, s.y * h)
-		var r := 0.8 + s.z * 1.6
-		var a := 0.15 + s.z * 0.55
-		draw_circle(p, r, Color(1.0, 0.95, 0.85, a), true, -1.0, true)
-		if s.z > 0.93:
-			var c := Color(1.0, 0.93, 0.75, a * 0.7)
-			draw_line(p - Vector2(r * 4, 0), p + Vector2(r * 4, 0), c, 1.0, true)
-			draw_line(p - Vector2(0, r * 4), p + Vector2(0, r * 4), c, 1.0, true)
-	# Rose window outline (very faint gold).
-	var rc := Vector2(w * 0.5, h * 0.36)
-	var rr := w * 0.42
-	var gold := Color(0.95, 0.78, 0.4, 0.05)
-	draw_arc(rc, rr, 0, TAU, 96, gold, 2.0, true)
-	draw_arc(rc, rr * 0.93, 0, TAU, 96, Color(gold, 0.04), 1.0, true)
-	draw_arc(rc, rr * 0.36, 0, TAU, 64, gold, 1.5, true)
-	for i in 12:
-		var a := TAU * i / 12.0
-		var dir := Vector2(cos(a), sin(a))
-		draw_line(rc + dir * rr * 0.36, rc + dir * rr * 0.93, Color(gold, 0.045), 1.5, true)
-		draw_arc(rc + dir * rr * 0.66, rr * 0.2, 0, TAU, 40, Color(gold, 0.04), 1.2, true)
-	# Floor vignette.
-	draw_polygon(PackedVector2Array([Vector2(0, h * 0.7), Vector2(w, h * 0.7), Vector2(w, h), Vector2(0, h)]),
-		PackedColorArray([Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, 0.35), Color(0, 0, 0, 0.35)]))
+	var light := mode == "light"
+	var top := Color("f4f6f8") if light else Color("1d1f24")
+	var bot := Color("e2e6ea") if light else Color("0c0d0f")
+	draw_polygon(PackedVector2Array([Vector2(0, 0), Vector2(w, 0), Vector2(w, h), Vector2(0, h)]),
+		PackedColorArray([top, top, bot, bot]))
+	if not light:
+		var gr := w * 0.95
+		draw_texture_rect(_glow, Rect2(Vector2(w * 0.85, h * 0.12) - Vector2(gr, gr), Vector2(gr, gr) * 2.0), false)
+	var ink := Color(0, 0, 0) if light else Color(1, 1, 1)
+	# Broad diagonal band of hatching across the middle.
+	var band := PackedVector2Array([Vector2(0, h * 0.30), Vector2(w, h * 0.12), Vector2(w, h * 0.44), Vector2(0, h * 0.62)])
+	KitBox.hatch(ci, band, Color(ink, 0.035), 14.0, 3.0)
+	# Technical rule lines with end ticks.
+	var lc := Color(ink, 0.07)
+	for y_k: float in [0.18, 0.71, 0.86]:
+		var y := roundf(h * y_k)
+		draw_line(Vector2(w * 0.06, y), Vector2(w * 0.94, y), lc, 1.0)
+		draw_rect(Rect2(w * 0.06, y - 4.0, 2.0, 8.0), lc)
+		draw_rect(Rect2(w * 0.94 - 2.0, y - 4.0, 2.0, 8.0), lc)
+	# A few faint hexagon outlines, lower left.
+	for i in 3:
+		var c := Vector2(w * (0.12 + 0.13 * i), h * (0.78 - 0.04 * (i % 2)))
+		KitBox.stroke_poly(ci, KitBox.hex_points(c, w * 0.07), Color(ink, 0.05 - i * 0.01), 2.0)
+	# Edge vignette.
+	draw_polygon(PackedVector2Array([Vector2(0, h * 0.75), Vector2(w, h * 0.75), Vector2(w, h), Vector2(0, h)]),
+		PackedColorArray([Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, 0.06 if light else 0.3), Color(0, 0, 0, 0.06 if light else 0.3)]))

@@ -1,17 +1,20 @@
 extends Control
-## Gold filigree line used by Kit.section_header and Kit.divider: a hairline that fades
-## out toward the outer end, a thinner echo line, and a diamond + bead at the inner end.
+## Technical rule line used by Kit.section_header and Kit.divider (style v2): a hairline
+## that fades toward the outer end, with a short thick segment and two small ticks at the
+## inner end (next to the title). The file keeps its old name so older references work.
 
-## -1 = sits left of a title (bright end on the right), 1 = right of a title.
+## -1 = sits left of a title (inner end on the right), 1 = right of a title.
 var direction: int = 1
-var color := Color("e8c36a")
+var color := Color(1, 1, 1, 0.5)
+var accent := Color("12a8f4")
+## false = plain hairline (dividers).
 var ornament := true
 
 
 func _ready() -> void:
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	custom_minimum_size = Vector2(maxf(custom_minimum_size.x, 24.0), 16.0)
+	custom_minimum_size = Vector2(maxf(custom_minimum_size.x, 24.0), 12.0)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	resized.connect(queue_redraw)
 
@@ -21,28 +24,18 @@ func _draw() -> void:
 	var cy := roundf(size.y * 0.5)
 	if w < 4.0:
 		return
-	var d := 6.0 if ornament else 0.0
-	var inner_x := (w - d * 2.4) if direction < 0 else d * 2.4
+	var inner_x := w if direction < 0 else 0.0
 	var outer_x := 0.0 if direction < 0 else w
-	var bright := Color(color, 0.95)
-	var clear := Color(color, 0.0)
 	draw_polyline_colors(PackedVector2Array([Vector2(outer_x, cy), Vector2(inner_x, cy)]),
-		PackedColorArray([clear, bright]), 2.0, true)
+		PackedColorArray([Color(color, 0.0), color]), 1.5, true)
 	if not ornament:
 		return
-	# Echo line (shorter, thinner) below.
-	var echo_end := inner_x + direction * 8.0
-	var echo_start := lerpf(inner_x, outer_x, 0.55)
-	draw_polyline_colors(PackedVector2Array([Vector2(echo_start, cy + 5), Vector2(echo_end, cy + 5)]),
-		PackedColorArray([Color(color, 0.0), Color(color, 0.45)]), 1.0, true)
-	# Diamond with a dark core and a bead beyond it.
-	var cx := (w - d * 1.2) if direction < 0 else d * 1.2
-	var dia := PackedVector2Array([Vector2(cx, cy - d), Vector2(cx + d, cy), Vector2(cx, cy + d), Vector2(cx - d, cy)])
-	draw_colored_polygon(dia, Color(color, 1.0))
-	var k := d * 0.45
-	draw_colored_polygon(PackedVector2Array([Vector2(cx, cy - k), Vector2(cx + k, cy), Vector2(cx, cy + k), Vector2(cx - k, cy)]), Color("3a2a10"))
-	var loop := dia.duplicate()
-	loop.append(dia[0])
-	draw_polyline(loop, Color(color, 1.0), 1.0, true)
-	var bead_x := lerpf(inner_x, outer_x, 0.12)
-	draw_circle(Vector2(bead_x, cy), 2.2, Color(color, 0.9), true, -1.0, true)
+	# Short thick accent segment at the inner end, then two ticks further out.
+	var seg := minf(26.0, w * 0.3)
+	var out := float(direction) # direction away from the title
+	var a0 := inner_x
+	var a1 := inner_x + out * seg
+	draw_line(Vector2(minf(a0, a1), cy), Vector2(maxf(a0, a1), cy), accent, 3.0, true)
+	for i in 2:
+		var tx := inner_x + out * (seg + 7.0 + i * 7.0)
+		draw_rect(Rect2(tx - 1.5, cy - 4.0, 3.0, 8.0), Color(color, 0.8 - i * 0.3))

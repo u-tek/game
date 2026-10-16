@@ -1,5 +1,6 @@
 extends Control
-## Red notification dot (Kit.dot / Kit.set_dot). Pops in when shown and breathes gently.
+## Red-orange notification dot (Kit.dot / Kit.set_dot) with a light rim. Pops in when shown
+## and breathes gently.
 
 var _tw: Tween
 
@@ -39,7 +40,6 @@ func _draw() -> void:
 	var r := minf(size.x, size.y) * 0.5
 	var c := size * 0.5
 	draw_circle(c + Vector2(0, 1.5), r, Color(0, 0, 0, 0.35), true, -1.0, true)
-	draw_circle(c, r, Color("fff1d6"), true, -1.0, true)
-	draw_circle(c, r - 2.5, Color("e3271b"), true, -1.0, true)
-	draw_circle(c - Vector2(0, r * 0.12), r - 4.5, Color("ff5a45"), true, -1.0, true)
-	draw_circle(c - Vector2(r * 0.28, r * 0.32), r * 0.22, Color(1, 1, 1, 0.75), true, -1.0, true)
+	draw_circle(c, r, Color("f4f5f7"), true, -1.0, true)
+	draw_circle(c, r - maxf(2.0, r * 0.2), Color("ee3b22"), true, -1.0, true)
+	draw_circle(c - Vector2(0, r * 0.1), r - maxf(3.5, r * 0.36), Color("ff5a38"), true, -1.0, true)

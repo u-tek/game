@@ -149,7 +149,7 @@ icons["home"] = svg(path(poly_d([(32, 6), (58, 30), (51, 30), (51, 56), (38, 56)
 icons["exit"] = svg(path(poly_d([(8, 8), (40, 8), (40, 22), (34, 22), (34, 14), (14, 14), (14, 50), (34, 50), (34, 42), (40, 42), (40, 56), (8, 56)]))
                     + path(poly_d([(22, 29), (44, 29), (44, 20), (58, 32), (44, 44), (44, 35), (22, 35)])))
 icons["pointer"] = svg(poly([(32, 60), (8, 32), (22, 32), (22, 6), (42, 6), (42, 32), (56, 32)], W)
-                       + poly([(32, 53), (15, 35), (26, 35), (26, 10), (38, 10), (38, 35), (49, 35)], ACCENT))
+                       + poly([(32, 53), (15, 35), (26, 35), (26, 10), (38, 10), (38, 35), (49, 35)], ORANGE))
 icons["hex"] = svg(poly(hex_pts(32, 32, 29)))
 icons["hex_outline"] = svg(path(poly_d(hex_pts(32, 32, 29)) + " " + poly_d(hex_pts(32, 32, 24))))
 
@@ -163,17 +163,15 @@ icons["heroes"] = icons["nav_heroes"]
 _team = ""
 for (x, y) in [(22, 18), (42, 18), (12, 44), (32, 44), (52, 44)]:
     _team += poly(hex_pts(x, y, 10.5))
-icons["nav_team"] = svg(_team + stroke("M22 18 L32 44 L42 18", 2.5, extra=' opacity="0.7"'))
+icons["nav_team"] = svg(_team)
 icons["team"] = icons["nav_team"]
 # Lobby: halo over a horned crest (the game's two sides), inside a hex frame.
-icons["nav_lobby"] = svg(path(poly_d(hex_pts(32, 33, 28)) + " " + poly_d(hex_pts(32, 33, 23.5)))
-                         + path("M32 22 C39 22 44 26 44 32 C44 41 37 47 32 52 C27 47 20 41 20 32 C20 26 25 22 32 22 Z")
-                         + path("M20 28 C16 22 15 16 17 10 C20 17 24 20 27 23 Z") + path("M44 28 C48 22 49 16 47 10 C44 17 40 20 37 23 Z")
-                         + path(circle_d(32, 13, 8) + " " + circle_d(32, 13, 5.2)) )
+icons["nav_lobby"] = svg(path("M8 58 V30 L32 10 L56 30 V58 Z M24 58 V44 C24 38 27 34 32 31 C37 34 40 38 40 44 V58 Z")
+                         + path(circle_d(32, 6, 5) + " " + circle_d(32, 6, 2.6)) + rect(4, 55, 56, 5, 1.5))
 icons["lobby"] = icons["nav_lobby"]
 # Gear: shield with a sword through it.
-icons["nav_gear"] = svg(path("M32 8 L52 15 V31 C52 43 43 52 32 57 C21 52 12 43 12 31 V15 Z M32 14 L18 19 V31 C18 40 24 46 32 50 Z")
-                        + rect(42, 4, 5, 42, 1, W, ' transform="rotate(35 44 25)"') + rect(34, 40, 18, 5, 2, W, ' transform="rotate(35 43 42)"'))
+icons["nav_gear"] = svg(path(poly_d([(44, 6), (58, 6), (58, 20), (50, 28), (36, 14)])) + path(poly_d([(6, 50), (14, 42), (22, 50), (14, 58)])) + rect(4, 41, 22, 5, 2, W, ' transform="rotate(45 15 43.5)"')
+                        + path("M32 12 L52 19 V33 C52 45 43 53 32 58 C21 53 12 45 12 33 V19 Z " + poly_d([(20, 28), (32, 36), (44, 28), (44, 34), (32, 42), (20, 34)])))
 icons["gear"] = icons["nav_gear"]
 # Summon: a portal ring with a four-point star rising out of it.
 icons["nav_summon"] = svg(path("M8 46 C8 39 19 35 32 35 C45 35 56 39 56 46 C56 53 45 57 32 57 C19 57 8 53 8 46 Z M15 46 C15 49 22 51 32 51 C42 51 49 49 49 46 C49 43 42 41 32 41 C22 41 15 43 15 46 Z")
@@ -291,14 +289,16 @@ icons["crown"] = svg(poly([(6, 18), (20, 30), (32, 10), (44, 30), (58, 18), (52,
                      + circ(32, 10, 4, W) + circ(6, 18, 3.5, AMBER) + circ(58, 18, 3.5, AMBER) + poly([(32, 30), (37, 38), (32, 46), (27, 38)], ORANGE_DK))
 
 # Factions: flat marks in the faction color with a white core.
-icons["faction_celestial"] = svg(path(circle_d(32, 16, 12) + " " + circle_d(32, 16, 7.5), "#f5c242")
-                                 + path("M32 30 C26 36 18 38 6 36 C10 46 20 52 30 52 Z", "#f5c242") + path("M32 30 C38 36 46 38 58 36 C54 46 44 52 34 52 Z", "#f5c242")
-                                 + poly([(32, 30), (36, 44), (32 , 60), (28, 44)], W))
+icons["faction_celestial"] = svg(path(circle_d(32, 13, 10) + " " + circle_d(32, 13, 6), "#f5c242")
+                                 + path("M30 50 C24 36 16 30 4 27 C7 33 9 36 13 38 C9 38 7 39 5 41 C11 45 17 46 23 45 C20 47 18 49 17 52 C22 53 27 52 30 50 Z", "#f5c242")
+                                 + path("M34 50 C40 36 48 30 60 27 C57 33 55 36 51 38 C55 38 57 39 59 41 C53 45 47 46 41 45 C44 47 46 49 47 52 C42 53 37 52 34 50 Z", "#f5c242")
+                                 + poly([(32, 28), (36, 42), (32, 60), (28, 42)], W))
 icons["faction_infernal"] = svg(path("M14 8 C8 22 12 34 24 40 L26 32 C20 28 17 20 14 8 Z", "#e8452c") + path("M50 8 C56 22 52 34 40 40 L38 32 C44 28 47 20 50 8 Z", "#e8452c")
                                 + path("M32 22 C40 30 44 38 44 46 C44 54 38 60 32 60 C26 60 20 54 20 46 C20 38 24 30 32 22 Z", "#e8452c")
                                 + path("M32 38 C36 42 38 46 38 50 C38 54 35 56 32 56 C29 56 26 54 26 50 C26 46 28 42 32 38 Z", "#ffd2b0"))
-icons["faction_fallen"] = svg(path("M10 18 A22 9 0 0 1 40 10.5 L37 16 A16 5.5 0 0 0 16 19 Z", "#9a6cf5") + path("M46 12 A22 9 0 0 1 54 22 L48 22 A16 5.5 0 0 0 44 17 Z", "#9a6cf5")
-                              + path("M36 26 C46 32 50 44 44 58 C42 48 36 42 26 40 C30 36 34 32 36 26 Z", "#9a6cf5") + path("M34 32 C38 38 39 44 38 50 C35 46 32 44 28 42 C31 39 33 36 34 32 Z", W))
+icons["faction_fallen"] = svg(stroke("M10 20 A22 9 0 0 1 30 11.2", 5, "#9a6cf5", "butt") + stroke("M38 11.3 A22 9 0 0 1 54 20 A22 9 0 0 1 44 27.5", 5, "#9a6cf5", "butt")
+                              + path("M22 60 C20 50 24 38 34 30 C40 26 46 25 50 26 C50 32 46 40 40 46 C34 52 28 56 22 60 Z", "#9a6cf5")
+                              + stroke("M24 57 C30 48 37 38 47 29", 2.6, W))
 
 # Toggles and slider knob.
 icons["toggle_on"] = svg(rect(2, 16, 60, 32, 16, ACCENT) + circ(46, 32, 12, W), 128, 128)
