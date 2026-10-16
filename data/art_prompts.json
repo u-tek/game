@@ -73,10 +73,10 @@
    "rating": "sensitive",
    "rating_negative": "nsfw, explicit",
    "use_natural": false,
-   "settings": {"sampler": "euler_ancestral", "scheduler": "normal", "steps": 28, "cfg": 5.0, "width": 768, "height": 1344,
+   "settings": {"sampler": "euler_ancestral", "scheduler": "normal", "steps": 28, "cfg": 5.0, "width": 832, "height": 1216,
                 "clip_skip": null, "model_sampling": null, "rescale_cfg": null,
                 "hires": {"enabled": true, "scale": 1.5, "latent_method": "nearest-exact", "denoise_latent": 0.5, "denoise_model": 0.4, "steps": 20}},
-   "notes": "Animagine documents its quality tags at the end."
+   "notes": "Animagine documents its quality tags at the end. Settings follow the Animagine XL 4.0 model card (Euler a, CFG 5, 28 steps, 832x1216), as the art farm (tools/artgen) does."
   },
   "sdxl_generic": {
    "label": "Other SDXL anime checkpoints",
@@ -159,7 +159,7 @@
   "Later: train a character LoRA per hero from 15-30 curated images (master + variants + refs) and list it in heroes.<id>.loras."
  ],
 
- "_heroes_doc": "Tag fields are composed in this order: subject, adult_face, composition, body, hair, eyes, expression, head, wings_tail, outfit, footwear, accessories, weapon, pose (prompts.full_body). 'face' = identity tags for face crops. 'palette' overrides the faction palette. 'size' [w, h] overrides the family base size (wide frames for big wingspans). 'natural' = the brief in one sentence with the apparent age (metadata/docs). 'brief_gaps' = choices the brief does not make, or brief details left to the rig (glows, smoke), for the owner to veto.",
+ "_heroes_doc": "Tag fields are composed in this order: subject, adult_face, composition, body, hair, eyes, expression, head, wings_tail, outfit, footwear, accessories, weapon, pose (prompts.full_body). 'face' = identity tags for face crops. 'palette' overrides the faction palette. 'size' [w, h] overrides the family base size (wide frames for big wingspans). 'natural' = the brief in one sentence with the apparent age (metadata/docs). 'brief_gaps' = choices the brief does not make, or brief details left to the rig (glows, smoke), for the owner to veto. Budget: count tokens with the real CLIP BPE tokenizer (prompts.clip_stats undercounts words such as highleg, leotard, underboob, pectorals, contrapposto, polearm); every full-body prompt, art-farm overlay included, must fit 2 chunks, and the tag order inside a field is chosen so that no multi-word tag straddles the 75-token chunk break of the Animagine/farm prompt (a split tag such as 'partially | unzipped' is read as two unrelated words). Re-check both after any tag edit.",
  "heroes": {
   "seraphiel": {
    "name": "Seraphiel", "faction": "celestial", "role": "caster", "rarity": "legendary", "gender": "female", "apparent_age": "mid-20s",
@@ -170,22 +170,22 @@
    "hair": "platinum blonde hair, very long hair",
    "eyes": "yellow eyes",
    "expression": "closed eyes, seductive smile",
-   "head": "halo, spiked halo, gold crown",
+   "head": "spiked halo",
    "wings_tail": "multiple wings, white wings, head wings",
-   "outfit": "white leotard, highleg leotard, center opening, white pelvic curtain, detached sleeves",
+   "outfit": "white leotard, highleg leotard, center opening, pelvic curtain, detached sleeves",
    "footwear": "barefoot",
    "accessories": "body chain",
    "weapon": "scepter, floating object",
    "pose": "hand up, hand on own chest",
-   "face": "platinum blonde hair, halo, gold crown",
+   "face": "platinum blonde hair, spiked halo",
    "natural": "A statuesque, voluptuous adult seraph woman in her mid-20s with six white feathered wings framing her, two large pairs and a small pair at her head, and a golden sunray halo crown; very long platinum hair draping over her body; a glossy white highleg goddess leotard split by a center opening down to the navel and laced with gold filigree chains, an open back between the wings, long white front and back drapes falling from gold hip clasps over the opaque leotard, flowing detached sleeves; gold body chains, anklets and bare feet; one hand raised to a floating golden tuning-fork sceptre, the other resting on her chest; eyes closed, serene, alluring half-smile.",
-   "negative_extra": "(covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2)",
+   "negative_extra": "(blue archive:1.3), (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2)",
    "variants": {
     "eyes_closed": "closed eyes, seductive smile, serene, long eyelashes",
     "eyes_open": "yellow eyes, open eyes, looking at viewer, seductive smile, serene",
     "mouth_open": "closed eyes, open mouth, singing, serene"
    },
-   "brief_gaps": ["Eye colour not in the brief (eyes usually closed): yellow/gold chosen for the eyes-open variant.", "Bare legs and bare feet so the drapes and body chains read; the drapes are 'white pelvic curtain' over the opaque highleg leotard. Anklets and the open back are in the brief but not tagged (token budget; the wings hide the back in a front view).", "Gold filigree comes from the palette tag 'white and gold theme' (no 'gold trim' tag: token budget).", "The sunray crown is tagged 'spiked halo, gold crown'; 'light rays'/'sunburst' were dropped (they paint rays into the background and break the cutout; the rig adds glow).", "Wide 832x1216 frame so six wings fit.", "Center opening on huge breasts: check every candidate at 1:1 for slips; negative_extra upweights them."]
+   "brief_gaps": ["Eye colour not in the brief (eyes usually closed): yellow/gold chosen for the eyes-open variant.", "Bare legs and bare feet so the drapes and body chains read; the drapes are 'pelvic curtain' over the opaque highleg leotard. Anklets and the open back are in the brief but not tagged (token budget; the wings hide the back in a front view).", "Gold filigree comes from the palette tag 'white and gold theme' (no 'gold trim' tag: token budget).", "The sunray crown is tagged 'spiked halo' alone: 'gold crown' and a plain 'halo' were cut (token budget; add the crown with fix.py if the halo reads plain). 'light rays'/'sunburst' stay out (they paint rays into the background and break the cutout; the rig adds glow).", "Wide 832x1216 frame so six wings fit.", "'looking at viewer' (global composition) sits beside 'closed eyes': read it as facing the viewer.", "Center opening on huge breasts: check every candidate at 1:1 for slips; negative_extra upweights them. Pilot-render about 4 seeds before the full batch: the farm's exposure filter (tools/artgen/config.py) may drop many candidates of this reveal; never loosen it, cut the reveal in the brief instead."]
   },
   "cassiel": {
    "name": "Cassiel", "faction": "celestial", "role": "guardian", "rarity": "epic", "gender": "female", "apparent_age": "mid-20s",
@@ -201,197 +201,197 @@
    "outfit": "bikini armor, white armor, gold trim, pauldrons, gauntlets, blue pelvic curtain, revealing clothes",
    "footwear": "armored boots, thigh boots",
    "accessories": "",
-   "weapon": "kite shield, large shield, holding shield",
+   "weapon": "kite shield, holding shield",
    "pose": "hand on hip",
    "face": "silver hair, short hair, bob cut, halo",
    "natural": "An athletic, curvy adult paladin woman in her mid-20s in ornate white-and-gold bikini armor: small sculpted breastplate cups, huge pauldrons and armored gauntlets, a bare toned midriff with defined abs, a high-cut armored bottom under a long sky-blue tabard panel, thick thighs above thigh-high armored greaves; short silver bob; two white feathered wings and a simple halo; one hand on her hip, a huge kite shield with a golden sunburst planted at her side; a cocky smirk.",
-   "negative_extra": "(covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2)",
+   "negative_extra": "(blue archive:1.3), (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2)",
    "variants": {
     "eyes_closed": "closed eyes, smirk, confident",
     "mouth_open": "blue eyes, open mouth, smile, teeth, confident"
    },
-   "brief_gaps": ["Eye colour not in the brief: blue.", "Gorget and breastplate cups are left to 'bikini armor' (token budget); the tabard is 'blue pelvic curtain' over the opaque armored bottom.", "Shield sunburst emblem not tagged ('sunburst' paints a background pattern); add with fix.py if wanted.", "Green background: her silver hair and white wings clash with grey and white."]
+   "brief_gaps": ["Eye colour not in the brief: blue.", "Gorget and breastplate cups are left to 'bikini armor' (token budget); the tabard is 'blue pelvic curtain' over the opaque armored bottom.", "Shield is 'kite shield, holding shield' ('large shield' cut for the token budget); the sunburst emblem is not tagged ('sunburst' paints a background pattern), add with fix.py if wanted.", "Green background: her silver hair and white wings clash with grey and white."]
   },
   "liora": {
    "name": "Liora", "faction": "celestial", "role": "support", "rarity": "epic", "gender": "female", "apparent_age": "early 20s",
    "seed_base": 103000, "background": "grey", "default_eyes": "open", "variant_set": ["eyes_closed", "mouth_open", "smile"], "loras": [],
-   "subject": "1girl, solo, adult, (mature female:0.8)",
+   "subject": "1girl, solo, adult, mature female",
    "adult_face": "makeup, lipstick, eyeliner, long eyelashes",
    "body": "curvy, large breasts, wide hips",
-   "hair": "pink hair, twintails, hair ribbon",
+   "hair": "pink hair, long hair, side braid",
    "eyes": "aqua eyes",
    "expression": "seductive smile",
    "head": "head wreath, halo",
-   "wings_tail": "small wings, white wings",
-   "outfit": "strapless dress, corset, heart cutout, short dress, white thighhighs, garter straps",
+   "wings_tail": "white wings",
+   "outfit": "strapless dress, corset, cleavage, short dress, white thighhighs, garter straps",
    "footwear": "high heels",
    "accessories": "",
    "weapon": "lyre, holding instrument",
    "pose": "leaning forward",
-   "face": "pink hair, twintails, hair ribbon, head wreath, halo",
-   "natural": "A soft, curvy adult healer woman in her early 20s, clearly adult in face and figure with makeup and full lips: a strapless cream corset minidress with a heart-shaped cleavage cutout and gold embroidery, wide hips and thick thighs in white thighhighs on rose-gold garter straps, white high heels; rose-gold twin tails tied with ribbons; two small fluffy white wings and a halo of flowers; leaning toward the viewer with a golden lyre in her hands and a warm, teasing smile.",
-   "negative_extra": "(loli:1.3), (child:1.3), (aged down:1.2), (teenage:1.2), petite, (covered nipples:1.3), (nipples:1.2), (pantyshot:1.25), (upskirt:1.25)",
+   "face": "pink hair, side braid, head wreath, halo",
+   "natural": "A soft, curvy adult healer woman in her early 20s, clearly adult in face and figure with makeup and full lips: a strapless cream corset minidress with gold embroidery and a deep cleavage, wide hips and thick thighs in white thighhighs on rose-gold garter straps, white high heels; long rose-gold hair in a loose side braid over one shoulder; a pair of soft white wings and a halo of flowers; leaning toward the viewer with a golden lyre in her hands and a warm, teasing smile.",
+   "negative_extra": "(blue archive:1.3), (loli:1.3), (child:1.3), (aged down:1.2), (teenage:1.2), (petite:1.2), (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (downblouse:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2), (pantyshot:1.25), (upskirt:1.25)",
    "variants": {
     "eyes_closed": "closed eyes, seductive smile",
     "mouth_open": "aqua eyes, open mouth, smile"
    },
-   "brief_gaps": ["Eye colour not in the brief: aqua (contrast with rose-gold hair).", "Rose-gold hair is tagged 'pink hair'; the rose-gold garters and cream dress come from the faction palette.", "Footwear not in the brief: white high heels.", "She is the young-end risk: blush, head tilt, frills and puffy sleeves stay out (with twin tails they skew young); 'seductive smile' carries the teasing. Short dress + leaning: pantyshot/upskirt are upweighted in the negative."]
+   "brief_gaps": ["Eye colour not in the brief: aqua (contrast with rose-gold hair).", "Rose-gold hair is tagged 'pink hair'; the rose-gold garters and cream dress come from the faction palette.", "Footwear not in the brief: white high heels.", "Young-end hero. The v3 pink twin tails, ribbons, small wings and heart cutout are gone: with a halo they read as Blue Archive's student cast. She has a long side braid, full-size wings, 'mature female' at full weight and adult makeup; 'blue archive', petite and the youth terms are weighted in the negative. Blush, head tilt, frills and puffy sleeves stay out.", "Strapless corset plus 'leaning forward' risks a downblouse shot or a strapless slip, and the short dress a pantyshot: downblouse, slips, pantyshot, upskirt and no panties are upweighted in the negative; check the lean at 1:1."]
   },
   "uriela": {
    "name": "Uriela", "faction": "celestial", "role": "striker", "rarity": "rare", "gender": "female", "apparent_age": "early 20s",
    "seed_base": 104000, "background": "grey", "default_eyes": "open", "variant_set": ["eyes_closed", "mouth_open", "smile"], "loras": [],
-   "subject": "1girl, solo, adult, (mature female:0.8)",
+   "subject": "1girl, solo, adult, mature female",
    "adult_face": "makeup, lipstick, eyeliner, long eyelashes",
-   "body": "toned, large breasts, thick thighs",
-   "hair": "blonde hair, long hair, high ponytail",
+   "body": "toned, large breasts, wide hips, thick thighs",
+   "hair": "blonde hair, high ponytail",
    "eyes": "blue eyes",
    "expression": "grin, confident",
    "head": "halo",
-   "wings_tail": "angel wings, white wings",
+   "wings_tail": "angel wings",
    "outfit": "blue leotard, highleg leotard, underboob cutout, navel cutout, gauntlets, capelet",
    "footwear": "armored boots",
    "accessories": "",
-   "weapon": "golden spear, holding polearm",
+   "weapon": "holding spear",
    "pose": "weapon over shoulder",
    "face": "blonde hair, high ponytail, halo",
    "natural": "A toned, curvy adult spear maiden in her early 20s, clearly adult in face and figure: a glossy azure-and-white highleg battle leotard with an underboob cutout and a navel cutout, gold trim, bare shoulders and back, armored gauntlets and boots and a short half-cape; wide hips and thick thighs; a high honey-blonde ponytail and a confident grin; swept-back white wings and a thin halo; a long golden spear with a sun-shaped blade resting over her shoulder.",
-   "negative_extra": "(loli:1.3), (child:1.3), (aged down:1.2), (teenage:1.2), petite, (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25)",
+   "negative_extra": "(blue archive:1.3), (loli:1.3), (child:1.3), (aged down:1.2), (teenage:1.2), (petite:1.2), (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2)",
    "variants": {
     "eyes_closed": "closed eyes, grin, confident",
     "mouth_open": "blue eyes, open mouth, confident, teeth"
    },
-   "brief_gaps": ["Eye colour not in the brief: blue.", "'Backless', 'gold trim' and 'shiny clothes' are not tagged (token budget; the wings cover the back); the gold comes from the palette."]
+   "brief_gaps": ["Eye colour not in the brief: blue.", "'Backless', 'gold trim' and 'shiny clothes' are not tagged (token budget; the wings cover the back); the gold comes from the palette.", "The spear is 'holding spear' and the swept-back wings plain 'angel wings' (token budget); the sun blade is left to fix.py.", "Young-end hero: 'mature female' at full weight, adult makeup, and 'blue archive', petite and the youth terms weighted in the negative.", "Underboob cutout in a highleg leotard: check at 1:1. Pilot-render about 4 seeds before the full batch: the farm's exposure filter (tools/artgen/config.py) may drop many candidates of this reveal; never loosen it, cut the reveal in the brief instead."]
   },
   "nuriel": {
    "name": "Nuriel", "faction": "celestial", "role": "assassin", "rarity": "rare", "gender": "male", "apparent_age": "mid-20s",
    "seed_base": 105000, "background": "grey", "default_eyes": "open", "variant_set": ["eyes_closed", "smile"], "loras": [],
-   "subject": "1boy, solo, male focus, adult, (mature male:0.8)",
+   "subject": "1boy, solo, male focus, adult, mature male",
    "adult_face": "",
    "body": "toned male, abs, pectorals",
    "hair": "blonde hair, short hair, messy hair",
    "eyes": "blue eyes",
    "expression": "serious",
-   "head": "halo, mouth mask, covered mouth",
+   "head": "halo, mouth mask",
    "wings_tail": "small wings, white wings",
-   "outfit": "hooded jacket, sleeveless jacket, open jacket, blue jacket, no shirt, chest harness, multiple belts, arm wrap",
+   "outfit": "hooded jacket, sleeveless, open jacket, blue jacket, no shirt, chest harness, multiple belts, black pants",
    "footwear": "boots",
    "accessories": "",
    "weapon": "dagger, dual wielding, reverse grip",
-   "pose": "",
-   "face": "blonde hair, messy hair, halo, mouth mask, covered mouth",
-   "natural": "A lean, muscular adult man in his mid-20s: a sleeveless hooded sky-blue scout jacket worn open over a bare chest and defined abs, a thin leather chest harness, low-slung crossed belts on fitted dark trousers, wrapped forearms, a white cloth mask over his nose and mouth; messy pale-gold hair; small sharp white wings and a faint halo; twin glowing daggers of light held in reverse grip.",
-   "negative_extra": "(bulge:1.3)",
+   "pose": "crossed arms",
+   "face": "blonde hair, messy hair, halo, mouth mask",
+   "natural": "A lean, muscular adult man in his mid-20s: a sleeveless hooded sky-blue scout jacket worn open over a bare chest and defined abs, a thin leather chest harness, low-slung crossed belts on fitted black trousers, wrapped forearms, a white cloth mask over his nose and mouth; messy pale-gold hair; small sharp white wings and a faint halo; arms crossed over his chest, twin glowing daggers of light held in reverse grip.",
+   "negative_extra": "(blue archive:1.3), (bulge:1.3), (penis:1.2)",
    "variants": {
     "eyes_closed": "closed eyes, mouth mask, covered mouth, calm",
     "mouth_open": "blue eyes, mouth mask, covered mouth",
     "smile": {"prompt": "closed eyes, happy, mouth mask, covered mouth", "region": "eyes"}
    },
-   "brief_gaps": ["Eye colour not in the brief: blue.", "Trouser colour is left to the palette (token budget).", "Mouth is covered by the cloth mask, so mouth_open is not in variant_set (the prompt keeps the mask if it is ever run) and his smile only changes the eyes."]
+   "brief_gaps": ["Eye colour not in the brief: blue.", "Trousers are 'black pants' (the brief's fitted dark trousers). The wrapped forearms are not tagged (token budget); add with fix.py if wanted.", "Pose: arms crossed over the bare chest, daggers in reverse grip (the men get poses too).", "Mouth is covered by the cloth mask, so mouth_open is not in variant_set (the prompt keeps the mask if it is ever run) and his smile only changes the eyes."]
   },
   "mordessa": {
    "name": "Mordessa", "faction": "infernal", "role": "striker", "rarity": "legendary", "gender": "female", "apparent_age": "around 30",
    "seed_base": 201000, "background": "white", "default_eyes": "open", "variant_set": ["eyes_closed", "mouth_open", "smile"], "loras": [],
    "subject": "1girl, solo, adult, mature female",
    "adult_face": "",
-   "body": "curvy, huge breasts, wide hips, thick thighs",
-   "hair": "black hair, wavy hair, red tips",
+   "body": "huge breasts, wide hips, thick thighs",
+   "hair": "black hair, long hair, wavy hair, red tips",
    "eyes": "red eyes",
    "expression": "smirk",
-   "head": "ram horns, black horns, mini crown",
+   "head": "ram horns, mini crown",
    "wings_tail": "bat wings, demon tail",
-   "outfit": "black dress, armored dress, plunging neckline, single pauldron, side slit, garter straps",
+   "outfit": "armored dress, plunging neckline, single pauldron, leotard under clothes, side slit, garter straps",
    "footwear": "thigh boots",
    "accessories": "",
-   "weapon": "greatsword, flaming sword, sword over shoulder",
+   "weapon": "flaming sword, sword over shoulder",
    "pose": "hand on hip",
-   "face": "black hair, wavy hair, ram horns, black horns, mini crown",
-   "natural": "A voluptuous, regal adult demon queen around 30: huge curled black ram horns with a small crown between them; long wavy black hair with crimson ends; a black-and-crimson armored dress with a gold-filigree corset bodice plunging to the navel, one armored shoulder, skirt slits cut to the hip on both sides showing garter straps and thick thighs in thigh-high boots; a flame-wreathed greatsword resting on her shoulder, the other hand on her hip; leathery bat wings and a spaded tail; a commanding smirk.",
-   "negative_extra": "(covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25)",
+   "face": "black hair, long hair, wavy hair, ram horns, mini crown",
+   "natural": "A voluptuous, regal adult demon queen around 30: huge curled black ram horns with a small crown between them; long wavy black hair with crimson ends; a black-and-crimson armored dress worn over a glossy black highleg leotard, its gold-filigree corset bodice plunging to the navel, one armored shoulder, skirt slits cut to the hip on both sides that show the leotard's high-cut line, garter straps and thick thighs in thigh-high boots; a flame-wreathed greatsword resting on her shoulder, the other hand on her hip; leathery bat wings and a spaded tail; a commanding smirk.",
+   "negative_extra": "(covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.3), (pubic hair:1.25)",
    "variants": {
     "eyes_closed": "closed eyes, smirk, confident",
     "mouth_open": "red eyes, open mouth, laughing, confident"
    },
-   "brief_gaps": ["Eye colour not in the brief: red.", "Gold filigree is not tagged (token budget); add with fix.py if the first candidates lack it.", "The flame is tagged tightly ('flaming sword', no loose 'fire'); bigger flames are the rig's VFX."]
+   "brief_gaps": ["Eye colour not in the brief: red.", "The skirt slits open over a black highleg leotard worn under the dress ('leotard under clothes'), so the hip-high slits show opaque fabric, never a bare hip.", "Gold filigree, the black of the horns and the greatsword's size are not tagged (token budget; the palette carries the colours); add with fix.py if the first candidates lack them.", "The flame is tagged tightly ('flaming sword', no loose 'fire'); bigger flames are the rig's VFX."]
   },
   "brakka": {
    "name": "Brakka", "faction": "infernal", "role": "guardian", "rarity": "epic", "gender": "male", "apparent_age": "adult (30s)",
    "seed_base": 202000, "background": "white", "default_eyes": "open", "variant_set": ["eyes_closed", "mouth_open", "smile"], "loras": [],
    "subject": "1boy, solo, male focus, adult, mature male",
    "adult_face": "",
-   "body": "muscular male, bara, huge pectorals, abs, thick thighs, colored skin, red skin",
+   "body": "muscular male, huge pectorals, abs, thick thighs, red skin",
    "hair": "black hair, short hair",
    "eyes": "yellow eyes",
    "expression": "grin, friendly",
    "head": "short horns, tusks",
    "wings_tail": "demon tail, thick tail",
-   "outfit": "topless male, chest harness, chain, black armor, faulds, cracked armor, huge gauntlets, orange gauntlets",
+   "outfit": "topless male, chest harness, chain, black armor, faulds, cracked armor, orange gauntlets, black pants",
    "footwear": "armored boots",
    "accessories": "",
    "weapon": "clenched hands",
    "pose": "flexing",
    "face": "black hair, short hair, short horns, tusks, red skin",
-   "natural": "An enormous, heavily muscled adult demon man with red skin: shirtless, huge pectorals and abs crossed by a chain harness, an obsidian armor kilt of plates with glowing magma cracks slung low on his hips, huge molten gauntlets, thick bare thighs, short thick horns and a thick tail; flexing both arms with a friendly tusked grin.",
-   "negative_extra": "(bulge:1.3)",
+   "natural": "An enormous, heavily muscled adult demon man with red skin: shirtless, huge pectorals and abs crossed by a chain harness, an obsidian armor kilt of plates with glowing magma cracks slung low on his hips over black trousers, huge molten gauntlets, thick thighs, short thick horns and a thick tail; flexing both arms with a friendly tusked grin.",
+   "negative_extra": "(bulge:1.3), (penis:1.2)",
    "variants": {
     "eyes_closed": "closed eyes, grin, tusks",
     "mouth_open": "yellow eyes, open mouth, tusks, sharp teeth, laughing"
    },
-   "brief_gaps": ["Hair and eye colour not in the brief: short black hair, yellow eyes.", "Footwear not in the brief: armored boots.", "'bara' pushes the heavy beefcake build; drop it if the style drifts away from the roster.", "Magma is painted as cracked armour and orange gauntlets; 'glowing'/'lava' were dropped (glow spills into the background), the rig adds the glow."]
+   "brief_gaps": ["Hair and eye colour not in the brief: short black hair, yellow eyes.", "Footwear not in the brief: armored boots.", "Black trousers under the plate kilt ('faulds' over 'black pants') keep the bottom opaque. 'bara' was dropped: it pulls toward the gay-erotica genre (bulge, crotch focus).", "Magma is painted as cracked armour and orange gauntlets; 'glowing'/'lava' were dropped (glow spills into the background), the rig adds the glow. 'huge gauntlets' and 'colored skin' were cut for the token budget."]
   },
   "vesper": {
    "name": "Vesper", "faction": "infernal", "role": "caster", "rarity": "epic", "gender": "female", "apparent_age": "late 20s",
    "seed_base": 203000, "background": "white", "palette": "black and purple theme", "default_eyes": "open", "variant_set": ["eyes_closed", "mouth_open", "smile"], "loras": [],
    "subject": "1girl, solo, adult, mature female",
    "adult_face": "",
-   "body": "curvy, huge breasts, wide hips",
+   "body": "huge breasts, narrow waist, wide hips",
    "hair": "red hair, long hair",
    "eyes": "purple eyes, half-closed eyes",
    "expression": "seductive smile",
    "head": "small horns, glasses",
    "wings_tail": "bat wings, demon tail, heart tail",
-   "outfit": "latex bodysuit, cleavage cutout, navel cutout, hip vent, purple cape, high collar, elbow gloves",
+   "outfit": "red bodysuit, latex, heart cutout, cleavage, high collar, purple cape, elbow gloves",
    "footwear": "high heels",
    "accessories": "",
    "weapon": "floating orb, fireball",
    "pose": "hand up, adjusting eyewear",
    "face": "red hair, long hair, small horns, glasses",
-   "natural": "A sultry adult succubus scholar woman in her late 20s: long straight wine-red hair, half-lidded eyes behind thin glasses, small curved horns; a glossy black latex catsuit with a cleavage cutout, a navel window and hip windows on both sides, opera gloves, a high-collared open-front cape lined in purple; an hourglass figure; one hand raising a floating hellfire orb, the other adjusting her glasses; bat wings and a heart-spaded tail.",
-   "negative_extra": "(covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25)",
+   "natural": "A sultry adult succubus scholar woman in her late 20s with an hourglass figure: long straight wine-red hair, half-lidded eyes behind thin glasses, small curved horns; a glossy crimson latex catsuit with a heart-shaped cleavage window, opera gloves, a high-collared open-front black cape lined in purple; one hand raising a floating hellfire orb, the other adjusting her glasses; bat wings and a heart-spaded tail.",
+   "negative_extra": "(covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (impossible clothes:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2)",
    "variants": {
     "eyes_closed": "closed eyes, seductive smile",
     "mouth_open": "purple eyes, half-closed eyes, open mouth, seductive smile"
    },
-   "brief_gaps": ["Eye colour not in the brief: purple.", "Footwear not in the brief: high heels.", "Glasses are new in this pass (scholar read); they are in 'face' too so face polish keeps them. 'curved horns' and 'shiny clothes' were dropped (token budget; latex reads glossy).", "Palette overridden to 'black and purple theme' (her brief), not the Infernal red and black.", "Glossy latex draws outlines: covered nipples and cameltoe are upweighted in the negative; reject any candidate that still shows them."]
+   "brief_gaps": ["Eye colour not in the brief: purple.", "Footwear not in the brief: high heels.", "Glasses are in 'face' too so face polish keeps them. 'curved horns' and 'shiny clothes' are not tagged (token budget; 'latex' reads glossy).", "The palette tag stays 'black and purple theme' (a pipeline test pins it); the crimson latex suit ('red bodysuit, latex'), the wine-red hair and the heart window keep her Infernal and apart from Sable.", "Glossy latex draws outlines: covered nipples, cameltoe and 'impossible clothes' (fabric clinging to every contour) are upweighted in the negative; reject any candidate that still shows them."]
   },
   "imra": {
    "name": "Imra", "faction": "infernal", "role": "support", "rarity": "rare", "gender": "female", "apparent_age": "early 20s (lithe, clearly adult)",
    "seed_base": 204000, "background": "white", "default_eyes": "open", "variant_set": ["eyes_closed", "mouth_open", "smile"], "loras": [],
-   "subject": "1girl, solo, adult, (mature female:0.8), aged up",
+   "subject": "1girl, solo, adult, (mature female:0.8), (aged up:1.2)",
    "adult_face": "makeup, lipstick, eyeliner, long eyelashes",
    "body": "toned, large breasts, wide hips",
-   "hair": "orange hair, short hair, spiked hair",
+   "hair": "orange hair, medium hair, messy hair",
    "eyes": "green eyes",
-   "expression": "grin, sharp teeth",
-   "head": "small horns, pointy ears",
-   "wings_tail": "small wings, bat wings, demon tail",
+   "expression": "sharp teeth, grin",
+   "head": "curved horns, pointy ears",
+   "wings_tail": "bat wings, demon tail",
    "outfit": "bikini, bandeau, patchwork clothes, red pelvic curtain, body markings",
    "footwear": "sandals",
    "accessories": "",
    "weapon": "holding staff, lantern",
    "pose": "arm up",
-   "face": "orange hair, short hair, spiked hair, small horns, pointy ears",
-   "natural": "A lithe, toned adult imp shaman woman in her early 20s with an adult face, adult proportions and makeup: a crimson patchwork bandeau bikini top and a layered loincloth panel over an opaque bikini bottom, tribal body paint, bone and gold jewelry, sandals; short spiky orange hair, small horns, pointed ears and a playful toothy grin; one arm raising a lantern staff burning with green-orange flame; small bat wings and a curly tail.",
-   "negative_extra": "(loli:1.4), (child:1.4), (aged down:1.3), (teenage:1.3), toddler, (covered nipples:1.3), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2)",
+   "face": "orange hair, medium hair, messy hair, curved horns, pointy ears",
+   "natural": "A lithe, toned adult imp shaman woman in her early 20s with an adult face, adult proportions and makeup: a crimson patchwork bandeau bikini top and a layered loincloth panel over an opaque bikini bottom, tribal body paint, bone and gold jewelry, sandals; a shaggy shoulder-length mane of orange hair, curved horns, pointed ears and a wild, sharp-toothed grin; one arm raising a lantern staff burning with green-orange flame; bat wings and a curly tail.",
+   "negative_extra": "(petite:1.3), (mesugaki:1.3), (shortstack:1.3), (loli:1.4), (child:1.4), (aged down:1.3), (teenage:1.3), toddler, (covered nipples:1.3), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2)",
    "variants": {
     "eyes_closed": "closed eyes, grin, sharp teeth",
     "mouth_open": "green eyes, open mouth, sharp teeth, laughing"
    },
-   "brief_gaps": ["Eye colour not in the brief: green (matches her lantern flame).", "Footwear not in the brief: sandals.", "She is no longer 'petite' in the brief: a lithe, average-height adult with adult curves, 'aged up' and adult makeup. Review her face and proportions hardest.", "The loincloth is 'red pelvic curtain' over the opaque bikini bottom; bone and gold jewelry are not tagged (token budget), add with fix.py if wanted.", "The lantern's green-orange flame is left to the rig (fire tags spill into the background)."]
+   "brief_gaps": ["Eye colour not in the brief: green (matches her lantern flame).", "Footwear not in the brief: sandals.", "Review her first. Her imp tags (horns, pointed ears, bat wings, tail, sharp-toothed grin) sit next to Danbooru's 'mesugaki' (bratty young girl) archetype. So the small wings, small horns and short spiky hair are gone (now a medium, messy mane), 'aged up' is weighted 1.2, and petite, mesugaki, shortstack and the youth terms are weighted in the negative. Check her face and proportions at 1:1 and discard any candidate that reads young.", "A pipeline test (test_rule_checker_rejects_violations) uses her prompt as its fixture and pins 'mature female' at 0.8 and an unweighted 'nipples' in her negative; raise both to the roster standard when that fixture moves.", "The loincloth is 'red pelvic curtain' over the opaque bikini bottom; bone and gold jewelry are not tagged (token budget), add with fix.py if wanted.", "Bandeau with an arm raised overhead is a slip setup: slips are upweighted in the negative; check at 1:1.", "The lantern's green-orange flame is left to the rig (fire tags spill into the background)."]
   },
   "kessa": {
    "name": "Kessa", "faction": "infernal", "role": "assassin", "rarity": "rare", "gender": "female", "apparent_age": "mid-20s",
    "seed_base": 205000, "background": "white", "default_eyes": "open", "variant_set": ["eyes_closed", "mouth_open", "smile"], "loras": [],
-   "subject": "1girl, solo, adult, (mature female:0.8)",
+   "subject": "1girl, solo, adult, mature female",
    "adult_face": "",
    "body": "toned, large breasts, wide hips, thick thighs",
    "hair": "black hair, short hair, streaked hair, red streaks",
@@ -399,19 +399,19 @@
    "expression": "fang, smug",
    "head": "cat ears, small horns",
    "wings_tail": "cat tail",
-   "outfit": "black bodysuit, partially unzipped, red harness, o-ring, hip vent, red scarf",
+   "outfit": "black bodysuit, red harness, o-ring, partially unzipped, hip vent, red scarf",
    "footwear": "thigh boots",
    "accessories": "",
    "weapon": "sickle, dual wielding",
-   "pose": "arched back",
+   "pose": "fighting stance",
    "face": "black hair, short hair, streaked hair, red streaks, cat ears, small horns",
-   "natural": "An athletic, curvy adult hellcat bounty hunter woman in her mid-20s: a sleek black bodysuit unzipped to below the cleavage, a red strap harness with o-rings, hip windows, a long red scarf and black thigh boots; black cat ears and small horns, short choppy black hair with a red streak, amber slit-pupil eyes and a smug fanged smile; back arched like a stretching cat, twin curved sickles in her hands; a long cat tail.",
-   "negative_extra": "(covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25)",
+   "natural": "An athletic, curvy adult hellcat bounty hunter woman in her mid-20s: a sleek black bodysuit unzipped to below the cleavage, a red strap harness with o-rings, hip windows, a long red scarf and black thigh boots; black cat ears and small horns, short choppy black hair with a red streak, amber slit-pupil eyes and a smug fanged smile; standing in a low, hip-cocked fighting stance with twin curved sickles; a long cat tail.",
+   "negative_extra": "(covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (impossible clothes:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2), (all fours:1.3), kneeling",
    "variants": {
     "eyes_closed": "closed eyes, fang, smug",
     "mouth_open": "orange eyes, slit pupils, open mouth, fang, smug"
    },
-   "brief_gaps": ["Footwear not in the brief: black thigh boots.", "'partially unzipped' is the riskiest tag in the roster: nipple slips are upweighted in the negative; check every candidate at 1:1."]
+   "brief_gaps": ["Footwear not in the brief: black thigh boots.", "'partially unzipped' is the riskiest tag in the roster: slips, 'impossible clothes', cameltoe and no panties are upweighted in the negative; check every candidate at 1:1. The outfit order keeps it whole in one CLIP chunk. Pilot-render about 4 seeds before the full batch: the farm's exposure filter (tools/artgen/config.py) may drop many candidates of this reveal; never loosen it, cut the reveal in the brief instead.", "Pose is a standing 'fighting stance': v3's 'arched back' with cat ears and tail drifted toward all fours (a sex-mimicking pose that also breaks the rig); all fours and kneeling are upweighted in the negative."]
   },
   "noctaire": {
    "name": "Noctaire", "faction": "fallen", "role": "assassin", "rarity": "legendary", "gender": "female", "apparent_age": "late 20s",
@@ -423,20 +423,20 @@
    "eyes": "purple eyes",
    "expression": "melancholy, half-closed eyes",
    "head": "broken halo, black halo",
-   "wings_tail": "black wings, feathered wings, large wings",
+   "wings_tail": "black wings, large wings",
    "outfit": "black leotard, highleg leotard, sideboob, corset, lace sleeves, black pelvic curtain",
-   "footwear": "thigh boots, high heels",
+   "footwear": "thigh boots",
    "accessories": "",
-   "weapon": "scythe, huge weapon, holding scythe",
+   "weapon": "holding scythe, huge weapon",
    "pose": "hand in own hair",
    "face": "silver hair, long hair, straight hair, broken halo, black halo",
    "natural": "A tall, elegant adult fallen executioner woman in her late 20s: long silver hair, cold half-lidded violet eyes, a cracked dark halo tilted on her head; a black highleg corset leotard open at the sides to show sideboob, black lace sleeves, a long tattered black front and back drape falling from her hips, silver buckles and chains, heeled thigh boots; tattered black feathered wings with violet tips; one hand sweeping back her hair, the other holding a huge crescent scythe with a violet glow; melancholic allure.",
-   "negative_extra": "(covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2)",
+   "negative_extra": "(blue archive:1.3), (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2)",
    "variants": {
     "eyes_closed": "closed eyes, melancholy",
     "mouth_open": "purple eyes, half-closed eyes, open mouth, melancholy"
    },
-   "brief_gaps": ["'Tattered' drapes are expressed as a plain 'black pelvic curtain' (the 'torn clothes' tag invites exposure).", "Footwear not in the brief: thigh boots with high heels.", "The scythe's violet glow is left to the rig.", "Green background and a wide 832x1216 frame: long silver hair (clashes with white and grey) and large wings."]
+   "brief_gaps": ["'Tattered' drapes are expressed as a plain 'black pelvic curtain' (the 'torn clothes' tag invites exposure).", "Footwear not in the brief: thigh boots (the heels are not tagged: token budget).", "Wings are 'black wings, large wings' ('feathered wings' cut for the token budget); the violet tips are left to fix.py.", "The scythe's violet glow is left to the rig.", "Green background and a wide 832x1216 frame: long silver hair (clashes with white and grey) and large wings.", "Sideboob on a highleg corset leotard: check at 1:1. Pilot-render about 4 seeds before the full batch: the farm's exposure filter (tools/artgen/config.py) may drop many candidates of this reveal; never loosen it, cut the reveal in the brief instead."]
   },
   "orrin": {
    "name": "Orrin", "faction": "fallen", "role": "guardian", "rarity": "epic", "gender": "male", "apparent_age": "around 30",
@@ -449,19 +449,19 @@
    "expression": "serious",
    "head": "scar across eye",
    "wings_tail": "grey wings",
-   "outfit": "topless male, silver armor, broken armor, single pauldron, gauntlets, chain, purple cape, black pants, belt",
+   "outfit": "topless male, broken armor, single pauldron, silver armor, gauntlets, chain, purple cape, black pants, belt",
    "footwear": "armored boots",
    "accessories": "",
-   "weapon": "tower shield, large shield, holding shield",
+   "weapon": "tower shield, holding shield",
    "pose": "",
    "face": "grey hair, messy hair, scar across eye",
    "natural": "A broad, scarred adult fallen knight man around 30: cracked silver armor stripped down to one pauldron and gauntlets, a bare muscular chest with a scar across it wrapped in broken chains, a torn violet cape, fitted black trousers on a low-slung belt with a broken halo hanging from it, armored boots; shaggy ash-grey hair and a scar over one eye; ragged grey wings; a chain-wrapped tower shield.",
-   "negative_extra": "(bulge:1.3)",
+   "negative_extra": "(bulge:1.3), (penis:1.2)",
    "variants": {
     "eyes_closed": "closed eyes, closed mouth, serious, scar across eye",
     "mouth_open": "purple eyes, open mouth, teeth, serious, scar across eye"
    },
-   "brief_gaps": ["Eye colour and expression not in the brief: purple eyes, serious.", "Footwear not in the brief: armored boots.", "The broken halo on his belt is not tagged (a 'halo' tag puts it on his head); add with fix.py. The torn cape edge is not tagged (token budget).", "Green background: silver armour, grey hair and grey wings clash with white and grey. Check the first candidate's cutout."]
+   "brief_gaps": ["Eye colour and expression not in the brief: purple eyes, serious.", "Footwear not in the brief: armored boots.", "The broken halo on his belt is not tagged (a 'halo' tag puts it on his head); add with fix.py. The torn cape edge is not tagged (token budget).", "Shield is 'tower shield, holding shield' ('large shield' cut for the token budget). No pose tag: stoic and planted behind the shield; the bare chest, chains and low belt carry the allure.", "Green background: silver armour, grey hair and grey wings clash with white and grey. Check the first candidate's cutout."]
   },
   "sable": {
    "name": "Sable", "faction": "fallen", "role": "support", "rarity": "epic", "gender": "female", "apparent_age": "late 20s",
@@ -471,47 +471,47 @@
    "body": "curvy, huge breasts, wide hips, thick thighs",
    "hair": "aqua hair, long hair",
    "eyes": "grey eyes",
-   "expression": "sad smile, half-closed eyes",
-   "head": "nun, black veil, halo",
+   "expression": "sad smile",
+   "head": "halo, black veil",
    "wings_tail": "grey wings",
-   "outfit": "black bodysuit, skin tight, cleavage cutout, black pelvic curtain, hip vent, cross-laced clothes, black thighhighs, garter straps",
+   "outfit": "black bodysuit, skin tight, cleavage cutout, pelvic curtain, black thighhighs, garter straps, cross-laced clothes",
    "footwear": "high heels",
-   "accessories": "",
+   "accessories": "cross necklace",
    "weapon": "censer, holding chain",
    "pose": "head tilt",
    "face": "aqua hair, long hair, black veil, halo",
-   "natural": "A gentle, sad, alluring adult woman in her late 20s, a fallen nun reimagined: a black-and-violet veil, long dark-teal hair, a skin-tight black habit bodysuit with a cleavage cutout, corset lacing and silver trim, long black front and back tabard panels over the opaque suit with open hip panels, black thighhighs on garter straps and black heels; head tilted, a silver censer trailing violet smoke on its chain; grey wings and a dim halo.",
-   "negative_extra": "(covered nipples:1.3), (nipples:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2)",
+   "natural": "A gentle, sad, alluring adult woman in her late 20s, a fallen nun reimagined: a black-and-violet veil and a silver cross necklace, long dark-teal hair, a skin-tight black habit bodysuit with a cleavage cutout, corset lacing and silver trim, long black front and back tabard panels over the opaque suit that leave the hips open, black thighhighs on garter straps and black heels; head tilted, a silver censer trailing violet smoke on its chain; grey wings and a dim halo.",
+   "negative_extra": "(blue archive:1.3), (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (impossible clothes:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2)",
    "variants": {
     "eyes_closed": "closed eyes, sad smile, gentle",
-    "mouth_open": "grey eyes, half-closed eyes, open mouth, sad"
+    "mouth_open": "grey eyes, open mouth, sad"
    },
-   "brief_gaps": ["Eye colour not in the brief: grey.", "Dark-teal hair is tagged 'aqua hair'.", "Footwear not in the brief: black high heels.", "The tabard is 'black pelvic curtain' over the opaque bodysuit; 'hip vent' gives the open side panels.", "The censer's violet smoke is left to the rig (smoke spills into the background).", "White background (teal hair rules out green); check the grey wings' edges in the first candidate's cutout."]
+   "brief_gaps": ["Eye colour not in the brief: grey.", "Dark-teal hair is tagged 'aqua hair'.", "Footwear not in the brief: black high heels.", "No 'nun' tag: with a halo and huge breasts it pulls Blue Archive's school-age Sisterhood nuns and a full-length habit that fights the bodysuit. The nun reads from 'black veil', 'cross necklace', the tabard and the censer, and 'blue archive' is weighted in the negative. Confirm the first candidates show the bodysuit, not a full habit.", "The tabard is 'pelvic curtain' over the opaque bodysuit, which leaves the hips open; 'hip vent' is Kessa's alone now.", "Skin-tight suit on huge breasts: slips, cameltoe and 'impossible clothes' are upweighted in the negative; check at 1:1.", "The censer's violet smoke is left to the rig (smoke spills into the background).", "White background (teal hair rules out green); check the grey wings' edges in the first candidate's cutout."]
   },
   "lucen": {
    "name": "Lucen", "faction": "fallen", "role": "striker", "rarity": "rare", "gender": "male", "apparent_age": "mid-20s",
    "seed_base": 304000, "background": "grey", "default_eyes": "open", "variant_set": ["eyes_closed", "mouth_open", "smile"], "loras": [],
    "subject": "1boy, solo, male focus, adult, (mature male:0.8)",
    "adult_face": "",
-   "body": "slim, toned male, pectorals, abs",
+   "body": "toned male, pectorals, abs",
    "hair": "white hair, wavy hair, colored tips, black tips",
    "eyes": "purple eyes",
    "expression": "seductive smile, half-closed eyes",
    "head": "",
    "wings_tail": "asymmetrical wings, white wings, black wings",
-   "outfit": "open coat, purple coat, frills, no shirt, ascot, leather pants, belt",
+   "outfit": "open coat, purple coat, no shirt, ascot, leather pants, belt",
    "footwear": "thigh boots",
    "accessories": "",
    "weapon": "rapier, holding sword",
    "pose": "hand on hip",
    "face": "white hair, wavy hair, colored tips, black tips",
    "natural": "A lean, flamboyant adult duelist man in his mid-20s: a violet-and-silver coat worn open over a bare toned chest, a frilled ascot at his throat, tight black leather trousers on a low-slung belt and thigh-high boots, a slim rapier, one hand on his hip; wavy white hair with black tips, half-lidded eyes and a flirtatious smile; one white wing and one black wing; no halo.",
-   "negative_extra": "halo, (bulge:1.3)",
+   "negative_extra": "halo, (bulge:1.3), (penis:1.2)",
    "variants": {
     "eyes_closed": "closed eyes, seductive smile, smug",
     "mouth_open": "purple eyes, half-closed eyes, open mouth, smile, smug"
    },
-   "brief_gaps": ["Eye colour not in the brief: purple.", "Footwear not in the brief: thigh boots.", "Grey background (white hair and wing)."]
+   "brief_gaps": ["Eye colour not in the brief: purple.", "Footwear not in the brief: thigh boots.", "The frilled ascot is tagged 'ascot' alone ('frills' brought back a frilled shirt under 'no shirt').", "Grey background (white hair and wing)."]
   },
   "ashra": {
    "name": "Ashra", "faction": "fallen", "role": "caster", "rarity": "rare", "gender": "female", "apparent_age": "mid-20s",
@@ -519,24 +519,24 @@
    "subject": "1girl, solo, adult, (mature female:0.8)",
    "adult_face": "",
    "body": "curvy, huge breasts",
-   "hair": "grey hair, streaked hair, purple streaks",
+   "hair": "grey hair, messy hair, streaked hair, purple streaks",
    "eyes": "purple eyes, half-closed eyes",
    "expression": "sleepy",
    "head": "witch hat, star \\(symbol\\), broken halo",
    "wings_tail": "small wings, grey wings",
-   "outfit": "off shoulder, purple robe, tube top, underboob, long skirt, lowleg skirt, side slit",
+   "outfit": "tube top, underboob, purple robe, off shoulder, long skirt, side slit, shorts under skirt",
    "footwear": "ankle boots",
    "accessories": "",
    "weapon": "wand, holding wand",
-   "pose": "stretching, arm up",
+   "pose": "arm up",
    "face": "grey hair, messy hair, streaked hair, witch hat, broken halo",
-   "natural": "A sleepy, sultry adult ash witch woman in her mid-20s: an oversized grey witch hat with silver star pins, layered violet robes slipping off both shoulders, a strapless cropped tube top showing underboob, a long low-slung skirt with high slits and a burned hem, ankle boots; messy grey hair with violet streaks and a cracked violet halo; stretching one arm up lazily, a crooked wand with a violet flame in the other hand; small grey wings.",
-   "negative_extra": "(covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (pubic hair:1.25)",
+   "natural": "A sleepy, sultry adult ash witch woman in her mid-20s: an oversized grey witch hat with silver star pins, layered violet robes slipping off both shoulders, a strapless cropped tube top showing underboob, a long skirt with a burned hem and high side slits over black shorts, ankle boots; messy grey hair with violet streaks and a cracked violet halo; one arm raised lazily, a crooked wand with a violet flame in the other hand; small grey wings.",
+   "negative_extra": "(blue archive:1.3), (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (no bra:1.2), (cameltoe:1.25), (no panties:1.3), (pubic hair:1.25), lying",
    "variants": {
     "eyes_closed": "closed eyes, sleepy, light smile",
     "mouth_open": "purple eyes, half-closed eyes, open mouth, yawning, sleepy"
    },
-   "brief_gaps": ["Eye colour not in the brief: purple.", "Footwear not in the brief: ankle boots.", "'grey hat' was dropped (token budget); the palette and the green background keep the hat dark.", "The wand's violet flame is left to the rig.", "Green background: grey hair, hat and wings clash with white and grey. Check the first candidate's cutout."]
+   "brief_gaps": ["Eye colour not in the brief: purple.", "Footwear not in the brief: ankle boots.", "Black shorts under the slit skirt ('shorts under skirt') keep the high slits opaque; 'lowleg skirt' is gone (it pulls groin exposure), so the skirt sits on the hips.", "Pose is one lazily raised arm ('arm up'); 'stretching' was dropped (a strapless tube top on huge breasts with a stretch was the likeliest slip in the roster, and it drifts toward lying poses). Slips, no bra and no panties are upweighted in the negative; check at 1:1. Pilot-render about 4 seeds before the full batch: the farm's exposure filter (tools/artgen/config.py) may drop many candidates of this reveal; never loosen it, cut the reveal in the brief instead.", "'grey hat' and her wide hips are not tagged (token budget); the palette and the green background keep the hat dark.", "The wand's violet flame is left to the rig.", "Green background: grey hair, hat and wings clash with white and grey. Check the first candidate's cutout."]
   }
  }
 }

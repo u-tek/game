@@ -81,7 +81,7 @@
 			"role": "support",
 			"rarity": "epic",
 			"bio": "A temple novice whose lullabies close wounds. She is still learning which songs are safe to sing in battle.",
-			"look": "Soft, curvy adult healer angel with rose-gold twin tails tied with ribbons, adult makeup and a warm, teasing smile. Strapless cream corset minidress with a heart-shaped cleavage cutout and gold embroidery, rose-gold garter straps on white thighhighs, white heels. Leans toward the viewer holding a golden lyre. Two small fluffy wings, flower-shaped halo.",
+			"look": "Soft, curvy adult healer angel with long rose-gold hair in a loose side braid over one shoulder, adult makeup and a warm, teasing smile. Strapless cream corset minidress with gold embroidery and a deep cleavage, rose-gold garter straps on white thighhighs, white heels. Leans toward the viewer holding a golden lyre. Two soft white wings, flower-shaped halo.",
 			"base_stats": {"hp": 1750, "atk": 76, "def": 48, "spd": 102, "crit": 500},
 			"ultimate": {
 				"id": "lullaby_of_mending",
@@ -153,7 +153,7 @@
 			"role": "assassin",
 			"rarity": "rare",
 			"bio": "A quiet scout who hunts in the moment between night and morning. Says little, misses nothing.",
-			"look": "Lean, muscular adult man with short messy pale-gold hair and a white cloth mask over his mouth and nose. Sleeveless hooded sky-blue scout jacket worn open over a bare chest and abs, thin leather chest harness, low-slung crossed belts, wrapped forearms. Twin short daggers of white light in reverse grip. Small sharp wings, faint thin halo.",
+			"look": "Lean, muscular adult man with short messy pale-gold hair and a white cloth mask over his mouth and nose. Sleeveless hooded sky-blue scout jacket worn open over a bare chest and abs, thin leather chest harness, low-slung crossed belts on fitted black trousers, wrapped forearms. Arms crossed, twin short daggers of white light in reverse grip. Small sharp wings, faint thin halo.",
 			"base_stats": {"hp": 1500, "atk": 92, "def": 38, "spd": 122, "crit": 2200},
 			"ultimate": {
 				"id": "daybreak_ambush",
@@ -189,7 +189,7 @@
 			"role": "striker",
 			"rarity": "legendary",
 			"bio": "Queen of the Ninth Furnace. She lost the war, kept the crown, and has decided the war is not over.",
-			"look": "Voluptuous demon queen with large curled black ram horns and a small crown between them, long wavy black hair with crimson ends, sharp eyes and a commanding smirk. Black and crimson armored dress with a gold-filigree corset bodice plunging to the navel, one armored shoulder, hip-high skirt slits, garter straps and thigh-high boots. Huge greatsword wreathed in orange flame on her shoulder, hand on hip. Leathery bat wings, thin spaded tail.",
+			"look": "Voluptuous demon queen with large curled black ram horns and a small crown between them, long wavy black hair with crimson ends, sharp eyes and a commanding smirk. Black and crimson armored dress over a black highleg leotard: gold-filigree corset bodice plunging to the navel, one armored shoulder, hip-high skirt slits showing the leotard, garter straps and thigh-high boots. Huge greatsword wreathed in orange flame on her shoulder, hand on hip. Leathery bat wings, thin spaded tail.",
 			"base_stats": {"hp": 2050, "atk": 106, "def": 54, "spd": 104, "crit": 1800},
 			"ultimate": {
 				"id": "ninth_furnace",
@@ -226,7 +226,7 @@
 			"role": "guardian",
 			"rarity": "epic",
 			"bio": "A furnace-golem's grandson with a heart softer than his hide. Loyal to Mordessa, and to anyone who feeds him.",
-			"look": "Enormous, heavily muscled male demon with dark red skin, thick short horns and a friendly tusked grin. Shirtless, huge chest and abs crossed by a chain harness, obsidian armor kilt with glowing magma cracks slung low on his hips, enormous molten gauntlets. Flexes both arms. No wings; a thick tail.",
+			"look": "Enormous, heavily muscled male demon with dark red skin, thick short horns and a friendly tusked grin. Shirtless, huge chest and abs crossed by a chain harness, obsidian armor kilt with glowing magma cracks slung low on his hips over black trousers, enormous molten gauntlets. Flexes both arms. No wings; a thick tail.",
 			"base_stats": {"hp": 2960, "atk": 62, "def": 76, "spd": 86, "crit": 500},
 			"ultimate": {
 				"id": "magma_bulwark",
@@ -262,7 +262,7 @@
 			"role": "caster",
 			"rarity": "epic",
 			"bio": "A succubus scholar who reads the future in falling ash. Her forecasts are always right, and always fire.",
-			"look": "Sultry succubus scholar with long straight wine-red hair, half-lidded teasing eyes behind thin glasses and small curved horns. Glossy black latex catsuit with a cleavage cutout, navel and hip windows, opera gloves, high-collared open-front cape lined in purple. Floating orb of hellfire in one raised hand, adjusting her glasses with the other. Small bat wings, heart-spaded tail.",
+			"look": "Sultry hourglass succubus scholar with long straight wine-red hair, half-lidded teasing eyes behind thin glasses and small curved horns. Glossy crimson latex catsuit with a heart-shaped cleavage window, opera gloves, high-collared open-front black cape lined in purple. Floating orb of hellfire in one raised hand, adjusting her glasses with the other. Small bat wings, heart-spaded tail.",
 			"base_stats": {"hp": 1560, "atk": 106, "def": 38, "spd": 95, "crit": 1100},
 			"ultimate": {
 				"id": "ember_rain",
@@ -300,7 +300,7 @@
 			"role": "support",
 			"rarity": "rare",
 			"bio": "An imp shaman who brokers small, fair deals. Mostly fair. Fair-ish.",
-			"look": "Mischievous adult imp shaman, lithe and toned with adult curves, short spiky orange hair, small stubby horns, pointed ears and a big toothy grin. Crimson patchwork bandeau bikini with a layered loincloth panel, tribal body paint, bone beads and gold jewelry, sandals. Raises a staff with a hanging lantern holding a green-orange flame. Small bat wings, curly tail.",
+			"look": "Mischievous adult imp shaman, lithe and toned with adult curves and makeup, a shaggy shoulder-length mane of orange hair, curved horns, pointed ears and a wild, sharp-toothed grin. Crimson patchwork bandeau bikini with a layered loincloth panel, tribal body paint, bone beads and gold jewelry, sandals. Raises a staff with a hanging lantern holding a green-orange flame. Bat wings, curly tail.",
 			"base_stats": {"hp": 1600, "atk": 68, "def": 44, "spd": 106, "crit": 500},
 			"ultimate": {
 				"id": "lantern_pact",
@@ -338,7 +338,7 @@
 			"role": "assassin",
 			"rarity": "rare",
 			"bio": "A hellcat bounty hunter. Twelve contracts, twelve trophies, and one very full scrapbook.",
-			"look": "Athletic, curvy cat-like demon with black cat ears AND small horns, short choppy black hair with a red streak, slit-pupil amber eyes and a smug fang smile. Sleek black bodysuit unzipped below the cleavage, red strap harness with o-rings, hip windows, long red scarf, black thigh boots. Twin curved sickles, back arched like a stretching cat. Long cat tail, no wings.",
+			"look": "Athletic, curvy cat-like demon with black cat ears AND small horns, short choppy black hair with a red streak, slit-pupil amber eyes and a smug fang smile. Sleek black bodysuit unzipped below the cleavage, red strap harness with o-rings, hip windows, long red scarf, black thigh boots. Twin curved sickles in a low, hip-cocked fighting stance. Long cat tail, no wings.",
 			"base_stats": {"hp": 1520, "atk": 96, "def": 38, "spd": 118, "crit": 2000},
 			"ultimate": {
 				"id": "twelfth_contract",
@@ -441,7 +441,7 @@
 			"role": "support",
 			"rarity": "epic",
 			"bio": "A fallen nun who still holds services in ruined chapels. Her congregation is mostly ghosts. They come every week.",
-			"look": "Gentle, curvy fallen nun with long dark-teal hair under a black-and-violet veil and a sad smile. Skin-tight black habit bodysuit with a cleavage cutout, corset lacing and silver trim, long black tabard panels open at the hips, black thighhighs on garter straps, heels. Swings a silver censer trailing violet smoke. Grey feathered wings, faint dim halo.",
+			"look": "Gentle, curvy fallen nun with long dark-teal hair under a black-and-violet veil, a silver cross necklace and a sad smile. Skin-tight black habit bodysuit with a cleavage cutout, corset lacing and silver trim, long black tabard panels open at the hips, black thighhighs on garter straps, heels. Swings a silver censer trailing violet smoke. Grey feathered wings, faint dim halo.",
 			"base_stats": {"hp": 1820, "atk": 80, "def": 50, "spd": 100, "crit": 500},
 			"ultimate": {
 				"id": "dusk_requiem",
@@ -515,7 +515,7 @@
 			"role": "caster",
 			"rarity": "rare",
 			"bio": "She burned her own heaven down by accident. Now she studies fire very, very carefully.",
-			"look": "Sleepy, sultry ash witch with messy grey hair with violet streaks, half-lidded eyes and a cracked violet halo. Oversized grey witch hat with silver star pins, layered violet robes slipping off her shoulders, strapless cropped tube top, long low-slung skirt with high slits and a burned hem. Stretches lazily, a crooked wand with a violet flame in hand. Small grey wings.",
+			"look": "Sleepy, sultry ash witch with messy grey hair with violet streaks, half-lidded eyes and a cracked violet halo. Oversized grey witch hat with silver star pins, layered violet robes slipping off her shoulders, strapless cropped tube top, long skirt with high slits over black shorts and a burned hem. Raises one arm lazily, a crooked wand with a violet flame in the other hand. Small grey wings.",
 			"base_stats": {"hp": 1560, "atk": 106, "def": 38, "spd": 96, "crit": 1000},
 			"ultimate": {
 				"id": "accidental_inferno",
