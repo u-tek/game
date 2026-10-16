@@ -128,9 +128,15 @@ candidate missing or invalid (nothing rendered).
      UNet is released, the upscaled image is VAE-encoded untiled, the UNet loads, samples, is
      released again, and the result is decoded **untiled** (no tile seams); tiled only when
      MemAvailable is below 7 GB. → `_hires.webp`.
-  2. **face polish**: face box from the deepghs anime face detector (fallback
-     `post.estimate_face_box`), crop inpaint at 1024 px, bible `face_refine.denoise` (0.35),
-     **16 effective steps**. → `_source.webp`.
+  2. **face polish**: face box from the deepghs anime face detector, accepted only when plausible
+     for a standing full-body figure (centre in the top 30 % of the figure, height 2.5-20 % of it,
+     inside the figure: `gen.face_problem`); crop inpaint at 1024 px, bible `face_refine.denoise`
+     (0.35), **16 effective steps**. → `_source.webp`. The skin heuristic
+     (`post.estimate_face_box`) is NOT used for inpainting: on the real s101000 hires it landed
+     inside the halo above the head (and on other art on the chest), where a "face" polish would
+     paint a second face. No usable detector box = no face polish and no variants; the canvas is
+     placed by proportions (head top unknown in `spec`), the seed is marked `done with errors`
+     and the job exits 5.
   3. **cutout + canvas**: `cutout.artgen_cutout` = rembg `isnet-anime` mask, minus enclosed
      background (halo ring, wing gaps: `post.remove_background`'s colour flood + holes, within 12 of
      the fitted background), minus isnet's background-coloured haze, minus the ground shadow (bottom
