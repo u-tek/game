@@ -1,0 +1,200 @@
+{
+ "hero": "cassiel",
+ "base": "cassiel.png",
+ "base_sha": "522652bd3ede4f267a01bcadcc0a4e4218303f9d10e8ef124aaa096b31286f2a",
+ "face_box": [
+  398,
+  621,
+  130,
+  138
+ ],
+ "face_box_source": "anime face detector 0.87",
+ "bg_rgb": [
+  198,
+  228,
+  216
+ ],
+ "variants": {
+  "eyes_closed": {
+   "picked_seed": 102500,
+   "published": true,
+   "region": [
+    403,
+    654,
+    120,
+    52
+   ],
+   "region_name": "eyes",
+   "denoise": 0.62,
+   "prompt": "1girl, solo, adult, (mature female:0.8), portrait, close-up, face, silver hair, short hair, bob cut, halo, closed eyes, smirk, confident, official art, detailed shading, simple background, green background, masterpiece, high score, great score, absurdres, sensitive",
+   "tries": [
+    {
+     "seed": 102500,
+     "alignment_problems": [],
+     "what": "inpaint 768x768 @0.62",
+     "sample_s": 709.4,
+     "steps_run": 14,
+     "num_inference_steps": 23,
+     "cfg": 5.0,
+     "sampler": "EulerAncestralDiscreteScheduler",
+     "s_per_step": 50.67,
+     "overhead_s": 0.0,
+     "dtype": "fp32",
+     "threads": 4,
+     "mem_sample": {
+      "vmhwm_gb": 12.78,
+      "vmrss_gb": 11.48,
+      "memavail_gb": 3.31
+     },
+     "steps_effective": 14,
+     "strength": 0.62,
+     "decode": "untiled",
+     "memavail_before_decode_gb": 3.3113937377929688,
+     "decode_s": 32.9,
+     "seconds": 742.3,
+     "mem_stage": {
+      "vmhwm_gb": 13.59,
+      "vmrss_gb": 11.48,
+      "memavail_gb": 3.22
+     },
+     "vmhwm_gb": 13.59,
+     "rss_peak_gb": 13.59,
+     "crop": [
+      332,
+      559,
+      262,
+      262
+     ],
+     "denoise": 0.62,
+     "px": 768
+    }
+   ]
+  },
+  "mouth_open": {
+   "picked_seed": 102500,
+   "published": true,
+   "region": [
+    430,
+    704,
+    65,
+    44
+   ],
+   "region_name": "mouth",
+   "denoise": 0.58,
+   "prompt": "1girl, solo, adult, (mature female:0.8), portrait, close-up, face, silver hair, short hair, bob cut, halo, blue eyes, open mouth, smile, teeth, confident, official art, detailed shading, simple background, green background, masterpiece, high score, great score, absurdres, sensitive",
+   "tries": [
+    {
+     "seed": 102500,
+     "alignment_problems": [],
+     "what": "inpaint 768x768 @0.58",
+     "sample_s": 707.4,
+     "steps_run": 14,
+     "num_inference_steps": 25,
+     "cfg": 5.0,
+     "sampler": "EulerAncestralDiscreteScheduler",
+     "s_per_step": 50.53,
+     "overhead_s": 0.0,
+     "dtype": "fp32",
+     "threads": 4,
+     "mem_sample": {
+      "vmhwm_gb": 12.89,
+      "vmrss_gb": 11.48,
+      "memavail_gb": 3.31
+     },
+     "steps_effective": 14,
+     "strength": 0.58,
+     "decode": "untiled",
+     "memavail_before_decode_gb": 3.308135986328125,
+     "decode_s": 32.5,
+     "seconds": 739.9,
+     "mem_stage": {
+      "vmhwm_gb": 13.59,
+      "vmrss_gb": 11.47,
+      "memavail_gb": 3.23
+     },
+     "vmhwm_gb": 13.59,
+     "rss_peak_gb": 13.59,
+     "crop": [
+      332,
+      559,
+      262,
+      262
+     ],
+     "denoise": 0.58,
+     "px": 768
+    }
+   ]
+  },
+  "smile": {
+   "picked_seed": 102500,
+   "published": true,
+   "region": [
+    403,
+    654,
+    120,
+    94
+   ],
+   "region_name": "eyes_mouth",
+   "denoise": 0.6,
+   "prompt": "1girl, solo, adult, (mature female:0.8), portrait, close-up, face, silver hair, short hair, bob cut, halo, happy, smile, closed eyes, open mouth, official art, detailed shading, simple background, green background, masterpiece, high score, great score, absurdres, sensitive",
+   "tries": [
+    {
+     "seed": 102500,
+     "alignment_problems": [],
+     "what": "inpaint 768x768 @0.60",
+     "sample_s": 704.8,
+     "steps_run": 14,
+     "num_inference_steps": 24,
+     "cfg": 5.0,
+     "sampler": "EulerAncestralDiscreteScheduler",
+     "s_per_step": 50.34,
+     "overhead_s": 0.0,
+     "dtype": "fp32",
+     "threads": 4,
+     "mem_sample": {
+      "vmhwm_gb": 12.89,
+      "vmrss_gb": 11.48,
+      "memavail_gb": 3.3
+     },
+     "steps_effective": 14,
+     "strength": 0.6,
+     "decode": "untiled",
+     "memavail_before_decode_gb": 3.296672821044922,
+     "decode_s": 32.4,
+     "seconds": 737.2,
+     "mem_stage": {
+      "vmhwm_gb": 13.59,
+      "vmrss_gb": 11.48,
+      "memavail_gb": 3.25
+     },
+     "vmhwm_gb": 13.59,
+     "rss_peak_gb": 13.59,
+     "crop": [
+      332,
+      559,
+      262,
+      262
+     ],
+     "denoise": 0.6,
+     "px": 768
+    }
+   ]
+  }
+ },
+ "warp_overlay_hints": {
+  "_doc": "rects for <id>.warp_src.json overlays (eyes / mouth slots)",
+  "eyes": [
+   403,
+   654,
+   120,
+   52
+  ],
+  "mouth": [
+   430,
+   704,
+   65,
+   44
+  ],
+  "base_eyes": "open"
+ }
+}

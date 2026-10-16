@@ -1,0 +1,200 @@
+{
+ "hero": "imra",
+ "base": "imra.png",
+ "base_sha": "999b16c7fb57e1e2aa57e1e0f87de7b45a98fdb4c0a1ec15ce5b1555a6bbe7e8",
+ "face_box": [
+  504,
+  541,
+  151,
+  148
+ ],
+ "face_box_source": "anime face detector 0.85",
+ "bg_rgb": [
+  255,
+  255,
+  255
+ ],
+ "variants": {
+  "eyes_closed": {
+   "picked_seed": 204500,
+   "published": true,
+   "region": [
+    510,
+    577,
+    139,
+    56
+   ],
+   "region_name": "eyes",
+   "denoise": 0.62,
+   "prompt": "1girl, solo, adult, (mature female:0.8), (aged up:1.2), makeup, lipstick, eyeliner, long eyelashes, portrait, close-up, face, orange hair, medium hair, messy hair, curved horns, pointy ears, closed eyes, grin, sharp teeth, official art, detailed shading, simple background, white background, masterpiece, high score, great score, absurdres, sensitive",
+   "tries": [
+    {
+     "seed": 204500,
+     "alignment_problems": [],
+     "what": "inpaint 768x768 @0.62",
+     "sample_s": 747.4,
+     "steps_run": 14,
+     "num_inference_steps": 23,
+     "cfg": 5.0,
+     "sampler": "EulerAncestralDiscreteScheduler",
+     "s_per_step": 53.39,
+     "overhead_s": 0.0,
+     "dtype": "fp32",
+     "threads": 4,
+     "mem_sample": {
+      "vmhwm_gb": 12.97,
+      "vmrss_gb": 11.59,
+      "memavail_gb": 3.24
+     },
+     "steps_effective": 14,
+     "strength": 0.62,
+     "decode": "untiled",
+     "memavail_before_decode_gb": 3.2401885986328125,
+     "decode_s": 32.8,
+     "seconds": 780.2,
+     "mem_stage": {
+      "vmhwm_gb": 13.7,
+      "vmrss_gb": 11.59,
+      "memavail_gb": 3.13
+     },
+     "vmhwm_gb": 13.7,
+     "rss_peak_gb": 13.7,
+     "crop": [
+      436,
+      472,
+      287,
+      287
+     ],
+     "denoise": 0.62,
+     "px": 768
+    }
+   ]
+  },
+  "mouth_open": {
+   "picked_seed": 204500,
+   "published": true,
+   "region": [
+    542,
+    630,
+    76,
+    47
+   ],
+   "region_name": "mouth",
+   "denoise": 0.58,
+   "prompt": "1girl, solo, adult, (mature female:0.8), (aged up:1.2), makeup, lipstick, eyeliner, long eyelashes, portrait, close-up, face, orange hair, medium hair, messy hair, curved horns, pointy ears, green eyes, open mouth, sharp teeth, laughing, official art, detailed shading, simple background, white background, masterpiece, high score, great score, absurdres, sensitive",
+   "tries": [
+    {
+     "seed": 204500,
+     "alignment_problems": [],
+     "what": "inpaint 768x768 @0.58",
+     "sample_s": 747.9,
+     "steps_run": 14,
+     "num_inference_steps": 25,
+     "cfg": 5.0,
+     "sampler": "EulerAncestralDiscreteScheduler",
+     "s_per_step": 53.42,
+     "overhead_s": 0.0,
+     "dtype": "fp32",
+     "threads": 4,
+     "mem_sample": {
+      "vmhwm_gb": 13.0,
+      "vmrss_gb": 11.6,
+      "memavail_gb": 3.24
+     },
+     "steps_effective": 14,
+     "strength": 0.58,
+     "decode": "untiled",
+     "memavail_before_decode_gb": 3.238750457763672,
+     "decode_s": 32.5,
+     "seconds": 780.4,
+     "mem_stage": {
+      "vmhwm_gb": 13.71,
+      "vmrss_gb": 11.6,
+      "memavail_gb": 3.09
+     },
+     "vmhwm_gb": 13.71,
+     "rss_peak_gb": 13.71,
+     "crop": [
+      436,
+      472,
+      287,
+      287
+     ],
+     "denoise": 0.58,
+     "px": 768
+    }
+   ]
+  },
+  "smile": {
+   "picked_seed": 204500,
+   "published": true,
+   "region": [
+    510,
+    577,
+    139,
+    101
+   ],
+   "region_name": "eyes_mouth",
+   "denoise": 0.6,
+   "prompt": "1girl, solo, adult, (mature female:0.8), (aged up:1.2), makeup, lipstick, eyeliner, long eyelashes, portrait, close-up, face, orange hair, medium hair, messy hair, curved horns, pointy ears, happy, smile, closed eyes, open mouth, official art, detailed shading, simple background, white background, masterpiece, high score, great score, absurdres, sensitive",
+   "tries": [
+    {
+     "seed": 204500,
+     "alignment_problems": [],
+     "what": "inpaint 768x768 @0.60",
+     "sample_s": 747.5,
+     "steps_run": 14,
+     "num_inference_steps": 24,
+     "cfg": 5.0,
+     "sampler": "EulerAncestralDiscreteScheduler",
+     "s_per_step": 53.39,
+     "overhead_s": 0.0,
+     "dtype": "fp32",
+     "threads": 4,
+     "mem_sample": {
+      "vmhwm_gb": 13.01,
+      "vmrss_gb": 11.61,
+      "memavail_gb": 3.23
+     },
+     "steps_effective": 14,
+     "strength": 0.6,
+     "decode": "untiled",
+     "memavail_before_decode_gb": 3.2274513244628906,
+     "decode_s": 32.5,
+     "seconds": 780.0,
+     "mem_stage": {
+      "vmhwm_gb": 13.71,
+      "vmrss_gb": 11.6,
+      "memavail_gb": 3.11
+     },
+     "vmhwm_gb": 13.71,
+     "rss_peak_gb": 13.71,
+     "crop": [
+      436,
+      472,
+      287,
+      287
+     ],
+     "denoise": 0.6,
+     "px": 768
+    }
+   ]
+  }
+ },
+ "warp_overlay_hints": {
+  "_doc": "rects for <id>.warp_src.json overlays (eyes / mouth slots)",
+  "eyes": [
+   510,
+   577,
+   139,
+   56
+  ],
+  "mouth": [
+   542,
+   630,
+   76,
+   47
+  ],
+  "base_eyes": "open"
+ }
+}

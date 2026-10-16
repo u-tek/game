@@ -1,0 +1,606 @@
+{
+ "hero": "orrin",
+ "mode": "final",
+ "seed": 302002,
+ "status": "canvas dropped",
+ "source_candidate": {
+  "repo": "u-tek/game",
+  "run": "38859902166-candidates-round1-v3",
+  "path": "runs/38859902166-candidates-round1-v3/orrin/orrin_s302002.webp",
+  "sha256": "824c433e2c96e0796a40190e92b953c78fce9c11ea6eb69da489560c0154301a",
+  "preset": "standard",
+  "preset_settings": {
+   "sampler": "euler_ancestral",
+   "steps": 28,
+   "cfg": 5.0,
+   "width": 832,
+   "height": 1216,
+   "doc": "Animagine XL 4.0 model card: Euler a, 28 steps, CFG 5, 832x1216 (default for candidates and finals; about 25-40 min per image on the 4-vCPU runners)"
+  },
+  "style": "bible"
+ },
+ "source_fit": {
+  "fit": 0.787,
+  "figure_px": 1495,
+  "aspect": 0.653,
+  "limit": "width",
+  "flag": "SMALL 79%"
+ },
+ "style": {
+  "name": "bible",
+  "spec": {
+   "doc": "the prompt bible exactly as written"
+  }
+ },
+ "settings": {
+  "sampler": "euler_ancestral",
+  "cfg": 5.0,
+  "preset": "standard",
+  "hires_scale": 1.5,
+  "hires_denoise": 0.4,
+  "hires_steps": 20,
+  "face_denoise": 0.35,
+  "face_steps": 16,
+  "face_px": 1024,
+  "variant_steps": 14,
+  "variant_px": 768
+ },
+ "base_settings": {
+  "sampler": "euler_ancestral",
+  "steps": 28,
+  "cfg": 5.0,
+  "width": 832,
+  "height": 1216,
+  "doc": "Animagine XL 4.0 model card: Euler a, 28 steps, CFG 5, 832x1216 (default for candidates and finals; about 25-40 min per image on the 4-vCPU runners)"
+ },
+ "family": "animagine",
+ "prompt": "1boy, solo, male focus, adult, mature male, full body, standing, contrapposto, looking at viewer, muscular male, large pectorals, abs, broad shoulders, scar on chest, grey hair, messy hair, medium hair, purple eyes, serious, scar across eye, grey wings, topless male, broken armor, single pauldron, silver armor, gauntlets, chain, purple cape, black pants, belt, armored boots, tower shield, holding shield, black and purple theme, simple background, green background, official art, detailed shading, masterpiece, high score, great score, absurdres, sensitive",
+ "negative": "worst quality, low quality, low score, bad score, average score, nsfw, explicit, (bulge:1.3), (penis:1.2), lowres, blurry, jpeg artifacts, bad anatomy, bad hands, missing fingers, extra digits, fewer digits, extra arms, error, cropped, feet out of frame, head out of frame, wings out of frame, upper body, cowboy shot, multiple views, scenery, light particles, sparkle, embers, aura, light rays, smoke, speed lines, nude, nipples, areolae, covered nipples, nipple slip, areola slip, pussy, cameltoe, anus, pubic hair, sex, spread legs, see-through, loli, shota, child, underage, teenage, young, aged down, school uniform, text, watermark, signature, username, chibi, 3d, realistic, 1girl, multiple boys, breasts",
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)"
+ },
+ "lora": null,
+ "steps": [
+  {
+   "step": "base",
+   "from": "runs/38859902166-candidates-round1-v3/orrin/orrin_s302002.webp",
+   "sha256": "824c433e2c96e0796a40190e92b953c78fce9c11ea6eb69da489560c0154301a"
+  },
+  {
+   "step": "hires_img2img",
+   "seed": 302003,
+   "what": "hires img2img 1248x1824 @0.40",
+   "sample_s": 3726.6,
+   "steps_run": 20,
+   "num_inference_steps": 50,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 186.33,
+   "step_s": [
+    220.81,
+    183.69,
+    184.15,
+    184.31,
+    183.82,
+    183.86,
+    183.91,
+    184.01,
+    184.38,
+    184.39,
+    184.15,
+    184.31,
+    184.61,
+    184.63,
+    184.7,
+    185.2,
+    185.73,
+    185.51,
+    185.29,
+    185.16
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 11.83,
+    "vmrss_gb": 10.47,
+    "memavail_gb": 4.45
+   },
+   "encode": "untiled",
+   "memavail_before_encode_gb": 11.123741149902344,
+   "mem_encode": {
+    "vmhwm_gb": 8.05,
+    "vmrss_gb": 3.71,
+    "memavail_gb": 11.09
+   },
+   "steps_effective": 20,
+   "strength": 0.4,
+   "size": [
+    1248,
+    1824
+   ],
+   "decode": "untiled",
+   "memavail_before_decode_gb": 7.353179931640625,
+   "decode_s": 113.5,
+   "seconds": 3922.6,
+   "mem_stage": {
+    "vmhwm_gb": 13.0,
+    "vmrss_gb": 7.58,
+    "memavail_gb": 7.3
+   },
+   "vmhwm_gb": 13.0,
+   "rss_peak_gb": 13.0
+  },
+  {
+   "step": "face_polish",
+   "what": "inpaint 1024x1024 @0.35",
+   "sample_s": 1286.9,
+   "steps_run": 16,
+   "num_inference_steps": 46,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 80.43,
+   "step_s": [
+    145.74,
+    76.11,
+    76.08,
+    76.09,
+    75.98,
+    76.1,
+    76.01,
+    76.0,
+    76.05,
+    76.0,
+    76.04,
+    76.24,
+    76.02,
+    76.03,
+    76.19,
+    76.18
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 11.32,
+    "vmrss_gb": 10.68,
+    "memavail_gb": 4.16
+   },
+   "steps_effective": 16,
+   "strength": 0.35,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 4.161766052246094,
+   "decode_s": 53.2,
+   "seconds": 1356.0,
+   "mem_stage": {
+    "vmhwm_gb": 14.49,
+    "vmrss_gb": 10.74,
+    "memavail_gb": 4.09
+   },
+   "vmhwm_gb": 14.49,
+   "rss_peak_gb": 14.49,
+   "crop": [
+    438,
+    78,
+    301,
+    301
+   ],
+   "denoise": 0.35,
+   "seed": 302009,
+   "px": 1024
+  },
+  {
+   "step": "cutout",
+   "method": "isnet + holes + shadow",
+   "seconds": 9.2,
+   "detail": {
+    "method": "isnet + holes + shadow",
+    "flood": {
+     "bg_rgb": [
+      185.0,
+      216.0,
+      202.0
+     ],
+     "hole_px": 0,
+     "holes_kept_as_figure": []
+    },
+    "hole_px": 0,
+    "haze_px": 27273,
+    "half_sure_px": 62,
+    "firmed_px": 872093,
+    "pocket_px": 0,
+    "pockets_kept_as_figure": 0,
+    "shadow_px": 0,
+    "dips_filled_px": 244,
+    "figure_px": 960421,
+    "bg_rgb": [
+     185.0,
+     216.0,
+     202.0
+    ]
+   }
+  }
+ ],
+ "errors": [
+  "canvas dropped by the exposure filter"
+ ],
+ "skipped": [],
+ "outputs": [
+  "orrin_hires.webp",
+  "orrin_source.webp"
+ ],
+ "run": "38881543229-final-round1-v3",
+ "created": "2026-10-16T09:39:38Z",
+ "updated": "2026-10-16T11:31:03Z",
+ "image": "orrin.png",
+ "canvas": [
+  1024,
+  2048
+ ],
+ "origin": [
+  512,
+  1990
+ ],
+ "transform": {
+  "scale": 0.856892,
+  "offset": [
+   -38,
+   452
+  ],
+  "canvas": [
+   1024,
+   2048
+  ],
+  "feet_y": 1990,
+  "figure_h": 1495.3,
+  "notes": [
+   "figure too wide for the canvas: scaled down to fit the width",
+   "shifted left to fit"
+  ],
+  "crown_y": 518.9
+ },
+ "cutout": {
+  "method": "source_alpha"
+ },
+ "face_box": [
+  403,
+  576,
+  125,
+  143
+ ],
+ "face_box_source": "anime face detector 0.86",
+ "face_box_src_pixels": [
+  515,
+  145,
+  146,
+  167
+ ],
+ "flipped": false,
+ "head_px_estimate": 210,
+ "portrait_rect": [
+  272,
+  462,
+  386,
+  386
+ ],
+ "warp_src_hints": {
+  "_doc": "Suggested values for assets/art/heroes/<id>/<id>.warp_src.json (HaloRig warp rig).",
+  "origin": [
+   512,
+   1990
+  ],
+  "portrait": [
+   465,
+   655,
+   386
+  ]
+ },
+ "spec": {
+  "ok": false,
+  "problems": [
+   "left margin 22 px, spec >= 24",
+   "figure too wide for the canvas: scaled down to fit the width"
+  ],
+  "margins": {
+   "left": 22,
+   "right": 24,
+   "top": 494,
+   "bottom": 57
+  },
+  "feet_row": 1990,
+  "crown_y": 518.9
+ },
+ "bg_measured": [
+  185,
+  216,
+  202
+ ],
+ "cutout_detail": {
+  "method": "isnet + holes + shadow",
+  "flood": {
+   "bg_rgb": [
+    185.0,
+    216.0,
+    202.0
+   ],
+   "hole_px": 0,
+   "holes_kept_as_figure": []
+  },
+  "hole_px": 0,
+  "haze_px": 27273,
+  "half_sure_px": 62,
+  "firmed_px": 872093,
+  "pocket_px": 0,
+  "pockets_kept_as_figure": 0,
+  "shadow_px": 0,
+  "dips_filled_px": 244,
+  "figure_px": 960421,
+  "bg_rgb": [
+   185.0,
+   216.0,
+   202.0
+  ]
+ },
+ "repairs": {
+  "orrin.png": {
+   "original": {
+    "scores": {
+     "nudenet": {
+      "FEMALE_BREAST_EXPOSED": 0.042,
+      "FEMALE_GENITALIA_EXPOSED": 0.0025,
+      "MALE_GENITALIA_EXPOSED": 0.0013,
+      "ANUS_EXPOSED": 0.0002,
+      "BUTTOCKS_EXPOSED": 0.0073
+     },
+     "anime_censor": {
+      "nipple_f": 0.0096,
+      "penis": 0.0072,
+      "pussy": 0.319
+     }
+    },
+    "flagged": [
+     {
+      "detector": "anime_censor",
+      "class": "pussy",
+      "score": 0.319,
+      "view": "t1024_0_0"
+     }
+    ]
+   },
+   "settings": {
+    "denoise": 0.6,
+    "steps": 14,
+    "px": 768,
+    "pad": 0.25,
+    "context": 2.0,
+    "box_conf_frac": 0.5,
+    "near_frac": 0.8
+   },
+   "attempts": [
+    {
+     "attempt": 1,
+     "classes": {
+      "anime_censor": [
+       "pussy"
+      ]
+     },
+     "boxes": [
+      {
+       "detector": "anime_censor",
+       "class": "pussy",
+       "score": 0.319,
+       "view": "t1024_0_0",
+       "box": [
+        424.9,
+        878.8,
+        458.8,
+        908.4
+       ]
+      },
+      {
+       "detector": "anime_censor",
+       "class": "pussy",
+       "score": 0.2982,
+       "view": "t1024_0_512",
+       "box": [
+        424.7,
+        879.8,
+        458.4,
+        909.0
+       ]
+      }
+     ],
+     "regions": [
+      [
+       416,
+       869,
+       467,
+       918
+      ]
+     ],
+     "area_frac": 0.0012,
+     "crops": [
+      [
+       282,
+       734,
+       602,
+       1054
+      ]
+     ],
+     "seeds": [
+      302702
+     ],
+     "inpaints": [
+      {
+       "seconds": 676.0,
+       "s_per_step": 46.34,
+       "steps_run": 14,
+       "steps_effective": 14,
+       "num_inference_steps": 24,
+       "vmhwm_gb": 13.66,
+       "crop": [
+        282,
+        734,
+        320,
+        320
+       ],
+       "px": 768
+      }
+     ],
+     "seconds": 676.1,
+     "recut": {
+      "box": [
+       0,
+       470,
+       1024,
+       2015
+      ],
+      "alpha_cleared_px": 0,
+      "alpha_added_px": 0
+     },
+     "after": {
+      "scores": {
+       "nudenet": {
+        "FEMALE_BREAST_EXPOSED": 0.0362,
+        "FEMALE_GENITALIA_EXPOSED": 0.0028,
+        "MALE_GENITALIA_EXPOSED": 0.0014,
+        "ANUS_EXPOSED": 0.0002,
+        "BUTTOCKS_EXPOSED": 0.0073
+       },
+       "anime_censor": {
+        "nipple_f": 0.0201,
+        "penis": 0.0158,
+        "pussy": 0.2651
+       }
+      },
+      "flagged": [
+       {
+        "detector": "anime_censor",
+        "class": "pussy",
+        "score": 0.2651,
+        "view": "t1024_0_512"
+       }
+      ]
+     }
+    },
+    {
+     "attempt": 2,
+     "classes": {
+      "anime_censor": [
+       "pussy"
+      ]
+     },
+     "boxes": [
+      {
+       "detector": "anime_censor",
+       "class": "pussy",
+       "score": 0.2651,
+       "view": "t1024_0_512",
+       "box": [
+        419.9,
+        873.3,
+        460.7,
+        915.3
+       ]
+      },
+      {
+       "detector": "anime_censor",
+       "class": "pussy",
+       "score": 0.2014,
+       "view": "t1024_0_0",
+       "box": [
+        421.1,
+        872.9,
+        460.6,
+        912.3
+       ]
+      }
+     ],
+     "regions": [
+      [
+       409,
+       862,
+       471,
+       926
+      ]
+     ],
+     "area_frac": 0.0019,
+     "crops": [
+      [
+       280,
+       734,
+       600,
+       1054
+      ]
+     ],
+     "seeds": [
+      302712
+     ],
+     "inpaints": [
+      {
+       "seconds": 676.4,
+       "s_per_step": 46.36,
+       "steps_run": 14,
+       "steps_effective": 14,
+       "num_inference_steps": 24,
+       "vmhwm_gb": 14.25,
+       "crop": [
+        280,
+        734,
+        320,
+        320
+       ],
+       "px": 768
+      }
+     ],
+     "seconds": 676.5,
+     "recut": {
+      "box": [
+       0,
+       470,
+       1024,
+       2015
+      ],
+      "alpha_cleared_px": 0,
+      "alpha_added_px": 0
+     },
+     "after": {
+      "scores": {
+       "nudenet": {
+        "FEMALE_BREAST_EXPOSED": 0.0594,
+        "FEMALE_GENITALIA_EXPOSED": 0.0037,
+        "MALE_GENITALIA_EXPOSED": 0.0016,
+        "ANUS_EXPOSED": 0.0002,
+        "BUTTOCKS_EXPOSED": 0.0073
+       },
+       "anime_censor": {
+        "nipple_f": 0.0112,
+        "penis": 0.4928,
+        "pussy": 0.4765
+       }
+      },
+      "flagged": [
+       {
+        "detector": "anime_censor",
+        "class": "penis",
+        "score": 0.4928,
+        "view": "t512_256_768"
+       },
+       {
+        "detector": "anime_censor",
+        "class": "pussy",
+        "score": 0.4765,
+        "view": "t1024_0_512"
+       }
+      ]
+     }
+    }
+   ],
+   "result": "dropped: still flagged after 2 repair pass(es)"
+  }
+ },
+ "dropped": [
+  "orrin.png"
+ ]
+}

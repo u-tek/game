@@ -1,0 +1,565 @@
+{
+ "key": "ashra-f305001",
+ "run": "38881543229-final-round1-v3",
+ "hero": "ashra",
+ "mode": "final",
+ "seeds": [
+  305001
+ ],
+ "preset": "standard",
+ "preset_settings": {
+  "sampler": "euler_ancestral",
+  "steps": 28,
+  "cfg": 5.0,
+  "width": 832,
+  "height": 1216,
+  "doc": "Animagine XL 4.0 model card: Euler a, 28 steps, CFG 5, 832x1216 (default for candidates and finals; about 25-40 min per image on the 4-vCPU runners)"
+ },
+ "style": "bible",
+ "dtype": "fp32",
+ "env": {
+  "python": "3.11.17",
+  "machine": "x86_64",
+  "cpus": 4,
+  "cpu": "AMD EPYC 7763 64-Core Processor",
+  "mem_gb": 15.6,
+  "torch": "2.8.0+cpu",
+  "diffusers": "0.35.2",
+  "transformers": "4.56.2",
+  "rembg": "2.0.85",
+  "onnxruntime": "1.23.2"
+ },
+ "timing": {
+  "download_s": 0.2,
+  "encode_s": 28.9
+ },
+ "images": [
+  {
+   "step": "hires_img2img",
+   "seed": 305001,
+   "what": "hires img2img 1248x1824 @0.40",
+   "sample_s": 4278.6,
+   "steps_run": 20,
+   "num_inference_steps": 50,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 213.93,
+   "step_s": [
+    256.24,
+    210.72,
+    210.56,
+    211.2,
+    210.48,
+    210.43,
+    210.05,
+    209.78,
+    210.14,
+    210.49,
+    209.86,
+    211.2,
+    212.13,
+    212.5,
+    213.07,
+    213.19,
+    213.54,
+    214.15,
+    213.84,
+    215.03
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 11.61,
+    "vmrss_gb": 10.25,
+    "memavail_gb": 4.64
+   },
+   "encode": "untiled",
+   "memavail_before_encode_gb": 11.125507354736328,
+   "mem_encode": {
+    "vmhwm_gb": 9.13,
+    "vmrss_gb": 3.7,
+    "memavail_gb": 11.1
+   },
+   "steps_effective": 20,
+   "strength": 0.4,
+   "size": [
+    1248,
+    1824
+   ],
+   "decode": "untiled",
+   "memavail_before_decode_gb": 7.587642669677734,
+   "decode_s": 137.5,
+   "seconds": 4509.6,
+   "mem_stage": {
+    "vmhwm_gb": 12.87,
+    "vmrss_gb": 7.45,
+    "memavail_gb": 7.37
+   },
+   "vmhwm_gb": 12.87,
+   "rss_peak_gb": 12.87
+  },
+  {
+   "step": "face_polish",
+   "what": "inpaint 1024x1024 @0.35",
+   "sample_s": 1571.5,
+   "steps_run": 16,
+   "num_inference_steps": 46,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 98.22,
+   "step_s": [
+    177.71,
+    92.95,
+    93.47,
+    92.86,
+    92.52,
+    92.29,
+    92.28,
+    92.6,
+    92.56,
+    92.71,
+    92.78,
+    93.23,
+    92.99,
+    93.46,
+    93.58,
+    93.52
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 11.3,
+    "vmrss_gb": 10.75,
+    "memavail_gb": 4.05
+   },
+   "steps_effective": 16,
+   "strength": 0.35,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 4.047603607177734,
+   "decode_s": 67.2,
+   "seconds": 1655.9,
+   "mem_stage": {
+    "vmhwm_gb": 14.51,
+    "vmrss_gb": 10.71,
+    "memavail_gb": 4.01
+   },
+   "vmhwm_gb": 14.51,
+   "rss_peak_gb": 14.51,
+   "crop": [
+    462,
+    228,
+    284,
+    284
+   ],
+   "denoise": 0.35,
+   "seed": 305001,
+   "px": 1024
+  },
+  {
+   "step": "cutout",
+   "method": "isnet + holes + shadow",
+   "seconds": 9.1,
+   "detail": {
+    "method": "isnet + holes + shadow",
+    "flood": {
+     "bg_rgb": [
+      118.0,
+      203.0,
+      183.0
+     ],
+     "hole_px": 0,
+     "holes_kept_as_figure": []
+    },
+    "hole_px": 0,
+    "haze_px": 40050,
+    "half_sure_px": 507,
+    "firmed_px": 818537,
+    "pocket_px": 0,
+    "pockets_kept_as_figure": 0,
+    "shadow_px": 0,
+    "dips_filled_px": 63,
+    "figure_px": 822806,
+    "bg_rgb": [
+     118.0,
+     203.0,
+     183.0
+    ]
+   },
+   "seed": 305001
+  },
+  {
+   "what": "inpaint 768x768 @0.60",
+   "sample_s": 755.8,
+   "steps_run": 14,
+   "num_inference_steps": 24,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 53.98,
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 12.88,
+    "vmrss_gb": 11.64,
+    "memavail_gb": 3.1
+   },
+   "steps_effective": 14,
+   "strength": 0.6,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 3.104961395263672,
+   "decode_s": 33.1,
+   "seconds": 788.8,
+   "mem_stage": {
+    "vmhwm_gb": 13.75,
+    "vmrss_gb": 11.64,
+    "memavail_gb": 2.98
+   },
+   "vmhwm_gb": 13.75,
+   "rss_peak_gb": 13.75,
+   "crop": [
+    22,
+    546,
+    700,
+    700
+   ],
+   "denoise": 0.6,
+   "seed": 305701,
+   "px": 768,
+   "step": "cover_repair",
+   "rel": "ashra/final_s305001/ashra.png"
+  },
+  {
+   "what": "inpaint 768x768 @0.60",
+   "sample_s": 754.6,
+   "steps_run": 14,
+   "num_inference_steps": 24,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 53.9,
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 13.59,
+    "vmrss_gb": 12.22,
+    "memavail_gb": 2.51
+   },
+   "steps_effective": 14,
+   "strength": 0.6,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 2.506732940673828,
+   "decode_s": 32.9,
+   "seconds": 787.5,
+   "mem_stage": {
+    "vmhwm_gb": 14.33,
+    "vmrss_gb": 12.22,
+    "memavail_gb": 2.5
+   },
+   "vmhwm_gb": 14.33,
+   "rss_peak_gb": 14.33,
+   "crop": [
+    150,
+    716,
+    320,
+    320
+   ],
+   "denoise": 0.6,
+   "seed": 305711,
+   "px": 768,
+   "step": "cover_repair",
+   "rel": "ashra/final_s305001/ashra.png"
+  },
+  {
+   "step": "variant_eyes_closed",
+   "what": "inpaint 768x768 @0.62",
+   "sample_s": 711.3,
+   "steps_run": 14,
+   "num_inference_steps": 23,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 50.8,
+   "step_s": [
+    78.1,
+    48.91,
+    49.27,
+    48.96,
+    48.54,
+    48.6,
+    48.52,
+    48.7,
+    48.54,
+    48.62,
+    48.56,
+    48.63,
+    48.65,
+    48.68
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 13.59,
+    "vmrss_gb": 12.23,
+    "memavail_gb": 2.51
+   },
+   "steps_effective": 14,
+   "strength": 0.62,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 2.513408660888672,
+   "decode_s": 33.0,
+   "seconds": 744.3,
+   "mem_stage": {
+    "vmhwm_gb": 14.34,
+    "vmrss_gb": 12.23,
+    "memavail_gb": 2.49
+   },
+   "vmhwm_gb": 14.34,
+   "rss_peak_gb": 14.34,
+   "crop": [
+    306,
+    540,
+    277,
+    277
+   ],
+   "denoise": 0.62,
+   "seed": 305001,
+   "px": 768
+  },
+  {
+   "step": "variant_mouth_open",
+   "what": "inpaint 768x768 @0.58",
+   "sample_s": 711.2,
+   "steps_run": 14,
+   "num_inference_steps": 25,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 50.8,
+   "step_s": [
+    78.11,
+    48.57,
+    48.65,
+    48.66,
+    48.74,
+    48.78,
+    48.83,
+    48.74,
+    48.76,
+    48.84,
+    48.75,
+    48.59,
+    48.57,
+    48.56
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 13.64,
+    "vmrss_gb": 12.23,
+    "memavail_gb": 2.5
+   },
+   "steps_effective": 14,
+   "strength": 0.58,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 2.50299072265625,
+   "decode_s": 32.9,
+   "seconds": 744.0,
+   "mem_stage": {
+    "vmhwm_gb": 14.34,
+    "vmrss_gb": 12.23,
+    "memavail_gb": 2.49
+   },
+   "vmhwm_gb": 14.34,
+   "rss_peak_gb": 14.34,
+   "crop": [
+    306,
+    540,
+    277,
+    277
+   ],
+   "denoise": 0.58,
+   "seed": 305001,
+   "px": 768
+  },
+  {
+   "step": "variant_smile",
+   "what": "inpaint 768x768 @0.60",
+   "sample_s": 713.8,
+   "steps_run": 14,
+   "num_inference_steps": 24,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 50.98,
+   "step_s": [
+    78.32,
+    48.85,
+    48.74,
+    49.07,
+    48.94,
+    48.93,
+    48.95,
+    48.94,
+    48.85,
+    48.96,
+    48.87,
+    48.71,
+    48.9,
+    48.73
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 13.64,
+    "vmrss_gb": 12.23,
+    "memavail_gb": 2.52
+   },
+   "steps_effective": 14,
+   "strength": 0.6,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 2.5237197875976562,
+   "decode_s": 33.0,
+   "seconds": 746.8,
+   "mem_stage": {
+    "vmhwm_gb": 14.34,
+    "vmrss_gb": 12.23,
+    "memavail_gb": 2.5
+   },
+   "vmhwm_gb": 14.34,
+   "rss_peak_gb": 14.34,
+   "crop": [
+    306,
+    540,
+    277,
+    277
+   ],
+   "denoise": 0.6,
+   "seed": 305001,
+   "px": 768
+  }
+ ],
+ "stage_mem": [
+  {
+   "seed": 305001,
+   "step": "hires_img2img",
+   "vmhwm_gb": 12.87,
+   "mem": {
+    "vmhwm_gb": 12.87,
+    "vmrss_gb": 7.45,
+    "memavail_gb": 7.37
+   }
+  },
+  {
+   "seed": 305001,
+   "step": "face_polish",
+   "vmhwm_gb": 14.51,
+   "mem": {
+    "vmhwm_gb": 14.51,
+    "vmrss_gb": 10.71,
+    "memavail_gb": 4.01
+   }
+  },
+  {
+   "seed": 305001,
+   "step": "cutout",
+   "vmhwm_gb": null,
+   "mem": {
+    "vmhwm_gb": 14.51,
+    "vmrss_gb": 11.45,
+    "memavail_gb": 3.26
+   }
+  },
+  {
+   "seed": 305001,
+   "step": "variant_eyes_closed",
+   "vmhwm_gb": 14.34,
+   "mem": {
+    "vmhwm_gb": 14.34,
+    "vmrss_gb": 12.23,
+    "memavail_gb": 2.49
+   }
+  },
+  {
+   "seed": 305001,
+   "step": "variant_mouth_open",
+   "vmhwm_gb": 14.34,
+   "mem": {
+    "vmhwm_gb": 14.34,
+    "vmrss_gb": 12.23,
+    "memavail_gb": 2.49
+   }
+  },
+  {
+   "seed": 305001,
+   "step": "variant_smile",
+   "vmhwm_gb": 14.34,
+   "mem": {
+    "vmhwm_gb": 14.34,
+    "vmrss_gb": 12.23,
+    "memavail_gb": 2.5
+   }
+  }
+ ],
+ "skipped": [],
+ "errors": [],
+ "started": "2026-10-16T09:39:22Z",
+ "licenses": {
+  "model": {
+   "repo": "cagliostrolab/animagine-xl-4.0",
+   "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)",
+   "license_url": "https://huggingface.co/cagliostrolab/animagine-xl-4.0"
+  },
+  "aux": {
+   "cutout": {
+    "name": "rembg isnet-anime",
+    "license": "rembg MIT; IS-Net anime model Apache-2.0 (SkyTNT/anime-segmentation)"
+   },
+   "nudenet": {
+    "name": "NudeNet 3.4.2 detector (320n)",
+    "license": "MIT (weights bundled in the pip package)"
+   },
+   "anime_censor": {
+    "repo": "deepghs/anime_censor_detection",
+    "model": "censor_detect_v1.0_s",
+    "name": "deepghs anime censor-point detector (YOLOv8)"
+   },
+   "anime_face": {
+    "repo": "deepghs/anime_face_detection",
+    "model": "face_detect_v1.4_s",
+    "name": "deepghs anime face detector (YOLOv8)"
+   }
+  }
+ },
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)",
+  "variants": {
+   "unet": null,
+   "vae": null,
+   "text_encoder": null,
+   "text_encoder_2": null
+  },
+  "download_s": 0.2,
+  "size_gb": 6.94
+ },
+ "engine": {
+  "dtype": "fp32",
+  "threads": 4,
+  "vae_dtype": "fp32",
+  "vae_force_upcast": false,
+  "vae_scaling_factor": 0.13025,
+  "bf16_native": false
+ },
+ "filter": {
+  "checked": 18,
+  "passed": 12,
+  "dropped": 6,
+  "errors": 0,
+  "repaired": 1
+ },
+ "finished": "2026-10-16T12:28:16Z",
+ "wall_s": 10198.4,
+ "exit_code": 0
+}

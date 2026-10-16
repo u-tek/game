@@ -1,0 +1,527 @@
+{
+ "hero": "uriela",
+ "mode": "final",
+ "seed": 104001,
+ "status": "done",
+ "source_candidate": {
+  "repo": "u-tek/game",
+  "run": "38859902166-candidates-round1-v3",
+  "path": "runs/38859902166-candidates-round1-v3/uriela/uriela_s104001.webp",
+  "sha256": "607dbf49369bc94032737065b51003f8d9e138aa44d0ca6880aef318c99c3c50",
+  "preset": "standard",
+  "preset_settings": {
+   "sampler": "euler_ancestral",
+   "steps": 28,
+   "cfg": 5.0,
+   "width": 832,
+   "height": 1216,
+   "doc": "Animagine XL 4.0 model card: Euler a, 28 steps, CFG 5, 832x1216 (default for candidates and finals; about 25-40 min per image on the 4-vCPU runners)"
+  },
+  "style": "bible"
+ },
+ "source_fit": {
+  "fit": 0.771,
+  "figure_px": 1465,
+  "aspect": 0.666,
+  "limit": "width",
+  "flag": "SMALL 77%"
+ },
+ "style": {
+  "name": "bible",
+  "spec": {
+   "doc": "the prompt bible exactly as written"
+  }
+ },
+ "settings": {
+  "sampler": "euler_ancestral",
+  "cfg": 5.0,
+  "preset": "standard",
+  "hires_scale": 1.5,
+  "hires_denoise": 0.4,
+  "hires_steps": 20,
+  "face_denoise": 0.35,
+  "face_steps": 16,
+  "face_px": 1024,
+  "variant_steps": 14,
+  "variant_px": 768
+ },
+ "base_settings": {
+  "sampler": "euler_ancestral",
+  "steps": 28,
+  "cfg": 5.0,
+  "width": 832,
+  "height": 1216,
+  "doc": "Animagine XL 4.0 model card: Euler a, 28 steps, CFG 5, 832x1216 (default for candidates and finals; about 25-40 min per image on the 4-vCPU runners)"
+ },
+ "family": "animagine",
+ "prompt": "1girl, solo, adult, mature female, makeup, lipstick, eyeliner, long eyelashes, full body, standing, contrapposto, looking at viewer, toned, large breasts, wide hips, thick thighs, blonde hair, high ponytail, blue eyes, grin, confident, halo, angel wings, blue leotard, highleg leotard, underboob cutout, navel cutout, gauntlets, capelet, armored boots, holding spear, weapon over shoulder, white and gold theme, simple background, grey background, official art, detailed shading, rim lighting, masterpiece, high score, great score, absurdres, sensitive",
+ "negative": "worst quality, low quality, low score, bad score, average score, nsfw, explicit, (blue archive:1.3), (loli:1.3), (child:1.3), (aged down:1.2), (teenage:1.2), (petite:1.2), (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2), lowres, blurry, jpeg artifacts, bad anatomy, bad hands, missing fingers, extra digits, fewer digits, extra arms, error, cropped, feet out of frame, head out of frame, wings out of frame, upper body, cowboy shot, multiple views, scenery, light particles, sparkle, embers, aura, light rays, smoke, speed lines, nude, areolae, pussy, anus, penis, sex, spread legs, see-through, shota, underage, young, school uniform, text, watermark, signature, username, chibi, 3d, realistic, 1boy, multiple girls, topless, flat chest, pussy peek, pantyshot, upskirt",
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)"
+ },
+ "lora": null,
+ "steps": [
+  {
+   "step": "base",
+   "from": "runs/38859902166-candidates-round1-v3/uriela/uriela_s104001.webp",
+   "sha256": "607dbf49369bc94032737065b51003f8d9e138aa44d0ca6880aef318c99c3c50"
+  },
+  {
+   "step": "hires_img2img",
+   "seed": 104002,
+   "what": "hires img2img 1248x1824 @0.40",
+   "sample_s": 2856.8,
+   "steps_run": 20,
+   "num_inference_steps": 50,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 142.84,
+   "step_s": [
+    185.43,
+    145.82,
+    144.68,
+    143.64,
+    137.93,
+    139.14,
+    141.17,
+    142.56,
+    140.41,
+    142.57,
+    142.04,
+    140.48,
+    140.9,
+    138.79,
+    136.04,
+    140.68,
+    137.94,
+    137.93,
+    139.72,
+    138.98
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 11.8,
+    "vmrss_gb": 10.42,
+    "memavail_gb": 4.48
+   },
+   "encode": "untiled",
+   "memavail_before_encode_gb": 11.094524383544922,
+   "mem_encode": {
+    "vmhwm_gb": 8.05,
+    "vmrss_gb": 3.72,
+    "memavail_gb": 11.12
+   },
+   "steps_effective": 20,
+   "strength": 0.4,
+   "size": [
+    1248,
+    1824
+   ],
+   "decode": "untiled",
+   "memavail_before_decode_gb": 7.39306640625,
+   "decode_s": 57.5,
+   "seconds": 2970.2,
+   "mem_stage": {
+    "vmhwm_gb": 13.01,
+    "vmrss_gb": 7.58,
+    "memavail_gb": 7.14
+   },
+   "vmhwm_gb": 13.01,
+   "rss_peak_gb": 13.01
+  },
+  {
+   "step": "face_polish",
+   "what": "inpaint 1024x1024 @0.35",
+   "sample_s": 1060.2,
+   "steps_run": 16,
+   "num_inference_steps": 46,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 66.27,
+   "step_s": [
+    106.56,
+    61.63,
+    59.75,
+    61.71,
+    63.01,
+    63.65,
+    63.6,
+    63.21,
+    62.89,
+    63.32,
+    63.9,
+    65.36,
+    64.21,
+    64.63,
+    64.56,
+    68.26
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 11.35,
+    "vmrss_gb": 10.83,
+    "memavail_gb": 4.08
+   },
+   "steps_effective": 16,
+   "strength": 0.35,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 4.076930999755859,
+   "decode_s": 31.0,
+   "seconds": 1107.3,
+   "mem_stage": {
+    "vmhwm_gb": 14.6,
+    "vmrss_gb": 10.79,
+    "memavail_gb": 4.02
+   },
+   "vmhwm_gb": 14.6,
+   "rss_peak_gb": 14.6,
+   "crop": [
+    470,
+    180,
+    299,
+    299
+   ],
+   "denoise": 0.35,
+   "seed": 104008,
+   "px": 1024
+  },
+  {
+   "step": "cutout",
+   "method": "isnet + holes + shadow",
+   "seconds": 7.7,
+   "detail": {
+    "method": "isnet + holes + shadow",
+    "flood": {
+     "bg_rgb": [
+      243.0,
+      243.0,
+      244.0
+     ],
+     "hole_px": 0,
+     "holes_kept_as_figure": []
+    },
+    "hole_px": 0,
+    "haze_px": 46782,
+    "half_sure_px": 1812,
+    "firmed_px": 580640,
+    "pocket_px": 0,
+    "pockets_kept_as_figure": 0,
+    "shadow_px": 0,
+    "dips_filled_px": 615,
+    "figure_px": 695708,
+    "bg_rgb": [
+     243.0,
+     243.0,
+     244.0
+    ]
+   }
+  },
+  {
+   "step": "variant_eyes_closed",
+   "what": "inpaint 768x768 @0.62",
+   "sample_s": 493.9,
+   "steps_run": 14,
+   "num_inference_steps": 23,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 35.28,
+   "step_s": [
+    50.67,
+    35.93,
+    36.15,
+    36.12,
+    36.5,
+    33.3,
+    32.87,
+    32.96,
+    32.98,
+    33.05,
+    32.97,
+    33.35,
+    33.62,
+    33.41
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 12.93,
+    "vmrss_gb": 11.52,
+    "memavail_gb": 3.32
+   },
+   "steps_effective": 14,
+   "strength": 0.62,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 3.3189544677734375,
+   "decode_s": 13.7,
+   "seconds": 507.6,
+   "mem_stage": {
+    "vmhwm_gb": 13.66,
+    "vmrss_gb": 11.55,
+    "memavail_gb": 3.15
+   },
+   "vmhwm_gb": 13.66,
+   "rss_peak_gb": 13.66,
+   "crop": [
+    390,
+    630,
+    262,
+    262
+   ],
+   "denoise": 0.62,
+   "seed": 104500,
+   "px": 768
+  },
+  {
+   "step": "variant_mouth_open",
+   "what": "inpaint 768x768 @0.58",
+   "sample_s": 477.6,
+   "steps_run": 14,
+   "num_inference_steps": 25,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 34.12,
+   "step_s": [
+    45.65,
+    33.51,
+    33.13,
+    32.95,
+    33.21,
+    33.25,
+    32.98,
+    32.54,
+    33.23,
+    33.25,
+    33.33,
+    33.78,
+    33.19,
+    33.63
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 12.96,
+    "vmrss_gb": 11.53,
+    "memavail_gb": 3.3
+   },
+   "steps_effective": 14,
+   "strength": 0.58,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 3.3029747009277344,
+   "decode_s": 13.9,
+   "seconds": 491.6,
+   "mem_stage": {
+    "vmhwm_gb": 13.67,
+    "vmrss_gb": 11.56,
+    "memavail_gb": 3.15
+   },
+   "vmhwm_gb": 13.67,
+   "rss_peak_gb": 13.67,
+   "crop": [
+    390,
+    630,
+    262,
+    262
+   ],
+   "denoise": 0.58,
+   "seed": 104500,
+   "px": 768
+  },
+  {
+   "step": "variant_smile",
+   "what": "inpaint 768x768 @0.60",
+   "sample_s": 476.3,
+   "steps_run": 14,
+   "num_inference_steps": 24,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 34.02,
+   "step_s": [
+    47.51,
+    34.22,
+    32.9,
+    33.12,
+    32.98,
+    33.08,
+    33.13,
+    32.93,
+    32.74,
+    32.9,
+    32.73,
+    32.73,
+    32.57,
+    32.71
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 12.97,
+    "vmrss_gb": 11.53,
+    "memavail_gb": 3.28
+   },
+   "steps_effective": 14,
+   "strength": 0.6,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 3.282329559326172,
+   "decode_s": 13.4,
+   "seconds": 489.6,
+   "mem_stage": {
+    "vmhwm_gb": 13.67,
+    "vmrss_gb": 11.56,
+    "memavail_gb": 3.16
+   },
+   "vmhwm_gb": 13.67,
+   "rss_peak_gb": 13.67,
+   "crop": [
+    390,
+    630,
+    262,
+    262
+   ],
+   "denoise": 0.6,
+   "seed": 104500,
+   "px": 768
+  }
+ ],
+ "errors": [],
+ "skipped": [],
+ "outputs": [
+  "uriela_hires.webp",
+  "uriela_source.webp",
+  "uriela.png",
+  "uriela_portrait.png",
+  "uriela_check.webp",
+  "masks/eyes.png",
+  "variants/eyes_closed.png",
+  "masks/mouth.png",
+  "variants/mouth_open.png",
+  "masks/eyes_mouth.png",
+  "variants/smile.png"
+ ],
+ "run": "38881543229-final-round1-v3",
+ "created": "2026-10-16T09:39:08Z",
+ "updated": "2026-10-16T11:12:42Z",
+ "image": "uriela.png",
+ "canvas": [
+  1024,
+  2048
+ ],
+ "origin": [
+  512,
+  1990
+ ],
+ "transform": {
+  "scale": 0.833476,
+  "offset": [
+   -4,
+   487
+  ],
+  "canvas": [
+   1024,
+   2048
+  ],
+  "feet_y": 1990,
+  "figure_h": 1473.6,
+  "notes": [
+   "figure too wide for the canvas: scaled down to fit the width",
+   "shifted left to fit"
+  ],
+  "crown_y": 636.9
+ },
+ "cutout": {
+  "method": "source_alpha"
+ },
+ "face_box": [
+  459,
+  692,
+  123,
+  138
+ ],
+ "face_box_source": "anime face detector 0.86",
+ "face_box_src_pixels": [
+  555,
+  246,
+  147,
+  166
+ ],
+ "flipped": true,
+ "head_px_estimate": 203,
+ "portrait_rect": [
+  334,
+  581,
+  373,
+  373
+ ],
+ "warp_src_hints": {
+  "_doc": "Suggested values for assets/art/heroes/<id>/<id>.warp_src.json (HaloRig warp rig).",
+  "origin": [
+   512,
+   1990
+  ],
+  "portrait": [
+   520,
+   767,
+   373
+  ]
+ },
+ "spec": {
+  "ok": false,
+  "problems": [
+   "left margin 22 px, spec >= 24",
+   "figure too wide for the canvas: scaled down to fit the width"
+  ],
+  "margins": {
+   "left": 22,
+   "right": 23,
+   "top": 515,
+   "bottom": 57
+  },
+  "feet_row": 1990,
+  "crown_y": 636.9
+ },
+ "bg_measured": [
+  243,
+  243,
+  244
+ ],
+ "cutout_detail": {
+  "method": "isnet + holes + shadow",
+  "flood": {
+   "bg_rgb": [
+    243.0,
+    243.0,
+    244.0
+   ],
+   "hole_px": 0,
+   "holes_kept_as_figure": []
+  },
+  "hole_px": 0,
+  "haze_px": 46782,
+  "half_sure_px": 1812,
+  "firmed_px": 580640,
+  "pocket_px": 0,
+  "pockets_kept_as_figure": 0,
+  "shadow_px": 0,
+  "dips_filled_px": 615,
+  "figure_px": 695708,
+  "bg_rgb": [
+   243.0,
+   243.0,
+   244.0
+  ]
+ },
+ "dropped": [
+  "uriela_boxes.webp",
+  "variants/eyes_closed_patch.png",
+  "variants/mouth_open_patch.png",
+  "variants/smile_patch.png",
+  "variants_sheet.webp"
+ ]
+}

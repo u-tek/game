@@ -1,0 +1,200 @@
+{
+ "hero": "ashra",
+ "base": "ashra.png",
+ "base_sha": "ef343e9c80c8b8815480f1c7df6babbfa6e50a84f44f42113dd82c9507675aec",
+ "face_box": [
+  371,
+  608,
+  146,
+  142
+ ],
+ "face_box_source": "anime face detector 0.86",
+ "bg_rgb": [
+  118,
+  203,
+  183
+ ],
+ "variants": {
+  "eyes_closed": {
+   "picked_seed": 305500,
+   "published": true,
+   "region": [
+    377,
+    642,
+    134,
+    54
+   ],
+   "region_name": "eyes",
+   "denoise": 0.62,
+   "prompt": "1girl, solo, adult, (mature female:0.8), portrait, close-up, face, grey hair, messy hair, streaked hair, witch hat, broken halo, closed eyes, sleepy, light smile, official art, detailed shading, simple background, green background, masterpiece, high score, great score, absurdres, sensitive",
+   "tries": [
+    {
+     "seed": 305500,
+     "alignment_problems": [],
+     "what": "inpaint 768x768 @0.62",
+     "sample_s": 711.3,
+     "steps_run": 14,
+     "num_inference_steps": 23,
+     "cfg": 5.0,
+     "sampler": "EulerAncestralDiscreteScheduler",
+     "s_per_step": 50.8,
+     "overhead_s": 0.0,
+     "dtype": "fp32",
+     "threads": 4,
+     "mem_sample": {
+      "vmhwm_gb": 13.59,
+      "vmrss_gb": 12.23,
+      "memavail_gb": 2.51
+     },
+     "steps_effective": 14,
+     "strength": 0.62,
+     "decode": "untiled",
+     "memavail_before_decode_gb": 2.513408660888672,
+     "decode_s": 33.0,
+     "seconds": 744.3,
+     "mem_stage": {
+      "vmhwm_gb": 14.34,
+      "vmrss_gb": 12.23,
+      "memavail_gb": 2.49
+     },
+     "vmhwm_gb": 14.34,
+     "rss_peak_gb": 14.34,
+     "crop": [
+      306,
+      540,
+      277,
+      277
+     ],
+     "denoise": 0.62,
+     "px": 768
+    }
+   ]
+  },
+  "mouth_open": {
+   "picked_seed": 305500,
+   "published": true,
+   "region": [
+    408,
+    693,
+    73,
+    45
+   ],
+   "region_name": "mouth",
+   "denoise": 0.58,
+   "prompt": "1girl, solo, adult, (mature female:0.8), portrait, close-up, face, grey hair, messy hair, streaked hair, witch hat, broken halo, purple eyes, half-closed eyes, open mouth, yawning, sleepy, official art, detailed shading, simple background, green background, masterpiece, high score, great score, absurdres, sensitive",
+   "tries": [
+    {
+     "seed": 305500,
+     "alignment_problems": [],
+     "what": "inpaint 768x768 @0.58",
+     "sample_s": 711.2,
+     "steps_run": 14,
+     "num_inference_steps": 25,
+     "cfg": 5.0,
+     "sampler": "EulerAncestralDiscreteScheduler",
+     "s_per_step": 50.8,
+     "overhead_s": 0.0,
+     "dtype": "fp32",
+     "threads": 4,
+     "mem_sample": {
+      "vmhwm_gb": 13.64,
+      "vmrss_gb": 12.23,
+      "memavail_gb": 2.5
+     },
+     "steps_effective": 14,
+     "strength": 0.58,
+     "decode": "untiled",
+     "memavail_before_decode_gb": 2.50299072265625,
+     "decode_s": 32.9,
+     "seconds": 744.0,
+     "mem_stage": {
+      "vmhwm_gb": 14.34,
+      "vmrss_gb": 12.23,
+      "memavail_gb": 2.49
+     },
+     "vmhwm_gb": 14.34,
+     "rss_peak_gb": 14.34,
+     "crop": [
+      306,
+      540,
+      277,
+      277
+     ],
+     "denoise": 0.58,
+     "px": 768
+    }
+   ]
+  },
+  "smile": {
+   "picked_seed": 305500,
+   "published": true,
+   "region": [
+    377,
+    642,
+    134,
+    97
+   ],
+   "region_name": "eyes_mouth",
+   "denoise": 0.6,
+   "prompt": "1girl, solo, adult, (mature female:0.8), portrait, close-up, face, grey hair, messy hair, streaked hair, witch hat, broken halo, happy, smile, closed eyes, open mouth, official art, detailed shading, simple background, green background, masterpiece, high score, great score, absurdres, sensitive",
+   "tries": [
+    {
+     "seed": 305500,
+     "alignment_problems": [],
+     "what": "inpaint 768x768 @0.60",
+     "sample_s": 713.8,
+     "steps_run": 14,
+     "num_inference_steps": 24,
+     "cfg": 5.0,
+     "sampler": "EulerAncestralDiscreteScheduler",
+     "s_per_step": 50.98,
+     "overhead_s": 0.0,
+     "dtype": "fp32",
+     "threads": 4,
+     "mem_sample": {
+      "vmhwm_gb": 13.64,
+      "vmrss_gb": 12.23,
+      "memavail_gb": 2.52
+     },
+     "steps_effective": 14,
+     "strength": 0.6,
+     "decode": "untiled",
+     "memavail_before_decode_gb": 2.5237197875976562,
+     "decode_s": 33.0,
+     "seconds": 746.8,
+     "mem_stage": {
+      "vmhwm_gb": 14.34,
+      "vmrss_gb": 12.23,
+      "memavail_gb": 2.5
+     },
+     "vmhwm_gb": 14.34,
+     "rss_peak_gb": 14.34,
+     "crop": [
+      306,
+      540,
+      277,
+      277
+     ],
+     "denoise": 0.6,
+     "px": 768
+    }
+   ]
+  }
+ },
+ "warp_overlay_hints": {
+  "_doc": "rects for <id>.warp_src.json overlays (eyes / mouth slots)",
+  "eyes": [
+   377,
+   642,
+   134,
+   54
+  ],
+  "mouth": [
+   408,
+   693,
+   73,
+   45
+  ],
+  "base_eyes": "open"
+ }
+}

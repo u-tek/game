@@ -1,0 +1,145 @@
+{
+ "hero": "nuriel",
+ "base": "nuriel.png",
+ "base_sha": "636888a8dfa393adcea912d28b1378b4f955f18f1b6161b5d2017f283ad42a07",
+ "face_box": [
+  481,
+  646,
+  114,
+  116
+ ],
+ "face_box_source": "anime face detector 0.80",
+ "bg_rgb": [
+  234,
+  234,
+  234
+ ],
+ "variants": {
+  "eyes_closed": {
+   "picked_seed": 105500,
+   "published": true,
+   "region": [
+    486,
+    674,
+    105,
+    44
+   ],
+   "region_name": "eyes",
+   "denoise": 0.62,
+   "prompt": "1boy, solo, male focus, adult, mature male, portrait, close-up, face, blonde hair, messy hair, halo, mouth mask, closed eyes, covered mouth, calm, official art, detailed shading, rim lighting, simple background, grey background, masterpiece, high score, great score, absurdres, sensitive",
+   "tries": [
+    {
+     "seed": 105500,
+     "alignment_problems": [],
+     "what": "inpaint 768x768 @0.62",
+     "sample_s": 709.2,
+     "steps_run": 14,
+     "num_inference_steps": 23,
+     "cfg": 5.0,
+     "sampler": "EulerAncestralDiscreteScheduler",
+     "s_per_step": 50.65,
+     "overhead_s": 0.0,
+     "dtype": "fp32",
+     "threads": 4,
+     "mem_sample": {
+      "vmhwm_gb": 12.72,
+      "vmrss_gb": 11.53,
+      "memavail_gb": 3.29
+     },
+     "steps_effective": 14,
+     "strength": 0.62,
+     "decode": "untiled",
+     "memavail_before_decode_gb": 3.293659210205078,
+     "decode_s": 33.0,
+     "seconds": 742.1,
+     "mem_stage": {
+      "vmhwm_gb": 13.64,
+      "vmrss_gb": 11.54,
+      "memavail_gb": 3.23
+     },
+     "vmhwm_gb": 13.64,
+     "rss_peak_gb": 13.64,
+     "crop": [
+      428,
+      594,
+      220,
+      220
+     ],
+     "denoise": 0.62,
+     "px": 768
+    }
+   ]
+  },
+  "smile": {
+   "picked_seed": 105500,
+   "published": true,
+   "region": [
+    486,
+    674,
+    105,
+    44
+   ],
+   "region_name": "eyes",
+   "denoise": 0.6,
+   "prompt": "1boy, solo, male focus, adult, mature male, portrait, close-up, face, blonde hair, messy hair, halo, mouth mask, closed eyes, happy, covered mouth, official art, detailed shading, rim lighting, simple background, grey background, masterpiece, high score, great score, absurdres, sensitive",
+   "tries": [
+    {
+     "seed": 105500,
+     "alignment_problems": [],
+     "what": "inpaint 768x768 @0.60",
+     "sample_s": 708.4,
+     "steps_run": 14,
+     "num_inference_steps": 24,
+     "cfg": 5.0,
+     "sampler": "EulerAncestralDiscreteScheduler",
+     "s_per_step": 50.6,
+     "overhead_s": 0.0,
+     "dtype": "fp32",
+     "threads": 4,
+     "mem_sample": {
+      "vmhwm_gb": 12.95,
+      "vmrss_gb": 11.54,
+      "memavail_gb": 3.29
+     },
+     "steps_effective": 14,
+     "strength": 0.6,
+     "decode": "untiled",
+     "memavail_before_decode_gb": 3.287548065185547,
+     "decode_s": 32.6,
+     "seconds": 741.0,
+     "mem_stage": {
+      "vmhwm_gb": 13.65,
+      "vmrss_gb": 11.54,
+      "memavail_gb": 3.27
+     },
+     "vmhwm_gb": 13.65,
+     "rss_peak_gb": 13.65,
+     "crop": [
+      428,
+      594,
+      220,
+      220
+     ],
+     "denoise": 0.6,
+     "px": 768
+    }
+   ]
+  }
+ },
+ "warp_overlay_hints": {
+  "_doc": "rects for <id>.warp_src.json overlays (eyes / mouth slots)",
+  "eyes": [
+   486,
+   674,
+   105,
+   44
+  ],
+  "mouth": [
+   510,
+   716,
+   57,
+   37
+  ],
+  "base_eyes": "open"
+ }
+}

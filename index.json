@@ -128,6 +128,31 @@
    "published_images": 12,
    "dropped": 5,
    "jobs_missing": []
+  },
+  {
+   "run": "38881543229-final-round1-v3",
+   "created": "2026-10-16T12:44:57Z",
+   "updated": "2026-10-16T12:45:13Z",
+   "heroes": [
+    "ashra",
+    "brakka",
+    "cassiel",
+    "imra",
+    "kessa",
+    "liora",
+    "lucen",
+    "mordessa",
+    "noctaire",
+    "nuriel",
+    "orrin",
+    "sable",
+    "seraphiel",
+    "uriela",
+    "vesper"
+   ],
+   "published_images": 156,
+   "dropped": 66,
+   "jobs_missing": []
   }
  ]
 }

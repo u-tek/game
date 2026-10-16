@@ -1,0 +1,937 @@
+{
+ "hero": "liora",
+ "mode": "final",
+ "seed": 103000,
+ "status": "done",
+ "source_candidate": {
+  "repo": "u-tek/game",
+  "run": "38859902166-candidates-round1-v3",
+  "path": "runs/38859902166-candidates-round1-v3/liora/liora_s103000.webp",
+  "sha256": "65319cdce4bbd0400382592cef07ad80510e486d45cdb66a01c02d33a04e7333",
+  "preset": "standard",
+  "preset_settings": {
+   "sampler": "euler_ancestral",
+   "steps": 28,
+   "cfg": 5.0,
+   "width": 832,
+   "height": 1216,
+   "doc": "Animagine XL 4.0 model card: Euler a, 28 steps, CFG 5, 832x1216 (default for candidates and finals; about 25-40 min per image on the 4-vCPU runners)"
+  },
+  "style": "bible"
+ },
+ "source_fit": {
+  "fit": 0.752,
+  "figure_px": 1430,
+  "aspect": 0.683,
+  "limit": "width",
+  "flag": "SMALL 75%"
+ },
+ "style": {
+  "name": "bible",
+  "spec": {
+   "doc": "the prompt bible exactly as written"
+  }
+ },
+ "settings": {
+  "sampler": "euler_ancestral",
+  "cfg": 5.0,
+  "preset": "standard",
+  "hires_scale": 1.5,
+  "hires_denoise": 0.4,
+  "hires_steps": 20,
+  "face_denoise": 0.35,
+  "face_steps": 16,
+  "face_px": 1024,
+  "variant_steps": 14,
+  "variant_px": 768
+ },
+ "base_settings": {
+  "sampler": "euler_ancestral",
+  "steps": 28,
+  "cfg": 5.0,
+  "width": 832,
+  "height": 1216,
+  "doc": "Animagine XL 4.0 model card: Euler a, 28 steps, CFG 5, 832x1216 (default for candidates and finals; about 25-40 min per image on the 4-vCPU runners)"
+ },
+ "family": "animagine",
+ "prompt": "1girl, solo, adult, mature female, makeup, lipstick, eyeliner, long eyelashes, full body, standing, contrapposto, looking at viewer, curvy, large breasts, wide hips, pink hair, long hair, side braid, aqua eyes, seductive smile, head wreath, halo, white wings, strapless dress, corset, cleavage, short dress, white thighhighs, garter straps, high heels, lyre, holding instrument, leaning forward, white and gold theme, simple background, grey background, official art, detailed shading, rim lighting, masterpiece, high score, great score, absurdres, sensitive",
+ "negative": "worst quality, low quality, low score, bad score, average score, nsfw, explicit, (blue archive:1.3), (loli:1.3), (child:1.3), (aged down:1.2), (teenage:1.2), (petite:1.2), (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (downblouse:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2), (pantyshot:1.25), (upskirt:1.25), lowres, blurry, jpeg artifacts, bad anatomy, bad hands, missing fingers, extra digits, fewer digits, extra arms, error, cropped, feet out of frame, head out of frame, wings out of frame, upper body, cowboy shot, multiple views, scenery, light particles, sparkle, embers, aura, light rays, smoke, speed lines, nude, areolae, pussy, anus, penis, sex, spread legs, see-through, shota, underage, young, school uniform, text, watermark, signature, username, chibi, 3d, realistic, 1boy, multiple girls, topless, flat chest, pussy peek",
+ "model": {
+  "repo": "cagliostrolab/animagine-xl-4.0",
+  "license": "CreativeML Open RAIL++-M (commercial use allowed; use restrictions in Attachment A)"
+ },
+ "lora": null,
+ "steps": [
+  {
+   "step": "base",
+   "from": "runs/38859902166-candidates-round1-v3/liora/liora_s103000.webp",
+   "sha256": "65319cdce4bbd0400382592cef07ad80510e486d45cdb66a01c02d33a04e7333"
+  },
+  {
+   "step": "hires_img2img",
+   "seed": 103001,
+   "what": "hires img2img 1248x1824 @0.40",
+   "sample_s": 3810.5,
+   "steps_run": 20,
+   "num_inference_steps": 50,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 190.52,
+   "step_s": [
+    253.87,
+    185.64,
+    186.44,
+    186.19,
+    186.96,
+    188.12,
+    187.46,
+    188.01,
+    187.95,
+    185.77,
+    186.88,
+    185.96,
+    186.52,
+    188.91,
+    187.05,
+    188.11,
+    185.81,
+    185.94,
+    189.8,
+    189.09
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 11.88,
+    "vmrss_gb": 10.5,
+    "memavail_gb": 4.4
+   },
+   "encode": "untiled",
+   "memavail_before_encode_gb": 11.06658935546875,
+   "mem_encode": {
+    "vmhwm_gb": 9.14,
+    "vmrss_gb": 3.71,
+    "memavail_gb": 11.09
+   },
+   "steps_effective": 20,
+   "strength": 0.4,
+   "size": [
+    1248,
+    1824
+   ],
+   "decode": "untiled",
+   "memavail_before_decode_gb": 7.366371154785156,
+   "decode_s": 123.3,
+   "seconds": 4033.2,
+   "mem_stage": {
+    "vmhwm_gb": 13.09,
+    "vmrss_gb": 7.67,
+    "memavail_gb": 7.2
+   },
+   "vmhwm_gb": 13.09,
+   "rss_peak_gb": 13.09
+  },
+  {
+   "step": "face_polish",
+   "what": "inpaint 1024x1024 @0.35",
+   "sample_s": 1347.9,
+   "steps_run": 16,
+   "num_inference_steps": 46,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 84.25,
+   "step_s": [
+    145.55,
+    80.85,
+    81.07,
+    79.54,
+    79.22,
+    79.54,
+    80.0,
+    80.34,
+    80.06,
+    80.8,
+    81.63,
+    80.02,
+    80.29,
+    79.79,
+    79.7,
+    79.52
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 13.28,
+    "vmrss_gb": 11.13,
+    "memavail_gb": 3.63
+   },
+   "steps_effective": 16,
+   "strength": 0.35,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 3.6318931579589844,
+   "decode_s": 55.2,
+   "seconds": 1419.0,
+   "mem_stage": {
+    "vmhwm_gb": 13.95,
+    "vmrss_gb": 10.21,
+    "memavail_gb": 4.55
+   },
+   "vmhwm_gb": 13.95,
+   "rss_peak_gb": 13.95,
+   "crop": [
+    361,
+    197,
+    324,
+    324
+   ],
+   "denoise": 0.35,
+   "seed": 103007,
+   "px": 1024
+  },
+  {
+   "step": "cutout",
+   "method": "isnet + holes + shadow",
+   "seconds": 12.8,
+   "detail": {
+    "method": "isnet + holes + shadow",
+    "flood": {
+     "bg_rgb": [
+      177.0,
+      180.0,
+      185.0
+     ],
+     "hole_px": 39498,
+     "holes_kept_as_figure": []
+    },
+    "hole_px": 0,
+    "haze_px": 54374,
+    "half_sure_px": 2552,
+    "firmed_px": 817649,
+    "pocket_px": 0,
+    "pockets_kept_as_figure": 0,
+    "shadow_px": 161,
+    "shadow_left_px": 24186,
+    "dips_filled_px": 1422,
+    "figure_px": 934508,
+    "bg_rgb": [
+     177.0,
+     180.0,
+     185.0
+    ]
+   }
+  },
+  {
+   "step": "variant_eyes_closed",
+   "what": "inpaint 768x768 @0.62",
+   "sample_s": 619.6,
+   "steps_run": 14,
+   "num_inference_steps": 23,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 44.25,
+   "step_s": [
+    67.99,
+    42.65,
+    42.58,
+    42.65,
+    42.57,
+    42.6,
+    42.61,
+    42.13,
+    42.18,
+    42.32,
+    42.2,
+    42.49,
+    42.35,
+    42.26
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 13.62,
+    "vmrss_gb": 12.26,
+    "memavail_gb": 2.55
+   },
+   "steps_effective": 14,
+   "strength": 0.62,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 2.5507278442382812,
+   "decode_s": 27.4,
+   "seconds": 647.0,
+   "mem_stage": {
+    "vmhwm_gb": 14.34,
+    "vmrss_gb": 12.14,
+    "memavail_gb": 2.63
+   },
+   "vmhwm_gb": 14.34,
+   "rss_peak_gb": 14.34,
+   "crop": [
+    450,
+    672,
+    281,
+    281
+   ],
+   "denoise": 0.62,
+   "seed": 103500,
+   "px": 768
+  },
+  {
+   "step": "variant_mouth_open",
+   "what": "inpaint 768x768 @0.58",
+   "sample_s": 623.5,
+   "steps_run": 14,
+   "num_inference_steps": 25,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 44.54,
+   "step_s": [
+    68.31,
+    42.3,
+    42.34,
+    42.7,
+    42.66,
+    42.76,
+    42.62,
+    42.58,
+    42.94,
+    42.7,
+    43.07,
+    43.18,
+    42.74,
+    42.58
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 13.55,
+    "vmrss_gb": 12.26,
+    "memavail_gb": 2.53
+   },
+   "steps_effective": 14,
+   "strength": 0.58,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 2.5295333862304688,
+   "decode_s": 27.6,
+   "seconds": 651.1,
+   "mem_stage": {
+    "vmhwm_gb": 14.34,
+    "vmrss_gb": 12.23,
+    "memavail_gb": 2.56
+   },
+   "vmhwm_gb": 14.34,
+   "rss_peak_gb": 14.34,
+   "crop": [
+    450,
+    672,
+    281,
+    281
+   ],
+   "denoise": 0.58,
+   "seed": 103500,
+   "px": 768
+  },
+  {
+   "step": "variant_smile",
+   "what": "inpaint 768x768 @0.60",
+   "sample_s": 623.2,
+   "steps_run": 14,
+   "num_inference_steps": 24,
+   "cfg": 5.0,
+   "sampler": "EulerAncestralDiscreteScheduler",
+   "s_per_step": 44.51,
+   "step_s": [
+    68.19,
+    42.72,
+    42.58,
+    42.62,
+    42.75,
+    42.7,
+    42.53,
+    42.5,
+    42.81,
+    42.98,
+    42.68,
+    42.69,
+    42.84,
+    42.57
+   ],
+   "overhead_s": 0.0,
+   "dtype": "fp32",
+   "threads": 4,
+   "mem_sample": {
+    "vmhwm_gb": 13.64,
+    "vmrss_gb": 12.25,
+    "memavail_gb": 2.56
+   },
+   "steps_effective": 14,
+   "strength": 0.6,
+   "decode": "untiled",
+   "memavail_before_decode_gb": 2.557048797607422,
+   "decode_s": 27.5,
+   "seconds": 650.7,
+   "mem_stage": {
+    "vmhwm_gb": 14.33,
+    "vmrss_gb": 12.22,
+    "memavail_gb": 2.56
+   },
+   "vmhwm_gb": 14.33,
+   "rss_peak_gb": 14.33,
+   "crop": [
+    450,
+    672,
+    281,
+    281
+   ],
+   "denoise": 0.6,
+   "seed": 103500,
+   "px": 768
+  }
+ ],
+ "errors": [],
+ "skipped": [],
+ "outputs": [
+  "liora_hires.webp",
+  "liora_source.webp",
+  "liora.png",
+  "masks/eyes.png",
+  "variants/eyes_closed.png",
+  "masks/mouth.png",
+  "variants/mouth_open.png",
+  "variants/mouth_open_patch.png",
+  "masks/eyes_mouth.png",
+  "variants/smile.png"
+ ],
+ "run": "38881543229-final-round1-v3",
+ "created": "2026-10-16T09:39:41Z",
+ "updated": "2026-10-16T12:42:21Z",
+ "image": "liora.png",
+ "canvas": [
+  1024,
+  2048
+ ],
+ "origin": [
+  512,
+  1990
+ ],
+ "transform": {
+  "scale": 0.821549,
+  "offset": [
+   -5,
+   518
+  ],
+  "canvas": [
+   1024,
+   2048
+  ],
+  "feet_y": 1990,
+  "figure_h": 1432.0,
+  "notes": [
+   "figure too wide for the canvas: scaled down to fit the width",
+   "shifted left to fit"
+  ],
+  "crown_y": 685.5
+ },
+ "cutout": {
+  "method": "source_alpha"
+ },
+ "face_box": [
+  517,
+  742,
+  148,
+  141
+ ],
+ "face_box_source": "anime face detector 0.87",
+ "face_box_src_pixels": [
+  635,
+  273,
+  180,
+  172
+ ],
+ "flipped": true,
+ "head_px_estimate": 207,
+ "portrait_rect": [
+  391,
+  620,
+  400,
+  400
+ ],
+ "warp_src_hints": {
+  "_doc": "Suggested values for assets/art/heroes/<id>/<id>.warp_src.json (HaloRig warp rig).",
+  "origin": [
+   512,
+   1990
+  ],
+  "portrait": [
+   591,
+   820,
+   400
+  ]
+ },
+ "spec": {
+  "ok": false,
+  "problems": [
+   "figure too wide for the canvas: scaled down to fit the width"
+  ],
+  "margins": {
+   "left": 23,
+   "right": 24,
+   "top": 557,
+   "bottom": 56
+  },
+  "feet_row": 1991,
+  "crown_y": 685.5
+ },
+ "bg_measured": [
+  177,
+  180,
+  185
+ ],
+ "cutout_detail": {
+  "method": "isnet + holes + shadow",
+  "flood": {
+   "bg_rgb": [
+    177.0,
+    180.0,
+    185.0
+   ],
+   "hole_px": 39498,
+   "holes_kept_as_figure": []
+  },
+  "hole_px": 0,
+  "haze_px": 54374,
+  "half_sure_px": 2552,
+  "firmed_px": 817649,
+  "pocket_px": 0,
+  "pockets_kept_as_figure": 0,
+  "shadow_px": 161,
+  "shadow_left_px": 24186,
+  "dips_filled_px": 1422,
+  "figure_px": 934508,
+  "bg_rgb": [
+   177.0,
+   180.0,
+   185.0
+  ]
+ },
+ "repairs": {
+  "liora.png": {
+   "original": {
+    "scores": {
+     "nudenet": {
+      "FEMALE_BREAST_EXPOSED": 0.0933,
+      "FEMALE_GENITALIA_EXPOSED": 0.0115,
+      "MALE_GENITALIA_EXPOSED": 0.0126,
+      "ANUS_EXPOSED": 0.0011,
+      "BUTTOCKS_EXPOSED": 0.108
+     },
+     "anime_censor": {
+      "nipple_f": 0.0136,
+      "penis": 0.3313,
+      "pussy": 0.316
+     }
+    },
+    "flagged": [
+     {
+      "detector": "anime_censor",
+      "class": "penis",
+      "score": 0.3313,
+      "view": "t512_256_1536"
+     },
+     {
+      "detector": "anime_censor",
+      "class": "pussy",
+      "score": 0.316,
+      "view": "t512_256_1280"
+     }
+    ]
+   },
+   "settings": {
+    "denoise": 0.6,
+    "steps": 14,
+    "px": 768,
+    "pad": 0.25,
+    "context": 2.0,
+    "box_conf_frac": 0.5,
+    "near_frac": 0.8
+   },
+   "attempts": [
+    {
+     "attempt": 1,
+     "classes": {
+      "anime_censor": [
+       "penis",
+       "pussy"
+      ]
+     },
+     "boxes": [
+      {
+       "detector": "anime_censor",
+       "class": "penis",
+       "score": 0.3313,
+       "view": "t512_256_1536",
+       "box": [
+        559.0,
+        1920.9,
+        583.8,
+        1954.5
+       ]
+      },
+      {
+       "detector": "anime_censor",
+       "class": "penis",
+       "score": 0.3309,
+       "view": "full",
+       "box": [
+        358.4,
+        1211.8,
+        441.0,
+        1314.7
+       ]
+      },
+      {
+       "detector": "anime_censor",
+       "class": "pussy",
+       "score": 0.316,
+       "view": "t512_256_1280",
+       "box": [
+        367.9,
+        1280.0,
+        440.4,
+        1318.3
+       ]
+      },
+      {
+       "detector": "anime_censor",
+       "class": "pussy",
+       "score": 0.2897,
+       "view": "t512_0_1280",
+       "box": [
+        367.6,
+        1280.0,
+        440.1,
+        1317.7
+       ]
+      },
+      {
+       "detector": "anime_censor",
+       "class": "pussy",
+       "score": 0.1786,
+       "view": "t512_0_512",
+       "box": [
+        442.7,
+        971.4,
+        461.4,
+        984.8
+       ]
+      }
+     ],
+     "regions": [
+      [
+       428,
+       954,
+       476,
+       1002
+      ],
+      [
+       337,
+       1186,
+       462,
+       1340
+      ],
+      [
+       547,
+       1912,
+       595,
+       1963
+      ]
+     ],
+     "area_frac": 0.0114,
+     "crops": [
+      [
+       292,
+       818,
+       612,
+       1138
+      ],
+      [
+       240,
+       1103,
+       560,
+       1423
+      ],
+      [
+       411,
+       1728,
+       731,
+       2048
+      ]
+     ],
+     "seeds": [
+      103700,
+      103701,
+      103702
+     ],
+     "inpaints": [
+      {
+       "seconds": 712.0,
+       "s_per_step": 48.83,
+       "steps_run": 14,
+       "steps_effective": 14,
+       "num_inference_steps": 24,
+       "vmhwm_gb": 13.79,
+       "crop": [
+        292,
+        818,
+        320,
+        320
+       ],
+       "px": 768
+      },
+      {
+       "seconds": 681.4,
+       "s_per_step": 46.72,
+       "steps_run": 14,
+       "steps_effective": 14,
+       "num_inference_steps": 24,
+       "vmhwm_gb": 13.79,
+       "crop": [
+        240,
+        1103,
+        320,
+        320
+       ],
+       "px": 768
+      },
+      {
+       "seconds": 684.8,
+       "s_per_step": 46.97,
+       "steps_run": 14,
+       "steps_effective": 14,
+       "num_inference_steps": 24,
+       "vmhwm_gb": 13.79,
+       "crop": [
+        411,
+        1728,
+        320,
+        320
+       ],
+       "px": 768
+      }
+     ],
+     "seconds": 2078.5,
+     "recut": {
+      "box": [
+       0,
+       533,
+       1024,
+       2016
+      ],
+      "alpha_cleared_px": 75,
+      "alpha_added_px": 11
+     },
+     "after": {
+      "scores": {
+       "nudenet": {
+        "FEMALE_BREAST_EXPOSED": 0.078,
+        "FEMALE_GENITALIA_EXPOSED": 0.01,
+        "MALE_GENITALIA_EXPOSED": 0.0127,
+        "ANUS_EXPOSED": 0.0013,
+        "BUTTOCKS_EXPOSED": 0.036
+       },
+       "anime_censor": {
+        "nipple_f": 0.0182,
+        "penis": 0.208,
+        "pussy": 0.3081
+       }
+      },
+      "flagged": [
+       {
+        "detector": "anime_censor",
+        "class": "pussy",
+        "score": 0.3081,
+        "view": "t512_0_1280"
+       }
+      ]
+     }
+    },
+    {
+     "attempt": 2,
+     "classes": {
+      "anime_censor": [
+       "pussy",
+       "penis"
+      ]
+     },
+     "boxes": [
+      {
+       "detector": "anime_censor",
+       "class": "pussy",
+       "score": 0.3081,
+       "view": "t512_0_1280",
+       "box": [
+        370.3,
+        1280.0,
+        436.7,
+        1309.8
+       ]
+      },
+      {
+       "detector": "anime_censor",
+       "class": "pussy",
+       "score": 0.2692,
+       "view": "t512_256_1280",
+       "box": [
+        370.3,
+        1280.0,
+        436.7,
+        1310.1
+       ]
+      },
+      {
+       "detector": "anime_censor",
+       "class": "pussy",
+       "score": 0.2612,
+       "view": "t512_0_512",
+       "box": [
+        450.8,
+        961.2,
+        475.3,
+        975.9
+       ]
+      },
+      {
+       "detector": "anime_censor",
+       "class": "penis",
+       "score": 0.208,
+       "view": "full",
+       "box": [
+        361.4,
+        1262.1,
+        439.4,
+        1326.8
+       ]
+      },
+      {
+       "detector": "anime_censor",
+       "class": "pussy",
+       "score": 0.1378,
+       "view": "full",
+       "box": [
+        360.5,
+        1259.1,
+        391.5,
+        1296.3
+       ]
+      }
+     ],
+     "regions": [
+      [
+       439,
+       944,
+       487,
+       993
+      ],
+      [
+       341,
+       1245,
+       459,
+       1343
+      ]
+     ],
+     "area_frac": 0.0066,
+     "crops": [
+      [
+       303,
+       808,
+       623,
+       1128
+      ],
+      [
+       240,
+       1134,
+       560,
+       1454
+      ]
+     ],
+     "seeds": [
+      103710,
+      103711
+     ],
+     "inpaints": [
+      {
+       "seconds": 678.9,
+       "s_per_step": 46.5,
+       "steps_run": 14,
+       "steps_effective": 14,
+       "num_inference_steps": 24,
+       "vmhwm_gb": 14.36,
+       "crop": [
+        303,
+        808,
+        320,
+        320
+       ],
+       "px": 768
+      },
+      {
+       "seconds": 683.9,
+       "s_per_step": 46.9,
+       "steps_run": 14,
+       "steps_effective": 14,
+       "num_inference_steps": 24,
+       "vmhwm_gb": 14.34,
+       "crop": [
+        240,
+        1134,
+        320,
+        320
+       ],
+       "px": 768
+      }
+     ],
+     "seconds": 1363.1,
+     "recut": {
+      "box": [
+       0,
+       533,
+       1024,
+       2016
+      ],
+      "alpha_cleared_px": 0,
+      "alpha_added_px": 0
+     },
+     "after": {
+      "scores": {
+       "nudenet": {
+        "FEMALE_BREAST_EXPOSED": 0.0657,
+        "FEMALE_GENITALIA_EXPOSED": 0.0232,
+        "MALE_GENITALIA_EXPOSED": 0.015,
+        "ANUS_EXPOSED": 0.0009,
+        "BUTTOCKS_EXPOSED": 0.0729
+       },
+       "anime_censor": {
+        "nipple_f": 0.0202,
+        "penis": 0.1902,
+        "pussy": 0.2379
+       }
+      },
+      "flagged": []
+     }
+    }
+   ],
+   "result": "published after 2 repair pass(es)"
+  }
+ },
+ "dropped": [
+  "liora_portrait.png",
+  "liora_check.webp",
+  "liora_boxes.webp",
+  "variants/eyes_closed_patch.png",
+  "variants/smile_patch.png",
+  "variants_sheet.webp"
+ ]
+}
