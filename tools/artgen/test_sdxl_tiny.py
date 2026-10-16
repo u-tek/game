@@ -8,7 +8,8 @@ Skipped when torch/diffusers are not installed (the offline suite is test_artgen
 
 Checks: txt2img, the lazy UNet, hires (VAE encode with the UNet released -> latent img2img ->
 release -> untiled decode), inpaint, the effective-steps count, the CFG guard, the negative-embeds
-guard, fp32 everywhere, bf16 refused for img2img/inpaint, and the bench path.
+guard, fp32 everywhere, bf16 refused for img2img/inpaint, the bench path, and the cover repair
+(gen.publish_screened) through a real crop inpaint.
 """
 import os
 import shutil
@@ -133,6 +134,62 @@ class TestTinyEngine(unittest.TestCase):
         with self.assertRaises(ValueError):
             e16.inpaint(emb(), img, Image.new("L", (64, 64), 255), 0.5, 1, 2, 5.0, "euler_ancestral")
         e16.close()
+
+    def test_6_cover_repair_through_the_engine(self):
+        """gen.publish_screened with the real engine: the flagged square is repainted through a crop
+        inpaint, the repaired file passes the (fake, box-capable) filter and is the one published."""
+        import types
+
+        import numpy as np
+        from PIL import Image, ImageDraw
+
+        import gen
+        import safety
+
+        class RedBox:
+            name, classes, threshold = "redbox", ["EXPOSED"], 0.25
+
+            @staticmethod
+            def _red(img):
+                a = np.asarray(img.convert("RGB")).astype(np.int16)
+                return (a[..., 0] > 240) & (a[..., 1] < 15) & (a[..., 2] < 15)
+
+            def class_max(self, img):
+                return {"EXPOSED": float(min(1.0, self._red(img).mean() * 100))}
+
+            def class_boxes(self, img, classes, conf):
+                ys, xs = np.nonzero(self._red(img))
+                if not len(ys):
+                    return []
+                return [(float(xs.min()), float(ys.min()), float(xs.max() + 1), float(ys.max() + 1), "EXPOSED", 0.9)]
+
+        d = tempfile.mkdtemp()
+        saved = dict(C.REPAIR)
+        try:
+            C.REPAIR.update(px=128, steps=2, crop_min=96)
+            pub = safety.Publisher(safety.ExposureFilter([RedBox()], log=lambda *a: None), os.path.join(d, "out"),
+                                   log=lambda *a: None)
+            img = Image.new("RGB", (256, 384), (120, 120, 130))
+            ImageDraw.Draw(img).rectangle([100, 150, 140, 190], fill=(255, 0, 0))
+            tmp = gen.save_tmp(os.path.join(d, "work"), img, "x.webp", **gen.WEBP_KW)
+            a = types.SimpleNamespace(no_repair=False, deadline=gen.Deadline(600))
+            job = {"images": []}
+            dest, out, rec, rep = gen.publish_screened(a, pub, self.eng, emb(), img, tmp, "h/x.webp", 11, gen._Est(), job)
+            self.assertIsNotNone(dest, rec)
+            self.assertTrue(rec["result"].startswith("published after"))
+            self.assertEqual(job["images"][0]["steps_run"], 2)            # effective steps
+            pub_img = Image.open(dest).convert("RGB")
+            self.assertEqual(RedBox._red(pub_img).sum(), 0)
+            a0 = np.asarray(img).astype(np.int16)
+            a1 = np.asarray(pub_img).astype(np.int16)
+            far = np.ones(a0.shape[:2], bool)
+            far[100:260, 80:170] = False                                 # crop of the padded box + feather
+            self.assertLess(np.abs(a1 - a0)[far].max(), 12)               # untouched outside (WebP noise only)
+            self.assertEqual(safety.verify(os.path.join(d, "out"), log=lambda *a: None)["deleted"], 0)
+        finally:
+            C.REPAIR.clear()
+            C.REPAIR.update(saved)
+            shutil.rmtree(d, ignore_errors=True)
 
 
 if __name__ == "__main__":

@@ -34,6 +34,7 @@ import plan  # noqa: E402
 import post  # noqa: E402
 import prompts  # noqa: E402
 import publish  # noqa: E402
+import repair  # noqa: E402
 import safety  # noqa: E402
 import schedule  # noqa: E402
 import sdxl_chunks  # noqa: E402
@@ -68,6 +69,34 @@ def fake_filter(log=QUIET):
     return safety.ExposureFilter([red_square_scorer(), FakeScorer("second")], log=log)
 
 
+def red_bbox(img):
+    a = np.asarray(safety.flatten(img)).astype(np.int16)
+    ys, xs = np.nonzero((a[..., 0] > 240) & (a[..., 1] < 15) & (a[..., 2] < 15))
+    return None if not len(ys) else (int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1)
+
+
+def red_box_scorer(threshold=0.25, stuck=None):
+    """red_square_scorer that can also localise (class_boxes), like the real detectors. stuck=(w, h):
+    always flags, with one fixed box seen only in the full view of a w x h image (a repair never helps)."""
+    base = red_square_scorer(threshold)
+    if stuck:          # flags anything with content (the self-test's flat grey image still passes)
+        base.fn = lambda img: {"EXPOSED": 0.9 if np.asarray(img.convert("L")).std() > 1 else 0.0}
+
+    def class_boxes(img, classes, conf):
+        if stuck:
+            return [(300.0, 500.0, 420.0, 620.0, "EXPOSED", 0.9)] if img.size == tuple(stuck) else []
+        bb = red_bbox(img)
+        sc = base.fn(img)["EXPOSED"]
+        return [] if bb is None or sc < conf else [bb + ("EXPOSED", sc)]
+    base.name = "redbox"
+    base.class_boxes = class_boxes
+    return base
+
+
+def box_filter(stuck=None):
+    return lambda: safety.ExposureFilter([red_box_scorer(stuck=stuck), FakeScorer("second")], log=QUIET)
+
+
 class FakeEncoders:
     def encode_pair(self, pos, neg):
         return {"prompt_embeds": None, "pooled_prompt_embeds": None, "negative_prompt_embeds": None,
@@ -80,8 +109,9 @@ class FakeEncoders:
 class FakeEngine:
     load_s = 0.0
 
-    def __init__(self, hero, poison_seed=None, fail_text=None):
+    def __init__(self, hero, poison_seed=None, fail_text=None, poison_hires=False):
         self.hero, self.calls, self.poison_seed, self.fail_text = hero, [], poison_seed, fail_text
+        self.poison_hires = poison_hires
         self.info = {"dtype": "fp32", "bf16_native": False}
         self.threads = 4
         self.kw = []
@@ -107,11 +137,15 @@ class FakeEngine:
     def hires(self, emb, image, size, strength, seed, steps, cfg, sampler):
         self._check(cfg, emb)
         self.calls.append(("hires", seed, steps, cfg, sampler, tuple(size), strength))
-        return image.convert("RGB").resize(tuple(size), Image.LANCZOS), self._info("hires", steps)
+        out = image.convert("RGB").resize(tuple(size), Image.LANCZOS)
+        if self.poison_hires:
+            ImageDraw.Draw(out).rectangle([560, 700, 640, 780], fill=(255, 0, 0))
+        return out, self._info("hires", steps)
 
     def inpaint(self, emb, image, mask, strength, seed, steps, cfg, sampler):
         self._check(cfg, emb)
         self.calls.append(("inpaint", seed, steps, cfg, sampler, image.size, strength))
+        self.inpaint_texts = getattr(self, "inpaint_texts", []) + [emb.get("pos")]
         if self.fail_text and self.fail_text in emb["pos"]:
             raise RuntimeError("forced inpaint failure")
         out = image.copy()
@@ -163,8 +197,8 @@ class FakeFaces:
         return [int(x0), int(y0), int(x1 - x0), int(min(y1 - y0, 1.1 * (x1 - x0)))], "fake detector"
 
 
-def components(hero, poison_seed=None, fail_text=None, fetch=None, faces=True):
-    eng = FakeEngine(hero, poison_seed, fail_text)
+def components(hero, poison_seed=None, fail_text=None, fetch=None, faces=True, poison_hires=False):
+    eng = FakeEngine(hero, poison_seed, fail_text, poison_hires)
 
     def engine(**kw):
         eng.kw.append(kw)
@@ -364,6 +398,64 @@ class TestPrompts(unittest.TestCase):
         self.assertEqual(slate, expect)
         self.assertNotIn("lucen", slate)
 
+    def test_farm_exposure_hardening(self):
+        st = C.STYLES["farm"]
+        for hid, h in BIBLE["heroes"].items():
+            hard = prompts.split_tags(st["harden_negative"][h["gender"]])
+            for r in [style.full_body(BIBLE, hid, "farm"), style.face(BIBLE, hid, "farm")] + [
+                    style.face(BIBLE, hid, "farm", variant=v) for v in h["variant_set"]]:
+                gen.checked(BIBLE, hid, r["positive"], r["negative"])
+                self.assertEqual(prompts.split_tags(r["negative"])[:len(hard)], hard, hid)   # at the FRONT
+                nw = prompts.tag_weights(r["negative"])
+                for t in hard:
+                    self.assertEqual(nw[prompts.norm_tag(t)], prompts.tag_weights(t)[prompts.norm_tag(t)], (hid, t))
+                self.assertIn("sensitive", prompts.tag_weights(r["positive"]), hid)
+            pos = prompts.tag_weights(style.full_body(BIBLE, hid, "farm")["positive"])
+            self.assertNotIn("huge breasts", pos, hid)
+            for t in ("center opening", "opening to the navel", "open to the navel", "navel opening"):
+                self.assertNotIn(t, pos, hid)
+            if "huge breasts" in prompts.tag_weights(h["body"]):
+                self.assertIn("large breasts", pos, hid)
+            if h["gender"] == "male":
+                self.assertNotIn("topless", prompts.tag_weights(style.full_body(BIBLE, hid, "farm")["negative"]), hid)
+        # the swap on a hero that has the wording (the outfit lane owns the bible; test on a copy)
+        b = json.loads(json.dumps(BIBLE))
+        b["heroes"]["seraphiel"]["outfit"] = "white leotard, center opening, detached sleeves"
+        b["heroes"]["seraphiel"]["body"] = "curvy, (huge breasts:1.1), wide hips"
+        r = style.full_body(b, "seraphiel", "farm")
+        tw = prompts.tag_weights(r["positive"])
+        self.assertIn("plunging neckline", tw)
+        self.assertIn("gold filigree panels", tw)
+        self.assertIn("large breasts", tw)
+        self.assertNotIn("center opening", tw)
+        self.assertNotIn("huge breasts", tw)
+        self.assertEqual(b["heroes"]["seraphiel"]["outfit"], "white leotard, center opening, detached sleeves")
+        # final mode re-hardens a recorded (older) candidate prompt the same way
+        old = "1girl, solo, adult, mature female, huge breasts, center opening, masterpiece"
+        new = prompts.tag_weights(style.harden_positive(BIBLE, "seraphiel", "farm", old))
+        self.assertIn("large breasts", new)
+        self.assertIn("sensitive", new)
+        self.assertNotIn("center opening", new)
+        self.assertEqual(style.harden_positive(BIBLE, "seraphiel", "bible", old), old)
+
+    def test_cover_prompts(self):
+        drop = C.REPAIR["drop_outfit_terms"]
+        for hid, h in BIBLE["heroes"].items():
+            for sty in ("farm", "bible"):
+                c = style.cover(BIBLE, hid, sty)
+                gen.checked(BIBLE, hid, c["positive"], c["negative"])
+                tw = prompts.tag_weights(c["positive"])
+                self.assertIn("glossy fabric", c["material"])
+                for t in prompts.split_tags(c["material"]):
+                    self.assertIn(prompts.norm_tag(t), tw, (hid, t))
+                for t in tw:
+                    self.assertFalse(any(d in t for d in drop), (hid, sty, t))       # no exposure-prone outfit tags
+                hard = prompts.split_tags(C.STYLES["farm"]["harden_negative"][h["gender"]])
+                self.assertEqual(prompts.split_tags(c["negative"])[:len(hard)], hard, (hid, sty))
+                self.assertLessEqual(prompts.clip_stats(c["negative"])["chunks"], 3, hid)
+        self.assertEqual(style.cover(BIBLE, "seraphiel", "farm")["material"],
+                         "white glossy fabric, gold filigree panels, clothed")
+
     def test_floating_weapon(self):
         for hid, h in BIBLE["heroes"].items():
             floats = [t for t in prompts.split_tags(h["weapon"] + ", " + h["accessories"])
@@ -477,6 +569,30 @@ class TestFilter(unittest.TestCase):
         ok, rep = fake_filter().check_image(im)
         self.assertFalse(ok)
         self.assertTrue(rep["flagged"][0]["view"].startswith("t"))
+
+    def test_flag_boxes_in_image_pixels(self):
+        im = Image.new("RGB", (832, 1216), (128, 128, 128))
+        ImageDraw.Draw(im).rectangle([600, 900, 639, 939], fill=(255, 0, 0))
+        f = safety.ExposureFilter([red_box_scorer(), FakeScorer("second")], log=QUIET)
+        ok, rep = f.check_image(im)
+        self.assertFalse(ok)
+        classes = f.cover_classes(rep, C.REPAIR["near_frac"])
+        self.assertEqual(classes, {"redbox": ["EXPOSED"]})
+        boxes = f.flag_boxes(im, classes, C.REPAIR["box_conf_frac"])
+        self.assertTrue(boxes)
+        for b in boxes:                                    # every view maps back onto the square (tiles may cut it)
+            x0, y0, x1, y1 = b["box"]
+            self.assertTrue(600 <= x0 < x1 <= 640 and 900 <= y0 < y1 <= 940, b)
+        self.assertIn([600, 900, 640, 940], [b["box"] for b in boxes if b["view"] == "full"])
+        self.assertTrue(any(b["view"].startswith("t") and b["box"] == [600, 900, 640, 940] for b in boxes))
+        with self.assertRaises(RuntimeError):              # a detector that cannot localise: no repair
+            fake_filter().flag_boxes(im, {"redsq": ["EXPOSED"]}, 0.5)
+
+    def test_near_classes_are_covered_too(self):
+        f = safety.ExposureFilter([FakeScorer("a", ["X", "Y", "Z"])], log=QUIET)
+        rep = {"flagged": [{"detector": "a", "class": "X", "score": 0.3}],
+               "scores": {"a": {"X": 0.3, "Y": 0.21, "Z": 0.05}}}
+        self.assertEqual(f.cover_classes(rep, 0.8), {"a": ["X", "Y"]})
 
     def test_detector_error_drops(self):
         def boom(img):
@@ -615,6 +731,37 @@ class TestFilter(unittest.TestCase):
 
 
 # ------------------------------------------------------------------ render modes
+class TestRepairPlan(unittest.TestCase):
+    def test_pad_merge_and_crop(self):
+        pl = repair.plan([{"box": [300, 500, 400, 600]}, {"box": [390, 505, 480, 600]}], (832, 1216))
+        self.assertTrue(pl["ok"], pl["why"])
+        self.assertEqual(len(pl["regions"]), 1)                       # two breasts -> one padded region
+        x0, y0, x1, y1 = pl["regions"][0]
+        self.assertLessEqual((x0, y0), (300 - 25, 500 - 25))         # 25% of the box on every side
+        self.assertGreaterEqual((x1, y1), (480 + 22, 600 + 25))
+        self.assertEqual(len(pl["clusters"]), 1)
+        cx0, cy0, cx1, cy1 = pl["clusters"][0]["crop"]
+        self.assertEqual(cx1 - cx0, cy1 - cy0)                         # square
+        self.assertTrue(cx0 <= x0 and cy0 <= y0 and cx1 >= x1 and cy1 >= y1)
+        self.assertGreaterEqual(cx1 - cx0, C.REPAIR["crop_min"])
+        m = repair.mask((832, 1216), pl["regions"])
+        self.assertEqual(m.getbbox(), tuple(pl["regions"][0]))
+
+    def test_tiny_box_grows_and_far_regions_split(self):
+        pl = repair.plan([[100, 100, 104, 104], [700, 1100, 704, 1104]], (832, 1216))
+        self.assertTrue(pl["ok"])
+        for r in pl["regions"]:
+            self.assertGreaterEqual(min(r[2] - r[0], r[3] - r[1]), C.REPAIR["min_side"] - 1)
+        self.assertEqual(len(pl["clusters"]), 2)                       # too far apart for one crop
+
+    def test_refuses_what_is_not_a_local_slip(self):
+        self.assertFalse(repair.plan([], (832, 1216))["ok"])
+        many = [[i * 150, 10, i * 150 + 20, 30] for i in range(5)]
+        self.assertIn("separate regions", repair.plan(many, (832, 1216))["why"])
+        big = [[0, 0, 600, 600]]
+        self.assertIn("of the image", repair.plan(big, (832, 1216))["why"])
+
+
 class TestModes(unittest.TestCase):
     def setUp(self):
         self.d = tempfile.mkdtemp()
@@ -649,6 +796,96 @@ class TestModes(unittest.TestCase):
         job = json.load(open(os.path.join(out, "seraphiel", "job_k.json")))
         self.assertEqual(job["exit_code"], 0)
         self.assertNotIn("loras", job["licenses"])
+
+    def test_candidate_cover_repair(self):
+        eng, comps = components("seraphiel", poison_seed=101001)
+        comps["filter"] = box_filter()
+        rc, out = self.run_gen(["candidates", "--hero", "seraphiel", "--seeds", "101000,101001"], comps)
+        self.assertEqual(rc, 0)
+        R = C.REPAIR
+        inp = [c for c in eng.calls if c[0] == "inpaint"]
+        self.assertEqual(len(inp), 1)                                   # one crop, one pass
+        self.assertEqual(inp[0][1:7], (101001 + R["seed_offset"], R["steps"], 5.0, "euler_ancestral", (R["px"], R["px"]),
+                                       R["denoise"]))
+        self.assertIn("glossy fabric", eng.inpaint_texts[0])
+        d = os.path.join(out, "seraphiel")
+        im = Image.open(os.path.join(d, "seraphiel_s101001.webp")).convert("RGB")
+        self.assertIsNone(red_bbox(im))                                  # the published file is the repaired one
+        a = np.asarray(im).astype(np.int16)
+        self.assertLess(np.abs(a[540:580, 340:380] - [60, 200, 255]).max(), 40)    # fake cover paint inside the box
+        meta = json.load(open(os.path.join(d, "seraphiel_s101001.json")))
+        self.assertFalse(meta["dropped"])
+        self.assertTrue(meta["repair"]["result"].startswith("published after 1"))
+        att = meta["repair"]["attempts"][0]
+        self.assertEqual(att["boxes"][0]["box"], [300, 500, 421, 621])
+        self.assertTrue(meta["repair"]["original"]["flagged"])
+        self.assertIn("glossy fabric", meta["cover_prompt"]["positive"])
+        man = json.load(open(os.path.join(out, safety.MANIFEST)))
+        self.assertEqual(man["dropped"], [])
+        self.assertEqual(man["files"]["seraphiel/seraphiel_s101001.webp"]["repair"]["passes"], 1)
+        self.assertEqual(man["stats"]["repaired"], 1)
+        self.assertNotIn("repair", man["files"]["seraphiel/seraphiel_s101000.webp"])
+        self.assertIsNone(json.load(open(os.path.join(d, "seraphiel_s101000.json")))["repair"])
+        self.assertEqual(safety.verify(out, log=QUIET)["deleted"], 0)
+        for p in images_in(out):                                         # the unrepaired original is nowhere
+            self.assertIsNone(red_bbox(Image.open(os.path.join(out, p))), p)
+
+    def test_candidate_repair_that_does_not_help_drops(self):
+        eng, comps = components("seraphiel")
+        comps["filter"] = box_filter(stuck=(832, 1216))
+        rc, out = self.run_gen(["candidates", "--hero", "seraphiel", "--seeds", "101000"], comps)
+        self.assertEqual(rc, 0)
+        self.assertEqual(len([c for c in eng.calls if c[0] == "inpaint"]), C.REPAIR["attempts"])
+        self.assertEqual(images_in(out), [])
+        meta = json.load(open(os.path.join(out, "seraphiel", "seraphiel_s101000.json")))
+        self.assertTrue(meta["dropped"])
+        self.assertEqual(len(meta["repair"]["attempts"]), C.REPAIR["attempts"])
+        self.assertTrue(meta["repair"]["result"].startswith("dropped: still flagged"))
+        self.assertEqual([c["seeds"][0] for c in meta["repair"]["attempts"]],
+                         [101000 + C.REPAIR["seed_offset"] + 10 * k for k in range(C.REPAIR["attempts"])])
+        man = json.load(open(os.path.join(out, safety.MANIFEST)))
+        self.assertEqual(len(man["dropped"]), 1)
+        self.assertEqual(man["dropped"][0]["report"]["repair"]["result"], meta["repair"]["result"])
+        self.assertEqual(man["files"], {})
+
+    def test_no_repair_and_bf16_drop_at_once(self):
+        for extra in (["--no-repair"], ["--dtype", "bf16"]):
+            eng, comps = components("seraphiel", poison_seed=101000)
+            comps["filter"] = box_filter()
+            rc, out = self.run_gen(["candidates", "--hero", "seraphiel", "--seeds", "101000"] + extra, comps,
+                                   out_name="o" + extra[-1])
+            self.assertEqual(rc, 0)
+            self.assertEqual([c[0] for c in eng.calls], ["txt2img"], extra)
+            meta = json.load(open(os.path.join(out, "seraphiel", "seraphiel_s101000.json")))
+            self.assertTrue(meta["dropped"])
+            self.assertIn("repair off", meta["repair"]["result"])
+            self.assertEqual(images_in(out), [])
+
+    def test_final_hires_cover_repair(self):
+        eng, comps = components("seraphiel", poison_hires=True)
+        comps["filter"] = box_filter()
+        rc, out = self.run_gen(self.final_args("--no-variants"), comps)
+        self.assertEqual(rc, 0)
+        kinds = [c[0] for c in eng.calls]
+        self.assertEqual(kinds, ["hires", "inpaint", "inpaint"])        # hires, cover repair, face polish
+        self.assertEqual(eng.calls[1][1], 101000 + C.REPAIR["seed_offset"])
+        fd = os.path.join(out, "seraphiel", "final_s101000")
+        for p in ("seraphiel_hires.webp", "seraphiel_source.webp", "seraphiel.png"):
+            self.assertIsNone(red_bbox(Image.open(os.path.join(fd, p))), p)
+        meta = json.load(open(os.path.join(fd, "seraphiel.json")))
+        self.assertIn("seraphiel_hires.webp", meta["repairs"])
+        self.assertEqual(meta["status"], "done")
+
+    def test_final_hires_dropped_stops_the_seed(self):
+        eng, comps = components("seraphiel", poison_hires=True)
+        comps["filter"] = box_filter(stuck=(1248, 1824))
+        rc, out = self.run_gen(self.final_args(), comps)
+        self.assertEqual(rc, 5)
+        self.assertEqual([c[0] for c in eng.calls], ["hires"] + ["inpaint"] * C.REPAIR["attempts"])
+        fd = os.path.join(out, "seraphiel", "final_s101000")
+        self.assertEqual(images_in(fd), [])
+        meta = json.load(open(os.path.join(fd, "seraphiel.json")))
+        self.assertEqual(meta["status"], "hires dropped")
 
     def test_draft_opt_in_and_bible_style(self):
         eng, comps = components("seraphiel")

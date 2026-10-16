@@ -15,6 +15,10 @@ artifact) or committed (art-gen-output branch). The repo is public, so this FAIL
   scores and reason are logged (drop counts in the manifest and the job log);
 - verify() runs again right before the upload: any image in the upload dir without a matching
   pass record (path + sha256) is deleted, and so is any file that is not .png/.webp/.json;
+- localisation for the cover repair (gen.publish_screened): flag_boxes() returns, in image pixels, the
+  boxes of the classes to cover from every view (same views as the check, anchors at >= half the class
+  threshold, NMS per class); a scorer that cannot localise makes the repair impossible (the image is
+  dropped as before). The repaired image goes through the full check again; thresholds never change;
 - the self-test also runs a sensitivity canary (positive control, config.FILTER["canary"]): an
   already-public, filter-passed borderline candidate on the art-gen-output branch (loaded at run
   time: env ARTGEN_CANARY_FILE, else `git show origin/art-gen-output:<path>`, else the raw URL;
@@ -72,7 +76,12 @@ def flatten(img, grey=128):
 def views(img):
     """[(name, RGB image)]: the whole image + square tiles (side = short edge, then half of it),
     overlapping by half a tile, covering the whole image."""
-    out = [("full", img)]
+    return [(n, v) for n, v, _xy in views_xy(img)]
+
+
+def views_xy(img):
+    """views() with each view's offset: [(name, RGB image, (x, y))]."""
+    out = [("full", img, (0, 0))]
     w, h = img.size
     short = min(w, h)
     for frac in (1.0, 0.5):
@@ -88,7 +97,44 @@ def views(img):
             ys.append(h - side)
         for y in ys:
             for x in xs:
-                out.append(("t%d_%d_%d" % (side, x, y), img.crop((x, y, x + side, y + side))))
+                out.append(("t%d_%d_%d" % (side, x, y), img.crop((x, y, x + side, y + side)), (x, y)))
+    return out
+
+
+def nms(boxes, scores, iou=0.5):
+    """Indices kept by greedy non-maximum suppression (boxes: [n, 4] x0, y0, x1, y1)."""
+    b = np.asarray(boxes, dtype=np.float64).reshape(-1, 4)
+    order = np.asarray(scores, dtype=np.float64).argsort()[::-1]
+    area = (b[:, 2] - b[:, 0]) * (b[:, 3] - b[:, 1])
+    keep = []
+    while order.size:
+        i = order[0]
+        keep.append(int(i))
+        xx0 = np.maximum(b[i, 0], b[order[1:], 0])
+        yy0 = np.maximum(b[i, 1], b[order[1:], 1])
+        xx1 = np.minimum(b[i, 2], b[order[1:], 2])
+        yy1 = np.minimum(b[i, 3], b[order[1:], 3])
+        inter = np.clip(xx1 - xx0, 0, None) * np.clip(yy1 - yy0, 0, None)
+        ov = inter / (area[i] + area[order[1:]] - inter + 1e-6)
+        order = order[1:][ov <= iou]
+    return keep
+
+
+def _class_boxes(cxcywh, scores, labels, classes, conf, fx, fy, w, h):
+    """[(x0, y0, x1, y1, class, score)] per class from raw anchors (centre boxes in model input px)."""
+    out = []
+    cx, cy, bw, bh = cxcywh
+    for c in classes:
+        sc = scores[labels.index(c)]
+        keep = np.nonzero(sc >= conf)[0]
+        if not keep.size:
+            continue
+        b = np.stack([(cx[keep] - bw[keep] / 2) * fx, (cy[keep] - bh[keep] / 2) * fy,
+                      (cx[keep] + bw[keep] / 2) * fx, (cy[keep] + bh[keep] / 2) * fy], 1)
+        b[:, [0, 2]] = np.clip(b[:, [0, 2]], 0, w)
+        b[:, [1, 3]] = np.clip(b[:, [1, 3]], 0, h)
+        for i in nms(b, sc[keep]):
+            out.append((float(b[i, 0]), float(b[i, 1]), float(b[i, 2]), float(b[i, 3]), c, float(sc[keep][i])))
     return out
 
 
@@ -116,6 +162,17 @@ class NudeNetScorer:
         rows = np.transpose(np.squeeze(out[0]))          # [anchors, 4 + classes]
         scores = rows[:, 4:].max(axis=0)
         return {lab: float(scores[i]) for i, lab in enumerate(self.labels)}
+
+    def class_boxes(self, img, classes, conf):
+        """Boxes in `img` pixels. NudeNet pads the image to a square at the bottom/right and resizes it to
+        its input size, so model px x (long side / input size) = image px (as nudenet._postprocess)."""
+        rgb = img.convert("RGB")
+        bgr = np.ascontiguousarray(np.asarray(rgb)[..., ::-1])
+        blob = self._nn._read_image(bgr, self._det.input_width)[0]
+        out = self._det.onnx_session.run(None, {self._det.input_name: blob})
+        rows = np.squeeze(out[0])                         # [4 + classes, anchors]
+        f = max(rgb.size) / float(self._det.input_width)
+        return _class_boxes(rows[:4], rows[4:], self.labels, classes, conf, f, f, rgb.width, rgb.height)
 
 
 class YoloOnnx:
@@ -150,6 +207,12 @@ class YoloOnnx:
         scores = self.raw(img)[4:].max(axis=1)
         return {lab: float(scores[i]) for i, lab in enumerate(self.labels)}
 
+    def class_boxes(self, img, classes, conf):
+        """Boxes of the given classes in `img` pixels (input is stretched, so x and y scale separately)."""
+        out = self.raw(img)
+        return _class_boxes(out[:4], out[4:], self.labels, classes, conf, img.width / self.size[0],
+                            img.height / self.size[1], img.width, img.height)
+
     def boxes(self, img, conf=0.3, iou=0.5):
         """[(x0, y0, x1, y1, label, score)] in image pixels, after NMS."""
         out = self.raw(img)
@@ -163,20 +226,8 @@ class YoloOnnx:
         s = best[keep]
         fx, fy = img.width / self.size[0], img.height / self.size[1]
         b = np.stack([(cx - bw / 2) * fx, (cy - bh / 2) * fy, (cx + bw / 2) * fx, (cy + bh / 2) * fy], 1)
-        order = s.argsort()[::-1]
-        res = []
-        while order.size:
-            i = order[0]
-            res.append((float(b[i, 0]), float(b[i, 1]), float(b[i, 2]), float(b[i, 3]), self.labels[cls[i]], float(s[i])))
-            xx0 = np.maximum(b[i, 0], b[order[1:], 0])
-            yy0 = np.maximum(b[i, 1], b[order[1:], 1])
-            xx1 = np.minimum(b[i, 2], b[order[1:], 2])
-            yy1 = np.minimum(b[i, 3], b[order[1:], 3])
-            inter = np.clip(xx1 - xx0, 0, None) * np.clip(yy1 - yy0, 0, None)
-            area = (b[:, 2] - b[:, 0]) * (b[:, 3] - b[:, 1])
-            ov = inter / (area[i] + area[order[1:]] - inter + 1e-6)
-            order = order[1:][ov <= iou]
-        return res
+        return [(float(b[i, 0]), float(b[i, 1]), float(b[i, 2]), float(b[i, 3]), self.labels[cls[i]], float(s[i]))
+                for i in nms(b, s, iou)]
 
 
 class AnimeCensorScorer:
@@ -194,6 +245,9 @@ class AnimeCensorScorer:
 
     def class_max(self, img):
         return self._yolo.class_max(img)
+
+    def class_boxes(self, img, classes, conf):
+        return self._yolo.class_boxes(img, classes, conf)
 
 
 def load_default_scorers(nudenet_threshold=None, anime_threshold=None, cache_dir=None):
@@ -286,7 +340,7 @@ class ExposureFilter:
             if not (0.0 < s.threshold <= C.FILTER["max_threshold"]):
                 raise FilterUnavailable("%s threshold %.2f outside (0, %.2f]" % (s.name, s.threshold,
                                                                                 C.FILTER["max_threshold"]))
-        self.stats = {"checked": 0, "passed": 0, "dropped": 0, "errors": 0}
+        self.stats = {"checked": 0, "passed": 0, "dropped": 0, "errors": 0, "repaired": 0}
 
     def describe(self):
         return {s.name: {"threshold": s.threshold, "classes": s.classes} for s in self.scorers}
@@ -312,6 +366,39 @@ class ExposureFilter:
                 if v >= s.threshold:
                     report["flagged"].append({"detector": s.name, "class": c, "score": round(v, 4), "view": where[c]})
         return (not report["flagged"]), report
+
+    def cover_classes(self, report, near_frac):
+        """{detector: [classes]} to cover after a flagged check: every flagged class plus the classes
+        scoring >= near_frac x their threshold (they would flag after a small change)."""
+        want = {}
+        for f in report.get("flagged") or []:
+            want.setdefault(f["detector"], []).append(f["class"])
+        for s in self.scorers:
+            for c, v in ((report.get("scores") or {}).get(s.name) or {}).items():
+                if v >= near_frac * s.threshold and c not in want.get(s.name, []):
+                    want.setdefault(s.name, []).append(c)
+        return want
+
+    def flag_boxes(self, img, classes, frac):
+        """[{detector, class, score, view, box: [x0, y0, x1, y1]}] in `img` pixels for the given
+        {detector: [classes]}: anchors scoring >= frac x the class threshold in every view of the check.
+        Raises when a needed detector cannot localise (no class_boxes)."""
+        rgb = flatten(img)
+        found = []
+        for s in self.scorers:
+            want = [c for c in classes.get(s.name, []) if c in s.classes]
+            if not want:
+                continue
+            if not hasattr(s, "class_boxes"):
+                raise RuntimeError("%s cannot localise its detections" % s.name)
+            conf = max(0.05, frac * s.threshold)
+            for vname, v, (ox, oy) in views_xy(rgb):
+                for x0, y0, x1, y1, c, sc in s.class_boxes(v, want, conf):
+                    if not all(np.isfinite([x0, y0, x1, y1, sc])):
+                        raise RuntimeError("%s returned a non-finite box" % s.name)
+                    found.append({"detector": s.name, "class": c, "score": round(float(sc), 4), "view": vname,
+                                  "box": [round(x0 + ox, 1), round(y0 + oy, 1), round(x1 + ox, 1), round(y1 + oy, 1)]})
+        return found
 
     def check_file(self, path):
         """(ok, report); never raises: any error is a drop (fail closed)."""
@@ -406,6 +493,7 @@ class Publisher:
         os.makedirs(out_dir, exist_ok=True)
         self.manifest = {"job": job or {}, "filter": filt.describe(), "files": {}, "dropped": [],
                          "created": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+        self.last_report = None
         self._save()
 
     def _dest(self, rel):
@@ -421,28 +509,46 @@ class Publisher:
             json.dump(self.manifest, f, indent=1)
         os.replace(tmp, os.path.join(self.out, MANIFEST))
 
-    def publish(self, src, rel):
+    def publish(self, src, rel, defer_drop=False, extra=None):
         """Check `src` (a finished file in a work dir); on pass move it to out/rel, else delete it.
-        Returns the destination path or None."""
+        Returns the destination path or None; the check's report is in self.last_report. defer_drop: a
+        failed check is not recorded yet (the caller repairs the image, then publishes the repaired file
+        or calls record_drop). `extra` is merged into the pass record (e.g. the repair summary)."""
         rel, dest = self._dest(rel)
         if not rel.lower().endswith(C.UPLOAD_IMAGE_EXTS):
             os.remove(src)
             raise ValueError("only %s images are published, not %r" % (C.UPLOAD_IMAGE_EXTS, rel))
         ok, rep = self.filt.check_file(src)
+        self.last_report = rep
         if not ok:
             try:
                 os.remove(src)
             finally:
-                self.manifest["dropped"].append({"rel": rel, "report": rep})
+                if not defer_drop:
+                    self.manifest["dropped"].append({"rel": rel, "report": rep})
                 self._save()
-            self.log("FILTER DROPPED %s: %s" % (rel, json.dumps(rep.get("flagged") or rep.get("error"))))
+            self.log("FILTER %s %s: %s" % ("FLAGGED" if defer_drop else "DROPPED", rel,
+                                           json.dumps(rep.get("flagged") or rep.get("error"))))
             return None
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         shutil.move(src, dest)
-        self.manifest["files"][rel] = {"sha256": sha256_file(dest), "passed": True, "scores": rep["scores"],
-                                       "views": rep["views"]}
+        rec = {"sha256": sha256_file(dest), "passed": True, "scores": rep["scores"], "views": rep["views"]}
+        if extra:
+            rec.update({k: v for k, v in extra.items() if k not in rec})
+        self.manifest["files"][rel] = rec
         self._save()
         return dest
+
+    def count_repaired(self):
+        self.filt.stats["repaired"] = self.filt.stats.get("repaired", 0) + 1
+        self._save()
+
+    def record_drop(self, rel, report):
+        """Record a drop decided by the caller (after a deferred check and a failed repair)."""
+        rel, _dest = self._dest(rel)
+        self.manifest["dropped"].append({"rel": rel, "report": report})
+        self._save()
+        self.log("FILTER DROPPED %s: %s" % (rel, json.dumps(report.get("flagged") or report.get("error"))))
 
     def write_json(self, rel, obj):
         rel, dest = self._dest(rel)

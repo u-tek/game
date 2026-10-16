@@ -97,7 +97,9 @@ DEFAULT_DTYPE = "fp32"                 # bf16 only for candidates/bench, never i
 STYLES = {
     "farm": {
         "doc": "farm overlay: dark slate background behind light-palette heroes on grey, face/clarity tags, "
-               "3/4 view cue, floating weapons up-weighted, floor/shadow and flat-look negatives",
+               "3/4 view cue, floating weapons up-weighted, floor/shadow and flat-look negatives, exposure "
+               "hardening (weighted explicit negatives first, huge->large breasts, openings->plunging neckline "
+               "with filigree panels, rating tag sensitive)",
         "drop_tags": ["cel shading"],
         "style_extra": "game cg, shiny hair",
         "full_body_extra": "(dramatic lighting:0.8), (from side:0.5), (detailed face:1.1)",
@@ -107,10 +109,56 @@ STYLES = {
         "face_negative_extra": "flat color, low contrast, washed out, sketch",
         "background": {"key": "slate", "tags": "simple background, dark grey background", "rgb": [70, 72, 80],
                        "style_tags": "rim lighting", "when_background": "grey", "when_palette_has": "white"},
+        # Exposure hardening (lead, 2026-10-16, after run 38844272140 dropped both v3-outfit Seraphiel
+        # candidates: breast 0.38 / 0.48, nipple_f 0.44). Weighted explicit negatives at the FRONT of every
+        # farm negative (full body, face, variants, cover repair; join_tags keeps the first occurrence, so
+        # these weights win over the bible's unweighted copies); "topless" only for women (the men are
+        # shirtless by design). Tag swaps on the in-memory hero copy: the two tags that combine into slips.
+        # "{panels}" = "<gold|silver> filigree panels" (the metal of the hero's outfit/palette, default gold),
+        # the opaque-coverage cue.
+        "harden_negative": {
+            "female": "(nipples:1.5), (areolae:1.5), (nude:1.4), (topless:1.4), (nipple slip:1.4), (nsfw:1.3), "
+                      "(covered nipples:1.3)",
+            "male": "(nude:1.4), (penis:1.5), (nsfw:1.3), (bulge:1.3), (pubic hair:1.3)",
+        },
+        "rating_tag": "sensitive",
+        "replace_tags": {
+            "huge breasts": "large breasts",
+            "center opening": "plunging neckline, {panels}",
+            "opening to the navel": "plunging neckline, {panels}",
+            "open to the navel": "plunging neckline, {panels}",
+            "navel opening": "plunging neckline, {panels}",
+        },
     },
     "bible": {"doc": "the prompt bible exactly as written"},
 }
 DEFAULT_STYLE = "farm"
+
+# ------------------------------------------------------------------ cover repair (gen.publish_screened)
+# When the exposure filter flags an image, the flagged classes' detector boxes (plus classes at >= near_frac
+# of their threshold) are padded, merged and inpainted with the hero's opaque outfit material (style.cover:
+# hardened negative, exposure-prone outfit tags removed), then the FULL filter runs again on the new file.
+# Only a passing image is published; the unrepaired original never reaches the upload dir. The filter's
+# thresholds are never touched here.
+REPAIR = {
+    "attempts": 2,               # repair passes before the image is dropped as before
+    "denoise": 0.6,
+    "steps": 14,                 # effective steps (schedule.total_steps_for)
+    "px": 768,                   # each crop is inpainted at this size
+    "pad": 0.25,                 # every detector box grows by 25% of its size on each side
+    "min_side": 48,              # ... and to at least this many px (tiny nipple boxes)
+    "context": 2.0,              # crop side = cluster size x this (the model sees the surrounding outfit)
+    "crop_min": 320,
+    "cluster_max_frac": 0.75,    # regions share one crop while it stays within this x the short image side
+    "box_conf_frac": 0.5,        # boxes from anchors scoring >= this x the class threshold
+    "near_frac": 0.8,            # unflagged classes at >= this x their threshold are covered too
+    "max_regions": 4,            # more separate regions = not a local slip: drop instead
+    "max_area_frac": 0.2,        # masks covering more of the image = not a repair: drop instead
+    "feather": 3,
+    "seed_offset": 700,          # inpaint seed = seed + 700 + 10 x attempt + cluster (same seed family)
+    "drop_outfit_terms": ["cutout", "underboob", "sideboob", "opening", "unzipped", "cleavage", "revealing",
+                          "plunging", "no shirt", "topless", "backless", "open jacket", "open coat"],
+}
 
 # ------------------------------------------------------------------ final mode
 # Hires values come from the bible (families.animagine.settings.hires: scale 1.5, denoise_model 0.4,

@@ -58,7 +58,8 @@ A run folder holds `index.json` (jobs, CPU, exit codes, timings, per-stage memor
 statistics, missing jobs), `filter_manifest.json`, `overview.webp` and per hero
 `contact_sheet.webp` plus:
 - candidates: `<hero>_s<seed>.webp` (preview, WebP q95) + `<hero>_s<seed>.json` (prompt, negative,
-  style, seed, model, preset settings, dtype, render timing, framing flags, filter scores);
+  style, seed, model, preset settings, dtype, render timing, framing flags, filter scores, and
+  `repair` + `cover_prompt` when the image was published after a cover repair, section 3);
 - finals: `final_s<seed>/` with `<hero>_hires.webp` (after the hires pass), `<hero>_source.webp`
   (after the face polish, before the cutout), `<hero>.png` (1024x2048 RGBA canvas, soles at
   512,1990), `_portrait.png`, `_check.webp` (cutout over checker/magenta/dark), `_boxes.webp`,
@@ -112,7 +113,22 @@ candidate missing or invalid (nothing rendered).
     view cue); `cel shading` is dropped if a bible ever has it again;
   - weapon tags starting with `floating ` weighted 1.2, and `holding staff, holding weapon` in the
     negative for a floating weapon nothing holds (Seraphiel's sceptre was held across the body);
-  - negatives `shadow, floor, reflection, flat color, low contrast, washed out, sketch`.
+  - negatives `shadow, floor, reflection, flat color, low contrast, washed out, sketch`;
+  - **exposure hardening** (added after run 38844272140, where the exposure filter dropped both
+    v3-outfit Seraphiel candidates: NudeNet breast 0.38 and 0.48, anime `nipple_f` 0.44), for every
+    hero, on the in-memory copy only (`data/art_prompts.json` and the briefs are not edited):
+    - weighted explicit negatives at the **front** of every farm negative (full body, face polish,
+      variants, cover repair); `join_tags` keeps the first copy of a tag, so these weights replace
+      the bible's unweighted ones. Women: `(nipples:1.5), (areolae:1.5), (nude:1.4), (topless:1.4),
+      (nipple slip:1.4), (nsfw:1.3), (covered nipples:1.3)`. Men: `(nude:1.4), (penis:1.5),
+      (nsfw:1.3), (bulge:1.3), (pubic hair:1.3)` (no `topless`: the men are shirtless by design);
+    - the rating tag `sensitive` is added if a prompt lacks it (the bible's family already has it);
+    - tag swaps for the two tags that combine into slips: `huge breasts` -> `large breasts`;
+      `center opening` / `opening to the navel` / `open to the navel` / `navel opening` ->
+      `plunging neckline, gold filigree panels` (the metal of the hero's outfit or palette,
+      silver for silver heroes): the panels are the opaque-coverage cue;
+    - final mode applies the same swaps and negatives to the candidate prompt it reuses (farm
+      candidates only).
   Every composed text still goes through `gen.checked()` (`lint` + `enforce` against the real
   bible). `style=bible` renders the bible exactly. Positives stay at 2 CLIP chunks (144-146 of 150 tokens with
   the current bible; the tests allow 3 if an outfit rewrite grows them).
@@ -184,6 +200,26 @@ clearly an adult, never explicit.
   non-finite score drops the image; a detector that cannot load stops the job before rendering.
   Dropped images are deleted immediately; only their name, scores and reason are logged. Never
   loosen the threshold to save a render: render more candidates.
+- **Cover repair** (`gen.publish_screened`, `repair.py`, `config.REPAIR`; candidates and the
+  final's hires and source stages): when the filter flags an image, the boxes of the flagged
+  classes (plus any watched class at >= 80 % of its threshold) are taken from every view of the
+  check (`ExposureFilter.flag_boxes`: anchors at >= half the threshold, NMS per class, mapped back
+  to image pixels; NudeNet's padded-square input and the anime detector's stretched input are both
+  handled). Each box grows by 25 % of its size on every side (at least 48 px), overlapping boxes
+  merge, and only those rectangles are inpainted, in square crops of 2x their size (at least
+  320 px) at 768 px, denoise 0.6, **14 effective steps**, Euler a / CFG 5, seed = image seed + 700
+  + 10 x pass + crop, with `style.cover`: the hero's identity and outfit without its exposure-prone
+  tags (cutouts, openings, `cleavage`, `topless`...) plus the outfit's opaque material (`white
+  glossy fabric, gold filigree panels, clothed` for Seraphiel) and the hardened negative. The
+  repaired file then goes through the **full** filter again (same thresholds, every view); only a
+  passing file is published, with `repair` in its pass record and in the metadata (original
+  scores, every pass's boxes, regions, crops, seeds, timings and scores). At most 2 passes; more
+  than 4 separate regions, regions over 20 % of the image, a detector that cannot localise, a
+  filter error, the time budget or `--no-repair` / a bf16 run (inpaint is fp32 only) mean the image
+  is dropped as before. The unrepaired original is deleted by the filter in the work dir and never
+  reaches the upload dir. In final mode a hires or source image that is still flagged stops the
+  seed (exit 5): the canvas would be cut from it. Cost: about 10 min per crop on the runners (one
+  crop covers both breasts), at most 2 passes.
 - **Self-test** (every gen job, and the sheets job): a flat grey image must pass, a forced
   detector error must drop, and the **sensitivity canary** must pass with scores inside fixed
   bands (NudeNet FEMALE_BREAST_EXPOSED 0.10-0.25, anime detector max 0.02-0.25). The canary is the
@@ -272,7 +308,12 @@ mode, and this section is updated from them.
   UNet and VAE: txt2img (Euler a and DPM++ 2M Karras), the lazy UNet, the hires path (VAE encode
   with the UNet released, latent img2img, 5 effective steps = 13 scheduled, release, untiled
   decode), inpaint with a UNet reload, the CFG / negative-embeds / sampler / dtype guards, bench,
-  and bf16 txt2img with hires/inpaint refused. Run it with
+  bf16 txt2img with hires/inpaint refused, and a cover repair through a real crop inpaint
+  (`gen.publish_screened`: the flagged square is repainted, pixels outside the crop unchanged, the
+  repaired file is the one published).
+- Real NudeNet localisation (`NudeNetScorer.class_boxes`) on the canary image puts the
+  FEMALE_BREAST_EXPOSED boxes on the two breasts (0.2259 in the 832 px tile view, the same maximum
+  as the check), so the view offsets and NudeNet's padded-square scaling map correctly. Run it with
   `PYTHONPATH=<dir with torch+diffusers> python3 tools/artgen/test_sdxl_tiny.py` (skipped without
   torch).
 - CPU attention memory at the hires size: `F.scaled_dot_product_attention` uses the flash kernel

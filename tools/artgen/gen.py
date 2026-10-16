@@ -37,6 +37,14 @@ final: per chosen seed, starting from the PUBLISHED candidate preview (downloade
 bench: fp32 at 4 and 2 threads (then bf16 on CPUs with native bf16), a few txt2img steps without
     decoding: only job_<key>.json with s/step is written.
 
+Cover repair (publish_screened, config.REPAIR): when the exposure filter flags an image (a candidate,
+    the final's hires or source stage), the flagged classes' detector boxes are padded and merged, only
+    those regions are inpainted with the hero's opaque outfit material (style.cover, hardened negative;
+    denoise 0.6, 14 effective steps, same seed family), and the FULL filter runs again on the new file.
+    Only a passing image is published (at most 2 passes, else dropped as before); the unrepaired
+    original never reaches --out. The metadata records the boxes, regions, crops, seeds and scores.
+    fp32 only (the engine's inpaint refuses bf16); --no-repair turns it off.
+
 Exit codes: 0 ok, 2 bad arguments, 3 exposure filter unavailable, 4 prompt refused by the content
 rules, 5 a seed/stage failed (partial outputs), 6 final source candidate missing or invalid.
 """
@@ -65,6 +73,7 @@ import memstat  # noqa: E402
 import pipeline as P  # noqa: E402  tools/comfy: square_box, ellipse_mask, flat_rgb, skin_profile
 import post  # noqa: E402            tools/comfy: cutout edge treatment, placement, sheets
 import prompts  # noqa: E402         tools/comfy: prompt bible composer + content rules
+import repair  # noqa: E402
 import safety  # noqa: E402
 import schedule  # noqa: E402
 import style  # noqa: E402
@@ -419,6 +428,99 @@ def encode_all(comps, texts, job):
     return embs
 
 
+# ------------------------------------------------------------------ filter + cover repair
+WEBP_KW = {"format": "WEBP", "quality": 95, "method": 6}
+
+
+def publish_screened(a, pub, eng, cover_emb, img, tmp, rel, seed, est, job, save_kw=None):
+    """Publish `img` (already saved at `tmp`, in the work dir) through the exposure filter. When it is
+    flagged: cover-repair the flagged regions (config.REPAIR) and publish the repaired image only if it
+    passes the full filter again; else record the drop. The unrepaired original is deleted by the filter
+    and never reaches the upload dir.
+    Returns (dest or None, the published image or None, repair record or None, last filter report)."""
+    save_kw = save_kw or WEBP_KW
+    dest = pub.publish(tmp, rel, defer_drop=True)
+    first = pub.last_report or {}
+    if dest:
+        return dest, img, None, first
+    R = C.REPAIR
+    rec = {"original": {k: first[k] for k in ("scores", "flagged", "error") if k in first},
+           "settings": {k: R[k] for k in ("denoise", "steps", "px", "pad", "context", "box_conf_frac", "near_frac")},
+           "attempts": [], "result": None}
+
+    def give_up(why):
+        last = pub.last_report or first
+        rec["result"] = "dropped: " + why
+        pub.record_drop(rel, dict(last, repair=rec))
+        log("  cover repair of %s: %s -> dropped" % (rel, why))
+        return None, None, rec, last
+
+    if first.get("error") or not first.get("flagged"):
+        return give_up("filter error (no repair)")
+    if cover_emb is None:
+        return give_up("repair off (%s)" % ("--no-repair" if a.no_repair else "bf16 run: inpaint is fp32 only"))
+    fs = preset_settings(C.FINAL_PRESET)
+    cur, last = img.convert("RGB"), first
+    for k in range(R["attempts"]):
+        classes = pub.filt.cover_classes(last, R["near_frac"])
+        try:
+            boxes = pub.filt.flag_boxes(cur, classes, R["box_conf_frac"])
+        except Exception as e:      # noqa: BLE001  (cannot localise: drop as before)
+            return give_up("detector boxes unavailable: %s: %s" % (type(e).__name__, e))
+        pl = repair.plan(boxes, cur.size, R)
+        att = {"attempt": k + 1, "classes": classes, "boxes": sorted(boxes, key=lambda b: -b["score"])[:40],
+               "regions": pl["regions"], "area_frac": pl["area_frac"], "crops": [c["crop"] for c in pl["clusters"]],
+               "seeds": [], "inpaints": []}
+        rec["attempts"].append(att)
+        if not pl["ok"]:
+            return give_up(pl["why"])
+        need = len(pl["clusters"]) * est.seconds(R["px"], R["px"], R["steps"]) + 60
+        if not a.deadline.allows(need):
+            return give_up("time budget (%.0f min left, the repair needs about %.0f)" % (a.deadline.left() / 60,
+                                                                                        need / 60))
+        log("  cover repair of %s, pass %d: %s -> %d region(s) %s in %d crop(s)" % (
+            rel, k + 1, json.dumps(classes), len(pl["regions"]), pl["regions"], len(pl["clusters"])))
+        t0 = time.time()
+        try:
+            for ci, cl in enumerate(pl["clusters"]):
+                s = seed + R["seed_offset"] + 10 * k + ci
+                cur, info = crop_inpaint(eng, cover_emb, cur, tuple(cl["crop"]), repair.mask(cur.size, cl["regions"]),
+                                         R["denoise"], s, fs, R["steps"], R["px"], grow=4, feather=R["feather"])
+                est.learn(info, R["px"], R["px"])
+                att["seeds"].append(s)
+                att["inpaints"].append({k2: info.get(k2) for k2 in ("seconds", "s_per_step", "steps_run", "steps_effective",
+                                                                    "num_inference_steps", "vmhwm_gb", "crop", "px")})
+                job["images"].append(dict({k2: v for k2, v in info.items() if k2 != "step_s"}, seed=s,
+                                          step="cover_repair", rel=rel))
+        except Exception as e:      # noqa: BLE001
+            log("ERROR in the cover repair of %s: %s\n%s" % (rel, e, traceback.format_exc()))
+            return give_up("repair inpaint failed: %s: %s" % (type(e).__name__, e))
+        att["seconds"] = round(time.time() - t0, 1)
+        cur = cur.convert("RGB")
+        tmp2 = save_tmp(os.path.dirname(tmp), cur, os.path.basename(tmp), **save_kw)
+        summary = {"repair": {"passes": k + 1, "regions": pl["regions"], "classes": classes,
+                              "original_scores": first.get("scores")}}
+        dest = pub.publish(tmp2, rel, defer_drop=True, extra=summary)
+        last = pub.last_report or {}
+        att["after"] = {k2: last[k2] for k2 in ("scores", "flagged", "error") if k2 in last}
+        if dest:
+            pub.count_repaired()
+            rec["result"] = "published after %d repair pass(es)" % (k + 1)
+            log("  cover repair of %s: passed the full filter after pass %d (%.0f s)" % (rel, k + 1, att["seconds"]))
+            return dest, cur, rec, last
+        if last.get("error"):
+            return give_up("filter error on the repaired image")
+    return give_up("still flagged after %d repair pass(es)" % R["attempts"])
+
+
+def cover_text(a, bible, hero, sname):
+    """The cover-repair prompt pair (checked), or None when the repair is off for this run."""
+    if a.no_repair or a.dtype != "fp32":
+        return None
+    c = style.cover(bible, hero, sname)
+    return checked(bible, hero, c["positive"], c["negative"])
+
+
 # ------------------------------------------------------------------ candidates
 def run_candidates(a, bible, pub, comps, job):
     hero = a.hero
@@ -426,10 +528,16 @@ def run_candidates(a, bible, pub, comps, job):
     sty = style.full_body(bible, hero, a.style)
     pos, neg = checked(bible, hero, sty["positive"], sty["negative"])
     w, h = p["width"], p["height"]
-    emb = encode_all(comps, {"base": (pos, neg)}, job)["base"]
+    texts = {"base": (pos, neg)}
+    cover = cover_text(a, bible, hero, a.style)
+    if cover:
+        texts["cover"] = cover
+    embs = encode_all(comps, texts, job)
+    emb = embs["base"]
     eng = comps["engine"](dtype=a.dtype, lazy_unet=False)
     job["engine"] = dict(getattr(eng, "info", {}) or {})
     job["timing"]["engine_load_s"] = round(getattr(eng, "load_s", 0.0), 1)
+    est = _Est()
     rc = 0
     for seed in a.seeds:
         if not a.deadline.allows(job["timing"].get("last_image_s", 0) * 1.3 + 120):
@@ -446,24 +554,28 @@ def run_candidates(a, bible, pub, comps, job):
             continue
         job["timing"]["last_image_s"] = info["seconds"]
         job["images"].append(dict(info, seed=seed))
+        est.learn(info, w, h)
         try:
             _cut, rep = post.candidate_report(img, expected_bg=sty["bg_rgb"])
         except Exception as e:      # noqa: BLE001  (review aid only)
             rep = {"error": str(e)}
-        tmp = save_tmp(a.work, img, stem + ".webp", format="WEBP", quality=95, method=6)
+        tmp = save_tmp(a.work, img, stem + ".webp", **WEBP_KW)
         rel = "%s/%s.webp" % (hero, stem)
-        dest = pub.publish(tmp, rel)
+        dest, _pimg, rrec, frep = publish_screened(a, pub, eng, embs.get("cover"), img, tmp, rel, seed, est, job)
+        del img, _pimg
         meta = {"hero": hero, "mode": "candidates", "seed": seed, "image": os.path.basename(dest) if dest else None,
                 "dropped": dest is None, "width": w, "height": h, "preset": a.preset, "preset_settings": p,
                 "dtype": a.dtype, "family": C.FAMILY, "style": sty["style"], "prompt": pos, "negative": neg,
                 "prompt_chunks": emb.get("chunks"), "background": {"key": sty["background_key"], "rgb": sty["bg_rgb"]},
                 "model": {"repo": C.MODEL["repo"], "license": C.MODEL["license"]}, "lora": None,
                 "render": info, "framing": rep,
-                "filter": pub.manifest["files"].get(rel, {}).get("scores") if dest else pub.manifest["dropped"][-1]["report"],
+                "filter": frep.get("scores") if dest else frep,
+                "repair": rrec, "cover_prompt": {"positive": cover[0], "negative": cover[1]} if (rrec and cover) else None,
                 "run": job["run"], "created": stamp()}
         pub.write_json("%s/%s.json" % (hero, stem), meta)
-        log("candidate %s: %s in %.0f s (%s)" % (stem, "published" if dest else "DROPPED by the filter",
-                                                 info["seconds"], ",".join(rep.get("flags", [])) or "framing ok"))
+        log("candidate %s: %s in %.0f s (%s)" % (
+            stem, ("published after a cover repair" if rrec else "published") if dest else "DROPPED by the filter",
+            info["seconds"], ",".join(rep.get("flags", [])) or "framing ok"))
     return rc
 
 
@@ -510,9 +622,12 @@ def run_final(a, bible, pub, comps, job):
             return 6
         sname = src["style"] if src["style"] in C.STYLES else "bible"
         # the candidate's own positive (it describes this image) + its negative joined with today's
-        # (new model-card or content-rule negatives apply to the passes that are still to come)
-        pos, neg = checked(bible, hero, meta["prompt"],
-                           prompts.join_tags(meta["negative"], style.full_body(bible, hero, sname)["negative"]))
+        # (new model-card or content-rule negatives apply to the passes that are still to come); a farm
+        # candidate also gets today's exposure hardening (weighted negatives first, tag swaps)
+        pos = style.harden_positive(bible, hero, sname, meta["prompt"])
+        neg = style.harden_negative(bible, hero, sname, prompts.join_tags(
+            meta["negative"], style.full_body(bible, hero, sname)["negative"]))
+        pos, neg = checked(bible, hero, pos, neg)
         plans.append({"seed": seed, "pos": pos, "neg": neg, "style": sname, "base_settings": src["preset_settings"],
                       "w": preview.width, "h": preview.height, "preview": preview, "source": src})
         log("final %s s%d: source %s (sha256 %s, preset %s, style %s)" % (hero, seed, src["path"], src["sha256"][:12],
@@ -524,6 +639,9 @@ def run_final(a, bible, pub, comps, job):
         if "face:" + sname not in texts:
             f = style.face(bible, hero, sname)
             texts["face:" + sname] = checked(bible, hero, f["positive"], f["negative"])
+            cov = cover_text(a, bible, hero, sname)
+            if cov:
+                texts["cover:" + sname] = cov
             for n in names:
                 vp = style.face(bible, hero, sname, variant=n)
                 texts["v:%s:%s" % (sname, n)] = checked(bible, hero, vp["positive"], vp["negative"])
@@ -580,6 +698,20 @@ def _final_one(a, bible, pub, job, eng, embs, texts, i, p, fs, names, finder, cu
             meta.setdefault("dropped", []).append(name)
         return dest
 
+    def screened(name, image):
+        """Publish a stage image through the filter with the cover repair; the image to continue with
+        (the repaired one when a repair was needed) or None when it was dropped."""
+        tmp = save_tmp(wdir, image, name, **WEBP_KW)
+        dest, out, rrec, _rep = publish_screened(a, pub, eng, embs.get("cover:" + p["style"]), image, tmp,
+                                                 "%s/%s" % (rel, name), seed, est, job)
+        if rrec:
+            meta.setdefault("repairs", {})[name] = rrec
+        if dest:
+            meta["outputs"].append(name)
+            return out
+        meta.setdefault("dropped", []).append(name)
+        return None
+
     def stage_done(rec):
         steps.append(rec)
         job["images"].append(dict(rec, seed=seed))
@@ -615,7 +747,12 @@ def _final_one(a, bible, pub, job, eng, embs, texts, i, p, fs, names, finder, cu
     img = img.convert("RGB")
     est.learn(info, W2, H2)
     stage_done({"step": "hires_img2img", "seed": seed + 1, **info})
-    publish(save_tmp(wdir, img, "%s_hires.webp" % hero, format="WEBP", quality=95, method=6), "%s_hires.webp" % hero)
+    img = screened("%s_hires.webp" % hero, img)
+    if img is None:
+        log("  the hires image was dropped by the filter (after the cover repair): no face polish, no canvas")
+        meta["errors"].append("hires image dropped by the exposure filter")
+        save("hires dropped")
+        return 5
     save("hires")
 
     # 2. face box + face polish. Only a plausible detector box is used for inpainting: the skin
@@ -659,8 +796,12 @@ def _final_one(a, bible, pub, job, eng, embs, texts, i, p, fs, names, finder, cu
                                      fs["face_steps"], fs["face_px"])
             est.learn(info, fs["face_px"], fs["face_px"])
             stage_done({"step": "face_polish", **info})
-    src_tmp = save_tmp(wdir, img, "%s_source.webp" % hero, format="WEBP", quality=95, method=6)
-    publish(src_tmp, "%s_source.webp" % hero)
+    img = screened("%s_source.webp" % hero, img)
+    if img is None:
+        log("  the source image was dropped by the filter (after the cover repair): no canvas")
+        meta["errors"].append("source image dropped by the exposure filter")
+        save("source dropped")
+        return 5
     save("face")
 
     # 3. cutout + canvas
@@ -858,6 +999,7 @@ def build_args(argv):
     ap.add_argument("--variant-tries", type=int, default=1)
     ap.add_argument("--no-variants", action="store_true")
     ap.add_argument("--no-face-polish", action="store_true")
+    ap.add_argument("--no-repair", action="store_true", help="no cover repair: a flagged image is dropped at once")
     ap.add_argument("--bench-steps", type=int, default=3)
     a = ap.parse_args(argv)
     a.seeds = parse_seeds(a.seeds)
