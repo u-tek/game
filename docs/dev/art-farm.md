@@ -266,3 +266,22 @@ the same per step as DPM++. Filter outcomes so far: Lightning 2 of 3 dropped (br
 The final-mode numbers above are estimates until the first final smoke; each final's
 `<hero>.json` and `job_<key>.json` record the measured s/step, VmHWM per stage and the decode
 mode, and this section is updated from them.
+
+**Checked locally (torch 2.8.0, diffusers 0.35.2, no model download):**
+- `tools/artgen/test_sdxl_tiny.py` drives the real `sdxl.Engine` with a tiny random SDXL-shaped
+  UNet and VAE: txt2img (Euler a and DPM++ 2M Karras), the lazy UNet, the hires path (VAE encode
+  with the UNet released, latent img2img, 5 effective steps = 13 scheduled, release, untiled
+  decode), inpaint with a UNet reload, the CFG / negative-embeds / sampler / dtype guards, bench,
+  and bf16 txt2img with hires/inpaint refused. Run it with
+  `PYTHONPATH=<dir with torch+diffusers> python3 tools/artgen/test_sdxl_tiny.py` (skipped without
+  torch).
+- CPU attention memory at the hires size: `F.scaled_dot_product_attention` uses the flash kernel
+  on CPU in fp32 and never builds the attention matrix. The SDXL UNet's 8892-token attention
+  (1248x1824, 10 heads, CFG batch 2) peaked at +0.05 GB and the VAE's 35568-token mid-block
+  attention at +0.07 GB, where a materialized matrix would be 6.3 GB and 5.1 GB. The hires pass is
+  therefore bounded by weights (10.3 GB UNet) plus convolution activations, not by attention.
+- The final path end to end on the real published s101000 preview (real download and sha256
+  check, local isnet-anime, fake model): the canvas lands with the soles at 1990, but the figure
+  is too wide for 1024 px (wings plus the diagonal sceptre), so it is scaled to fit the width and
+  `spec` reports it; the skin heuristic face box landed inside the halo, hence the detector-only
+  rule above.
