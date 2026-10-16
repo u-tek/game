@@ -25,12 +25,13 @@ those would stay as grey patches. artgen_cutout() therefore combines:
              cooler than the backdrop) and 35-97% of its luminance (darker than the backdrop, so a
              white gown never matches), flood-filled from the background (seeds up to `seed_gap` px
              inside a hard-edged shadow);
-  then post.alpha_from_mask for the edge unmixing and despill.
+  then post.alpha_from_mask for the edge unmixing and despill, and fill_edge_dips for the 1 px holes
+  the unmixing makes between a dark outline and a light fill (a beaded edge).
 
 Without an isnet mask (rembg failed to load) the colour-flood cutout is the figure mask.
 """
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 
 import post
 
@@ -110,6 +111,28 @@ def ground_shadow(arr, bgc, figure, band=0.15, chroma_tol=0.04, lum_range=(0.35,
     return kept, info
 
 
+def fill_edge_dips(rgba, arr, figure, dist, band_px=2, min_dip=0.25, max_alpha=0.6, solid_dist=40.0):
+    """Line art next to the backdrop: the anti-aliased pixel between a dark outline and a light fill
+    can have the backdrop's colour, and the edge unmixing then makes it transparent, a 1 px hole inside
+    the outline; the outline beyond it is then cut off from the figure and dropped as a speck (run
+    38852819142's wings: a beaded edge, dark dots on a dark screen, grey dots on white). In the edge
+    band inside the figure mask: pixels clearly unlike the backdrop (> `solid_dist`) that ended up
+    transparent come back opaque, then every alpha dip below its 3x3 grey-level closing (by >=
+    `min_dip`, alpha < `max_alpha`) takes the closing's alpha; both keep the image's own colour.
+    Returns (RGBA Image, filled px)."""
+    out = np.asarray(rgba).copy()
+    band = figure & post.dilate(figure, band_px) & post.dilate(~figure, band_px)
+    lost = band & (out[..., 3] < 8) & (dist > solid_dist)
+    out[lost, 3] = 255
+    a = out[..., 3]
+    closed = np.asarray(Image.fromarray(a, "L").filter(ImageFilter.MaxFilter(3)).filter(ImageFilter.MinFilter(3)))
+    dip = band & (closed.astype(np.int32) - a >= int(255 * min_dip)) & (a < int(255 * max_alpha))
+    out[dip, 3] = closed[dip]
+    fix = lost | dip
+    out[fix, :3] = np.clip(arr[fix] + 0.5, 0, 255).astype(np.uint8)
+    return Image.fromarray(out, "RGBA"), int(fix.sum())
+
+
 def _pockets(arr, bgc, m, dist, hole_tol, max_hole_frac, tol, grad, r, m_max, lum_max):
     """Boolean mask of the background pockets (see the module docstring) and how many were too big."""
     none = np.zeros(m.shape, dtype=bool)
@@ -177,6 +200,31 @@ def artgen_cutout(img, isnet_mask=None, hole_tol=12.0, hole_min=24, max_hole_fra
         info.update(sinfo)
     mask = Image.fromarray(np.clip(m * 255 + 0.5, 0, 255).astype(np.uint8), "L")
     rgba, ainfo = post.alpha_from_mask(rgb, mask, band_px=band_px, feather=feather)
+    rgba, info["dips_filled_px"] = fill_edge_dips(rgba, arr, m > 0.5, np.linalg.norm(arr - bgc, axis=2), band_px,
+                                                  solid_dist=solid_dist)
     info["figure_px"] = ainfo["figure_px"]
     info["bg_rgb"] = [round(float(v), 1) for v in post.estimate_bg(arr)]
     return rgba, info
+
+
+def canvas_fit(rgba, warn=0.9):
+    """How big a cut-out figure (any size, e.g. post.candidate_report's half-size cutout) ends up on
+    the 1024x2048 canvas, before any render: post.place_on_canvas scales it to ~FIGURE_H tall unless
+    the width (with MARGIN on both sides) or the top margin forces it smaller. A figure whose wings,
+    weapon or train make it wider than about half its height lands small: every published 832x1216
+    Seraphiel candidate so far fits at 75-77 % (the s101000 final canvas: figure 1445 px, crown at
+    y=655, where the spec wants ~1900 px and 108). Returns {"fit": fraction of the full size,
+    "figure_px": expected canvas height, "aspect": bbox w/h, "limit": "width" | "top" | None,
+    "flag": "SMALL nn%" when fit < warn, else None}."""
+    m = post.figure_metrics(rgba)
+    x0, top, x1, feet = m["bbox"]
+    w, h = max(1, x1 - x0), max(1, feet - top)
+    full = post.FIGURE_H / h
+    by_w = (post.CANVAS[0] - 2 * post.MARGIN) / w
+    by_t = (post.FEET_Y - post.MARGIN) / h
+    s = min(full, by_w, by_t)
+    fit = s / full
+    limit = None if fit >= 0.999 else ("width" if by_w <= by_t else "top")
+    return {"fit": round(fit, 3), "figure_px": int(round(h * s)), "aspect": round(w / h, 3), "limit": limit,
+            "flag": ("SMALL %d%%" % round(100 * fit)) if fit < warn else None}
+

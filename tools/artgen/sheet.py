@@ -8,7 +8,8 @@
 
 RUN_DIR is runs/<run>/ on the art-gen-output branch (or a downloaded artifact): <hero>/<hero>_s<seed>.webp
 candidates with their .json metadata, and/or <hero>/final_s<seed>/ folders. Labels: seed, render time,
-preset, framing flags (CROP / EDGE / FILL / BG? from post.candidate_report). Sheets are WebP. In the workflow every sheet passes the
+preset, framing flags (CROP / EDGE / FILL / BG? from post.candidate_report, SMALL nn% from
+cutout.canvas_fit: the figure would fill only nn% of the canvas spec height). Sheets are WebP. In the workflow every sheet passes the
 exposure filter before it is committed (collect.py); locally nothing is filtered or uploaded.
 """
 import argparse
@@ -22,6 +23,7 @@ if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
 import config as C  # noqa: E402,F401  (sys.path for tools/comfy)
+import cutout  # noqa: E402
 import post  # noqa: E402
 from PIL import Image  # noqa: E402
 
@@ -36,6 +38,16 @@ def _read(p):
         return {}
 
 
+def fit_flag(path):
+    """cutout.canvas_fit's SMALL flag for a candidate image, or None (also on any error)."""
+    try:
+        with Image.open(path) as im:
+            cut, _rep = post.candidate_report(im.convert("RGB"))
+        return cutout.canvas_fit(cut)["flag"]
+    except Exception:       # noqa: BLE001  (review aid only)
+        return None
+
+
 def candidate_entries(hero_dir):
     out = []
     for fn in os.listdir(hero_dir):
@@ -43,7 +55,12 @@ def candidate_entries(hero_dir):
         if not m:
             continue
         meta = _read(os.path.join(hero_dir, fn[:-5] + ".json"))
-        flags = (meta.get("framing") or {}).get("flags") or []
+        framing = meta.get("framing") or {}
+        flags = list(framing.get("flags") or [])
+        if "canvas_fit" not in framing:     # older runs: measure it now (a half-size colour-flood cutout)
+            flag = fit_flag(os.path.join(hero_dir, fn))
+            if flag:
+                flags.append(flag)
         secs = (meta.get("render") or {}).get("seconds")
         label = "s%s" % m.group("seed")
         if secs:

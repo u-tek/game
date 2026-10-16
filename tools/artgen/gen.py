@@ -575,6 +575,9 @@ def run_candidates(a, bible, pub, comps, job):
         est.learn(info, w, h)
         try:
             _cut, rep = post.candidate_report(img, expected_bg=sty["bg_rgb"])
+            rep["canvas_fit"] = cutout.canvas_fit(_cut)
+            if rep["canvas_fit"]["flag"]:
+                rep["flags"].append(rep["canvas_fit"]["flag"])
         except Exception as e:      # noqa: BLE001  (review aid only)
             rep = {"error": str(e)}
         tmp = save_tmp(a.work, img, stem + ".webp", **WEBP_KW)
@@ -629,7 +632,7 @@ def run_final(a, bible, pub, comps, job):
             sty = style.full_body(bible, hero, a.style)
             pos, neg = checked(bible, hero, sty["positive"], sty["negative"])
             plans.append({"seed": seed, "pos": pos, "neg": neg, "style": a.style, "base_settings": p,
-                          "w": p["width"], "h": p["height"], "preview": None, "source": None})
+                          "w": p["width"], "h": p["height"], "preview": None, "source": None, "fit": None})
             continue
         try:
             meta, preview, src = comps["fetch"](a.repo, a.source_run, hero, seed)
@@ -646,8 +649,16 @@ def run_final(a, bible, pub, comps, job):
         neg = style.harden_negative(bible, hero, sname, prompts.join_tags(
             meta["negative"], style.full_body(bible, hero, sname)["negative"]))
         pos, neg = checked(bible, hero, pos, neg)
+        try:        # review aid: how big this composition lands on the canvas (spec ~1900 px figure)
+            fit = cutout.canvas_fit(post.candidate_report(preview)[0])
+        except Exception as e:      # noqa: BLE001
+            fit = {"error": str(e)}
+        if fit.get("flag"):
+            log("::warning::final %s s%d: the source figure is %.2f wide for its height; it will fill only "
+                "%d%% of the canvas spec height (about %d px instead of ~%d, limited by the %s)" % (
+                    hero, seed, fit["aspect"], round(100 * fit["fit"]), fit["figure_px"], post.FIGURE_H, fit["limit"]))
         plans.append({"seed": seed, "pos": pos, "neg": neg, "style": sname, "base_settings": src["preset_settings"],
-                      "w": preview.width, "h": preview.height, "preview": preview, "source": src})
+                      "w": preview.width, "h": preview.height, "preview": preview, "source": src, "fit": fit})
         log("final %s s%d: source %s (sha256 %s, preset %s, style %s)" % (hero, seed, src["path"], src["sha256"][:12],
                                                                           src["preset"], sname))
     texts = {}
@@ -696,6 +707,7 @@ def _final_one(a, bible, pub, job, eng, embs, texts, i, p, fs, names, finder, cu
     rel = "%s/%s" % (hero, tag)
     steps = []
     meta = {"hero": hero, "mode": "final", "seed": seed, "status": "started", "source_candidate": p["source"],
+            "source_fit": p.get("fit"),
             "style": style.record(p["style"]), "settings": fs, "base_settings": p["base_settings"],
             "family": C.FAMILY, "prompt": p["pos"], "negative": p["neg"],
             "model": {"repo": C.MODEL["repo"], "license": C.MODEL["license"]}, "lora": None,

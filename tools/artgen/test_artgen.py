@@ -599,6 +599,38 @@ class TestCutout(unittest.TestCase):
         self.assertGreater(a[600, 180], 245, "the legs stay")
         self.assertGreater(info["shadow_px"], 0)
 
+    def test_outline_has_no_beads(self):
+        """A white shape with a 1 px dark outline whose inner anti-aliased pixel has the backdrop's
+        colour (run 38852819142's wing edge): the outline stays continuous, no transparent pixel
+        between it and the fill."""
+        bg = (148, 156, 167)
+        im = Image.new("RGB", (300, 400), bg)
+        d = ImageDraw.Draw(im)
+        d.rectangle([100, 100, 200, 300], fill=(119, 122, 142))           # outline
+        d.rectangle([101, 101, 199, 299], fill=(154, 154, 172))           # AA pixel ~ backdrop colour
+        d.rectangle([102, 102, 198, 298], fill=(255, 255, 255))           # fill
+        m = Image.new("L", im.size, 0)
+        ImageDraw.Draw(m).rectangle([100, 100, 200, 300], fill=255)
+        rgba, info = cutout.artgen_cutout(im, m, shadow=False)
+        a = np.asarray(rgba)[..., 3]
+        self.assertGreater(a[200, 101], 150, "the pixel inside the outline must not be a hole")
+        self.assertGreater(info["dips_filled_px"], 0)
+        self.assertLess(a[200, 95], 10)                                    # the backdrop stays clear
+
+    def test_canvas_fit(self):
+        def fig(w, h):
+            im = Image.new("RGBA", (1000, 1300), (0, 0, 0, 0))
+            ImageDraw.Draw(im).rectangle([500 - w // 2, 1250 - h, 500 + w // 2, 1250], fill=(200, 180, 170, 255))
+            return im
+        narrow = cutout.canvas_fit(fig(240, 1200))
+        self.assertEqual((narrow["fit"], narrow["limit"], narrow["flag"]), (1.0, None, None))
+        self.assertEqual(narrow["figure_px"], post.FIGURE_H)
+        wide = cutout.canvas_fit(fig(820, 1200))        # s101000's 0.68: wings + diagonal sceptre
+        self.assertEqual(wide["limit"], "width")
+        self.assertAlmostEqual(wide["fit"], (1024 - 48) / 821 / (post.FIGURE_H / 1201), places=2)
+        self.assertTrue(wide["flag"].startswith("SMALL "), wide)
+        self.assertLess(wide["figure_px"], 1500)
+
     def test_white_gown_is_not_shadow(self):
         im = Image.new("RGB", (300, 500), (128, 128, 128))
         d = ImageDraw.Draw(im)
@@ -854,6 +886,7 @@ class TestModes(unittest.TestCase):
         self.assertIsNone(meta["lora"])
         self.assertEqual((meta["preset"], meta["style"]["name"], meta["dtype"]), ("standard", "farm", "fp32"))
         self.assertEqual((meta["width"], meta["height"]), (832, 1216))
+        self.assertIn("canvas_fit", meta["framing"])
         self.assertEqual(meta["background"]["key"], "slate")
         self.assertIn("adult", meta["prompt"])
         self.assertEqual([c[:6] for c in eng.calls],
@@ -1036,6 +1069,7 @@ class TestModes(unittest.TestCase):
         meta = json.load(open(os.path.join(fd, "seraphiel.json")))
         self.assertEqual(meta["origin"], [512, 1990])
         self.assertEqual(meta["status"], "done")
+        self.assertIn("fit", meta["source_fit"])                       # measured before the render
         self.assertEqual(meta["source_candidate"]["run"], "38832421932-candidates-bench-draft")
         self.assertIn("spec", meta)
         self.assertEqual(meta["spec"]["feet_row"], 1990)
