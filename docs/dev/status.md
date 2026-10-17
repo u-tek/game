@@ -27,9 +27,25 @@ every work block. Rules and conventions are in `CLAUDE.md`; this file is about w
   Seraphiel negatives `(see-through:1.3), (transparent:1.2)` against the sheer drape of s101002.
 - **Tools:** `roster.py candidates --seed-offset N` (a new round at seed_base + N beside the old
   seeds). test_pipeline 54 OK.
-- **Next:** a v4 candidate round for all 15 heroes at `--seed-offset 200` (6 seeds each, about
-  90 min), contact sheets to the owner per hero, picks, finals with the tiled repaint, variants,
-  1:1 review, install, rig.
+- **The v4 round was stopped by the owner** after 5 Uriela candidates (s104200-104204, sent):
+  "it does look a little bit better, but it's still not the polish I want", "they're still way
+  too clothed", and they had not approved a 90-minute run. New rule in `CLAUDE.md`: ask before
+  long GPU jobs and new defaults.
+- **License blocker (found 08:40 UTC):** NoobAI-XL's model card adds to the
+  fair-ai-public-license-1.0-sd: "We prohibit any form of commercialization, including but not
+  limited to monetization or commercial use of the model, derivative models, or model-generated
+  products." The game is commercial, so NoobAI renders (and merges built on NoobAI or that
+  license) should not ship. Nothing NoobAI-made is in `assets/`. Commercial-friendly options
+  checked: Animagine XL 4.0 / 4.0 Opt (openrail++, "Commercial use" permitted; the 15 shipped
+  heroes came from it), Z-Image Turbo (Apache-2.0, already on the PC as
+  `diffusion_models/z_image_turbo_bf16.safetensors`; not SDXL, so the pipeline would need new
+  graph builders), Illustrious XL v2.0 (its page lists creativeml-openrail-m; a raw base like
+  NoobAI). Civitai has been blocked in Australia since 2026-03-16, and the PC's clock is UTC+10;
+  use Hugging Face.
+- **Next (waits for the owner):** download `animagine-xl-4.0-opt.safetensors` (6.94 GB, Hugging
+  Face cagliostrolab/animagine-xl-4.0) and run a 6-image Uriela test, every image sent; and/or
+  redesign the 15 outfits to be more revealing up to the hard lines, shown to the owner before any
+  render.
 
 ## In one paragraph
 
