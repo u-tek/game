@@ -3,6 +3,7 @@
 
     python3 tools/comfy/fix.py <hero_id> <image|seed> --box x,y,w,h --prompt "tags" [--mask m.png]
                               [--denoise 0.5] [--count 3] [--seed S] [--mode noise_mask|vae_inpaint] [--dry-run]
+                              [--skin SKIN]
 
 The prompt is the hero's identity tags (hair, outfit, weapon, style) plus --prompt, checked against
 the content rules, rendered with the checkpoint that made the candidate (from its .json). --box is
@@ -12,7 +13,8 @@ variants and the rig are aligned to it pixel for pixel). On any other RGBA input
 is kept outside the repainted area and only re-cut inside it.
 
 Tries go to art_src/<id>/work/fix_<stem>_s<seed>.png with a before/after sheet; --apply SEED copies
-a try over a new file <image stem>_fixed.png (never overwrites the input).
+a try over a new file <image stem>_fixed.png (never overwrites the input). --skin works on a skin's
+candidates and folders (art_src/<id>/skins/<art>/) with that skin's outfit in the prompt.
 """
 import argparse
 import os
@@ -48,23 +50,24 @@ def main(argv=None):
     ap.add_argument("--count", type=int, default=3)
     ap.add_argument("--seed", type=int)
     ap.add_argument("--apply", type=int, metavar="SEED", help="write the try with this seed as <stem>_fixed.png")
+    ap.add_argument("--skin", help="skin id (bible 'skins'): a skin's candidate, with the skin's outfit in the prompt")
     P.add_common_args(ap)
     a = ap.parse_args(argv)
     log = (lambda *x: None) if a.quiet else print
     try:
         bible = prompts.load_bible()
-        if a.hero not in bible["heroes"]:
-            raise P.PipelineError("unknown hero %r" % a.hero)
-        path = find_candidate(a.hero, a.image, a.dry_run)
+        t = P.art_target(bible, a.hero, a.skin, a.dry_run)
+        path = find_candidate(t, a.image)
         stem = os.path.splitext(os.path.basename(path))[0]
-        hdir = P.hero_dir(a.hero, a.dry_run)
+        hdir = t["dir"]
         work = os.path.join(hdir, "work")
         if os.path.abspath(path).startswith(os.path.abspath(os.path.join(hdir, "final")) + os.sep):
-            fm = P.read_json(os.path.join(hdir, "final", a.hero + ".json"), {}) or {}
+            fm = P.read_json(os.path.join(hdir, "final", t["name"] + ".json"), {}) or {}
             raise P.PipelineError(
                 "refusing to fix %s: the variants and the rig are aligned to it. Fix the candidate instead (%s), "
-                "then finalize.py %s <path to the _fixed.png> --force" % (
-                    P.rel(path), fm.get("source_candidate", "candidates/<id>_s<seed>.png"), a.hero))
+                "then finalize.py %s <path to the _fixed.png> --force%s" % (
+                    P.rel(path), fm.get("source_candidate", "candidates/<id>_s<seed>.png"), a.hero,
+                    " --skin " + t["skin"] if t["skin"] else ""))
         if a.apply is not None:
             src = os.path.join(work, "fix_%s_s%d.png" % (stem, a.apply))
             if not os.path.exists(src):
@@ -81,7 +84,7 @@ def main(argv=None):
             raise P.PipelineError("give --box x,y,w,h or --mask")
         img = Image.open(path)
         rgba_in = img.mode == "RGBA"
-        _, bg = prompts.background(bible, a.hero)
+        _, bg = prompts.background(bible, a.hero, (P.read_json(path[:-4] + ".json", {}) or {}).get("background", {}).get("key"))
         rgb = P.flat_rgb(img, bg["rgb"]) if rgba_in else img.convert("RGB")
         if a.mask:
             mask = Image.open(a.mask).convert("L")
@@ -97,14 +100,14 @@ def main(argv=None):
         client = P.make_client(a)
         P.inherit_model(a, P.read_json(path[:-4] + ".json", {}) or {}, P.rel(path[:-4] + ".json"), log)
         s, _, _ = P.resolve_settings(bible, a, client, a.hero)
-        pr = prompts.custom(bible, a.hero, s["family"], a.prompt, a.negative)
+        pr = prompts.custom(bible, a.hero, s["family"], a.prompt, a.negative, skin=t["skin"])
         crop = P.square_box(box, rgb.size, scale=1.6)
-        first = a.seed if a.seed is not None else int(bible["heroes"][a.hero]["seed_base"]) + 800
+        first = a.seed if a.seed is not None else t["seed_base"] + 800
         tries = []
         for i in range(max(1, a.count)):
             seed = first + i
             out, _ = P.crop_inpaint(client, s, rgb, crop, mask, pr["positive"], pr["negative"], seed, a.denoise,
-                                    "%s/fix_%s_s%d" % (a.hero, stem, seed), work, mode=a.mode, timeout=a.timeout)
+                                    "%s/fix_%s_s%d" % (t["job"], stem, seed), work, mode=a.mode, timeout=a.timeout)
             if rgba_in:   # re-cut only inside the (dilated) fix area; keep the original alpha elsewhere
                 recut, _ = post.remove_background(out, bg=bg["rgb"])
                 m = post.dilate(np.asarray(mask) > 8, 6)[..., None]
@@ -118,7 +121,8 @@ def main(argv=None):
         post.contact_sheet(entries, sheet, cols=min(4, len(entries)), cell_w=320, detail=False,
                            title="%s fix: pick with --apply SEED" % stem)
         log("tries in %s, sheet %s" % (P.rel(work), P.rel(sheet)))
-        log("apply: python3 tools/comfy/fix.py %s %s --apply <seed>%s" % (a.hero, a.image, " --dry-run" if a.dry_run else ""))
+        log("apply: python3 tools/comfy/fix.py %s %s --apply <seed>%s%s" % (
+            a.hero, a.image, " --skin " + t["skin"] if t["skin"] else "", " --dry-run" if a.dry_run else ""))
     except (P.PipelineError, comfy.ComfyError, prompts.ContentRuleError, workflows.WorkflowError, ValueError) as e:
         print("ERROR: %s" % e, file=sys.stderr)
         return 1

@@ -51,9 +51,9 @@ def sheet_label(seed, png):
     return ("s%d  %s" % (seed, " ".join(flags))).strip()
 
 
-def protected_seeds(hero_id, dry_run):
-    """Seeds that finalize.py used as a master (never re-rendered over)."""
-    fm = P.read_json(os.path.join(P.hero_dir(hero_id, dry_run), "final", hero_id + ".json"), {}) or {}
+def protected_seeds(target):
+    """Seeds that finalize.py used as a master of this art (base or skin): never re-rendered over."""
+    fm = P.read_json(os.path.join(target["dir"], "final", target["name"] + ".json"), {}) or {}
     return {int(fm["candidate_seed"])} if fm.get("candidate_seed") is not None else set()
 
 
@@ -95,6 +95,8 @@ def main(argv=None):
         bible = prompts.load_bible()
         if a.hero not in bible["heroes"]:
             raise P.PipelineError("unknown hero %r. Heroes: %s" % (a.hero, ", ".join(bible["heroes"])))
+        t = P.art_target(bible, a.hero, a.skin, a.dry_run)
+        a.skin = t["skin"]
         client = P.make_client(a)
         s, disc, oi = P.resolve_settings(bible, a, client, a.hero)
         pr = prompts.full_body(bible, a.hero, s["family"], background_key=a.background, extra_tags=a.extra_tags,
@@ -102,14 +104,15 @@ def main(argv=None):
         h = prompts.skin_view(bible, a.hero, a.skin) if a.skin else bible["heroes"][a.hero]
         sk = bible["skins"][a.skin] if a.skin else {}
         bg_key, bg = prompts.background(bible, a.hero, a.background or sk.get("background"))
-        first = a.seed if a.seed is not None else int(sk.get("seed_base", h["seed_base"]))
+        first = a.seed if a.seed is not None else t["seed_base"]
         seeds = [first + i for i in range(max(1, a.count))]
-        if a.force and not a.skin:
-            clash = sorted(protected_seeds(a.hero, a.dry_run) & set(seeds))
+        if a.force:
+            clash = sorted(protected_seeds(t) & set(seeds))
             if clash:
-                raise P.PipelineError("seed %s is the master of final/%s.png; --force would overwrite it. Pick "
+                raise P.PipelineError("seed %s is the master of %s; --force would overwrite it. Pick "
                                       "other seeds (--seed N) or archive the final first (finalize.py --force "
-                                      "with another candidate)" % (", ".join(map(str, clash)), a.hero))
+                                      "with another candidate)" % (", ".join(map(str, clash)),
+                                                                   P.rel(os.path.join(t["dir"], "final", t["name"] + ".png"))))
         for side in ("positive", "negative"):
             st = pr["stats"][side]
             # Whole-tag chunks are joined by ConditioningConcat; 3 positive / 4 negative chunks are
@@ -117,10 +120,7 @@ def main(argv=None):
             if st["chunks"] > (3 if side == "positive" else 4):
                 log("warning: %s prompt is ~%d tokens (%d CLIP chunks); tags after the first chunks get diluted. "
                     "Trim --extra-tags or the hero's tags." % (side, st["tokens"], st["chunks"]))
-        hdir = P.hero_dir(a.hero, a.dry_run)
-        if a.skin:
-            hdir = os.path.join(hdir, "skins", str(sk.get("art") or a.skin))
-        cdir = os.path.join(hdir, "candidates")
+        cdir = os.path.join(t["dir"], "candidates")
         os.makedirs(cdir, exist_ok=True)
         log("%s: %d candidate(s), seeds %d..%d, checkpoint %s (%s), %dx%d -> %dx%d, %s/%s %d steps cfg %s" % (
             a.hero + ("/" + a.skin if a.skin else ""), len(seeds), seeds[0], seeds[-1], s["checkpoint"], s["family"], s["width"], s["height"],
@@ -192,8 +192,8 @@ def main(argv=None):
             log("dry run: API JSON in %s" % P.rel(os.path.join(comfy.dryrun_dir(), a.hero)))
         if not a.no_sheet:
             build_sheet(cdir, a.hero, log=log)
-        log("next: review the contact sheet, then  python3 tools/comfy/finalize.py %s <seed>%s" % (
-            a.hero, " --dry-run" if a.dry_run else ""))
+        log("next: review the contact sheet, then  python3 tools/comfy/finalize.py %s <seed>%s%s" % (
+            a.hero, " --skin " + a.skin if a.skin else "", " --dry-run" if a.dry_run else ""))
     except (P.PipelineError, comfy.ComfyError, prompts.ContentRuleError, prompts.PromptError, workflows.WorkflowError,
             KeyError) as e:
         print("ERROR: %s" % e, file=sys.stderr)

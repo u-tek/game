@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Copy a finished, reviewed hero from art_src/ into the game's asset folder for the HaloRig warp build.
 
-    python3 tools/comfy/install.py <hero_id> [--dry-run] [--force] [--partial]
+    python3 tools/comfy/install.py <hero_id> [--skin SKIN] [--dry-run] [--force] [--partial]
 
 Copies art_src/<id>/final/<id>.png -> assets/art/heroes/<id>/<id>.png and
 art_src/<id>/variants/<name>.png -> assets/art/heroes/<id>/variants/<name>.png (delivery names only:
@@ -20,6 +20,11 @@ Refuses (nothing copied) unless:
      art_src/<id>/history/installed_<timestamp>/.
 Then: write/update assets/art/heroes/<id>/<id>.warp_src.json from the hand-off, and
       tools/art_warp <id> --regen-masks   (docs/dev/halorig.md sections 1 and 8)
+
+--skin <skin id> installs a skin instead: art_src/<id>/skins/<art>/final/<art>.png and its variants ->
+assets/art/heroes/<id>/skins/<art>/<art>.png and variants/ (the folder RigData.load_rig(hero, art) reads),
+hand-off art_src/_handoff/<id>@<art>.json, rig source <art>.warp_src.json in that folder, rig build
+tools/art_warp <id>@<art> --regen-masks. The skin must be in data/skins.json with the same "art".
 
 Only run this once the hero passed review (docs/dev/art-style.md sections 1 and 7).
 Env HALO_ASSETS_HEROES overrides the destination root (tests).
@@ -55,14 +60,40 @@ def heroes_root():
     return os.path.abspath(os.environ.get("HALO_ASSETS_HEROES") or os.path.join(comfy.ROOT, "assets", "art", "heroes"))
 
 
-def handoff_path(hero_id):
-    return os.path.join(comfy.art_src(), "_handoff", hero_id + ".json")
+def handoff_path(hero_id, art=""):
+    return os.path.join(comfy.art_src(), "_handoff", (hero_id + "@" + art if art else hero_id) + ".json")
 
 
-def verify(hero_id, bible, partial=False):
+def game_skin(target):
+    """The data/skins.json entry of a skin target; its "art" must match the bible's (the game loads that folder)."""
+    path = os.path.join(comfy.ROOT, "data", "skins.json")
+    entry = next((sk for sk in (P.read_json(path, {}) or {}).get("skins", []) if sk.get("id") == target["skin"]), None)
+    if entry is None:
+        raise InstallError("skin %s is not in data/skins.json: the game would never show it" % target["skin"])
+    if entry.get("hero") != target["hero"] or entry.get("art") != target["art"]:
+        raise InstallError("data/skins.json has %s as %s/%s, the bible as %s/%s: make them agree first" % (
+            target["skin"], entry.get("hero"), entry.get("art"), target["hero"], target["art"]))
+    return entry
+
+
+def dest_dir(target):
+    d = os.path.join(heroes_root(), target["hero"])
+    return os.path.join(d, "skins", target["art"]) if target["art"] else d
+
+
+def rig_id(target):
+    """The id tools/art_warp builds: <id> or <id>@<art>."""
+    return target["hero"] + ("@" + target["art"] if target["art"] else "")
+
+
+def _cli(target):
+    return target["hero"] + (" --skin " + target["skin"] if target["skin"] else "")
+
+
+def verify(target, bible, partial=False):
     """Checks 1-4. Returns (final_png, final_meta, record, [(name, src_png, region_name)]) or raises."""
-    src = os.path.join(comfy.art_src(), hero_id)
-    final = os.path.join(src, "final", hero_id + ".png")
+    hero_id, src = target["hero"], target["dir"]
+    final = os.path.join(src, "final", target["name"] + ".png")
     fmeta = P.read_json(final[:-4] + ".json")
     if not os.path.exists(final) or fmeta is None:
         raise InstallError("%s or its .json is missing: run finalize.py first" % P.rel(final))
@@ -75,7 +106,7 @@ def verify(hero_id, bible, partial=False):
     record = P.read_json(os.path.join(src, "variants", "variants.json"), {}) or {}
     if record and record.get("base_sha") != sha:
         raise InstallError("variants/variants.json was made from another base image than %s: re-run "
-                           "variants.py %s --force" % (P.rel(final), hero_id))
+                           "variants.py %s --force" % (P.rel(final), _cli(target)))
     base = Image.open(final).convert("RGBA")
     wanted = list(bible["heroes"][hero_id]["variant_set"])
     found, missing, problems = [], [], []
@@ -95,16 +126,16 @@ def verify(hero_id, bible, partial=False):
         found.append((v, p, ent.get("region_name") or prompts.variant_spec(bible, hero_id, v)["region"]))
     if problems:
         raise InstallError("variants do not line up with %s:\n  %s\nRe-run variants.py %s --force"
-                           % (P.rel(final), "\n  ".join(problems), hero_id))
+                           % (P.rel(final), "\n  ".join(problems), _cli(target)))
     if missing and not partial:
         raise InstallError("variants missing: %s (variants.py %s), or install without them with --partial"
-                           % (", ".join(missing), hero_id))
+                           % (", ".join(missing), _cli(target)))
     return final, dict(fmeta, sha256=sha), record, found
 
 
-def plan_copies(hero_id, final, found):
-    dst = os.path.join(heroes_root(), hero_id)
-    pairs = [(final, os.path.join(dst, hero_id + ".png"))]
+def plan_copies(target, final, found):
+    dst = dest_dir(target)
+    pairs = [(final, os.path.join(dst, target["name"] + ".png"))]
     pairs += [(p, os.path.join(dst, "variants", v + ".png")) for v, p, _ in found]
     names = {v for v, _, _ in found}
     stale = [os.path.join(dst, "variants", v + ".png") for v in DELIVERY_VARIANTS
@@ -112,7 +143,8 @@ def plan_copies(hero_id, final, found):
     return dst, pairs, stale
 
 
-def handoff(hero_id, bible, fmeta, record, found, dst):
+def handoff(target, bible, fmeta, record, found, dst):
+    hero_id, name = target["hero"], target["name"]
     h = bible["heroes"][hero_id]
     hints = dict(fmeta.get("warp_src_hints") or {})
     hints.pop("_doc", None)
@@ -132,13 +164,14 @@ def handoff(hero_id, bible, fmeta, record, found, dst):
                 slots[slot]["variants"][SLOT_KEYS[v]] = rel_path
     return {
         "_doc": "Hand-off from tools/comfy/install.py to the HaloRig warp build (docs/dev/halorig.md 8): use these "
-                "values in assets/art/heroes/<id>/<id>.warp_src.json, then tools/art_warp <id> --regen-masks. "
-                "Coordinates are pixels of the installed 1024x2048 image.",
-        "hero": hero_id, "name": h["name"], "faction": h["faction"], "role": h["role"],
+                "values in %s, then tools/art_warp %s --regen-masks. Coordinates are pixels of the installed "
+                "1024x2048 image." % (comfy.rel(os.path.join(dst, name + ".warp_src.json")), rig_id(target)),
+        "hero": hero_id, "skin": target["skin"], "art": target["art"] or None,
+        "name": h["name"], "faction": h["faction"], "role": h["role"],
         "installed": time.strftime("%Y-%m-%dT%H:%M:%S"),
-        "image": {"path": comfy.rel(os.path.join(dst, hero_id + ".png")), "sha256": fmeta["sha256"]},
+        "image": {"path": comfy.rel(os.path.join(dst, name + ".png")), "sha256": fmeta["sha256"]},
         "variants": files,
-        "warp_src": {"image": hero_id + ".png", "origin": hints.get("origin", [512, 1990]),
+        "warp_src": {"image": name + ".png", "origin": hints.get("origin", [512, 1990]),
                      "portrait": hints.get("portrait"), "meta": {"fx_color": FX_COLOR.get(h["faction"])},
                      "overlays": [sl for sl in slots.values() if sl["variants"]]},
         "face_box": fmeta.get("face_box"), "flipped": fmeta.get("flipped"),
@@ -156,19 +189,24 @@ def main(argv=None):
     ap.add_argument("--force", action="store_true",
                     help="replace existing assets whose content differs (backed up to art_src/<id>/history/ first)")
     ap.add_argument("--partial", action="store_true", help="install even if some variants of variant_set are missing")
+    ap.add_argument("--skin", help="skin id (bible 'skins'): install that skin's final into assets/.../skins/<art>/")
     a = ap.parse_args(argv)
     try:
         bible = prompts.load_bible()
         if a.hero not in bible["heroes"]:
             raise InstallError("unknown hero %r" % a.hero)
-        final, fmeta, record, found = verify(a.hero, bible, a.partial)
-        dst, pairs, stale = plan_copies(a.hero, final, found)
+        t = P.art_target(bible, a.hero, a.skin)
+        if t["skin"]:
+            game_skin(t)
+        final, fmeta, record, found = verify(t, bible, a.partial)
+        dst, pairs, stale = plan_copies(t, final, found)
         changed = [d for s, d in pairs if os.path.exists(d) and P.sha256_file(d) != P.sha256_file(s)]
         if (changed or stale) and not a.force:
             raise InstallError("assets already hold different art for %s:\n  %s\nRe-run with --force to replace "
-                               "them (they are backed up to art_src/%s/history/installed_<timestamp>/ first)" % (
-                                   a.hero, "\n  ".join([P.rel(d) + " (differs)" for d in changed] +
-                                                       [P.rel(d) + " (not in this delivery)" for d in stale]), a.hero))
+                               "them (they are backed up to %s/history/installed_<timestamp>/ first)" % (
+                                   t["label"], "\n  ".join([P.rel(d) + " (differs)" for d in changed] +
+                                                           [P.rel(d) + " (not in this delivery)" for d in stale]),
+                                   P.rel(t["dir"])))
         verb = "would copy" if a.dry_run else "copy"
         for s, d in pairs:
             same = os.path.exists(d) and P.sha256_file(d) == P.sha256_file(s)
@@ -179,7 +217,7 @@ def main(argv=None):
             print("dry run: all checks passed; nothing written")
             return 0
         if changed or stale:
-            bdir = os.path.join(comfy.art_src(), a.hero, "history", "installed_" + time.strftime("%Y%m%d-%H%M%S"))
+            bdir = os.path.join(t["dir"], "history", "installed_" + time.strftime("%Y%m%d-%H%M%S"))
             for d in changed + stale:
                 b = os.path.join(bdir, os.path.relpath(d, dst))
                 os.makedirs(os.path.dirname(b), exist_ok=True)
@@ -194,12 +232,13 @@ def main(argv=None):
         vd = os.path.join(dst, "variants")
         if os.path.isdir(vd) and not os.path.exists(os.path.join(vd, ".gdignore")):
             open(os.path.join(vd, ".gdignore"), "w").close()
-        ho = handoff(a.hero, bible, fmeta, record, found, dst)
-        P.write_json(handoff_path(a.hero), ho)
-        print("hand-off: %s" % P.rel(handoff_path(a.hero)))
+        ho = handoff(t, bible, fmeta, record, found, dst)
+        P.write_json(handoff_path(a.hero, t["art"]), ho)
+        print("hand-off: %s" % P.rel(handoff_path(a.hero, t["art"])))
         print("warp_src hints: %s" % json.dumps(ho["warp_src"]))
-        print("next: update assets/art/heroes/%s/%s.warp_src.json (copy seraphiel's if new), then "
-              "tools/art_warp %s --regen-masks" % (a.hero, a.hero, a.hero))
+        print("next: update %s (start from %s if it is new), then tools/art_warp %s --regen-masks" % (
+            P.rel(os.path.join(dst, t["name"] + ".warp_src.json")),
+            "%s.warp_src.json" % a.hero if t["art"] else "seraphiel.warp_src.json", rig_id(t)))
     except (InstallError, P.PipelineError, KeyError, OSError) as e:
         print("ERROR: %s" % e, file=sys.stderr)
         return 1

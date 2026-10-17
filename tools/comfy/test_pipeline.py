@@ -1292,5 +1292,110 @@ class TestDryRunEndToEnd(unittest.TestCase):
             os.environ.pop("HALO_ASSETS_HEROES", None)
 
 
+class TestSkinDryRunEndToEnd(unittest.TestCase):
+    """run_hero --skin -> finalize -> variants -> install for a skin: every file lands in the skin's
+    folders under the skin's art name (the layout RigData.load_rig(hero, art) reads), and the hero's
+    base art is never touched. Methods run in name order and share state."""
+    hero, skin = "kessa", "kessa_card_shark"
+
+    @classmethod
+    def setUpClass(cls):
+        cls.t = P.art_target(BIBLE, cls.hero, cls.skin, dry_run=True)
+        cls.art = cls.t["art"]
+        cls.seed = BIBLE["skins"][cls.skin]["seed_base"]
+        cls.final = os.path.join(cls.t["dir"], "final", cls.art + ".png")
+
+    def run_main(self, mod, argv, rc=0):
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            got = mod.main(argv)
+        self.assertEqual(got, rc, err.getvalue() + out.getvalue())
+        return out.getvalue() + err.getvalue()
+
+    def test_0_art_target(self):
+        self.assertEqual(self.t["dir"], os.path.join(comfy.dryrun_dir(), self.hero, "skins", self.art))
+        self.assertEqual((self.t["name"], self.t["job"]), (self.art, "%s/skins/%s" % (self.hero, self.art)))
+        self.assertEqual(P.art_target(BIBLE, self.hero, self.art)["skin"], self.skin, "short skin names work")
+        base = P.art_target(BIBLE, self.hero)
+        self.assertEqual((base["name"], base["art"], base["skin"]), (self.hero, "", None))
+        self.assertEqual(base["seed_base"], BIBLE["heroes"][self.hero]["seed_base"])
+        with self.assertRaises(P.PipelineError):
+            P.art_target(BIBLE, "imra", self.skin)          # another hero's skin
+        with self.assertRaises(P.PipelineError):
+            P.art_target(BIBLE, self.hero, "no_such_skin")
+        catalogue = json.load(open(os.path.join(ROOT, "data", "skins.json"), encoding="utf-8"))["skins"]
+        for sid, sk in BIBLE["skins"].items():               # the bible and the game agree on every art folder
+            game = [g for g in catalogue if g["id"] == sid]
+            self.assertEqual([(g["hero"], g["art"]) for g in game], [(sk["hero"], sk["art"])], sid)
+
+    def test_1_candidates_finalize_variants(self):
+        import finalize
+        import run_hero
+        import variants
+        self.run_main(run_hero, [self.hero, "--skin", self.skin, "--count", "2", "--dry-run", "--size", "512x896"])
+        cand = os.path.join(self.t["dir"], "candidates", "%s_s%d.png" % (self.hero, self.seed))
+        self.assertTrue(os.path.exists(cand))
+        out = self.run_main(finalize, [self.hero, cand, "--dry-run"], rc=1)
+        self.assertIn("--skin " + self.skin, out, "a skin candidate is never finalized as the base look")
+        self.run_main(finalize, [self.hero, str(self.seed), "--skin", self.art, "--dry-run"])
+        fm = json.load(open(self.final[:-4] + ".json"))
+        self.assertEqual((fm["hero"], fm["skin"], fm["art"], fm["image"]),
+                         (self.hero, self.skin, self.art, self.art + ".png"))
+        self.assertEqual(fm["sha256"], P.sha256_file(self.final))
+        self.assertEqual(Image.open(self.final).size, (1024, 2048))
+        for f in ("_portrait.png", "_check.png", "_boxes.png", "_source.png", "_source.json"):
+            self.assertTrue(os.path.exists(self.final[:-4] + f), f)
+        self.assertFalse(os.path.exists(os.path.join(comfy.dryrun_dir(), self.hero, "final")), "base final untouched")
+        face_job = os.path.join(self.t["dir"], "face_refine_s%d.json" % (self.seed + 7))
+        self.assertTrue(os.path.exists(face_job), "server jobs are filed under the skin")
+        self.run_main(run_hero, [self.hero, "--skin", self.skin, "--count", "1", "--seed", str(self.seed), "--force",
+                                 "--dry-run", "--size", "512x896"], rc=1)   # the skin's master is protected
+        self.run_main(variants, [self.hero, "--skin", self.skin, "--dry-run", "--count", "1"])
+        vdir = os.path.join(self.t["dir"], "variants")
+        rec = json.load(open(os.path.join(vdir, "variants.json")))
+        self.assertEqual((rec["skin"], rec["base_sha"]), (self.skin, P.sha256_file(self.final)))
+        alpha = np.asarray(Image.open(self.final))[..., 3]
+        for v in BIBLE["heroes"][self.hero]["variant_set"]:
+            self.assertEqual(rec["variants"][v]["picked_seed"], self.seed + 500, v)
+            self.assertTrue(np.array_equal(np.asarray(Image.open(os.path.join(vdir, v + ".png")))[..., 3], alpha), v)
+        self.assertFalse(os.path.exists(os.path.join(comfy.dryrun_dir(), self.hero, "variants")))
+
+    def test_2_install(self):
+        import install
+        live = os.path.join(comfy.art_src(), self.hero, "skins", self.art)
+        shutil.copytree(self.t["dir"], live)
+        fj = os.path.join(live, "final", self.art + ".json")
+        fm = json.load(open(fj))
+        fm["dry_run"] = False
+        json.dump(fm, open(fj, "w"))
+        assets = os.path.join(TMP, "assets_heroes_skins")
+        os.environ["HALO_ASSETS_HEROES"] = assets
+        try:
+            self.run_main(install, [self.hero, "--skin", self.skin])
+            dst = os.path.join(assets, self.hero, "skins", self.art)
+            self.assertEqual(md5(os.path.join(dst, self.art + ".png")), md5(os.path.join(live, "final", self.art + ".png")))
+            for v in BIBLE["heroes"][self.hero]["variant_set"]:
+                self.assertTrue(os.path.exists(os.path.join(dst, "variants", v + ".png")), v)
+            self.assertFalse(os.path.exists(os.path.join(assets, self.hero, self.hero + ".png")), "base art untouched")
+            ho = json.load(open(install.handoff_path(self.hero, self.art)))
+            self.assertEqual((ho["skin"], ho["warp_src"]["image"]), (self.skin, self.art + ".png"))
+            self.assertIn("%s@%s" % (self.hero, self.art), ho["_doc"])
+            self.assertFalse(os.path.exists(install.handoff_path(self.hero)), "a skin is not the hero's hand-off")
+            with self.assertRaises(install.InstallError):
+                install.game_skin(dict(self.t, art="another_folder"))   # bible and data/skins.json disagree
+        finally:
+            os.environ.pop("HALO_ASSETS_HEROES", None)
+
+    def test_3_rig_ids(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("art_warp_build", os.path.join(ROOT, "tools", "art_warp_build.py"))
+        awb = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(awb)
+        d, name, hero_id = awb.rig_dir("%s@%s" % (self.hero, self.art))
+        self.assertEqual((name, hero_id), (self.art, self.hero))
+        self.assertEqual(os.path.normpath(d), os.path.join(awb.HEROES, self.hero, "skins", self.art))
+        self.assertEqual(awb.rig_dir(self.hero), (os.path.join(awb.HEROES, self.hero), self.hero, self.hero))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

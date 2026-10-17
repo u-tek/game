@@ -34,6 +34,35 @@ def hero_dir(hero_id, dry_run=False):
     return os.path.join(comfy.dryrun_dir() if dry_run else comfy.art_src(), hero_id)
 
 
+def art_target(bible, hero_id, skin=None, dry_run=False):
+    """Where one piece of hero art is worked on: the hero's base art, or one of her skins.
+    Base: art_src/<id>/ with final/<id>.png etc. Skin (a bible "skins" id, or its short name after
+    "<id>_"): art_src/<id>/skins/<art>/ with final/<art>.png etc., the names the game reads from
+    assets/art/heroes/<id>/skins/<art>/ (RigData.load_rig(hero, art)). Candidates keep the hero's
+    name in both (<id>_s<seed>.png). Returns {hero, skin, art, dir, name, job, label, seed_base}:
+    `job` prefixes server and dry-run job names, `art` is "" for the base."""
+    h = bible["heroes"].get(hero_id)
+    if h is None:
+        raise PipelineError("unknown hero %r" % hero_id)
+    hdir = hero_dir(hero_id, dry_run)
+    if not skin:
+        return {"hero": hero_id, "skin": None, "art": "", "dir": hdir, "name": hero_id, "job": hero_id,
+                "label": hero_id, "seed_base": int(h["seed_base"])}
+    skins = bible.get("skins") or {}
+    if skin not in skins and "%s_%s" % (hero_id, skin) in skins:
+        skin = "%s_%s" % (hero_id, skin)
+    sk = skins.get(skin)
+    if sk is None:
+        raise PipelineError("unknown skin %r (bible 'skins'; e.g. %s)" % (
+            skin, ", ".join(k for k, v in skins.items() if v.get("hero") == hero_id) or "none for this hero"))
+    if sk.get("hero") != hero_id:
+        raise PipelineError("skin %r belongs to %s, not %s" % (skin, sk.get("hero"), hero_id))
+    art = str(sk.get("art") or skin)
+    return {"hero": hero_id, "skin": skin, "art": art, "dir": os.path.join(hdir, "skins", art), "name": art,
+            "job": "%s/skins/%s" % (hero_id, art), "label": "%s/%s" % (hero_id, art),
+            "seed_base": int(sk.get("seed_base", h["seed_base"]))}
+
+
 def rel(p):
     return comfy.rel(p)
 

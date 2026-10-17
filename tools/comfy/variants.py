@@ -3,6 +3,7 @@
 
     python3 tools/comfy/variants.py <hero_id> [image] [--variants eyes_closed,mouth_open] [--count N]
                                    [--face-box x,y,w,h] [--region eyes=x,y,w,h] [--pick NAME=SEED] [--dry-run]
+                                   [--skin SKIN]
 
 `image` defaults to art_src/<id>/final/<id>.png (the canvas the rig uses), so every variant is
 pixel-aligned with it: only the masked eyes/mouth area changes, alpha is kept from the base.
@@ -24,6 +25,8 @@ sheet; variants/<name>.png stays what you picked (change it with --pick NAME=SEE
 image changed since the variants were made (different sha256), the run stops: the old variants no
 longer line up with it. --force then archives variants/ and masks/ to history/<timestamp>/ and
 starts over; --force also re-renders seeds that already have a try.
+--skin <skin id> works on a skin's final instead: art_src/<id>/skins/<art>/final/<art>.png, with
+variants/ and masks/ in that folder and tries from the skin's seed_base + 500.
 """
 import argparse
 import os
@@ -44,17 +47,17 @@ import prompts  # noqa: E402
 import workflows  # noqa: E402
 
 
-def resolve_image(hero_id, spec, dry_run):
-    hdir = P.hero_dir(hero_id, dry_run)
+def resolve_image(target, spec):
+    hdir = target["dir"]
     if spec is None:
-        p = os.path.join(hdir, "final", hero_id + ".png")
+        p = os.path.join(hdir, "final", target["name"] + ".png")
         if not os.path.exists(p):
             raise P.PipelineError("no %s yet: run finalize.py first (or pass an image)" % P.rel(p))
         return p
     if os.path.exists(spec):
         return os.path.abspath(spec)
     if str(spec).lstrip("s").isdigit():
-        p = os.path.join(hdir, "candidates", "%s_s%s.png" % (hero_id, str(spec).lstrip("s")))
+        p = os.path.join(hdir, "candidates", "%s_s%s.png" % (target["hero"], str(spec).lstrip("s")))
         if os.path.exists(p):
             return p
     raise P.PipelineError("image %r not found" % spec)
@@ -118,19 +121,20 @@ def main(argv=None):
     ap.add_argument("--force", action="store_true",
                     help="re-render seeds that already have a try; accept a changed base image (archives the "
                          "old variants/ and masks/ to history/<timestamp>/)")
+    ap.add_argument("--skin", help="skin id (bible 'skins'): variants of that skin's final")
     P.add_common_args(ap)
     a = ap.parse_args(argv)
     log = (lambda *x: None) if a.quiet else print
     try:
         bible = prompts.load_bible()
-        if a.hero not in bible["heroes"]:
-            raise P.PipelineError("unknown hero %r" % a.hero)
+        t = P.art_target(bible, a.hero, a.skin, a.dry_run)
+        name0, job = t["name"], t["job"]
         h = bible["heroes"][a.hero]
-        hdir = P.hero_dir(a.hero, a.dry_run)
+        hdir = t["dir"]
         vdir = os.path.join(hdir, "variants")
         vcand = os.path.join(vdir, "candidates")
         record_path = os.path.join(vdir, "variants.json")
-        img_path = resolve_image(a.hero, a.image, a.dry_run)
+        img_path = resolve_image(t, a.image)
         base = Image.open(img_path).convert("RGBA")
         base_sha = P.sha256_file(img_path)
         record = P.read_json(record_path, None)
@@ -168,27 +172,27 @@ def main(argv=None):
                       reason="variants.py --force: base %s changed to sha %s" % (P.rel(img_path), base_sha[:12]))
             record = None
         if record is None:
-            record = {"hero": a.hero, "variants": {}}
+            record = {"hero": a.hero, "skin": t["skin"], "variants": {}}
         os.makedirs(vcand, exist_ok=True)
 
-        is_final = os.path.abspath(img_path) == os.path.abspath(os.path.join(hdir, "final", a.hero + ".png"))
-        fmeta = P.read_json(os.path.join(hdir, "final", a.hero + ".json"), {}) if is_final else {}
+        is_final = os.path.abspath(img_path) == os.path.abspath(os.path.join(hdir, "final", name0 + ".png"))
+        fmeta = P.read_json(os.path.join(hdir, "final", name0 + ".json"), {}) if is_final else {}
         names = [v.strip() for v in (a.variants.split(",") if a.variants else h["variant_set"]) if v.strip()]
         client = P.make_client(a)
         src_meta = fmeta if is_final else (P.read_json(img_path[:-4] + ".json", {}) or {})
-        P.inherit_model(a, src_meta, "final/%s.json" % a.hero if is_final else P.rel(img_path), log)
+        P.inherit_model(a, src_meta, "final/%s.json" % name0 if is_final else P.rel(img_path), log)
         s, disc, oi = P.resolve_settings(bible, a, client, a.hero)
-        bg_key, bg = prompts.background(bible, a.hero)
+        bg_key, bg = prompts.background(bible, a.hero, bible["skins"][t["skin"]].get("background") if t["skin"] else None)
 
         if a.face_box:
             face_box, conf = post.parse_box(a.face_box), "user"
         elif fmeta.get("face_box"):
-            face_box, conf = fmeta["face_box"], "final/%s.json (%s)" % (a.hero, fmeta.get("face_box_source"))
+            face_box, conf = fmeta["face_box"], "final/%s.json (%s)" % (name0, fmeta.get("face_box_source"))
         else:
             src = base if np.asarray(base.split()[3]).min() < 250 else post.remove_background(base.convert("RGB"))[0]
             face_box, conf = post.estimate_face_box(src, P.skin_profile(bible, a.hero))
         log("%s variants %s on %s, face box %s (%s), checkpoint %s" % (
-            a.hero, ",".join(names), P.rel(img_path), ",".join(map(str, face_box)), conf, s["checkpoint"]))
+            t["label"], ",".join(names), P.rel(img_path), ",".join(map(str, face_box)), conf, s["checkpoint"]))
         overrides = {}
         for r in a.region:
             k, _, v = r.partition("=")
@@ -199,7 +203,7 @@ def main(argv=None):
         crop = P.square_box(face_box, base.size, scale=1.9)
         mdir = os.path.join(hdir, "masks")
         os.makedirs(mdir, exist_ok=True)
-        first = int(h["seed_base"]) + 500
+        first = t["seed_base"] + 500
         work = os.path.join(hdir, "work")
         count = max(1, a.count)
         for name in names:
@@ -207,7 +211,7 @@ def main(argv=None):
             region = overrides.get(spec["region"]) or post.region_box(face_box, spec["region_frac"])
             mask = P.ellipse_mask(base.size, region, feather=max(3, region[3] // 10))
             mask.save(os.path.join(mdir, "%s.png" % spec["region"]))
-            pr = prompts.face(bible, a.hero, s["family"], variant=name)
+            pr = prompts.face(bible, a.hero, s["family"], variant=name, skin=t["skin"])
             den = a.denoise if a.denoise is not None else spec["denoise"]
             entry = dict(record["variants"].get(name) or {})
             done = set(entry.get("seeds") or []) | existing_tries(vcand, name)
@@ -228,7 +232,7 @@ def main(argv=None):
             rendered = []
             for seed in seeds:
                 out_rgb, info = P.crop_inpaint(client, s, rgb, crop, mask, pr["positive"], pr["negative"], seed, den,
-                                               "%s/variant_%s_s%d" % (a.hero, name, seed), work, timeout=a.timeout)
+                                               "%s/variant_%s_s%d" % (job, name, seed), work, timeout=a.timeout)
                 var = out_rgb.convert("RGBA")
                 var.putalpha(alpha)
                 # pixels outside the feathered region are bit-identical to the base
@@ -239,7 +243,7 @@ def main(argv=None):
                 tp = os.path.join(vcand, "%s_s%d.png" % (name, seed))
                 var.save(tp)
                 P.write_json(tp[:-4] + ".json", {
-                    "hero": a.hero, "variant": name, "seed": seed, "denoise": den, "base": P.rel(img_path),
+                    "hero": a.hero, "skin": t["skin"], "variant": name, "seed": seed, "denoise": den, "base": P.rel(img_path),
                     "base_sha": base_sha, "face_box": face_box, "region": region, "region_name": spec["region"],
                     "patch_rect": region, "crop": info["crop"], "prompt": pr["positive"], "negative": pr["negative"],
                     "settings": P.settings_for_meta(s), "dry_run": a.dry_run, "created": P.stamp()})
@@ -248,7 +252,7 @@ def main(argv=None):
             tries = [(sd, Image.open(os.path.join(vcand, "%s_s%d.png" % (name, sd))).convert("RGBA"))
                      for sd in all_seeds if os.path.exists(os.path.join(vcand, "%s_s%d.png" % (name, sd)))]
             sheet = before_after_sheet(base, tries, crop, os.path.join(vdir, "sheet_%s.png" % name),
-                                       "%s %s: base + tries (pick with --pick %s=SEED)" % (a.hero, name, name))
+                                       "%s %s: base + tries (pick with --pick %s=SEED)" % (t["label"], name, name))
             picked = entry.get("picked_seed")
             out_png = os.path.join(vdir, name + ".png")
             if picked is None or not os.path.exists(out_png):
@@ -275,7 +279,7 @@ def main(argv=None):
                            "base_eyes": h.get("default_eyes", "open")}})
         P.write_json(record_path, record)
         if a.dry_run:
-            log("dry run: variants are copies of the base; API JSON in %s" % P.rel(os.path.join(comfy.dryrun_dir(), a.hero)))
+            log("dry run: variants are copies of the base; API JSON in %s" % P.rel(os.path.join(comfy.dryrun_dir(), job)))
     except (P.PipelineError, comfy.ComfyError, prompts.ContentRuleError, prompts.PromptError, workflows.WorkflowError,
             KeyError, ValueError) as e:
         print("ERROR: %s" % e, file=sys.stderr)

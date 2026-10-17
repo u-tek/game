@@ -374,11 +374,12 @@ def full_body(bible, hero_id, family, background_key=None, extra_tags="", skin=N
     return _finish(bible, hero_id, positive, negative)
 
 
-def face(bible, hero_id, family, variant=None, background_key=None):
+def face(bible, hero_id, family, variant=None, background_key=None, skin=None):
     """Prompt for a face crop: polish (variant None) or an expression variant (eyes_closed, ...).
     Only face identity tags + the expression: no prose, costume or pose (the crop shows a face,
-    and the base expression must not leak into a variant)."""
-    h = _hero(bible, hero_id)
+    and the base expression must not leak into a variant). skin: a skin's expression for the polish
+    (identity stays the hero's, skin_view)."""
+    h = skin_view(bible, hero_id, skin) if skin else _hero(bible, hero_id)
     fam = family_block(bible, family)
     _, bg = background(bible, hero_id, background_key)
     if variant:
@@ -442,9 +443,10 @@ def variant_conflicts(bible, hero_id, variant, positive):
     return ["%r" % t for t in bad]
 
 
-def custom(bible, hero_id, family, tags, extra_negative="", background_key=None):
-    """Prompt for fixing a region (hands, a prop): hero identity tags + the given tags (no prose)."""
-    h = _hero(bible, hero_id)
+def custom(bible, hero_id, family, tags, extra_negative="", background_key=None, skin=None):
+    """Prompt for fixing a region (hands, a prop): hero identity tags + the given tags (no prose).
+    skin: that skin's outfit and props (skin_view)."""
+    h = skin_view(bible, hero_id, skin) if skin else _hero(bible, hero_id)
     fam = family_block(bible, family)
     _, bg = background(bible, hero_id, background_key)
     body = join_tags(h["subject"], tags, h["hair"], h["outfit"], h.get("footwear", ""), h["accessories"],

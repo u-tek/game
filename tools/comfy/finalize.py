@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Turn a chosen candidate into the delivery image (docs/dev/art-style.md section 2).
 
-    python3 tools/comfy/finalize.py <hero_id> <seed | candidate.png> [--dry-run] [options]
+    python3 tools/comfy/finalize.py <hero_id> <seed | candidate.png> [--skin SKIN] [--dry-run] [options]
 
 Steps (server steps are skipped/passed through in --dry-run, which still writes their API JSON):
   1. optional full-image img2img polish (--refine-denoise 0.25-0.35)
@@ -17,6 +17,9 @@ Outputs in art_src/<id>/final/: <id>.png, <id>_portrait.png, <id>_check.png (cut
 magenta / dark), <id>_boxes.png (face + portrait boxes), <id>.json (with sha256 of the image and of
 its source), <id>_source.png/.json (a copy of the chosen candidate: the master is never lost), plus
 work files in work/.
+--skin <skin id> (bible "skins", e.g. imra_lucky_ember or lucky_ember) finalizes a skin candidate from
+art_src/<id>/skins/<art>/candidates/ into art_src/<id>/skins/<art>/final/<art>.* instead (the repaint
+passes use the skin's prompt; the face keeps the hero's identity).
 
 An existing final is never overwritten silently: without --force the run stops. With --force the
 old final/, variants/ and masks/ move to art_src/<id>/history/<timestamp>/ (variants made from the
@@ -41,14 +44,15 @@ import prompts  # noqa: E402
 import workflows  # noqa: E402
 
 
-def find_candidate(hero_id, spec, dry_run):
+def find_candidate(target, spec):
     if os.path.exists(spec):
         return os.path.abspath(spec)
     if str(spec).lstrip("s").isdigit():
-        p = os.path.join(P.hero_dir(hero_id, dry_run), "candidates", "%s_s%s.png" % (hero_id, str(spec).lstrip("s")))
+        p = os.path.join(target["dir"], "candidates", "%s_s%s.png" % (target["hero"], str(spec).lstrip("s")))
         if os.path.exists(p):
             return p
-        raise P.PipelineError("no candidate %s (run run_hero.py first)" % P.rel(p))
+        raise P.PipelineError("no candidate %s (run run_hero.py %s%s first)" % (
+            P.rel(p), target["hero"], " --skin " + target["skin"] if target["skin"] else ""))
     raise P.PipelineError("candidate %r not found" % spec)
 
 
@@ -74,17 +78,24 @@ def main(argv=None):
     ap.add_argument("--seed", type=int, help="seed for the polish passes (default: candidate seed + 7)")
     ap.add_argument("--force", action="store_true",
                     help="replace an existing final: archive final/, variants/, masks/ to history/<timestamp>/")
+    ap.add_argument("--skin", help="skin id (bible 'skins'): finalize that skin's candidate into "
+                                   "art_src/<id>/skins/<art>/final/")
     P.add_common_args(ap)
     a = ap.parse_args(argv)
     log = (lambda *x: None) if a.quiet else print
     try:
         bible = prompts.load_bible()
-        if a.hero not in bible["heroes"]:
-            raise P.PipelineError("unknown hero %r" % a.hero)
-        src_path = find_candidate(a.hero, a.candidate, a.dry_run)
+        t = P.art_target(bible, a.hero, a.skin, a.dry_run)
+        name, job = t["name"], t["job"]
+        src_path = find_candidate(t, a.candidate)
         cmeta = P.read_json(src_path[:-4] + ".json", {}) or {}
-        hdir = P.hero_dir(a.hero, a.dry_run)
-        final_png = os.path.join(hdir, "final", a.hero + ".png")
+        if "skin" in cmeta and (cmeta["skin"] or None) != t["skin"]:     # run_hero records it
+            raise P.PipelineError("%s was rendered for %s, not %s: pass %s" % (
+                P.rel(src_path), "skin " + cmeta["skin"] if cmeta.get("skin") else "the base look",
+                "skin " + t["skin"] if t["skin"] else "the base look",
+                "--skin " + cmeta["skin"] if cmeta.get("skin") else "no --skin"))
+        hdir = t["dir"]
+        final_png = os.path.join(hdir, "final", name + ".png")
         if os.path.abspath(src_path).startswith(os.path.abspath(os.path.join(hdir, "final")) + os.sep):
             raise P.PipelineError("%s is a finalize output; finalize a candidate (or a fix.py _fixed.png)"
                                   % P.rel(src_path))
@@ -100,23 +111,23 @@ def main(argv=None):
         s, disc, oi = P.resolve_settings(bible, a, client, a.hero)
         bg_key, bg = prompts.background(bible, a.hero, (cmeta.get("background") or {}).get("key"))
         work = os.path.join(hdir, "work")
-        seed = a.seed if a.seed is not None else int(cmeta.get("seed", bible["heroes"][a.hero]["seed_base"])) + 7
+        seed = a.seed if a.seed is not None else int(cmeta.get("seed", t["seed_base"])) + 7
         img = Image.open(src_path)
         img = P.flat_rgb(img, bg["rgb"]) if img.mode == "RGBA" else img.convert("RGB")
         steps_done = []
-        log("finalize %s from %s (%dx%d), checkpoint %s" % (a.hero, P.rel(src_path), img.width, img.height, s["checkpoint"]))
+        log("finalize %s from %s (%dx%d), checkpoint %s" % (t["label"], P.rel(src_path), img.width, img.height, s["checkpoint"]))
 
         # 1. optional full-image polish
         if a.refine_denoise and a.refine_denoise > 0:
-            pr = prompts.full_body(bible, a.hero, s["family"], background_key=bg_key)
-            p = os.path.join(work, "%s_refine_src.png" % a.hero)
+            pr = prompts.full_body(bible, a.hero, s["family"], background_key=bg_key, skin=t["skin"])
+            p = os.path.join(work, "%s_refine_src.png" % name)
             os.makedirs(work, exist_ok=True)
             img.save(p)
-            name = client.upload_image(p, subfolder=P.SERVER_SUBFOLDER)
-            g = workflows.img2img(s, name, pr["positive"], pr["negative"], seed, a.refine_denoise,
-                                  "%s/%s/refine_s%d" % (P.SERVER_SUBFOLDER, a.hero, seed))
-            out = client.run(g, "%s/refine_s%d" % (a.hero, seed), work, timeout=a.timeout,
-                             names=["%s_refine_out.png" % a.hero])
+            sname = client.upload_image(p, subfolder=P.SERVER_SUBFOLDER)
+            g = workflows.img2img(s, sname, pr["positive"], pr["negative"], seed, a.refine_denoise,
+                                  "%s/%s/refine_s%d" % (P.SERVER_SUBFOLDER, job, seed))
+            out = client.run(g, "%s/refine_s%d" % (job, seed), work, timeout=a.timeout,
+                             names=["%s_refine_out.png" % name])
             if out:
                 img = Image.open(out[0]).convert("RGB")
             steps_done.append({"step": "img2img", "denoise": a.refine_denoise, "seed": seed})
@@ -129,16 +140,16 @@ def main(argv=None):
             quick, _ = post.remove_background(img, holes=False, feather=0)
             face_box, conf = post.estimate_face_box(quick, P.skin_profile(bible, a.hero))
         log("face box %s (%s)%s" % (",".join(map(str, face_box)), conf,
-                                    "" if conf == "user" else "  -> check final/%s_boxes.png; override with --face-box" % a.hero))
+                                    "" if conf == "user" else "  -> check final/%s_boxes.png; override with --face-box" % name))
         if not a.no_face_refine:
-            pr = prompts.face(bible, a.hero, s["family"], background_key=bg_key)
+            pr = prompts.face(bible, a.hero, s["family"], background_key=bg_key, skin=t["skin"])
             fr = bible["regions"]["face"]
             mbox = post.region_box(face_box, fr)
             mask = P.ellipse_mask(img.size, mbox, feather=max(3, face_box[3] // 30))
             crop = P.square_box(face_box, img.size, scale=1.8)
             den = a.face_denoise if a.face_denoise is not None else bible["face_refine"]["denoise"]
             img, info = P.crop_inpaint(client, s, img, crop, mask, pr["positive"], pr["negative"], seed, den,
-                                       "%s/face_refine_s%d" % (a.hero, seed), work, timeout=a.timeout)
+                                       "%s/face_refine_s%d" % (job, seed), work, timeout=a.timeout)
             steps_done.append({"step": "face_refine", "denoise": den, "seed": seed, "crop": info["crop"]})
 
         # 3. upscale
@@ -154,18 +165,18 @@ def main(argv=None):
             tiled = {"denoise": a.tiled_denoise if a.tiled_denoise is not None
                      else workflows.TILED_DEFAULTS["denoise"], "seed": seed}
         if use_up:
-            p = os.path.join(work, "%s_up_src.png" % a.hero)
+            p = os.path.join(work, "%s_up_src.png" % name)
             os.makedirs(work, exist_ok=True)
             img.save(p)
-            name = client.upload_image(p, subfolder=P.SERVER_SUBFOLDER)
+            sname = client.upload_image(p, subfolder=P.SERVER_SUBFOLDER)
             if tiled:
-                pr = prompts.full_body(bible, a.hero, s["family"], background_key=bg_key)
-                g = workflows.tiled_upscale(s, name, pr["positive"], pr["negative"], seed,
-                                            "%s/%s/upscale" % (P.SERVER_SUBFOLDER, a.hero), oi, scale=2.0,
+                pr = prompts.full_body(bible, a.hero, s["family"], background_key=bg_key, skin=t["skin"])
+                g = workflows.tiled_upscale(s, sname, pr["positive"], pr["negative"], seed,
+                                            "%s/%s/upscale" % (P.SERVER_SUBFOLDER, job), oi, scale=2.0,
                                             denoise=tiled["denoise"])
             else:
-                g = workflows.upscale(s, name, "%s/%s/upscale" % (P.SERVER_SUBFOLDER, a.hero), scale=2.0)
-            out = client.run(g, "%s/upscale" % a.hero, work, timeout=a.timeout, names=["%s_up.png" % a.hero])
+                g = workflows.upscale(s, sname, "%s/%s/upscale" % (P.SERVER_SUBFOLDER, job), scale=2.0)
+            out = client.run(g, "%s/upscale" % job, work, timeout=a.timeout, names=["%s_up.png" % name])
             factor = 2.0
             if out:
                 up = Image.open(out[0]).convert("RGB")
@@ -185,12 +196,12 @@ def main(argv=None):
         if a.cutout == "server" and not rec:
             raise P.PipelineError("--cutout server: no background-removal node on the server")
         if a.cutout in ("auto", "server") and rec and oi:
-            p = os.path.join(work, "%s_cut_src.png" % a.hero)
+            p = os.path.join(work, "%s_cut_src.png" % name)
             os.makedirs(work, exist_ok=True)
             img.save(p)
-            name = client.upload_image(p, subfolder=P.SERVER_SUBFOLDER)
-            g = workflows.remove_background(rec, name, "%s/%s/mask" % (P.SERVER_SUBFOLDER, a.hero), oi)
-            out = client.run(g, "%s/rembg" % a.hero, work, timeout=a.timeout, names=["%s_mask.png" % a.hero])
+            sname = client.upload_image(p, subfolder=P.SERVER_SUBFOLDER)
+            g = workflows.remove_background(rec, sname, "%s/%s/mask" % (P.SERVER_SUBFOLDER, job), oi)
+            out = client.run(g, "%s/rembg" % job, work, timeout=a.timeout, names=["%s_mask.png" % name])
             if out:
                 mask_img = Image.open(out[0])
             steps_done.append({"step": "cutout", "method": rec["class"]})
@@ -201,30 +212,32 @@ def main(argv=None):
         final_dir = os.path.join(hdir, "final")
         if os.path.exists(final_dir):
             P.archive(hdir, ["final", "variants", "masks"], log=log,
-                      reason="finalize.py --force %s %s at %s" % (a.hero, a.candidate, P.stamp()))
+                      reason="finalize.py --force %s %s at %s" % (t["label"], a.candidate, P.stamp()))
         meta = post.finalize_local(
-            a.hero, img, final_dir, face_box=face_box, face_source=conf, skin_profile=P.skin_profile(bible, a.hero),
+            name, img, final_dir, face_box=face_box, face_source=conf, skin_profile=P.skin_profile(bible, a.hero),
             bg=None, mask=mask_img, feet_y_src=a.feet_y,
             tol=a.tol, holes=not a.no_holes, flip=a.flip,
-            extra_meta={"source_candidate": P.rel(src_path), "candidate_seed": cmeta.get("seed"),
-                        "source_sha256": src_sha, "source_copy": a.hero + "_source.png",
+            extra_meta={"hero": a.hero, "skin": t["skin"], "art": t["art"] or None,
+                        "source_candidate": P.rel(src_path), "candidate_seed": cmeta.get("seed"),
+                        "source_sha256": src_sha, "source_copy": name + "_source.png",
                         "polish_seed": seed, "steps": steps_done, "settings": P.settings_for_meta(s),
                         "created": P.stamp(), "dry_run": a.dry_run})
         # keep the master: candidates/*.png are git-ignored and can be re-rendered over
-        shutil.copyfile(src_path, os.path.join(final_dir, a.hero + "_source.png"))
+        shutil.copyfile(src_path, os.path.join(final_dir, name + "_source.png"))
         for ext in (".json", ".api.json"):
             if os.path.exists(src_path[:-4] + ext):
-                shutil.copyfile(src_path[:-4] + ext, os.path.join(final_dir, a.hero + "_source" + ext))
-        meta["sha256"] = P.sha256_file(os.path.join(final_dir, a.hero + ".png"))
-        P.write_json(os.path.join(final_dir, a.hero + ".json"), meta)
+                shutil.copyfile(src_path[:-4] + ext, os.path.join(final_dir, name + "_source" + ext))
+        meta["sha256"] = P.sha256_file(os.path.join(final_dir, name + ".png"))
+        P.write_json(os.path.join(final_dir, name + ".json"), meta)
         for n in meta["transform"]["notes"]:
             log("note: %s" % n)
         log("final: %s  (figure %.0f px tall, head ~%d px, face box %s)" % (
-            P.rel(os.path.join(final_dir, a.hero + ".png")), meta["transform"]["figure_h"], meta["head_px_estimate"],
+            P.rel(os.path.join(final_dir, name + ".png")), meta["transform"]["figure_h"], meta["head_px_estimate"],
             ",".join(map(str, meta["face_box"]))))
-        log("review: %s and %s" % (P.rel(os.path.join(final_dir, a.hero + "_check.png")),
-                                   P.rel(os.path.join(final_dir, a.hero + "_boxes.png"))))
-        log("next: python3 tools/comfy/variants.py %s%s" % (a.hero, " --dry-run" if a.dry_run else ""))
+        log("review: %s and %s" % (P.rel(os.path.join(final_dir, name + "_check.png")),
+                                   P.rel(os.path.join(final_dir, name + "_boxes.png"))))
+        log("next: python3 tools/comfy/variants.py %s%s%s" % (a.hero, " --skin " + t["skin"] if t["skin"] else "",
+                                                             " --dry-run" if a.dry_run else ""))
     except (P.PipelineError, comfy.ComfyError, prompts.ContentRuleError, workflows.WorkflowError, ValueError) as e:
         print("ERROR: %s" % e, file=sys.stderr)
         return 1

@@ -3,6 +3,8 @@ weights from region masks + overlay patches), portrait, imports.  Spec: docs/dev
 
     python3 tools/art_warp_build.py seraphiel [--regen-masks] [--check]
     tools/art_warp seraphiel            # same, then Godot import (use this one)
+    tools/art_warp imra@lucky_ember     # a skin: assets/art/heroes/imra/skins/lucky_ember/, files named
+                                        # lucky_ember.* (the folder RigData.load_rig(hero, art) reads)
 
 Inputs in assets/art/heroes/<id>/:
     <id>.warp_src.json      rig setup: bones (pivots), regions (+ mask rules), overlays, grid
@@ -181,14 +183,22 @@ def r1(v):
 
 
 # ------------------------------------------------------------------ build
+def rig_dir(rig_id):
+    """(folder, file name, hero id) of a rig id: <id> (base art) or <id>@<art> (a skin)."""
+    hero_id, _, art = rig_id.partition("@")
+    if art:
+        return os.path.join(HEROES, hero_id, "skins", art), art, hero_id
+    return os.path.join(HEROES, hero_id), hero_id, hero_id
+
+
 def build(hero, regen=False, check=False):
-    hdir = os.path.join(HEROES, hero)
-    src_path = os.path.join(hdir, hero + ".warp_src.json")
+    hdir, name, hero_id = rig_dir(hero)      # `hero` stays the label in messages (<id> or <id>@<art>)
+    src_path = os.path.join(hdir, name + ".warp_src.json")
     if not os.path.exists(src_path):
         err(hero, "missing " + src_path)
         return
     src = json.load(open(src_path))
-    img_path = os.path.join(hdir, src.get("image", hero + ".png"))
+    img_path = os.path.join(hdir, src.get("image", name + ".png"))
     if not os.path.exists(img_path):
         err(hero, "missing image " + img_path)
         return
@@ -422,10 +432,10 @@ def build(hero, regen=False, check=False):
     pc = src.get("portrait", [ox, oy - 1700, 480])
     prect = [pc[0] - pc[2] / 2, pc[1] - pc[2] / 2, pc[2], pc[2]]
     meta = dict(src.get("meta", {}))
-    out = {"format": "halowarp", "version": FORMAT_VERSION, "id": hero,
-           "image": os.path.basename(img_path) if texel == 1.0 else "%s_warp.png" % hero,
+    out = {"format": "halowarp", "version": FORMAT_VERSION, "id": hero_id,
+           "image": os.path.basename(img_path) if texel == 1.0 else "%s_warp.png" % name,
            "image_size": [W, H], "canvas": [W, H], "origin": [ox, oy], "texel_scale": texel,
-           "look_px": src.get("look_px", [14, 8]), "still": os.path.basename(img_path), "portrait": "%s_portrait.png" % hero,
+           "look_px": src.get("look_px", [14, 8]), "still": os.path.basename(img_path), "portrait": "%s_portrait.png" % name,
            "portrait_rect": prect, "bounds": [r1(bx0 - ox), r1(by0 - oy), r1(bx1 - bx0), r1(by1 - by0)],
            "meta": meta, "body_bone": body, "max_influences": MAX_INFLUENCES,
            "bones": bones_json, "slots": slots,
@@ -446,7 +456,7 @@ def build(hero, regen=False, check=False):
         p = os.path.join(hdir, sub)
         if os.path.isdir(p) and not os.path.exists(os.path.join(p, ".gdignore")):
             open(os.path.join(p, ".gdignore"), "w").close()
-    json.dump(out, open(os.path.join(hdir, hero + ".warp.json"), "w"), separators=(",", ":"))
+    json.dump(out, open(os.path.join(hdir, name + ".warp.json"), "w"), separators=(",", ":"))
     print("art_warp_build: [%s] %d bones, %d regions, %d overlay slots, %d vertices, %d triangles" % (
         hero, len(bones_json), len(regions), len(slots), nv, nt))
     _ = sc
@@ -458,7 +468,13 @@ def main():
     check = "--check" in args
     ids = [a for a in args if not a.startswith("--")]
     if not ids:
-        ids = [d for d in sorted(os.listdir(HEROES)) if os.path.exists(os.path.join(HEROES, d, d + ".warp_src.json"))]
+        for d in sorted(os.listdir(HEROES)):
+            if os.path.exists(os.path.join(HEROES, d, d + ".warp_src.json")):
+                ids.append(d)
+            sk = os.path.join(HEROES, d, "skins")
+            for art in sorted(os.listdir(sk)) if os.path.isdir(sk) else []:
+                if os.path.exists(os.path.join(sk, art, art + ".warp_src.json")):
+                    ids.append("%s@%s" % (d, art))
     for h in ids:
         build(h, regen, check)
     print("art_warp_build: %d hero(es), %d error(s), %d warning(s)" % (len(ids), errors, warnings))

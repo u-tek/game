@@ -60,9 +60,25 @@ shop's test purchases cover them.
 ## Production
 
 Each skin is one art job, the same as a hero: candidates, a pick, a final with the tiled
-repaint, three face variants, a 1:1 review, install, rig. The launch set is 30 jobs. The model
-and settings come from the owner's checkpoint tests; the GPU time per skin is quoted once they
-are chosen, and long runs wait for the owner's go-ahead.
+repaint, three face variants, a 1:1 review, install, rig. Same model and settings as the base art
+(`docs/dev/status.md`); long runs wait for the owner's go-ahead. Every ComfyUI tool takes
+`--skin <skin id>` (the full id like `kessa_card_shark`, or the short `card_shark`):
+
+```bash
+python tools/comfy/run_hero.py kessa --skin card_shark --count 3 --size 896x1152   # candidates
+python tools/comfy/finalize.py kessa 208001 --skin card_shark    # face pass + tiled 2x repaint + cutout
+python tools/comfy/variants.py kessa --skin card_shark           # blink, talk, smile
+python tools/comfy/install.py kessa --skin card_shark            # after the 1:1 review
+python tools/art_warp_build.py kessa@card_shark --regen-masks    # rig (tools/art_warp on Linux)
+```
+
+Work files live in `art_src/<hero>/skins/<art>/` (`candidates/`, `final/<art>.png`, `variants/`,
+`masks/`); `install.py` checks the skin against `data/skins.json` and copies into
+`assets/art/heroes/<hero>/skins/<art>/` with the hand-off in `art_src/_handoff/<hero>@<art>.json`.
+The rig source `<art>.warp_src.json` in that folder is written by hand like a hero's (a new pose
+needs its own pivots and region polygons; start from the hero's). Once `<art>.warp.json` exists the
+game shows the skin instead of "Coming soon". `finalize.py` refuses a skin candidate without
+`--skin` (and the reverse), and `run_hero.py --force` never re-renders a skin final's master seed.
 
 ## Game work (built 2026-10-17)
 
@@ -79,5 +95,5 @@ are chosen, and long runs wait for the owner's go-ahead.
   skins). The Lobby sprite, the hero page and the player's units in battle wear the equipped
   skin; enemies (campaign echoes) keep the base look.
 - Tests: `tests/unit/test_skins.gd` (data, buy, equip, save round trip, migrate, art fallback).
-- Not yet: skin art (the art jobs above), the equipped skin on portrait cards and the summon
-  reveal, and skin bundles for real money.
+- Not yet: installed skin art (the art jobs above wait for the owner's picks), the equipped skin
+  on portrait cards and the summon reveal, and skin bundles for real money.

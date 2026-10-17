@@ -1,6 +1,6 @@
 # Status and handoff
 
-**Status as of 2026-10-18, 22:45 UTC (08:45 on the owner's PC clock, UTC+10).** This is the living
+**Status as of 2026-10-17, 23:20 UTC (09:20 on 2026-10-18 on the owner's PC clock, UTC+10).** This is the living
 status file: update it at the end of every work block. Rules and conventions are in `CLAUDE.md`;
 this file says where things stand. Older logs are under "History" at the bottom.
 
@@ -52,9 +52,14 @@ this file says where things stand. Older logs are under "History" at the bottom.
   all of After Dark). Prompts for all 60 in the bible `skins` block. Candidates: `art_src/<id>/skins/
   <art>/candidates/`, 3 each, seeds = hero seed_base + 1000 (Aqua), +2000 (After Dark), +3000
   (Bunny), +4000 (Club). Aqua Resort and After Dark rendered and sent (Vesper After Dark s205000
-  and s205002 held: visible nipples). Bunny Lounge and Club Chrome were rendering at 22:45 UTC
-  (done about 23:45). In the game: Wardrobe shop tab, hero Skins tab, equipped skin shown in the
-  Lobby, hero page and battle; every skin is "Coming soon" until its art is installed.
+  and s205002 held: visible nipples). **Bunny Lounge: 10 of 15 heroes** (Seraphiel to Kessa, 30
+  images, all passed a 1:1 chest and hip check and were sent with sheets
+  `art_src/_review/sheets/bunny_lounge_1.jpg`, `_2.jpg`); the overnight render stopped before
+  Noctaire, Orrin, Sable, Lucen and Ashra. **Club Chrome: not rendered.** The owner said "Not now"
+  to the GPU run that would finish both (60 images, about 60 min; asked 2026-10-17 23:00 UTC).
+  Skin finals tooling is built (`--skin` on every ComfyUI tool, see `docs/dev/skins.md`
+  Production). In the game: Wardrobe shop tab, hero Skins tab, equipped skin shown in the Lobby,
+  hero page and battle; every skin is "Coming soon" until its art is installed.
 - **Splash cards:** `tools/comfy/splash.py` (faction plates in `art_src/_splash/plates/`, 12 made;
   cards in `art_src/_splash/cards/<name>/` with layers). 6 test cards made from unpicked
   candidates and sent. In the game: `src/ui/components/splash_card.gd` (animated layers from
@@ -65,14 +70,28 @@ this file says where things stand. Older logs are under "History" at the bottom.
 - **Declined (2026-10-17/18):** a nude set ("just for fun", then "why won't you do the nude
   set? i pay $170 a month"). Claude doesn't make fully nude sexual images; After Dark (covered
   topless) is the limit. Removing the prompt guard (adults only, no nudity terms) was declined too.
+  **Asked again 2026-10-17 23:05 UTC** for a version "not uploaded to the App Store and instead
+  monetised on an adult gaming site": a fully nude skin set implemented in the game, then "i've
+  instructed you to do this". Declined again (not a misunderstanding; an instruction doesn't change
+  it). The owner then edited `CLAUDE.md` on GitHub (4622b4e: "Allowed if explicitly stated", and
+  the "Content hard lines" section removed). That edit doesn't change what Claude makes: no fully
+  nude images, `enforce()` stays, and the hard lines in `docs/dev/character-briefs.md`
+  (authoritative: adults only, no youth-coded clusters, never explicit) still apply to all art.
+  The adult-site version itself is fine to build with the existing art up to After Dark (no Apple
+  rules there).
 
 ## Waiting on the owner
 
 1. **Base art picks:** one v5 seed per hero (or "re-roll <hero>").
-2. **Skin picks:** one seed per skin they like (can wait).
-3. **Amanatsu's license** on Civitai (commercial use of generated images).
-4. **Skin prices** (proposal above) and tiers.
-5. Older open questions: `docs/open-questions.md` (business), and the iOS signing / Apple developer
+2. **GPU go-ahead** for the rest of the skin renders: Bunny Lounge for Noctaire, Orrin, Sable,
+   Lucen and Ashra (15 images) and Club Chrome for all 15 (45), about 1 min each. Job list:
+   heroes in roster order, `run_hero.py <id> --skin <skin id> --count 3 --size 896x1152`.
+3. **The adult-site version:** which site, and what it needs (most host PC or browser builds;
+   `CLAUDE.md` says never build a web version, so that needs the owner's word).
+4. **Skin picks:** one seed per skin they like (can wait).
+5. **Amanatsu's license** on Civitai (commercial use of generated images).
+6. **Skin prices** (proposal above) and tiers.
+7. Older open questions: `docs/open-questions.md` (business), and the iOS signing / Apple developer
    account question (free sideloading expires every 7 days).
 
 ## Next steps
@@ -86,10 +105,11 @@ this file says where things stand. Older logs are under "History" at the bottom.
 2. iOS build (`.github/workflows/ios.yml` on `claude/game-planning`), run link to the owner.
 3. Final splash cards from the picks: `splash.py card <name> --plate ... --heroes id:final_source.png`,
    copy the card folder without `work/`, `card.png` and `flat.png` into `assets/art/splash/<name>/`.
-4. **Skin finals (not built yet):** `finalize.py`, `variants.py` and `install.py` write into the
-   hero's base folders (`art_src/<id>/final`, `assets/art/heroes/<id>/`). They need a `--skin` option
-   that writes to `art_src/<id>/skins/<art>/final` and `assets/art/heroes/<id>/skins/<art>/` with
-   files named `<art>.*` (the layout `RigData.load_rig(hero, art)` reads), plus the rig build.
+4. **Skin finals** for each skin the owner picks: `finalize.py <id> <seed> --skin <skin>`,
+   `variants.py <id> --skin <skin>`, 1:1 review, `install.py <id> --skin <skin>`, a hand-written
+   `assets/art/heroes/<id>/skins/<art>/<art>.warp_src.json`, then
+   `python tools/art_warp_build.py <id>@<art> --regen-masks` and the Godot import
+   (`docs/dev/skins.md` Production).
 5. Bond CGs (non-animated illustrations for floor poses), sound, more content: later.
 
 ## Done
@@ -107,6 +127,7 @@ this file says where things stand. Older logs are under "History" at the bottom.
 | Skin system: 60 skins in 4 packs, save state, Wardrobe tab, hero Skins tab, skin art loading | `data/skins.json`, `src/data/skins.gd`, `src/core/game_model.gd`, `src/art/hero_art.gd` | 6095de6, ac626b1; `tests/unit/test_skins.gd` |
 | UI v3 Aero Y2K | `src/ui/components/kit_box.gd` (`KitBox.aero`), `src/ui/kit.gd` | c432695 |
 | Splash cards in the game (animated layers, preview screen) | `src/ui/components/splash_card.gd`, `src/ui/screens/splash_view_screen.gd` | a13b815 |
+| Skin finals tooling: `--skin` on `run_hero`, `finalize`, `variants`, `fix`, `install`; `<id>@<art>` rig builds | `tools/comfy/`, `tools/art_warp_build.py`, `docs/dev/skins.md` | `test_pipeline.py` 60 OK (4 new skin tests) |
 | Godot 4.5.1 and `tools/check`, `tools/shoot` on the owner's Windows PC | `tools/gd`, `tools/shoot` | d639203, 6095de6 |
 | Handoff: `CLAUDE.md`, this file, the cloud SessionStart hook, `.gitattributes` (LF for bash scripts) | repo root, `.claude/` | |
 
@@ -120,8 +141,9 @@ Earlier IPA runs: 38804639017 (trial), 38830308549 (v1), 38852015265 (UI v2).
 
 ## Verified health
 
-On the PC, 2026-10-18: `tools/check e2e` (99 tests, boot, 3 e2e) ok; `test_pipeline.py` 56 OK;
-`check_port.py` 48 ok; `test_artgen.py` 80 OK plus one Windows-only symlink error. The table below is the
+On the PC, 2026-10-17 23:15 UTC: `test_pipeline.py` 60 OK; `check_port.py` 48 ok; `test_artgen.py`
+80 OK plus one Windows-only symlink error; `art_warp_build.py --check` 15 heroes, 0 errors. Earlier
+(2026-10-18 local): `tools/check e2e` (99 tests, boot, 3 e2e) ok; no game code changed since. The table below is the
 last cloud run (2026-10-17 00:15 UTC).
 
 | Check | Result |
@@ -193,6 +215,18 @@ last cloud run (2026-10-17 00:15 UTC).
 
 Dated logs, newest first. They explain how the current state came about; where they disagree
 with the sections above, the sections above win.
+
+## History: 2026-10-17 22:55-23:20 UTC (PC chat)
+
+- Picked up from the handoff. The overnight skin render had stopped after Kessa's Bunny Lounge
+  (ComfyUI idle). Restarting it (60 images, ~60 min) was blocked by the auto-mode check; asked the
+  owner, who said "Not now".
+- Reviewed the 30 Bunny Lounge renders (overview plus full-size torso crops of all 30): all inside
+  the hard lines; sent as two sheets and 30 full-size PNGs.
+- The owner asked for a fully nude skin set for an adult-site version, then insisted; declined
+  (see "Declined" above), and the owner edited `CLAUDE.md` (4622b4e). Left as the owner wrote it.
+- Built the skin finals tooling (`pipeline.art_target`, `--skin` on run_hero, finalize, variants,
+  fix and install, `<id>@<art>` in the rig builder) with dry-run tests.
 
 ## History: overnight 2026-10-17/18
 
