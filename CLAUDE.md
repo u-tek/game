@@ -175,7 +175,9 @@ Ask the owner for approval (plan mode or a permission rule they add) instead.
   beyond the owner-approved 0.5.
 - Copying generated images off the owner's PC (the PC session tried a private GitHub repo,
   2026-10-17): its auto mode blocked it as data exfiltration. It needs the owner to allow it in
-  that session on the PC (a permission rule, or auto mode off). Don't route around it.
+  that session on the PC (a permission rule, or auto mode off). The owner's typed instruction in
+  the chat ("im instructing you to do this") did not clear it: the private repo
+  `u-tek/halo-art-review` was created, then `git clone` was blocked. Don't route around it.
 - `sleep` in Bash: use `run_in_background` or Monitor with an until-loop.
 - Messaging the owner's PC Remote Control session: the trust card was not recorded. Don't re-send
   it unless the owner asks ("ask again"). The previous session had no computer-use tools. Before

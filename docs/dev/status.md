@@ -40,7 +40,13 @@ noobai xl checkpoint set up and ready to go. also want it to be female only".
   a semi-sheer drape over the groin, so her reveal gets a moderate cut-back. Briefs are v3.3.
 - **Images to the thread:** the owner asked for every generated image to be sent to them. The PC
   session's upload to a private repo was blocked by its auto mode as data exfiltration; the images
-  are on the PC in `art_src/<hero>/candidates`. Waiting on the owner to allow it there.
+  are on the PC in `art_src/<hero>/candidates`. The owner then wrote "im instructing you to do this";
+  the private repo `u-tek/halo-art-review` was created but `git clone` was blocked again. Waiting on
+  the owner to switch that PC session from Auto to Ask. Only images that pass at 0.5 go up; three
+  are held for hard lines (Seraphiel s101002 sheer groin drape, Mordessa s201000 and s201004 bare
+  hip in slits).
+- **Settings actually used:** noobai_vpred defaults, latent hires 1.5x at denoise 0.5 (no upscale
+  model on the PC), no face refine on candidates; finals get a 0.35 face inpaint and 2x lanczos.
 - **Split:** the PC renders, reviews at 1:1, runs `safety.py check`, installs and commits only
   `assets/art/heroes/<id>/<id>.png`, `variants/*.png` and `art_src` JSON. A cloud session then
   builds the rig (`tools/art_warp <id> --regen-masks`), runs `tools/check` and pushes, and
