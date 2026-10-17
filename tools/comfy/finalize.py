@@ -61,8 +61,9 @@ def main(argv=None):
     ap.add_argument("--face-denoise", type=float)
     ap.add_argument("--refine-denoise", type=float, default=0.0, help="full-image img2img polish (0 = off)")
     ap.add_argument("--upscale", choices=["auto", "on", "off", "tiled"], default="auto",
-                    help="2x upscale: auto/on = upscale model (or lanczos), tiled = upscale model then a tiled "
-                         "low-denoise re-draw with the checkpoint (needs the UltimateSDUpscale node)")
+                    help="2x upscale: tiled = upscale model then a tiled low-denoise re-draw with the checkpoint "
+                         "(needs the UltimateSDUpscale node); on = upscale model (or lanczos) only; auto = tiled "
+                         "when the server has the node and an upscale model, else on when it has an upscale model")
     ap.add_argument("--tiled-denoise", type=float, help="--upscale tiled: denoise per tile (default %.2f)"
                     % workflows.TILED_DEFAULTS["denoise"])
     ap.add_argument("--cutout", choices=["auto", "local", "server"], default="auto")
@@ -143,6 +144,8 @@ def main(argv=None):
         # 3. upscale
         use_up = a.upscale in ("on", "tiled") or (a.upscale == "auto" and s.get("upscale_model"))
         tiled = None
+        if a.upscale == "auto" and s.get("upscale_model") and oi and "UltimateSDUpscale" in oi:
+            a.upscale = "tiled"     # the A/B winner (docs/dev/status.md, 2026-10-17)
         if a.upscale == "tiled":
             if not s.get("upscale_model"):
                 raise P.PipelineError("--upscale tiled needs an upscale model on the server")

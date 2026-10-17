@@ -4,9 +4,10 @@
     python3 tools/comfy/roster.py status [--dry-run] [--json]
         one line per hero: background, candidates (and how many carry check flags), chosen master,
         variants done / needed, installed in assets/ (same / differs), rig hand-off written
-    python3 tools/comfy/roster.py candidates [--count N] [--heroes a,b,...] [--dry-run] [run_hero flags]
+    python3 tools/comfy/roster.py candidates [--count N] [--heroes a,b,...] [--seed-offset N] [--dry-run] [run_hero flags]
         run_hero.py for each hero in roster order (starters, legendaries, epics, rares). Existing
         seeds are skipped, so re-running only fills gaps; one hero failing does not stop the rest.
+        --seed-offset N starts each hero at its seed_base + N, for a new round beside the old seeds.
 
 Roster order: uriela, kessa, lucen (starters), seraphiel, mordessa, noctaire (legendaries), cassiel,
 liora, brakka, vesper, orrin, sable (epics), nuriel, imra, ashra (rares).
@@ -82,6 +83,8 @@ def cmd_candidates(a, rest):
     for hid in heroes:
         print("== %s" % hid, flush=True)
         argv = [hid, "--count", str(a.count)] + (["--dry-run"] if a.dry_run else []) + rest
+        if a.seed_offset is not None:
+            argv += ["--seed", str(int(bible["heroes"][hid]["seed_base"]) + a.seed_offset)]
         if run_hero.main(argv) != 0:
             failed.append(hid)
     if failed:
@@ -101,7 +104,11 @@ def main(argv=None):
     ca.add_argument("--count", type=int, default=8)
     ca.add_argument("--heroes", help="comma list (default: all, roster order)")
     ca.add_argument("--dry-run", action="store_true")
+    ca.add_argument("--seed-offset", type=int,
+                    help="first seed = each hero's seed_base + N (a new round that can't collide with earlier seeds)")
     a, rest = ap.parse_known_args(argv)
+    if a.cmd == "candidates" and a.seed_offset is not None and "--seed" in rest:
+        ap.error("--seed-offset and --seed together")
     if a.cmd == "status":
         if rest:
             ap.error("unknown arguments: %s" % " ".join(rest))

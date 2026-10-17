@@ -15,12 +15,21 @@ every work block. Rules and conventions are in `CLAUDE.md`; this file is about w
   (`SendUserFile` works from this chat).
 - **A/B sheets A-C sent** to the owner (`art_src/_review/ab/mordessa_s2010{10,11,15}.jpg`). The
   filter flagged A, B and C of s201011 (BUTTOCKS 0.60-0.66: a highleg leotard, nothing explicit).
-- **D rendered:** B's tags + model hires (4x-AnimeSharp) at denoise 0.4, `art_src/_ab/D-*`.
-- **E (new code):** `workflows.tiled_upscale` (UltimateSDUpscale: upscale model, then 1024 px tiles
-  re-drawn at denoise 0.35 with the family's own model stack) and `finalize.py --upscale tiled
-  [--tiled-denoise X]`. Test `test_tiled_upscale_against_server_schema`; test_pipeline 54 OK. The
-  A/B runs it on the D candidates and shrinks back to candidate size
-  (`art_src/_review/tools/ab_tiled.py`, local).
+- **A/B finished (08:15 UTC), winner adopted without the owner's answer:** D for candidates
+  (NoobAI's own quality tags + model hires with 4x-AnimeSharp at 0.4, about 1 min per image) and E
+  for finals (`workflows.tiled_upscale`: UltimateSDUpscale, 1024 px tiles re-drawn at denoise 0.35,
+  about 4-5 min per image on the 3070). At full size E is far sharper than the old 2x stretch
+  (crown metalwork, eyes, gems, line work). Sheets and full-size close-ups were sent to the owner
+  (`art_src/_review/ab/`). Now the defaults: the bible's `noobai_vpred` tags, `--hires-mode auto`
+  (model hires when an upscaler is installed) and `finalize.py --upscale auto` (tiled when the server
+  has the node).
+- **Prompt fixes:** Mordessa `(red armored dress:1.2), gold trim` (the new tags turned her black);
+  Seraphiel negatives `(see-through:1.3), (transparent:1.2)` against the sheer drape of s101002.
+- **Tools:** `roster.py candidates --seed-offset N` (a new round at seed_base + N beside the old
+  seeds). test_pipeline 54 OK.
+- **Next:** a v4 candidate round for all 15 heroes at `--seed-offset 200` (6 seeds each, about
+  90 min), contact sheets to the owner per hero, picks, finals with the tiled repaint, variants,
+  1:1 review, install, rig.
 
 ## In one paragraph
 

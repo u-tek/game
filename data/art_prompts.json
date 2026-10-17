@@ -25,16 +25,16 @@
   "noobai_vpred": {
    "label": "NoobAI-XL v-prediction (and v-pred merges)",
    "match": ["v[-_ ]?pred"],
-   "quality": "masterpiece, best quality, amazing quality, very aesthetic, newest, absurdres, highres",
+   "quality": "masterpiece, best quality, newest, absurdres, highres, very awa",
    "quality_position": "start",
-   "quality_negative": "worst quality, low quality, displeasing, old, furry, anthro, mammal, feral, sketch",
+   "quality_negative": "worst quality, old, early, low quality, lowres, signature, username, logo, bad hands, mutated hands, worst aesthetic, displeasing, furry, anthro, mammal, feral, sketch",
    "rating": "sensitive",
    "rating_negative": "nsfw, explicit, questionable",
    "use_natural": false,
    "settings": {"sampler": "euler", "scheduler": "normal", "steps": 32, "cfg": 4.5, "width": 768, "height": 1344,
                 "clip_skip": null, "model_sampling": {"sampling": "v_prediction", "zsnr": true}, "rescale_cfg": 0.7,
                 "hires": {"enabled": true, "scale": 1.5, "latent_method": "nearest-exact", "denoise_latent": 0.5, "denoise_model": 0.4, "steps": 20}},
-   "notes": "v-pred needs ModelSamplingDiscrete(v_prediction) and likes RescaleCFG 0.7, plain euler, low CFG. Washed out or burnt: --no-zsnr, or --cfg 4. NoobAI year tags: newest/recent/mid/early/old. Calibrated on NoobAI-XL-Vpred-v1.0 (2026-10-17, Uriela): these settings gave no washed-out or burnt image and CFG 5 changed almost nothing; without the model card's 'absurdres, highres' and a negative 'sketch', about a third of seeds came out as rough sketch line art."
+   "notes": "v-pred needs ModelSamplingDiscrete(v_prediction) and likes RescaleCFG 0.7, plain euler, low CFG. Washed out or burnt: --no-zsnr, or --cfg 4. NoobAI year tags: newest/recent/mid/early/old. Calibrated on NoobAI-XL-Vpred-v1.0 (2026-10-17, Uriela): these settings gave no washed-out or burnt image and CFG 5 changed almost nothing; without the model card's 'absurdres, highres' and a negative 'sketch', about a third of seeds came out as rough sketch line art. Quality A/B on Mordessa (2026-10-17, seeds 201010/201011/201015): the model card's own tags (prefix above with 'very awa', its negatives plus 'worst aesthetic') beat the Illustrious-style tags clearly (cleaner faces, smoother gloss, tidier line work); a model hires pass (4x-AnimeSharp, denoise 0.4, what --hires-mode auto picks when an upscaler is installed) beat latent hires at 0.5 and 0.6; finals get finalize.py's tiled 2x repaint (UltimateSDUpscale, denoise 0.35), far sharper at full size than a plain 2x stretch. Side effect: the new tags pull Mordessa toward a black leotard, so weight the outfit colours that matter."
   },
   "pony": {
    "label": "Pony Diffusion V6 XL and Pony merges",
@@ -179,7 +179,7 @@
    "pose": "hand up, hand on own chest",
    "face": "platinum blonde hair, spiked halo",
    "natural": "A statuesque, voluptuous adult seraph woman in her mid-20s with six white feathered wings framing her, two large pairs and a small pair at her head, and a golden sunray halo crown; very long platinum hair draping over her body; a glossy white highleg goddess leotard split by a center opening down to the navel and laced with gold filigree chains, an open back between the wings, long white front and back drapes falling from gold hip clasps over the opaque leotard, flowing detached sleeves; gold body chains, anklets and bare feet; one hand raised to a floating golden tuning-fork sceptre, the other resting on her chest; eyes closed, serene, alluring half-smile.",
-   "negative_extra": "(blue archive:1.3), (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2)",
+   "negative_extra": "(blue archive:1.3), (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2), (see-through:1.3), (transparent:1.2)",
    "variants": {
     "eyes_closed": "closed eyes, seductive smile, serene, long eyelashes",
     "eyes_open": "yellow eyes, open eyes, looking at viewer, seductive smile, serene",
@@ -299,7 +299,7 @@
    "expression": "smirk",
    "head": "ram horns, mini crown",
    "wings_tail": "bat wings, demon tail",
-   "outfit": "armored dress, plunging neckline, single pauldron, (leotard under clothes:1.3), black leotard, side slit, garter straps",
+   "outfit": "(red armored dress:1.2), gold trim, plunging neckline, single pauldron, (leotard under clothes:1.3), black leotard, side slit, garter straps",
    "footwear": "thigh boots",
    "accessories": "",
    "weapon": "flaming sword, sword over shoulder",
