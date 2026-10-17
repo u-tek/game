@@ -4,8 +4,8 @@ extends Control
 
 const KitBox := preload("res://src/ui/components/kit_box.gd")
 
-var fill := Color("26282c")
-var fill_bottom := Color("1a1b1e")
+var fill := Color("182640")
+var fill_bottom := Color("101a2e")
 var border := Color(1, 1, 1, 0.55)
 var border_width := 2.0
 ## Second, inner hex outline (0 alpha = none).

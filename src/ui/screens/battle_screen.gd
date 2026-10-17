@@ -438,7 +438,7 @@ func _build_bottom() -> void:
 		_bottom.add_child(chip)
 	var hint := PanelContainer.new()
 	hint.mouse_filter = MOUSE_FILTER_IGNORE
-	hint.add_theme_stylebox_override("panel", Kit.box(Color("0c0d10e6"), Color("0c0d10e6"), Kit.ACCENT, 6, 2, 0))
+	hint.add_theme_stylebox_override("panel", Kit.box(Color("080c19e6"), Color("080c19e6"), Kit.ACCENT, 6, 2, 0))
 	var hl := Kit.label("Manual: tap a glowing card to cast", 20, Color.WHITE, "extrabold")
 	hl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_child(Kit.margin(hl, 18, 4))

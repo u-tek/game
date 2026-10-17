@@ -34,8 +34,8 @@ func _draw() -> void:
 	var w := size.x
 	var h := size.y
 	var light := mode == "light"
-	var top := Color("f4f6f8") if light else Color("1d1f24")
-	var bot := Color("e2e6ea") if light else Color("0c0d0f")
+	var top := Color("f4f6f8") if light else Color("131e34")
+	var bot := Color("e2e6ea") if light else Color("080c19")
 	draw_polygon(PackedVector2Array([Vector2(0, 0), Vector2(w, 0), Vector2(w, h), Vector2(0, h)]),
 		PackedColorArray([top, top, bot, bot]))
 	if not light:

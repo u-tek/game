@@ -671,6 +671,15 @@ class TestBible(unittest.TestCase):
         with self.assertRaises(KeyError):
             prompts.skin_view(BIBLE, "kessa", "nope")
 
+    def test_scenery_prompts(self):
+        neg = prompts.full_body(BIBLE, "kessa", "illustrious")["negative"]
+        scene = "masterpiece, no humans, scenery, sky, clouds, chrome, glass, city"
+        self.assertEqual(prompts.check_text(BIBLE, scene, neg), [], "a pure scenery plate needs no adult cue")
+        self.assertTrue(prompts.check_text(BIBLE, scene + ", 1girl", neg), "a character in the plate needs the cues")
+        self.assertTrue(prompts.check_text(BIBLE, scene + ", woman", neg))
+        self.assertTrue(prompts.check_text(BIBLE, scene + ", nude", neg), "forbidden terms still apply")
+        self.assertTrue(prompts.check_text(BIBLE, scene, "lowres"), "required negatives still apply")
+
     def test_effects_and_backgrounds(self):
         fx = set(prompts.tag_weights(BIBLE["negative"]["effects"])) | {"fire", "lava", "magic", "glowing", "sunburst"}
         for hid, h in BIBLE["heroes"].items():

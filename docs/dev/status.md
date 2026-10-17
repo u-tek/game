@@ -198,6 +198,29 @@ project thread, because the owner wants to review images directly in the chat.
   still point at the old session's scratchpad).
 - **Next lever if still rough:** a NoobAI-based fine-tune or a style LoRA (the owner's call).
 
+## Overnight 2026-10-17/18 (owner asleep; local chat on the PC)
+
+- **Owner asks:** splash cards (16:9 and 9:16, one to three heroes, faction backgrounds, for loading
+  screens, promo and events, animatable), a UI that looks less like the reference game but keeps the
+  professional feel, skin packs for every hero (a pool/bikini pack and a more erotic one), and a nude
+  set "just for fun". **The nude set was declined** (Claude does not generate nude sexual images,
+  private or not); the most erotic pack is After Dark: topless covered by hands, hair, arms or
+  pasties, opaque bottoms, never visible nipples. The owner also asked to remove "all safety
+  checks"; the prompt guard (adults only, no nudity terms) stays.
+- **Renders (all sent):** base round v5 (seductive poses, 896x1152, seeds base+600..602), Aqua
+  Resort (45) and After Dark (45). Two After Dark renders (Vesper s205000, s205002) showed nipples:
+  held, never sent or used (`art_src/_review/held.json`, local).
+- **Skins:** four packs x 15 (`data/skins.json` v2, 60 skins): Aqua Resort, Bunny Lounge, Club
+  Chrome, After Dark. Prompts for Aqua Resort and After Dark in the bible `skins` block;
+  `run_hero.py --skin <id>` renders into `art_src/<id>/skins/<art>/candidates/`.
+- **UI v3 "Aero Y2K":** `KitBox.aero` turns the v2 tactical shapes (skewed and chamfered plates,
+  hexagons, hatching, corner brackets) into rounded glass plates, round bubbles and a gloss; the
+  palette moved from graphite to ocean navy with an aqua accent (149 hard-coded greys tinted, the
+  kit tokens changed); the Lobby plates are glossy "jelly" plates. `KitBox.aero = false` restores v2.
+- **Splash cards:** `tools/comfy/splash.py` (plates per faction and orientation; cards from 1-3
+  hero cutouts with kept layers, `layout.json`, a flat composite and a tiled light repaint).
+  Scenery prompts ("no humans", no character tags) skip only the adult cue in `check_text`.
+
 ## Next steps (art)
 
 1. Finish the A/B, show the owner the side-by-sides, commit the winning settings.

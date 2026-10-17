@@ -33,14 +33,14 @@ var _t := 0.0
 const PALETTES := {
 	"chapter-1": {
 		"sky": [Color("131a26"), Color("34445f"), Color("d8b98a")],
-		"haze": Color("8ea5c2"), "far": Color("2b3650"), "near": Color("10141e"),
-		"floor": [Color("3b4862"), Color("151a26")], "line": Color(0.85, 0.93, 1.0, 0.12),
+		"haze": Color("8ea5c2"), "far": Color("2b3650"), "near": Color("0d1425"),
+		"floor": [Color("3b4862"), Color("111a2f")], "line": Color(0.85, 0.93, 1.0, 0.12),
 		"sigil": Color("8fdcff"), "mote": Color("fff0c8"), "rise": 1.0, "stars": 50,
 	},
 	"chapter-2": {
-		"sky": [Color("12070e"), Color("4a1420"), Color("ff7a33")],
-		"haze": Color("a4413a"), "far": Color("3c1418"), "near": Color("12060a"),
-		"floor": [Color("3a1a1c"), Color("140809")], "line": Color(1.0, 0.45, 0.2, 0.12),
+		"sky": [Color("070c18"), Color("4a1420"), Color("ff7a33")],
+		"haze": Color("a4413a"), "far": Color("3c1418"), "near": Color("060a16"),
+		"floor": [Color("3a1a1c"), Color("070b17")], "line": Color(1.0, 0.45, 0.2, 0.12),
 		"sigil": Color("ff6a3a"), "mote": Color("ffa04a"), "rise": 1.6, "stars": 20,
 	},
 	"chapter-3": {
@@ -51,9 +51,9 @@ const PALETTES := {
 	},
 	# The lobby: the sanctum hall, a cool steel-and-stone interior (style v2).
 	"home": {
-		"sky": [Color("141920"), Color("2c3540"), Color("5c6876")],
-		"haze": Color("b9d6ea"), "far": Color("232a33"), "near": Color("0f1318"),
-		"floor": [Color("5a6571"), Color("161a20")], "line": Color(0.8, 0.92, 1.0, 0.07),
+		"sky": [Color("0f182b"), Color("2c3540"), Color("5c6876")],
+		"haze": Color("b9d6ea"), "far": Color("192843"), "near": Color("0b1222"),
+		"floor": [Color("5a6571"), Color("10192c")], "line": Color(0.8, 0.92, 1.0, 0.07),
 		"sigil": Color("6fd8ff"), "mote": Color("e4f6ff"), "rise": 0.3, "stars": 0,
 		"vignette": Color(0.01, 0.015, 0.02, 0.5),
 	},
@@ -357,7 +357,7 @@ func _draw_hall(w: float, h: float, hy: float) -> void:
 		var c := Vector2(win.position.x + ww * r.randf(), win.position.y + win.size.y * r.randf_range(0.35, 0.8))
 		_glow_ellipse(c, ww * r.randf_range(0.18, 0.3), ww * 0.05, Color(1, 1, 1, 0.35))
 	# Mullions, transoms and tracery.
-	var frame := Color("1a2027")
+	var frame := Color("131e34")
 	for k in range(1, 4):
 		var mx := win.position.x + ww * k / 4.0
 		var top_y := _arch_y(win, mx)
@@ -407,7 +407,7 @@ func _draw_hall(w: float, h: float, hy: float) -> void:
 		var pw := w * 0.15
 		var px := 0.0 if side < 0.0 else w - pw
 		var pr := Rect2(px, 0, pw, hy + (h - hy) * 0.08)
-		_vgrad(pr, near, Color("1e252e"))
+		_vgrad(pr, near, Color("16233c"))
 		var edge := px + pw if side < 0.0 else px
 		draw_line(Vector2(edge, 0), Vector2(edge, pr.end.y), Color(0.6, 0.85, 1.0, 0.22), 2.0)
 		draw_line(Vector2(edge - side * 8.0, 0), Vector2(edge - side * 8.0, pr.end.y), Color(1, 1, 1, 0.05), 1.0)
@@ -433,7 +433,7 @@ func _draw_hall(w: float, h: float, hy: float) -> void:
 			_glow_ellipse(Vector2(lx + 7.0, ly + 2.0), 22.0, 8.0, Color(lc2, 0.35))
 	# Ceiling truss.
 	var tb := hy * 0.07
-	_vgrad(Rect2(0, 0, w, tb), Color("0b0e12"), Color("181e25"))
+	_vgrad(Rect2(0, 0, w, tb), Color("080d1a"), Color("121c31"))
 	draw_line(Vector2(0, tb), Vector2(w, tb), Color(1, 1, 1, 0.1), 2.0)
 	var step := w / 10.0
 	for k in 10:

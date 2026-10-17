@@ -1,6 +1,7 @@
 class_name Kit
 extends RefCounted
-## Kit: static UI builders for Halo & Horn, style v2 ("tactical gacha": dark translucent
+## Kit: static UI builders for Halo & Horn, style v3 "Aero Y2K" (2026-10-17: v2's layout with rounded glass
+## plates, bubble badges, gloss and an ocean-and-aqua palette; KitBox.aero). Was style v2 ("tactical gacha": dark translucent
 ## chrome over full-screen art, light paper pages with near-black text, one bright cyan-blue
 ## accent, orange highlights, condensed bold type, skewed plates, hex badges, hatching and
 ## thin technical lines). Spec: docs/dev/ui-style-v2.md. Every screen builds its UI with
@@ -58,29 +59,29 @@ const Backdrop := preload("res://src/ui/components/backdrop.gd")
 # ------------------------------------------------------------------ design tokens
 
 # Dark chrome (bars, glass panels over art). Text on it: INK / INK_DIM.
-const BG := Color("15171b")
-const CHROME := Color("0c0d10")
-const PANEL := Color("1a1c21eb")
-const PANEL_HI := Color("2b2e34")
+const BG := Color("0d1824")
+const CHROME := Color("08111b")
+const PANEL := Color("12233aeb")
+const PANEL_HI := Color("1e3a56")
 const LINE := Color(1, 1, 1, 0.14)
 const INK := Color("f4f6f8")
 const INK_DIM := Color("9ba2ac")
 ## Text outlines and icon outlines (near-black).
-const OUTLINE := Color("0c0d10")
+const OUTLINE := Color("080c19")
 
 # Light pages (roster, hero info column, dialogs). Text on it: TEXT / TEXT_DIM.
-const PAPER := Color("eceff2")
+const PAPER := Color("e8f3f8")
 const WHITE := Color("ffffff")
-const TEXT := Color("16181c")
+const TEXT := Color("0e1729")
 const TEXT_DIM := Color("6c737d")
-const LINE_LIGHT := Color("d5dbe1")
+const LINE_LIGHT := Color("cde1ea")
 
 # Accents.
 ## The one bright cyan-blue: primary buttons, selected chips, active tabs, links, focus.
-const ACCENT := Color("12a8f4")
-const ACCENT_HI := Color("6fd8ff")
+const ACCENT := Color("18c3e8")
+const ACCENT_HI := Color("8cf2ff")
 ## Deep blue: dialog headers, pressed primary.
-const ACCENT_DEEP := Color("0b6fd8")
+const ACCENT_DEEP := Color("0a8cc2")
 ## Orange highlight: the battle call to action, legendary footers, guide marks.
 const ORANGE := Color("ff8a1e")
 const ORANGE_HI := Color("ffc23a")
@@ -330,7 +331,7 @@ static func icon_button(icon_name: String, on_pressed: Callable = Callable(), si
 		disc.add_theme_stylebox_override("panel", UITheme.style(kind))
 		_center_child(b, disc, Vector2(disc_size, disc_size))
 		if look == "light":
-			tint = Color("2a2d33")
+			tint = Color("1b2b48")
 	var ic := icon(icon_name, disc_size * (0.6 if look != "bare" else 0.82), tint)
 	ic.name = "Glyph"
 	_center_child(b, ic, ic.custom_minimum_size)
@@ -832,13 +833,13 @@ static func side_button(icon_name: String, text: String, on_pressed: Callable = 
 			var r := ts * 0.5
 			var dia := PackedVector2Array([c + Vector2(0, -r), c + Vector2(r, 0), c + Vector2(0, r), c + Vector2(-r, 0)])
 			KitBox.soft_shadow(ci, dia, Color(0, 0, 0, 0.4), 6.0, Vector2(0, 2))
-			KitBox.fill_poly(ci, dia, Color("1b1d22d9"), Color("0e0f12d9"))
+			KitBox.fill_poly(ci, dia, Color("121c31d9"), Color("090e1cd9"))
 			KitBox.stroke_poly(ci, dia, Color(1, 1, 1, 0.45), 1.5))
 	else:
 		var kind := {"accent": "tile_accent", "orange": "tile_orange", "white": "tile_white"}.get(look, "tile_dark") as String
 		tile.add_theme_stylebox_override("panel", UITheme.style(kind))
 		if look == "white":
-			glyph_tint = Color("1b1d21")
+			glyph_tint = Color("111c31")
 	face.add_child(tile)
 	var isz := ts * (0.46 if look == "diamond" else 0.6)
 	var ic := icon(icon_name, isz, glyph_tint)
@@ -911,8 +912,8 @@ static func banner_card(title_text: String, subtitle: String = "", on_pressed: C
 	face.custom_minimum_size = sz
 	var bx := KitBox.new()
 	bx.radius = 4
-	bx.top_color = Color("1a1c21f0")
-	bx.bottom_color = Color("0d0e11f0")
+	bx.top_color = Color("111b30f0")
+	bx.bottom_color = Color("080d1bf0")
 	bx.horizontal = true
 	bx.hatch_color = Color(col, 0.16)
 	bx.hatch_spacing = 10
@@ -939,7 +940,7 @@ static func banner_card(title_text: String, subtitle: String = "", on_pressed: C
 		face.add_child(art)
 		var fade := TextureRect.new()
 		fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		fade.texture = vgradient(Color("12131700"), Color("121317f5"), true)
+		fade.texture = vgradient(Color("0c132300"), Color("0c1323f5"), true)
 		fade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		fade.stretch_mode = TextureRect.STRETCH_SCALE
 		fade.position = Vector2(sz.x * 0.3, 0)
@@ -1203,7 +1204,7 @@ static func avatar(hero_id: String, size: float = 76.0, caption_text: String = "
 		art.offset_bottom = -3
 		frame.add_child(art)
 	if caption_text != "":
-		var t := tag(caption_text.to_upper(), Color("101114"), Color.WHITE, 17)
+		var t := tag(caption_text.to_upper(), Color("0a101f"), Color.WHITE, 17)
 		t.name = "Caption"
 		t.anchor_left = 0.5
 		t.anchor_right = 0.5
@@ -1652,9 +1653,9 @@ static func reward_tile(kind: String, id: String, amount: int, tile: float = 112
 			var slot := str(item.get("slot", "weapon"))
 			var tier := int(item.get("tier", 1))
 			face = _tile_box(tile, tier_color(tier))
-			var gi := icon("gear_" + slot, tile * 0.56, Color("2b2f36"))
+			var gi := icon("gear_" + slot, tile * 0.56, Color("1c2d4b"))
 			_center_child(face, gi, gi.custom_minimum_size)
-			var hx := hex_badge("", tile * 0.3, Color("2a2c31"), Color.WHITE, roman(tier))
+			var hx := hex_badge("", tile * 0.3, Color("1b2a47"), Color.WHITE, roman(tier))
 			hx.position = Vector2(4, 4)
 			face.add_child(hx)
 			name_text = str(item.get("name", GEAR_SLOT_NAMES.get(slot, "Gear")))
@@ -1664,10 +1665,10 @@ static func reward_tile(kind: String, id: String, amount: int, tile: float = 112
 			var tier := int(parts[1]) if parts.size() > 1 else 0
 			var accent := tier_color(tier) if tier > 0 else SKY
 			face = _tile_box(tile, accent)
-			var gi := icon("gear_" + (slot if slot != "" else "weapon"), tile * 0.56, Color("2b2f36"))
+			var gi := icon("gear_" + (slot if slot != "" else "weapon"), tile * 0.56, Color("1c2d4b"))
 			_center_child(face, gi, gi.custom_minimum_size)
 			if tier > 0:
-				var hx := hex_badge("", tile * 0.3, Color("2a2c31"), Color.WHITE, roman(tier))
+				var hx := hex_badge("", tile * 0.3, Color("1b2a47"), Color.WHITE, roman(tier))
 				hx.position = Vector2(4, 4)
 				face.add_child(hx)
 			if amount > 1 or slot == "":
@@ -1904,7 +1905,7 @@ static func tag(text: String, color: Color = ACCENT, text_color: Color = Color.W
 
 ## Hexagon badge with a glyph (icon_name) or short text (text), e.g. role marks, tier
 ## numerals, skill slots. Returns a sized Control (place it, or put it in a container).
-static func hex_badge(icon_name: String, size: float = 44.0, fill: Color = Color("26282c"), fg: Color = Color.WHITE, text: String = "") -> Control:
+static func hex_badge(icon_name: String, size: float = 44.0, fill: Color = Color("182640"), fg: Color = Color.WHITE, text: String = "") -> Control:
 	var h := HexBadge.new()
 	h.custom_minimum_size = Vector2(size, size)
 	h.size = Vector2(size, size)
@@ -2107,7 +2108,7 @@ static func equip_slot(slot: String, item: Dictionary = {}, size: float = 132.0,
 		pl.offset_left = -8 - size * 0.22
 		pl.offset_top = -8 - size * 0.22
 	else:
-		var hx := hex_badge("", size * 0.28, Color("2a2c31"), Color.WHITE, roman(tier))
+		var hx := hex_badge("", size * 0.28, Color("1b2a47"), Color.WHITE, roman(tier))
 		hx.position = Vector2(5, 5)
 		face.add_child(hx)
 	add_press_fx(b, face)

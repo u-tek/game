@@ -222,7 +222,7 @@ func _offer_card(o: Dictionary) -> Control:
 func _art_band(title: String, tag: String, accent: Color, icon_name: String) -> Control:
 	var band := PanelContainer.new()
 	band.mouse_filter = MOUSE_FILTER_IGNORE
-	band.add_theme_stylebox_override("panel", Kit.box(Color("24272d"), Color("111316"), Color.TRANSPARENT, 6.0, 0, 0))
+	band.add_theme_stylebox_override("panel", Kit.box(Color("182640"), Color("0b1222"), Color.TRANSPARENT, 6.0, 0, 0))
 	band.custom_minimum_size.y = 132
 	band.clip_contents = true
 	var layer := Control.new()

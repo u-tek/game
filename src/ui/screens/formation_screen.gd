@@ -257,7 +257,7 @@ func _refresh_slots() -> void:
 			xb.mouse_filter = MOUSE_FILTER_PASS
 			xb.size = Vector2(Kit.BUTTON_H, Kit.BUTTON_H)
 			xb.position = Vector2(_slot_w - 8.0 - Kit.BUTTON_H * 0.5, 6.0 - Kit.BUTTON_H * 0.5)
-			var x := Kit.hex_badge("close", 32, Color("26282c"), Color.WHITE)
+			var x := Kit.hex_badge("close", 32, Color("182640"), Color.WHITE)
 			x.position = Vector2((Kit.BUTTON_H - 32.0) * 0.5, (Kit.BUTTON_H - 32.0) * 0.5)
 			xb.add_child(x)
 			Kit.add_press_fx(xb, x)

@@ -12,8 +12,8 @@ extends StyleBox
 ## Corner radius in px (clamped to half the smaller side).
 var radius: float = 16.0
 ## Fill gradient, top to bottom (or left to right when `horizontal`). Alpha is respected.
-var top_color := Color("1c1e22")
-var bottom_color := Color("15171a")
+var top_color := Color("121d32")
+var bottom_color := Color("0d1627")
 var horizontal := false
 ## false = no fill (frame only).
 var fill := true
@@ -70,6 +70,12 @@ var corner_marks_inset: float = 6.0
 var _shadow: StyleBoxFlat
 var _committed := false
 
+## Aero Y2K look (owner, 2026-10-17: "the UI looks too much like [the reference game] ... still that same
+## vibe, that professional-looking thing"). On: skewed and chamfered plates become rounded glass, hexagons
+## become round bubbles, the tactical hatching and corner brackets go, and faces get a glass gloss. Off
+## restores the v2 "tactical" shapes exactly.
+static var aero := true
+
 
 ## Rebuilds cached helpers. Returns self for chaining.
 func commit() -> StyleBox:
@@ -98,7 +104,12 @@ func _draw(ci: RID, rect: Rect2) -> void:
 	if body.size.x < 1.0 or body.size.y < 1.0:
 		return
 	var r := minf(radius, minf(body.size.x, body.size.y) * 0.5 - 0.05)
+	if aero and r > 0.5:
+		r = minf(maxf(r * 1.6, 12.0), minf(body.size.x, body.size.y) * 0.5 - 0.05)
 	var outline := shape_points(body, r, chamfer, chamfer_corners, skew)
+	var gl_alpha := gloss
+	if aero and fill and gl_alpha <= 0.0 and r > 0.5:
+		gl_alpha = 0.16 if body.size.y <= 160.0 else 0.05
 	# Shadow / glow.
 	if _shadow:
 		_shadow.draw(ci, body)
@@ -112,7 +123,8 @@ func _draw(ci: RID, rect: Rect2) -> void:
 			face.size.y = maxf(face.size.y - lip, 1.0)
 			face_pts = shape_points(face, minf(r, minf(face.size.x, face.size.y) * 0.5 - 0.05), chamfer, chamfer_corners, skew)
 		fill_poly(ci, face_pts, top_color, bottom_color, horizontal)
-		if gloss > 0.0 and skew == 0.0:
+		if gl_alpha > 0.0 and (skew == 0.0 or aero):
+			var gloss := gl_alpha
 			var fb := _bounds(face_pts)
 			var gl := fb.grow(-maxf(border_width, 1.0) - 1.0)
 			gl.size.y *= 0.46
@@ -186,6 +198,12 @@ static func _bounds(pts: PackedVector2Array) -> Rect2:
 ## the corners in `cut_mask` (1 TL, 2 TR, 4 BR, 8 BL) which are chamfered by `cut` px when
 ## cut > 0. skew shears it into a parallelogram that still fits in `r`.
 static func shape_points(r: Rect2, rad: float, cut: float = 0.0, cut_mask: int = 5, skew_k: float = 0.0, seg: int = 6) -> PackedVector2Array:
+	if aero and (skew_k != 0.0 or cut > 0.0):
+		# Aero: a slanted or cut plate becomes a rounded glass plate of the same box.
+		rad = maxf(rad, maxf(cut * 1.3, 14.0))
+		cut = 0.0
+		skew_k = 0.0
+		seg = maxi(seg, 8)
 	var pts := PackedVector2Array()
 	var sx := skew_k * r.size.y
 	var base := Rect2(r.position.x + sx * 0.5, r.position.y, maxf(r.size.x - sx, 2.0), r.size.y)
@@ -223,6 +241,13 @@ static func rrect_points(r: Rect2, rad: float, seg: int = 8) -> PackedVector2Arr
 ## Hexagon points. flat = flat top; otherwise pointy top.
 static func hex_points(center: Vector2, rad: float, flat: bool = false, squash: float = 1.0) -> PackedVector2Array:
 	var pts := PackedVector2Array()
+	if aero:
+		# Aero: hex badges become round bubbles (slightly smaller, so they fill the hex's area).
+		var rr := rad * 0.93
+		for i in 32:
+			var a := TAU * i / 32.0
+			pts.append(center + Vector2(cos(a) * rr, sin(a) * rr * squash))
+		return pts
 	var off := 0.0 if flat else 30.0
 	for i in 6:
 		var a := deg_to_rad(off + 60.0 * i)
@@ -382,6 +407,8 @@ static func _isect(p1: Vector2, p2: Vector2, a: Vector2, b: Vector2) -> Vector2:
 ## Diagonal hatching (45 degrees, rising to the right) clipped to a convex polygon. from/to
 ## limit it to a horizontal band of the polygon's width; lines fade in over the band.
 static func hatch(ci: RID, poly: PackedVector2Array, col: Color, spacing: float = 9.0, width: float = 2.0, from: float = 0.0, to: float = 1.0) -> void:
+	if aero:
+		return
 	var b := _bounds(poly)
 	if b.size.x < 2.0 or b.size.y < 2.0:
 		return
@@ -439,7 +466,7 @@ static func _clip_segment(a: Vector2, b: Vector2, poly: PackedVector2Array) -> P
 
 ## Thin L-brackets at the corners of `r` (the "technical frame" mark).
 static func corner_marks(ci: RID, r: Rect2, col: Color, size: float = 12.0, width: float = 2.0) -> void:
-	if r.size.x < size * 2.0 or r.size.y < size * 2.0:
+	if aero or r.size.x < size * 2.0 or r.size.y < size * 2.0:
 		return
 	var cs: Array[Vector2] = [r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]
 	var dx: Array[float] = [1.0, -1.0, -1.0, 1.0]

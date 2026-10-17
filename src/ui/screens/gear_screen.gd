@@ -303,7 +303,7 @@ func _open(uid: String) -> void:
 		wl.add_child(Kit.label(who_name, 26, Kit.TEXT, "extrabold"))
 		sr.add_child(wl)
 	else:
-		sr.add_child(Kit.hex_badge("gear_" + str(it.slot), 56, Color("26282c"), Color.WHITE))
+		sr.add_child(Kit.hex_badge("gear_" + str(it.slot), 56, Color("182640"), Color.WHITE))
 		var sv := GearRules.salvage_value(int(it.tier))
 		var wl2 := Kit.vbox(2)
 		wl2.size_flags_horizontal = SIZE_EXPAND_FILL

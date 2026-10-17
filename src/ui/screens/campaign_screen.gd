@@ -66,7 +66,7 @@ func setup(params: Dictionary) -> void:
 	var scrim := TextureRect.new()
 	scrim.name = "HeaderScrim"
 	scrim.mouse_filter = MOUSE_FILTER_IGNORE
-	scrim.texture = Kit.vgradient(Color("15171bf5"), Color("15171b00"))
+	scrim.texture = Kit.vgradient(Color("0e1628f5"), Color("0e162800"))
 	scrim.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	scrim.stretch_mode = TextureRect.STRETCH_SCALE
 	scrim.anchor_right = 1.0
@@ -121,7 +121,7 @@ func _build_header() -> Control:
 	var bar := PanelContainer.new()
 	bar.name = "Header"
 	bar.mouse_filter = MOUSE_FILTER_PASS
-	bar.add_theme_stylebox_override("panel", Kit.box(Color("0c0d10e6"), Color("15171be6"), Color.TRANSPARENT, 0, 0, 0))
+	bar.add_theme_stylebox_override("panel", Kit.box(Color("080c19e6"), Color("0e1628e6"), Color.TRANSPARENT, 0, 0, 0))
 	var row := Kit.hbox(8)
 	var back := Kit.icon_button("back", func() -> void: UI.back(), Kit.BUTTON_H, "round")
 	back.name = "Back"

@@ -477,11 +477,19 @@ def check_text(bible, positive, negative, gender=None):
     problems = []
     tw = tag_weights(positive)
     minw = float(rules.get("min_adult_cue_weight", 0.6))
+    # Scenery (splash-card background plates): "no humans" and no character tag at all. Only the adult cue is
+    # waived; forbidden terms and the required safety negatives still apply.
+    people = ("1girl", "2girls", "3girls", "1boy", "multiple girls", "multiple boys", "solo", "girl", "woman",
+              "female", "male", "person", "people", "character")
+    if "no humans" in tw and not any(p in tw for p in people):
+        gender = "scenery"
     if gender is None:
         gender = "male" if ({"1boy", "male focus"} & set(tw)) and "1girl" not in tw else "female?"
-    need = [rules["adult_cue_required"]]
+    need = [] if gender == "scenery" else [rules["adult_cue_required"]]
     by_g = rules["adult_cue_by_gender"]
-    if gender in by_g:
+    if gender == "scenery":
+        pass
+    elif gender in by_g:
         need.append(by_g[gender])
     elif not any(c in tw for c in by_g.values()):
         need.append(" or ".join(sorted(by_g.values())))

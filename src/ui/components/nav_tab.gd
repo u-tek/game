@@ -120,7 +120,7 @@ func _draw_hex() -> void:
 		KitBox.soft_shadow(ci, pts, Color(Kit.ACCENT, 0.55), 16.0)
 	else:
 		KitBox.soft_shadow(ci, pts, Color(0, 0, 0, 0.5), 10.0, Vector2(0, 3))
-	KitBox.fill_poly(ci, pts, Color("2a2d33"), Color("121316"))
+	KitBox.fill_poly(ci, pts, Color("1b2b48"), Color("0b1222"))
 	KitBox.hatch(ci, pts, Color(1, 1, 1, 0.05), 8.0, 2.0, 0.5, 1.0)
 	KitBox.stroke_poly(ci, KitBox.offset_poly(pts, -7.0), Color(1, 1, 1, 0.16), 1.5)
 	KitBox.stroke_poly(ci, pts, Kit.ACCENT if _active else Color(1, 1, 1, 0.35), 3.0 if _active else 2.0)

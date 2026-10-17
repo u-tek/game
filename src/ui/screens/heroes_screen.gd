@@ -284,7 +284,7 @@ func _card(id: String, browse: Array[String]) -> Control:
 func _codex_teaser(missing: int) -> Control:
 	var row := Kit.panel("light_inset", 12)
 	var h := Kit.hbox(14)
-	h.add_child(Kit.hex_badge("summon", 56, Color("26282c"), Color.WHITE))
+	h.add_child(Kit.hex_badge("summon", 56, Color("182640"), Color.WHITE))
 	var t := Kit.label("%d more hero%s answer the Summon portal." % [missing, "" if missing == 1 else "es"], 22, Kit.TEXT, "bold")
 	t.size_flags_horizontal = SIZE_EXPAND_FILL
 	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

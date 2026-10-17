@@ -109,8 +109,8 @@ func set_art(tex: Texture2D, caption: String = "") -> void:
 	frame.clip_contents = true
 	var bx := KitBox.new()
 	bx.radius = 2
-	bx.top_color = Color("1a1c21")
-	bx.bottom_color = Color("0d0e11")
+	bx.top_color = Color("111b30")
+	bx.bottom_color = Color("080d1b")
 	bx.border_width = 1.5
 	bx.border_color = Color(1, 1, 1, 0.75)
 	frame.add_theme_stylebox_override("panel", bx.commit())
@@ -138,7 +138,7 @@ func set_art(tex: Texture2D, caption: String = "") -> void:
 func _fg(text: bool = false) -> Color:
 	match look:
 		"white":
-			return Color("2a2d33")
+			return Color("1b2b48")
 		"dark":
 			return Color("8fd9ff") if text else Color("7fcfff")
 	return Color.WHITE
@@ -209,6 +209,9 @@ func _place_title_tag(_fs: int) -> void:
 func quad() -> PackedVector2Array:
 	var w := _plate.size.x
 	var h := _plate.size.y
+	if KitBox.aero:
+		# Aero: a rounded glass plate instead of the tapered tactical plate.
+		return KitBox.shape_points(Rect2(0, 0, w, h), minf(h * 0.24, 30.0), 0.0, 0, 0.0, 10)
 	var d := h * taper
 	if side < 0:
 		return PackedVector2Array([Vector2(0, 0), Vector2(w, d * 0.18), Vector2(w, h - d * 0.82), Vector2(0, h)])
@@ -225,6 +228,9 @@ func _draw_plate() -> void:
 	var ci := _plate.get_canvas_item()
 	var q := quad()
 	var b := KitBox._bounds(q)
+	if KitBox.aero:
+		_draw_aero(ci, q, b)
+		return
 	match look:
 		"blue":
 			KitBox.soft_shadow(ci, q, Color(0, 0.1, 0.3, 0.35), 10.0, Vector2(0, 4))
@@ -245,7 +251,7 @@ func _draw_plate() -> void:
 				var back := KitBox.hex_points(c, hr)
 				KitBox.fill_poly(ci, back, Color(1, 1, 1, 0.35), Color(1, 1, 1, 0.12))
 				KitBox.hatch(ci, back, Color(0, 0, 0, 0.06), 6.0, 1.5, 0.0, 1.0)
-				KitBox.stroke_poly(ci, back, Color("2a2d33"), 2.5)
+				KitBox.stroke_poly(ci, back, Color("1b2b48"), 2.5)
 				KitBox.stroke_poly(ci, KitBox.hex_points(c, hr + 7.0), Color(0.16, 0.18, 0.2, 0.25), 1.0)
 			_ticks(ci, q, Color(0, 0, 0, 0.3))
 		"orange":
@@ -267,6 +273,52 @@ func _draw_plate() -> void:
 	var x0 := b.position.x + b.size.x * (0.06 if side < 0 else 0.7)
 	if look != "white":
 		_plate.draw_rect(Rect2(x0, y0 + 1.0, b.size.x * 0.24, 3.0), Color(1, 1, 1, 0.55) if look != "orange" else Color("ffd08a"))
+
+
+## Aero Y2K plate: glossy glass in the look's colour, a white highlight on the upper half, a chrome rim
+## and, for the white plate, a round glass bubble behind the glyph.
+func _draw_aero(ci: RID, q: PackedVector2Array, b: Rect2) -> void:
+	var top: Color
+	var bot: Color
+	var rim: Color
+	var glow := Color(0, 0, 0, 0.26)
+	match look:
+		"blue":
+			top = Color("2fd6f2ee")
+			bot = Color("0a86c2e0")
+			rim = Color("b9f6ff")
+		"white":
+			top = Color("ffffffcc")
+			bot = Color("d8eef6b0")
+			rim = Color(1, 1, 1, 0.95)
+		"orange":
+			var k := 0.5 + 0.5 * sin(_t * 2.6)
+			top = Color("ffb04ee8")
+			bot = Color("e8641ad8")
+			rim = Color("ffe2b0")
+			glow = Color(1.0, 0.55, 0.1, 0.30 + 0.18 * k)
+		_:
+			top = Color("1c5a86b0")
+			bot = Color("0a2a48a0")
+			rim = Color("7fe8ff")
+	KitBox.soft_shadow(ci, q, glow, 12.0 if look == "orange" else 9.0, Vector2(0, 4))
+	KitBox.fill_poly(ci, q, top, bot, false)
+	# Gloss: the upper ~45% of the plate gets a soft white highlight (the Frutiger Aero "jelly").
+	var gl := Rect2(b.position + Vector2(6, 4), Vector2(b.size.x - 12, b.size.y * 0.46))
+	if gl.size.x > 8 and gl.size.y > 4:
+		var gp := KitBox.shape_points(gl, minf(gl.size.y * 0.5, 22.0), 0.0, 0, 0.0, 8)
+		var cols := PackedColorArray()
+		for p in gp:
+			var t := clampf((p.y - gl.position.y) / gl.size.y, 0.0, 1.0)
+			cols.append(Color(1, 1, 1, (0.42 if look != "white" else 0.6) * (1.0 - t)))
+		KitBox._fan(ci, gp, cols, gl.get_center(), Color(1, 1, 1, 0.18))
+	KitBox.stroke_poly(ci, KitBox.offset_poly(q, -1.0), rim, 2.0)
+	if look == "white" and _icon:
+		var c := _icon.position + _icon.size * 0.5
+		var hr := _icon.size.x * 0.7
+		var bubble := KitBox.hex_points(c, hr)
+		KitBox.fill_poly(ci, bubble, Color("e9fbff"), Color("9fdcec"))
+		KitBox.stroke_poly(ci, bubble, Color("5cc9e6"), 2.0)
 
 
 func _top_glint(ci: RID, q: PackedVector2Array, col: Color) -> void:

@@ -124,8 +124,8 @@ func _build(s: float, show_name: bool) -> void:
 		var hx := HexBadge.new()
 		hx.size = Vector2(hs, hs)
 		hx.position = Vector2(4.0 * k, 4.0 * k)
-		hx.fill = Color("2a2c31")
-		hx.fill_bottom = Color("15161a")
+		hx.fill = Color("1b2a47")
+		hx.fill_bottom = Color("0d1527")
 		hx.border = Kit.faction_color(faction).lerp(Color.WHITE, 0.25) if faction != "" else Color(1, 1, 1, 0.7)
 		hx.border_width = maxf(1.5, 2.2 * k)
 		if faction != "":

@@ -66,9 +66,9 @@ func _draw() -> void:
 	if cleared:
 		KitBox.fill_poly(ci, hex, Kit.ACCENT.lightened(0.1), Kit.ACCENT_DEEP)
 	elif current:
-		KitBox.fill_poly(ci, hex, Color("2a2c31"), Color("141518"))
+		KitBox.fill_poly(ci, hex, Color("1b2a47"), Color("0d1425"))
 	else:
-		KitBox.fill_poly(ci, hex, Color("26282d"), Color("16171a"))
+		KitBox.fill_poly(ci, hex, Color("182641"), Color("0e1628"))
 	# Boss face (clipped to the hex) under a red roof band.
 	if is_boss and _crop and not locked:
 		_draw_crop(KitBox.hex_points(c, r - 3.0, true), Color(1, 1, 1, 0.9 if not cleared else 0.55))

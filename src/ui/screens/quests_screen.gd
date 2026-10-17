@@ -83,7 +83,7 @@ func _build() -> void:
 	var pv := Kit.vbox(8)
 	prog.add_child(pv)
 	var ph := Kit.hbox(10)
-	_bonus_hex = Kit.hex_badge("crown", 56, Color("26282c"), Color.WHITE)
+	_bonus_hex = Kit.hex_badge("crown", 56, Color("182640"), Color.WHITE)
 	_bonus_hex.size_flags_vertical = SIZE_SHRINK_CENTER
 	ph.add_child(_bonus_hex)
 	var pt := Kit.vbox(-4)
@@ -169,7 +169,7 @@ func _refresh() -> void:
 		_bonus_cap.text = "DAILY BONUS  ·  COMPLETE %d QUESTS" % goal
 		_done_label.text = "CLAIMED" if bool(bonus.claimed) else "%d / %d" % [have, goal]
 		Kit.set_progress(_done_bar, have, goal, "", false)
-		var hf: Color = Kit.ACCENT if b_ready else Color("2a2c31")
+		var hf: Color = Kit.ACCENT if b_ready else Color("1b2a47")
 		_bonus_hex.set("fill", hf.lightened(0.06))
 		_bonus_hex.set("fill_bottom", hf.darkened(0.12))
 		_bonus_hex.set("glow", Color(Kit.ACCENT, 0.45) if b_ready else Color(0, 0, 0, 0))
@@ -246,7 +246,7 @@ func _quest_row(q: Dictionary) -> Control:
 	var row := Kit.hbox(14)
 	card.add_child(row)
 
-	var hx_fill := Kit.ACCENT if ready else (Color("d9dee4") if claimed else Color("26282c"))
+	var hx_fill := Kit.ACCENT if ready else (Color("d9dee4") if claimed else Color("182640"))
 	var hx := Kit.hex_badge(str(ICONS.get(counter, "quests")) if not claimed else "check", 72, hx_fill, Kit.TEXT if claimed else Color.WHITE)
 	if ready:
 		hx.set("glow", Color(Kit.ACCENT, 0.45))

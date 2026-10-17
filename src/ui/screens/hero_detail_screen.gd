@@ -331,7 +331,7 @@ func _build_caption() -> void:
 	scrim.add_child(cap)
 	var top := Kit.hbox(10)
 	top.mouse_filter = MOUSE_FILTER_IGNORE
-	top.add_child(Kit.hex_badge("role_" + str(_def.role), 60, Color("26282c")))
+	top.add_child(Kit.hex_badge("role_" + str(_def.role), 60, Color("182640")))
 	var tl := Kit.label("HERO\nINFORMATION", 16, Kit.TEXT_DIM, "cond_bold")
 	tl.add_theme_constant_override("line_spacing", -4)
 	top.add_child(tl)
@@ -366,7 +366,7 @@ func _build_column() -> void:
 	# Tier numeral hex and power.
 	var pw := Kit.hbox(12)
 	pw.mouse_filter = MOUSE_FILTER_IGNORE
-	var hx := Kit.hex_badge("", 60 if _compact else 66, Color("26282c"), Color.WHITE, str(Kit.RARITY_TIER.get(rarity, "I")))
+	var hx := Kit.hex_badge("", 60 if _compact else 66, Color("182640"), Color.WHITE, str(Kit.RARITY_TIER.get(rarity, "I")))
 	hx.set("cap", _faction_col)
 	pw.add_child(hx)
 	var pv := Kit.vbox(-6)
@@ -466,7 +466,7 @@ func _refresh_skill_hexes(stars: int) -> void:
 	items.append(ult)
 	for pas: Dictionary in _def.get("passives", []):
 		var on := _owned and stars >= int(pas.unlock_stars)
-		items.append(Kit.hex_badge("skill" if on else "lock", sz, Color.WHITE, Color("2a2d33") if on else Color(0.16, 0.18, 0.21, 0.45)))
+		items.append(Kit.hex_badge("skill" if on else "lock", sz, Color.WHITE, Color("1b2b48") if on else Color(0.16, 0.18, 0.21, 0.45)))
 	var lab := Kit.vbox(-4)
 	lab.mouse_filter = MOUSE_FILTER_IGNORE
 	lab.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -896,7 +896,7 @@ func _skill_entry(icon_name: String, ult: bool, title_text: String, kind: String
 	if ult:
 		hx = Kit.hex_badge(icon_name, 52, _faction_col.darkened(0.1), Color.WHITE)
 	else:
-		hx = Kit.hex_badge(icon_name if unlocked else "lock", 52, Color.WHITE, Color("2a2d33") if unlocked else Color(0.16, 0.18, 0.21, 0.45))
+		hx = Kit.hex_badge(icon_name if unlocked else "lock", 52, Color.WHITE, Color("1b2b48") if unlocked else Color(0.16, 0.18, 0.21, 0.45))
 	hx.size_flags_vertical = SIZE_SHRINK_BEGIN
 	row.add_child(hx)
 	var tv := Kit.vbox(2)

@@ -43,8 +43,8 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 		# ---------------- dark chrome family
 		"glass":
 			b.radius = 10
-			b.top_color = Color("1a1c21eb")
-			b.bottom_color = Color("121418eb")
+			b.top_color = Color("111b30eb")
+			b.bottom_color = Color("0c1323eb")
 			b.border_width = 1.5
 			b.border_color = Color(1, 1, 1, 0.12)
 			b.corner_marks_color = Color(1, 1, 1, 0.28)
@@ -56,8 +56,8 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			m = Vector4(24, 20, 24, 20)
 		"card":
 			b.radius = 8
-			b.top_color = Color("23262bf2")
-			b.bottom_color = Color("1b1d21f2")
+			b.top_color = Color("17243ef2")
+			b.bottom_color = Color("111c31f2")
 			b.border_width = 1.5
 			b.border_color = Color(1, 1, 1, 0.08)
 			b.shadow_size = 6
@@ -66,41 +66,41 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			m = Vector4(18, 14, 18, 14)
 		"inset":
 			b.radius = 8
-			b.top_color = Color("0a0b0db3")
-			b.bottom_color = Color("0e0f12b3")
+			b.top_color = Color("060a16b3")
+			b.bottom_color = Color("090e1cb3")
 			b.border_width = 1.0
 			b.border_color = Color(1, 1, 1, 0.07)
 			m = Vector4(16, 12, 16, 12)
 		"plain":
 			b.radius = 8
-			b.top_color = Color("1b1d21e6")
-			b.bottom_color = Color("17191ce6")
+			b.top_color = Color("111c31e6")
+			b.bottom_color = Color("0f182ae6")
 			m = Vector4(18, 14, 18, 14)
 		"chip":
 			b.radius = 8
-			b.top_color = Color("0c0d10b8")
-			b.bottom_color = Color("0c0d10b8")
+			b.top_color = Color("080c19b8")
+			b.bottom_color = Color("080c19b8")
 			b.border_width = 1.0
 			b.border_color = Color(1, 1, 1, 0.1)
 			m = Vector4(10, 2, 12, 2)
 		"pill":
 			b.radius = 999
-			b.top_color = Color("0c0d10b8")
-			b.bottom_color = Color("0c0d10b8")
+			b.top_color = Color("080c19b8")
+			b.bottom_color = Color("080c19b8")
 			b.border_width = 1.0
 			b.border_color = Color(1, 1, 1, 0.12)
 			m = Vector4(10, 2, 14, 2)
 		"tag":
 			b.radius = 6
-			b.top_color = Color("2d3036")
-			b.bottom_color = Color("25282d")
+			b.top_color = Color("1d2e4d")
+			b.bottom_color = Color("182640")
 			b.border_width = 1.0
 			b.border_color = Color(1, 1, 1, 0.1)
 			m = Vector4(10, 3, 14, 3)
 		"toast":
 			b.radius = 6
-			b.top_color = Color("1c1f24f7")
-			b.bottom_color = Color("131519f7")
+			b.top_color = Color("131e33f7")
+			b.bottom_color = Color("0d1425f7")
 			b.border_width = 1.0
 			b.border_color = Color(1, 1, 1, 0.26)
 			b.inner_color = Color(1, 1, 1, 0.06)
@@ -113,8 +113,8 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			m = Vector4(30, 16, 28, 16)
 		"modal":
 			b.radius = 4
-			b.top_color = Color("1c1e23fa")
-			b.bottom_color = Color("15171bfa")
+			b.top_color = Color("121d32fa")
+			b.bottom_color = Color("0e1628fa")
 			b.border_width = 1.0
 			b.border_color = Color(1, 1, 1, 0.1)
 			b.shadow_size = 26
@@ -123,27 +123,27 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			m = Vector4(30, 26, 30, 30)
 		"speech":
 			b.radius = 4
-			b.top_color = Color("0d0e1173")
-			b.bottom_color = Color("0d0e1173")
+			b.top_color = Color("080d1b73")
+			b.bottom_color = Color("080d1b73")
 			b.border_width = 1.0
 			b.border_color = Color(1, 1, 1, 0.08)
 			m = Vector4(26, 16, 26, 20)
 		"bar":
 			b.radius = 3
-			b.top_color = Color("26282c")
-			b.bottom_color = Color("1f2124")
+			b.top_color = Color("182640")
+			b.bottom_color = Color("141f36")
 			m = Vector4(16, 6, 16, 6)
 		"bar_accent":
 			b.radius = 3
-			b.top_color = Color("26282c")
-			b.bottom_color = Color("1f2124")
+			b.top_color = Color("182640")
+			b.bottom_color = Color("141f36")
 			b.accent_color = Kit.ACCENT
 			b.accent_left = 5
 			m = Vector4(20, 6, 16, 6)
 		"topbar":
 			b.radius = 0
-			b.top_color = Color("0b0c0e")
-			b.bottom_color = Color("17191d")
+			b.top_color = Color("070b17")
+			b.bottom_color = Color("0f182b")
 			b.hatch_color = Color(1, 1, 1, 0.025)
 			b.hatch_spacing = 12
 			b.hatch_from = 0.45
@@ -155,8 +155,8 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			m = Vector4(0, 0, 0, 0)
 		"navbar":
 			b.radius = 0
-			b.top_color = Color("1a1c20")
-			b.bottom_color = Color("0a0b0c")
+			b.top_color = Color("111b2f")
+			b.bottom_color = Color("060a15")
 			b.top_line_color = Color(1, 1, 1, 0.1)
 			m = Vector4(0, 0, 0, 0)
 		"navbar_clear":
@@ -166,15 +166,15 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			m = Vector4(0, 0, 0, 0)
 		"power_chip":
 			b.radius = 4
-			b.top_color = Color("101114eb")
-			b.bottom_color = Color("101114eb")
+			b.top_color = Color("0a101feb")
+			b.bottom_color = Color("0a101feb")
 			b.border_width = 1.0
 			b.border_color = Color(1, 1, 1, 0.25)
 			m = Vector4(6, 0, 8, 0)
 		"disc":
 			b.radius = 10
-			b.top_color = Color("1c1e22d9")
-			b.bottom_color = Color("15171ad9")
+			b.top_color = Color("121d32d9")
+			b.bottom_color = Color("0d1627d9")
 			b.border_width = 1.0
 			b.border_color = Color(1, 1, 1, 0.16)
 			m = Vector4(0, 0, 0, 0)
@@ -252,8 +252,8 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			m = Vector4(30, 24, 30, 30)
 		"dialog_dark":
 			b.radius = 6
-			b.top_color = Color("1e2025fa")
-			b.bottom_color = Color("16181cfa")
+			b.top_color = Color("131f35fa")
+			b.bottom_color = Color("0e1729fa")
 			b.border_width = 1.0
 			b.border_color = Color(1, 1, 1, 0.1)
 			b.shadow_size = 30
@@ -262,8 +262,8 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			m = Vector4(0, 0, 0, 0)
 		"header_bar":
 			b.radius = 3
-			b.top_color = Color("2c2f35")
-			b.bottom_color = Color("202226")
+			b.top_color = Color("1c2d4b")
+			b.bottom_color = Color("142038")
 			b.hatch_color = Color(1, 1, 1, 0.07)
 			b.hatch_from = 0.72
 			b.hatch_spacing = 7
@@ -273,22 +273,22 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 		"plate_level":
 			b.radius = 3
 			b.chamfer = 0
-			b.top_color = Color("2a2c31")
-			b.bottom_color = Color("1c1d21")
+			b.top_color = Color("1b2a47")
+			b.bottom_color = Color("121c31")
 			m = Vector4(14, 2, 14, 2)
 		"plate_name":
 			b.radius = 0
 			b.skew = 0.0
-			b.top_color = Color("0e0f12")
-			b.bottom_color = Color("0e0f12")
+			b.top_color = Color("090e1c")
+			b.bottom_color = Color("090e1c")
 			b.hatch_color = Color(1, 1, 1, 0.06)
 			b.hatch_from = 0.8
 			b.hatch_spacing = 7
 			m = Vector4(18, 2, 18, 2)
 		"tile_dark":
 			b.radius = 12
-			b.top_color = Color("23262bdb")
-			b.bottom_color = Color("15171bdb")
+			b.top_color = Color("17243edb")
+			b.bottom_color = Color("0e1628db")
 			b.border_width = 1.5
 			b.border_color = Color(1, 1, 1, 0.22)
 			b.shadow_size = 6
@@ -337,8 +337,8 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			m = Vector4(0, 0, 0, 0)
 		"notice":
 			b.radius = 6
-			b.top_color = Color("0c0d10c2")
-			b.bottom_color = Color("0c0d10c2")
+			b.top_color = Color("080c19c2")
+			b.bottom_color = Color("080c19c2")
 			b.border_width = 1.0
 			b.border_color = Color(1, 1, 1, 0.1)
 			m = Vector4(0, 0, 0, 0)
@@ -353,8 +353,8 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			m = Vector4(10, 6, 14, 6)
 		"avatar":
 			b.radius = 10
-			b.top_color = Color("2a2d33")
-			b.bottom_color = Color("15171a")
+			b.top_color = Color("1b2b48")
+			b.bottom_color = Color("0d1627")
 			b.border_width = 2.5
 			b.border_color = Color(1, 1, 1, 0.9)
 			b.shadow_size = 6
@@ -363,8 +363,8 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			m = Vector4(0, 0, 0, 0)
 		"chip_off":
 			b.radius = 8
-			b.top_color = Color("3d4047")
-			b.bottom_color = Color("2c2f34")
+			b.top_color = Color("273e64")
+			b.bottom_color = Color("1c2d4b")
 			b.border_width = 1.0
 			b.border_color = Color(1, 1, 1, 0.1)
 			b.shadow_size = 5
@@ -402,8 +402,8 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 				b.bottom_color = Color("0a83cf")
 		"btn_secondary", "btn_secondary_hover", "btn_secondary_pressed":
 			b.radius = 8
-			b.top_color = Color("3a3d43")
-			b.bottom_color = Color("2b2e33")
+			b.top_color = Color("253a5f")
+			b.bottom_color = Color("1b2c49")
 			b.border_width = 1.5
 			b.border_color = Color(1, 1, 1, 0.18)
 			b.shadow_size = 6
@@ -412,8 +412,8 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			if kind == "btn_secondary_hover":
 				b.top_color = b.top_color.lightened(0.07)
 			elif kind == "btn_secondary_pressed":
-				b.top_color = Color("26292d")
-				b.bottom_color = Color("212328")
+				b.top_color = Color("182741")
+				b.bottom_color = Color("15223a")
 		"btn_danger", "btn_danger_hover", "btn_danger_pressed":
 			b.radius = 8
 			b.top_color = Color("f25a43")
@@ -454,8 +454,8 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 				b.bottom_color = Color("e46a0c")
 		"btn_primary_disabled", "btn_secondary_disabled", "btn_danger_disabled", "btn_orange_disabled":
 			b.radius = 8
-			b.top_color = Color("3a3c40")
-			b.bottom_color = Color("323438")
+			b.top_color = Color("24395d")
+			b.bottom_color = Color("1f3252")
 			b.border_width = 1.0
 			b.border_color = Color(1, 1, 1, 0.06)
 		"btn_light_disabled":
@@ -466,8 +466,8 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			b.border_color = Color("d3d8de")
 		"seg_off":
 			b.radius = 6
-			b.top_color = Color("3b3e44")
-			b.bottom_color = Color("33363b")
+			b.top_color = Color("253b61")
+			b.bottom_color = Color("203355")
 			b.border_width = 1.0
 			b.border_color = Color(1, 1, 1, 0.08)
 			b.shadow_size = 4
@@ -491,15 +491,15 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			m = Vector4(18, 8, 18, 6)
 		"tab_off":
 			b.radius = 0
-			b.top_color = Color("1d1f24d9")
-			b.bottom_color = Color("15171bd9")
+			b.top_color = Color("131e34d9")
+			b.bottom_color = Color("0e1628d9")
 			b.accent_color = Color(1, 1, 1, 0.12)
 			b.accent_top = 2
 			m = Vector4(18, 8, 18, 6)
 		"line_edit", "line_edit_focus":
 			b.radius = 6
-			b.top_color = Color("0c0d10")
-			b.bottom_color = Color("15171a")
+			b.top_color = Color("080c19")
+			b.bottom_color = Color("0d1627")
 			b.border_width = 1.5
 			b.border_color = Kit.ACCENT if kind == "line_edit_focus" else Color(1, 1, 1, 0.16)
 			m = Vector4(18, 10, 18, 10)
@@ -633,8 +633,8 @@ static func build() -> Theme:
 	# Progress bar defaults (Kit.progress_bar sets its own).
 	var pb_bg := KitBox.new()
 	pb_bg.radius = 3
-	pb_bg.top_color = Color("0a0b0d")
-	pb_bg.bottom_color = Color("15171a")
+	pb_bg.top_color = Color("060a16")
+	pb_bg.bottom_color = Color("0d1627")
 	t.set_stylebox("background", "ProgressBar", pb_bg.commit())
 	var pb_fg := KitBox.new()
 	pb_fg.radius = 3
@@ -675,8 +675,8 @@ static func build() -> Theme:
 	# Slider.
 	var track := KitBox.new()
 	track.radius = 3
-	track.top_color = Color("0b0c0e")
-	track.bottom_color = Color("1a1c20")
+	track.top_color = Color("070b17")
+	track.bottom_color = Color("111b2f")
 	track.border_width = 1
 	track.border_color = Color(1, 1, 1, 0.12)
 	track.content_margin_top = 4

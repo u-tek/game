@@ -146,7 +146,7 @@ func _build() -> void:
 	var sub := PanelContainer.new()
 	sub.mouse_filter = MOUSE_FILTER_IGNORE
 	sub.size_flags_horizontal = SIZE_SHRINK_BEGIN
-	sub.add_theme_stylebox_override("panel", Kit.box(Color("0c0d10c8"), Color("0c0d10c8"), Color(1, 1, 1, 0.1), 3, 1, 0))
+	sub.add_theme_stylebox_override("panel", Kit.box(Color("080c19c8"), Color("080c19c8"), Color(1, 1, 1, 0.1), 3, 1, 0))
 	var sr := Kit.hbox(8)
 	sr.mouse_filter = MOUSE_FILTER_IGNORE
 	sr.add_child(Kit.deco("techline", Vector2(36, 8), Color(1, 1, 1, 0.5)))
@@ -241,7 +241,7 @@ func _build_featured() -> void:
 		# Name and role on a small dark glass tag (reads on pale art like a white dress).
 		var plate := PanelContainer.new()
 		plate.mouse_filter = MOUSE_FILTER_IGNORE
-		plate.add_theme_stylebox_override("panel", Kit.box(Color("0d0e11c4"), Color("0d0e11c4"), Color(1, 1, 1, 0.1), 4, 1, 0))
+		plate.add_theme_stylebox_override("panel", Kit.box(Color("080d1bc4"), Color("080d1bc4"), Color(1, 1, 1, 0.1), 4, 1, 0))
 		var pv := Kit.vbox(0)
 		pv.mouse_filter = MOUSE_FILTER_IGNORE
 		var nr := Kit.hbox(6)
@@ -738,7 +738,7 @@ func _card_back(sz: Vector2) -> Control:
 	p.mouse_filter = MOUSE_FILTER_IGNORE
 	p.size = sz
 	p.pivot_offset = sz * 0.5
-	p.add_theme_stylebox_override("panel", Kit.box(Color("2a2e35"), Color("121418"), Color(Kit.ACCENT, 0.85), 4.0, 2))
+	p.add_theme_stylebox_override("panel", Kit.box(Color("1c2c4a"), Color("0c1323"), Color(Kit.ACCENT, 0.85), 4.0, 2))
 	var hatch := Kit.deco("hatch", sz, Color(Kit.ACCENT, 0.08))
 	hatch.set("spacing", 12.0)
 	p.add_child(hatch)
@@ -746,7 +746,7 @@ func _card_back(sz: Vector2) -> Control:
 	br.position = Vector2(7, 7)
 	p.add_child(br)
 	var hs := sz.x * 0.46
-	var hx := Kit.hex_badge("summon", hs, Color("1b1d21"), Kit.ACCENT_HI)
+	var hx := Kit.hex_badge("summon", hs, Color("111c31"), Kit.ACCENT_HI)
 	hx.set("glow", Color(Kit.ACCENT, 0.5))
 	hx.set("glow_size", hs * 0.2)
 	hx.position = (sz - Vector2(hs, hs)) * 0.5
