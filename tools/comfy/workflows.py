@@ -285,7 +285,7 @@ def upscale(s, image_name, prefix, scale=2.0):
 
 # ------------------------------------------------------------------ (e) tiled diffusion upscale
 TILED_DEFAULTS = {"denoise": 0.35, "tile": 1024, "padding": 64, "mask_blur": 16, "mode": "Chess",
-                  "seam_fix": "None"}
+                  "seam_fix": "None", "steps": 20}     # 20 steps per tile: the owner-approved finishing test
 
 
 def tiled_upscale(s, image_name, positive, negative, seed, prefix, object_info, scale=2.0, denoise=None,
@@ -310,7 +310,7 @@ def tiled_upscale(s, image_name, positive, negative, seed, prefix, object_info, 
     us = g.add(node, "Tiled upscale", **fill_from_schema(
         node, object_info,
         links={"image": img, "model": model, "positive": pos, "negative": neg, "vae": vae, "upscale_model": um},
-        values={"upscale_by": float(scale), "seed": int(seed), "steps": int(steps or s["steps"]),
+        values={"upscale_by": float(scale), "seed": int(seed), "steps": int(steps or d["steps"]),
                 "cfg": float(s["cfg"]), "sampler_name": s["sampler"], "scheduler": s["scheduler"],
                 "denoise": d["denoise"], "mode_type": d["mode"], "tile_width": d["tile"],
                 "tile_height": d["tile"], "mask_blur": d["mask_blur"], "tile_padding": d["padding"],

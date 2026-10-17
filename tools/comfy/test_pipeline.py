@@ -248,7 +248,8 @@ class TestWorkflows(unittest.TestCase):
             us = [n for n in g.values() if n["class_type"] == "UltimateSDUpscale"][0]["inputs"]
             self.assertEqual((us["denoise"], us["tile_width"], us["tile_height"], us["mode_type"]),
                              (0.35, 1024, 1024, "Chess"))
-            self.assertEqual((us["cfg"], us["sampler_name"], us["steps"]), (s["cfg"], s["sampler"], s["steps"]))
+            self.assertEqual((us["cfg"], us["sampler_name"], us["steps"]),
+                             (s["cfg"], s["sampler"], workflows.TILED_DEFAULTS["steps"]))
             # the tiles are re-drawn with the family's own model stack (v-pred sampling + RescaleCFG)
             self.assertEqual(g[us["model"][0]]["class_type"], "RescaleCFG")
             us2 = [n for n in workflows.tiled_upscale(s, "a.png", "p", "n", 9, "x", oi, denoise=0.25, tile=768).values()
@@ -293,7 +294,11 @@ class TestWorkflows(unittest.TestCase):
 class TestSettings(unittest.TestCase):
     def test_hero_size_style_loras_and_zsnr(self):
         self.assertEqual((settings(hero="seraphiel")["width"], settings(hero="seraphiel")["height"]), (832, 1216))
-        self.assertEqual((settings(hero="kessa")["width"], settings(hero="kessa")["height"]), (768, 1344))
+        self.assertEqual((settings(hero="kessa")["width"], settings(hero="kessa")["height"]), (832, 1216))
+        self.assertEqual((settings("noobai_vpred", hero="kessa")["width"],
+                          settings("noobai_vpred", hero="kessa")["height"]), (768, 1344))
+        ill = settings(hero="kessa")      # the production pick (owner, 2026-10-17): Amanatsu + dpmpp_2m/karras
+        self.assertEqual((ill["sampler"], ill["scheduler"], ill["steps"], ill["cfg"]), ("dpmpp_2m", "karras", 30, 5.5))
         self.assertEqual(settings(hero="seraphiel", size="704x1408")["width"], 704)
         bible = json.loads(json.dumps(BIBLE))
         bible["style"]["loras"] = [{"name": "house_style.safetensors", "strength": 0.5}]
@@ -632,8 +637,10 @@ class TestBible(unittest.TestCase):
             for hid, kind, pr in all_prompts(fam):
                 self.assertEqual(prompts.check(BIBLE, hid, pr["positive"], pr["negative"]), [], (fam, hid, kind))
                 self.assertEqual(prompts.syntax_problems(pr["positive"]) + prompts.syntax_problems(pr["negative"]), [])
-                self.assertLessEqual(pr["stats"]["positive"]["chunks"], 2, (fam, hid, kind, pr["stats"]))
-                self.assertLessEqual(pr["stats"]["negative"]["chunks"], 3, (fam, hid, kind, pr["stats"]))
+                # ComfyUI encodes whole-tag chunks joined by ConditioningConcat (art-generation.md section 7),
+                # so the cinematic style block may take the positive to 3 chunks and the negative to 4
+                self.assertLessEqual(pr["stats"]["positive"]["chunks"], 3, (fam, hid, kind, pr["stats"]))
+                self.assertLessEqual(pr["stats"]["negative"]["chunks"], 4, (fam, hid, kind, pr["stats"]))
                 self.assertNotIn(". ", pr["positive"], "no prose unless the family opts in")
                 if kind == "full_body":
                     fb = pr["positive"]
@@ -651,13 +658,14 @@ class TestBible(unittest.TestCase):
             self.assertFalse(fx & set(pos), (hid, fx & set(pos)))
             key = prompts.background(BIBLE, hid)[0]
             self.assertEqual("rim lighting" in pos, key == "grey", hid)
-            self.assertIn("official art", pos)
-        for hid in ("orrin", "ashra"):
-            self.assertEqual(BIBLE["heroes"][hid]["background"], "green", hid)
-        # NoobAI pilot (2026-10-17): on white or green the dark designs render as flat ink sketches
-        for hid in ("kessa", "mordessa", "noctaire", "cassiel"):
-            self.assertEqual(BIBLE["heroes"][hid]["background"], "grey", hid)
-        self.assertNotEqual(BIBLE["heroes"]["sable"]["background"], "green")
+            # the owner's cinematic look ("not flat ... cinematic rendering", 2026-10-17)
+            for t in ("game cg", "cinematic lighting", "painterly"):
+                self.assertIn(t, pos, hid)
+            # every hero on plain grey: the BiRefNet cutout lost wings and hair on dark gradients
+            self.assertEqual(key, "grey", hid)
+        neg = prompts.tag_weights(prompts.full_body(BIBLE, "kessa", "illustrious")["negative"])
+        for t in ("anime coloring", "flat color", "flat shading", "gradient background", "out of frame"):
+            self.assertIn(t, neg)
         self.assertIn("black and purple theme", prompts.full_body(BIBLE, "vesper", "illustrious")["positive"])
         self.assertNotIn("red and black theme", prompts.full_body(BIBLE, "vesper", "illustrious")["positive"])
 

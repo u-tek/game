@@ -59,10 +59,10 @@
    "rating": "sensitive",
    "rating_negative": "nsfw, explicit, questionable",
    "use_natural": false,
-   "settings": {"sampler": "euler_ancestral", "scheduler": "normal", "steps": 28, "cfg": 5.5, "width": 768, "height": 1344,
+   "settings": {"sampler": "dpmpp_2m", "scheduler": "karras", "steps": 30, "cfg": 5.5, "width": 832, "height": 1216,
                 "clip_skip": null, "model_sampling": null, "rescale_cfg": null,
                 "hires": {"enabled": true, "scale": 1.5, "latent_method": "nearest-exact", "denoise_latent": 0.5, "denoise_model": 0.4, "steps": 20}},
-   "notes": "Danbooru rating 'sensitive' = sexy but no nudity, exactly the target tier. dpmpp_2m + karras at cfg 5-6 is a good alternative sampler."
+   "notes": "Danbooru rating 'sensitive' = sexy but no nudity, exactly the target tier. Production model (owner, 2026-10-17): Amanatsu Illustrious v2 (amanatsuIllustrious_v2.safetensors, epsilon), chosen from 8 checkpoints on one prompt and seed; dpmpp_2m/karras chosen from 12 samplers, CFG 5.5, 30 steps, 832x1216, then model hires 1.5x (4x-AnimeSharp, 0.4), face pass 0.35 and finalize's tiled 2x repaint (0.35, 20 steps per tile)."
   },
   "animagine": {
    "label": "Animagine XL 3.x / 4.x",
@@ -95,7 +95,7 @@
  },
 
  "style": {
-  "tags": "official art, detailed shading",
+  "tags": "game cg, cinematic lighting, dramatic lighting, highly detailed, intricate details, glossy skin, shiny skin, painterly, semi-realistic",
   "extra_tags": "",
   "loras": [],
   "_doc": "Roster-wide style slot, applied to every hero and every pass: extra_tags (e.g. an artist or style tag the owner likes) and loras [{\"name\": \"file.safetensors\", \"strength\": 0.6}] from `comfy.py discover`. Fill once, before the first batch, and never change it mid-roster.",
@@ -115,12 +115,12 @@
  "negative": {
   "quality": "lowres, blurry, jpeg artifacts",
   "anatomy": "bad anatomy, bad hands, missing fingers, extra digits, fewer digits, extra arms, error",
-  "framing": "cropped, feet out of frame, head out of frame, wings out of frame, upper body, cowboy shot, multiple views, scenery",
+  "framing": "cropped, (out of frame:1.3), feet out of frame, head out of frame, wings out of frame, upper body, cowboy shot, multiple views, scenery",
   "effects": "light particles, sparkle, embers, aura, light rays, smoke, speed lines",
   "explicit": "nsfw, explicit, nude, nipples, areolae, covered nipples, nipple slip, areola slip, pussy, cameltoe, anus, penis, pubic hair, sex, spread legs, see-through",
   "childlike": "loli, shota, child, underage, teenage, young, aged down, school uniform",
   "text": "text, watermark, signature, username",
-  "style": "chibi, 3d, realistic",
+  "style": "chibi, 3d, anime coloring, flat color, flat shading, simple shading, lineart, sketch, monochrome, dark background, gradient background, floor, reflection",
   "halo": "blue archive",
   "_doc": "Kept short on purpose (at most 3 CLIP chunks; the safety terms alone are about 70 tokens): the required safety terms (gender-specific ones live in 'gender'), quality, framing and effects. Order: family quality, rating, the hero's negative_extra (first, so its weighted terms win the de-duplication), then these blocks. 'effects' keeps semi-transparent FX (glows, smoke, particles) out of the art: they spill into the flat background and break the cutout, and the rig draws its own VFX. 'halo' is added when the positive has a halo: the Danbooru halo tag is dominated by Blue Archive's school-age cast."
  },
@@ -417,7 +417,7 @@
    "gender": "female",
    "apparent_age": "adult (30s)",
    "seed_base": 202000,
-   "background": "white",
+   "background": "grey",
    "default_eyes": "open",
    "variant_set": [
     "eyes_closed",
@@ -457,7 +457,7 @@
    "gender": "female",
    "apparent_age": "late 20s",
    "seed_base": 203000,
-   "background": "white",
+   "background": "grey",
    "palette": "black and purple theme",
    "default_eyes": "open",
    "variant_set": [
@@ -502,7 +502,7 @@
    "gender": "female",
    "apparent_age": "early 20s (lithe, clearly adult)",
    "seed_base": 204000,
-   "background": "white",
+   "background": "grey",
    "default_eyes": "open",
    "variant_set": [
     "eyes_closed",
@@ -627,7 +627,7 @@
    "gender": "female",
    "apparent_age": "around 30",
    "seed_base": 302000,
-   "background": "green",
+   "background": "grey",
    "default_eyes": "open",
    "variant_set": [
     "eyes_closed",
@@ -668,7 +668,7 @@
    "gender": "female",
    "apparent_age": "late 20s",
    "seed_base": 303000,
-   "background": "white",
+   "background": "grey",
    "default_eyes": "open",
    "variant_set": [
     "eyes_closed",
@@ -748,7 +748,7 @@
    "gender": "female",
    "apparent_age": "mid-20s",
    "seed_base": 305000,
-   "background": "green",
+   "background": "grey",
    "default_eyes": "open",
    "variant_set": [
     "eyes_closed",
