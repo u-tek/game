@@ -47,6 +47,15 @@ noobai xl checkpoint set up and ready to go. also want it to be female only".
   hip in slits).
 - **Settings actually used:** noobai_vpred defaults, latent hires 1.5x at denoise 0.5 (no upscale
   model on the PC), no face refine on candidates; finals get a 0.35 face inpaint and 2x lanczos.
+- **Quality (owner, 07:19 UTC):** "a lot of AI artifacting and aren't smooth or high resolution".
+  Research: the base settings match the NoobAI V-Pred card (Euler, CFG 4-5, 28-35 steps, ~1 MP);
+  the gaps are the latent hires pass at 0.5, a plain lanczos 2x on finals, no hand or candidate
+  face touch-up, and Animagine quality tags instead of NoobAI's own (`very awa`,
+  `worst aesthetic`, `lowres, bad hands`). Fix under test on Mordessa: NoobAI tags, an anime
+  upscaler-model hires pass at 0.4, a tiled 2x upscale (Ultimate SD Upscale) at 0.35, then
+  shrink to 1024x2048. Installing 4x-AnimeSharp, 4x-UltraSharp and the Ultimate SD Upscale node
+  waits for the owner's card answer. Next lever if still rough: a NoobAI-based fine-tune or
+  style LoRA (owner's call).
 - **Split:** the PC renders, reviews at 1:1, runs `safety.py check`, installs and commits only
   `assets/art/heroes/<id>/<id>.png`, `variants/*.png` and `art_src` JSON. A cloud session then
   builds the rig (`tools/art_warp <id> --regen-masks`), runs `tools/check` and pushes, and
