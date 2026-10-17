@@ -25,16 +25,16 @@
   "noobai_vpred": {
    "label": "NoobAI-XL v-prediction (and v-pred merges)",
    "match": ["v[-_ ]?pred"],
-   "quality": "masterpiece, best quality, amazing quality, very aesthetic, newest",
+   "quality": "masterpiece, best quality, amazing quality, very aesthetic, newest, absurdres, highres",
    "quality_position": "start",
-   "quality_negative": "worst quality, low quality, displeasing, old, furry, anthro, mammal, feral",
+   "quality_negative": "worst quality, low quality, displeasing, old, furry, anthro, mammal, feral, sketch",
    "rating": "sensitive",
    "rating_negative": "nsfw, explicit, questionable",
    "use_natural": false,
    "settings": {"sampler": "euler", "scheduler": "normal", "steps": 32, "cfg": 4.5, "width": 768, "height": 1344,
                 "clip_skip": null, "model_sampling": {"sampling": "v_prediction", "zsnr": true}, "rescale_cfg": 0.7,
                 "hires": {"enabled": true, "scale": 1.5, "latent_method": "nearest-exact", "denoise_latent": 0.5, "denoise_model": 0.4, "steps": 20}},
-   "notes": "v-pred needs ModelSamplingDiscrete(v_prediction) and likes RescaleCFG 0.7, plain euler, low CFG. Washed out or burnt: --no-zsnr, or --cfg 4. NoobAI year tags: newest/recent/mid/early/old."
+   "notes": "v-pred needs ModelSamplingDiscrete(v_prediction) and likes RescaleCFG 0.7, plain euler, low CFG. Washed out or burnt: --no-zsnr, or --cfg 4. NoobAI year tags: newest/recent/mid/early/old. Calibrated on NoobAI-XL-Vpred-v1.0 (2026-10-17, Uriela): these settings gave no washed-out or burnt image and CFG 5 changed almost nothing; without the model card's 'absurdres, highres' and a negative 'sketch', about a third of seeds came out as rough sketch line art."
   },
   "pony": {
    "label": "Pony Diffusion V6 XL and Pony merges",

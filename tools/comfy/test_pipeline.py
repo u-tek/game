@@ -203,6 +203,21 @@ class TestWorkflows(unittest.TestCase):
             self.assertEqual(rec["class"], "BRIA_RMBG_Zho")
             self.assertEqual(rec["providers"], {"rmbgmodel": ["BRIA_RMBG_ModelLoader_Zho", 0]})
             self.check(workflows.remove_background(rec, "a.png", "x", oi), schema)
+            # ComfyUI's core BiRefNet node wins over the custom ones when the server has it
+            names = ["birefnet.safetensors"]
+            oi2 = dict(oi)
+            oi2["LoadBackgroundRemovalModel"] = {"input": {"required": {"bg_removal_name": (
+                ["COMBO", {"options": names}] if fmt else [names])}}, "output": ["BACKGROUND_REMOVAL"]}
+            oi2["RemoveBackground"] = {"input": {"required": {"bg_removal_model": ["BACKGROUND_REMOVAL"],
+                                                               "image": ["IMAGE"]}}, "output": ["MASK"]}
+            rec2 = comfy.rembg_recipe(oi2)
+            self.assertEqual(rec2["class"], "RemoveBackground")
+            self.assertEqual(rec2["providers"], {"bg_removal_model": ["LoadBackgroundRemovalModel", 0]})
+            self.assertEqual(rec2["mask_output"], 0)
+            g = self.check(workflows.remove_background(rec2, "a.png", "x", oi2),
+                           core_nodes.schema_from_object_info(oi2))
+            loader = [n for n in g.values() if n["class_type"] == "LoadBackgroundRemovalModel"][0]
+            self.assertEqual(loader["inputs"]["bg_removal_name"], "birefnet.safetensors")
             # a sampler the server doesn't have is caught
             s2 = dict(s, sampler="dpmpp_3m_sde")
             errs = core_nodes.validate_graph(workflows.txt2img(s2, "p", "n", 5, "x"), schema)

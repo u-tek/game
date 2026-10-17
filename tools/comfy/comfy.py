@@ -77,7 +77,9 @@ class ComfyError(RuntimeError):
 # ------------------------------------------------------------------ discovery (pure functions)
 # Optional custom nodes we know how to use or report. Matching is by exact class name.
 KNOWN_CUSTOM = {
-    "background_removal": ["InspyrenetRembg", "InspyrenetRembgAdvanced", "RMBG", "BiRefNetRMBG",
+    # RemoveBackground: ComfyUI's core BiRefNet node (0.39+, model in models/background_removal); it
+    # needs no extra pip package and clears gaps between hair, weapon and body that flood fill misses.
+    "background_removal": ["RemoveBackground", "InspyrenetRembg", "InspyrenetRembgAdvanced", "RMBG", "BiRefNetRMBG",
                            "BRIA_RMBG_Zho", "ImageRemoveBackground+", "easy imageRemBg",
                            "Image Rembg (Remove Background)", "LayerMask: RmBgUltra V2"],
     "ipadapter": ["IPAdapterUnifiedLoader", "IPAdapterAdvanced", "IPAdapter", "IPAdapterModelLoader",
