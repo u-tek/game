@@ -41,6 +41,8 @@ const SCREENS := {
 	"gear": "res://src/ui/screens/gear_screen.gd",
 	# Widget gallery for UI work (debug builds only; not in the nav).
 	"kit_demo": "res://src/ui/components/kit_demo.gd",
+	# Splash card preview (loading screens, event cards; assets/art/splash/).
+	"splash_view": "res://src/ui/screens/splash_view_screen.gd",
 }
 
 ## Bottom-nav tabs, left to right (the centre one, "home", is the Lobby).
