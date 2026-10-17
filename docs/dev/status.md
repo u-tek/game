@@ -59,11 +59,36 @@ project thread, because the owner wants to review images directly in the chat.
   `masterpiece, best quality, newest, absurdres, highres`, aesthetic `very awa`, negatives
   `worst quality, old, early, low quality, lowres, signature, username, logo, bad hands,
   mutated hands, worst aesthetic`).
-- **A/B on Mordessa** (seeds 201010, 201011, 201015; outputs `art_src/_ab/<variant>/`):
-  A current; B NoobAI's own tags; C B + latent hires at 0.6; D B + upscaler-model hires
-  (4x-AnimeSharp) at 0.4; E D + Ultimate SD Upscale 2x at 0.35 + face and hand touch-up, shrunk
-  to 1024x2048. A to C were rendering at the handoff; D and E wait for the ComfyUI restart. The tag
-  changes are not committed: commit the winner as the `noobai_vpred` default, with tests.
+- **A/B on Mordessa** (seeds 201010, 201011, 201015; outputs `art_src/_ab/<variant>/`, 1:1
+  side-by-sides `art_src/_review/ab/mordessa_s*.jpg`): A current (latent hires 0.5); B NoobAI's
+  own tags (prefix above + `very awa`, the card's negatives + `worst aesthetic, displeasing,
+  furry, anthro, mammal, feral, sketch`; rating and safety negatives unchanged); C B + latent hires
+  0.6. The PC session's read: **B clearly beats A** (cleaner lines, smoother gloss, tidier hair and
+  face), C slightly crisper than B; B and C drift Mordessa toward a black leotard with less red
+  dress. Not run yet: D (B + 4x-AnimeSharp model hires at 0.4) and E (D + Ultimate SD Upscale 2x
+  at 0.35 + face and hand touch-up). E needs a new UltimateSDUpscale builder in
+  `tools/comfy/workflows.py` and a finalize option (not written). The bible defaults are unchanged.
+- **Gotcha:** with an upscaler installed, `--hires-mode auto` now picks model hires (denoise 0.4)
+  and finalize's 2x uses the model; pass `--hires-mode latent` to reproduce A to C.
+- **Per hero** (filter passes per 6 seeds at 0.5; no hero is installed, finals wait for the winner):
+  | Hero | State |
+  |---|---|
+  | uriela | v3.2 3/6. Re-finalize from s104002 (the current s104025 final is an off-brief test design); fix the stray eyeliner (fix.py, wider box, denoise ~0.6); use `--face-box`. |
+  | kessa | 5/6. Final s205022 PASS; mouth_open and smile s205501 PASS; eyes_closed still a wink at 0.75 (wider eyes region, denoise ~0.8). |
+  | lucen | 5/6 (weighted asymmetric wings also 5/6, not in the bible). Final s304004 with refine 0.3 PASS; variants not reviewed. |
+  | mordessa | 6/6 with the weighted leotard. Final s201012, not reviewed or checked. |
+  | noctaire | 6/6 on grey. Final s301001 re-cut; painted white blobs in the scythe need fix.py or another seed. |
+  | liora | 6/6. Final s103004, not reviewed. |
+  | cassiel | 6/6 on grey. Final s102003, not reviewed. |
+  | brakka | 6/6 on grey, not picked. |
+  | seraphiel | Most drop even at 0.5 (breast 0.43-0.74); s101002 held; needs a cut-back. |
+  | vesper, imra, orrin, sable, nuriel, ashra | Not started. |
+- **ComfyUI on the PC:** a detached headless process on 8188 (exact start line in `HANDOFF.md`;
+  logs `D:\comfyui\user\halo_comfy_stdout.log`); the Desktop app itself uses port 8000. Filter:
+  `.\.venv-artgen\Scripts\python.exe tools/artgen/safety.py check <files>` (system Python 3.10
+  can't take the pinned numpy). The review set had 117 of about 200 images checked at the
+  handoff; `python art_src/_review/tools/collect_review.py` finishes it (cached; its helper paths
+  still point at the old session's scratchpad).
 - **Next lever if still rough:** a NoobAI-based fine-tune or a style LoRA (the owner's call).
 
 ## Next steps (art)
