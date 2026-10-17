@@ -29,6 +29,22 @@ noobai xl checkpoint set up and ready to go. also want it to be female only".
 - **Pipeline:** long prompts are now encoded in whole-tag chunks joined by `ConditioningConcat`
   (`docs/dev/art-generation.md` section 7), so no tag is cut at ComfyUI's 75-token break. The two
   old `test_pipeline` failures are fixed (a test bug in `test_pin`, `roster.py` missing from the doc).
+- **PC session:** running on the owner's PC (DESKTOP-VIS0U33, `D:\AI\claude game`), RTX 3070 8 GB,
+  ComfyUI Desktop on 127.0.0.1:8188, checkpoint NoobAI-XL-Vpred-v1.0 pinned as `noobai_vpred`,
+  filter venv `.venv-artgen`. NoobAI quality tags `absurdres, highres` and negative `sketch`
+  (ee26b09). About 50 s per image.
+- **Filter raised to 0.5 (owner, 2026-10-17, c3d35b5):** "anything that's not explicit nudity is
+  fine", then "raise it". At 0.25 the filter dropped clothed cleavage and highleg hips (Uriela
+  passed 1 of 12). At 0.5 the pilots passed: Uriela 3/6 (v3.2 design restored, pick s104002),
+  Mordessa 6/6, Noctaire 6/6, Kessa 5/6, Lucen 5/6. Seraphiel passed about 1/6 and one candidate had
+  a semi-sheer drape over the groin, so her reveal gets a moderate cut-back. Briefs are v3.3.
+- **Images to the thread:** the owner asked for every generated image to be sent to them. The PC
+  session's upload to a private repo was blocked by its auto mode as data exfiltration; the images
+  are on the PC in `art_src/<hero>/candidates`. Waiting on the owner to allow it there.
+- **Split:** the PC renders, reviews at 1:1, runs `safety.py check`, installs and commits only
+  `assets/art/heroes/<id>/<id>.png`, `variants/*.png` and `art_src` JSON. A cloud session then
+  builds the rig (`tools/art_warp <id> --regen-masks`), runs `tools/check` and pushes, and
+  dispatches the iOS build once the roster is in.
 
 ## First things a new session should do
 

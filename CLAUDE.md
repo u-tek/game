@@ -102,8 +102,11 @@ From `docs/dev/character-briefs.md`, which is authoritative:
   opaque layer under it.
 - **Guardrails stay on.** `tools/comfy/prompts.py` `enforce()` (adult cue tags, forbidden terms,
   required safety negatives) is never removed or weakened. The art farm's exposure filter
-  (`tools/artgen/safety.py`; thresholds 0.25 in `tools/artgen/config.py` `FILTER`) is fail-closed
-  and is never loosened.
+  (`tools/artgen/safety.py`; thresholds in `tools/artgen/config.py` `FILTER`) is fail-closed.
+  The owner raised both thresholds from 0.25 to 0.5 on 2026-10-17 ("anything that's not explicit
+  nudity is fine", then "raise it"; commit c3d35b5), because 0.25 flagged clothed cleavage and
+  highleg hips on NoobAI renders. 0.5 equals `max_threshold`, the ceiling `safety.py` enforces;
+  never go above it, and never change the detectors, watched classes or canary bands.
 - **The filter also gates ComfyUI art.** `tools/comfy/` has no exposure filter, and `install.py`
   copies straight into `assets/`. Before you install or commit any ComfyUI image (the base and
   every `variants/<name>.png`), run on the PC: `pip install -r tools/artgen/requirements-collect.txt`,
@@ -168,7 +171,11 @@ Ask the owner for approval (plan mode or a permission rule they add) instead.
 - Dispatching `art-gen.yml` (it publishes art to the public branch) was blocked until the owner
   approved a plan in plan mode. Expect to need their explicit approval again.
 - Committing any generated character image outside `assets/art/heroes`.
-- Keeping or encrypting filter-flagged images, or any change that weakens the exposure filter.
+- Keeping or encrypting filter-flagged images, or any change that weakens the exposure filter
+  beyond the owner-approved 0.5.
+- Copying generated images off the owner's PC (the PC session tried a private GitHub repo,
+  2026-10-17): its auto mode blocked it as data exfiltration. It needs the owner to allow it in
+  that session on the PC (a permission rule, or auto mode off). Don't route around it.
 - `sleep` in Bash: use `run_in_background` or Monitor with an until-loop.
 - Messaging the owner's PC Remote Control session: the trust card was not recorded. Don't re-send
   it unless the owner asks ("ask again"). The previous session had no computer-use tools. Before
