@@ -39,6 +39,11 @@ that the owner sideloads. The repo `u-tek/game` is public. The only code branch 
 - Say plainly which decisions you made without them, and tell them when an action needs their
   approval (plan mode, a permission card) and what to tap.
 - Big multi-agent runs use their plan quota (the usage limit was hit once). Keep fan-out modest.
+- **Their GPU, their call (2026-10-17).** Ask before any render job longer than about 10 minutes
+  and before making new art settings the default. Send every render as its own full-size image as
+  it lands, not only sheets. A test shows whether art is better; only the owner says whether it is
+  good enough. (A 90-minute roster run started without asking was stopped: "I know I'm not going
+  to be happy with" them.)
 - What upset them before: planning instead of building, a web build, chibi or vector art,
   washed-out art, looking idle, deleting filtered images.
 - In repo docs, call them "the owner" (they/them). Write plain, direct English.
