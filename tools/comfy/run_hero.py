@@ -86,6 +86,8 @@ def main(argv=None):
     ap.add_argument("--control-strength", type=float, default=0.6)
     ap.add_argument("--no-sheet", action="store_true")
     ap.add_argument("--no-cutout-check", action="store_true", help="skip the automatic cutout/framing check")
+    ap.add_argument("--skin", help="skin id (bible 'skins', data/skins.json): the hero in that skin, written to "
+                    "art_src/<id>/skins/<art>/candidates/; seeds start at the skin's seed_base")
     P.add_common_args(ap)
     a = ap.parse_args(argv)
     log = (lambda *x: None) if a.quiet else print
@@ -95,12 +97,14 @@ def main(argv=None):
             raise P.PipelineError("unknown hero %r. Heroes: %s" % (a.hero, ", ".join(bible["heroes"])))
         client = P.make_client(a)
         s, disc, oi = P.resolve_settings(bible, a, client, a.hero)
-        pr = prompts.full_body(bible, a.hero, s["family"], background_key=a.background, extra_tags=a.extra_tags)
-        bg_key, bg = prompts.background(bible, a.hero, a.background)
-        h = bible["heroes"][a.hero]
-        first = a.seed if a.seed is not None else int(h["seed_base"])
+        pr = prompts.full_body(bible, a.hero, s["family"], background_key=a.background, extra_tags=a.extra_tags,
+                               skin=a.skin)
+        h = prompts.skin_view(bible, a.hero, a.skin) if a.skin else bible["heroes"][a.hero]
+        sk = bible["skins"][a.skin] if a.skin else {}
+        bg_key, bg = prompts.background(bible, a.hero, a.background or sk.get("background"))
+        first = a.seed if a.seed is not None else int(sk.get("seed_base", h["seed_base"]))
         seeds = [first + i for i in range(max(1, a.count))]
-        if a.force:
+        if a.force and not a.skin:
             clash = sorted(protected_seeds(a.hero, a.dry_run) & set(seeds))
             if clash:
                 raise P.PipelineError("seed %s is the master of final/%s.png; --force would overwrite it. Pick "
@@ -114,10 +118,12 @@ def main(argv=None):
                 log("warning: %s prompt is ~%d tokens (%d CLIP chunks); tags after the first chunks get diluted. "
                     "Trim --extra-tags or the hero's tags." % (side, st["tokens"], st["chunks"]))
         hdir = P.hero_dir(a.hero, a.dry_run)
+        if a.skin:
+            hdir = os.path.join(hdir, "skins", str(sk.get("art") or a.skin))
         cdir = os.path.join(hdir, "candidates")
         os.makedirs(cdir, exist_ok=True)
         log("%s: %d candidate(s), seeds %d..%d, checkpoint %s (%s), %dx%d -> %dx%d, %s/%s %d steps cfg %s" % (
-            a.hero, len(seeds), seeds[0], seeds[-1], s["checkpoint"], s["family"], s["width"], s["height"],
+            a.hero + ("/" + a.skin if a.skin else ""), len(seeds), seeds[0], seeds[-1], s["checkpoint"], s["family"], s["width"], s["height"],
             *P.output_size(s), s["sampler"], s["scheduler"], s["steps"], s["cfg"]))
 
         ipadapter = controlnet = None
@@ -172,7 +178,7 @@ def main(argv=None):
                 if check["flags"]:
                     log("  s%d check: %s" % (seed, " ".join(check["flags"])))
             meta = {
-                "hero": a.hero, "seed": seed, "image": os.path.basename(png), "created": P.stamp(),
+                "hero": a.hero, "skin": a.skin, "seed": seed, "image": os.path.basename(png), "created": P.stamp(),
                 "dry_run": a.dry_run, "prompt": pr["positive"], "negative": pr["negative"],
                 "prompt_stats": pr["stats"], "brief": h["natural"], "check": check,
                 "background": {"key": bg_key, "rgb": bg["rgb"]},

@@ -27,28 +27,22 @@ bikinis and whatever." This is the design. Nothing is built yet (see "Game work"
 | **Pop Idol** | Y2K stage and race-queen outfits: metallic crop tops, micro shorts, headset mics, holographic boots | Rotating |
 | **Events** | Valentine (red latex), Halloween (angels dressed as demons and the reverse), Winter (fur-trimmed red micro bikini), Summer (more Aqua Resort) | Limited time |
 
-## Launch set (30 skins: an Aqua Resort skin plus one more per hero)
+## Packs (v2, 2026-10-17: 60 skins, four packs x all 15 heroes)
 
-| Hero | Aqua Resort | Second skin |
+The owner: "come up with different skin packs for all the characters that's consistent ... a bikini one, like a
+pool one for all of them. And then make another one that's even more, like, erotic." Every pack covers every
+hero, so a pack reads as one collection. The catalogue (names, descriptions, tiers) is `data/skins.json`; the art
+prompts are the `skins` block of `data/art_prompts.json` (Aqua Resort and After Dark so far).
+
+| Pack | Look | Tier |
 |---|---|---|
-| Seraphiel | **Tidal Diva**: pearl micro bikini with chrome ring links, chrome body chains, mirrored shades pushed into wet platinum hair, chrome mic | **Encore Bunny** (Bunny Lounge): pearl latex bunny leotard, chrome cuffs and collar, white fishnets, aqua bow tie |
-| Cassiel | **Lifeguard Unit**: white-and-aqua sport micro bikini with mecha plate accents, chrome whistle, frosted rescue-board shield | **Off Duty** (After Hours): white satin lingerie and garters, one pauldron hanging from her hip |
-| Liora | **Pearl Lagoon**: high-cut aqua one-piece plunging to the navel, pearl straps, wet-look braid | **Lounge Singer** (Club Chrome): cream sequin micro dress slit to the hip over opaque shorts, long satin gloves, chrome mic |
-| Uriela | **Surf Racer**: azure racing micro bikini with sun-sigil decals, shield visor, lance as a surf spear | **Podium Queen** (Pop Idol): glossy white vinyl race-queen crop top and micro skirt over opaque shorts, thigh boots, chrome parasol |
-| Nuriel | **Jet Stream**: aqua chrome micro bikini, clear-vinyl rash jacket off the shoulders, shield visor | **Courier Bunny** (Bunny Lounge): white vinyl bunny leotard with aqua racing stripes, bunny-ear visor |
-| Mordessa | **Lava Lounge**: black latex micro bikini, red chrome shades, fur-trimmed robe worn open, rhinestone crown | **High Roller** (Bunny Lounge): red latex bunny leotard, black fishnets, rhinestone crown between her horns |
-| Brakka | **Pool Champ**: black-and-chrome micro bikini (it has to read against her red skin), championship belt, towel over her shoulders, chrome shades | **Velvet Rope** (Club Chrome): black latex bodysuit with SECURITY in chrome letters, chain harness |
-| Vesper | **Red Tide**: crimson latex micro bikini with chrome heart rings, tinted glasses, open beach robe | **Late Session** (After Hours): black latex lingerie and garters, red-tinted glasses |
-| Imra | **Fire Lagoon**: orange metallic bandeau bikini, chrome jewelry, a tiki-torch version of her staff | **Headliner** (Pop Idol): metallic red crop top, high-cut shorts, chrome headset mic, platform boots |
-| Kessa | **Black Cat Beach**: black latex micro bikini with red O-rings, cat-ear sun visor | **Purr** (After Hours): red satin lingerie, chrome collar, cat-ear headphones |
-| Noctaire | **Midnight Swim**: black micro bikini with an oil-slick wrap, cracked chrome halo | **Void Bunny** (Bunny Lounge): black latex bunny leotard, oil-slick ears, glitch-pattern fishnets |
-| Orrin | **Riot Beach**: black-and-violet sport micro bikini, smoked shades, riot shield as a surfboard | **Off the Clock** (After Hours): black satin lingerie, her fiber-optic cables loose, armor jacket over the shoulders |
-| Sable | **Holy Water**: black one-piece with a plunging keyhole, clear holographic veil, chrome cross | **Choir Night** (Club Chrome): violet latex micro dress over opaque shorts, holographic veil |
-| Lucen | **Split Tide**: mismatched white and black micro bikini, half-and-half shades | **Two-Faced Bunny** (Bunny Lounge): split white/black latex bunny leotard, one white ear, one black |
-| Ashra | **Lazy River**: violet micro bikini, holographic sun hat, a sleepy standing stretch | **Night Owl** (After Hours): oversized off-shoulder sweater over a tube top and opaque micro shorts, headphones |
+| **Aqua Resort** | Pool and bikini: micro bikinis and plunging one-pieces, wet skin, chrome shades | Standard (Legendaries Deluxe) |
+| **Bunny Lounge** | Hell's casino: glossy latex and holographic bunny leotards, fishnets | Standard (Legendaries Deluxe) |
+| **Club Chrome** | A night out: latex micro dresses over opaque layers, rhinestones, platforms | Standard (Legendaries Deluxe) |
+| **After Dark** | The most daring: topless, covered by hands, hair or an arm; opaque bottoms; never visible nipples | Deluxe |
 
-Young-end heroes (Liora, Uriela, Imra) get the glam skins (resort, lounge singer, race queen,
-headliner) and none of the lingerie line, as an extra margin on the "never reads young" rule.
+After Dark is for the sideloaded build (Apple guideline 1.1.4 makes it an App Store rejection risk). There is no
+nude set: Claude declined it (2026-10-17). Every skin follows the hard lines in `docs/dev/character-briefs.md`.
 
 ## Pricing (proposal for the owner)
 

@@ -274,6 +274,29 @@ def _hero(bible, hero_id):
     return h
 
 
+SKIN_FIELDS = ("outfit", "footwear", "accessories", "weapon", "pose", "expression", "head", "palette",
+               "background", "natural")
+
+
+def skin_view(bible, hero_id, skin_id):
+    """The hero's prompt fields with a skin's overrides (bible "skins", keyed by the skin id of
+    data/skins.json). Identity (subject, body, hair, eyes, wings) always comes from the hero, so a
+    skin keeps her face and figure; its negative_extra is added to the hero's."""
+    h = _hero(bible, hero_id)
+    s = (bible.get("skins") or {}).get(skin_id)
+    if s is None:
+        raise KeyError("unknown skin %r (bible 'skins')" % skin_id)
+    if s.get("hero") != hero_id:
+        raise KeyError("skin %r belongs to %r, not %r" % (skin_id, s.get("hero"), hero_id))
+    v = dict(h)
+    for k in SKIN_FIELDS:
+        if k in s:
+            v[k] = s[k]
+    if s.get("negative_extra"):
+        v["negative_extra"] = join_tags(s["negative_extra"], h.get("negative_extra", ""))
+    return v
+
+
 def family_block(bible, family):
     f = bible["families"].get(family)
     if f is None:
@@ -327,19 +350,23 @@ def _finish(bible, hero_id, positive, negative):
 
 
 # ------------------------------------------------------------------ composers
-def full_body(bible, hero_id, family, background_key=None, extra_tags=""):
+def full_body(bible, hero_id, family, background_key=None, extra_tags="", skin=None):
     """Positive/negative for a full-body candidate. Order: quality/rating (family position),
     subject, adult face styling, composition (full body early: the rig needs head to feet), body, hair, eyes,
     expression, head, wings/tail, outfit, footwear, accessories, weapon, pose, palette,
-    background, style. The brief sentence is appended only for families with use_natural."""
-    h = _hero(bible, hero_id)
+    background, style. The brief sentence is appended only for families with use_natural.
+    skin: a skin id from the bible's "skins" (skin_view) for that skin's outfit, pose and props."""
+    h = skin_view(bible, hero_id, skin) if skin else _hero(bible, hero_id)
     fam = family_block(bible, family)
+    if skin and h.get("background") and not background_key:
+        background_key = h["background"]
     _, bg = background(bible, hero_id, background_key)
     eyes = "" if h.get("default_eyes") == "closed" else h["eyes"]
     body = join_tags(h["subject"], h.get("adult_face", ""), bible["composition"]["tags"], h["body"], h["hair"],
                      eyes, h["expression"],
                      h["head"], h["wings_tail"], h["outfit"], h.get("footwear", ""), h["accessories"], h["weapon"],
-                     h.get("pose", ""), palette(bible, hero_id), bg["tags"], style_tags(bible, bg), extra_tags)
+                     h.get("pose", ""), h.get("palette") or palette(bible, hero_id), bg["tags"],
+                     style_tags(bible, bg), extra_tags)
     positive = _wrap_quality(fam, body)
     if fam.get("use_natural"):
         positive += ". " + h["natural"]

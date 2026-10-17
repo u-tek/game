@@ -22,7 +22,7 @@ func _cleanup() -> void:
 
 func test_skin_data_is_consistent(t: TestCtx) -> void:
 	var all := SkinData.all()
-	t.eq(all.size(), 30, "30 launch skins")
+	t.eq(all.size(), 60, "four packs x 15 heroes")
 	var ids := {}
 	var lines := SkinData.lines()
 	for s in all:
@@ -34,10 +34,16 @@ func test_skin_data_is_consistent(t: TestCtx) -> void:
 		t.ok(s.art != "" and not s.art.contains("/"), "art folder name: " + s.id)
 		t.ok(s.name != "" and s.description != "", "named and described: " + s.id)
 	for h in HeroData.all():
-		t.ok(SkinData.for_hero(h.id).size() >= 2, "every hero has launch skins: " + h.id)
+		t.eq(SkinData.for_hero(h.id).size(), 4, "one skin per pack: " + h.id)
+	for line in lines:
+		var n := 0
+		for s in all:
+			if s.line == line:
+				n += 1
+		t.eq(n, 15, "pack covers all 15: " + line)
 	t.eq(SkinData.get_def("nope"), {}, "unknown id")
 	t.eq(SkinData.get_def("seraphiel_tidal_diva").price_gems, 1480, "deluxe price")
-	t.eq(SkinData.get_def("cassiel_off_duty").price_gems, 980, "standard price")
+	t.eq(SkinData.get_def("cassiel_lifeguard_unit").price_gems, 980, "standard price")
 
 
 func test_buy_and_equip(t: TestCtx) -> void:
@@ -57,11 +63,11 @@ func test_buy_and_equip(t: TestCtx) -> void:
 	t.eq(m.buy_skin(sid).error, "Already owned", "no double purchase")
 	t.eq(m.equipped_skin("uriela"), "", "buying does not equip")
 	t.eq(m.equip_skin("kessa", sid).ok, false, "a skin only fits its own hero")
-	t.eq(m.equip_skin("uriela", "uriela_podium_queen").error, "You don't own that skin")
+	t.eq(m.equip_skin("uriela", "uriela_pit_bunny").error, "You don't own that skin")
 	t.ok(m.equip_skin("uriela", sid).ok, "equipped")
 	t.eq(m.equipped_skin("uriela"), sid)
 	var list: Array[Dictionary] = m.skins_for("uriela")
-	t.eq(list.size(), 2)
+	t.eq(list.size(), 4)
 	t.ok(list[0].owned and list[0].equipped, "flags on the list")
 	t.ok(not list[1].owned and not list[1].equipped)
 	t.ok(m.equip_skin("uriela", "").ok, "back to the base look")
@@ -74,9 +80,9 @@ func test_game_refuses_skins_without_art(t: TestCtx) -> void:
 	var g := _game()
 	g.new_game()
 	g.dev_add("gems", 10000)
-	var sid := "kessa_purr"
+	var sid := "kessa_card_shark"
 	if HeroArt.has_skin_art("kessa", sid):
-		t.ok(true, "kessa_purr art is installed; nothing to check")
+		t.ok(true, "kessa_card_shark art is installed; nothing to check")
 	else:
 		var r: Dictionary = g.buy_skin(sid)
 		t.eq(r.ok, false, "no art, no sale")
@@ -110,7 +116,7 @@ func test_migrate_cleans_skin_state(t: TestCtx) -> void:
 	g.new_game()
 	var s: Dictionary = g.model.state.duplicate(true)
 	s.skins = {"owned": ["liora_pearl_lagoon", "ghost_skin", "liora_pearl_lagoon", "vesper_red_tide"],
-		"equipped": {"liora": "liora_pearl_lagoon", "vesper": "vesper_late_session",
+		"equipped": {"liora": "liora_pearl_lagoon", "vesper": "vesper_dealers_choice",
 			"kessa": "vesper_red_tide", "ghost": "liora_pearl_lagoon"}}
 	var out: Dictionary = g.model.migrate(s)
 	t.eq(out.skins.owned, ["liora_pearl_lagoon", "vesper_red_tide"], "unknown and duplicate ids dropped")
@@ -122,7 +128,7 @@ func test_migrate_cleans_skin_state(t: TestCtx) -> void:
 
 
 func test_art_falls_back_to_the_base_look(t: TestCtx) -> void:
-	t.eq(HeroArt.has_skin_art("uriela", "kessa_purr"), false, "another hero's skin never resolves")
+	t.eq(HeroArt.has_skin_art("uriela", "kessa_card_shark"), false, "another hero's skin never resolves")
 	t.eq(HeroArt.has_skin_art("uriela", ""), false)
 	if HeroArt.has_art("uriela") and not HeroArt.has_skin_art("uriela", "uriela_surf_racer"):
 		t.eq(HeroArt.texture("uriela", "uriela_surf_racer"), HeroArt.texture("uriela"),

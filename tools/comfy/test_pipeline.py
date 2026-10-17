@@ -651,6 +651,26 @@ class TestBible(unittest.TestCase):
                     self.assertTrue(prompts.tag_weights(BIBLE["heroes"][hid]["footwear"]).keys()
                                     <= prompts.tag_weights(fb).keys(), hid)
 
+    def test_skins_compose_and_keep_identity(self):
+        game_skins = {s["id"]: s for s in json.load(open(os.path.join(ROOT, "data", "skins.json"), encoding="utf-8"))["skins"]}
+        for sid, s in BIBLE["skins"].items():
+            self.assertTrue(sid in game_skins, "bible skin not in data/skins.json: " + sid)
+            self.assertEqual(game_skins[sid]["hero"], s["hero"], sid)
+            self.assertEqual(game_skins[sid]["art"], s["art"], sid)
+            for fam in BIBLE["families"]:
+                pr = prompts.full_body(BIBLE, s["hero"], fam, skin=sid)
+                self.assertEqual(prompts.check(BIBLE, s["hero"], pr["positive"], pr["negative"]), [], (fam, sid))
+                self.assertLessEqual(pr["stats"]["positive"]["chunks"], 3, (fam, sid))
+                self.assertLessEqual(pr["stats"]["negative"]["chunks"], 4, (fam, sid))
+                tw = prompts.tag_weights(pr["positive"])
+                h = BIBLE["heroes"][s["hero"]]
+                for t in prompts.tag_weights(h["hair"]):           # identity stays the hero's
+                    self.assertIn(t, tw, (sid, t))
+        with self.assertRaises(KeyError):
+            prompts.skin_view(BIBLE, "kessa", "seraphiel_tidal_diva")      # another hero's skin
+        with self.assertRaises(KeyError):
+            prompts.skin_view(BIBLE, "kessa", "nope")
+
     def test_effects_and_backgrounds(self):
         fx = set(prompts.tag_weights(BIBLE["negative"]["effects"])) | {"fire", "lava", "magic", "glowing", "sunburst"}
         for hid, h in BIBLE["heroes"].items():
