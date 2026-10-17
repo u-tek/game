@@ -9,7 +9,7 @@
 			"role": "caster",
 			"rarity": "legendary",
 			"bio": "The last seraph who still sings the hymn that once held the sky together. Every note is a sunrise; every chorus, a judgment.",
-			"look": "Statuesque, voluptuous six-winged seraph goddess (two large pairs, one small pair at the head), golden sunray halo crown, very long platinum hair, serene closed-eye half-smile. Glossy white highleg leotard split by a center opening to the navel and laced with gold filigree chains, open back, long white drapes from the hips over the leotard, flowing sleeves, gold body chains, anklets, bare feet. One hand raised to a floating golden tuning-fork sceptre. The poster goddess.",
+			"look": "Statuesque, voluptuous pop goddess of heaven: six pearl-white wings with aqua tips, a large chrome halo ring, very long platinum hair. Pearl-white liquid-latex sling leotard plunging to the navel and open at the sides, pearl-vinyl stage drapes from chrome hip rings, chrome body chains, mirror-chrome platform heels. Raises a chrome tuning-fork microphone stand like a torch; eyes closed, a knowing half-smile.",
 			"base_stats": {"hp": 1710, "atk": 112, "def": 42, "spd": 96, "crit": 1200},
 			"ultimate": {
 				"id": "hymn_of_judgment",
@@ -45,7 +45,7 @@
 			"role": "guardian",
 			"rarity": "epic",
 			"bio": "Captain of the Gate Wardens. She has never taken a step backward, and she does not intend to start.",
-			"look": "Athletic, curvy paladin angel with toned abs, short silver bob and a cocky smirk. Ornate white-gold bikini armor: small sculpted breastplate cups, huge pauldrons, gauntlets, bare midriff, high-cut armored bottom under a long sky-blue tabard, thigh-high greaves. Huge kite shield with a sunburst emblem planted at her side, hand on hip. Two feathered wings, simple halo.",
+			"look": "Athletic, curvy aero paladin: glossy white console-robot micro armor with small plate cups and aqua seams, oversized white-and-chrome pauldrons, gauntlets, bare midriff, thong-cut plate bottom, white mecha thigh greaves. A tall frosted aqua riot-glass kite shield planted at her side, hand on hip. Short silver bob, chrome visor tiara, white wings, chrome halo; a cocky smirk.",
 			"base_stats": {"hp": 2810, "atk": 60, "def": 82, "spd": 90, "crit": 500},
 			"ultimate": {
 				"id": "dawnwall",
@@ -81,7 +81,7 @@
 			"role": "support",
 			"rarity": "epic",
 			"bio": "A temple novice whose lullabies close wounds. She is still learning which songs are safe to sing in battle.",
-			"look": "Soft, curvy adult healer angel with long rose-gold hair in a loose side braid over one shoulder, adult makeup and a warm, teasing smile. Strapless cream corset minidress with gold embroidery and a deep cleavage, rose-gold garter straps on white thighhighs, white heels. Leans toward the viewer holding a golden lyre. Two soft white wings, flower-shaped halo.",
+			"look": "Soft, curvy spa goddess with glam makeup: white string bikini strung with pearl chains, a pearl satin sarong at the hip, chrome anklets and heels, water droplets on her skin. Long rose-gold hair in a wet-look side braid, a frosted aqua glass lyre, pearl wings, a slim chrome halo. Leans toward the viewer with a slow, warm smile.",
 			"base_stats": {"hp": 1750, "atk": 76, "def": 48, "spd": 102, "crit": 500},
 			"ultimate": {
 				"id": "lullaby_of_mending",
@@ -117,7 +117,7 @@
 			"role": "striker",
 			"rarity": "rare",
 			"bio": "A spear maiden of the outer bastions, eager to prove the old stories about her namesake true.",
-			"look": "Toned, curvy spear maiden with a high honey-blonde ponytail and a confident grin. Glossy azure-and-white highleg battle leotard with underboob and navel cutouts, gold trim, bare shoulders and back, armored gauntlets and boots, short half-cape. Long golden spear with a sun-shaped blade over her shoulder. Two swept-back wings, thin halo ring.",
+			"look": "Toned, curvy sky racer: glossy azure-and-white racing leotard, highleg and thong-cut, with an underboob cutout and a navel window, sun-sigil decals, racing gloves, white platform racing boots. A chrome shield visor pushed up into a high honey-blonde ponytail; a chrome aero lance with a frosted aqua blade over her shoulder; pearl wings, thin chrome halo; a confident grin.",
 			"base_stats": {"hp": 1790, "atk": 92, "def": 48, "spd": 104, "crit": 1500},
 			"ultimate": {
 				"id": "sunlance",
@@ -148,12 +148,12 @@
 		{
 			"id": "nuriel",
 			"name": "Nuriel",
-			"title": "Dawn Scout",
+			"title": "the Lens Flare",
 			"faction": "celestial",
 			"role": "assassin",
 			"rarity": "rare",
-			"bio": "A quiet scout who hunts in the moment between night and morning. Says little, misses nothing.",
-			"look": "Lean, athletic adult kunoichi with messy pale-gold hair in a ponytail, half-lidded eyes and a white cloth mask over her mouth and nose. Cropped sleeveless hooded sky-blue scout jacket worn open over a white chest wrap, bare toned midriff, tight black short shorts with thigh straps, fishnet thighhighs, short boots, wrapped forearms. Arms crossed, twin short daggers of white light in reverse grip. Sharp white wings, faint thin halo.",
+			"bio": "Heaven's fastest courier, until she started delivering knives. You see the flash on her visor; you never see her.",
+			"look": "Lean, long-legged courier-assassin: aqua-chrome zip-front sport bandeau, glossy white thong-back sport brief, cropped white vinyl track jacket slipping off her shoulders, chrome thigh holsters, racing gloves, white platform trainers with bubble air soles. Mirrored chrome shield visor, platinum pixie cut with aqua tips, four jet-fin pearl wings, a thin chrome halo. Twin crystal daggers, one in reverse grip; a cool half-smile.",
 			"base_stats": {"hp": 1500, "atk": 92, "def": 38, "spd": 122, "crit": 2200},
 			"ultimate": {
 				"id": "daybreak_ambush",
@@ -189,7 +189,7 @@
 			"role": "striker",
 			"rarity": "legendary",
 			"bio": "Queen of the Ninth Furnace. She lost the war, kept the crown, and has decided the war is not over.",
-			"look": "Voluptuous demon queen with large curled black ram horns and a small crown between them, long wavy black hair with crimson ends, sharp eyes and a commanding smirk. Black and crimson armored dress over a black highleg leotard: gold-filigree corset bodice plunging to the navel, one armored shoulder, hip-high skirt slits showing the leotard, garter straps and thigh-high boots. Huge greatsword wreathed in orange flame on her shoulder, hand on hip. Leathery bat wings, thin spaded tail.",
+			"look": "Voluptuous nightclub empress: huge curled chrome ram horns with a rhinestone crown, long wavy black hair with crimson ends. Candy-red metallic micro bikini with chrome O-rings, chrome chain belt, red latex thigh-high platform boots, and a floor-length black vinyl coat worn off the shoulders with a huge fur collar; cyber-sigil tattoos. A chrome greatsword with a painted flame edge on her shoulder, hand on hip; bat wings, spaded tail; a commanding smirk.",
 			"base_stats": {"hp": 2050, "atk": 106, "def": 54, "spd": 104, "crit": 1800},
 			"ultimate": {
 				"id": "ninth_furnace",
@@ -225,8 +225,8 @@
 			"faction": "infernal",
 			"role": "guardian",
 			"rarity": "epic",
-			"bio": "A furnace-golem's granddaughter with a heart softer than her hide. Loyal to Mordessa, and to anyone who feeds her.",
-			"look": "Enormous, heavily muscled demon amazon with dark red skin, short messy black hair, thick short horns and a friendly tusked grin. Black sports bra under a chain harness, defined abs, obsidian armor kilt with glowing magma cracks over black shorts, enormous molten gauntlets, armored boots. Flexes both arms. No wings; a thick tail.",
+			"bio": "Undefeated in the Pit Arena, bouncer at the Brimstone club, and the only demon who hugs harder than she hits. Loyal to Mordessa, and to anyone who brings snacks.",
+			"look": "Towering red-skinned bodybuilder demon, champion of hell's arena and bouncer at its club: glossy black micro bikini top with a chrome O-ring, black vinyl thong-cut bottom, a huge chrome-and-gold championship belt, chain chest harness, hot-rod engine gauntlets with exhaust pipes, black platform boots with flame decals. Bleached spiked hair with frosted tips, big chrome bull horns, small tusks, cyber-sigil tattoos, a thick tail. Double-biceps flex and a huge friendly grin.",
 			"base_stats": {"hp": 2960, "atk": 62, "def": 76, "spd": 86, "crit": 500},
 			"ultimate": {
 				"id": "magma_bulwark",
@@ -262,7 +262,7 @@
 			"role": "caster",
 			"rarity": "epic",
 			"bio": "A succubus scholar who reads the future in falling ash. Her forecasts are always right, and always fire.",
-			"look": "Sultry hourglass succubus scholar with long straight wine-red hair, half-lidded teasing eyes behind thin glasses and small curved horns. Glossy crimson latex catsuit with a heart-shaped cleavage window, opera gloves, high-collared open-front black cape lined in purple. Floating orb of hellfire in one raised hand, adjusting her glasses with the other. Small bat wings, heart-spaded tail.",
+			"look": "Sultry hourglass hacker succubus: long straight wine-red hair, half-lidded eyes behind red-tinted rimless glasses, small glossy horns. Glossy crimson latex catsuit with a heart-shaped cleavage window, an underboob cutout and hip windows, black latex opera gloves, a high-collared open black vinyl cape lined in hot pink. A red glass hellfire orb ringed by chrome rings in one raised hand, adjusting her glasses with the other; bat wings, heart-spaded tail.",
 			"base_stats": {"hp": 1560, "atk": 106, "def": 38, "spd": 95, "crit": 1100},
 			"ultimate": {
 				"id": "ember_rain",
@@ -300,7 +300,7 @@
 			"role": "support",
 			"rarity": "rare",
 			"bio": "An imp shaman who brokers small, fair deals. Mostly fair. Fair-ish.",
-			"look": "Mischievous adult imp shaman, lithe and toned with adult curves and makeup, a shaggy shoulder-length mane of orange hair, curved horns, pointed ears and a wild, sharp-toothed grin. Crimson patchwork bandeau bikini with a layered loincloth panel, tribal body paint, bone beads and gold jewelry, sandals. Raises a staff with a hanging lantern holding a green-orange flame. Bat wings, curly tail.",
+			"look": "Lithe, toned adult fire dancer with glam makeup: crimson metallic bandeau bikini, chrome body jewelry (waist chain, arm cuffs, navel ring), UV cyber-sigil body paint, chrome gladiator platform sandals. A shoulder-length orange mane, large curved horns, pointed ears. Raises a lantern staff topped with a chrome-capped lava lamp; bat wings, curly tail; a sultry smirk.",
 			"base_stats": {"hp": 1600, "atk": 68, "def": 44, "spd": 106, "crit": 500},
 			"ultimate": {
 				"id": "lantern_pact",
@@ -338,7 +338,7 @@
 			"role": "assassin",
 			"rarity": "rare",
 			"bio": "A hellcat bounty hunter. Twelve contracts, twelve trophies, and one very full scrapbook.",
-			"look": "Athletic, curvy cat-like demon with black cat ears AND small horns, short choppy black hair with a red streak, slit-pupil amber eyes and a smug fang smile. Sleek black bodysuit unzipped below the cleavage, red strap harness with o-rings, hip windows, long red scarf, black thigh boots. Twin curved sickles in a low, hip-cocked fighting stance. Long cat tail, no wings.",
+			"look": "Athletic, curvy cat burglar: black latex catsuit zipped open below the cleavage, a red chrome-ringed harness, thong-cut with hip windows, a long red vinyl scarf, black platform thigh boots. Chrome cat-ear headphones over short choppy black hair with a red streak, a red cat-eye visor pushed up, small horns, amber slit-pupil eyes, a smug smile. Twin black-chrome crescent sickles in a low, hip-cocked stance; a long cat tail.",
 			"base_stats": {"hp": 1520, "atk": 96, "def": 38, "spd": 118, "crit": 2000},
 			"ultimate": {
 				"id": "twelfth_contract",
@@ -371,7 +371,7 @@
 			"role": "assassin",
 			"rarity": "legendary",
 			"bio": "Once Heaven's executioner, she cut her own wings rather than carry out one final order. She still keeps the blade.",
-			"look": "Tall, slender fallen angel with long silver hair, cold violet eyes and a cracked dark halo tilted on her head. Black highleg corset leotard open at the sides, black lace sleeves, long tattered black drape from the hips, silver buckles and chains, heeled thigh boots. Huge crescent scythe with a violet glow, free hand sweeping her hair. Tattered black feathered wings with violet tips. Melancholic and beautiful.",
+			"look": "Tall, slender glitch reaper: black latex sling leotard open at the sides, highleg, a long oil-slick holographic drape from chrome hip buckles, black latex opera gloves, heeled thigh boots. Long silver hair, cold violet eyes, a cracked chrome halo with pixel gaps, tattered black wings with pixel-block tips. A huge oil-slick chrome scythe with a violet edge, her free hand sweeping back her hair; melancholic allure.",
 			"base_stats": {"hp": 1750, "atk": 108, "def": 44, "spd": 124, "crit": 2500},
 			"ultimate": {
 				"id": "eclipse_harvest",
@@ -403,8 +403,8 @@
 			"faction": "fallen",
 			"role": "guardian",
 			"rarity": "epic",
-			"bio": "A knight who swore to guard a gate that no longer exists. She guards her friends now, with the same chains.",
-			"look": "Stoic, tall fallen knight woman with long shaggy ash-grey hair and a scar over one eye. Cracked silver armor stripped to a breastplate cut low over her cleavage, one pauldron and gauntlets, broken chains wrapped around her, black highleg leotard under a torn violet cape, armored thigh-high greaves, a broken halo hanging from her belt. Holds a heavy chain-wrapped tower shield. Grey ragged wings.",
+			"bio": "She guarded the gate of a heaven that crashed. The gate is gone; the firewall isn't. Now she stands between her friends and everything else.",
+			"look": "Tall, scarred guardian of a crashed heaven: glossy black vinyl monokini, highleg, with a chrome O-ring cutout at the sternum and cutouts at the waist, one heavy chrome pauldron, chrome gauntlets, smoked-acrylic thigh greaves, violet fiber-optic cables wrapped around her. A tall frosted smoked-acrylic riot shield with a broken loading-ring sigil. Long straight silver hair with a black underlayer, a scar through one eye, a cracked chrome halo at her hip, black wings with chrome tips; stoic.",
 			"base_stats": {"hp": 2900, "atk": 68, "def": 84, "spd": 90, "crit": 500},
 			"ultimate": {
 				"id": "chains_of_the_oath",
@@ -441,7 +441,7 @@
 			"role": "support",
 			"rarity": "epic",
 			"bio": "A fallen nun who still holds services in ruined chapels. Her congregation is mostly ghosts. They come every week.",
-			"look": "Gentle, curvy fallen nun with long dark-teal hair under a black-and-violet veil, a silver cross necklace and a sad smile. Skin-tight black habit bodysuit with a cleavage cutout, corset lacing and silver trim, long black tabard panels open at the hips, black thighhighs on garter straps, heels. Swings a silver censer trailing violet smoke. Grey feathered wings, faint dim halo.",
+			"look": "Curvy cyber nun: skin-tight black latex habit-bodysuit with a plunging keyhole cutout, corset lacing and chrome trim, thong-cut, long black vinyl tabard panels open at the hips, black latex thighhighs on garters, platform heels. An opaque black coif under a holographic veil, dark-teal hair, a chrome cross. Swings a chrome censer orb; grey wings with an oil-slick sheen, a dim cracked halo; a gentle, sad smile.",
 			"base_stats": {"hp": 1820, "atk": 80, "def": 50, "spd": 100, "crit": 500},
 			"ultimate": {
 				"id": "dusk_requiem",
@@ -474,12 +474,12 @@
 		{
 			"id": "lucen",
 			"name": "Lucen",
-			"title": "Twinfeather Duelist",
+			"title": "Splitwing",
 			"faction": "fallen",
 			"role": "striker",
 			"rarity": "rare",
-			"bio": "One wing white, one wing black. She insists she has not chosen a side. Her rapier disagrees, daily.",
-			"look": "Flamboyant slender duelist with long wavy white hair with black tips, half-lidded eyes and a flirtatious smile. Violet and silver long coat worn open over a strapless black bustier, frilled ascot, tight black leather trousers on a low-slung belt, thigh-high boots, slim rapier, hand on hip. Asymmetric wings: one white feathered, one black feathered. No halo.",
+			"bio": "Half of her fell. She styled the other half to match. She swears she hasn't picked a side; her rapier picks for her.",
+			"look": "Slender duelist split down the middle: hair white on one side and black on the other, an asymmetric glossy white-and-black vinyl bodysuit cut diagonally (underboob on one side, sideboob on the other), thong-cut, one long sleeve; one white thigh-high platform boot and one bare leg with a garter ring; tinted oval sunglasses in her hair. One white pearl wing, one black chrome wing, no halo. Points a chrome rapier at the viewer, hip cocked, with a wink.",
 			"base_stats": {"hp": 1710, "atk": 94, "def": 46, "spd": 108, "crit": 1600},
 			"ultimate": {
 				"id": "twinfeather_flurry",
@@ -515,7 +515,7 @@
 			"role": "caster",
 			"rarity": "rare",
 			"bio": "She burned her own heaven down by accident. Now she studies fire very, very carefully.",
-			"look": "Sleepy, sultry ash witch with messy grey hair with violet streaks, half-lidded eyes and a cracked violet halo. Oversized grey witch hat with silver star pins, layered violet robes slipping off her shoulders, strapless cropped tube top, long skirt with high slits over black shorts and a burned hem. Raises one arm lazily, a crooked wand with a violet flame in the other hand. Small grey wings.",
+			"look": "Sleepy vaporwave witch: an oversized holographic violet witch hat with chrome star pins, glossy violet robes slipping off her shoulders over a micro black tube top showing underboob and black micro shorts, a chrome chain belt, chunky silver headphones around her neck, platform ankle boots. Messy grey hair with violet streaks, a cracked chrome halo, small grey wings. One arm lazily raised, a chrome star wand in the other hand.",
 			"base_stats": {"hp": 1560, "atk": 106, "def": 38, "spd": 96, "crit": 1000},
 			"ultimate": {
 				"id": "accidental_inferno",

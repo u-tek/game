@@ -221,12 +221,14 @@ Ask the owner for approval (plan mode or a permission rule they add) instead.
   details are in `/tmp/halo-session-start.log`. It does nothing outside the cloud. A stop hook
   there refuses to end a turn while the tree is dirty or unpushed; answer it with an
   explicit-path snapshot commit ("WIP: <what> (agent snapshot)") that follows the rules above.
-- **Owner's Windows PC:** install the standard (non-.NET) Godot 4.5.1 and put `godot` on PATH. The
-  `tools/*` scripts are bash with flock and xvfb, so they won't run as-is on Windows. Call Godot
-  directly: `godot --headless --path . --import`, then
-  `godot --headless --path . -s tests/run_tests.gd`. Rig build instead of `tools/art_warp`:
-  `python tools/art_warp_build.py <id> --regen-masks`, then `godot --headless --path . --import`.
-  Nothing has been tested on Windows yet.
+- **Owner's Windows PC:** Godot 4.5.1 (standard, checksum-verified) is at
+  `C:\Users\jenso\tools\godot-4.5.1\` (not on PATH). In Git Bash, `export
+  GODOT=/c/Users/jenso/tools/godot-4.5.1/Godot_v4.5.1-stable_win64_console.exe`, then `tools/check`
+  and `tools/check e2e` work as on Linux (`tools/gd` runs unlocked where there is no flock: one
+  Godot at a time). Verified 2026-10-17: import, 93 tests, boot and the 3 e2e scripts pass. Rig
+  build instead of `tools/art_warp`: `python tools/art_warp_build.py <id> --regen-masks`, then
+  `tools/gd --headless --path . --import`. ComfyUI runs headless on 127.0.0.1:8188 (start line in
+  `art_src/_review/HANDOFF.md`); the pinned checkpoint is Amanatsu Illustrious v2.
 - **Restarts:** background agents and workflows don't survive a container or worker restart, and
   the session may come back in plan mode; GitHub Actions runs keep going. After a restart, check
   `gh run list -R u-tek/game` and `git fetch origin art-gen-output` before relaunching anything.
