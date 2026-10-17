@@ -76,9 +76,20 @@ every work block. Rules and conventions are in `CLAUDE.md`; this file is about w
   but bars commercial or production use of the model itself: a gray area to settle before
   shipping Anima art. Each Civitai merge has its own license box (the owner checks; Civitai is
   blocked from Australia without a VPN).
-- **Next (waits for the owner):** their pick from the grid; then more seeds and heroes on the top
-  models (approved first), the bible's style block set to the winning look, `look`/title/bio in
-  `data/heroes.json`, and the skin system.
+- **Picks (owner, 09:50-10:20):** "nova anime, WAI illustrious & amanatsu are my obvious picks";
+  all 15 heroes rendered on the three (seed = seed_base + 777, grids per faction in
+  `art_src/_review/models/v4_*`, sent), then "it's going to be amanatsu" (Amanatsu Illustrious v2,
+  `amanatsuIllustrious_v2.safetensors`, an Illustrious epsilon merge; its Civitai license is not
+  checked yet). Brakka's bikini is now black (red on red skin read as nude).
+- **Sampler test on Amanatsu (owner: "still slightly concerned with ai artifacts"):** 12
+  sampler/scheduler pairs x Seraphiel and Kessa, CFG 5.5, 30 steps, base pass
+  (`art_src/_review/samplers/amanatsu/`, sent). Non-ancestral samplers framed Kessa at the knees;
+  dpmpp_2m_sde, dpmpp_sde and dpmpp_2s_ancestral turned her latex sheer over the chest (would
+  fail review). Samplers move details, not the artifact level much: the finishing passes (model
+  hires 0.4, tiled 2x repaint, face pass) are the bigger lever and have not been tested on Amanatsu.
+- **Next (waits for the owner):** their sampler pick; then a finishing-pass test on Amanatsu
+  (approved first), the bible's style block and family settings set to the winner, `look`/title/
+  bio in `data/heroes.json`, the roster, and the skin system.
 
 ## In one paragraph
 

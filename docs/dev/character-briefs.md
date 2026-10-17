@@ -103,7 +103,7 @@ layers, rhinestones, chrome hardware (O-rings, buckles, zips, chains).
 | Uriela | toned with curves | racing leotard with underboob cutout and navel window | wraparound sport shield visor, race decals | chrome lance over the shoulder |
 | Nuriel | lean runner, long legs | zip-front bandeau and thong-back sport briefs | chrome shield visor, bubble-sole platform trainers | jet-fin wings, twin prism daggers |
 | Mordessa | voluptuous | red metallic micro bikini under an open vinyl coat | rhinestone crown on chrome horns, fur collar | flame-edged chrome greatsword on the shoulder |
-| Brakka | towering bodybuilder | candy-red micro bikini top, black thong, champion belt | hot-rod flames, chrome exhaust gauntlets, frosted tips | double-biceps flex |
+| Brakka | towering bodybuilder | black micro bikini top, black thong, champion belt | hot-rod flames, chrome exhaust gauntlets, frosted tips | double-biceps flex |
 | Vesper | hourglass | crimson latex catsuit with heart window, underboob and hip cutouts | red-tinted rimless glasses, holo-ring orb | orb raised, adjusting her glasses |
 | Imra | lithe, toned | crimson metallic bandeau bikini, chrome body jewelry | lava-lamp lantern staff, UV sigil body paint | staff raised overhead |
 | Kessa | athletic, curvy | black latex catsuit zipped open below the cleavage, hip windows | cat-ear headphones, red cat-eye visor | low hip-cocked stance, twin chrome sickles |
@@ -168,8 +168,8 @@ layers, rhinestones, chrome hardware (O-rings, buckles, zips, chains).
   "Brimstone Bulwark". Bio: "Undefeated in the Pit Arena, bouncer at the Brimstone club, and the
   only demon who hugs harder than she hits. Loyal to Mordessa, and to anyone who brings snacks." A
   towering bodybuilder: huge muscles, huge breasts, defined abs, thick thighs, dark red skin. A
-  candy-red metallic micro bikini top with small opaque cups and a chrome O-ring at the center, a
-  black vinyl thong-cut bottom, and a huge chrome-and-gold championship belt around her waist. A
+  glossy black micro bikini top with small opaque cups and a chrome O-ring at the center (black
+  so it reads against her red skin), a black vinyl thong-cut bottom, and a huge chrome-and-gold championship belt around her waist. A
   chest harness of chrome chain. Massive black-and-chrome gauntlets built like hot-rod engines,
   with exhaust pipes on the forearms and glowing magma vents. Black platform boots with hot-rod
   flame decals. Bleached platinum hair with frosted tips, spiked up; big chrome bull horns; small
