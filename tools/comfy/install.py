@@ -125,7 +125,7 @@ def handoff(hero_id, bible, fmeta, record, found, dst):
     files = {}
     for v, p, region in found:
         rel_path = "variants/%s.png" % v
-        files[v] = {"path": os.path.relpath(os.path.join(dst, rel_path), comfy.ROOT), "sha256": P.sha256_file(p),
+        files[v] = {"path": comfy.rel(os.path.join(dst, rel_path)), "sha256": P.sha256_file(p),
                     "region": region}
         for slot in (("eyes", "mouth") if region == "eyes_mouth" else (region,)):
             if slot in slots:
@@ -136,7 +136,7 @@ def handoff(hero_id, bible, fmeta, record, found, dst):
                 "Coordinates are pixels of the installed 1024x2048 image.",
         "hero": hero_id, "name": h["name"], "faction": h["faction"], "role": h["role"],
         "installed": time.strftime("%Y-%m-%dT%H:%M:%S"),
-        "image": {"path": os.path.relpath(os.path.join(dst, hero_id + ".png"), comfy.ROOT), "sha256": fmeta["sha256"]},
+        "image": {"path": comfy.rel(os.path.join(dst, hero_id + ".png")), "sha256": fmeta["sha256"]},
         "variants": files,
         "warp_src": {"image": hero_id + ".png", "origin": hints.get("origin", [512, 1990]),
                      "portrait": hints.get("portrait"), "meta": {"fx_color": FX_COLOR.get(h["faction"])},

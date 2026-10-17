@@ -35,10 +35,7 @@ def hero_dir(hero_id, dry_run=False):
 
 
 def rel(p):
-    try:
-        return os.path.relpath(p, ROOT)
-    except ValueError:
-        return p
+    return comfy.rel(p)
 
 
 def write_json(path, obj):

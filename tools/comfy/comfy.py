@@ -57,6 +57,15 @@ def dryrun_dir():
     return os.path.join(art_src(), "_dryrun")
 
 
+def rel(p):
+    """`p` relative to the repo root for messages; the absolute path when that is impossible (Windows:
+    another drive, e.g. a temp folder on C: with the repo on D:)."""
+    try:
+        return os.path.relpath(p, ROOT)
+    except ValueError:
+        return os.path.abspath(p)
+
+
 def server_dir():
     return os.path.join(art_src(), "_server")
 
@@ -551,7 +560,7 @@ class Comfy:
             os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, "w") as f:
                 json.dump(body, f, indent=1)
-            self.log("[dry-run] wrote %s" % os.path.relpath(path, ROOT))
+            self.log("[dry-run] wrote %s" % rel(path))
             self.last_dryrun_path = path
             return "dryrun:" + label
         res = self.request("POST", "/prompt", body=json.dumps(body).encode(),
@@ -734,7 +743,7 @@ def main(argv=None):
             print(json.dumps(d, indent=1) if a.json else "", end="")
             _print_discovery(d)
             if not a.object_info:
-                print("cached: %s" % os.path.relpath(os.path.join(server_dir(), "discovery.json"), ROOT))
+                print("cached: %s" % rel(os.path.join(server_dir(), "discovery.json")))
         elif a.cmd == "pin":
             if a.checkpoint.lower() == "none":
                 if os.path.exists(pin_path()):
@@ -751,7 +760,7 @@ def main(argv=None):
             with open(pin_path(), "w") as f:
                 json.dump({"checkpoint": a.checkpoint, "family": fam, "pinned": time.strftime("%Y-%m-%dT%H:%M:%S")}, f, indent=1)
             print("pinned %s (family %s%s) in %s" % (a.checkpoint, fam, ", guessed from the name: pass --family if wrong"
-                                                     if guessed else "", os.path.relpath(pin_path(), ROOT)))
+                                                     if guessed else "", rel(pin_path())))
         elif a.cmd == "queue":
             body = json.load(open(a.graph))
             graph = body.get("prompt", body)
