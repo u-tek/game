@@ -1,6 +1,6 @@
 # Status and handoff
 
-**Status as of 2026-10-17, 23:20 UTC (09:20 on 2026-10-18 on the owner's PC clock, UTC+10).** This is the living
+**Status as of 2026-10-17, 23:59 UTC (09:59 on 2026-10-18 on the owner's PC clock, UTC+10).** This is the living
 status file: update it at the end of every work block. Rules and conventions are in `CLAUDE.md`;
 this file says where things stand. Older logs are under "History" at the bottom.
 
@@ -52,12 +52,14 @@ this file says where things stand. Older logs are under "History" at the bottom.
   all of After Dark). Prompts for all 60 in the bible `skins` block. Candidates: `art_src/<id>/skins/
   <art>/candidates/`, 3 each, seeds = hero seed_base + 1000 (Aqua), +2000 (After Dark), +3000
   (Bunny), +4000 (Club). Aqua Resort and After Dark rendered and sent (Vesper After Dark s205000
-  and s205002 held: visible nipples). **Bunny Lounge: 10 of 15 heroes** (Seraphiel to Kessa, 30
-  images, all passed a 1:1 chest and hip check and were sent with sheets
-  `art_src/_review/sheets/bunny_lounge_1.jpg`, `_2.jpg`); the overnight render stopped before
-  Noctaire, Orrin, Sable, Lucen and Ashra. **Club Chrome: not rendered.** The owner said "Not now"
-  to the GPU run that would finish both (60 images, about 60 min; asked 2026-10-17 23:00 UTC).
-  Skin finals tooling is built (`--skin` on every ComfyUI tool, see `docs/dev/skins.md`
+  and s205002 held: visible nipples). **Bunny Lounge: all 15** (45 images, every one passed a 1:1
+  chest and hip check; sent with sheets `art_src/_review/sheets/bunny_lounge_1.jpg` to `_3.jpg`).
+  **Club Chrome: all 15** (45 images from the overnight loop, finished 23:55 UTC; every one passed the 1:1
+  check and was sent, sheets `club_chrome_1.jpg` to `_3.jpg`). Notes for the picks: Brakka's three
+  are full latex catsuits (the most covered skin); Sable s307002 is cropped at the shins (not a
+  standing skin); Kessa s209000 shows no underwear line from behind (not for an App Store set);
+  Nuriel s109002 has a made-up logo patch to paint out. All four packs are rendered: 180 images, 178
+  sent, 2 held.** Skin finals tooling is built (`--skin` on every ComfyUI tool, see `docs/dev/skins.md`
   Production). In the game: Wardrobe shop tab, hero Skins tab, equipped skin shown in the Lobby,
   hero page and battle; every skin is "Coming soon" until its art is installed.
 - **Splash cards:** `tools/comfy/splash.py` (faction plates in `art_src/_splash/plates/`, 12 made;
@@ -83,15 +85,12 @@ this file says where things stand. Older logs are under "History" at the bottom.
 ## Waiting on the owner
 
 1. **Base art picks:** one v5 seed per hero (or "re-roll <hero>").
-2. **GPU go-ahead** for the rest of the skin renders: Bunny Lounge for Noctaire, Orrin, Sable,
-   Lucen and Ashra (15 images) and Club Chrome for all 15 (45), about 1 min each. Job list:
-   heroes in roster order, `run_hero.py <id> --skin <skin id> --count 3 --size 896x1152`.
-3. **The adult-site version:** which site, and what it needs (most host PC or browser builds;
+2. **The adult-site version:** which site, and what it needs (most host PC or browser builds;
    `CLAUDE.md` says never build a web version, so that needs the owner's word).
-4. **Skin picks:** one seed per skin they like (can wait).
-5. **Amanatsu's license** on Civitai (commercial use of generated images).
-6. **Skin prices** (proposal above) and tiers.
-7. Older open questions: `docs/open-questions.md` (business), and the iOS signing / Apple developer
+3. **Skin picks:** one seed per skin they like (can wait).
+4. **Amanatsu's license** on Civitai (commercial use of generated images).
+5. **Skin prices** (proposal above) and tiers.
+6. Older open questions: `docs/open-questions.md` (business), and the iOS signing / Apple developer
    account question (free sideloading expires every 7 days).
 
 ## Next steps
@@ -216,13 +215,20 @@ last cloud run (2026-10-17 00:15 UTC).
 Dated logs, newest first. They explain how the current state came about; where they disagree
 with the sections above, the sections above win.
 
-## History: 2026-10-17 22:55-23:20 UTC (PC chat)
+## History: 2026-10-17 22:55-23:59 UTC (PC chat)
 
-- Picked up from the handoff. The overnight skin render had stopped after Kessa's Bunny Lounge
-  (ComfyUI idle). Restarting it (60 images, ~60 min) was blocked by the auto-mode check; asked the
-  owner, who said "Not now".
-- Reviewed the 30 Bunny Lounge renders (overview plus full-size torso crops of all 30): all inside
-  the hard lines; sent as two sheets and 30 full-size PNGs.
+- Picked up from the handoff. ComfyUI's queue was empty at 22:58 and Bunny Lounge stopped at
+  Kessa, so the overnight skin render looked dead; restarting it was blocked by the auto-mode check
+  and the owner said "Not now", then (23:18) "yes, render the remaining bunny lounge and all of
+  club chrome now". **It had never stopped:** the previous session's background loop (a bash
+  process started 22:33 UTC, Bunny Lounge then Club Chrome in bible order) was between heroes at
+  22:58 and finished Bunny Lounge at 23:10. The relaunch (23:19) only duplicated it; it was stopped
+  and its two duplicate Uriela jobs were removed from the ComfyUI queue (381, 382). Lesson: before
+  relaunching a render, check for a live `run_hero.py` process (PowerShell `Get-CimInstance
+  Win32_Process`), not only the ComfyUI queue. A job list written by Python on Windows has CRLF
+  line endings; `tr -d '\r'` before `read`.
+- Reviewed every Bunny Lounge and Club Chrome render (overview plus full-size torso crops): all
+  inside the hard lines; sent as sheets and full-size PNGs.
 - The owner asked for a fully nude skin set for an adult-site version, then insisted; declined
   (see "Declined" above), and the owner edited `CLAUDE.md` (4622b4e). Left as the owner wrote it.
 - Built the skin finals tooling (`pipeline.art_target`, `--skin` on run_hero, finalize, variants,
