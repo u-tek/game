@@ -616,8 +616,11 @@ class TestBible(unittest.TestCase):
             key = prompts.background(BIBLE, hid)[0]
             self.assertEqual("rim lighting" in pos, key == "grey", hid)
             self.assertIn("official art", pos)
-        for hid in ("noctaire", "cassiel", "orrin", "ashra"):
+        for hid in ("orrin", "ashra"):
             self.assertEqual(BIBLE["heroes"][hid]["background"], "green", hid)
+        # NoobAI pilot (2026-10-17): on white or green the dark designs render as flat ink sketches
+        for hid in ("kessa", "mordessa", "noctaire", "cassiel"):
+            self.assertEqual(BIBLE["heroes"][hid]["background"], "grey", hid)
         self.assertNotEqual(BIBLE["heroes"]["sable"]["background"], "green")
         self.assertIn("black and purple theme", prompts.full_body(BIBLE, "vesper", "illustrious")["positive"])
         self.assertNotIn("red and black theme", prompts.full_body(BIBLE, "vesper", "illustrious")["positive"])
@@ -837,6 +840,19 @@ class TestPost(unittest.TestCase):
         self.assertEqual(a2[3, 3], 0)
         self.assertEqual(a2[300, 300], 255)
         self.assertEqual(info["method"], "server_mask")
+
+    def test_server_mask_that_fills_holes(self):
+        # BiRefNet keeps the background seen between arm and body as figure: clear it like the local cutout
+        filled = (self.a > 0).astype(np.uint8) * 255
+        filled[300:360, 170:230] = 255
+        r, info = post.alpha_from_mask(self.img, Image.fromarray(filled))
+        a = np.asarray(r)[..., 3]
+        self.assertEqual(a[330, 200], 0, "enclosed background in a server mask must be cleared")
+        self.assertEqual(a[300, 300], 255)
+        self.assertGreater(info["hole_px"], 100)
+        r, info = post.alpha_from_mask(self.img, Image.fromarray(filled), holes=False)
+        self.assertEqual(np.asarray(r)[330, 200, 3], 255)
+        self.assertEqual(info["hole_px"], 0)
 
     def test_place_on_canvas_and_face_box(self):
         fb, conf = post.estimate_face_box(self.rgba)

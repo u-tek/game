@@ -234,21 +234,8 @@ def remove_background(img, bg=None, tol=26.0, holes=True, hole_tol=12.0, hole_mi
     n_holes = 0
     skipped = []
     if holes:
-        tight = (dist < hole_tol) & ~B
-        r = max(1, hole_min // 2)
-        opened = dilate(erode(tight, r), r) & tight
-        if opened.any():
-            fy, fx = np.nonzero(~B)
-            fig_area = max(1, int((fy.max() - fy.min() + 1) * (fx.max() - fx.min() + 1))) if len(fx) else 1
-            for comp in components(opened):
-                hole = flood(comp, cand & ~B)
-                area = int(hole.sum())
-                if area > max_hole_frac * fig_area:
-                    ys, xs = np.nonzero(comp)
-                    skipped.append([int(xs.mean()), int(ys.mean()), area])
-                    continue
-                n_holes += area
-                B |= hole
+        hole_px, n_holes, skipped = enclosed_holes(dist, cand, B, hole_tol, hole_min, max_hole_frac)
+        B |= hole_px
     figure = ~B
     rgba = _finish_alpha(arr, bgc, figure, band_px=band_px, feather=feather, despill=despill)
     info = {"method": "flood_fill", "bg_rgb": [round(float(x), 1) for x in bg0], "tol": tol,
@@ -256,9 +243,38 @@ def remove_background(img, bg=None, tol=26.0, holes=True, hole_tol=12.0, hole_mi
     return Image.fromarray(rgba, "RGBA"), info
 
 
-def alpha_from_mask(img, mask, bg=None, band_px=2, feather=0.7):
+def enclosed_holes(dist, cand, B, hole_tol=12.0, hole_min=24, max_hole_frac=0.06):
+    """Background seen through the figure (gaps between arm and body, cut-outs in a weapon): flat
+    regions within `hole_tol` of the background, at least `hole_min` px across, grown inside `cand`,
+    each smaller than `max_hole_frac` of the figure's bounding box (so a large white dress on a white
+    background is not taken for a hole). B: pixels already known to be background.
+    Returns (hole mask, hole px, [[x, y, area] of regions kept as figure])."""
+    holes = np.zeros(B.shape, bool)
+    n, skipped = 0, []
+    tight = (dist < hole_tol) & ~B
+    r = max(1, hole_min // 2)
+    opened = dilate(erode(tight, r), r) & tight
+    if opened.any():
+        fy, fx = np.nonzero(~B)
+        fig_area = max(1, int((fy.max() - fy.min() + 1) * (fx.max() - fx.min() + 1))) if len(fx) else 1
+        for comp in components(opened):
+            hole = flood(comp, cand & ~B)
+            area = int(hole.sum())
+            if area > max_hole_frac * fig_area:
+                ys, xs = np.nonzero(comp)
+                skipped.append([int(xs.mean()), int(ys.mean()), area])
+                continue
+            n += area
+            holes |= hole
+    return holes, n, skipped
+
+
+def alpha_from_mask(img, mask, bg=None, band_px=2, feather=0.7, holes=True, tol=26.0):
     """Combine an image with a mask from a server-side background-removal node. The mask may be
-    an L/RGB image (white = figure) or an RGBA image (alpha). Polarity is auto-detected."""
+    an L/RGB image (white = figure) or an RGBA image (alpha). Polarity is auto-detected.
+    holes: also clear enclosed flat background regions the node kept as figure (BiRefNet keeps the
+    background seen through a scythe blade or between a wing and the body), by the same rules as
+    remove_background's holes."""
     arr = _rgb(img)
     if mask.mode == "RGBA" and np.asarray(mask.split()[3]).min() < 250:
         m = np.asarray(mask.split()[3]).astype(np.float32) / 255.0
@@ -273,13 +289,20 @@ def alpha_from_mask(img, mask, bg=None, band_px=2, feather=0.7):
     figure = m > 0.5
     bg0 = np.array(bg, dtype=np.float32) if bg is not None else estimate_bg(arr)
     bgc = fit_bg_surface(arr, ~dilate(figure, 4)) if bg is None else np.broadcast_to(bg0, arr.shape).astype(np.float32)
+    n_holes, skipped = 0, []
+    if holes:
+        dist = np.linalg.norm(arr - bgc, axis=2)
+        hole_px, n_holes, skipped = enclosed_holes(dist, dist < tol, ~figure)
+        figure &= ~hole_px
+        m = np.where(hole_px, 0.0, m)
     rgba = _finish_alpha(arr, bgc, figure, band_px=band_px, feather=feather)
     # trust the node's soft mask where it is confident, our unmixing only on the edge band
     a = rgba[..., 3].astype(np.float32) / 255.0
     edge = dilate(figure, band_px) & dilate(~figure, band_px)
     a = np.where(edge, a, m)
     rgba[..., 3] = np.clip(a * 255 + 0.5, 0, 255).astype(np.uint8)
-    return Image.fromarray(rgba, "RGBA"), {"method": "server_mask", "figure_px": int((a > 0.5).sum())}
+    return Image.fromarray(rgba, "RGBA"), {"method": "server_mask", "figure_px": int((a > 0.5).sum()),
+                                           "hole_px": n_holes, "holes_kept_as_figure": skipped}
 
 
 # ------------------------------------------------------------------ geometry
@@ -643,7 +666,7 @@ def finalize_local(hero_id, image, out_dir, face_box=None, bg=None, mask=None, f
     if img.mode == "RGBA" and np.asarray(img.split()[3]).min() < 250:
         rgba, cut = img, {"method": "source_alpha"}
     elif mask is not None:
-        rgba, cut = alpha_from_mask(img, mask, bg=bg)
+        rgba, cut = alpha_from_mask(img, mask, bg=bg, holes=holes, tol=tol)
     else:
         rgba, cut = remove_background(img, bg=bg, tol=tol, holes=holes)
     if face_box is None:
