@@ -61,19 +61,22 @@ that the owner sideloads. The repo `u-tek/game` is public. The only code branch 
   this), artifact `HaloAndHorn-ipa` on the run page. No GitHub releases.
 - **Public repo:** the owner accepted that art, builds and the IPA are publicly visible.
 - **Art:** professionally rendered, full-body anime gacha splash art, one painted PNG per hero.
-  Not chibi, not vector, no code-drawn characters. Source from 2026-10-17: ComfyUI on the owner's
-  GPU PC with **their NoobAI XL checkpoint** ("use comfyui on my machine to make the art
-  professional"), driven by a Claude session on that PC (`tools/comfy/`,
-  `docs/dev/art-generation.md`). The 15 shipped heroes came from the art farm (Animagine XL 4.0 on
-  GitHub Actions CPU runners, `docs/dev/art-farm.md`), which stays as a fallback.
+  Not chibi, not vector, no code-drawn characters; cinematic, painterly rendering, never flat
+  ("i do not want a flat design ... like it was drawn by god"). Source: ComfyUI on the owner's GPU PC,
+  driven by a Claude chat on that PC (`tools/comfy/`, `docs/dev/art-generation.md`). The checkpoint is
+  **Amanatsu Illustrious v2**, the owner's pick from 8 models tested on one prompt and seed
+  (2026-10-17). The 15 heroes in `assets/` today still come from the old art farm (Animagine XL 4.0
+  on GitHub Actions CPU runners, `docs/dev/art-farm.md`) and are being replaced.
 - **Animation:** HaloRig, our own replacement for Spine: a warp rig on the painted PNG with eye
   and mouth variants (`docs/dev/halorig.md`).
-- **Render settings ("make sure you're using the correct cfg"):** always the model card of the
-  checkpoint in use. NoobAI XL: family `illustrious` for epsilon checkpoints (Euler a, CFG 5.5,
-  28 steps) or `noobai_vpred` for v-prediction ones (Euler, CFG 4.5, 32 steps, v_prediction with
-  zsnr, RescaleCFG 0.7), quality tags first, 768x1344 (`families` in `data/art_prompts.json`).
-  The art farm used the Animagine card: Euler Ancestral, CFG 5 (the code refuses values outside
-  4-7), 28 steps, quality tags at the end. No speed LoRAs, Lightning or low-CFG presets.
+- **Render settings (locked in by the owner, 2026-10-17: "2m karras. for sure. the face + hires &
+  2x tile really works wonders"):** Amanatsu, family `illustrious`, dpmpp_2m/karras, 30 steps, CFG
+  5.5, SDXL size 832x1216 (896x1152 for wide poses), model hires 1.5x with 4x-AnimeSharp at 0.4, the
+  cinematic style block, grey backdrops; finals add a face pass (0.35) and the tiled 2x repaint
+  (UltimateSDUpscale 0.35, 20 steps per tile). These are the bible defaults (`families`, `style` in
+  `data/art_prompts.json`). Not 512x768: that is SD 1.5's size, and SDXL gets worse below about 1
+  megapixel. No speed LoRAs, Lightning or low-CFG presets. The art farm used the Animagine card
+  (Euler Ancestral, CFG 5, 28 steps, quality tags at the end).
 - **Allure:** the maximum the App Store 18+ rating allows: skin-tight clothing, bodysuits, latex,
   highleg leotards, cutouts, bikini and micro armor, harnesses, curvier bodies. **Female only**
   (owner, 2026-10-17): Nuriel, Brakka, Orrin and Lucen were redesigned as women with the same ids,
@@ -87,14 +90,21 @@ that the owner sideloads. The repo `u-tek/game` is public. The only code branch 
   like actually cool, but also like erotic and super, super, super revealing." Glossy chrome, PVC,
   latex and holographic fashion; maximum reveal inside the hard lines. Designs are in
   `docs/dev/character-briefs.md` (v4; Nuriel, Brakka, Orrin and Lucen fully redesigned) and
-  purchasable skins in `docs/dev/skins.md` ("bikinis and whatever"). The bible and the `look` fields
-  still hold v3.3 until the owner approves v4 and picks a checkpoint.
+  purchasable skins in `docs/dev/skins.md` (four packs for all 15: Aqua Resort, Bunny Lounge, Club
+  Chrome, After Dark). The bible and `data/heroes.json` hold v4.
+- **Declined, don't re-offer or route around:** a fully nude set (asked 2026-10-17 "just for fun",
+  then "why won't you do the nude set? i pay $170 a month"). Claude doesn't make fully nude sexual
+  images, private or not; After Dark (topless, covered) is the limit. The owner was told ComfyUI is
+  their own software. Removing the prompt guard was declined too.
 - **Licenses matter (commercial game).** NoobAI-XL forbids commercial use of its images; check
   every checkpoint's and LoRA's license before its art ships (`docs/dev/status.md`).
-- **UI:** a close copy of the reference game's layout and visual language (the owner sent four
-  screenshots and asked for "almost 1:1"), with our own names (Lobby, Heroes, Team, Gear, Summon;
-  Sanctum = idle rewards), our own icons, Barlow fonts, a cyan accent, and the App Store 4.1
-  copycat guardrails. Spec: `docs/dev/ui-style-v2.md`. No repo file or commit message names the
+- **UI:** v2 copied the reference game's layout and visual language (the owner sent four
+  screenshots and asked for "almost 1:1"). On 2026-10-17 the owner said it "looks too much like"
+  the reference game and should change "a little bit ... still that same vibe, that
+  professional-looking thing": v3 "Aero Y2K" keeps the v2 layouts (`docs/dev/ui-style-v2.md`) and
+  draws rounded glass plates, bubble badges, gloss, ocean navy and aqua (`KitBox.aero`). Our own
+  names (Lobby, Heroes, Team, Gear, Summon; Sanctum = idle rewards), icons and Barlow fonts, and the
+  App Store 4.1 copycat guardrails. No repo file or commit message names the
   reference game (the history is public; three early commit messages already do, so leave those
   alone); write "the reference game".
 - **The owner sees every render (2026-10-17):** "just send them even if they get cut by the
@@ -246,12 +256,17 @@ Ask the owner for approval (plan mode or a permission rule they add) instead.
 ## Commands (Linux)
 
 ```bash
-tools/check                 # import + 93 unit tests + headless boot (~20 s); must be green
+tools/check                 # import + 99 unit tests + headless boot (~20 s); must be green
 tools/check e2e             # plus 3 screen end-to-end scripts (~2 min)
 tools/gd --headless --path . -s tests/run_tests.gd -- test_playthrough   # one test file
 python3 -B tests/port_check/check_port.py        # independent Python rules check (48 checks)
 python3 tools/artgen/test_artgen.py              # art farm offline tests (81)
-python3 tools/comfy/test_pipeline.py             # ComfyUI pipeline tests (52, all pass)
+python3 tools/comfy/test_pipeline.py             # ComfyUI pipeline tests (56, all pass)
+# On the owner's PC (Git Bash): export GODOT=<console exe> first; use python, not python3. Art:
+python tools/comfy/roster.py candidates --count 3 --seed-offset N [--size 896x1152]   # a round
+python tools/comfy/run_hero.py <id> --skin <skin id> --count 3 --size 896x1152      # skin candidates
+python tools/comfy/finalize.py <id> <seed>          # face pass + tiled 2x repaint + cutout + canvas
+python tools/comfy/splash.py plates | card <name> --plate <png> --heroes id:png[,...]   # splash cards
 tools/art_warp --check                           # validate all 15 hero rigs
 tools/gd --headless --path . -s tools/art_selftest.gd   # every rig x every animation
 tools/shoot home --rich --safe-area-sim --out screenshots/home.png   # render a screen to PNG
@@ -269,7 +284,9 @@ godot --path . -- --rich                         # play with every hero and lots
 | `assets/art/heroes/<id>/` | Painted hero art, variants, rig source `<id>.warp_src.json` and built rig |
 | `tests/` | Unit tests, fixture checks, e2e scripts, balance tools, `port_check/` |
 | `tools/artgen/`, `.github/workflows/art-gen.yml` | The art farm |
-| `tools/comfy/` | ComfyUI pipeline for a real GPU (prompts, finalize, variants, install) |
+| `tools/comfy/` | ComfyUI pipeline for a real GPU (prompts, finalize, variants, install, skins, `splash.py`) |
+| `data/skins.json`, `src/data/skins.gd` | The skin catalogue (60 skins, 4 packs) and its loader; art in `assets/art/heroes/<id>/skins/<art>/` |
+| `src/ui/components/splash_card.gd`, `assets/art/splash/` | Animated splash cards (layers from `splash.py`) |
 | `tools/art_*` | Rig build, preview, self-test, GIFs |
 | `tools/art_import/` | The one-off scripts that imported the 15 farm finals and wrote their rigs (README inside) |
 
@@ -277,7 +294,9 @@ godot --path . -- --rich                         # play with every hero and lots
 
 `docs/dev/status.md` (start here), `architecture.md` (the build contract), `ui-style-v2.md`,
 `art-farm.md` (how the shipped art was made; section 7 lists each hero's run and seed),
-`character-briefs.md`, `art-style.md`, `halorig.md`, `art-generation.md` and `comfyui-setup.md`
-(the ComfyUI path, not yet used), `economy-v1.md`, `unity-port.md`, `ios-build.md`.
+`character-briefs.md`, `skins.md`, `art-style.md`, `halorig.md`, `art-generation.md` (the ComfyUI
+pipeline; current settings are in `status.md`), `comfyui-setup.md` (the tunnel route, unused),
+`economy-v1.md`, `unity-port.md`, `ios-build.md`, `morning-2026-10-18.md` (the last summary sent to
+the owner).
 `docs/open-questions.md` holds business questions the owner never answered. `docs/tech-plan.md`
 and `docs/roadmap.md` are historical (written when Unity was the engine).

@@ -1,5 +1,11 @@
 # AI art generation (ComfyUI pipeline and prompt bible)
 
+> **Current production setup (2026-10-18):** this pipeline runs on the owner's PC with Amanatsu
+> Illustrious v2, dpmpp_2m/karras, CFG 5.5, 30 steps, model hires and the tiled 2x repaint. Exact
+> settings, commands and the art state are in `docs/dev/status.md`; skins (`run_hero.py --skin`) in
+> `docs/dev/skins.md`; splash cards in `tools/comfy/splash.py`. Where this file says the pipeline
+> has not run against a real server, that is out of date.
+
 This pipeline renders hero art on the **owner's own ComfyUI** (local GPU, either reached from a
 session on that PC at `http://127.0.0.1:8188` or behind an HTTPS tunnel, see
 `docs/dev/comfyui-setup.md`) with an anime SDXL checkpoint, then cuts it out, places it on the

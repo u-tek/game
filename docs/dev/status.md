@@ -1,9 +1,223 @@
 # Status and handoff
 
-**Status as of 2026-10-17, 08:10 UTC.** This is the living status file: update it at the end of
-every work block. Rules and conventions are in `CLAUDE.md`; this file is about where things stand.
+**Status as of 2026-10-18, 22:45 UTC (08:45 on the owner's PC clock, UTC+10).** This is the living
+status file: update it at the end of every work block. Rules and conventions are in `CLAUDE.md`;
+this file says where things stand. Older logs are under "History" at the bottom.
 
-## Latest (local chat on the PC, 2026-10-17 from 07:50 UTC)
+## Start here (any new session)
+
+1. **Where you are.** The art work runs in a local Claude Code chat on the owner's Windows PC
+   (`D:\AI\claude game`, DESKTOP-VIS0U33, RTX 3070 8 GB). A cloud session can do code and docs
+   but cannot render, run the filter or see the owner's images. Check `git fetch origin && git
+   status && git log --oneline -8 origin/claude/game-planning` and pull before you change anything.
+2. **Read** this file's "Where things stand" and "Waiting on the owner", then
+   `docs/dev/morning-2026-10-18.md` (the last summary sent to the owner). On the PC also read
+   `art_src/_review/HANDOFF.md` (local only: exact file locations and the review tools).
+3. **ComfyUI** (PC only) must answer on `http://127.0.0.1:8188` (`curl -s
+   http://127.0.0.1:8188/system_stats`). If it doesn't, start it with the PowerShell line in
+   `art_src/_review/HANDOFF.md` and wait for it to answer. In bash: `export
+   COMFYUI_URL=http://127.0.0.1:8188`. Use `python` (3.10, has Pillow and numpy), not `python3`.
+4. **Godot** (PC): `export GODOT=/c/Users/jenso/tools/godot-4.5.1/Godot_v4.5.1-stable_win64_console.exe`,
+   then `tools/check` / `tools/check e2e` / `tools/shoot` work as on Linux (one Godot at a time).
+5. **Show every image** you render to the owner with `SendUserFile` (contact sheet plus full-size
+   files) after looking at it yourself. Images that cross a hard line are held, never sent or
+   used, and listed in `art_src/_review/held.json` (local).
+6. **Ask before** any GPU job over about 10 minutes and before changing art defaults (`CLAUDE.md`,
+   "Their GPU, their call"), unless the owner already asked for that work.
+
+## Where things stand
+
+- **Game:** v1 plays end to end (`docs/dev/architecture.md`). Latest IPA is still run 38946000040
+  with the old farm art (artifact expires 2026-10-30); no build since. On the PC `tools/check e2e`
+  passes: 99 unit tests, boot, 3 e2e scripts (2026-10-18).
+- **Designs:** briefs v4 "Aero Y2K" (`docs/dev/character-briefs.md`): Y2K / Frutiger Aero
+  fashion, maximum allure without nudity, female only; Nuriel, Brakka, Orrin and Lucen redesigned.
+  `data/heroes.json` look, titles and bios match v4. Every hero has a seductive standing pose in
+  the bible (`data/art_prompts.json`).
+- **Art pipeline (locked in by the owner, 2026-10-17):** checkpoint **Amanatsu Illustrious v2**
+  (`amanatsuIllustrious_v2.safetensors`, pinned in `art_src/_server/pin.json`), family
+  `illustrious`, **dpmpp_2m / karras, 30 steps, CFG 5.5**, base 832x1216 (896x1152 for wide poses:
+  pass `--size 896x1152`), model hires 1.5x with 4x-AnimeSharp at 0.4, roster style "game cg,
+  cinematic lighting, dramatic lighting, highly detailed, intricate details, glossy skin, shiny skin,
+  painterly, semi-realistic" with flat-coloring negatives, grey backdrop for every hero. Finals:
+  face pass 0.35 + tiled 2x repaint (UltimateSDUpscale, 0.35, 20 steps per tile), about 5 min each.
+  Amanatsu's Civitai license is **not checked yet** (the owner checks; NoobAI is ruled out for
+  commercial use, see History).
+- **Base art:** nothing new is in `assets/` yet; the game still shows the old farm art. Latest
+  candidate round: **v5, seed_base + 600..602, 896x1152** (`art_src/<id>/candidates/`, all 45
+  sent). Earlier rounds: v4 seed_base + 400..402 (832x1216), tests at +500, +300, +200.
+  **Waiting for the owner's pick per hero.**
+- **Skins:** `data/skins.json` v2: four packs x 15 heroes = 60 skins (Aqua Resort, Bunny Lounge,
+  Club Chrome, After Dark), cosmetic only, Standard 980 gems / Deluxe 1,480 (Legendaries' skins and
+  all of After Dark). Prompts for all 60 in the bible `skins` block. Candidates: `art_src/<id>/skins/
+  <art>/candidates/`, 3 each, seeds = hero seed_base + 1000 (Aqua), +2000 (After Dark), +3000
+  (Bunny), +4000 (Club). Aqua Resort and After Dark rendered and sent (Vesper After Dark s205000
+  and s205002 held: visible nipples). Bunny Lounge and Club Chrome were rendering at 22:45 UTC
+  (done about 23:45). In the game: Wardrobe shop tab, hero Skins tab, equipped skin shown in the
+  Lobby, hero page and battle; every skin is "Coming soon" until its art is installed.
+- **Splash cards:** `tools/comfy/splash.py` (faction plates in `art_src/_splash/plates/`, 12 made;
+  cards in `art_src/_splash/cards/<name>/` with layers). 6 test cards made from unpicked
+  candidates and sent. In the game: `src/ui/components/splash_card.gd` (animated layers from
+  `assets/art/splash/<name>/`) and the `splash_view` preview screen. Nothing installed yet.
+- **UI:** v3 "Aero Y2K" (`KitBox.aero`): rounded glass plates, bubble badges, ocean navy and
+  aqua, less like the reference game (owner, 2026-10-17). `docs/dev/ui-style-v2.md` still
+  describes v2 layouts, which are unchanged.
+- **Declined (2026-10-17/18):** a nude set ("just for fun", then "why won't you do the nude
+  set? i pay $170 a month"). Claude doesn't make fully nude sexual images; After Dark (covered
+  topless) is the limit. Removing the prompt guard (adults only, no nudity terms) was declined too.
+
+## Waiting on the owner
+
+1. **Base art picks:** one v5 seed per hero (or "re-roll <hero>").
+2. **Skin picks:** one seed per skin they like (can wait).
+3. **Amanatsu's license** on Civitai (commercial use of generated images).
+4. **Skin prices** (proposal above) and tiers.
+5. Older open questions: `docs/open-questions.md` (business), and the iOS signing / Apple developer
+   account question (free sideloading expires every 7 days).
+
+## Next steps
+
+1. Finals for each picked hero: `python tools/comfy/finalize.py <id> <seed>`
+   (check `final/<id>_boxes.png`; pass `--face-box x,y,w,h` when the auto face box lands on hair or a
+   halo), then `variants.py <id>` (eyes_closed needs denoise ~0.75 and a region covering both eyes),
+   1:1 review, `install.py <id>`, rig (`python tools/art_warp_build.py <id> --regen-masks`, then
+   `tools/gd --headless --path . --import`; the rig polygons in `tools/art_import/rigs.py` are drawn
+   per image and need redrawing for new art), `tools/check e2e`, commit.
+2. iOS build (`.github/workflows/ios.yml` on `claude/game-planning`), run link to the owner.
+3. Final splash cards from the picks: `splash.py card <name> --plate ... --heroes id:final_source.png`,
+   copy the card folder without `work/`, `card.png` and `flat.png` into `assets/art/splash/<name>/`.
+4. **Skin finals (not built yet):** `finalize.py`, `variants.py` and `install.py` write into the
+   hero's base folders (`art_src/<id>/final`, `assets/art/heroes/<id>/`). They need a `--skin` option
+   that writes to `art_src/<id>/skins/<art>/final` and `assets/art/heroes/<id>/skins/<art>/` with
+   files named `<art>.*` (the layout `RigData.load_rig(hero, art)` reads), plus the rig build.
+5. Bond CGs (non-animated illustrations for floor poses), sound, more content: later.
+
+## Done
+
+| What | Where | Proof |
+|---|---|---|
+| v1 game: 15 heroes in 3 factions (Celestial > Infernal > Fallen > Celestial), 30-stage campaign, auto battle with manual ultimates and 1x/2x/4x speed, idle rewards with quick claims, summon with pity, odds screen and a free daily pull, levels, stars, gear, daily quests, a shop of free test purchases, first-session guide | `src/`, `data/` | IPA run 38830308549 |
+| UI v2 in the reference game's style, with our own names, icons and fonts; flirty Lobby lines per hero | `docs/dev/ui-style-v2.md`, `src/ui/battle/lobby_lines.json` | IPA run 38852015265; critic scored 8/10 fidelity, 7/10 polish |
+| Art farm: Animagine XL 4.0 on GitHub Actions CPU runners, fail-closed exposure filter with cover repair, output on branch `art-gen-output` | `docs/dev/art-farm.md`, `tools/artgen/`, `.github/workflows/art-gen.yml` | 14 runs on `art-gen-output` |
+| Character briefs v3.1 (maximum allure, hard lines) and the prompt bible | `docs/dev/character-briefs.md`, `data/art_prompts.json` | |
+| 15 painted heroes imported with warp rigs; Seraphiel's vector stand-in removed | `assets/art/heroes/<id>/` | commit 811d909 |
+| Latest IPA with all 15 painted heroes | run 38946000040 (commit 811d909) | all steps green, 3m13s, about 50 MB |
+| ComfyUI pipeline on the owner's PC: Amanatsu + dpmpp_2m/karras, model hires, face pass, tiled 2x repaint (`workflows.tiled_upscale`), skin rendering (`run_hero.py --skin`), splash cards (`splash.py`) | `tools/comfy/`, `data/art_prompts.json` | commits 4ff40bd, 42bb648, ac626b1, c432695 |
+| Briefs v4 Aero Y2K, v4 hero looks/titles/bios, seductive poses | `docs/dev/character-briefs.md`, `data/heroes.json` | d2fa1b8, d639203, 0c5ee51 |
+| Skin system: 60 skins in 4 packs, save state, Wardrobe tab, hero Skins tab, skin art loading | `data/skins.json`, `src/data/skins.gd`, `src/core/game_model.gd`, `src/art/hero_art.gd` | 6095de6, ac626b1; `tests/unit/test_skins.gd` |
+| UI v3 Aero Y2K | `src/ui/components/kit_box.gd` (`KitBox.aero`), `src/ui/kit.gd` | c432695 |
+| Splash cards in the game (animated layers, preview screen) | `src/ui/components/splash_card.gd`, `src/ui/screens/splash_view_screen.gd` | a13b815 |
+| Godot 4.5.1 and `tools/check`, `tools/shoot` on the owner's Windows PC | `tools/gd`, `tools/shoot` | d639203, 6095de6 |
+| Handoff: `CLAUDE.md`, this file, the cloud SessionStart hook, `.gitattributes` (LF for bash scripts) | repo root, `.claude/` | |
+
+**Getting the IPA:** the owner opens https://github.com/u-tek/game/actions/runs/38946000040 while
+logged in to GitHub, downloads `HaloAndHorn-ipa` (a zip with `HaloAndHorn.ipa`) and sideloads it
+with Sideloadly or AltStore (`docs/dev/ios-build.md`). The artifact expires on 2026-10-30. After
+that, or after any change, run the **iOS build** workflow again on `claude/game-planning` and send
+the new run link. Cloud sessions can't download artifacts themselves.
+
+Earlier IPA runs: 38804639017 (trial), 38830308549 (v1), 38852015265 (UI v2).
+
+## Verified health
+
+On the PC, 2026-10-18: `tools/check e2e` (99 tests, boot, 3 e2e) ok; `test_pipeline.py` 56 OK;
+`check_port.py` 48 ok; `test_artgen.py` 80 OK plus one Windows-only symlink error. The table below is the
+last cloud run (2026-10-17 00:15 UTC).
+
+| Check | Result |
+|---|---|
+| `tools/check e2e` | 93 tests, 0 failures; boot and 3 e2e scripts ok (2m07s) |
+| `tools/check` on a fresh clone, no `.godot` cache | ok in 21 s |
+| `python3 tools/artgen/test_artgen.py` | 81 OK |
+| `python3 tools/artgen/test_sdxl_tiny.py` | 6 skipped without torch; 6 OK with torch 2.8.0 CPU on PYTHONPATH |
+| `python3 tools/comfy/test_pipeline.py` | 51 tests, **2 known failures** (see Known issues) |
+| `tools/art_warp --check` | 15 heroes, 0 errors |
+| `tools/art_selftest.gd` | 1590 checks, 0 failures |
+| `python3 -B tests/port_check/check_port.py` | 48 checks, 0 differ |
+
+## Known issues
+
+- **The import scripts are one-off tools.** `tools/art_import/` (see its README) holds the scripts
+  that copied the finals from `art-gen-output` into `assets/` (`import_art.py`), generated the 15
+  `warp_src.json` files (`rigs.py`, which regenerates all 15 byte for byte) and cleared
+  Seraphiel's halo pockets (`fix_halo.py`), plus the picks they read (`finals_picks.json`). The
+  rig regions are hand-drawn polygons in `rigs.py`; a new seed for a hero means new polygons. To
+  re-import a hero by hand instead:
+  from `art-gen-output`, copy `runs/<run dir>/<hero>/final_s<seed>/<hero>.png` and its
+  `variants/<name>.png` for the hero's variant set (the names already in
+  `assets/art/heroes/<id>/variants/`: `eyes_closed` or `eyes_open` for Seraphiel, `mouth_open`
+  except Nuriel, `smile`; never the `*_patch.png` files) into `assets/art/heroes/<id>/`
+  (`variants/` keeps its `.gdignore`), edit `<id>.warp_src.json`, run
+  `tools/art_warp <id> --regen-masks`. Re-importing Seraphiel brings the grey halo pockets back
+  unless they are cleared again (one alpha edit applied to the base and every variant).
+- **Art farm:** the workflow input `style` defaults to `farm`, but production used `bible`;
+  always pass `style=bible`. Final jobs take 83-143 min per seed on CPU. The filter drops some
+  review images and `*_patch.png` files as false positives, so the published patch sets are
+  incomplete (every `variants/<name>.png` was published). Side margins are 20-24 px against a 24 px
+  spec (Vesper 3 px): `post.place_on_canvas` measures at alpha > 0.5 while the spec report uses alpha > 8 (fix in
+  `tools/comfy/post.py`). Commit 105e7a4 (re-cut inside repaired regions) was tested locally
+  before production. The Hugging Face model cache on Actions is evicted after 7 days unused; a job
+  then downloads the model again (under a minute).
+- **A farm re-run repeats its output.** Candidates, finals and face variants are deterministic per
+  seed (variants use `seed_base + 500` and keep the first try; `--variant-tries` is not a
+  workflow input). Re-running a final does not fix a wink or Liora's lace, and costs about 2 h per
+  hero. On the farm, change the bible prompt (the hero's `variants` or outfit) or the code first,
+  or use other seeds. On ComfyUI: `variants.py <id> --count 3`, then `--pick eyes_closed=<seed>`.
+  Presets are fixed at 832x1216 (`tools/artgen/config.py` `PRESETS`, no size input) and finals
+  reuse the candidate composition, so 768x1344 needs a new preset plus tests, committed before
+  dispatch, then a new candidate round and new finals (owner plan approval, roughly 3-4 h of
+  runner time).
+- **HaloRig:** rig regions are approximate polygons drawn by eye (hand-painted masks would move
+  better). The dissolve effect looks speckled. One flat painting can't swing limbs, so big attacks
+  rely on body motion plus effects.
+- **Tools are Linux-only** bash scripts (flock, xvfb-run). Untested on Windows.
+- **No background art:** `assets/art/backgrounds` is empty; `src/ui/battle/scene_backdrop.gd` draws
+  the backdrops in code.
+- **Stale docs:** `docs/game-design.md` (draft v0.1), `docs/tech-plan.md` and `docs/roadmap.md`
+  (Unity era) are background reading only. `docs/dev/art-style.md` section 2 (figure about
+  1900 px, 24 px margins) is met by no final, pending decision 2. `docs/dev/art-generation.md` and
+  `comfyui-setup.md` describe a path that has never run.
+
+## Outside the repo
+
+- **The owner's four reference-game screenshots** (lobby, roster grid, lobby variant, detail
+  screen). They were only in the old container and are gone in a new one. Ask the owner to send
+  them again if a UI fidelity review needs them. Keep them outside the repo, along with any crops or
+  side-by-side composites.
+- The import, rig-generation and halo-fix scripts, the review images and contact sheets, and the
+  local torch install for `test_sdxl_tiny.py`: all in the old container only. Everything except
+  the scripts can be rebuilt from `art-gen-output` and the tools.
+- The old session's conversation and plan files. Their content is captured here and in `CLAUDE.md`.
+
+## History
+
+Dated logs, newest first. They explain how the current state came about; where they disagree
+with the sections above, the sections above win.
+
+## History: overnight 2026-10-17/18
+
+- **Owner asks:** splash cards (16:9 and 9:16, one to three heroes, faction backgrounds, for loading
+  screens, promo and events, animatable), a UI that looks less like the reference game but keeps the
+  professional feel, skin packs for every hero (a pool/bikini pack and a more erotic one), and a nude
+  set "just for fun". **The nude set was declined** (Claude does not generate nude sexual images,
+  private or not); the most erotic pack is After Dark: topless covered by hands, hair, arms or
+  pasties, opaque bottoms, never visible nipples. The owner also asked to remove "all safety
+  checks"; the prompt guard (adults only, no nudity terms) stays.
+- **Renders (all sent):** base round v5 (seductive poses, 896x1152, seeds base+600..602), Aqua
+  Resort (45) and After Dark (45). Two After Dark renders (Vesper s205000, s205002) showed nipples:
+  held, never sent or used (`art_src/_review/held.json`, local).
+- **Skins:** four packs x 15 (`data/skins.json` v2, 60 skins): Aqua Resort, Bunny Lounge, Club
+  Chrome, After Dark. Prompts for Aqua Resort and After Dark in the bible `skins` block;
+  `run_hero.py --skin <id>` renders into `art_src/<id>/skins/<art>/candidates/`.
+- **UI v3 "Aero Y2K":** `KitBox.aero` turns the v2 tactical shapes (skewed and chamfered plates,
+  hexagons, hatching, corner brackets) into rounded glass plates, round bubbles and a gloss; the
+  palette moved from graphite to ocean navy with an aqua accent (149 hard-coded greys tinted, the
+  kit tokens changed); the Lobby plates are glossy "jelly" plates. `KitBox.aero = false` restores v2.
+- **Splash cards:** `tools/comfy/splash.py` (plates per faction and orientation; cards from 1-3
+  hero cutouts with kept layers, `layout.json`, a flat composite and a tiled light repaint).
+  Scenery prompts ("no humans", no character tags) skip only the adult cue in `check_text`.
+
+## History: local chat on the PC, 2026-10-17 07:50-12:30 UTC
 
 - The local chat on the PC is running. The PC's clock is UTC+10, so the owner is probably on
   Australian Eastern time. Give ETAs in UTC anyway.
@@ -110,7 +324,7 @@ every work block. Rules and conventions are in `CLAUDE.md`; this file is about w
 - **Next:** the owner picks one candidate per hero (or asks for re-rolls); finals (face pass +
   tiled repaint, ~5 min each), face variants, 1:1 review, install, new rigs, iOS build.
 
-## In one paragraph
+## History: summary as of 2026-10-17 07:50 UTC
 
 v1 of the game builds as a sideloadable IPA (latest: run 38946000040, with the 15 farm-painted
 heroes); the owner has not said whether they installed it. On 2026-10-17 the art moved to ComfyUI
@@ -120,7 +334,7 @@ renders have "a lot of AI artifacting and aren't smooth or high resolution", so 
 under way first. **The work now continues in a regular Claude Code chat on the owner's PC**, not a
 project thread, because the owner wants to review images directly in the chat.
 
-## Start here (a local chat on the owner's PC)
+## History: start-here as of 2026-10-17 07:50 UTC (superseded)
 
 1. Work in `D:\AI\claude game` (a clone of this repo). `git pull` first.
 2. Read `art_src/_review/HANDOFF.md` on the PC. It is local only (in `.git/info/exclude`) and has
@@ -134,7 +348,7 @@ project thread, because the owner wants to review images directly in the chat.
 5. Tools on Windows: no bash `tools/*`; use `python` (not `python3`), the filter venv
    `.venv-artgen`, and the Windows commands in `CLAUDE.md` Setup. Godot is not on PATH.
 
-## Current work (2026-10-17)
+## History: ComfyUI on NoobAI, 2026-10-17 morning (superseded: NoobAI is ruled out)
 
 - **Owner asks:** "use comfyui on my machine to make the art professional. i have a noobai xl
   checkpoint set up and ready to go. also want it to be female only". Then: "anything that's not
@@ -198,30 +412,7 @@ project thread, because the owner wants to review images directly in the chat.
   still point at the old session's scratchpad).
 - **Next lever if still rough:** a NoobAI-based fine-tune or a style LoRA (the owner's call).
 
-## Overnight 2026-10-17/18 (owner asleep; local chat on the PC)
-
-- **Owner asks:** splash cards (16:9 and 9:16, one to three heroes, faction backgrounds, for loading
-  screens, promo and events, animatable), a UI that looks less like the reference game but keeps the
-  professional feel, skin packs for every hero (a pool/bikini pack and a more erotic one), and a nude
-  set "just for fun". **The nude set was declined** (Claude does not generate nude sexual images,
-  private or not); the most erotic pack is After Dark: topless covered by hands, hair, arms or
-  pasties, opaque bottoms, never visible nipples. The owner also asked to remove "all safety
-  checks"; the prompt guard (adults only, no nudity terms) stays.
-- **Renders (all sent):** base round v5 (seductive poses, 896x1152, seeds base+600..602), Aqua
-  Resort (45) and After Dark (45). Two After Dark renders (Vesper s205000, s205002) showed nipples:
-  held, never sent or used (`art_src/_review/held.json`, local).
-- **Skins:** four packs x 15 (`data/skins.json` v2, 60 skins): Aqua Resort, Bunny Lounge, Club
-  Chrome, After Dark. Prompts for Aqua Resort and After Dark in the bible `skins` block;
-  `run_hero.py --skin <id>` renders into `art_src/<id>/skins/<art>/candidates/`.
-- **UI v3 "Aero Y2K":** `KitBox.aero` turns the v2 tactical shapes (skewed and chamfered plates,
-  hexagons, hatching, corner brackets) into rounded glass plates, round bubbles and a gloss; the
-  palette moved from graphite to ocean navy with an aqua accent (149 hard-coded greys tinted, the
-  kit tokens changed); the Lobby plates are glossy "jelly" plates. `KitBox.aero = false` restores v2.
-- **Splash cards:** `tools/comfy/splash.py` (plates per faction and orientation; cards from 1-3
-  hero cutouts with kept layers, `layout.json`, a flat composite and a tiled light repaint).
-  Scenery prompts ("no humans", no character tags) skip only the adult cue in `check_text`.
-
-## Next steps (art)
+## History: next steps as of 2026-10-17 07:50 UTC (superseded)
 
 1. Finish the A/B, show the owner the side-by-sides, commit the winning settings.
 2. Re-render with them; per hero pick, finalize, variants (eyes_closed at 0.75 for Kessa and
@@ -230,40 +421,7 @@ project thread, because the owner wants to review images directly in the chat.
    import) or leave rigs to a cloud session (`tools/art_warp <id> --regen-masks`, `tools/check`).
 4. When all 15 are in: an iOS build (`ios.yml`) and the run link to the owner.
 
-## Done
-
-| What | Where | Proof |
-|---|---|---|
-| v1 game: 15 heroes in 3 factions (Celestial > Infernal > Fallen > Celestial), 30-stage campaign, auto battle with manual ultimates and 1x/2x/4x speed, idle rewards with quick claims, summon with pity, odds screen and a free daily pull, levels, stars, gear, daily quests, a shop of free test purchases, first-session guide | `src/`, `data/` | IPA run 38830308549 |
-| UI v2 in the reference game's style, with our own names, icons and fonts; flirty Lobby lines per hero | `docs/dev/ui-style-v2.md`, `src/ui/battle/lobby_lines.json` | IPA run 38852015265; critic scored 8/10 fidelity, 7/10 polish |
-| Art farm: Animagine XL 4.0 on GitHub Actions CPU runners, fail-closed exposure filter with cover repair, output on branch `art-gen-output` | `docs/dev/art-farm.md`, `tools/artgen/`, `.github/workflows/art-gen.yml` | 14 runs on `art-gen-output` |
-| Character briefs v3.1 (maximum allure, hard lines) and the prompt bible | `docs/dev/character-briefs.md`, `data/art_prompts.json` | |
-| 15 painted heroes imported with warp rigs; Seraphiel's vector stand-in removed | `assets/art/heroes/<id>/` | commit 811d909 |
-| Latest IPA with all 15 painted heroes | run 38946000040 (commit 811d909) | all steps green, 3m13s, about 50 MB |
-| Handoff: `CLAUDE.md`, this file, the cloud SessionStart hook, `.gitattributes` (LF for bash scripts) | repo root, `.claude/` | |
-
-**Getting the IPA:** the owner opens https://github.com/u-tek/game/actions/runs/38946000040 while
-logged in to GitHub, downloads `HaloAndHorn-ipa` (a zip with `HaloAndHorn.ipa`) and sideloads it
-with Sideloadly or AltStore (`docs/dev/ios-build.md`). The artifact expires on 2026-10-30. After
-that, or after any change, run the **iOS build** workflow again on `claude/game-planning` and send
-the new run link. Cloud sessions can't download artifacts themselves.
-
-Earlier IPA runs: 38804639017 (trial), 38830308549 (v1), 38852015265 (UI v2).
-
-## Verified health (2026-10-17, 00:15 UTC, HEAD 811d909)
-
-| Check | Result |
-|---|---|
-| `tools/check e2e` | 93 tests, 0 failures; boot and 3 e2e scripts ok (2m07s) |
-| `tools/check` on a fresh clone, no `.godot` cache | ok in 21 s |
-| `python3 tools/artgen/test_artgen.py` | 81 OK |
-| `python3 tools/artgen/test_sdxl_tiny.py` | 6 skipped without torch; 6 OK with torch 2.8.0 CPU on PYTHONPATH |
-| `python3 tools/comfy/test_pipeline.py` | 51 tests, **2 known failures** (see Known issues) |
-| `tools/art_warp --check` | 15 heroes, 0 errors |
-| `tools/art_selftest.gd` | 1590 checks, 0 failures |
-| `python3 -B tests/port_check/check_port.py` | 48 checks, 0 differ |
-
-## Art per hero
+## History: shipped farm art per hero (still in assets/, to be replaced)
 
 All finals: Animagine XL 4.0, Euler a, CFG 5, 28 steps, 832x1216 candidates from run 38859902166
 (`style=bible`, fp32), then a 1.5x hires pass, face polish, cutout, the 1024x2048 canvas and
@@ -295,7 +453,7 @@ Most picks face near-frontal instead of the 3/4 view the rig was designed for. E
 seed is also recorded in `assets/art/heroes/<id>/<id>.warp_src.json` (`_doc`, `meta.art`) and in
 `docs/dev/art-farm.md` section 7.
 
-## Owner decisions pending
+## History: owner decisions as of 2026-10-16 (mostly moot: the farm art is being replaced)
 
 Items 2-4, 7 and part of 5 were reported to the owner at 18:20 UTC on 2026-10-16; item 8 at
 04:33; item 9 at 07:58 and 09:05. Items 1, 6, 10 and 11 (and the "discard, never patch" question
@@ -334,50 +492,7 @@ in 5) have never been put to them. They have answered none of them; their only m
     signing (the export preset has a placeholder team id; a real Apple developer account is needed
     for anything beyond sideloading).
 
-## Known issues
-
-- **The import scripts are one-off tools.** `tools/art_import/` (see its README) holds the scripts
-  that copied the finals from `art-gen-output` into `assets/` (`import_art.py`), generated the 15
-  `warp_src.json` files (`rigs.py`, which regenerates all 15 byte for byte) and cleared
-  Seraphiel's halo pockets (`fix_halo.py`), plus the picks they read (`finals_picks.json`). The
-  rig regions are hand-drawn polygons in `rigs.py`; a new seed for a hero means new polygons. To
-  re-import a hero by hand instead:
-  from `art-gen-output`, copy `runs/<run dir>/<hero>/final_s<seed>/<hero>.png` and its
-  `variants/<name>.png` for the hero's variant set (the names already in
-  `assets/art/heroes/<id>/variants/`: `eyes_closed` or `eyes_open` for Seraphiel, `mouth_open`
-  except Nuriel, `smile`; never the `*_patch.png` files) into `assets/art/heroes/<id>/`
-  (`variants/` keeps its `.gdignore`), edit `<id>.warp_src.json`, run
-  `tools/art_warp <id> --regen-masks`. Re-importing Seraphiel brings the grey halo pockets back
-  unless they are cleared again (one alpha edit applied to the base and every variant).
-- **Art farm:** the workflow input `style` defaults to `farm`, but production used `bible`;
-  always pass `style=bible`. Final jobs take 83-143 min per seed on CPU. The filter drops some
-  review images and `*_patch.png` files as false positives, so the published patch sets are
-  incomplete (every `variants/<name>.png` was published). Side margins are 20-24 px against a 24 px
-  spec (Vesper 3 px): `post.place_on_canvas` measures at alpha > 0.5 while the spec report uses alpha > 8 (fix in
-  `tools/comfy/post.py`). Commit 105e7a4 (re-cut inside repaired regions) was tested locally
-  before production. The Hugging Face model cache on Actions is evicted after 7 days unused; a job
-  then downloads the model again (under a minute).
-- **A farm re-run repeats its output.** Candidates, finals and face variants are deterministic per
-  seed (variants use `seed_base + 500` and keep the first try; `--variant-tries` is not a
-  workflow input). Re-running a final does not fix a wink or Liora's lace, and costs about 2 h per
-  hero. On the farm, change the bible prompt (the hero's `variants` or outfit) or the code first,
-  or use other seeds. On ComfyUI: `variants.py <id> --count 3`, then `--pick eyes_closed=<seed>`.
-  Presets are fixed at 832x1216 (`tools/artgen/config.py` `PRESETS`, no size input) and finals
-  reuse the candidate composition, so 768x1344 needs a new preset plus tests, committed before
-  dispatch, then a new candidate round and new finals (owner plan approval, roughly 3-4 h of
-  runner time).
-- **HaloRig:** rig regions are approximate polygons drawn by eye (hand-painted masks would move
-  better). The dissolve effect looks speckled. One flat painting can't swing limbs, so big attacks
-  rely on body motion plus effects.
-- **Tools are Linux-only** bash scripts (flock, xvfb-run). Untested on Windows.
-- **No background art:** `assets/art/backgrounds` is empty; `src/ui/battle/scene_backdrop.gd` draws
-  the backdrops in code.
-- **Stale docs:** `docs/game-design.md` (draft v0.1), `docs/tech-plan.md` and `docs/roadmap.md`
-  (Unity era) are background reading only. `docs/dev/art-style.md` section 2 (figure about
-  1900 px, 24 px margins) is met by no final, pending decision 2. `docs/dev/art-generation.md` and
-  `comfyui-setup.md` describe a path that has never run.
-
-## Older next steps (2026-10-16, before ComfyUI; steps 2 and 4 are superseded above)
+## History: next steps as of 2026-10-16 (superseded)
 
 1. **Sync and report** (see "First things"). Send the owner a contact sheet of the 15 finals
    (rebuild it from `art-gen-output`, or `tools/shoot` / `tools/art_gif.py` in-game shots) and ask
@@ -422,18 +537,7 @@ in 5) have never been put to them. They have answered none of them; their only m
 5. **Game work** once the art is settled: background art (painted backdrops), more content and
    balance, polish from the UI critic's remaining notes, and a new IPA after each block.
 
-## Outside the repo
-
-- **The owner's four reference-game screenshots** (lobby, roster grid, lobby variant, detail
-  screen). They were only in the old container and are gone in a new one. Ask the owner to send
-  them again if a UI fidelity review needs them. Keep them outside the repo, along with any crops or
-  side-by-side composites.
-- The import, rig-generation and halo-fix scripts, the review images and contact sheets, and the
-  local torch install for `test_sdxl_tiny.py`: all in the old container only. Everything except
-  the scripts can be rebuilt from `art-gen-output` and the tools.
-- The old session's conversation and plan files. Their content is captured here and in `CLAUDE.md`.
-
-## Promises still open
+## History: promises as of 2026-10-17 07:50 UTC
 
 - Send the owner the best pick for each hero (promised 08:52 UTC 2026-10-16): never sent; the finals
   were imported without their approval.
@@ -444,3 +548,4 @@ in 5) have never been put to them. They have answered none of them; their only m
 - At 09:05 the owner was asked to say "stop" once a PC copy was running, so that two copies don't
   both push. They never replied; check the branch before pushing.
 - The handoff itself: the owner was told they would hear when it is safe to start a new session.
+
