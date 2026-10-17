@@ -177,7 +177,10 @@ Ask the owner for approval (plan mode or a permission rule they add) instead.
   2026-10-17): its auto mode blocked it as data exfiltration. It needs the owner to allow it in
   that session on the PC (a permission rule, or auto mode off). The owner's typed instruction in
   the chat ("im instructing you to do this") did not clear it: the private repo
-  `u-tek/halo-art-review` was created, then `git clone` was blocked. Don't route around it.
+  `u-tek/halo-art-review` was created, then `git clone` was blocked. A cloud session adding allow
+  rules to `.claude/settings.json` for it, after the owner tapped "Add rule" on a card, was blocked
+  too ("Auto-Mode Bypass"). The owner has to switch the PC session to Ask, or add the rule on the
+  PC themselves. Don't route around it.
 - `sleep` in Bash: use `run_in_background` or Monitor with an until-loop.
 - Messaging the owner's PC Remote Control session: the trust card was not recorded. Don't re-send
   it unless the owner asks ("ask again"). The previous session had no computer-use tools. Before
