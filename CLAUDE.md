@@ -10,6 +10,10 @@ git fetch origin && git status && git log --oneline -5 origin/claude/game-planni
 A copy of this project may also be running on the owner's Windows PC and pushing to the same
 branch. Pull before you work, and never force-push.
 
+Since 2026-10-17 the art work runs in a regular Claude Code chat on the owner's PC
+(`D:\AI\claude game`), where images show directly in the chat. Its local notes are in
+`art_src/_review/HANDOFF.md` there; the summary is in `docs/dev/status.md`.
+
 ## The project
 
 A mobile idle/AFK gacha RPG close to *Idle Angels*: angels (Celestial), demons (Infernal) and the

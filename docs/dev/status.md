@@ -1,76 +1,79 @@
 # Status and handoff
 
-**Status as of 2026-10-16, end of day UTC** (written 2026-10-17 at the session handoff). This is
-the living status file: update it at the end of every work block. Rules and conventions are in
-`CLAUDE.md`; this file is about where things stand.
+**Status as of 2026-10-17, 07:50 UTC.** This is the living status file: update it at the end of
+every work block. Rules and conventions are in `CLAUDE.md`; this file is about where things stand.
 
 ## In one paragraph
 
-v1 of the game builds as a sideloadable IPA (latest: run 38946000040, with all 15 painted heroes);
-the owner has not said whether they installed or played any build. The UI was restyled after the
-owner's reference screenshots (UI v2). All 15 heroes have painted art from the art farm, animated
-with HaloRig. Nothing is running. Several art choices were made
-without the owner and are waiting for their answer (see "Owner decisions pending"). The
-owner's preferred next step for art is ComfyUI on their own GPU PC, which has not been set up yet.
+v1 of the game builds as a sideloadable IPA (latest: run 38946000040, with the 15 farm-painted
+heroes); the owner has not said whether they installed it. On 2026-10-17 the art moved to ComfyUI
+on the owner's PC with their NoobAI-XL V-Pred checkpoint, and the roster became female only. Test
+renders exist for most heroes, but nothing new is in `assets/` yet: the owner's review said the
+renders have "a lot of AI artifacting and aren't smooth or high resolution", so a quality A/B is
+under way first. **The work now continues in a regular Claude Code chat on the owner's PC**, not a
+project thread, because the owner wants to review images directly in the chat.
+
+## Start here (a local chat on the owner's PC)
+
+1. Work in `D:\AI\claude game` (a clone of this repo). `git pull` first.
+2. Read `art_src/_review/HANDOFF.md` on the PC. It is local only (in `.git/info/exclude`) and has
+   the exact state: how ComfyUI is started, every hero's candidates, picks and finals, the A/B
+   outputs, the queue and the uncommitted files. This file is the summary.
+3. Show the owner images directly in the chat as they are rendered (contact sheets per hero, and
+   1:1 crops for the A/B). That was their main request. The review set is in
+   `art_src/_review/` (`pass_list.json`, `sheets/`, `ab/`).
+4. Stay in the default (Ask) permission mode: the owner approves prompts in front of them. Auto
+   mode blocked sending images anywhere as "data exfiltration" (see `CLAUDE.md`, Blocked before).
+5. Tools on Windows: no bash `tools/*`; use `python` (not `python3`), the filter venv
+   `.venv-artgen`, and the Windows commands in `CLAUDE.md` Setup. Godot is not on PATH.
 
 ## Current work (2026-10-17)
 
-The owner asked for two things: "use comfyui on my machine to make the art professional. i have a
-noobai xl checkpoint set up and ready to go. also want it to be female only".
-- **Female only:** done in the designs. Nuriel, Brakka, Orrin and Lucen are women in
-  `docs/dev/character-briefs.md` (v3.2), `data/art_prompts.json` and `data/heroes.json` (same ids,
-  names, roles and stats; names kept, the owner can ask for new ones). Their shipped art is still
-  the old male art until the ComfyUI renders replace it.
-- **ComfyUI on the PC:** a cloud thread session asked the owner to allow a Claude session on their
-  PC (Remote Control). That session clones the repo, finds ComfyUI and the NoobAI XL checkpoint,
-  pins it (`comfy.py pin <ckpt> --family illustrious|noobai_vpred`), sets up the exposure filter
-  and calibrates on Uriela before the roster batch. Every final passes
-  `tools/artgen/safety.py check` on the PC before it goes into `assets/`.
-- **Pipeline:** long prompts are now encoded in whole-tag chunks joined by `ConditioningConcat`
-  (`docs/dev/art-generation.md` section 7), so no tag is cut at ComfyUI's 75-token break. The two
-  old `test_pipeline` failures are fixed (a test bug in `test_pin`, `roster.py` missing from the doc).
-- **PC session:** running on the owner's PC (DESKTOP-VIS0U33, `D:\AI\claude game`), RTX 3070 8 GB,
-  ComfyUI Desktop on 127.0.0.1:8188, checkpoint NoobAI-XL-Vpred-v1.0 pinned as `noobai_vpred`,
-  filter venv `.venv-artgen`. NoobAI quality tags `absurdres, highres` and negative `sketch`
-  (ee26b09). About 50 s per image.
-- **Filter raised to 0.5 (owner, 2026-10-17, c3d35b5):** "anything that's not explicit nudity is
-  fine", then "raise it". At 0.25 the filter dropped clothed cleavage and highleg hips (Uriela
-  passed 1 of 12). At 0.5 the pilots passed: Uriela 3/6 (v3.2 design restored, pick s104002),
-  Mordessa 6/6, Noctaire 6/6, Kessa 5/6, Lucen 5/6. Seraphiel passed about 1/6 and one candidate had
-  a semi-sheer drape over the groin, so her reveal gets a moderate cut-back. Briefs are v3.3.
-- **Images to the thread:** the owner asked for every generated image to be sent to them. The PC
-  session's upload to a private repo was blocked by its auto mode as data exfiltration; the images
-  are on the PC in `art_src/<hero>/candidates`. The owner then wrote "im instructing you to do this";
-  the private repo `u-tek/halo-art-review` was created but `git clone` was blocked again. Waiting on
-  the owner to switch that PC session from Auto to Ask. Only images that pass at 0.5 go up; three
-  are held for hard lines (Seraphiel s101002 sheer groin drape, Mordessa s201000 and s201004 bare
-  hip in slits).
-- **Settings actually used:** noobai_vpred defaults, latent hires 1.5x at denoise 0.5 (no upscale
-  model on the PC), no face refine on candidates; finals get a 0.35 face inpaint and 2x lanczos.
-- **Quality (owner, 07:19 UTC):** "a lot of AI artifacting and aren't smooth or high resolution".
-  Research: the base settings match the NoobAI V-Pred card (Euler, CFG 4-5, 28-35 steps, ~1 MP);
-  the gaps are the latent hires pass at 0.5, a plain lanczos 2x on finals, no hand or candidate
-  face touch-up, and Animagine quality tags instead of NoobAI's own (`very awa`,
-  `worst aesthetic`, `lowres, bad hands`). Fix under test on Mordessa: NoobAI tags, an anime
-  upscaler-model hires pass at 0.4, a tiled 2x upscale (Ultimate SD Upscale) at 0.35, then
-  shrink to 1024x2048. Installing 4x-AnimeSharp, 4x-UltraSharp and the Ultimate SD Upscale node
-  waits for the owner's card answer. Next lever if still rough: a NoobAI-based fine-tune or
-  style LoRA (owner's call).
-- **Split:** the PC renders, reviews at 1:1, runs `safety.py check`, installs and commits only
-  `assets/art/heroes/<id>/<id>.png`, `variants/*.png` and `art_src` JSON. A cloud session then
-  builds the rig (`tools/art_warp <id> --regen-masks`), runs `tools/check` and pushes, and
-  dispatches the iOS build once the roster is in.
+- **Owner asks:** "use comfyui on my machine to make the art professional. i have a noobai xl
+  checkpoint set up and ready to go. also want it to be female only". Then: "anything that's not
+  explicit nudity is fine", "raise it" (the filter), "send all generated images in here", and
+  "the images have a lot of AI artifacting and aren't smooth or high resolution ... can you
+  research the best settings for this model rather than guessing".
+- **Female only:** done in the designs (briefs v3.3, `data/art_prompts.json`, `data/heroes.json`).
+  Nuriel, Brakka, Orrin and Lucen keep their ids, names, roles and stats. Their shipped art is still
+  the old male art until new finals are installed.
+- **PC setup:** DESKTOP-VIS0U33, RTX 3070 8 GB, ComfyUI Desktop on 127.0.0.1:8188 (models and
+  custom nodes under `D:\comfyui`), checkpoint `NoobAI-XL-Vpred-v1.0.safetensors` pinned as
+  `noobai_vpred`. Installed on the owner's word (07:25 UTC): `4x-AnimeSharp.safetensors` and
+  `4x-UltraSharp.safetensors` in `models/upscale_models`, and `ComfyUI_UltimateSDUpscale` (ssitu,
+  commit a5547db) in `custom_nodes`. ComfyUI needs a restart to load the node, then
+  `comfy.py discover`.
+- **Filter at 0.5** (c3d35b5). Pilot pass rates at 0.5: Uriela 3/6 (v3.2 restored, pick s104002),
+  Mordessa 6/6 (now with `(leotard under clothes:1.3)` so the hip slits show the leotard,
+  f710bfe), Noctaire 6/6, Cassiel 6/6, Kessa 5/6, Lucen 5/6, Seraphiel about 1/6 (moderate
+  cut-back pending). Held for hard lines and never sent or committed: Seraphiel s101002 (sheer
+  groin drape), Mordessa s201000 and s201004 (bare hip in slits). Kessa s205023 and s205024 DROP
+  at 0.5 (hip windows) but were shown to the owner in a contact sheet in the PC session.
+- **Cutouts:** core RemoveBackground (BiRefNet) first; enclosed background holes are now cleared
+  (459f0fe). Dark designs render on grey.
+- **Quality research** (`/mnt/project-files/art/noobai-vpred-settings.md` in the project, with
+  sources): the base settings match the NoobAI V-Pred card (Euler, CFG 4-5, 28-35 steps, about
+  1 MP, v_prediction + zero-SNR). The gaps were after it: (1) latent hires (nearest-exact) at
+  denoise 0.5, (2) finals only stretched 2x with lanczos, (3) no hand pass and no face pass on
+  candidates, (4) Animagine quality tags instead of NoobAI's own (prefix
+  `masterpiece, best quality, newest, absurdres, highres`, aesthetic `very awa`, negatives
+  `worst quality, old, early, low quality, lowres, signature, username, logo, bad hands,
+  mutated hands, worst aesthetic`).
+- **A/B on Mordessa** (seeds 201010, 201011, 201015; outputs `art_src/_ab/<variant>/`):
+  A current; B NoobAI's own tags; C B + latent hires at 0.6; D B + upscaler-model hires
+  (4x-AnimeSharp) at 0.4; E D + Ultimate SD Upscale 2x at 0.35 + face and hand touch-up, shrunk
+  to 1024x2048. A to C were rendering at the handoff; D and E wait for the ComfyUI restart. The tag
+  changes are not committed: commit the winner as the `noobai_vpred` default, with tests.
+- **Next lever if still rough:** a NoobAI-based fine-tune or a style LoRA (the owner's call).
 
-## First things a new session should do
+## Next steps (art)
 
-1. `git fetch origin` and compare with `origin/claude/game-planning`. On 2026-10-16 the owner was
-   given steps to clone and teleport the session onto their PC; it is unknown whether they did.
-   If the branch has commits you don't know about, read them before working.
-2. Tell the owner briefly what you see and ask the open questions below that block your next
-   step, with images where they help (contact sheets, in-game shots). Also ask: "Did you install a
-   build, and how does it play?"
-3. Run `tools/check` (cloud) to confirm the setup hook worked. Its log is
-   `/tmp/halo-session-start.log`.
+1. Finish the A/B, show the owner the side-by-sides, commit the winning settings.
+2. Re-render with them; per hero pick, finalize, variants (eyes_closed at 0.75 for Kessa and
+   Lucen, 0.62 gave winks), `safety.py check` at 0.5, 1:1 review, `install.py`, commit.
+3. Rig each installed hero (`python tools/art_warp_build.py <id> --regen-masks`, then Godot
+   import) or leave rigs to a cloud session (`tools/art_warp <id> --regen-masks`, `tools/check`).
+4. When all 15 are in: an iOS build (`ios.yml`) and the run link to the owner.
 
 ## Done
 
@@ -219,7 +222,7 @@ in 5) have never been put to them. They have answered none of them; their only m
   1900 px, 24 px margins) is met by no final, pending decision 2. `docs/dev/art-generation.md` and
   `comfyui-setup.md` describe a path that has never run.
 
-## Next steps (in order)
+## Older next steps (2026-10-16, before ComfyUI; steps 2 and 4 are superseded above)
 
 1. **Sync and report** (see "First things"). Send the owner a contact sheet of the 15 finals
    (rebuild it from `art-gen-output`, or `tools/shoot` / `tools/art_gif.py` in-game shots) and ask
@@ -279,8 +282,8 @@ in 5) have never been put to them. They have answered none of them; their only m
 
 - Send the owner the best pick for each hero (promised 08:52 UTC 2026-10-16): never sent; the finals
   were imported without their approval.
-- Keep filtered images and send them to the owner (promised 04:32, then blocked; the owner was
-  told). Still unmet; only the local-PC route can meet it.
+- Send the owner every generated image (asked 2026-10-17). Contact sheets for 7 heroes were shown
+  in the PC session; a local chat on the PC can show the rest directly.
 - "Want me to start on them?" (18:20): the fixes in decision 7.
 - "Say 'ask again' and I'll send a fresh one": the trust card for messaging the PC session.
 - At 09:05 the owner was asked to say "stop" once a PC copy was running, so that two copies don't
