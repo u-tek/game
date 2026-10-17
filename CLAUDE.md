@@ -77,9 +77,16 @@ that the owner sideloads. The repo `u-tek/game` is public. The only code branch 
 - **Allure:** the maximum the App Store 18+ rating allows: skin-tight clothing, bodysuits, latex,
   highleg leotards, cutouts, bikini and micro armor, harnesses, curvier bodies. **Female only**
   (owner, 2026-10-17): Nuriel, Brakka, Orrin and Lucen were redesigned as women with the same ids,
-  names, roles and stats. Designs are in `docs/dev/character-briefs.md` (v3.2). The owner asked for
-  pasties; pasties-only tops are refused as past the App Store limit, so designs use small opaque
-  cups or gem plates.
+  names, roles and stats. The owner asked for pasties; pasties-only tops are refused as past the
+  App Store limit, so designs use small opaque cups or gem plates.
+- **Theme: Aero Y2K (owner, 2026-10-17):** "Y2K futurism, like Frutiger [Aero] era almost, but
+  like actually cool, but also like erotic and super, super, super revealing." Glossy chrome, PVC,
+  latex and holographic fashion; maximum reveal inside the hard lines. Designs are in
+  `docs/dev/character-briefs.md` (v4; Nuriel, Brakka, Orrin and Lucen fully redesigned) and
+  purchasable skins in `docs/dev/skins.md` ("bikinis and whatever"). The bible and the `look` fields
+  still hold v3.3 until the owner approves v4 and picks a checkpoint.
+- **Licenses matter (commercial game).** NoobAI-XL forbids commercial use of its images; check
+  every checkpoint's and LoRA's license before its art ships (`docs/dev/status.md`).
 - **UI:** a close copy of the reference game's layout and visual language (the owner sent four
   screenshots and asked for "almost 1:1"), with our own names (Lobby, Heroes, Team, Gear, Summon;
   Sanctum = idle rewards), our own icons, Barlow fonts, a cyan accent, and the App Store 4.1

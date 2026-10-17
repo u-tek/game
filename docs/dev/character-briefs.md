@@ -1,227 +1,249 @@
-# Character Briefs (art direction v3.3: maximum allure the exposure filter passes, female only)
+# Character Briefs (art direction v4: Aero Y2K, maximum reveal, female only)
 
 These briefs are the **design source** for all art work. They override `data/art_prompts.json` and
-the `look` fields in `data/heroes.json` when they disagree (the `look` fields mirror these briefs).
+the `look` fields in `data/heroes.json` when they disagree. **Both still hold the v3.3 designs**:
+the bible is rewritten in the tag style of whichever checkpoint the owner picks (they are testing
+models, 2026-10-17), and the `look` fields once the owner approves these designs. Every hero keeps
+her id, faction, role, rarity, stats and kit; only looks (and, for four heroes, title and bio) change.
 
-## Content direction
+## v4 direction (owner, 2026-10-17)
 
-The owner's direction: the v2 designs were "a good start but nowhere near as promiscuous as
-possible ... skin tight clothing, body suits ... think big". Every design is pushed to the
-**maximum allure the App Store 18+ rating allows**, in the style of the most fan-service-heavy
-gacha games. The hard lines below are where that maximum ends. They are never traded for allure.
+"I want the theme of this game to be like Y2K futurism, like Frutiger [Aero] era almost, but like
+actually cool, but also like erotic and super, super, super revealing." The four heroes who were
+redesigned from men (Nuriel, Brakka, Orrin, Lucen) "don't look good and I don't like their
+designs. I want the designs to be more unique." Players can also buy skins ("bikinis and
+whatever"): see `docs/dev/skins.md`.
 
-v3.1 keeps the v3 allure and closes the prompt-level risks found in review: youth-coded tag
-clusters on the young-end heroes, slits with nothing opaque under them, a sex-mimicking pose,
-uneven safety negatives, two converged designs (Vesper and Sable) and tags split across CLIP chunks.
+**"Aero Y2K", in one line:** the glossy optimism of 2000s tech (Frutiger Aero skies, glass, water
+droplets, chrome, iridescent plastic) worn as high fashion, by angels and demons who dress like
+the most dangerous people at the afterparty. Cool, never cute: sleek, glossy, expensive-looking.
 
-v3.2 (2026-10-17): the owner asked for a **female-only roster**. Nuriel, Brakka, Orrin and Lucen
-are now women. They keep their ids, names, factions, roles, stats, weapons and silhouettes; only
-the body, outfit and reveal changed. The art is re-rendered with ComfyUI on the owner's PC and
-their NoobAI XL checkpoint.
+**Touchstones:** liquid-chrome and PVC runway fashion; PS2 and Dreamcast era game art; music
+videos with chrome bodies and glass rooms; Frutiger Aero desktop art (aqua skies, glass orbs,
+bubbles, lens flares); Y2K cyber-fashion (wraparound shield visors, platform boots, rhinestones,
+split-dye hair, frosted tips, cyber-sigilism tattoos, hot-rod flame decals, holographic vinyl).
 
-v3.3 (2026-10-17): the ComfyUI pilot on NoobAI-XL-Vpred-v1.0 showed that this model paints far more
-skin than the art farm's Animagine. At the old 0.25 thresholds the exposure filter dropped nearly
-every candidate of the v3.2 reveals, flagging clothed underboob, cleavage and highleg hips that a
-1:1 review found inside the hard lines. The owner then raised both thresholds to 0.5, the
-filter's built-in ceiling ("raise it", 2026-10-17): the content standard is "anything that's not
-explicit nudity", as in the 18+ gacha games already on the App Store. The hard lines below are
-unchanged and still decided at 1:1 by a person. Following the pilot rule below, each hero keeps her
-v3.2 reveal where about half of her candidates pass at 0.5; otherwise her reveal is cut back only
-as far as it takes, preferring swaps that keep the allure (a closed glossy leotard instead of an
-underboob cutout, a pelvic curtain over a highleg line, thighhighs over bare thighs). Every
-cut-back is recorded in the hero's paragraph, her row in the signature map and her `brief_gaps` in
-the bible, with the pass counts that justified it.
+**Materials:** glossy white PVC and pearl plastic, liquid chrome, candy-metallic vinyl, black
+latex, holographic and oil-slick iridescent vinyl, smoked acrylic, clear vinyl over opaque
+layers, rhinestones, chrome hardware (O-rings, buckles, zips, chains).
+
+### The factions in Aero Y2K
+
+| Faction | Mood | Palette | Signature materials | Halo / horns / wings |
+|---|---|---|---|---|
+| **Celestial** | Frutiger Aero heaven: sky, glass, water, sunlight | pearl white, aqua and cyan, sky blue, chrome silver, a touch of lime | glossy white PVC, pearl plastic, chrome, clear vinyl over opaque | solid chrome rings with a bright highlight; pearl or frosted wings with aqua tips |
+| **Infernal** | Hell's nightclub: chrome, heat, neon, flames | black, candy-apple red, hot pink, liquid chrome | black latex, red metallic vinyl, chrome, rhinestones, flame decals, cyber-sigil tattoos | chrome or glossy black horns; leathery wings with chrome claws |
+| **Fallen** | Dial-up dusk: broken tech, glitch, oil-slick shimmer | black, violet, teal, iridescent oil-slick, silver | oil-slick holographic vinyl, smoked acrylic, black latex, cracked chrome, cables | cracked chrome halos with pixel-glitch gaps; black wings with chrome or pixelated tips |
 
 ### What we go for
 
-- **Skin-tight and glossy.** Latex and shiny bodysuits, catsuits, highleg leotards, bikini armor
-  and micro-armor that leaves more skin than plate.
-- **Cutouts and openings.** Underboob, sideboob, a cleavage window or center opening down to the
-  navel, navel windows, hip windows (`hip vent`), open backs, partially unzipped suits,
-  strapless and bandeau tops, small opaque cups and gem or armor plates as tops.
-- **Straps and legwear.** Harnesses, o-rings, garter straps, thighhighs, thigh boots, body
-  chains; very high slits and long front-and-back drapes (`pelvic curtain`) over an **opaque**
-  leotard, bodysuit, shorts or bikini bottom.
-- **Sheer only over opaque.** Sheer sleeves, veils and drapes are fine; sheer never sits over
-  breasts, nipples or the groin unless an opaque layer is under it.
-- **Bodies.** Curvier, where it fits the character: large to huge breasts, wide hips, thick
-  thighs, narrow waists, toned abs. Body types still vary across the roster (statuesque,
-  athletic, soft, tall and slender, lithe).
-- **Poses and expressions.** Alluring but **full body, standing, both feet visible**, in the
-  3/4 view the rig needs (`docs/dev/art-style.md`): hand on hip, hand in hair, leaning toward the
-  viewer, an arm raised, arms crossed, a hip-cocked fighting stance, flexing; seductive smiles,
-  smirks, half-lidded eyes. A standing S-curve (chest out, hip cocked) gives the arched-back look;
-  the `arched back` tag itself is not used, because it drifts toward all-fours and explicit poses.
-- **Female only.** Every hero is a woman (owner, 2026-10-17). Builds still vary, from Brakka's
-  muscular amazon to Lucen's slender duelist.
-- **Character first.** Each hero keeps a distinct silhouette, palette, weapon and personality and
-  stays on-faction. The signature map below keeps the reveals from blurring together.
+- **Maximum reveal inside the hard lines.** Micro bikinis and micro armor with small opaque cups,
+  thong-cut and highleg bottoms, sling straps over opaque cups, underboob, sideboob, center
+  plunges to the navel, O-ring and window cutouts, open backs and sides, harnesses and body
+  chains, garters, bare midriffs and thighs. More skin than cloth on most of the roster.
+- **Glossy everything.** Latex, PVC, chrome and holographic finishes are the look; matte cloth is
+  the exception.
+- **One Y2K hook per hero** (the "Y2K hook" column below), so 15 heroes never blur into one look.
+- **Bodies vary.** Curvy is the default (large to huge breasts, wide hips, thick thighs), but
+  builds still range from Brakka's bodybuilder to Nuriel's lean runner and Noctaire's long, slender
+  frame.
+- **Poses.** Full body, standing, both feet visible, the 3/4 view the rig needs
+  (`docs/dev/art-style.md`): hip cocked, hand on hip, visor pushed up, weapon on the shoulder,
+  flexing, pointing a weapon at the viewer. Smirks, half-lidded eyes, winks, confident grins.
+
+### Production rules (so the art survives the pipeline)
+
+- **Nothing see-through reaches the background.** The cutout can't separate clear glass or glows
+  from the flat backdrop. Wings, halos, capes and drapes are solid: pearl, frosted, chrome or
+  glossy, never clear. Clear vinyl appears only where the body is behind it (a jacket, a sarong).
+- **No glow effects, particles or bubbles floating around the figure**; the rig draws effects in
+  the game. Weapons may have a bright edge painted on the solid blade.
+- **Flat backdrop** as today (grey or white per hero), one figure, full body.
 
 ### Hard lines (never crossed)
 
 - **Adults only.** Every character is an adult with an apparent age of 20 or older: adult body
   proportions, adult facial structure, adult styling and adult cues in every prompt. Never
-  childlike bodies, faces, clothing (no school uniforms) or behavior, and never "petite
-  child-like" framing. Allure never combines with anything that reads young.
-- **No youth-coded clusters.** On the young-end heroes (Liora, Uriela, Imra) the design never
-  stacks the signals that read young on Danbooru-trained models: high twin tails with ribbons,
-  small wings, small horns, short spiky hair with a fanged or sharp-toothed grin, blush and head
-  tilt, cutesy framing. Known young-coded archetypes are negated by name: `mesugaki` (the bratty
-  girl), `shortstack`, `petite`, and `blue archive` on every hero with a halo (the Danbooru halo
-  tag is dominated by that game's school-age cast).
-- **Suggestive, never explicit.** Never: exposed or visible nipples or areolae, including
-  through sheer or wet fabric, as "covered nipples" outlines on tight fabric, or with
-  nipple-cover-only tops (**no pasties-as-the-only-top designs**); genitals; the pubic area;
-  cameltoe; sexual acts or poses that mimic them (no all fours, kneeling, lying or bent-over
-  poses). Tops and bottoms are **opaque where it matters**: every slit, curtain and cutout sits
-  over an opaque layer or bare non-explicit skin. A slit cut to the hip always shows an opaque
-  layer under it, named in the brief and tagged (`leotard under clothes`, `shorts under skirt`);
-  no low-slung (`lowleg`) skirts on women.
-- **Pipeline guardrails stay on.** The adult cue tags and the required safety negatives that
-  `tools/comfy/prompts.py` `enforce()` checks are never removed or weakened. On top of them every
-  woman's `negative_extra` upweights covered nipples, nipples, nipple slip, areola slip, cameltoe,
-  no panties and pubic hair (Imra keeps `nipples` at the global weight only because a pipeline
-  test uses her prompt as a fixture; see her brief gaps). Per design it adds: `impossible clothes`
-  (fabric drawn clinging to every contour) for the latex and skin-tight suits, downblouse,
-  pantyshot and upskirt for Liora's short strapless dress, no bra for Ashra's tube top, all fours
-  and kneeling for Kessa, the young-end terms for Liora, Uriela and Imra, and fishnet top for
-  Nuriel (fishnet is legwear only).
-- **Prompts fit and stay whole.** Every full-body prompt, art-farm overlay included, fits 2 CLIP
-  chunks counted with the real CLIP tokenizer, and no multi-word tag straddles the chunk break
-  (a split `partially | unzipped` reads as a bare `unzipped`). See `_heroes_doc` in the bible.
-- **Human review decides.** Glossy latex and cutouts are where models slip. Every candidate is
-  checked at 1:1 against `docs/dev/art-style.md` section 1. An image that crosses a hard line is
-  discarded, never cropped or patched into compliance.
-- **Pilot before the roster batch.** Render about 4 seeds each for the riskiest reveals first
-  (Seraphiel, Uriela, Noctaire, Kessa, Ashra) and read the exposure filter's drop counts in the
-  run manifest. The filter (`tools/artgen/config.py`, both thresholds 0.5 since the owner's
-  decision of 2026-10-17, never above its `max_threshold`) is never loosened further to keep a
-  render; if most of a hero's candidates drop, her reveal is cut back here first.
-- **Rating target:** App Store 18+ (frequent/intense mature or suggestive themes). Google Play's
-  policy is stricter about minimally clothed, sexually suggestive poses: if the game goes to
-  Android, plan a "standard" outfit for every hero alongside this one.
+  childlike bodies, faces, clothing or behavior. Allure never combines with anything that reads
+  young.
+- **Y2K without the schoolgirl.** Y2K fashion overlaps with school-coded looks. Never: school
+  uniforms, sailor collars, plaid pleated miniskirts, loose socks, `kogal`, randoseru, gym
+  uniforms. On the young-end heroes (Liora, Uriela, Imra) also never: butterfly hair clips,
+  pigtails or high twin tails with ribbons, heart and star sticker motifs, glitter-kawaii styling,
+  small wings or horns, fanged grins, blush with head tilt. They read as glamorous grown women.
+  `mesugaki`, `shortstack`, `petite` (and `blue archive` on haloed heroes) stay negated.
+- **Suggestive, never explicit.** Never: exposed or visible nipples or areolae, including through
+  sheer, clear or wet material, as "covered nipples" outlines, or with nipple-cover-only tops (no
+  pasties-only tops, no `slingshot swimsuit`, which exposes them); genitals; the pubic area;
+  cameltoe; sexual acts or poses that mimic them (no all fours, kneeling, lying, bent-over or
+  spread-leg poses). Bikini cups cover nipples and areolae with margin; every bottom is opaque in
+  front. Thong backs are fine. No low-rise or `lowleg` bottoms (they bare the pubic area).
+- **Clear and sheer only over opaque.** Clear vinyl, mesh, lace and sheer drapes never sit over
+  breasts, nipples or the groin without an opaque layer under them. Wet looks keep the clothing
+  opaque (`see-through` and `wet clothes` are negated on light-colored swimwear).
+- **Pipeline guardrails stay on.** `tools/comfy/prompts.py` `enforce()` (adult cue tags,
+  forbidden terms, required safety negatives) is never removed or weakened, and every hero's
+  `negative_extra` upweights covered nipples, nipples, nipple slip, areola slip, cameltoe, no
+  panties and pubic hair.
+- **Human review decides.** Every image is checked at 1:1 by Claude and the owner against these
+  lines and `docs/dev/art-style.md` section 1 before it goes into `assets/` or git. The exposure
+  filter is a recorded second opinion (`CLAUDE.md`). An image that crosses a hard line is
+  discarded, never patched.
+- **Rating target:** App Store 18+. Google Play is stricter about minimally clothed, suggestive
+  poses: an Android release needs a "standard" outfit per hero.
 
 ### Signature map
 
-| Hero | Build | Signature reveal | Silhouette and pose |
-|---|---|---|---|
-| Seraphiel | statuesque, huge bust | center opening to the navel, highleg leotard, long drapes | six wings, raised hand to a floating sceptre |
-| Cassiel | athletic, abs, thick thighs | bikini armor, bare midriff | big pauldrons, kite shield, hand on hip |
-| Liora | soft and curvy | strapless corset minidress, deep cleavage, garters | long side braid, lyre, leaning forward |
-| Uriela | toned with curves | underboob and navel cutouts in a highleg leotard | ponytail, spear over the shoulder |
-| Nuriel | lean, athletic, abs | cropped open jacket over a chest wrap, bare midriff, short shorts, fishnet thighhighs | mask, arms crossed with reverse-grip daggers |
-| Mordessa | voluptuous | armored dress plunging to the navel, hip slits over a leotard, garters | ram horns, greatsword on the shoulder, hand on hip |
-| Brakka | huge muscular amazon | sports bra under a chain harness, plate kilt over shorts | red skin, flexing |
-| Vesper | hourglass | glossy crimson latex catsuit, heart-shaped cleavage window | cape and high collar, glasses, raised orb |
-| Imra | lithe, toned | bandeau bikini and loincloth, body paint | shaggy orange mane, lantern staff raised |
-| Kessa | athletic, curvy | bodysuit unzipped below the cleavage, strap harness, hip windows | cat ears and tail, twin sickles, fighting stance |
-| Noctaire | tall, slender, long legs | sideboob corset leotard, long drape | huge scythe, hand in her hair |
-| Orrin | tall, scarred, toned | cut-down breastplate over the cleavage, highleg leotard, bare upper thighs | tower shield, torn cape |
-| Sable | curvy | skin-tight black habit with cleavage cutout, tabard, garters | veil and cross, censer, head tilt |
-| Lucen | slender, long legs | open coat over a strapless bustier, tight leather, thigh boots | rapier, hand on hip |
-| Ashra | soft curves | slipping robes, underboob tube top, slit skirt over shorts | huge witch hat, one arm lazily raised |
+| Hero | Build | Signature reveal | Y2K hook | Silhouette and pose |
+|---|---|---|---|---|
+| Seraphiel | statuesque, huge bust | pearl latex sling leotard plunging to the navel, open sides | chrome mic-sceptre, pop-diva stage glam | six pearl wings, hand raised to the mic |
+| Cassiel | athletic, abs, thick thighs | white mecha micro armor, thong-cut plate bottom | PS2-era glossy mecha plates, aqua LED seams | huge pauldrons, frosted riot-glass kite shield |
+| Liora | soft and curvy | white string bikini with pearl chains, clear sarong | luxury aqua spa: pearls, chrome, water | glass lyre, leaning forward, wet-look braid |
+| Uriela | toned with curves | racing leotard with underboob cutout and navel window | wraparound sport shield visor, race decals | chrome lance over the shoulder |
+| Nuriel | lean runner, long legs | zip-front bandeau and thong-back sport briefs | chrome shield visor, bubble-sole platform trainers | jet-fin wings, twin prism daggers |
+| Mordessa | voluptuous | red metallic micro bikini under an open vinyl coat | rhinestone crown on chrome horns, fur collar | flame-edged chrome greatsword on the shoulder |
+| Brakka | towering bodybuilder | candy-red micro bikini top, black thong, champion belt | hot-rod flames, chrome exhaust gauntlets, frosted tips | double-biceps flex |
+| Vesper | hourglass | crimson latex catsuit with heart window, underboob and hip cutouts | red-tinted rimless glasses, holo-ring orb | orb raised, adjusting her glasses |
+| Imra | lithe, toned | crimson metallic bandeau bikini, chrome body jewelry | lava-lamp lantern staff, UV sigil body paint | staff raised overhead |
+| Kessa | athletic, curvy | black latex catsuit zipped open below the cleavage, hip windows | cat-ear headphones, red cat-eye visor | low hip-cocked stance, twin chrome sickles |
+| Noctaire | tall, slender | black latex sling leotard, open sides, oil-slick drape | glitching cracked chrome halo | huge oil-slick scythe, hand in her hair |
+| Orrin | tall, scarred, toned | black vinyl monokini with O-ring and side cutouts | smoked-acrylic riot armor, fiber-optic cables | frosted tower riot shield |
+| Sable | curvy | latex habit-bodysuit with plunging cutout, thong-cut | holographic clear veil over an opaque coif, chrome cross | chrome censer orb, head tilt |
+| Lucen | slender, long legs | split white/black bodysuit cut diagonally (underboob one side, sideboob the other) | split-dye hair, split wings, everything mirrored | rapier pointed at the viewer, wink |
+| Ashra | soft curves | micro underboob tube top, high-cut bottoms under slipping robes | holographic witch hat, chunky headphones | one arm lazily raised, star wand |
 
-## Celestial (white, gold, sky blue)
+## Celestial: Frutiger Aero heaven (pearl white, aqua, sky blue, chrome)
 
-- **Seraphiel**, Legendary Caster, appears mid-20s. *The poster goddess.* Statuesque and
-  voluptuous: huge breasts, wide hips, narrow waist. Six white wings frame her (two large pairs,
-  one small pair at the head) under a golden sunray halo crown; very long platinum hair drapes over
-  her body. A glossy white highleg goddess leotard split by a center opening down to the navel,
-  its edges laced with gold filigree chains; an open back between the wings; long white front and
-  back drapes falling from gold hip clasps to her ankles, over the opaque leotard; flowing detached
-  sleeves (sheer only on the arms). Gold body chains across hips and thighs, anklets, bare feet.
-  One hand raised to her floating golden tuning-fork sceptre, the other on her chest. Eyes
-  usually closed, serene, alluring half-smile.
-- **Cassiel**, Epic Guardian, appears mid-20s. *The armored pin-up.* Athletic and curvy: toned
-  abs, large breasts, wide hips, thick thighs. Ornate white-gold bikini armor: small sculpted
-  breastplate cups, gorget, huge pauldrons, armored gauntlets, a bare midriff, a high-cut armored
-  bottom under a long sky-blue tabard panel, thigh-high greaves that leave the upper thighs bare.
-  Short silver bob. Two feathered wings, simple halo. A huge kite shield with a sunburst planted
-  at her side, the other hand on her hip, a cocky smirk.
-- **Liora**, Epic Support, appears early 20s, clearly adult: adult face with makeup and full lips,
-  adult figure. *The tender temptress.* Soft and curvy: large breasts, wide hips, thick thighs. A
-  strapless cream corset minidress with gold embroidery that pushes up a deep cleavage, hem high
-  enough to show rose-gold garter straps on white thighhighs, white heels. Long rose-gold hair in
-  a loose side braid over one shoulder. A pair of soft white wings, flower halo. Golden lyre.
-  Leaning toward the viewer with a warm, teasing smile. Never cutesy: no twin tails or ribbons,
-  no small wings, no heart motifs, no blush-and-head-tilt, no frilly or puffy styling.
-- **Uriela**, Rare Striker, appears early 20s, clearly adult. *The sporty one.* Toned with curves:
-  large breasts, wide hips, thick thighs. A glossy azure-and-white highleg battle leotard with an
-  underboob cutout and a navel window, gold trim, bare shoulders and back, armored gauntlets and
-  boots, a short half-cape. High honey-blonde ponytail, confident grin. Long golden spear with a
-  sun blade resting over her shoulder. Swept-back wings, thin halo. *v3.3 pilot:* kept as designed;
-  3 of 6 candidates pass the filter at 0.5 (1 of 12 at the old 0.25).
-- **Nuriel**, Rare Assassin, appears mid-20s. *The masked kunoichi.* Lean and athletic: defined
-  abs, large breasts, wide hips, thick thighs. A cropped sleeveless hooded sky-blue scout jacket
-  worn open over a white chest wrap (opaque, firmly in place), a bare toned midriff, tight black
-  short shorts with thigh straps, fishnet thighhighs (legwear only, never a fishnet top), short
-  boots, wrapped forearms, a white cloth mask over nose and mouth. Messy pale-gold hair in a
-  ponytail, half-lidded eyes. Arms crossed under her chest, twin glowing light daggers in reverse
-  grip. Sharp white wings, faint halo.
+- **Seraphiel**, Legendary Caster, appears mid-20s. *The pop goddess.* Statuesque and voluptuous:
+  huge breasts, wide hips, narrow waist. Heaven's headline act. A pearl-white liquid-latex sling
+  leotard: two wide glossy straps over opaque cups, joined at a deep plunge to the navel, open at
+  the sides, thong-cut at the back; long clear-vinyl stage drapes from chrome hip rings, over the
+  opaque leotard; chrome body chains; mirror-chrome platform heels. Six wings of pearl plastic with
+  aqua tips (two large pairs, a small pair at the head) and a large chrome halo ring. Very long
+  platinum hair with an aqua sheen. Her sceptre is a tall chrome tuning-fork microphone stand she
+  raises like a torch. Eyes closed, serene, a knowing half-smile.
+- **Cassiel**, Epic Guardian, appears mid-20s. *The aero paladin.* Athletic and curvy: toned abs,
+  large breasts, wide hips, thick thighs. Glossy white mecha micro armor in the style of a
+  2000s console robot: two small sculpted plate cups with aqua LED seams, a gorget, oversized
+  white-and-chrome pauldrons, armored gauntlets, a bare midriff, a thong-cut plate bottom, white
+  thigh-high mecha greaves. A tall kite shield of frosted aqua riot glass (solid, not clear) with a
+  chrome sunburst. Short silver bob, chrome visor tiara, two glossy white wings, chrome halo. Shield
+  planted at her side, hand on hip, cocky smirk.
+- **Liora**, Epic Support, appears late 20s, clearly adult: adult face with glam makeup and full
+  lips, adult figure. *The spa goddess.* Soft and curvy: large breasts, wide hips, thick thighs. A
+  luxury aqua-resort look: a white string bikini with small opaque cups, strung with pearl chains;
+  a clear-vinyl wrap sarong tied at the hip over the opaque bikini bottom; chrome anklets and
+  clear-heeled mules. Long rose-gold hair in a wet-look side braid, water droplets on her skin
+  (not her clothes). A lyre of frosted aqua glass with chrome strings. Two soft pearl wings, a slim
+  chrome halo. Leaning toward the viewer with a slow, warm smile. Never cutesy (see the hard lines).
+- **Uriela**, Rare Striker, appears mid-20s, clearly adult. *The sky racer.* Toned with curves:
+  large breasts, wide hips, thick thighs. A glossy azure-and-white racing leotard, highleg and
+  thong-cut, with an underboob cutout and a navel window, chrome sponsor-style decals of her
+  own sun sigil, racing gloves, white platform racing boots. A chrome wraparound sport shield visor
+  pushed up into a high honey-blonde ponytail. Her spear is a chrome aero lance with a frosted aqua
+  blade, resting over her shoulder. Swept-back pearl wings, thin chrome halo. Confident grin.
+- **Nuriel**, Rare Assassin, appears mid-20s. **Redesigned (v4).** *The lens flare.* Title:
+  "the Lens Flare" (was "Dawn Scout"). Bio: "Heaven's fastest courier until she started delivering
+  knives. You see the flash on her visor; you never see her." A lean, long-legged runner: defined
+  abs, medium-large breasts, toned thighs. An aqua-chrome sport bandeau with a front zip pull, a
+  glossy white thong-back sport brief with aqua side stripes, a cropped clear-vinyl track jacket
+  with aqua piping slipping off her shoulders (over the opaque bandeau), chrome thigh holster
+  straps, fingerless racing gloves, white platform trainers with clear bubble air soles. A mirrored
+  chrome wraparound shield visor over her eyes. Platinum pixie cut with aqua tips. Four slim,
+  swept-back wings shaped like jet fins, frosted pearl with aqua tips; a thin chrome halo tilted
+  like a visor. Twin daggers of faceted crystal with a rainbow edge, one in reverse grip. Pushing
+  her visor up with the dagger hand, a cool, unbothered half-smile.
 
-## Infernal (crimson, ember orange, obsidian, gold)
+## Infernal: hell's nightclub (black, candy-apple red, hot pink, chrome)
 
-- **Mordessa**, Legendary Striker, appears around 30. *The demon queen.* Voluptuous: huge
-  breasts, wide hips, thick thighs. Huge curled black ram horns with a small crown between them;
-  long wavy black hair with crimson ends. A black-and-crimson armored dress worn over a glossy
-  black highleg leotard: corseted gold-filigree bodice plunging to the navel, one armored
-  shoulder, skirt slits cut to the hip on both sides that show the leotard's high-cut line, never
-  bare hip; garter straps into thigh-high boots. A greatsword wreathed in flame on her shoulder,
-  the other hand on her hip. Leathery bat wings, spaded tail. Commanding smirk.
-- **Brakka**, Epic Guardian, appears in her 30s. *The amazon.* An enormous, heavily muscled
-  red-skinned demon woman: huge breasts, defined abs, thick arms and thighs. A black sports bra
-  under a chain chest harness, an obsidian armor kilt of plates with magma cracks over black
-  shorts, huge molten gauntlets, armored boots. Short messy black hair, short thick horns, small
-  tusks, friendly grin, thick tail. Flexing both arms.
-- **Vesper**, Epic Caster, appears late 20s. *The latex succubus scholar.* Hourglass: huge
-  breasts, wide hips, narrow waist. Long straight wine-red hair, half-lidded eyes behind thin
-  glasses, small curved horns. A glossy crimson latex catsuit with a heart-shaped cleavage window
-  (her one cutout), opera gloves, a high-collared open-front black cape lined in purple. A
-  floating hellfire orb in one raised hand, the other adjusting her glasses. Bat wings,
-  heart-spaded tail. Crimson suit and hair keep her Infernal and apart from Sable's black habit.
-- **Imra**, Rare Support, **adult woman**, appears early 20s. *The wild imp.* Lithe and toned
-  with an adult woman's curves (large breasts, wide hips) and an adult face with makeup; average
-  height for the roster, never drawn small. A crimson patchwork bandeau bikini, a layered loincloth
-  panel over the opaque bikini bottom, tribal body paint, bone and gold jewelry, sandals. A
-  shaggy, shoulder-length mane of orange hair, curved horns, pointed ears, a wild sharp-toothed
-  grin. Lantern staff with a green-orange flame raised overhead. Bat wings, curly tail. Her
-  review comes first: the imp kit (horns, ears, wings, tail, toothy grin) sits next to the
-  young-coded "mesugaki" archetype, so nothing about her is small or bratty.
-- **Kessa**, Rare Assassin, appears mid-20s. *The cat burglar.* Athletic and curvy: large
-  breasts, wide hips, thick thighs. A sleek black bodysuit unzipped to below the cleavage, a red
-  strap harness with o-rings over it, hip windows, a long red scarf, black thigh boots. Black cat
-  ears plus small horns, short choppy black hair with a red streak, amber slit-pupil eyes, smug
-  fanged smile. Twin curved sickles; standing in a low, hip-cocked fighting stance, chest out.
-  Long cat tail, no wings.
+- **Mordessa**, Legendary Striker, appears around 30. *The nightclub empress.* Voluptuous: huge
+  breasts, wide hips, thick thighs. Huge curled chrome ram horns with a rhinestone crown between
+  them; long wavy black hair with crimson ends. A candy-red metallic micro bikini with small opaque
+  cups and chrome O-ring connectors, a chrome chain belt, red latex thigh-high platform boots, and
+  over it all a floor-length black vinyl coat worn open off the shoulders with a huge black fur
+  collar. Cyber-sigil tattoos curl over her hip and thigh. A chrome greatsword with a painted flame
+  edge on her shoulder, the other hand on her hip. Leathery bat wings with chrome claws, spaded
+  tail. A commanding smirk.
+- **Brakka**, Epic Guardian, appears in her 30s. **Redesigned (v4).** *The champ.* Title stays
+  "Brimstone Bulwark". Bio: "Undefeated in the Pit Arena, bouncer at the Brimstone club, and the
+  only demon who hugs harder than she hits. Loyal to Mordessa, and to anyone who brings snacks." A
+  towering bodybuilder: huge muscles, huge breasts, defined abs, thick thighs, dark red skin. A
+  candy-red metallic micro bikini top with small opaque cups and a chrome O-ring at the center, a
+  black vinyl thong-cut bottom, and a huge chrome-and-gold championship belt around her waist. A
+  chest harness of chrome chain. Massive black-and-chrome gauntlets built like hot-rod engines,
+  with exhaust pipes on the forearms and glowing magma vents. Black platform boots with hot-rod
+  flame decals. Bleached platinum hair with frosted tips, spiked up; big chrome bull horns; small
+  tusks; cyber-sigil tattoos over her abs and arms. A thick tail, no wings. Double-biceps flex and
+  a huge friendly grin.
+- **Vesper**, Epic Caster, appears late 20s. *The hacker succubus.* Hourglass: huge breasts, wide
+  hips, narrow waist. Long straight wine-red hair, half-lidded eyes behind red-tinted rimless
+  glasses, small glossy black horns. A glossy crimson latex catsuit with a heart-shaped cleavage
+  window, an underboob cutout and hip windows, chrome zips, black latex opera gloves, a
+  high-collared open black vinyl cape lined in hot pink. A hellfire orb of glossy red glass ringed
+  by floating chrome rings (solid, no glow) in her raised hand, the other adjusting her glasses.
+  Bat wings, heart-spaded tail.
+- **Imra**, Rare Support, **adult woman**, appears mid-20s. *The fire dancer.* Lithe and toned with
+  an adult woman's curves (large breasts, wide hips), glam makeup, average height for the roster,
+  never drawn small. A crimson metallic bandeau bikini, chrome body jewelry (waist chain, arm cuffs,
+  navel ring), cyber-sigil body paint in UV pink and orange, chrome gladiator platform sandals. A
+  shoulder-length orange mane, large curved horns, pointed ears. Her lantern staff carries a
+  chrome-capped lava lamp with green-orange wax, raised overhead. Bat wings, curly tail. A sultry
+  smirk, never a fanged grin. Her review comes first: the imp kit sits next to the young-coded
+  `mesugaki` archetype, so nothing about her is small or bratty.
+- **Kessa**, Rare Assassin, appears mid-20s. *The chrome cat.* Athletic and curvy: large breasts,
+  wide hips, thick thighs. A black latex catsuit zipped open to below the cleavage and held by a
+  red chrome-ringed harness, thong-cut, with hip windows; a long red vinyl scarf; black platform
+  thigh boots. Chrome cat-ear headphones over short choppy black hair with a red streak, a red
+  cat-eye shield visor pushed up, small horns, amber slit-pupil eyes, smug smile. Twin crescent
+  sickles of black chrome. A low, hip-cocked fighting stance, chest out. Long cat tail, no wings.
 
-## Fallen (violet, silver, teal-ash, black)
+## Fallen: dial-up dusk (black, violet, teal, oil-slick, silver)
 
-- **Noctaire**, Legendary Assassin, appears late 20s. *The gothic executioner.* Tall and slender
-  with long legs and large breasts. Long silver hair, cold violet eyes, cracked dark halo tilted on
-  her head. A black highleg corset leotard open at the sides (sideboob), black lace sleeves, a long
-  tattered black front-and-back drape from the hips, silver buckles and chains, heeled thigh boots.
-  Tattered black feathered wings with violet tips. A huge crescent scythe with a violet glow; her
-  free hand sweeps back her hair. Melancholic allure.
-- **Orrin**, Epic Guardian, appears around 30. *The broken knight.* Tall, scarred and toned:
-  large breasts, wide hips, thick thighs. Cracked silver armor stripped down to a breastplate cut
-  low over her cleavage, one pauldron and gauntlets, broken chains wrapped around her, a black
-  highleg leotard under a torn violet cape, armored thigh-high greaves that leave the upper thighs
-  bare, her broken halo hanging from a belt at the hip. Long shaggy ash-grey hair, scar over one
-  eye. Chain-wrapped tower shield. Ragged grey wings. Stoic.
-- **Sable**, Epic Support, appears late 20s. *The fallen nun.* Curvy: huge breasts, wide hips,
-  thick thighs. A black and violet veil and a silver cross necklace, long dark-teal hair. A
-  skin-tight black habit bodysuit with a cleavage cutout, corset lacing and silver trim; long
-  black front-and-back tabard panels over the opaque suit, open at the hips; black thighhighs on
-  garter straps, heels. A silver censer trailing violet smoke. Grey wings, dim halo. Gentle, sad,
-  alluring; head tilted. A grown woman's sorrow, never a student nun.
-- **Lucen**, Rare Striker, appears mid-20s. *The flirt.* Slender and toned with long legs: large
-  breasts, wide hips. A violet-and-silver long coat worn open over a strapless black bustier with
-  a deep cleavage, a frilled ascot at the throat, tight black leather trousers on a low-slung
-  belt, thigh-high boots, a slim rapier, one hand on her hip. Long wavy white hair with black tips,
-  half-lidded eyes, flirtatious smile. One white wing, one black wing. No halo.
-- **Ashra**, Rare Caster, appears mid-20s. *The sleepy witch.* Soft curves: huge breasts, wide
-  hips. An oversized grey witch hat with silver star pins; layered violet robes slipping off both
-  shoulders; a strapless cropped tube top showing underboob; a long skirt with high side slits
-  over fitted black shorts, sitting on the hips, with a burned hem; ankle boots. Messy grey hair
-  with violet streaks, cracked violet halo. One arm raised lazily overhead, a crooked wand with a
-  violet flame in the other hand. Small grey wings.
+- **Noctaire**, Legendary Assassin, appears late 20s. *The glitch reaper.* Tall and slender with
+  long legs and large breasts. A black latex sling leotard, open at the sides (sideboob), highleg;
+  a long front-and-back drape of oil-slick holographic vinyl from chrome hip buckles; black latex
+  opera gloves; heeled thigh boots. Long silver hair, cold violet eyes, a cracked chrome halo
+  tilted on her head with square pixel gaps. Tattered black feathered wings whose tips turn to
+  pixel blocks. A huge scythe with an oil-slick chrome blade and a painted violet edge; her free
+  hand sweeps back her hair. Melancholic allure.
+- **Orrin**, Epic Guardian, appears around 30. **Redesigned (v4).** *The firewall.* Title stays
+  "the Chained Oath". Bio: "She guarded the gate of a heaven that crashed. The gate is gone; the
+  firewall isn't. Now she stands between her friends and everything else." Tall, scarred and
+  toned: large breasts, wide hips, thick thighs. A glossy black vinyl monokini, highleg, with a
+  chrome O-ring cutout at the sternum and cutouts at both sides of the waist; one heavy chrome
+  pauldron; chrome gauntlets; smoked-acrylic thigh-high greaves with violet seams; glowing violet
+  fiber-optic cables wrapped around her like her old chains. A tall riot shield of frosted smoked
+  acrylic (solid) with a broken loading-ring sigil. Long straight silver hair with a black
+  underlayer, a scar through one eye, a cracked chrome halo hanging from her hip like a badge.
+  Black wings with chrome-plated feather tips. Shield planted, stoic.
+- **Sable**, Epic Support, appears late 20s. *The cyber nun.* Curvy: huge breasts, wide hips,
+  thick thighs. A skin-tight black latex habit-bodysuit with a plunging keyhole cutout to the
+  navel, corset lacing and chrome trim, thong-cut, under long black vinyl tabard panels open at
+  the hips; black latex thighhighs on garter straps; platform heels. An opaque black coif under a
+  long veil of iridescent clear vinyl; dark-teal hair; a chrome cross necklace. Her censer is a
+  chrome orb on a chain trailing violet smoke. Grey wings with oil-slick sheen, dim cracked halo.
+  Gentle, sad, alluring; head tilted. A grown woman's sorrow, never a student nun.
+- **Lucen**, Rare Striker, appears mid-20s. **Redesigned (v4).** *The split screen.* Title:
+  "Splitwing" (was "Twinfeather Duelist"). Bio: "Half of her fell. She styled the other half to
+  match. She swears she hasn't picked a side; her rapier picks for her." Slender and toned with long
+  legs: large breasts, wide hips. Everything split down the middle: hair dyed white on one side
+  and black on the other; an asymmetric glossy vinyl bodysuit, white on one side and black on the
+  other, cut away diagonally across the torso (an underboob cutout on one side, sideboob on the
+  other, opaque cups), thong-cut, one long sleeve and one bare arm; one white thigh-high platform
+  boot and one bare leg with a black garter ring; tinted oval sunglasses pushed into her hair. One
+  white pearl wing, one black chrome wing. No halo. A chrome rapier with a violet painted edge
+  pointed at the viewer, hip cocked, a wink and a smile.
+- **Ashra**, Rare Caster, appears mid-20s. *The vaporwave witch.* Soft curves: huge breasts, wide
+  hips. An oversized witch hat of holographic violet vinyl with chrome star pins; translucent violet
+  robes slipping off both shoulders and arms, over a micro black tube top showing underboob and
+  high-cut black bottoms (opaque); a chrome chain belt; chunky silver headphones around her neck;
+  platform ankle boots. Messy grey hair with violet streaks, cracked chrome halo. One arm raised
+  lazily overhead, a chrome wand tipped with a glossy star in the other hand. Small grey wings.
+  Sleepy half-lidded eyes.
+
+## History
+
+v3 to v3.3 (2026-10-16 and 17): maximum allure in a gothic-fantasy style, the roster made female
+only, and cut-backs tuned to the exposure filter (now a second opinion, not a gate). v4
+(2026-10-17): Aero Y2K theme for the whole roster, new designs for Nuriel, Brakka, Orrin and
+Lucen, more revealing outfits throughout, and the skin line.

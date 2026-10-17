@@ -42,10 +42,18 @@ every work block. Rules and conventions are in `CLAUDE.md`; this file is about w
   graph builders), Illustrious XL v2.0 (its page lists creativeml-openrail-m; a raw base like
   NoobAI). Civitai has been blocked in Australia since 2026-03-16, and the PC's clock is UTC+10;
   use Hugging Face.
-- **Next (waits for the owner):** download `animagine-xl-4.0-opt.safetensors` (6.94 GB, Hugging
-  Face cagliostrolab/animagine-xl-4.0) and run a 6-image Uriela test, every image sent; and/or
-  redesign the 15 outfits to be more revealing up to the hard lines, shown to the owner before any
-  render.
+- **Owner, 08:50 UTC:** they will download many checkpoints from Civitai themselves (over a VPN)
+  to test them all. Meanwhile: a new theme, "Y2K futurism, like Frutiger [Aero] era ... actually
+  cool, but also like erotic and super, super, super revealing", new designs for the four heroes
+  who used to be men, and purchasable skins.
+- **Done (09:10 UTC):** `docs/dev/character-briefs.md` v4 "Aero Y2K" (faction palettes, production
+  rules for the cutout, updated hard lines incl. no school-coded Y2K, all 15 heroes; Nuriel,
+  Brakka, Orrin and Lucen redesigned, with new titles for Nuriel and Lucen and new bios for all
+  four) and `docs/dev/skins.md` (skin lines, a 30-skin launch set, pricing proposal, production
+  and the game work). Sent to the owner for approval.
+- **Next (waits for the owner):** their verdict on v4 and their checkpoint picks. Then: the
+  bible rewritten in the chosen model's tag style, `look`/title/bio in `data/heroes.json`, a small
+  test per checkpoint (approved first, every image sent), the skin system in the game.
 
 ## In one paragraph
 
