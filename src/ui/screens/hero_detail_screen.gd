@@ -103,6 +103,11 @@ func setup(params: Dictionary) -> void:
 	_faction_col = Kit.faction_color(str(_def.faction))
 	_owned = Game.owns(_id)
 	_tab = "skills" if not _owned and _pref_tab == "equip" else _pref_tab
+	# Screenshot/testing helper (params.tab): open on a given lower-panel tab.
+	var want := str(params.get("tab", ""))
+	for t: Array in TABS:
+		if str(t[0]) == want and (want != "equip" or _owned):
+			_tab = want
 	if _browse.is_empty() or not _browse.has(_id):
 		_browse.clear()
 		for h: Dictionary in Game.owned_heroes():
@@ -933,16 +938,18 @@ func _build_skins() -> void:
 
 func _skin_row_ui(sid: String, title: String, sub: String, desc: String, equipped: bool, owned: bool,
 		installed: bool, price: int) -> Control:
+	# Stacked (text over the button): the info column is narrow (COL_W), and a side-by-side row
+	# would widen it past the screen edge.
 	var row := Kit.panel("row", 10)
 	row.name = "SkinRow_" + (sid if sid != "" else "base")
-	var h := Kit.hbox(10)
+	var h := Kit.vbox(6)
 	row.add_child(h)
 	var info := Kit.vbox(2)
 	info.size_flags_horizontal = SIZE_EXPAND_FILL
 	info.mouse_filter = MOUSE_FILTER_IGNORE
-	info.add_child(Kit.label(title, 22, Kit.TEXT, "extrabold"))
+	info.add_child(Kit.body(title, 22, Kit.TEXT))
 	if sub != "":
-		info.add_child(Kit.label(sub, 15, Kit.ACCENT_DEEP, "cond_bold"))
+		info.add_child(Kit.body(sub, 15, Kit.ACCENT_DEEP))
 	if desc != "":
 		info.add_child(Kit.body(desc, 16, Kit.TEXT_DIM))
 	h.add_child(info)
@@ -957,8 +964,8 @@ func _skin_row_ui(sid: String, title: String, sub: String, desc: String, equippe
 		b.disabled = true
 	else:
 		b = Kit.cost_button("Buy", "gems", price, func() -> void: _buy_skin(sid), "primary", Game.currency("gems") >= price)
-	b.custom_minimum_size = Vector2(176, 88)
-	b.size_flags_vertical = SIZE_SHRINK_CENTER
+	b.custom_minimum_size = Vector2(0, 88)
+	b.size_flags_horizontal = SIZE_EXPAND_FILL
 	h.add_child(b)
 	return row
 
