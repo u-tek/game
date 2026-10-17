@@ -183,10 +183,12 @@ FINAL = {
 # ------------------------------------------------------------------ exposure filter (safety.py)
 # Scores are raw per-class detector confidences (max over all anchors and all views), so this is
 # stricter than the detectors' own NMS output. Lower = more conservative. Never loosen it to save a
-# render: render more candidates instead.
+# render: render more candidates instead. Both thresholds were 0.25 until 2026-10-17, when the owner
+# raised them to the max_threshold ceiling ("raise it"): at 0.25 the detectors flagged clothed
+# underboob, cleavage and highleg hips on NoobAI renders that a 1:1 review found within the hard lines.
 FILTER = {
-    "nudenet_threshold": 0.25,
-    "anime_threshold": 0.25,
+    "nudenet_threshold": 0.5,
+    "anime_threshold": 0.5,
     "nudenet_classes": ["FEMALE_BREAST_EXPOSED", "FEMALE_GENITALIA_EXPOSED", "MALE_GENITALIA_EXPOSED",
                         "ANUS_EXPOSED", "BUTTOCKS_EXPOSED"],
     "anime_classes": ["nipple_f", "penis", "pussy"],

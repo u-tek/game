@@ -1,4 +1,4 @@
-# Character Briefs (art direction v3.2: maximum allure, female only)
+# Character Briefs (art direction v3.3: maximum allure the exposure filter passes, female only)
 
 These briefs are the **design source** for all art work. They override `data/art_prompts.json` and
 the `look` fields in `data/heroes.json` when they disagree (the `look` fields mirror these briefs).
@@ -18,6 +18,19 @@ v3.2 (2026-10-17): the owner asked for a **female-only roster**. Nuriel, Brakka,
 are now women. They keep their ids, names, factions, roles, stats, weapons and silhouettes; only
 the body, outfit and reveal changed. The art is re-rendered with ComfyUI on the owner's PC and
 their NoobAI XL checkpoint.
+
+v3.3 (2026-10-17): the ComfyUI pilot on NoobAI-XL-Vpred-v1.0 showed that this model paints far more
+skin than the art farm's Animagine. At the old 0.25 thresholds the exposure filter dropped nearly
+every candidate of the v3.2 reveals, flagging clothed underboob, cleavage and highleg hips that a
+1:1 review found inside the hard lines. The owner then raised both thresholds to 0.5, the
+filter's built-in ceiling ("raise it", 2026-10-17): the content standard is "anything that's not
+explicit nudity", as in the 18+ gacha games already on the App Store. The hard lines below are
+unchanged and still decided at 1:1 by a person. Following the pilot rule below, each hero keeps her
+v3.2 reveal where about half of her candidates pass at 0.5; otherwise her reveal is cut back only
+as far as it takes, preferring swaps that keep the allure (a closed glossy leotard instead of an
+underboob cutout, a pelvic curtain over a highleg line, thighhighs over bare thighs). Every
+cut-back is recorded in the hero's paragraph, her row in the signature map and her `brief_gaps` in
+the bible, with the pass counts that justified it.
 
 ### What we go for
 
@@ -81,8 +94,9 @@ their NoobAI XL checkpoint.
   discarded, never cropped or patched into compliance.
 - **Pilot before the roster batch.** Render about 4 seeds each for the riskiest reveals first
   (Seraphiel, Uriela, Noctaire, Kessa, Ashra) and read the exposure filter's drop counts in the
-  run manifest. The filter (`tools/artgen/config.py`) is never loosened to keep a render; if most
-  of a hero's candidates drop, her reveal is cut back here first.
+  run manifest. The filter (`tools/artgen/config.py`, both thresholds 0.5 since the owner's
+  decision of 2026-10-17, never above its `max_threshold`) is never loosened further to keep a
+  render; if most of a hero's candidates drop, her reveal is cut back here first.
 - **Rating target:** App Store 18+ (frequent/intense mature or suggestive themes). Google Play's
   policy is stricter about minimally clothed, sexually suggestive poses: if the game goes to
   Android, plan a "standard" outfit for every hero alongside this one.
@@ -135,7 +149,8 @@ their NoobAI XL checkpoint.
   large breasts, wide hips, thick thighs. A glossy azure-and-white highleg battle leotard with an
   underboob cutout and a navel window, gold trim, bare shoulders and back, armored gauntlets and
   boots, a short half-cape. High honey-blonde ponytail, confident grin. Long golden spear with a
-  sun blade resting over her shoulder. Swept-back wings, thin halo.
+  sun blade resting over her shoulder. Swept-back wings, thin halo. *v3.3 pilot:* kept as designed;
+  3 of 6 candidates pass the filter at 0.5 (1 of 12 at the old 0.25).
 - **Nuriel**, Rare Assassin, appears mid-20s. *The masked kunoichi.* Lean and athletic: defined
   abs, large breasts, wide hips, thick thighs. A cropped sleeveless hooded sky-blue scout jacket
   worn open over a white chest wrap (opaque, firmly in place), a bare toned midriff, tight black

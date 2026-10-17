@@ -260,7 +260,7 @@
     "eyes_closed": "closed eyes, grin, confident",
     "mouth_open": "blue eyes, open mouth, confident, teeth"
    },
-   "brief_gaps": ["Eye colour not in the brief: blue.", "'Backless', 'gold trim' and 'shiny clothes' are not tagged (token budget; the wings cover the back); the gold comes from the palette.", "The spear is 'holding spear' and the swept-back wings plain 'angel wings' (token budget); the sun blade is left to fix.py.", "Young-end hero: 'mature female' at full weight, adult makeup, and 'blue archive', petite and the youth terms weighted in the negative.", "Underboob cutout in a highleg leotard: check at 1:1. Pilot-render about 4 seeds before the full batch: the farm's exposure filter (tools/artgen/config.py) may drop many candidates of this reveal; never loosen it, cut the reveal in the brief instead."]
+   "brief_gaps": ["Eye colour not in the brief: blue.", "'Backless', 'gold trim' and 'shiny clothes' are not tagged (token budget; the wings cover the back); the gold comes from the palette.", "The spear is 'holding spear' and the swept-back wings plain 'angel wings' (token budget); the sun blade is left to fix.py.", "Young-end hero: 'mature female' at full weight, adult makeup, and 'blue archive', petite and the youth terms weighted in the negative.", "Underboob cutout in a highleg leotard: check at 1:1. ComfyUI pilot (2026-10-17, NoobAI-XL-Vpred-v1.0): this v3.2 reveal passed the exposure filter on 1 of 12 candidates at the old 0.25 thresholds and on 3 of 6 at 0.5 (the owner's 'raise it'), so it is kept. Tested and not needed: closed chest, pelvic curtain, thighhighs, pantyhose, a bodysuit, medium breasts and a navy leotard, which passed 1-3 of 6 each at 0.25."]
   },
   "nuriel": {
    "name": "Nuriel", "faction": "celestial", "role": "assassin", "rarity": "rare", "gender": "female", "apparent_age": "mid-20s",
@@ -390,7 +390,7 @@
   },
   "kessa": {
    "name": "Kessa", "faction": "infernal", "role": "assassin", "rarity": "rare", "gender": "female", "apparent_age": "mid-20s",
-   "seed_base": 205000, "background": "white", "default_eyes": "open", "variant_set": ["eyes_closed", "mouth_open", "smile"], "loras": [],
+   "seed_base": 205000, "background": "grey", "default_eyes": "open", "variant_set": ["eyes_closed", "mouth_open", "smile"], "loras": [],
    "subject": "1girl, solo, adult, mature female",
    "adult_face": "",
    "body": "toned, large breasts, wide hips, thick thighs",
@@ -399,7 +399,7 @@
    "expression": "fang, smug",
    "head": "cat ears, small horns",
    "wings_tail": "cat tail",
-   "outfit": "black bodysuit, red harness, o-ring, partially unzipped, hip vent, red scarf",
+   "outfit": "black bodysuit, latex, red harness, o-ring, partially unzipped, hip vent, red scarf",
    "footwear": "thigh boots",
    "accessories": "",
    "weapon": "sickle, dual wielding",
@@ -411,7 +411,7 @@
     "eyes_closed": "closed eyes, fang, smug",
     "mouth_open": "orange eyes, slit pupils, open mouth, fang, smug"
    },
-   "brief_gaps": ["Footwear not in the brief: black thigh boots.", "'partially unzipped' is the riskiest tag in the roster: slips, 'impossible clothes', cameltoe and no panties are upweighted in the negative; check every candidate at 1:1. The outfit order keeps it whole in one CLIP chunk. Pilot-render about 4 seeds before the full batch: the farm's exposure filter (tools/artgen/config.py) may drop many candidates of this reveal; never loosen it, cut the reveal in the brief instead.", "Pose is a standing 'fighting stance': v3's 'arched back' with cat ears and tail drifted toward all fours (a sex-mimicking pose that also breaks the rig); all fours and kneeling are upweighted in the negative."]
+   "brief_gaps": ["Footwear not in the brief: black thigh boots.", "'partially unzipped' is the riskiest tag in the roster: slips, 'impossible clothes', cameltoe and no panties are upweighted in the negative; check every candidate at 1:1. The outfit order keeps it whole in one CLIP chunk. Pilot-render about 4 seeds before the full batch: the farm's exposure filter (tools/artgen/config.py) may drop many candidates of this reveal; never loosen it, cut the reveal in the brief instead.", "ComfyUI pilot (2026-10-17, NoobAI-XL-Vpred-v1.0): the v3.2 reveal passed the exposure filter on 5 of 6 seeds and needs no cut-back, but on a white background NoobAI painted flat ink-sketch latex with jagged edges. Grey background plus 'latex bodysuit, shiny clothes' gave rendered gloss and passed 4 of 6 (the outfit keeps only 'latex' so every family fits 2 CLIP chunks); the two drops were the seeds where the zip opened to the cleavage, so passing finals tend to be zipped higher than the brief.", "Pose is a standing 'fighting stance': v3's 'arched back' with cat ears and tail drifted toward all fours (a sex-mimicking pose that also breaks the rig); all fours and kneeling are upweighted in the negative."]
   },
   "noctaire": {
    "name": "Noctaire", "faction": "fallen", "role": "assassin", "rarity": "legendary", "gender": "female", "apparent_age": "late 20s",
