@@ -51,9 +51,34 @@ every work block. Rules and conventions are in `CLAUDE.md`; this file is about w
   Brakka, Orrin and Lucen redesigned, with new titles for Nuriel and Lucen and new bios for all
   four) and `docs/dev/skins.md` (skin lines, a 30-skin launch set, pricing proposal, production
   and the game work). Sent to the owner for approval.
-- **Next (waits for the owner):** their verdict on v4 and their checkpoint picks. Then: the
-  bible rewritten in the chosen model's tag style, `look`/title/bio in `data/heroes.json`, a small
-  test per checkpoint (approved first, every image sent), the skin system in the game.
+- **v4 prompts in the bible (09:45 UTC):** all 15 heroes rewritten from briefs v4 in Danbooru
+  tags; every prompt passes `enforce()` and fits 2 chunks in every family. Celestial palette
+  "white and aqua theme" (the farm's slate backdrop keys on "white"). Clear vinyl became opaque
+  glossy materials (`see-through` is a forbidden positive; clear parts break the cutout).
+- **Owner on the look (09:10):** "i do not want a flat design. i want it to be super professional
+  with cinematic rendering, not flat art ... like it was drawn by god". Flat came from the raw
+  base model and our plain prompt; style tags "game cg, cinematic lighting, dramatic lighting,
+  highly detailed, intricate details, glossy skin, shiny skin, painterly, semi-realistic" with
+  negatives "anime coloring, flat color, flat shading, simple shading, lineart" gave rendered
+  results (local `art_src/_review/tools/style_test.py`). A dark gradient backdrop broke the
+  BiRefNet cutout (lost wings and hair; `cut_test.py`); keep a plain backdrop and the whole
+  figure inside the frame.
+- **Model test (owner: "same prompt, same seed, native sizes ... in a grid", 09:40):** Mordessa
+  v4 + the cinematic style, seed 201777, 832x1216, base pass only, each family's settings
+  (`art_src/_review/tools/model_grid.py`, local; grid sent). The owner downloaded (all SDXL,
+  epsilon): WAI-illustrious v17, Hassaku XL Illustrious v3.4, Nova Anime XL IL v19, Sudachi XL
+  Illustrious v2, Amanatsu Illustrious v2, Hassaku XL Pony v1.3, Illustrious XL v0.1; plus
+  Prefect Anima v1.0 (Anima architecture, needs `qwen_3_06b_base.safetensors`, 1.19 GB, from
+  Hugging Face circlestone-labs/Anima, not downloaded yet). All renders were inside the hard lines.
+- **Licenses:** Illustrious XL v0.1's FAIPL says its output "is not covered by this license";
+  its card bans monetizing closed-source derivative models, not images. Anima's CircleStone
+  non-commercial license allows "Outputs for any purpose (including for commercial purposes)"
+  but bars commercial or production use of the model itself: a gray area to settle before
+  shipping Anima art. Each Civitai merge has its own license box (the owner checks; Civitai is
+  blocked from Australia without a VPN).
+- **Next (waits for the owner):** their pick from the grid; then more seeds and heroes on the top
+  models (approved first), the bible's style block set to the winning look, `look`/title/bio in
+  `data/heroes.json`, and the skin system.
 
 ## In one paragraph
 

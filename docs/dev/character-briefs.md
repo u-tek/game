@@ -55,7 +55,8 @@ layers, rhinestones, chrome hardware (O-rings, buckles, zips, chains).
 
 - **Nothing see-through reaches the background.** The cutout can't separate clear glass or glows
   from the flat backdrop. Wings, halos, capes and drapes are solid: pearl, frosted, chrome or
-  glossy, never clear. Clear vinyl appears only where the body is behind it (a jacket, a sarong).
+  glossy, never clear. Clear vinyl could only appear where the body is behind it, and the prompts avoid it for now: `see-through` is a
+  forbidden positive tag, so v4 uses opaque glossy materials (pearl, satin, holographic vinyl).
 - **No glow effects, particles or bubbles floating around the figure**; the rig draws effects in
   the game. Weapons may have a bright edge painted on the solid blade.
 - **Flat backdrop** as today (grey or white per hero), one figure, full body.
@@ -98,7 +99,7 @@ layers, rhinestones, chrome hardware (O-rings, buckles, zips, chains).
 |---|---|---|---|---|
 | Seraphiel | statuesque, huge bust | pearl latex sling leotard plunging to the navel, open sides | chrome mic-sceptre, pop-diva stage glam | six pearl wings, hand raised to the mic |
 | Cassiel | athletic, abs, thick thighs | white mecha micro armor, thong-cut plate bottom | PS2-era glossy mecha plates, aqua LED seams | huge pauldrons, frosted riot-glass kite shield |
-| Liora | soft and curvy | white string bikini with pearl chains, clear sarong | luxury aqua spa: pearls, chrome, water | glass lyre, leaning forward, wet-look braid |
+| Liora | soft and curvy | white string bikini with pearl chains, satin sarong | luxury aqua spa: pearls, chrome, water | glass lyre, leaning forward, wet-look braid |
 | Uriela | toned with curves | racing leotard with underboob cutout and navel window | wraparound sport shield visor, race decals | chrome lance over the shoulder |
 | Nuriel | lean runner, long legs | zip-front bandeau and thong-back sport briefs | chrome shield visor, bubble-sole platform trainers | jet-fin wings, twin prism daggers |
 | Mordessa | voluptuous | red metallic micro bikini under an open vinyl coat | rhinestone crown on chrome horns, fur collar | flame-edged chrome greatsword on the shoulder |
@@ -108,17 +109,16 @@ layers, rhinestones, chrome hardware (O-rings, buckles, zips, chains).
 | Kessa | athletic, curvy | black latex catsuit zipped open below the cleavage, hip windows | cat-ear headphones, red cat-eye visor | low hip-cocked stance, twin chrome sickles |
 | Noctaire | tall, slender | black latex sling leotard, open sides, oil-slick drape | glitching cracked chrome halo | huge oil-slick scythe, hand in her hair |
 | Orrin | tall, scarred, toned | black vinyl monokini with O-ring and side cutouts | smoked-acrylic riot armor, fiber-optic cables | frosted tower riot shield |
-| Sable | curvy | latex habit-bodysuit with plunging cutout, thong-cut | holographic clear veil over an opaque coif, chrome cross | chrome censer orb, head tilt |
+| Sable | curvy | latex habit-bodysuit with plunging cutout, thong-cut | holographic veil over an opaque coif, chrome cross | chrome censer orb, head tilt |
 | Lucen | slender, long legs | split white/black bodysuit cut diagonally (underboob one side, sideboob the other) | split-dye hair, split wings, everything mirrored | rapier pointed at the viewer, wink |
-| Ashra | soft curves | micro underboob tube top, high-cut bottoms under slipping robes | holographic witch hat, chunky headphones | one arm lazily raised, star wand |
+| Ashra | soft curves | micro underboob tube top, micro shorts under slipping robes | holographic witch hat, chunky headphones | one arm lazily raised, star wand |
 
 ## Celestial: Frutiger Aero heaven (pearl white, aqua, sky blue, chrome)
 
 - **Seraphiel**, Legendary Caster, appears mid-20s. *The pop goddess.* Statuesque and voluptuous:
   huge breasts, wide hips, narrow waist. Heaven's headline act. A pearl-white liquid-latex sling
   leotard: two wide glossy straps over opaque cups, joined at a deep plunge to the navel, open at
-  the sides, thong-cut at the back; long clear-vinyl stage drapes from chrome hip rings, over the
-  opaque leotard; chrome body chains; mirror-chrome platform heels. Six wings of pearl plastic with
+  the sides, thong-cut at the back; long pearl-vinyl stage drapes from chrome hip rings; chrome body chains; mirror-chrome platform heels. Six wings of pearl plastic with
   aqua tips (two large pairs, a small pair at the head) and a large chrome halo ring. Very long
   platinum hair with an aqua sheen. Her sceptre is a tall chrome tuning-fork microphone stand she
   raises like a torch. Eyes closed, serene, a knowing half-smile.
@@ -132,7 +132,7 @@ layers, rhinestones, chrome hardware (O-rings, buckles, zips, chains).
 - **Liora**, Epic Support, appears late 20s, clearly adult: adult face with glam makeup and full
   lips, adult figure. *The spa goddess.* Soft and curvy: large breasts, wide hips, thick thighs. A
   luxury aqua-resort look: a white string bikini with small opaque cups, strung with pearl chains;
-  a clear-vinyl wrap sarong tied at the hip over the opaque bikini bottom; chrome anklets and
+  a pearl satin sarong tied at the hip; chrome anklets and
   clear-heeled mules. Long rose-gold hair in a wet-look side braid, water droplets on her skin
   (not her clothes). A lyre of frosted aqua glass with chrome strings. Two soft pearl wings, a slim
   chrome halo. Leaning toward the viewer with a slow, warm smile. Never cutesy (see the hard lines).
@@ -146,8 +146,8 @@ layers, rhinestones, chrome hardware (O-rings, buckles, zips, chains).
   "the Lens Flare" (was "Dawn Scout"). Bio: "Heaven's fastest courier until she started delivering
   knives. You see the flash on her visor; you never see her." A lean, long-legged runner: defined
   abs, medium-large breasts, toned thighs. An aqua-chrome sport bandeau with a front zip pull, a
-  glossy white thong-back sport brief with aqua side stripes, a cropped clear-vinyl track jacket
-  with aqua piping slipping off her shoulders (over the opaque bandeau), chrome thigh holster
+  glossy white thong-back sport brief with aqua side stripes, a cropped white vinyl track jacket
+  with aqua piping slipping off her shoulders, chrome thigh holster
   straps, fingerless racing gloves, white platform trainers with clear bubble air soles. A mirrored
   chrome wraparound shield visor over her eyes. Platinum pixie cut with aqua tips. Four slim,
   swept-back wings shaped like jet fins, frosted pearl with aqua tips; a thin chrome halo tilted
@@ -220,7 +220,7 @@ layers, rhinestones, chrome hardware (O-rings, buckles, zips, chains).
   thick thighs. A skin-tight black latex habit-bodysuit with a plunging keyhole cutout to the
   navel, corset lacing and chrome trim, thong-cut, under long black vinyl tabard panels open at
   the hips; black latex thighhighs on garter straps; platform heels. An opaque black coif under a
-  long veil of iridescent clear vinyl; dark-teal hair; a chrome cross necklace. Her censer is a
+  long veil of holographic vinyl; dark-teal hair; a chrome cross necklace. Her censer is a
   chrome orb on a chain trailing violet smoke. Grey wings with oil-slick sheen, dim cracked halo.
   Gentle, sad, alluring; head tilted. A grown woman's sorrow, never a student nun.
 - **Lucen**, Rare Striker, appears mid-20s. **Redesigned (v4).** *The split screen.* Title:
@@ -234,9 +234,9 @@ layers, rhinestones, chrome hardware (O-rings, buckles, zips, chains).
   white pearl wing, one black chrome wing. No halo. A chrome rapier with a violet painted edge
   pointed at the viewer, hip cocked, a wink and a smile.
 - **Ashra**, Rare Caster, appears mid-20s. *The vaporwave witch.* Soft curves: huge breasts, wide
-  hips. An oversized witch hat of holographic violet vinyl with chrome star pins; translucent violet
+  hips. An oversized witch hat of holographic violet vinyl with chrome star pins; glossy violet
   robes slipping off both shoulders and arms, over a micro black tube top showing underboob and
-  high-cut black bottoms (opaque); a chrome chain belt; chunky silver headphones around her neck;
+  black micro shorts; a chrome chain belt; chunky silver headphones around her neck;
   platform ankle boots. Messy grey hair with violet streaks, cracked chrome halo. One arm raised
   lazily overhead, a chrome wand tipped with a glossy star in the other hand. Small grey wings.
   Sleepy half-lidded eyes.
