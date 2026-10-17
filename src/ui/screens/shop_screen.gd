@@ -6,6 +6,9 @@ extends Control
 ## charge" because this build has no real payments: buying calls Game.buy_offer and shows
 ## the reward popup. Limits ("Once per account", "2 of 3 left", "Claimed today") and the
 ## Moonlit Pass days left are shown on each card; the free daily gift is the orange button.
+## WARDROBE: cosmetic hero skins (data/skins.json, docs/dev/skins.md), one card per hero with
+## her skins: Buy (gems, confirmed), Wear, Equipped, or Coming soon while the skin's art is
+## not built into the game yet.
 
 const TAG_COLORS := {
 	"best value": Kit.ORANGE, "monthly": Kit.ACCENT, "limited": Kit.EMBER,
@@ -21,6 +24,7 @@ static var _tab := 0
 var _pages: Array[Control] = []
 var _offers_list: VBoxContainer
 var _gems_grid: GridContainer
+var _wardrobe_list: VBoxContainer
 var _scrolls: Array[ScrollContainer] = []
 var _sig := ""
 var _tick := 0.0
@@ -58,9 +62,10 @@ func _build() -> void:
 	head.offset_right = -16
 	head.offset_top = 10
 	head.offset_bottom = 10 + Kit.BUTTON_H
-	var tabs := Kit.tab_strip([{"text": "Offers", "icon": "gift"}, {"text": "Gems", "icon": "gems"}], _tab, func(i: int) -> void:
+	var tabs := Kit.tab_strip([{"text": "Offers", "icon": "gift"}, {"text": "Gems", "icon": "gems"},
+			{"text": "Wardrobe", "icon": "star"}], _tab, func(i: int) -> void:
 		_tab = i
-		_show_page(), 196.0)
+		_show_page(), 164.0)
 	head.add_child(tabs)
 	head.add_child(Kit.spacer(0, 0, true))
 	var tb := Kit.vbox(-4)
@@ -98,7 +103,8 @@ func _build() -> void:
 	col.add_child(stack)
 	_offers_list = Kit.vbox(16)
 	_gems_grid = Kit.grid(2, 14)
-	for content: Control in [_offers_list, _gems_grid]:
+	_wardrobe_list = Kit.vbox(14)
+	for content: Control in [_offers_list, _gems_grid, _wardrobe_list]:
 		var m := Kit.margin(content, 2, 0)
 		m.add_theme_constant_override("margin_top", 4)
 		m.add_theme_constant_override("margin_bottom", 26)
@@ -136,14 +142,15 @@ func _refresh() -> void:
 	if not is_inside_tree() or _offers_list == null:
 		return
 	var offers := Game.offers()
-	var sig := JSON.stringify(offers) + str(Game.monthly_card_days_left())
+	var sig := JSON.stringify(offers) + str(Game.monthly_card_days_left()) \
+		+ JSON.stringify(Game.state.get("skins", {})) + str(Game.currency("gems"))
 	if sig == _sig:
 		return
 	_sig = sig
 	var keep: Array[int] = []
 	for sc in _scrolls:
 		keep.append(sc.scroll_vertical)
-	for box: Control in [_offers_list, _gems_grid]:
+	for box: Control in [_offers_list, _gems_grid, _wardrobe_list]:
 		for c in box.get_children():
 			box.remove_child(c)
 			c.queue_free()
@@ -153,6 +160,10 @@ func _refresh() -> void:
 			_gems_grid.add_child(_pack_tile(o))
 		else:
 			_offers_list.add_child(_offer_card(o))
+	var lines := SkinData.lines()
+	for h in HeroData.all():
+		if not SkinData.for_hero(str(h.id)).is_empty():
+			_wardrobe_list.add_child(_wardrobe_card(h, lines))
 	_restore.call_deferred(keep)
 
 
@@ -359,6 +370,93 @@ static func _main_currency(o: Dictionary) -> String:
 		if r.has(c):
 			return c
 	return "gift"
+
+
+# ------------------------------------------------------------------ wardrobe (skins)
+
+## One hero: her portrait, name and her skins, each with its button.
+func _wardrobe_card(h: Dictionary, lines: Dictionary) -> Control:
+	var hid := str(h.id)
+	var card := Kit.info_panel(12)
+	card.name = "Wardrobe_" + hid
+	var row := Kit.hbox(14)
+	row.mouse_filter = MOUSE_FILTER_IGNORE
+	card.add_child(row)
+	var pic := TextureRect.new()
+	pic.texture = Kit.art_crop(hid, 0.75, 1.5)
+	pic.custom_minimum_size = Vector2(120, 160)
+	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	pic.size_flags_vertical = SIZE_SHRINK_BEGIN
+	pic.mouse_filter = MOUSE_FILTER_IGNORE
+	row.add_child(pic)
+	var col := Kit.vbox(10)
+	col.size_flags_horizontal = SIZE_EXPAND_FILL
+	col.mouse_filter = MOUSE_FILTER_IGNORE
+	row.add_child(col)
+	col.add_child(Kit.label(str(h.name).to_upper(), 28, Kit.TEXT, "title"))
+	for s in Game.skins_for(hid):
+		col.add_child(_skin_row(s, lines))
+	return card
+
+
+func _skin_row(s: Dictionary, lines: Dictionary) -> Control:
+	var r := Kit.hbox(10)
+	r.name = "Skin_" + str(s.id)
+	var info := Kit.vbox(2)
+	info.size_flags_horizontal = SIZE_EXPAND_FILL
+	info.mouse_filter = MOUSE_FILTER_IGNORE
+	info.add_child(Kit.label(str(s.name), 23, Kit.TEXT, "extrabold"))
+	info.add_child(Kit.label(("%s  ·  %s" % [lines.get(str(s.line), str(s.line)), SkinData.tier_name(str(s.tier))]).to_upper(),
+		16, Kit.ACCENT_DEEP, "cond_bold"))
+	info.add_child(Kit.body(str(s.description), 17, Kit.TEXT_DIM))
+	r.add_child(info)
+	r.add_child(_skin_button(s))
+	return r
+
+
+func _skin_button(s: Dictionary) -> Button:
+	var sid := str(s.id)
+	var hid := str(s.hero)
+	var price := int(s.price_gems)
+	var b: Button
+	if bool(s.equipped):
+		b = Kit.light_button("Equipped")
+		b.disabled = true
+	elif bool(s.owned):
+		b = Kit.secondary_button("Wear", func() -> void: _wear_skin(hid, sid))
+	elif not bool(s.get("installed", false)):
+		b = Kit.light_button("Coming soon")
+		b.disabled = true
+	else:
+		b = Kit.cost_button("Buy", "gems", price, func() -> void: _buy_skin(sid), "primary",
+			Game.currency("gems") >= price)
+	b.name = "SkinBtn_" + sid
+	b.custom_minimum_size = Vector2(196, 88)
+	b.size_flags_vertical = SIZE_SHRINK_CENTER
+	return b
+
+
+func _buy_skin(sid: String) -> void:
+	var sd := SkinData.get_def(sid)
+	if sd.is_empty():
+		return
+	UI.confirm("Buy %s for %s gems? Skins are cosmetic: no stat changes." % [sd.name, Kit.format_full(int(sd.price_gems))],
+		func() -> void:
+			var r := Game.buy_skin(sid)
+			if not bool(r.get("ok", false)):
+				UI.toast(str(r.get("error", "Purchase failed")), "bad")
+				return
+			UI.toast("%s unlocked. Tap Wear to put it on." % sd.name, "good"),
+		Callable(), "Buy")
+
+
+func _wear_skin(hid: String, sid: String) -> void:
+	var r := Game.equip_skin(hid, sid)
+	if not bool(r.get("ok", false)):
+		UI.toast(str(r.get("error", "Could not equip")), "bad")
+		return
+	UI.toast("%s now wears %s." % [HeroData.get_def(hid).get("name", hid), SkinData.get_def(sid).get("name", sid)], "good")
 
 
 func _buy(id: String) -> void:

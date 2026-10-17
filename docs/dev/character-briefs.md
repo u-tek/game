@@ -99,7 +99,7 @@ layers, rhinestones, chrome hardware (O-rings, buckles, zips, chains).
 |---|---|---|---|---|
 | Seraphiel | statuesque, huge bust | pearl latex sling leotard plunging to the navel, open sides | chrome mic-sceptre, pop-diva stage glam | six pearl wings, hand raised to the mic |
 | Cassiel | athletic, abs, thick thighs | white mecha micro armor, thong-cut plate bottom | PS2-era glossy mecha plates, aqua LED seams | huge pauldrons, frosted riot-glass kite shield |
-| Liora | soft and curvy | white string bikini with pearl chains, satin sarong | luxury aqua spa: pearls, chrome, water | glass lyre, leaning forward, wet-look braid |
+| Liora | soft and curvy | white string bikini with pearl chains, satin sarong | luxury aqua spa: pearls, chrome, water | glass lyre, hip cocked, wet-look braid |
 | Uriela | toned with curves | racing leotard with underboob cutout and navel window | wraparound sport shield visor, race decals | chrome lance over the shoulder |
 | Nuriel | lean runner, long legs | zip-front bandeau and thong-back sport briefs | chrome shield visor, bubble-sole platform trainers | jet-fin wings, twin prism daggers |
 | Mordessa | voluptuous | red metallic micro bikini under an open vinyl coat | rhinestone crown on chrome horns, fur collar | flame-edged chrome greatsword on the shoulder |
@@ -135,7 +135,8 @@ layers, rhinestones, chrome hardware (O-rings, buckles, zips, chains).
   a pearl satin sarong tied at the hip; chrome anklets and
   clear-heeled mules. Long rose-gold hair in a wet-look side braid, water droplets on her skin
   (not her clothes). A lyre of frosted aqua glass with chrome strings. Two soft pearl wings, a slim
-  chrome halo. Leaning toward the viewer with a slow, warm smile. Never cutesy (see the hard lines).
+  chrome halo. Standing with her hip cocked and the lyre at her side, a slow, warm smile (no forward
+  lean: in the v4 test it bent her over). Never cutesy (see the hard lines).
 - **Uriela**, Rare Striker, appears mid-20s, clearly adult. *The sky racer.* Toned with curves:
   large breasts, wide hips, thick thighs. A glossy azure-and-white racing leotard, highleg and
   thong-cut, with an underboob cutout and a navel window, chrome sponsor-style decals of her

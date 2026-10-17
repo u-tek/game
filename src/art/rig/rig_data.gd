@@ -50,18 +50,30 @@ var slot_index := {}
 static var _cache := {}
 
 
-static func exists(hero_id: String) -> bool:
-	return FileAccess.file_exists("%s%s/%s.warp.json" % [HEROES_DIR, hero_id, hero_id]) \
-		or FileAccess.file_exists("%s%s/%s.rig.json" % [HEROES_DIR, hero_id, hero_id])
+## Folder of a hero's art, or of one of her skins (skin_art = the skin's "art" folder name,
+## data/skins.json): assets/art/heroes/<id>/skins/<art>/, laid out like the base art with
+## <art>.warp.json, <art>.png, <art>_portrait.png and overlays/.
+static func art_dir(hero_id: String, skin_art: String = "") -> String:
+	if skin_art == "":
+		return "%s%s/" % [HEROES_DIR, hero_id]
+	return "%s%s/skins/%s/" % [HEROES_DIR, hero_id, skin_art]
 
 
-## Cached load (warp rig preferred, then cutout). Returns null if the hero has no built rig.
-static func load_rig(hero_id: String) -> RigData:
-	if _cache.has(hero_id):
-		return _cache[hero_id]
-	var path := "%s%s/%s.warp.json" % [HEROES_DIR, hero_id, hero_id]
+static func exists(hero_id: String, skin_art: String = "") -> bool:
+	var base := art_dir(hero_id, skin_art) + (hero_id if skin_art == "" else skin_art)
+	return FileAccess.file_exists(base + ".warp.json") or FileAccess.file_exists(base + ".rig.json")
+
+
+## Cached load (warp rig preferred, then cutout). Returns null if the hero (or that skin) has
+## no built rig. A skin rig keeps id = hero_id, so per-hero animation overrides still apply.
+static func load_rig(hero_id: String, skin_art: String = "") -> RigData:
+	var key := hero_id if skin_art == "" else hero_id + "@" + skin_art
+	if _cache.has(key):
+		return _cache[key]
+	var base := art_dir(hero_id, skin_art) + (hero_id if skin_art == "" else skin_art)
+	var path := base + ".warp.json"
 	if not FileAccess.file_exists(path):
-		path = "%s%s/%s.rig.json" % [HEROES_DIR, hero_id, hero_id]
+		path = base + ".rig.json"
 		if not FileAccess.file_exists(path):
 			return null
 	var d: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
@@ -69,14 +81,14 @@ static func load_rig(hero_id: String) -> RigData:
 		push_error("RigData: bad rig file %s" % path)
 		return null
 	var r := RigData.new()
-	r._load(d, hero_id)
-	_cache[hero_id] = r
+	r._load(d, hero_id, art_dir(hero_id, skin_art))
+	_cache[key] = r
 	return r
 
 
-func _load(d: Dictionary, hero_id: String) -> void:
+func _load(d: Dictionary, hero_id: String, art_folder: String = "") -> void:
 	id = hero_id
-	dir = "%s%s/" % [HEROES_DIR, hero_id]
+	dir = art_folder if art_folder != "" else "%s%s/" % [HEROES_DIR, hero_id]
 	texel = float(d.get("texel_scale", 1.0))
 	var cv: Array = d.get("canvas", [1024, 2048])
 	canvas = Vector2(cv[0], cv[1])

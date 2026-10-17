@@ -563,6 +563,41 @@ func monthly_card_days_left() -> int:
 	return model.monthly_card_days_left()
 
 
+# ---------------------------------------------------------------- skins (cosmetic)
+
+## A hero's skins with "owned", "equipped" and "installed" (its art is in the build) flags.
+func skins_for(hero_id: String) -> Array[Dictionary]:
+	var out := model.skins_for(hero_id)
+	for s in out:
+		s["installed"] = HeroArt.has_skin_art(s.hero, s.id)
+	return out
+
+
+func owns_skin(skin_id: String) -> bool:
+	return model.owns_skin(skin_id)
+
+
+## The equipped skin ("" = base look).
+func equipped_skin(hero_id: String) -> String:
+	return model.equipped_skin(hero_id)
+
+
+## Buy a skin with gems. Skins whose art is not in the build yet are "Coming soon".
+func buy_skin(skin_id: String) -> Dictionary:
+	var sd := SkinData.get_def(skin_id)
+	if not sd.is_empty() and not HeroArt.has_skin_art(sd.hero, skin_id):
+		return {"ok": false, "value": null, "error": "Coming soon"}
+	var r := model.buy_skin(skin_id)
+	_flush()
+	return r
+
+
+func equip_skin(hero_id: String, skin_id: String) -> Dictionary:
+	var r := model.equip_skin(hero_id, skin_id)
+	_flush()
+	return r
+
+
 # ---------------------------------------------------------------- settings & dev
 
 func setting(key: String) -> Variant:

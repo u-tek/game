@@ -92,6 +92,7 @@ func default_state() -> Dictionary:
 		"quests": {"day": day, "progress": {}, "claimed": []},
 		"shop": {"purchases": {}, "daily": {}, "day": day, "monthly_until_day": -1, "monthly_last_day": -1},
 		"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 1, "auto_ultimates": true},
+		"skins": {"owned": [], "equipped": {}},
 		"counters": {},
 		"dev_time_offset": 0,
 		"rng_seed": SeededRng.mix(now & 0x7FFFFFFF, 104729),
@@ -161,6 +162,20 @@ func migrate(loaded: Dictionary) -> Dictionary:
 		var id: String = str(f[i]) if i < f.size() else ""
 		clean.append(id if heroes.has(id) and not clean.has(id) else "")
 	loaded.formation = clean
+	# Skins: known ids only, once each; an equipped skin must be owned and belong to that hero.
+	var owned: Array = []
+	for sid in loaded.skins.owned:
+		var sd := SkinData.get_def(str(sid))
+		if not sd.is_empty() and not owned.has(sd.id):
+			owned.append(sd.id)
+	loaded.skins.owned = owned
+	var equipped := {}
+	if loaded.skins.equipped is Dictionary:
+		for hid in loaded.skins.equipped:
+			var sd := SkinData.get_def(str(loaded.skins.equipped[hid]))
+			if not sd.is_empty() and owned.has(sd.id) and sd.hero == str(hid):
+				equipped[str(hid)] = sd.id
+	loaded.skins.equipped = equipped
 	if not BATTLE_SPEEDS.has(int(loaded.settings.battle_speed)):
 		loaded.settings.battle_speed = 1
 	loaded.campaign.cleared = clampi(int(loaded.campaign.cleared), 0, StageData.count())
@@ -1133,6 +1148,64 @@ func monthly_card_days_left() -> int:
 func _offer_count(o: Dictionary) -> int:
 	var key: String = "daily" if o.period == "day" else "purchases"
 	return int(state.shop[key].get(o.id, 0))
+
+
+# ---------------------------------------------------------------- skins (cosmetic)
+
+## The skins of one hero (SkinData records) with "owned" and "equipped" flags added.
+func skins_for(hero_id: String) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var eq := equipped_skin(hero_id)
+	for sd in SkinData.for_hero(hero_id):
+		var s := sd.duplicate()
+		s["owned"] = owns_skin(sd.id)
+		s["equipped"] = sd.id == eq
+		out.append(s)
+	return out
+
+
+func owns_skin(skin_id: String) -> bool:
+	return (state.skins.owned as Array).has(skin_id)
+
+
+## The skin a hero wears ("" = her base look).
+func equipped_skin(hero_id: String) -> String:
+	return str(state.skins.equipped.get(hero_id, ""))
+
+
+## Buy a skin with gems. Cosmetic only: stats never change. Result {ok, value: skin, error}.
+func buy_skin(skin_id: String) -> Dictionary:
+	var sd := SkinData.get_def(skin_id)
+	if sd.is_empty():
+		return _err("Unknown skin")
+	if owns_skin(skin_id):
+		return _err("Already owned")
+	var cost := {"gems": int(sd.price_gems)}
+	if not _can_afford(cost):
+		return _err("Not enough gems")
+	_pay(cost)
+	(state.skins.owned as Array).append(skin_id)
+	_bump("skins_bought")
+	_changed()
+	return _ok(sd)
+
+
+## Put an owned skin on its hero, or skin_id "" to go back to her base look.
+func equip_skin(hero_id: String, skin_id: String) -> Dictionary:
+	if HeroData.get_def(hero_id).is_empty():
+		return _err("Unknown hero")
+	if skin_id == "":
+		state.skins.equipped.erase(hero_id)
+		_changed()
+		return _ok("")
+	var sd := SkinData.get_def(skin_id)
+	if sd.is_empty() or sd.hero != hero_id:
+		return _err("That skin is for another hero")
+	if not owns_skin(skin_id):
+		return _err("You don't own that skin")
+	state.skins.equipped[hero_id] = skin_id
+	_changed()
+	return _ok(skin_id)
 
 
 # ---------------------------------------------------------------- settings & dev

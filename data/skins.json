@@ -1,0 +1,47 @@
+{
+	"version": 1,
+	"_doc": "Cosmetic hero skins (docs/dev/skins.md). Cosmetic only: no stats. 'art' names the folder under assets/art/heroes/<hero>/skins/; a skin whose art is not installed yet is listed as coming soon and cannot be bought. Prices are in gems (330 gems = $4.99 in the shop). Same content hard lines as the base designs (docs/dev/character-briefs.md).",
+	"tiers": {
+		"standard": {"name": "Standard", "price_gems": 980, "description": "New painted art, face variants and rig."},
+		"deluxe": {"name": "Deluxe", "price_gems": 1480, "description": "Standard plus its own idle animation, ultimate effect color and Lobby lines."}
+	},
+	"lines": {
+		"aqua_resort": {"name": "Aqua Resort", "description": "Swimwear in Frutiger Aero water: micro bikinis, plunging one-pieces, chrome shades."},
+		"bunny_lounge": {"name": "Bunny Lounge", "description": "Hell's casino: glossy latex and holographic bunny leotards."},
+		"club_chrome": {"name": "Club Chrome", "description": "A night out: latex micro dresses, rhinestone body chains, platform heels."},
+		"after_hours": {"name": "After Hours", "description": "Satin and latex lingerie sets, garters, robes slipping off the shoulders."},
+		"pop_idol": {"name": "Pop Idol", "description": "Y2K stage and race-queen outfits: metallic crop tops, headset mics."}
+	},
+	"skins": [
+		{"id": "seraphiel_tidal_diva", "hero": "seraphiel", "line": "aqua_resort", "tier": "deluxe", "name": "Tidal Diva", "description": "Pearl micro bikini with chrome ring links, chrome body chains, mirrored shades pushed into wet platinum hair, chrome mic.", "art": "tidal_diva"},
+		{"id": "seraphiel_encore_bunny", "hero": "seraphiel", "line": "bunny_lounge", "tier": "deluxe", "name": "Encore Bunny", "description": "Pearl latex bunny leotard, chrome cuffs and collar, white fishnets, aqua bow tie.", "art": "encore_bunny"},
+		{"id": "cassiel_lifeguard_unit", "hero": "cassiel", "line": "aqua_resort", "tier": "standard", "name": "Lifeguard Unit", "description": "White-and-aqua sport micro bikini with mecha plate accents, chrome whistle, frosted rescue-board shield.", "art": "lifeguard_unit"},
+		{"id": "cassiel_off_duty", "hero": "cassiel", "line": "after_hours", "tier": "standard", "name": "Off Duty", "description": "White satin lingerie and garters, one pauldron hanging from her hip.", "art": "off_duty"},
+		{"id": "liora_pearl_lagoon", "hero": "liora", "line": "aqua_resort", "tier": "standard", "name": "Pearl Lagoon", "description": "High-cut aqua one-piece plunging to the navel, pearl straps, wet-look braid.", "art": "pearl_lagoon"},
+		{"id": "liora_lounge_singer", "hero": "liora", "line": "club_chrome", "tier": "standard", "name": "Lounge Singer", "description": "Cream sequin micro dress slit to the hip over opaque shorts, long satin gloves, chrome mic.", "art": "lounge_singer"},
+		{"id": "uriela_surf_racer", "hero": "uriela", "line": "aqua_resort", "tier": "standard", "name": "Surf Racer", "description": "Azure racing micro bikini with sun-sigil decals, shield visor, her lance as a surf spear.", "art": "surf_racer"},
+		{"id": "uriela_podium_queen", "hero": "uriela", "line": "pop_idol", "tier": "standard", "name": "Podium Queen", "description": "Glossy white vinyl race-queen crop top and micro skirt over opaque shorts, thigh boots, chrome parasol.", "art": "podium_queen"},
+		{"id": "nuriel_jet_stream", "hero": "nuriel", "line": "aqua_resort", "tier": "standard", "name": "Jet Stream", "description": "Aqua chrome micro bikini, white rash jacket off the shoulders, shield visor.", "art": "jet_stream"},
+		{"id": "nuriel_courier_bunny", "hero": "nuriel", "line": "bunny_lounge", "tier": "standard", "name": "Courier Bunny", "description": "White vinyl bunny leotard with aqua racing stripes, bunny-ear visor.", "art": "courier_bunny"},
+		{"id": "mordessa_lava_lounge", "hero": "mordessa", "line": "aqua_resort", "tier": "deluxe", "name": "Lava Lounge", "description": "Black latex micro bikini, red chrome shades, fur-trimmed robe worn open, rhinestone crown.", "art": "lava_lounge"},
+		{"id": "mordessa_high_roller", "hero": "mordessa", "line": "bunny_lounge", "tier": "deluxe", "name": "High Roller", "description": "Red latex bunny leotard, black fishnets, rhinestone crown between her horns.", "art": "high_roller"},
+		{"id": "brakka_pool_champ", "hero": "brakka", "line": "aqua_resort", "tier": "standard", "name": "Pool Champ", "description": "Black-and-chrome micro bikini, championship belt, towel over her shoulders, chrome shades.", "art": "pool_champ"},
+		{"id": "brakka_velvet_rope", "hero": "brakka", "line": "club_chrome", "tier": "standard", "name": "Velvet Rope", "description": "Black latex bodysuit with SECURITY in chrome letters, chain harness.", "art": "velvet_rope"},
+		{"id": "vesper_red_tide", "hero": "vesper", "line": "aqua_resort", "tier": "standard", "name": "Red Tide", "description": "Crimson latex micro bikini with chrome heart rings, tinted glasses, open beach robe.", "art": "red_tide"},
+		{"id": "vesper_late_session", "hero": "vesper", "line": "after_hours", "tier": "standard", "name": "Late Session", "description": "Black latex lingerie and garters, red-tinted glasses.", "art": "late_session"},
+		{"id": "imra_fire_lagoon", "hero": "imra", "line": "aqua_resort", "tier": "standard", "name": "Fire Lagoon", "description": "Orange metallic bandeau bikini, chrome jewelry, a tiki-torch version of her staff.", "art": "fire_lagoon"},
+		{"id": "imra_headliner", "hero": "imra", "line": "pop_idol", "tier": "standard", "name": "Headliner", "description": "Metallic red crop top, high-cut shorts, chrome headset mic, platform boots.", "art": "headliner"},
+		{"id": "kessa_black_cat_beach", "hero": "kessa", "line": "aqua_resort", "tier": "standard", "name": "Black Cat Beach", "description": "Black latex micro bikini with red O-rings, cat-ear sun visor.", "art": "black_cat_beach"},
+		{"id": "kessa_purr", "hero": "kessa", "line": "after_hours", "tier": "standard", "name": "Purr", "description": "Red satin lingerie, chrome collar, cat-ear headphones.", "art": "purr"},
+		{"id": "noctaire_midnight_swim", "hero": "noctaire", "line": "aqua_resort", "tier": "deluxe", "name": "Midnight Swim", "description": "Black micro bikini with an oil-slick wrap, cracked chrome halo.", "art": "midnight_swim"},
+		{"id": "noctaire_void_bunny", "hero": "noctaire", "line": "bunny_lounge", "tier": "deluxe", "name": "Void Bunny", "description": "Black latex bunny leotard, oil-slick ears, glitch-pattern fishnets.", "art": "void_bunny"},
+		{"id": "orrin_riot_beach", "hero": "orrin", "line": "aqua_resort", "tier": "standard", "name": "Riot Beach", "description": "Black-and-violet sport micro bikini, smoked shades, her riot shield as a surfboard.", "art": "riot_beach"},
+		{"id": "orrin_off_the_clock", "hero": "orrin", "line": "after_hours", "tier": "standard", "name": "Off the Clock", "description": "Black satin lingerie, her fiber-optic cables loose, armor jacket over the shoulders.", "art": "off_the_clock"},
+		{"id": "sable_holy_water", "hero": "sable", "line": "aqua_resort", "tier": "standard", "name": "Holy Water", "description": "Black one-piece with a plunging keyhole, holographic veil, chrome cross.", "art": "holy_water"},
+		{"id": "sable_choir_night", "hero": "sable", "line": "club_chrome", "tier": "standard", "name": "Choir Night", "description": "Violet latex micro dress over opaque shorts, holographic veil.", "art": "choir_night"},
+		{"id": "lucen_split_tide", "hero": "lucen", "line": "aqua_resort", "tier": "standard", "name": "Split Tide", "description": "Mismatched white and black micro bikini, half-and-half shades.", "art": "split_tide"},
+		{"id": "lucen_two_faced_bunny", "hero": "lucen", "line": "bunny_lounge", "tier": "standard", "name": "Two-Faced Bunny", "description": "Split white/black latex bunny leotard, one white ear, one black.", "art": "two_faced_bunny"},
+		{"id": "ashra_lazy_river", "hero": "ashra", "line": "aqua_resort", "tier": "standard", "name": "Lazy River", "description": "Violet micro bikini, holographic sun hat, a sleepy standing stretch.", "art": "lazy_river"},
+		{"id": "ashra_night_owl", "hero": "ashra", "line": "after_hours", "tier": "standard", "name": "Night Owl", "description": "Oversized off-shoulder sweater over a tube top and opaque micro shorts, headphones.", "art": "night_owl"}
+	]
+}

@@ -31,6 +31,7 @@
 				"quests": {"day": 19700, "progress": {}, "claimed": []},
 				"shop": {"purchases": {}, "daily": {}, "day": 19700, "monthly_until_day": -1, "monthly_last_day": -1},
 				"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 1, "auto_ultimates": true},
+				"skins": {"owned": [], "equipped": {}},
 				"counters": {},
 				"dev_time_offset": 0,
 				"rng_seed": 1055219407
@@ -79,6 +80,7 @@
 				"gear_seq": 0,
 				"quests": {"day": 19700, "progress": {}, "claimed": []},
 				"shop": {"purchases": {}, "daily": {}, "day": 19700, "monthly_until_day": -1, "monthly_last_day": -1},
+				"skins": {"owned": [], "equipped": {}},
 				"counters": {},
 				"dev_time_offset": 0,
 				"rng_seed": 5422372
@@ -127,6 +129,7 @@
 				"quests": {"day": 19700, "progress": {"dq_summon": 10, "dq_idle": 1}, "claimed": []},
 				"shop": {"purchases": {}, "daily": {}, "day": 19700, "monthly_until_day": -1, "monthly_last_day": -1},
 				"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 1, "auto_ultimates": true},
+				"skins": {"owned": [], "equipped": {}},
 				"counters": {"summons": 10, "idle_claims": 1},
 				"dev_time_offset": 0,
 				"rng_seed": 5422372
@@ -171,6 +174,7 @@
 				"quests": {"day": 19700, "progress": {"dq_summon": 10, "dq_idle": 1}, "claimed": []},
 				"shop": {"purchases": {}, "daily": {}, "day": 19700, "monthly_until_day": -1, "monthly_last_day": -1},
 				"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 1, "auto_ultimates": true},
+				"skins": {"owned": [], "equipped": {}},
 				"counters": {"summons": 10, "idle_claims": 1},
 				"dev_time_offset": 0,
 				"rng_seed": 5422372

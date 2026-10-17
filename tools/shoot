@@ -18,9 +18,19 @@ mkdir -p "$(dirname "$out")"
 # Never report a stale PNG from an earlier run as this run's result.
 rm -f "$out"
 NOISE='ALSA|audio_driver_alsa|All audio drivers failed|audio_server.cpp|init_output_device|Condition "status < 0" is true|^\s*at: (init_output_device|initialize) '
-# The lock wait is not limited (other agents may hold it); the render itself gets 120 s.
-log=$(flock /tmp/halo-godot.lock timeout 120 xvfb-run -a -s "-screen 0 1800x2400x24" \
-  godot --path . --rendering-driver opengl3 --resolution "$res" -- \
-  --shoot="$screen" --shoot-out="$(realpath -m "$out")" "${extra[@]}" 2>&1 | grep -vE "$NOISE")
+# GODOT names the binary (see tools/gd). Without xvfb-run/flock (Git Bash on Windows) the window
+# opens briefly on the desktop and the PNG path is passed in Windows form.
+G="${GODOT:-godot}"
+out_abs="$(realpath -m "$out")"
+command -v cygpath >/dev/null 2>&1 && out_abs="$(cygpath -m "$out_abs")"
+if command -v xvfb-run >/dev/null 2>&1 && command -v flock >/dev/null 2>&1; then
+  # The lock wait is not limited (other agents may hold it); the render itself gets 120 s.
+  log=$(flock /tmp/halo-godot.lock timeout 120 xvfb-run -a -s "-screen 0 1800x2400x24" \
+    "$G" --path . --rendering-driver opengl3 --resolution "$res" -- \
+    --shoot="$screen" --shoot-out="$out_abs" "${extra[@]}" 2>&1 | grep -vE "$NOISE")
+else
+  log=$(timeout 120 "$G" --path . --rendering-driver opengl3 --resolution "$res" -- \
+    --shoot="$screen" --shoot-out="$out_abs" "${extra[@]}" 2>&1 | grep -vE "$NOISE")
+fi
 echo "$log" | grep -E -A2 "SCRIPT ERROR|Parse Error|ERROR:" | head -30
 [ -f "$out" ] && echo "PNG: $out" || { echo "NO PNG WRITTEN"; echo "$log" | tail -15; exit 1; }

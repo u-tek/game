@@ -207,6 +207,14 @@ advances every quest with that `counter`. Claiming a quest bumps `meta_counter`
 Buying the `monthly_card.offer_id` offer extends the pass: `monthly_until_day = max(until, today) + days`,
 `monthly_last_day = today`; each later day with `until >= day > last` pays `daily_gems`.
 
+### 3.6b skins.json
+
+`{version, tiers: {tier id: {name, price_gems, description}}, lines: {line id: {name, description}},
+skins: [Skin]}`. Skin: `{id, hero, line, tier, name, description, art}`. Cosmetic only (no stats);
+the price is the tier's `price_gems`. `art` names the folder `assets/art/heroes/<hero>/skins/<art>/`
+(laid out like the base art, files named `<art>.*`). A skin whose rig is not built is "Coming soon"
+and cannot be bought (checked in the Game adapter, not the rules). Design: `docs/dev/skins.md`.
+
 ### 3.7 battle.json
 
 | Field | Value | Meaning |
@@ -618,9 +626,15 @@ gear [{uid, slot, tier, name, stats {..}, equipped_by}]
 quests {day, progress {quest id: n}, claimed [quest id]}
 shop {purchases {offer id: n}, daily {offer id: n}, day, monthly_until_day, monthly_last_day}
 settings {sound, music, haptics, battle_speed (1|2|4), auto_ultimates}
+skins {owned [skin id], equipped {hero id: skin id}}
 counters {name: n}   (battles_started, battles_won, battles_lost, stages_cleared, summons, level_ups,
-                      star_ups, idle_claims, quick_claims, daily_quests_done)
+                      star_ups, idle_claims, quick_claims, daily_quests_done, skins_bought)
 ```
+
+Skins: `buy_skin(id)` pays the tier's gems once (errors "Unknown skin", "Already owned", "Not enough
+gems") and bumps `skins_bought`; `equip_skin(hero, id)` needs an owned skin of that hero ("" = base
+look). `migrate` keeps known skin ids once each and an equipped skin only if it is owned and belongs
+to that hero.
 
 `migrate(loaded)` repairs any older or damaged save: fills missing keys from the default state
 (missing currencies are 0), drops unknown heroes and invalid gear, clamps stars/levels/tiers,

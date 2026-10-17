@@ -38,6 +38,8 @@ var _shade: TextureRect
 var _anchor: Node2D
 var _sprite: Node2D
 var _hero_id := ""
+## The skin the Lobby sprite wears ("" = base look); a change rebuilds the sprite.
+var _hero_skin := ""
 var _hero_hit: Button
 var _ui: Control
 var _banner_slot: Control
@@ -356,9 +358,11 @@ func _refresh_hero() -> void:
 	var many := _hero_order().size() > 1
 	_prev_btn.visible = many
 	_next_btn.visible = many
-	if id == _hero_id:
+	var skin := Game.equipped_skin(id) if id != "" else ""
+	if id == _hero_id and skin == _hero_skin:
 		return
 	_hero_id = id
+	_hero_skin = skin
 	if _sprite and is_instance_valid(_sprite):
 		_sprite.queue_free()
 	_sprite = null
@@ -366,7 +370,7 @@ func _refresh_hero() -> void:
 	if id == "":
 		_speech.visible = false
 		return
-	_sprite = HeroArt.make_sprite(id)
+	_sprite = HeroArt.make_sprite(id, skin)
 	_anchor.add_child(_sprite)
 	_speech.visible = true
 	(_speech.get_meta("name_label") as Label).text = str(Game.hero_def(id).get("name", id))

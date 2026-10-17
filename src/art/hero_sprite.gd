@@ -41,7 +41,8 @@ static var _shadow_tex: Texture2D
 
 ## Builds the sprite for `id` (a HeroData id). Unknown art falls back to a faction-tinted
 ## silhouette rig, so every hero animates with the shared animations.
-func setup(id: String) -> void:
+## skin_art: a skin's art folder (data/skins.json "art"), or "" for the base look.
+func setup(id: String, skin_art: String = "") -> void:
 	hero_id = id
 	var def := HeroData.get_def(id)
 	role = str(def.get("role", "striker"))
@@ -66,7 +67,9 @@ func setup(id: String) -> void:
 	_body.add_child(_shadow)
 	rig = RigPlayer.new()
 	rig.name = "Rig"
-	var data := RigData.load_rig(id)
+	var data := RigData.load_rig(id, skin_art) if skin_art != "" else null
+	if data == null:
+		data = RigData.load_rig(id)
 	if data == null:
 		data = RigData.load_rig(FALLBACK_RIG)
 		is_fallback = true

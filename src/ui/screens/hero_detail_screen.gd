@@ -27,7 +27,8 @@ const TAB_H := 112.0
 const ARROW := Vector2(88, 112)
 const ARROW_TILE := 52.0
 const SHORT_RED := Color("d42a12")
-const TABS := [["equip", "Equip", "equip"], ["skills", "Skills", "skill"], ["story", "Story", "codex"]]
+const TABS := [["equip", "Equip", "equip"], ["skills", "Skills", "skill"], ["skins", "Skins", "star"],
+	["story", "Story", "codex"]]
 
 ## The lower-panel tab the player picked last (kept for the session).
 static var _pref_tab := "equip"
@@ -45,6 +46,8 @@ var _stage: Control
 var _stripes: Control
 var _anchor: Node2D
 var _sprite: Node2D
+## The skin the sprite was built with ("" = base look); a change rebuilds the sprite.
+var _sprite_skin := ""
 var _poke: Control
 var _caption: Control
 var _scroll: ScrollContainer
@@ -182,7 +185,8 @@ func _build() -> void:
 	_anchor = Node2D.new()
 	_anchor.name = "HeroAnchor"
 	_stage.add_child(_anchor)
-	_sprite = HeroArt.make_sprite(_id)
+	_sprite_skin = Game.equipped_skin(_id)
+	_sprite = HeroArt.make_sprite(_id, _sprite_skin)
 	_anchor.add_child(_sprite)
 	if not _owned:
 		_sprite.modulate = Color(0.46, 0.48, 0.53, 0.85)
@@ -622,6 +626,8 @@ func _refresh() -> void:
 	if not is_inside_tree() or _stage == null:
 		return
 	_owned = Game.owns(_id)
+	if Game.equipped_skin(_id) != _sprite_skin:
+		_rebuild_sprite()
 	var h := Game.hero(_id)
 	var stars := int(h.get("stars", Kit.RARITY_STARS.get(str(_def.rarity), 1)))
 	var level := int(h.get("level", 1))
@@ -802,6 +808,8 @@ func _refresh_lower() -> void:
 		sig += JSON.stringify(Game.hero(_id).get("gear", {})) + "|" + JSON.stringify(Game.gear_items())
 	elif _tab == "skills":
 		sig += str(Game.hero(_id).get("stars", 0))
+	elif _tab == "skins":
+		sig += JSON.stringify(Game.skins_for(_id)) + str(Game.currency("gems"))
 	if sig == _lower_sig:
 		return
 	_lower_sig = sig
@@ -813,6 +821,8 @@ func _refresh_lower() -> void:
 			_build_equip()
 		"skills":
 			_build_skills()
+		"skins":
+			_build_skins()
 		_:
 			_build_story()
 	_fit_scroll.call_deferred()
@@ -900,6 +910,92 @@ func _skill_entry(icon_name: String, ult: bool, title_text: String, kind: String
 	tv.add_child(d)
 	row.add_child(tv)
 	return rp
+
+
+## Skins (cosmetic, docs/dev/skins.md): her base look plus each skin with Wear / Equipped /
+## Buy (gems, confirmed) / Coming soon (art not built yet). Wearing one rebuilds the sprite.
+func _build_skins() -> void:
+	var p := Kit.info_panel(10)
+	var v := Kit.vbox(10)
+	p.add_child(v)
+	v.add_child(Kit.header_bar("Skins"))
+	var eq := Game.equipped_skin(_id)
+	v.add_child(_skin_row_ui("", "Base look", str(_def.get("title", "")).to_upper(), "", eq == "", true, true, 0))
+	var lines := SkinData.lines()
+	for s in Game.skins_for(_id):
+		var sub := ("%s  ·  %s" % [lines.get(str(s.line), str(s.line)), SkinData.tier_name(str(s.tier))]).to_upper()
+		v.add_child(_skin_row_ui(str(s.id), str(s.name), sub, str(s.description), bool(s.equipped), bool(s.owned),
+			bool(s.installed), int(s.price_gems)))
+	if not _owned:
+		v.add_child(Kit.body("Skins can be bought before she joins your team.", 18, Kit.TEXT_DIM))
+	_lower.add_child(p)
+
+
+func _skin_row_ui(sid: String, title: String, sub: String, desc: String, equipped: bool, owned: bool,
+		installed: bool, price: int) -> Control:
+	var row := Kit.panel("row", 10)
+	row.name = "SkinRow_" + (sid if sid != "" else "base")
+	var h := Kit.hbox(10)
+	row.add_child(h)
+	var info := Kit.vbox(2)
+	info.size_flags_horizontal = SIZE_EXPAND_FILL
+	info.mouse_filter = MOUSE_FILTER_IGNORE
+	info.add_child(Kit.label(title, 22, Kit.TEXT, "extrabold"))
+	if sub != "":
+		info.add_child(Kit.label(sub, 15, Kit.ACCENT_DEEP, "cond_bold"))
+	if desc != "":
+		info.add_child(Kit.body(desc, 16, Kit.TEXT_DIM))
+	h.add_child(info)
+	var b: Button
+	if equipped:
+		b = Kit.light_button("Equipped")
+		b.disabled = true
+	elif owned:
+		b = Kit.secondary_button("Wear", func() -> void: _wear_skin(sid))
+	elif not installed:
+		b = Kit.light_button("Coming soon")
+		b.disabled = true
+	else:
+		b = Kit.cost_button("Buy", "gems", price, func() -> void: _buy_skin(sid), "primary", Game.currency("gems") >= price)
+	b.custom_minimum_size = Vector2(176, 88)
+	b.size_flags_vertical = SIZE_SHRINK_CENTER
+	h.add_child(b)
+	return row
+
+
+func _wear_skin(sid: String) -> void:
+	var r := Game.equip_skin(_id, sid)
+	if not bool(r.get("ok", false)):
+		UI.toast(str(r.get("error", "Could not equip")), "bad")
+
+
+func _buy_skin(sid: String) -> void:
+	var sd := SkinData.get_def(sid)
+	if sd.is_empty():
+		return
+	UI.confirm("Buy %s for %s gems? Skins are cosmetic: no stat changes." % [sd.name, Kit.format_full(int(sd.price_gems))],
+		func() -> void:
+			var r := Game.buy_skin(sid)
+			if not bool(r.get("ok", false)):
+				UI.toast(str(r.get("error", "Purchase failed")), "bad")
+				return
+			Game.equip_skin(_id, sid),
+		Callable(), "Buy")
+
+
+## Replace the sprite with one in the equipped skin (or the base look).
+func _rebuild_sprite() -> void:
+	if _anchor == null:
+		return
+	if _sprite and is_instance_valid(_sprite):
+		_anchor.remove_child(_sprite)
+		_sprite.queue_free()
+	_sprite_skin = Game.equipped_skin(_id)
+	_sprite = HeroArt.make_sprite(_id, _sprite_skin)
+	_anchor.add_child(_sprite)
+	if not _owned:
+		_sprite.modulate = Color(0.46, 0.48, 0.53, 0.85)
+	_layout()
 
 
 func _build_story() -> void:

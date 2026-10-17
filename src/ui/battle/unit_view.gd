@@ -62,7 +62,8 @@ func setup(u: Dictionary, k: float, facing: int, echo: bool, bars_layer: Node2D)
 	_faction_tex = Kit.icon_texture("faction_" + faction)
 	depth_scale = k
 	home_facing = facing
-	sprite = HeroArt.make_sprite(hero_id)
+	# The player's heroes wear their equipped skin; enemies (campaign echoes) keep the base look.
+	sprite = HeroArt.make_sprite(hero_id, Game.equipped_skin(hero_id) if side == "ally" else "")
 	add_child(sprite)
 	sprite.scale = Vector2(k, k)
 	sprite.call("set_facing", facing)

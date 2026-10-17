@@ -37,7 +37,7 @@ bikinis and whatever." This is the design. Nothing is built yet (see "Game work"
 | Uriela | **Surf Racer**: azure racing micro bikini with sun-sigil decals, shield visor, lance as a surf spear | **Podium Queen** (Pop Idol): glossy white vinyl race-queen crop top and micro skirt over opaque shorts, thigh boots, chrome parasol |
 | Nuriel | **Jet Stream**: aqua chrome micro bikini, clear-vinyl rash jacket off the shoulders, shield visor | **Courier Bunny** (Bunny Lounge): white vinyl bunny leotard with aqua racing stripes, bunny-ear visor |
 | Mordessa | **Lava Lounge**: black latex micro bikini, red chrome shades, fur-trimmed robe worn open, rhinestone crown | **High Roller** (Bunny Lounge): red latex bunny leotard, black fishnets, rhinestone crown between her horns |
-| Brakka | **Pool Champ**: red-and-black micro bikini, championship belt, towel over her shoulders, chrome shades | **Velvet Rope** (Club Chrome): black latex bodysuit with SECURITY in chrome letters, chain harness |
+| Brakka | **Pool Champ**: black-and-chrome micro bikini (it has to read against her red skin), championship belt, towel over her shoulders, chrome shades | **Velvet Rope** (Club Chrome): black latex bodysuit with SECURITY in chrome letters, chain harness |
 | Vesper | **Red Tide**: crimson latex micro bikini with chrome heart rings, tinted glasses, open beach robe | **Late Session** (After Hours): black latex lingerie and garters, red-tinted glasses |
 | Imra | **Fire Lagoon**: orange metallic bandeau bikini, chrome jewelry, a tiki-torch version of her staff | **Headliner** (Pop Idol): metallic red crop top, high-cut shorts, chrome headset mic, platform boots |
 | Kessa | **Black Cat Beach**: black latex micro bikini with red O-rings, cat-ear sun visor | **Purr** (After Hours): red satin lingerie, chrome collar, cat-ear headphones |
@@ -70,10 +70,20 @@ repaint, three face variants, a 1:1 review, install, rig. The launch set is 30 j
 and settings come from the owner's checkpoint tests; the GPU time per skin is quoted once they
 are chosen, and long runs wait for the owner's go-ahead.
 
-## Game work (not started)
+## Game work (built 2026-10-17)
 
-- `data/skins.json`: id, hero, line, name, tier, price, art folder.
-- Art at `assets/art/heroes/<hero>/skins/<skin>/` with the same layout as the base art.
-- Save data: owned skins and the equipped skin per hero. `HeroArt` loads the equipped skin.
-- Hero detail: a skin picker with a preview. Shop: a "Wardrobe" tab.
-- Tests for buying, equipping, saving and loading, plus e2e coverage of the Wardrobe.
+- `data/skins.json` (all 30 launch skins; tiers and lines) and `src/data/skins.gd` (`SkinData`).
+  Tiers as built: the six skins of the three Legendaries (Seraphiel, Mordessa, Noctaire) are Deluxe,
+  the rest Standard.
+- Save data `skins {owned, equipped}`; `GameModel.buy_skin` / `equip_skin` / `skins_for`, cleaned
+  by `migrate` (`docs/dev/unity-port.md` section 9).
+- Art: `assets/art/heroes/<hero>/skins/<art>/` laid out like the base art (`<art>.warp.json`,
+  `<art>.png`, `<art>_portrait.png`, `overlays/`). `HeroArt` takes an optional skin id and falls
+  back to the base look until the skin's rig is built; `RigData.load_rig(hero, art)`.
+- Shop: a "Wardrobe" tab (one card per hero: Buy for gems with a confirm, Wear, Equipped, or
+  Coming soon while the art is not built). Hero page: a "Skins" side tab (base look plus her
+  skins). The Lobby sprite, the hero page and the player's units in battle wear the equipped
+  skin; enemies (campaign echoes) keep the base look.
+- Tests: `tests/unit/test_skins.gd` (data, buy, equip, save round trip, migrate, art fallback).
+- Not yet: skin art (the art jobs above), the equipped skin on portrait cards and the summon
+  reveal, and skin bundles for real money.

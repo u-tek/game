@@ -81,7 +81,7 @@
 			"role": "support",
 			"rarity": "epic",
 			"bio": "A temple novice whose lullabies close wounds. She is still learning which songs are safe to sing in battle.",
-			"look": "Soft, curvy spa goddess with glam makeup: white string bikini strung with pearl chains, a pearl satin sarong at the hip, chrome anklets and heels, water droplets on her skin. Long rose-gold hair in a wet-look side braid, a frosted aqua glass lyre, pearl wings, a slim chrome halo. Leans toward the viewer with a slow, warm smile.",
+			"look": "Soft, curvy spa goddess with glam makeup: white string bikini strung with pearl chains, a pearl satin sarong at the hip, chrome anklets and heels, water droplets on her skin. Long rose-gold hair in a wet-look side braid, a frosted aqua glass lyre, pearl wings, a slim chrome halo. Stands with her hip cocked and the lyre at her side, a slow, warm smile.",
 			"base_stats": {"hp": 1750, "atk": 76, "def": 48, "spd": 102, "crit": 500},
 			"ultimate": {
 				"id": "lullaby_of_mending",
