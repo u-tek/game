@@ -87,9 +87,17 @@ every work block. Rules and conventions are in `CLAUDE.md`; this file is about w
   dpmpp_2m_sde, dpmpp_sde and dpmpp_2s_ancestral turned her latex sheer over the chest (would
   fail review). Samplers move details, not the artifact level much: the finishing passes (model
   hires 0.4, tiled 2x repaint, face pass) are the bigger lever and have not been tested on Amanatsu.
-- **Next (waits for the owner):** their sampler pick; then a finishing-pass test on Amanatsu
-  (approved first), the bible's style block and family settings set to the winner, `look`/title/
-  bio in `data/heroes.json`, the roster, and the skin system.
+- **Finishing-pass test on Amanatsu (owner's pick: dpmpp_2m/karras and euler_ancestral/normal,
+  Seraphiel and Kessa):** model hires 1.5x (4x-AnimeSharp, 0.4) -> face pass (0.35) -> tiled 2x
+  repaint (0.35, 20 steps per tile) to 2496x3648 (`art_src/_review/tools/finish_test.py`, local;
+  stage sheets with 1:1 face and torso crops and the finals sent). Each stage visibly sharpens
+  eyes, hair, buckles and latex; dpmpp_2m gives the cleaner faces and skin, euler_ancestral more
+  texture. About 4.7 min per finished image on the 3070 (most of it the 12-tile repaint). The face
+  box estimator sometimes lands on the halo or hairline: check `work/*_facebox.jpg` or pass
+  `--face-box` in finalize.
+- **Next (waits for the owner):** the sampler to lock in; then Amanatsu + that sampler + the
+  cinematic style as the bible defaults, `look`/title/bio in `data/heroes.json`, a candidate round
+  for the roster (ask first: 6 candidates x 15 heroes is about 70 min of GPU), and the skin system.
 
 ## In one paragraph
 
