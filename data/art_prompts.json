@@ -189,7 +189,7 @@
   },
   "cassiel": {
    "name": "Cassiel", "faction": "celestial", "role": "guardian", "rarity": "epic", "gender": "female", "apparent_age": "mid-20s",
-   "seed_base": 102000, "background": "green", "default_eyes": "open", "variant_set": ["eyes_closed", "mouth_open", "smile"], "loras": [],
+   "seed_base": 102000, "background": "grey", "default_eyes": "open", "variant_set": ["eyes_closed", "mouth_open", "smile"], "loras": [],
    "subject": "1girl, solo, adult, (mature female:0.8)",
    "adult_face": "",
    "body": "toned, abs, large breasts, wide hips, thick thighs",
@@ -210,7 +210,7 @@
     "eyes_closed": "closed eyes, smirk, confident",
     "mouth_open": "blue eyes, open mouth, smile, teeth, confident"
    },
-   "brief_gaps": ["Eye colour not in the brief: blue.", "Gorget and breastplate cups are left to 'bikini armor' (token budget); the tabard is 'blue pelvic curtain' over the opaque armored bottom.", "Shield is 'kite shield, holding shield' ('large shield' cut for the token budget); the sunburst emblem is not tagged ('sunburst' paints a background pattern), add with fix.py if wanted.", "Green background: her silver hair and white wings clash with grey and white."]
+   "brief_gaps": ["Eye colour not in the brief: blue.", "Gorget and breastplate cups are left to 'bikini armor' (token budget); the tabard is 'blue pelvic curtain' over the opaque armored bottom.", "Shield is 'kite shield, holding shield' ('large shield' cut for the token budget); the sunburst emblem is not tagged ('sunburst' paints a background pattern), add with fix.py if wanted.", "Green background: her silver hair and white wings clash with grey and white.", "ComfyUI pilot (2026-10-17, NoobAI-XL-Vpred-v1.0): rendered on grey instead of green (6 of 6 pass the filter at 0.5 as designed); the light-blue tabard reads clearly against grey."]
   },
   "liora": {
    "name": "Liora", "faction": "celestial", "role": "support", "rarity": "epic", "gender": "female", "apparent_age": "early 20s",
@@ -290,7 +290,7 @@
   },
   "mordessa": {
    "name": "Mordessa", "faction": "infernal", "role": "striker", "rarity": "legendary", "gender": "female", "apparent_age": "around 30",
-   "seed_base": 201000, "background": "white", "default_eyes": "open", "variant_set": ["eyes_closed", "mouth_open", "smile"], "loras": [],
+   "seed_base": 201000, "background": "grey", "default_eyes": "open", "variant_set": ["eyes_closed", "mouth_open", "smile"], "loras": [],
    "subject": "1girl, solo, adult, mature female",
    "adult_face": "",
    "body": "huge breasts, wide hips, thick thighs",
@@ -299,7 +299,7 @@
    "expression": "smirk",
    "head": "ram horns, mini crown",
    "wings_tail": "bat wings, demon tail",
-   "outfit": "armored dress, plunging neckline, single pauldron, leotard under clothes, side slit, garter straps",
+   "outfit": "armored dress, plunging neckline, single pauldron, (leotard under clothes:1.3), black leotard, side slit, garter straps",
    "footwear": "thigh boots",
    "accessories": "",
    "weapon": "flaming sword, sword over shoulder",
@@ -311,7 +311,7 @@
     "eyes_closed": "closed eyes, smirk, confident",
     "mouth_open": "red eyes, open mouth, laughing, confident"
    },
-   "brief_gaps": ["Eye colour not in the brief: red.", "The skirt slits open over a black highleg leotard worn under the dress ('leotard under clothes'), so the hip-high slits show opaque fabric, never a bare hip.", "Gold filigree, the black of the horns and the greatsword's size are not tagged (token budget; the palette carries the colours); add with fix.py if the first candidates lack them.", "The flame is tagged tightly ('flaming sword', no loose 'fire'); bigger flames are the rig's VFX."]
+   "brief_gaps": ["ComfyUI pilot (2026-10-17, NoobAI-XL-Vpred-v1.0): as written, 6 of 6 passed the filter at 0.5 but the slits often showed bare hip with no leotard line (held at 1:1 review); weighting (leotard under clothes:1.3) plus black leotard put the opaque leotard in every slit (6 of 6 pass). Grey background: white gave flat ink-sketch renders.", "Eye colour not in the brief: red.", "The skirt slits open over a black highleg leotard worn under the dress ('leotard under clothes'), so the hip-high slits show opaque fabric, never a bare hip.", "Gold filigree, the black of the horns and the greatsword's size are not tagged (token budget; the palette carries the colours); add with fix.py if the first candidates lack them.", "The flame is tagged tightly ('flaming sword', no loose 'fire'); bigger flames are the rig's VFX."]
   },
   "brakka": {
    "name": "Brakka", "faction": "infernal", "role": "guardian", "rarity": "epic", "gender": "female", "apparent_age": "adult (30s)",
@@ -415,7 +415,7 @@
   },
   "noctaire": {
    "name": "Noctaire", "faction": "fallen", "role": "assassin", "rarity": "legendary", "gender": "female", "apparent_age": "late 20s",
-   "seed_base": 301000, "background": "green", "size": [832, 1216], "default_eyes": "open", "variant_set": ["eyes_closed", "mouth_open", "smile"], "loras": [],
+   "seed_base": 301000, "background": "grey", "size": [832, 1216], "default_eyes": "open", "variant_set": ["eyes_closed", "mouth_open", "smile"], "loras": [],
    "subject": "1girl, solo, adult, mature female",
    "adult_face": "",
    "body": "tall female, large breasts, long legs",
@@ -436,7 +436,7 @@
     "eyes_closed": "closed eyes, melancholy",
     "mouth_open": "purple eyes, half-closed eyes, open mouth, melancholy"
    },
-   "brief_gaps": ["'Tattered' drapes are expressed as a plain 'black pelvic curtain' (the 'torn clothes' tag invites exposure).", "Footwear not in the brief: thigh boots (the heels are not tagged: token budget).", "Wings are 'black wings, large wings' ('feathered wings' cut for the token budget); the violet tips are left to fix.py.", "The scythe's violet glow is left to the rig.", "Green background and a wide 832x1216 frame: long silver hair (clashes with white and grey) and large wings.", "Sideboob on a highleg corset leotard: check at 1:1. Pilot-render about 4 seeds before the full batch: the farm's exposure filter (tools/artgen/config.py) may drop many candidates of this reveal; never loosen it, cut the reveal in the brief instead."]
+   "brief_gaps": ["'Tattered' drapes are expressed as a plain 'black pelvic curtain' (the 'torn clothes' tag invites exposure).", "Footwear not in the brief: thigh boots (the heels are not tagged: token budget).", "Wings are 'black wings, large wings' ('feathered wings' cut for the token budget); the violet tips are left to fix.py.", "The scythe's violet glow is left to the rig.", "Green background and a wide 832x1216 frame: long silver hair (clashes with white and grey) and large wings.", "Sideboob on a highleg corset leotard: check at 1:1. Pilot-render about 4 seeds before the full batch: the farm's exposure filter (tools/artgen/config.py) may drop many candidates of this reveal; never loosen it, cut the reveal in the brief instead.", "ComfyUI pilot (2026-10-17, NoobAI-XL-Vpred-v1.0): rendered on grey instead of green (6 of 6 pass the filter at 0.5 as designed); on light backgrounds NoobAI may paint white highlights inside the scythe blade that read as holes: check the blade at 1:1."]
   },
   "orrin": {
    "name": "Orrin", "faction": "fallen", "role": "guardian", "rarity": "epic", "gender": "female", "apparent_age": "around 30",
