@@ -34,7 +34,8 @@ AUX = {
 }
 
 # ------------------------------------------------------------------ render presets
-# Owner directive (2026-10-16): Animagine XL 4.0's model-card settings for every render, candidates
+# After the owner asked for "the correct cfg" (2026-10-16), Claude chose Animagine XL 4.0's model-card
+# settings for every render (768x1344 is also a model-card size), candidates
 # included: Euler Ancestral, CFG 5, 28 steps, 832x1216 portrait, quality tags at the END (the bible's
 # animagine family has quality_position "end"). No speed LoRAs: Lightning/LCM ran at CFG <= 1.8, washed
 # the images out and (at CFG 1) switched the negative prompt off. `draft` is an explicit opt-in only.

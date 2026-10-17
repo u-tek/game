@@ -1,6 +1,9 @@
 # Tech Plan
 
-Status: **Draft v0.1**. Engine is decided (Unity). Backend is not decided yet; see "Backend" below.
+Status: **Draft v0.1, historical.** Written when Unity was the engine. The project is now
+Godot 4.5.1 (`docs/dev/architecture.md`); Unity is only a possible later port
+(`docs/dev/unity-port.md`), and v1 has no backend. The server-authority rules below still apply
+in principle. Backend is not decided yet; see "Backend" below.
 
 This doc is written for a team that is new to programming and game development. Each choice
 says *why*, so you can push back on it.

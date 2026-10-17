@@ -1,7 +1,6 @@
 # Halo & Horn UI Style v2: "Tactical Gacha"
 
-Style v2 replaces v1's "twilight cathedral" look (dark indigo and gold filigree, see
-architecture.md section 7). The owner asked for a UI that closely follows the **layout and
+Style v2 replaces v1's "twilight cathedral" look (dark indigo and gold filigree). The owner asked for a UI that closely follows the **layout and
 visual language** of the owner-supplied reference game (its screenshots are kept privately,
 outside the repo; this repo never names it). This document is the contract for that look:
 tokens, components (all built by `Kit`, `src/ui/kit.gd`), the app shell (`src/ui/main.gd`)
@@ -31,9 +30,10 @@ feel) and none of its protected expression.
   brackets, hexes, chevrons) is generic geometry drawn by `KitBox` / `Deco`. The rarity mark
   is our own chevron stack, not an "SSR" logotype. The lobby centre tab is a hexagon, not a
   sphere in a triangle.
-- **Reference screenshots stay private.** They live outside the repo
-  (`/home/user/tools/ui-ref/`). Never copy them, crops of them or composites into the repo or
-  any committed file. Side-by-side reviews go to `/tmp/claude-0/ui-compare/`.
+- **Reference screenshots stay private.** They live outside the repo, in a private folder on
+  the working machine; a new session does not have them and asks the owner to send them again.
+  Never copy them, crops of them or composites into the repo or any committed file. Side-by-side
+  reviews go to a private scratch folder outside the repo.
 - **Our own palette and type.** Barlow and Barlow Condensed (OFL) for type. Accent colors are
   common UI blues and oranges. Rarity names are Rare, Epic and Legendary.
 - **Our own content.** Angels, demons and the fallen, painted in our own art style
@@ -483,5 +483,5 @@ never assumes the placeholder silhouettes:
   the e2e strings ("Skip", "Done", "OK", "Onward", "Fight", "Claim", "Test purchase: no
   charge", ...) on the buttons the tests press.
 - Review: `tools/shoot <screen> --rich --safe-area-sim`, then put the shot next to the
-  matching reference (privately, under `/tmp/claude-0/ui-compare/`) and check it reads as
+  matching reference (privately, in a scratch folder outside the repo) and check it reads as
   the same family at a glance.

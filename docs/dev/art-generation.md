@@ -1,8 +1,11 @@
 # AI art generation (ComfyUI pipeline and prompt bible)
 
-Hero art is **AI-rendered on the owner's own ComfyUI** (local GPU behind an HTTPS tunnel, see
-`docs/dev/comfyui-setup.md`) with an anime SDXL checkpoint, then cut out, placed on the HaloRig
-canvas and given expression variants. Delivery spec and review rubric: `docs/dev/art-style.md`.
+This pipeline renders hero art on the **owner's own ComfyUI** (local GPU, either reached from a
+session on that PC at `http://127.0.0.1:8188` or behind an HTTPS tunnel, see
+`docs/dev/comfyui-setup.md`) with an anime SDXL checkpoint, then cuts it out, places it on the
+HaloRig canvas and adds expression variants. It has not been run against a real server yet: the
+15 shipped heroes came from the art farm (`docs/dev/art-farm.md`), which reuses this pipeline's
+prompts and post-processing. Delivery spec and review rubric: `docs/dev/art-style.md`.
 Character designs: `docs/dev/character-briefs.md` (the design source; it wins over this file).
 
 | Piece | File |
@@ -51,8 +54,9 @@ How the pipeline enforces it (`data/art_prompts.json` → `content_rules`, `tool
 
 ## 2. Tonight's runbook
 
-Prerequisite: `COMFYUI_URL` and `COMFYUI_AUTH` set in the environment (`docs/dev/comfyui-setup.md`).
-Never print or commit the auth value. Commands run from the repo root.
+Prerequisite: `COMFYUI_URL` set in the environment (`http://127.0.0.1:8188` for a session on the
+PC), plus `COMFYUI_AUTH` for the tunnel route only (`docs/dev/comfyui-setup.md`). Never print or
+commit the auth value. Commands run from the repo root (on Windows use `python`, not `python3`).
 
 ```bash
 # 0. sanity: tests (offline) and server
@@ -84,6 +88,12 @@ python3 tools/comfy/finalize.py seraphiel 101003            # or the _fixed.png 
 python3 tools/comfy/variants.py seraphiel --count 3
 #    Read art_src/seraphiel/variants/sheet_<name>.png; promote a better try:
 python3 tools/comfy/variants.py seraphiel --pick eyes_open=101502
+
+# 4b. exposure filter: required before anything goes into assets/ (prints PASS/DROP, deletes nothing).
+#     On the PC, once: pip install -r tools/artgen/requirements-collect.txt; git fetch origin art-gen-output
+#     (the canary). A DROP stays out of assets/ and git. It can't run in a cloud container (exit 3).
+python3 tools/artgen/safety.py selftest
+python3 tools/artgen/safety.py check art_src/seraphiel/final/seraphiel.png art_src/seraphiel/variants/eyes_open.png ...
 
 # 5. into the game, then rig (the rig and assets/ belong to the art owner, see architecture.md)
 python3 tools/comfy/install.py seraphiel        # copies <id>.png + variants/*.png, prints warp_src hints

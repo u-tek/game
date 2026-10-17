@@ -1,6 +1,7 @@
 # Roadmap
 
-Status: **Draft v0.1**. Durations are rough ranges for a small team that is new to game
+Status: **Draft v0.1, historical** (written for a Unity team before the Godot v1 and HaloRig
+existed; current state: `docs/dev/status.md`). Durations are rough ranges for a small team that is new to game
 development. Treat them as planning placeholders and re-estimate at the end of every phase.
 
 ## Reality check first

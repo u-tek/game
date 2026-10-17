@@ -3,8 +3,9 @@
 Heroes are **painted, full-body anime/gacha illustrations** (raster PNG with transparency,
 one image per hero plus face variants), animated by the HaloRig **warp rig**
 (`docs/dev/halorig.md` section 8). Briefs: `docs/dev/character-briefs.md` (they override the
-`look` text in `src/data/heroes.gd`). Visual direction of the game: "Twilight cathedral"
-(`docs/dev/architecture.md` section 7): heroes are shown on a deep indigo `#120e24`.
+`look` text in `data/heroes.json`). Visual direction of the game: UI v2
+(`docs/dev/ui-style-v2.md`); the v1 "twilight cathedral" look is retired. Review cutouts on deep
+indigo `#120e24` and on white.
 
 Vector character art is discontinued. All 15 heroes ship painted art from the art farm
 (`docs/dev/art-farm.md`, section "Imported into the game"); Seraphiel's vector stand-in and its
@@ -89,6 +90,9 @@ Skin (all factions, adjust per hero): base `#fde8dc`, shadow `#f5c6b3`, deep `#e
 blush `#f59c9c`. Demons may use red/grey skins from their brief.
 
 ## 5. Prompt template for the image service
+
+Historical template. The live prompts are in `data/art_prompts.json` (the bible), which uses
+"detailed shading" instead of "cel shading" and renders on a flat backdrop that the cutout removes.
 ```
 masterpiece, best quality, official gacha game character art, full body, single character,
 adult woman, mid-20s, [brief: costume, hair, wings, weapon...], 3/4 view facing right,

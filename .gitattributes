@@ -1,0 +1,8 @@
+# Shell scripts keep LF line endings, also in a Windows checkout (bash fails on CRLF).
+*.sh text eol=lf
+tools/check text eol=lf
+tools/gd text eol=lf
+tools/shoot text eol=lf
+tools/art_build text eol=lf
+tools/art_preview text eol=lf
+tools/art_warp text eol=lf

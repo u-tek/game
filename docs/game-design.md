@@ -1,6 +1,7 @@
 # Game Design (GDD)
 
-Status: **Draft v0.1**. All numbers are **placeholders** until the economy spreadsheet exists.
+Status: **Draft v0.1**. Numbers here are **placeholders**; the live v1 numbers are in
+`data/*.json` and `docs/dev/economy-v1.md`.
 Each system has a scope tag:
 
 - **Slice**: in the offline vertical slice (Phase 2)

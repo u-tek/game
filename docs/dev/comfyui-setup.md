@@ -1,5 +1,9 @@
 # Connecting your ComfyUI (tonight's checklist)
 
+Not done yet. A simpler route needs no tunnel: a Claude Code session running on the owner's PC
+talks to ComfyUI at `http://127.0.0.1:8188` (see `docs/dev/status.md`, next steps). The tunnel
+below is for reaching the PC from a cloud session.
+
 Claude's cloud machine needs to reach your ComfyUI over HTTPS. Takes about 10 minutes.
 
 ## 1. ComfyUI on your PC

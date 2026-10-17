@@ -56,7 +56,7 @@ tests/
 | `src/core/game.gd` | `GameService` MonoBehaviour | Clock, save file, C# events instead of signals, app pause/resume. |
 | `tests/golden.gd` + `test_fixtures.gd` | `Core.Tests/FixtureTests.cs` (NUnit) | Replays `data/fixtures/*.json`. |
 | `src/ui/**` | uGUI screens | Rebuilt; `screenshots/` and `docs/game-design.md` are the reference. |
-| `assets/art/**` (SVG + PNG, rig JSON) | Sprites, HaloRig runtime | See `docs/dev/halorig.md`. |
+| `assets/art/**` (painted PNG heroes, SVG icons, rig JSON) | Sprites, HaloRig runtime | See `docs/dev/halorig.md`. |
 | `assets/fonts/*.ttf` (OFL) | TextMeshPro font assets | |
 | `user://save.json` | `Application.persistentDataPath/save.json` | Same JSON, so a player could keep progress. |
 

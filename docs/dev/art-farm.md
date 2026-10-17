@@ -39,7 +39,7 @@ MCP `actions_run_trigger` with `workflow_id: art-gen.yml`:
 | `count` | candidates per hero, 1-12 (seeds `seed_base + i`, or from `seeds` `{"hero": first_seed}`); bench: jobs, 1-3 |
 | `seeds` | final: `{"seraphiel": {"seeds": [101000], "run": "<candidate run dir>", "flip": false}}` (the run is **required**) |
 | `preset` | `standard` (default, Animagine XL 4.0 model card) or `draft` (opt-in) |
-| `style` | `farm` (default overlay, section 2) or `bible` (the bible as written) |
+| `style` | `farm` (default overlay, section 2) or `bible` (the bible as written). **Every production run used `bible`**: the farm overlay raised the exposure scores (section 6), so pass `style=bible` |
 | `dtype` | `fp32` (default) or `bf16` (candidates and bench only; final refuses it) |
 | `per_job` | candidates per job (0 = one job per hero; default 1 = one image per job, the most parallel) |
 | `label` | folder label (`[a-z0-9-]`, 40 chars) |
@@ -88,9 +88,11 @@ candidate missing or invalid (nothing rendered).
   runners). Prompt weights and chunking follow ComfyUI (75-token chunks, words kept whole,
   `(tag:w)` as `z_empty + (z - z_empty) * w`, positive/negative aligned by repetition), so the
   bible's prompts mean the same here as on ComfyUI.
-- **Settings (owner directive)**: Animagine XL 4.0's model-card settings for every render,
-  candidates included: Euler Ancestral, CFG 5, 28 steps, 832x1216 portrait, quality tags at the
-  end (the bible's animagine family). Accepted cost: about 25-40 min per candidate on these CPUs.
+- **Settings** (after the owner's "make sure you're using the correct cfg"; the values below are
+  Claude's choice from the model card, and the owner never asked for 832x1216): Animagine XL 4.0's
+  model-card settings for every render, candidates included: Euler Ancestral, CFG 5, 28 steps,
+  832x1216 portrait, quality tags at the end (the bible's animagine family). Accepted cost: about
+  25-40 min per candidate on these CPUs.
 
 | Preset | What | UNet passes per image |
 |---|---|---|
@@ -404,9 +406,10 @@ interior (still an orb, the hand intact).
   16 steps at 1 MP (17-25 min), 3 variants at 768 px x 14 steps (22-34 min), loads, cutout and
   filter about 10 min: about 1.7-2.5 h, inside the 270-min budget; finals run in parallel.
 
-The final-mode numbers above are estimates until the first final smoke; each final's
+The final-mode numbers above were estimates made before the first final. Measured: the
+production finals (38881543229) took 83-143 min per job with VmHWM up to 14.65 GB; each final's
 `<hero>.json` and `job_<key>.json` record the measured s/step, VmHWM per stage and the decode
-mode, and this section is updated from them.
+mode.
 
 **Checked locally (torch 2.8.0, diffusers 0.35.2, no model download):**
 - `tools/artgen/test_sdxl_tiny.py` drives the real `sdxl.Engine` with a tiny random SDXL-shaped
@@ -452,10 +455,15 @@ All 15 finals are installed in `assets/art/heroes/<id>/` (`<id>.png`, `variants/
 | imra | 38881543229 | s204000 | lantern on its own accessory spring |
 | kessa | 38881543229 | s205000 | scarf on a ribbon spring; white rims in the hair |
 | noctaire | 38881543229 | s301000 | soft floor shadow under the feet |
-| orrin | 38902617668 | s302000 | alternate seed (s302002 is dropped by the filter every run); no chest chain |
+| orrin | 38902617668 | s302000 | alternate seed (s302002's canvas was dropped in its only final run, 38881543229; renders are deterministic, so a re-run would drop it again); no chest chain |
 | sable | 38902617668 | s303001 | alternate seed (s303000 dropped twice); chains instead of the censer; thigh haze |
 | lucen | 38881543229 | s304000 | |
 | ashra | 38881543229 | s305001 | chest re-shaded by the repair |
+
+Four picks were also cover-repaired at the candidate stage (the `repair` record in
+`runs/38859902166-candidates-round1-v3/<hero>/<hero>_s<seed>.json`), and finals start from that
+repaired preview, so those repairs are in the shipped art: orrin s302000 (chest), sable s303001
+(hips and upper thighs), liora s103000 (chest and hem) and vesper s203000 (hip).
 
 Rig conventions used for all 15: `face` ellipse and `hair_front` from the farm's face box, `head`
 ellipse (plus hat/horn polygons where needed), a `halo` bone for haloed heroes, hair masses as

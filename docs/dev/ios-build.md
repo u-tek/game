@@ -15,13 +15,12 @@ so the IPA is built on GitHub's macOS runners by the **iOS build** workflow
 
 ## Running it
 
-GitHub Actions must be able to start jobs on the repo. On this account they currently fail
-instantly (no logs), which usually means a billing or spending-limit block on private repos.
-Public repos get macOS minutes free. Then:
+The repo is public, so GitHub's macOS runners are free and builds work (while it was private,
+every job failed instantly). Then:
 
 - GitHub → **Actions** → **iOS build** → **Run workflow**, or ask Claude to trigger it.
-- A build takes about 10–20 minutes (the first run downloads Godot and templates, ~1 GB; later
-  runs use the cache).
+- A build takes about 2-4 minutes. The first run (38804639017), which downloaded Godot and the
+  templates, took 1m39s; run 38946000040 with the painted art took 3m13s.
 - Download the artifact from the run page (it's a .zip containing `HaloAndHorn.ipa`).
 
 ## Sideloading

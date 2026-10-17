@@ -2,7 +2,9 @@
 
 Outputs of the ComfyUI pipeline in `tools/comfy/` (guide: `docs/dev/art-generation.md`).
 Godot ignores this folder (`.gdignore`); approved art is copied to `assets/art/heroes/<id>/`
-by `tools/comfy/install.py`.
+by `tools/comfy/install.py` after it passes `tools/artgen/safety.py check`. Git ignores every
+image here (`.png`, `.webp`, `.jpg`), plus `history/` and `_handoff/`: the repo is public, so
+only this README, `.gitignore`, `.gdignore` and JSON metadata are ever committed from this folder.
 
 ```
 art_src/

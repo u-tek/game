@@ -93,7 +93,7 @@ flock /tmp/halo-godot.lock xvfb-run -a -s "-screen 0 1800x2400x24" godot --path 
 | `src/core/` | Rules and state (`GameModel`, battle sim, RNG, stat formulas); `game.gd` is the `Game` autoload |
 | `src/data/`, `data/*.json` | Content and tuning (heroes, kits, stages, economy, banner, quests, offers) |
 | `src/ui/` | `UI` autoload (navigation, toasts, popups, sound), `Kit` widgets, theme, screens |
-| `src/art/`, `assets/art/` | HeroArt API and the HaloRig animation runtime; hero, UI and background art |
+| `src/art/`, `assets/art/` | HeroArt API and the HaloRig animation runtime; painted hero art and UI icons (scene backdrops are drawn in code by `src/ui/battle/scene_backdrop.gd`) |
 | `tests/` | Unit tests, golden fixtures checks, e2e scripts and balance tools |
 | `tools/` | `check`, `shoot`, `gd`, art pipeline scripts |
 
@@ -101,12 +101,14 @@ flock /tmp/halo-godot.lock xvfb-run -a -s "-screen 0 1800x2400x24" godot --path 
 
 | Doc | What's in it |
 |---|---|
+| [Status](docs/dev/status.md) | Start here: where things stand, open owner decisions, known issues, next steps |
 | [Architecture](docs/dev/architecture.md) | The build contract: APIs, data shapes, folder ownership, art rules |
 | [UI style v2](docs/dev/ui-style-v2.md) | The current look: tokens, Kit components, shell, every screen's layout |
 | [Economy v1](docs/dev/economy-v1.md) | Formulas, pacing timeline, stage and kit tables, tuning tools |
 | [Unity port](docs/dev/unity-port.md) | Module map, JSON fields, RNG, battle tick order, save format, fixtures |
 | [HaloRig](docs/dev/halorig.md) | The warp-rig animation system for painted heroes |
-| [Art generation](docs/dev/art-generation.md), [ComfyUI setup](docs/dev/comfyui-setup.md) | Producing hero art |
+| [Art farm](docs/dev/art-farm.md) | How the shipped hero art is made: AI rendering on GitHub Actions, exposure filter, each hero's run and seed |
+| [Art generation](docs/dev/art-generation.md), [ComfyUI setup](docs/dev/comfyui-setup.md) | The ComfyUI pipeline for a GPU PC (not used for the shipped art yet) and the prompt bible the farm renders from |
 | [Art style](docs/dev/art-style.md), [Character briefs](docs/dev/character-briefs.md) | Art direction and per-hero designs |
 | [iOS build](docs/dev/ios-build.md) | Building and sideloading the IPA |
 
@@ -116,7 +118,7 @@ flock /tmp/halo-godot.lock xvfb-run -a -s "-screen 0 1800x2400x24" godot --path 
 |---|---|
 | [Vision](docs/vision.md) | Pitch, pillars, target players, and how we differ from Idle Angels |
 | [Game design](docs/game-design.md) | Core loop and every system, tagged Slice / Launch / Later |
-| [Tech plan](docs/tech-plan.md) | Unity setup, backend, data pipeline, rules that keep the economy safe |
-| [Roadmap](docs/roadmap.md) | Phases from learning Unity to global launch, with exit criteria and team roles |
+| [Tech plan](docs/tech-plan.md) | Historical (written when Unity was the engine): backend, data pipeline, rules that keep the economy safe |
+| [Roadmap](docs/roadmap.md) | Historical (written for a Unity team): phases to global launch, exit criteria, team roles |
 | [Open questions](docs/open-questions.md) | Decisions made, decisions pending, risks, legal notes |
 | [Reference: Idle Angels](docs/reference-idle-angels.md) | How the reference game works, what its players praise and criticize, with sources |

@@ -8,21 +8,24 @@ Status: **Draft v0.1**. Tags say *when* each question must be answered:
 | Date | Decision | Notes |
 |---|---|---|
 | 2026-10-15 | Genre: idle/AFK gacha RPG in the style of Idle Angels | |
-| 2026-10-15 | Engine: Unity | See `tech-plan.md` |
+| 2026-10-15 | Engine: Unity | Superseded the same day by Godot (below) |
 | 2026-10-15 | Theme: celestial angels vs. demons, with original characters, story and art | |
 | 2026-10-15 | Team: small team, commercial goal, new to game dev | Drives the phased roadmap |
 | 2026-10-15 | Engine changed to **Godot 4.5** (GDScript), kept portable to Unity | Claude builds and tests it end to end; see `docs/dev/unity-port.md` |
 | 2026-10-15 | iOS builds on GitHub Actions macOS runners (repo made public) | Unsigned IPA for sideloading; `docs/dev/ios-build.md` |
-| 2026-10-15 | Art made in-house: full-scale vector anime characters, animated with our own HaloRig system (no Spine) | `docs/dev/halorig.md`, `docs/dev/art-style.md` |
+| 2026-10-15 | Art made in-house: full-scale vector anime characters, animated with our own HaloRig system (no Spine) | Vector art superseded on 2026-10-16 (below); HaloRig stays |
 | 2026-10-15 | **Content rating: App Store 18+, suggestive fan-service art.** Adults only; implied, never explicit | `docs/dev/character-briefs.md`. Google Play is stricter; plan alternate outfits for Android |
+| 2026-10-16 | Hero art is AI-painted (Animagine XL 4.0 on the GitHub Actions art farm), one painted PNG per hero on a HaloRig warp rig; all 15 imported | `docs/dev/art-farm.md`, `docs/dev/status.md`. ComfyUI on the owner's PC is the preferred upgrade |
+| 2026-10-16 | Designs pushed to the maximum allure App Store 18+ allows (briefs v3.1), hard lines unchanged | `docs/dev/character-briefs.md` |
+| 2026-10-16 | UI v2 follows the owner's reference game closely, with our own names, icons and fonts | `docs/dev/ui-style-v2.md` |
 
 ## Open questions
 
 ### Team and business
 - **[Now]** Who is on the team, and which roles from `roadmap.md` does each person cover? Which
   roles are missing?
-- **[Now]** Who makes the character art? In-house, contractors, or an outsourcing studio? This
-  is the biggest cost driver.
+- ~~Who makes the character art?~~ **Decided:** AI-painted on the art farm (decisions table,
+  2026-10-16).
 - **[Now]** Budget and runway: how many months can the team work on this before it needs revenue?
 - **[Pre-prod]** Self-publish, or look for a publisher after the vertical slice?
 - **[Later]** Company entity, developer accounts (Apple and Google), and who owns the IP
@@ -32,12 +35,10 @@ Status: **Draft v0.1**. Tags say *when* each question must be answered:
 - **[Pre-prod]** Working title.
 - **[Pre-prod]** Target players and markets: Western, Southeast Asian, East Asian, global?
   This changes art style, monetization and localization.
-- **[Pre-prod]** **Content rating.** Many angel-themed gacha games use suggestive character art.
-  Decide the target age rating early: it affects store featuring, ad networks you can buy
-  traffic from, and some markets.
-- **[Pre-prod]** Portrait or landscape?
-- **[Pre-prod]** Team size in battle: 5 (proposed) or 6 like Idle Angels? Is the 3-faction
-  wheel (Celestial, Infernal, Fallen) enough? See `game-design.md`.
+- ~~Content rating~~ **Decided:** App Store 18+ (decisions table, 2026-10-15).
+- ~~Portrait or landscape?~~ **Decided:** portrait (720x1280 base, `project.godot`).
+- ~~Team size in battle: 5 or 6?~~ **Decided:** 5 in v1, with the 3-faction wheel (Celestial,
+  Infernal, Fallen).
 - **[Pre-prod]** Who is the player character: a mortal envoy or an angel?
 - **[Pre-prod]** VIP system: yes or no? If yes, convenience-only perks?
 - **[Pre-prod]** Rewarded ads: yes or no? (Affects ad SDKs and content rating.)
@@ -47,8 +48,10 @@ Status: **Draft v0.1**. Tags say *when* each question must be answered:
   whether duplicates or fodder gate star-ups.
 
 ### Tech
-- **[Pre-prod]** Backend: Unity Gaming Services vs PlayFab (spike planned).
-- **[Pre-prod]** Spine vs Unity 2D Animation.
+- **[Pre-prod]** Backend: still open. The original "Unity Gaming Services vs PlayFab" framing is
+  from the Unity era (`tech-plan.md` is historical); the game is Godot now.
+- ~~Spine vs Unity 2D Animation~~ **Superseded:** HaloRig, our own warp rig (decisions table,
+  `docs/dev/halorig.md`).
 - **[Later]** Anti-cheat level for PvP: re-simulate arena battles server-side?
 
 ## Risks

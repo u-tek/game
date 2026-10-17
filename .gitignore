@@ -12,3 +12,5 @@ build/
 # Python
 __pycache__/
 *.pyc
+# Local checkout of the art-gen-output branch (tools/art_import)
+/artgen-out/

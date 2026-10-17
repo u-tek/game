@@ -1,0 +1,92 @@
+{
+ "seraphiel": {
+  "canvas": "runs/38881543229-final-round1-v3/seraphiel/final_s101000/seraphiel.png",
+  "label": "s101000 fit 77% repaired",
+  "note": "halo grey pockets; repair: collar",
+  "run": "38881543229-final-round1-v3"
+ },
+ "cassiel": {
+  "canvas": "runs/38881543229-final-round1-v3/cassiel/final_s102000/cassiel.png",
+  "label": "s102000 fit 79%",
+  "note": "eyes_closed = wink",
+  "run": "38881543229-final-round1-v3"
+ },
+ "liora": {
+  "canvas": "runs/38881543229-final-round1-v3/liora/final_s103000/liora.png",
+  "label": "s103000 fit 75% flip repaired",
+  "note": "repair: lace bottom gone; no portrait",
+  "run": "38881543229-final-round1-v3"
+ },
+ "uriela": {
+  "canvas": "runs/38881543229-final-round1-v3/uriela/final_s104001/uriela.png",
+  "label": "s104001 fit 78% flip",
+  "note": "",
+  "run": "38881543229-final-round1-v3"
+ },
+ "nuriel": {
+  "canvas": "runs/38881543229-final-round1-v3/nuriel/final_s105001/nuriel.png",
+  "label": "s105001 fit 80%",
+  "note": "wing notch; no portrait",
+  "run": "38881543229-final-round1-v3"
+ },
+ "mordessa": {
+  "canvas": "runs/38881543229-final-round1-v3/mordessa/final_s201001/mordessa.png",
+  "label": "s201001 fit 70%",
+  "note": "white rims in hair",
+  "run": "38881543229-final-round1-v3"
+ },
+ "brakka": {
+  "canvas": "runs/38881543229-final-round1-v3/brakka/final_s202001/brakka.png",
+  "label": "s202001 fit 82% repaired",
+  "note": "repair: chest red->orange; wink",
+  "run": "38881543229-final-round1-v3"
+ },
+ "vesper": {
+  "canvas": "runs/38913405511-final-round1-v3-vesper-props/vesper/final_s203000/vesper.png",
+  "label": "s203000 fit 80% repaired",
+  "note": "re-run: orb kept; wink",
+  "run": "38913405511-final-round1-v3-vesper-props"
+ },
+ "imra": {
+  "canvas": "runs/38881543229-final-round1-v3/imra/final_s204000/imra.png",
+  "label": "s204000 fit 89%",
+  "note": "",
+  "run": "38881543229-final-round1-v3"
+ },
+ "kessa": {
+  "canvas": "runs/38881543229-final-round1-v3/kessa/final_s205000/kessa.png",
+  "label": "s205000 fit 75%",
+  "note": "white hair rims",
+  "run": "38881543229-final-round1-v3"
+ },
+ "noctaire": {
+  "canvas": "runs/38881543229-final-round1-v3/noctaire/final_s301000/noctaire.png",
+  "label": "s301000 fit 77%",
+  "note": "soft floor shadow",
+  "run": "38881543229-final-round1-v3"
+ },
+ "orrin": {
+  "canvas": "runs/38902617668-final-round1-v3-retry/orrin/final_s302000/orrin.png",
+  "label": "s302000 fit 78%",
+  "note": "alt seed: no chest chain",
+  "run": "38902617668-final-round1-v3-retry"
+ },
+ "sable": {
+  "canvas": "runs/38902617668-final-round1-v3-retry/sable/final_s303001/sable.png",
+  "label": "s303001 fit 75%",
+  "note": "alt seed: chains, thigh haze",
+  "run": "38902617668-final-round1-v3-retry"
+ },
+ "lucen": {
+  "canvas": "runs/38881543229-final-round1-v3/lucen/final_s304000/lucen.png",
+  "label": "s304000 fit 73%",
+  "note": "",
+  "run": "38881543229-final-round1-v3"
+ },
+ "ashra": {
+  "canvas": "runs/38881543229-final-round1-v3/ashra/final_s305001/ashra.png",
+  "label": "s305001 fit 82% repaired",
+  "note": "repair: chest re-shaded",
+  "run": "38881543229-final-round1-v3"
+ }
+}
