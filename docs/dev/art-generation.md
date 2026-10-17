@@ -15,6 +15,7 @@ Character designs: `docs/dev/character-briefs.md` (the design source; it wins ov
 | Workflow graph builders (core nodes only by default) | `tools/comfy/workflows.py`, schemas in `core_nodes.py` |
 | Prompt composer + content-rule enforcement | `tools/comfy/prompts.py` |
 | Candidates + contact sheet | `tools/comfy/run_hero.py` |
+| Whole roster: status, candidates for every hero | `tools/comfy/roster.py` |
 | Face polish, upscale, cutout, canvas placement | `tools/comfy/finalize.py` (image ops in `post.py`) |
 | Eyes closed/open, mouth open, smile, hurt | `tools/comfy/variants.py` |
 | Fix hands/props/faces by inpainting | `tools/comfy/fix.py` |
@@ -101,7 +102,9 @@ tools/art_warp seraphiel --regen-masks           # docs/dev/halorig.md
 ```
 
 Order for the roster: the three starters (uriela, kessa, lucen), then legendaries (seraphiel,
-mordessa, noctaire), then epics, then the remaining rares. Keep one checkpoint and the same
+mordessa, noctaire), then epics, then the remaining rares. `python3 tools/comfy/roster.py status`
+shows where every hero stands; `roster.py candidates --count 8` runs step 1 for each hero in that
+order and skips seeds that already exist. Keep one checkpoint and the same
 settings for all 15 (consistency). Budget: about 30-60 s per candidate on a mid-range GPU at
 the defaults (768x1344, 28 steps, hires 1.5x).
 
@@ -195,16 +198,16 @@ in unrelated existing characters).
 | cassiel | mid-20s | grey | 102000+ | eyes_closed, mouth_open, smile |
 | liora | early 20s, clearly adult | grey | 103000+ | eyes_closed, mouth_open, smile |
 | uriela | early 20s | grey | 104000+ | eyes_closed, mouth_open, smile |
-| nuriel | adult man, mid-20s | grey | 105000+ | eyes_closed, smile (eyes only: mouth is masked) |
+| nuriel | mid-20s | grey | 105000+ | eyes_closed, smile (eyes only: mouth is masked) |
 | mordessa | around 30 | white | 201000+ | eyes_closed, mouth_open, smile |
-| brakka | adult man | white | 202000+ | eyes_closed, mouth_open, smile |
+| brakka | 30s | white | 202000+ | eyes_closed, mouth_open, smile |
 | vesper | late 20s | white | 203000+ | eyes_closed, mouth_open, smile |
 | imra | early 20s, petite but clearly adult | white | 204000+ | eyes_closed, mouth_open, smile |
 | kessa | mid-20s | white | 205000+ | eyes_closed, mouth_open, smile |
 | noctaire | late 20s | white | 301000+ | eyes_closed, mouth_open, smile |
-| orrin | adult man, around 30 | white | 302000+ | eyes_closed, mouth_open, smile |
+| orrin | around 30 | green | 302000+ | eyes_closed, mouth_open, smile |
 | sable | late 20s | white | 303000+ | eyes_closed, mouth_open, smile |
-| lucen | adult man, mid-20s | grey | 304000+ | eyes_closed, mouth_open, smile |
+| lucen | mid-20s | grey | 304000+ | eyes_closed, mouth_open, smile |
 | ashra | mid-20s | white | 305000+ | eyes_closed, mouth_open, smile |
 
 Edit the bible to iterate on looks; the tests (`test_pipeline.py`) re-check every hero against
@@ -233,8 +236,17 @@ the content rules for every family.
 Graphs are ComfyUI API format (`{"id": {"class_type", "inputs"}}`, links `["id", output_index]`),
 validated before sending against the server's `/object_info` (offline: the embedded core schema).
 
+Long prompts: ComfyUI cuts a prompt longer than 75 CLIP tokens at exactly token 75, so a tag at the
+break is split into unrelated words (`covered | nipples` in a negative, `white | wings` in a
+positive). `workflows.text_cond` packs whole tags into chunks (`prompts.split_chunks`, at most
+`CHUNK_PACK` = 66 estimated tokens, which measured at most 73 real CLIP tokens over every hero,
+family and face prompt) and joins one `CLIPTextEncode` per chunk with `ConditioningConcat`. The
+first chunk's pooled output is kept, as in ComfyUI's own chunking. `prompts.graph_prompts` reads
+the chunks behind one sampler input back as one prompt for the content-rule check.
+
 - **txt2img**: `CheckpointLoaderSimple → [LoraLoader…] → [CLIPSetLastLayer] →
-  [ModelSamplingDiscrete → RescaleCFG] → CLIPTextEncode ×2 → EmptyLatentImage → KSampler →
+  [ModelSamplingDiscrete → RescaleCFG] → CLIPTextEncode per chunk → ConditioningConcat →
+  EmptyLatentImage → KSampler →
   LatentUpscaleBy 1.5 → KSampler (denoise 0.5) → VAEDecode → SaveImage` (or the model-upscale
   hires path: `VAEDecode → UpscaleModelLoader/ImageUpscaleWithModel → ImageScaleBy → VAEEncode →
   KSampler 0.4`). Optional IPAdapter (schema-filled) and core ControlNet.

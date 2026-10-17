@@ -153,7 +153,7 @@
 			"role": "assassin",
 			"rarity": "rare",
 			"bio": "A quiet scout who hunts in the moment between night and morning. Says little, misses nothing.",
-			"look": "Lean, muscular adult man with short messy pale-gold hair and a white cloth mask over his mouth and nose. Sleeveless hooded sky-blue scout jacket worn open over a bare chest and abs, thin leather chest harness, low-slung crossed belts on fitted black trousers, wrapped forearms. Arms crossed, twin short daggers of white light in reverse grip. Small sharp wings, faint thin halo.",
+			"look": "Lean, athletic adult kunoichi with messy pale-gold hair in a ponytail, half-lidded eyes and a white cloth mask over her mouth and nose. Cropped sleeveless hooded sky-blue scout jacket worn open over a white chest wrap, bare toned midriff, tight black short shorts with thigh straps, fishnet thighhighs, short boots, wrapped forearms. Arms crossed, twin short daggers of white light in reverse grip. Sharp white wings, faint thin halo.",
 			"base_stats": {"hp": 1500, "atk": 92, "def": 38, "spd": 122, "crit": 2200},
 			"ultimate": {
 				"id": "daybreak_ambush",
@@ -225,13 +225,13 @@
 			"faction": "infernal",
 			"role": "guardian",
 			"rarity": "epic",
-			"bio": "A furnace-golem's grandson with a heart softer than his hide. Loyal to Mordessa, and to anyone who feeds him.",
-			"look": "Enormous, heavily muscled male demon with dark red skin, thick short horns and a friendly tusked grin. Shirtless, huge chest and abs crossed by a chain harness, obsidian armor kilt with glowing magma cracks slung low on his hips over black trousers, enormous molten gauntlets. Flexes both arms. No wings; a thick tail.",
+			"bio": "A furnace-golem's granddaughter with a heart softer than her hide. Loyal to Mordessa, and to anyone who feeds her.",
+			"look": "Enormous, heavily muscled demon amazon with dark red skin, short messy black hair, thick short horns and a friendly tusked grin. Black sports bra under a chain harness, defined abs, obsidian armor kilt with glowing magma cracks over black shorts, enormous molten gauntlets, armored boots. Flexes both arms. No wings; a thick tail.",
 			"base_stats": {"hp": 2960, "atk": 62, "def": 76, "spd": 86, "crit": 500},
 			"ultimate": {
 				"id": "magma_bulwark",
 				"name": "Magma Bulwark",
-				"description": "Plants his molten gauntlets: gains a shield of 40% max HP and Taunts all enemies for 5 s.",
+				"description": "Plants her molten gauntlets: gains a shield of 40% max HP and Taunts all enemies for 5 s.",
 				"effects": [
 					{"type": "shield", "target": "self", "pct_max_hp_bp": 4000},
 					{"type": "status", "target": "self", "status": "taunt", "duration_ms": 5000}
@@ -403,8 +403,8 @@
 			"faction": "fallen",
 			"role": "guardian",
 			"rarity": "epic",
-			"bio": "A knight who swore to guard a gate that no longer exists. He guards his friends now, with the same chains.",
-			"look": "Stoic, broad male fallen knight with shaggy ash-grey hair and a scar over one eye. Cracked silver armor stripped to one pauldron and gauntlets, bare scarred muscular chest wrapped in broken chains, torn violet cape, black trousers on a low-slung belt with a broken halo hanging from it. Holds a heavy chain-wrapped tower shield. Grey ragged wings.",
+			"bio": "A knight who swore to guard a gate that no longer exists. She guards her friends now, with the same chains.",
+			"look": "Stoic, tall fallen knight woman with long shaggy ash-grey hair and a scar over one eye. Cracked silver armor stripped to a breastplate cut low over her cleavage, one pauldron and gauntlets, broken chains wrapped around her, black highleg leotard under a torn violet cape, armored thigh-high greaves, a broken halo hanging from her belt. Holds a heavy chain-wrapped tower shield. Grey ragged wings.",
 			"base_stats": {"hp": 2900, "atk": 68, "def": 84, "spd": 90, "crit": 500},
 			"ultimate": {
 				"id": "chains_of_the_oath",
@@ -478,8 +478,8 @@
 			"faction": "fallen",
 			"role": "striker",
 			"rarity": "rare",
-			"bio": "One wing white, one wing black. He insists he has not chosen a side. His rapier disagrees, daily.",
-			"look": "Flamboyant male duelist with wavy shoulder-length white hair with black tips, half-lidded eyes and a flirtatious smile. Violet and silver coat worn open over a bare toned chest, frilled ascot, tight black leather trousers on a low-slung belt, thigh-high boots, slim rapier, hand on hip. Asymmetric wings: one white feathered, one black feathered. No halo.",
+			"bio": "One wing white, one wing black. She insists she has not chosen a side. Her rapier disagrees, daily.",
+			"look": "Flamboyant slender duelist with long wavy white hair with black tips, half-lidded eyes and a flirtatious smile. Violet and silver long coat worn open over a strapless black bustier, frilled ascot, tight black leather trousers on a low-slung belt, thigh-high boots, slim rapier, hand on hip. Asymmetric wings: one white feathered, one black feathered. No halo.",
 			"base_stats": {"hp": 1710, "atk": 94, "def": 46, "spd": 108, "crit": 1600},
 			"ultimate": {
 				"id": "twinfeather_flurry",

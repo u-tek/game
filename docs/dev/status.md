@@ -13,6 +13,23 @@ with HaloRig. Nothing is running. Several art choices were made
 without the owner and are waiting for their answer (see "Owner decisions pending"). The
 owner's preferred next step for art is ComfyUI on their own GPU PC, which has not been set up yet.
 
+## Current work (2026-10-17)
+
+The owner asked for two things: "use comfyui on my machine to make the art professional. i have a
+noobai xl checkpoint set up and ready to go. also want it to be female only".
+- **Female only:** done in the designs. Nuriel, Brakka, Orrin and Lucen are women in
+  `docs/dev/character-briefs.md` (v3.2), `data/art_prompts.json` and `data/heroes.json` (same ids,
+  names, roles and stats; names kept, the owner can ask for new ones). Their shipped art is still
+  the old male art until the ComfyUI renders replace it.
+- **ComfyUI on the PC:** a cloud thread session asked the owner to allow a Claude session on their
+  PC (Remote Control). That session clones the repo, finds ComfyUI and the NoobAI XL checkpoint,
+  pins it (`comfy.py pin <ckpt> --family illustrious|noobai_vpred`), sets up the exposure filter
+  and calibrates on Uriela before the roster batch. Every final passes
+  `tools/artgen/safety.py check` on the PC before it goes into `assets/`.
+- **Pipeline:** long prompts are now encoded in whole-tag chunks joined by `ConditioningConcat`
+  (`docs/dev/art-generation.md` section 7), so no tag is cut at ComfyUI's 75-token break. The two
+  old `test_pipeline` failures are fixed (a test bug in `test_pin`, `roster.py` missing from the doc).
+
 ## First things a new session should do
 
 1. `git fetch origin` and compare with `origin/claude/game-planning`. On 2026-10-16 the owner was
@@ -163,10 +180,6 @@ in 5) have never been put to them. They have answered none of them; their only m
 - **HaloRig:** rig regions are approximate polygons drawn by eye (hand-painted masks would move
   better). The dissolve effect looks speckled. One flat painting can't swing limbs, so big attacks
   rely on body motion plus effects.
-- **`tools/comfy/test_pipeline.py` has 2 failures:** `test_doc_exists_and_ends_with_the_runbook`
-  expects `art-generation.md` to mention `roster.py` and to end with the runbook section (the doc
-  was restructured); `TestDiscovery.test_pin` expects family `pony` for `myModel_v3.safetensors`
-  and gets `illustrious`.
 - **Tools are Linux-only** bash scripts (flock, xvfb-run). Untested on Windows.
 - **No background art:** `assets/art/backgrounds` is empty; `src/ui/battle/scene_backdrop.gd` draws
   the backdrops in code.

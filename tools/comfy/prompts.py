@@ -199,6 +199,47 @@ def clip_stats(text):
     return {"tokens": total, "chunks": chunks}
 
 
+CHUNK_PACK = 66          # estimated tokens per encoder chunk: the estimate can run a few tokens low
+
+
+def _top_level_tags(text):
+    """`text` split at commas outside (...) groups, each piece stripped; escaped \\( \\) are literal."""
+    out, depth, start, i = [], 0, 0, 0
+    while i < len(text):
+        ch = text[i]
+        if ch == "\\":
+            i += 2
+            continue
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth = max(0, depth - 1)
+        elif ch == "," and depth == 0:
+            out.append(text[start:i].strip())
+            start = i + 1
+        i += 1
+    out.append(text[start:].strip())
+    return [t for t in out if t]
+
+
+def split_chunks(text, limit=CHUNK_PACK):
+    """`text` packed into pieces of whole tags that each fit one 75-token CLIP chunk, for one
+    CLIPTextEncode per piece joined by ConditioningConcat. ComfyUI's own chunking cuts a long prompt
+    at exactly 75 tokens, which splits a tag such as 'covered | nipples' into two unrelated words;
+    packing by tag keeps every tag whole. ", ".join(pieces) gives back the prompt."""
+    pieces, cur, used = [], [], 0
+    for tag in _top_level_tags(text or ""):
+        cost = sum(_word_tokens(w) for seg, _w in weighted_segments(tag) for w in seg.split()) + 1
+        if cur and used + cost > limit:
+            pieces.append(", ".join(cur))
+            cur, used = [], 0
+        cur.append(tag)
+        used += cost
+    if cur:
+        pieces.append(", ".join(cur))
+    return pieces or [text or ""]
+
+
 # ------------------------------------------------------------------ tag helpers
 def norm_tag(t):
     """'(mature female:0.8)' -> 'mature female'; strips weights, brackets, escapes, extra spaces."""
@@ -467,17 +508,22 @@ def _encoder_text(node):
 
 def graph_prompts(graph):
     """(positive texts, negative texts) of an API graph: text-encoder nodes traced back from every
-    'positive' / 'negative' input (through ControlNet and other conditioning nodes). Encoders that
-    feed neither are counted as positive (the strict side)."""
+    'positive' / 'negative' input (through ControlNet and other conditioning nodes). The encoders
+    behind one input (chunks joined by ConditioningConcat) are read as one prompt, in trace order.
+    Encoders that feed neither are counted as positive (the strict side)."""
     role_of = {}
+    groups = {}          # (input node, output index, role) -> encoder ids in trace order
 
-    def trace(nid, idx, role, seen):
+    def trace(nid, idx, role, seen, key):
         if nid in seen or nid not in graph:
             return
         seen.add(nid)
         node = graph[nid]
         if _is_encoder(node):
             role_of.setdefault(nid, set()).add(role)
+            groups.setdefault(key, [])
+            if nid not in groups[key]:
+                groups[key].append(nid)
             return
         ins = node.get("inputs", {})
         if "positive" in ins and "negative" in ins:      # e.g. ControlNetApplyAdvanced: out 0 pos, 1 neg
@@ -486,23 +532,22 @@ def graph_prompts(graph):
             follow = list(ins.values())
         for v in follow:
             if isinstance(v, list) and len(v) == 2 and isinstance(v[1], int):
-                trace(str(v[0]), v[1], role, seen)
+                trace(str(v[0]), v[1], role, seen, key)
 
     for node in graph.values():
         for role in ("positive", "negative"):
             v = node.get("inputs", {}).get(role)
             if isinstance(v, list) and len(v) == 2 and isinstance(v[1], int) and not _is_encoder(node):
-                trace(str(v[0]), v[1], role, set())
+                trace(str(v[0]), v[1], role, set(), (str(v[0]), v[1], role))
     pos, neg = [], []
+    for (_nid, _idx, role), nids in groups.items():
+        text = ", ".join(_encoder_text(graph[n]) for n in nids)
+        out = pos if role == "positive" else neg
+        if text not in out:
+            out.append(text)
     for nid, node in graph.items():
-        if not _is_encoder(node):
-            continue
-        roles = role_of.get(nid, {"positive"})
-        text = _encoder_text(node)
-        if "positive" in roles:
-            pos.append(text)
-        if "negative" in roles:
-            neg.append(text)
+        if _is_encoder(node) and nid not in role_of:
+            pos.append(_encoder_text(node))
     return pos, neg
 
 

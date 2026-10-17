@@ -52,18 +52,23 @@ that the owner sideloads. The repo `u-tek/game` is public. The only code branch 
   this), artifact `HaloAndHorn-ipa` on the run page. No GitHub releases.
 - **Public repo:** the owner accepted that art, builds and the IPA are publicly visible.
 - **Art:** professionally rendered, full-body anime gacha splash art, one painted PNG per hero.
-  Not chibi, not vector, no code-drawn characters. Current source: the art farm (Animagine XL 4.0
-  on GitHub Actions CPU runners, `docs/dev/art-farm.md`). The owner prefers ComfyUI on their own
-  GPU PC (see status.md, next steps).
+  Not chibi, not vector, no code-drawn characters. Source from 2026-10-17: ComfyUI on the owner's
+  GPU PC with **their NoobAI XL checkpoint** ("use comfyui on my machine to make the art
+  professional"), driven by a Claude session on that PC (`tools/comfy/`,
+  `docs/dev/art-generation.md`). The 15 shipped heroes came from the art farm (Animagine XL 4.0 on
+  GitHub Actions CPU runners, `docs/dev/art-farm.md`), which stays as a fallback.
 - **Animation:** HaloRig, our own replacement for Spine: a warp rig on the painted PNG with eye
   and mouth variants (`docs/dev/halorig.md`).
-- **Render settings ("make sure you're using the correct cfg"):** the Animagine model card: Euler
-  Ancestral, CFG 5 (the code refuses values outside 4-7), 28 steps, quality tags at the end,
-  model-card negatives, "detailed shading" instead of "cel shading". No speed LoRAs, Lightning or
-  low-CFG presets. 832x1216 was Claude's choice, not the owner's; 768x1344 is also a model-card size.
+- **Render settings ("make sure you're using the correct cfg"):** always the model card of the
+  checkpoint in use. NoobAI XL: family `illustrious` for epsilon checkpoints (Euler a, CFG 5.5,
+  28 steps) or `noobai_vpred` for v-prediction ones (Euler, CFG 4.5, 32 steps, v_prediction with
+  zsnr, RescaleCFG 0.7), quality tags first, 768x1344 (`families` in `data/art_prompts.json`).
+  The art farm used the Animagine card: Euler Ancestral, CFG 5 (the code refuses values outside
+  4-7), 28 steps, quality tags at the end. No speed LoRAs, Lightning or low-CFG presets.
 - **Allure:** the maximum the App Store 18+ rating allows: skin-tight clothing, bodysuits, latex,
-  highleg leotards, cutouts, bikini and micro armor, harnesses, curvier bodies; the men shirtless
-  with the same energy. Designs are in `docs/dev/character-briefs.md` (v3.1). The owner asked for
+  highleg leotards, cutouts, bikini and micro armor, harnesses, curvier bodies. **Female only**
+  (owner, 2026-10-17): Nuriel, Brakka, Orrin and Lucen were redesigned as women with the same ids,
+  names, roles and stats. Designs are in `docs/dev/character-briefs.md` (v3.2). The owner asked for
   pasties; pasties-only tops are refused as past the App Store limit, so designs use small opaque
   cups or gem plates.
 - **UI:** a close copy of the reference game's layout and visual language (the owner sent four
@@ -208,7 +213,7 @@ tools/check e2e             # plus 3 screen end-to-end scripts (~2 min)
 tools/gd --headless --path . -s tests/run_tests.gd -- test_playthrough   # one test file
 python3 -B tests/port_check/check_port.py        # independent Python rules check (48 checks)
 python3 tools/artgen/test_artgen.py              # art farm offline tests (81)
-python3 tools/comfy/test_pipeline.py             # ComfyUI pipeline tests (2 known failures)
+python3 tools/comfy/test_pipeline.py             # ComfyUI pipeline tests (52, all pass)
 tools/art_warp --check                           # validate all 15 hero rigs
 tools/gd --headless --path . -s tools/art_selftest.gd   # every rig x every animation
 tools/shoot home --rich --safe-area-sim --out screenshots/home.png   # render a screen to PNG

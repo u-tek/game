@@ -38,6 +38,8 @@ CORE = {
     "LoraLoaderModelOnly": _n({"model": "MODEL", "lora_name": "COMBO", "strength_model": "FLOAT"}, ["MODEL"]),
     "CLIPSetLastLayer": _n({"clip": "CLIP", "stop_at_clip_layer": "INT"}, ["CLIP"]),
     "CLIPTextEncode": _n({"text": "STRING", "clip": "CLIP"}, ["CONDITIONING"]),
+    "ConditioningConcat": _n({"conditioning_to": "CONDITIONING", "conditioning_from": "CONDITIONING"},
+                             ["CONDITIONING"]),
     "ModelSamplingDiscrete": _n({"model": "MODEL",
                                  "sampling": ["eps", "v_prediction", "lcm", "x0", "img_to_img"],
                                  "zsnr": "BOOLEAN"}, ["MODEL"]),

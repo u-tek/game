@@ -340,9 +340,10 @@ class TestDiscovery(unittest.TestCase):
         with redirect_stdout(out):
             self.assertEqual(comfy.main(["pin", "myModel_v3.safetensors", "--family", "pony"]), 0)
         try:
-            s = settings(hero="kessa")
+            s = settings(family=None, hero="kessa")         # an explicit --family would override the pin
             self.assertEqual((s["checkpoint"], s["family"]), ("myModel_v3.safetensors", "pony"))
-            self.assertEqual(settings(hero="kessa", ckpt="other_illustrious.safetensors")["family"], "illustrious")
+            self.assertEqual(settings(family=None, hero="kessa", ckpt="other_illustrious.safetensors")["family"],
+                             "illustrious")
         finally:
             with redirect_stdout(out):
                 comfy.main(["pin", "none"])
@@ -638,25 +639,27 @@ class TestBible(unittest.TestCase):
         with self.assertRaises(prompts.PromptError):
             prompts.face(bad, "seraphiel", "illustrious", "eyes_open")
 
-    def test_doc_exists_and_ends_with_the_runbook(self):
+    def test_doc_has_the_runbook(self):
         doc = open(os.path.join(ROOT, "docs", "dev", "art-generation.md")).read()
         for needle in ("Tonight's runbook", "--dry-run", "adult", "COMFYUI_URL", "roster.py", "install.py"):
             self.assertIn(needle, doc)
-        last = [ln for ln in doc.splitlines() if ln.startswith("## ")][-1]
-        self.assertIn("Tonight's runbook", last)
+        heads = [ln for ln in doc.splitlines() if ln.startswith("## ")]
+        self.assertTrue(any("Tonight's runbook" in h for h in heads))
 
 
 class TestContentRules(unittest.TestCase):
     def test_youth_and_explicit_terms_are_refused(self):
         for hid in ("kessa", "lucen"):
             for term in YOUTH_AND_EXPLICIT:
-                if term == "flat chest" and hid == "lucen":
-                    continue        # female-only term
                 with self.assertRaises(prompts.ContentRuleError, msg=(hid, term)):
                     prompts.full_body(BIBLE, hid, "illustrious", extra_tags=term)
         with self.assertRaises(prompts.ContentRuleError):
             prompts.custom(BIBLE, "kessa", "pony", "topless")
-        prompts.full_body(BIBLE, "brakka", "illustrious")          # 'topless male' is fine for men
+        with self.assertRaises(prompts.ContentRuleError):        # the roster is all women now
+            prompts.full_body(BIBLE, "brakka", "illustrious", extra_tags="topless")
+        self.assertEqual(prompts.check_text(BIBLE, "1boy, adult, mature male, topless male",
+                                            prompts.full_body(BIBLE, "kessa", "illustrious")["negative"]
+                                            + ", bulge", gender="male"), [])      # men's rules still work
 
     def test_rule_checker_rejects_violations(self):
         pr = prompts.full_body(BIBLE, "imra", "illustrious")
@@ -727,6 +730,23 @@ class TestContentRules(unittest.TestCase):
         g = workflows.txt2img(s, pr["positive"], pr["negative"], 1, "x", controlnet=cn)
         self.assertEqual(prompts.graph_prompts(g), ([pr["positive"]], [pr["negative"]]))
         self.assertEqual(prompts.check_graph(BIBLE, workflows.upscale(s, "a.png", "x")), [])
+
+    def test_long_prompts_are_encoded_in_whole_tag_chunks(self):
+        pr = prompts.full_body(BIBLE, "seraphiel", "noobai_vpred")
+        for text in (pr["positive"], pr["negative"]):
+            parts = prompts.split_chunks(text)
+            self.assertGreater(len(parts), 1)
+            self.assertEqual(", ".join(parts), text)
+            for p in parts:
+                self.assertLessEqual(prompts.clip_stats(p)["tokens"], prompts.CHUNK_PACK)
+        self.assertEqual(prompts.split_chunks("(a, b:1.2), c"), ["(a, b:1.2), c"])
+        g = workflows.txt2img(settings(), pr["positive"], pr["negative"], 1, "x")
+        enc = [n for n in g.values() if n["class_type"] == "CLIPTextEncode"]
+        self.assertEqual(len(enc), len(prompts.split_chunks(pr["positive"])) + len(prompts.split_chunks(pr["negative"])))
+        self.assertTrue(any(n["class_type"] == "ConditioningConcat" for n in g.values()))
+        # the chunks are read back as one prompt each, so a chunk without the adult cue is no violation
+        self.assertEqual(prompts.graph_prompts(g), ([pr["positive"]], [pr["negative"]]))
+        self.assertEqual(prompts.check_graph(BIBLE, g), [])
 
 
 # ------------------------------------------------------------------ post-processing

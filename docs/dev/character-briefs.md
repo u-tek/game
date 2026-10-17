@@ -1,4 +1,4 @@
-# Character Briefs (art direction v3.1: maximum allure)
+# Character Briefs (art direction v3.2: maximum allure, female only)
 
 These briefs are the **design source** for all art work. They override `data/art_prompts.json` and
 the `look` fields in `data/heroes.json` when they disagree (the `look` fields mirror these briefs).
@@ -14,10 +14,15 @@ v3.1 keeps the v3 allure and closes the prompt-level risks found in review: yout
 clusters on the young-end heroes, slits with nothing opaque under them, a sex-mimicking pose,
 uneven safety negatives, two converged designs (Vesper and Sable) and tags split across CLIP chunks.
 
+v3.2 (2026-10-17): the owner asked for a **female-only roster**. Nuriel, Brakka, Orrin and Lucen
+are now women. They keep their ids, names, factions, roles, stats, weapons and silhouettes; only
+the body, outfit and reveal changed. The art is re-rendered with ComfyUI on the owner's PC and
+their NoobAI XL checkpoint.
+
 ### What we go for
 
 - **Skin-tight and glossy.** Latex and shiny bodysuits, catsuits, highleg leotards, bikini armor
-  and micro-armor that leaves more skin than plate. Tight leather for the men.
+  and micro-armor that leaves more skin than plate.
 - **Cutouts and openings.** Underboob, sideboob, a cleavage window or center opening down to the
   navel, navel windows, hip windows (`hip vent`), open backs, partially unzipped suits,
   strapless and bandeau tops, small opaque cups and gem or armor plates as tops.
@@ -34,9 +39,8 @@ uneven safety negatives, two converged designs (Vesper and Sable) and tags split
   viewer, an arm raised, arms crossed, a hip-cocked fighting stance, flexing; seductive smiles,
   smirks, half-lidded eyes. A standing S-curve (chest out, hip cocked) gives the arched-back look;
   the `arched back` tag itself is not used, because it drifts toward all-fours and explicit poses.
-- **Men get the same energy.** Shirtless or open coats over bare chests, harnesses, tight
-  leather trousers, low-slung belts, defined muscles, and real poses (crossed arms, flexing,
-  hand on hip).
+- **Female only.** Every hero is a woman (owner, 2026-10-17). Builds still vary, from Brakka's
+  muscular amazon to Lucen's slender duelist.
 - **Character first.** Each hero keeps a distinct silhouette, palette, weapon and personality and
   stays on-faction. The signature map below keeps the reveals from blurring together.
 
@@ -67,8 +71,8 @@ uneven safety negatives, two converged designs (Vesper and Sable) and tags split
   test uses her prompt as a fixture; see her brief gaps). Per design it adds: `impossible clothes`
   (fabric drawn clinging to every contour) for the latex and skin-tight suits, downblouse,
   pantyshot and upskirt for Liora's short strapless dress, no bra for Ashra's tube top, all fours
-  and kneeling for Kessa, the young-end terms for Liora, Uriela and Imra, and bulge and penis for
-  the men.
+  and kneeling for Kessa, the young-end terms for Liora, Uriela and Imra, and fishnet top for
+  Nuriel (fishnet is legwear only).
 - **Prompts fit and stay whole.** Every full-body prompt, art-farm overlay included, fits 2 CLIP
   chunks counted with the real CLIP tokenizer, and no multi-word tag straddles the chunk break
   (a split `partially | unzipped` reads as a bare `unzipped`). See `_heroes_doc` in the bible.
@@ -91,16 +95,16 @@ uneven safety negatives, two converged designs (Vesper and Sable) and tags split
 | Cassiel | athletic, abs, thick thighs | bikini armor, bare midriff | big pauldrons, kite shield, hand on hip |
 | Liora | soft and curvy | strapless corset minidress, deep cleavage, garters | long side braid, lyre, leaning forward |
 | Uriela | toned with curves | underboob and navel cutouts in a highleg leotard | ponytail, spear over the shoulder |
-| Nuriel | lean, muscular | open sleeveless jacket, bare chest, harness | mask, arms crossed with reverse-grip daggers |
+| Nuriel | lean, athletic, abs | cropped open jacket over a chest wrap, bare midriff, short shorts, fishnet thighhighs | mask, arms crossed with reverse-grip daggers |
 | Mordessa | voluptuous | armored dress plunging to the navel, hip slits over a leotard, garters | ram horns, greatsword on the shoulder, hand on hip |
-| Brakka | huge beefcake | shirtless, chain harness, low-slung kilt | red skin, flexing |
+| Brakka | huge muscular amazon | sports bra under a chain harness, plate kilt over shorts | red skin, flexing |
 | Vesper | hourglass | glossy crimson latex catsuit, heart-shaped cleavage window | cape and high collar, glasses, raised orb |
 | Imra | lithe, toned | bandeau bikini and loincloth, body paint | shaggy orange mane, lantern staff raised |
 | Kessa | athletic, curvy | bodysuit unzipped below the cleavage, strap harness, hip windows | cat ears and tail, twin sickles, fighting stance |
 | Noctaire | tall, slender, long legs | sideboob corset leotard, long drape | huge scythe, hand in her hair |
-| Orrin | broad, scarred | armor stripped to one pauldron, chains on a bare chest | tower shield, torn cape |
+| Orrin | tall, scarred, toned | cut-down breastplate over the cleavage, highleg leotard, bare upper thighs | tower shield, torn cape |
 | Sable | curvy | skin-tight black habit with cleavage cutout, tabard, garters | veil and cross, censer, head tilt |
-| Lucen | lean, toned | open coat on a bare chest, tight leather, thigh boots | rapier, hand on hip |
+| Lucen | slender, long legs | open coat over a strapless bustier, tight leather, thigh boots | rapier, hand on hip |
 | Ashra | soft curves | slipping robes, underboob tube top, slit skirt over shorts | huge witch hat, one arm lazily raised |
 
 ## Celestial (white, gold, sky blue)
@@ -132,11 +136,13 @@ uneven safety negatives, two converged designs (Vesper and Sable) and tags split
   underboob cutout and a navel window, gold trim, bare shoulders and back, armored gauntlets and
   boots, a short half-cape. High honey-blonde ponytail, confident grin. Long golden spear with a
   sun blade resting over her shoulder. Swept-back wings, thin halo.
-- **Nuriel**, Rare Assassin, adult man, mid-20s. *The masked heartthrob.* Lean and muscular:
-  defined abs and pectorals. A sleeveless hooded sky-blue scout jacket worn open over a bare
-  chest, a thin leather chest harness, low-slung crossed belts on fitted black trousers, wrapped
-  forearms, a white cloth mask over nose and mouth. Messy pale-gold hair. Arms crossed over his
-  chest, twin glowing light daggers in reverse grip. Small sharp wings, faint halo.
+- **Nuriel**, Rare Assassin, appears mid-20s. *The masked kunoichi.* Lean and athletic: defined
+  abs, large breasts, wide hips, thick thighs. A cropped sleeveless hooded sky-blue scout jacket
+  worn open over a white chest wrap (opaque, firmly in place), a bare toned midriff, tight black
+  short shorts with thigh straps, fishnet thighhighs (legwear only, never a fishnet top), short
+  boots, wrapped forearms, a white cloth mask over nose and mouth. Messy pale-gold hair in a
+  ponytail, half-lidded eyes. Arms crossed under her chest, twin glowing light daggers in reverse
+  grip. Sharp white wings, faint halo.
 
 ## Infernal (crimson, ember orange, obsidian, gold)
 
@@ -147,11 +153,11 @@ uneven safety negatives, two converged designs (Vesper and Sable) and tags split
   shoulder, skirt slits cut to the hip on both sides that show the leotard's high-cut line, never
   bare hip; garter straps into thigh-high boots. A greatsword wreathed in flame on her shoulder,
   the other hand on her hip. Leathery bat wings, spaded tail. Commanding smirk.
-- **Brakka**, Epic Guardian, adult man. *The beefcake.* Enormous, heavily muscled red-skinned
-  demon: huge pectorals, abs, thick arms and thighs. Shirtless with a chain chest harness, an
-  obsidian armor kilt of plates with glowing magma cracks slung low on the hips over black
-  trousers, huge molten gauntlets. Short thick horns, tusked friendly grin, thick tail. Flexing
-  both arms.
+- **Brakka**, Epic Guardian, appears in her 30s. *The amazon.* An enormous, heavily muscled
+  red-skinned demon woman: huge breasts, defined abs, thick arms and thighs. A black sports bra
+  under a chain chest harness, an obsidian armor kilt of plates with magma cracks over black
+  shorts, huge molten gauntlets, armored boots. Short messy black hair, short thick horns, small
+  tusks, friendly grin, thick tail. Flexing both arms.
 - **Vesper**, Epic Caster, appears late 20s. *The latex succubus scholar.* Hourglass: huge
   breasts, wide hips, narrow waist. Long straight wine-red hair, half-lidded eyes behind thin
   glasses, small curved horns. A glossy crimson latex catsuit with a heart-shaped cleavage window
@@ -181,20 +187,22 @@ uneven safety negatives, two converged designs (Vesper and Sable) and tags split
   tattered black front-and-back drape from the hips, silver buckles and chains, heeled thigh boots.
   Tattered black feathered wings with violet tips. A huge crescent scythe with a violet glow; her
   free hand sweeps back her hair. Melancholic allure.
-- **Orrin**, Epic Guardian, adult man, around 30. *The broken knight.* Broad, scarred and
-  muscular: large pectorals, abs, a scar across the chest. Cracked silver armor stripped down to
-  one pauldron and gauntlets, a bare torso wrapped in broken chains, a torn violet cape, fitted
-  black trousers on a low-slung belt with his broken halo hanging from it, armored boots. Shaggy
-  ash-grey hair, scar over one eye. Chain-wrapped tower shield. Ragged grey wings. Stoic.
+- **Orrin**, Epic Guardian, appears around 30. *The broken knight.* Tall, scarred and toned:
+  large breasts, wide hips, thick thighs. Cracked silver armor stripped down to a breastplate cut
+  low over her cleavage, one pauldron and gauntlets, broken chains wrapped around her, a black
+  highleg leotard under a torn violet cape, armored thigh-high greaves that leave the upper thighs
+  bare, her broken halo hanging from a belt at the hip. Long shaggy ash-grey hair, scar over one
+  eye. Chain-wrapped tower shield. Ragged grey wings. Stoic.
 - **Sable**, Epic Support, appears late 20s. *The fallen nun.* Curvy: huge breasts, wide hips,
   thick thighs. A black and violet veil and a silver cross necklace, long dark-teal hair. A
   skin-tight black habit bodysuit with a cleavage cutout, corset lacing and silver trim; long
   black front-and-back tabard panels over the opaque suit, open at the hips; black thighhighs on
   garter straps, heels. A silver censer trailing violet smoke. Grey wings, dim halo. Gentle, sad,
   alluring; head tilted. A grown woman's sorrow, never a student nun.
-- **Lucen**, Rare Striker, adult man, mid-20s. *The flirt.* Lean and toned. A violet-and-silver
-  coat worn open over a bare chest, a frilled ascot, tight black leather trousers on a low-slung
-  belt, thigh-high boots, a slim rapier, one hand on his hip. Wavy white hair with black tips,
+- **Lucen**, Rare Striker, appears mid-20s. *The flirt.* Slender and toned with long legs: large
+  breasts, wide hips. A violet-and-silver long coat worn open over a strapless black bustier with
+  a deep cleavage, a frilled ascot at the throat, tight black leather trousers on a low-slung
+  belt, thigh-high boots, a slim rapier, one hand on her hip. Long wavy white hair with black tips,
   half-lidded eyes, flirtatious smile. One white wing, one black wing. No halo.
 - **Ashra**, Rare Caster, appears mid-20s. *The sleepy witch.* Soft curves: huge breasts, wide
   hips. An oversized grey witch hat with silver star pins; layered violet robes slipping off both

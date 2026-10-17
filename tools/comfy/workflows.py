@@ -20,6 +20,7 @@ if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
 import core_nodes  # noqa: E402
+import prompts  # noqa: E402
 
 
 class WorkflowError(ValueError):
@@ -119,10 +120,22 @@ def model_stack(g, s):
     return model, clip, vae
 
 
+def text_cond(g, clip, text, title):
+    """One CLIPTextEncode per chunk of whole tags (prompts.split_chunks), joined by ConditioningConcat,
+    so no tag is cut at a 75-token chunk break. The first chunk's pooled output is kept, as in
+    ComfyUI's own chunking."""
+    parts = prompts.split_chunks(text)
+    cond = None
+    for i, part in enumerate(parts):
+        t = title if len(parts) == 1 else "%s %d/%d" % (title, i + 1, len(parts))
+        n = L(g.add("CLIPTextEncode", t, text=part, clip=clip))
+        cond = n if cond is None else L(g.add("ConditioningConcat", title + " join", conditioning_to=cond,
+                                              conditioning_from=n))
+    return cond
+
+
 def encode(g, clip, positive, negative):
-    p = g.add("CLIPTextEncode", "Positive prompt", text=positive, clip=clip)
-    n = g.add("CLIPTextEncode", "Negative prompt", text=negative, clip=clip)
-    return L(p), L(n)
+    return text_cond(g, clip, positive, "Positive prompt"), text_cond(g, clip, negative, "Negative prompt")
 
 
 def ksampler(g, s, model, pos, neg, latent, seed, steps=None, denoise=1.0, title="KSampler"):
