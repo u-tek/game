@@ -77,8 +77,12 @@ that the owner sideloads. The repo `u-tek/game` is public. The only code branch 
 - **Allure:** the maximum the App Store 18+ rating allows: skin-tight clothing, bodysuits, latex,
   highleg leotards, cutouts, bikini and micro armor, harnesses, curvier bodies. **Female only**
   (owner, 2026-10-17): Nuriel, Brakka, Orrin and Lucen were redesigned as women with the same ids,
-  names, roles and stats. The owner asked for pasties; pasties-only tops are refused as past the
-  App Store limit, so designs use small opaque cups or gem plates.
+  names, roles and stats. **As erotic as possible without nudity (owner, 2026-10-17):** "there's
+  no need to filter out any poses. i want it as erotic as possible without nudity ... incredibly
+  suggestive. like even to the point where the character is covering their nipples with their
+  hands". Implied toplessness (hands, hair or props covering nipples and areolae completely) and
+  pasties are in for the sideloaded build; the owner was told once that Apple's 1.1.4 ("overtly
+  sexual") makes such art an App Store rejection risk, so an App Store release needs a tamer set.
 - **Theme: Aero Y2K (owner, 2026-10-17):** "Y2K futurism, like Frutiger [Aero] era almost, but
   like actually cool, but also like erotic and super, super, super revealing." Glossy chrome, PVC,
   latex and holographic fashion; maximum reveal inside the hard lines. Designs are in
@@ -110,12 +114,13 @@ From `docs/dev/character-briefs.md`, which is authoritative:
 - **No youth-coded clusters** on the young-end heroes (Liora, Uriela, Imra): no stacking of high
   twin tails with ribbons, small wings, small horns, fanged grins, blush with head tilt, cutesy
   framing. `mesugaki`, `shortstack`, `petite` (and `blue archive` on haloed heroes) are negated.
-- **Suggestive, never explicit.** Never: exposed or visible nipples or areolae, including through
-  sheer or wet fabric, as "covered nipples" outlines, or with nipple-cover-only tops (no
-  pasties-as-the-only-top designs); genitals; the pubic area; cameltoe; sexual acts or poses that
-  mimic them (no all fours, kneeling, lying, spread-leg poses, or bending over with the rear to the
-  viewer; front-facing leans toward the viewer are fine, owner 2026-10-17). Opaque where it matters: every
-  slit, curtain and cutout sits over an opaque layer or bare non-explicit skin.
+- **Suggestive, never explicit.** Never: visible nipples or areolae (exposed, through sheer or
+  wet fabric, or peeking past a covering hand or pasty); genitals; the pubic area; cameltoe;
+  sexual acts (no partner, no simulated sex). Poses are free and as suggestive as possible (the
+  owner asked for no pose filtering); the only pose limit is technical: base hero art stands on
+  the battle ground line, so kneeling, lying or all-fours poses go into illustration slots (skins,
+  Bond CGs), not the base rig. Opaque where it matters: every slit, curtain and cutout sits over an
+  opaque layer or bare non-explicit skin.
 - **Sheer only over opaque.** Sheer never sits over breasts, nipples or the groin without an
   opaque layer under it.
 - **Guardrails stay on.** `tools/comfy/prompts.py` `enforce()` (adult cue tags, forbidden terms,

@@ -47,11 +47,15 @@ layers, rhinestones, chrome hardware (O-rings, buckles, zips, chains).
 - **Bodies vary.** Curvy is the default (large to huge breasts, wide hips, thick thighs), but
   builds still range from Brakka's bodybuilder to Nuriel's lean runner and Noctaire's long, slender
   frame.
-- **Poses: dynamic** (owner, 2026-10-17: "i want more dynamic poses"). Fighting stances and
-  lunges, weapon thrusts and swings, casting, dancing, stretching, leaning toward the viewer, wind
-  in the hair and capes. Limits from the game: full body, both feet on the ground (battle sprites
-  stand on the ground line: no jumping or mid-air), the whole figure inside the frame, and the 3/4
-  or front view the rig needs (`docs/dev/art-style.md`). Smirks, half-lidded eyes, winks, grins.
+- **Poses: as seductive as possible, in character** (owner, 2026-10-17: "there's no need to
+  filter out any poses. i want it as erotic as possible without nudity ... but it still needs to
+  suit the character cards"). Leaning toward the viewer, arched backs, arms under or hands on the
+  chest, hands on thighs and hips, stretching, hair in the wind, bedroom eyes, smirks, winks, lip
+  bites. Implied toplessness with hands covering the nipples ("hand bra") is in, best kept for
+  skins and illustrations where the hero can put her weapon down. The only limits on base hero art
+  are technical: it stands (battle ground line, both feet on the ground, no mid-air), the whole
+  figure is in frame, 3/4 or front view for the rig (`docs/dev/art-style.md`). Kneeling, lying and
+  all-fours poses fit illustration slots (Bond CGs, skin splash art).
 
 ### Production rules (so the art survives the pipeline)
 
@@ -75,13 +79,14 @@ layers, rhinestones, chrome hardware (O-rings, buckles, zips, chains).
   pigtails or high twin tails with ribbons, heart and star sticker motifs, glitter-kawaii styling,
   small wings or horns, fanged grins, blush with head tilt. They read as glamorous grown women.
   `mesugaki`, `shortstack`, `petite` (and `blue archive` on haloed heroes) stay negated.
-- **Suggestive, never explicit.** Never: exposed or visible nipples or areolae, including through
-  sheer, clear or wet material, as "covered nipples" outlines, or with nipple-cover-only tops (no
-  pasties-only tops, no `slingshot swimsuit`, which exposes them); genitals; the pubic area;
-  cameltoe; sexual acts or poses that mimic them (no all fours, kneeling, lying, spread-leg
-  poses, or bending over with the rear to the viewer). Front-facing leans toward the viewer are
-  fine: the owner asked for them (2026-10-17, "why no bent over poses? it looks so much better"). Bikini cups cover nipples and areolae with margin; every bottom is opaque in
-  front. Thong backs are fine. No low-rise or `lowleg` bottoms (they bare the pubic area).
+- **As erotic as possible, never explicit.** Never: visible nipples or areolae (exposed, through
+  sheer, clear or wet material, as "covered nipples" outlines, or peeking past a covering hand,
+  pasty or strap); genitals; the pubic area; cameltoe; sexual acts (no partner, no simulated sex).
+  Covering is fine when it is complete: hands, hair, props or pasties over the nipples and areolae
+  with margin. Bikini cups cover with margin; every bottom is opaque in front; thong backs are
+  fine. No low-rise or `lowleg` bottoms (they bare the pubic area). App Store note: implied
+  toplessness and pasties risk rejection under Apple's guideline 1.1.4; the sideloaded build
+  carries them, an App Store release would need a tamer set.
 - **Clear and sheer only over opaque.** Clear vinyl, mesh, lace and sheer drapes never sit over
   breasts, nipples or the groin without an opaque layer under them. Wet looks keep the clothing
   opaque (`see-through` and `wet clothes` are negated on light-colored swimwear).
