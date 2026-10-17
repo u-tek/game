@@ -60,7 +60,11 @@ def main(argv=None):
     ap.add_argument("--no-face-refine", action="store_true")
     ap.add_argument("--face-denoise", type=float)
     ap.add_argument("--refine-denoise", type=float, default=0.0, help="full-image img2img polish (0 = off)")
-    ap.add_argument("--upscale", choices=["auto", "on", "off"], default="auto")
+    ap.add_argument("--upscale", choices=["auto", "on", "off", "tiled"], default="auto",
+                    help="2x upscale: auto/on = upscale model (or lanczos), tiled = upscale model then a tiled "
+                         "low-denoise re-draw with the checkpoint (needs the UltimateSDUpscale node)")
+    ap.add_argument("--tiled-denoise", type=float, help="--upscale tiled: denoise per tile (default %.2f)"
+                    % workflows.TILED_DEFAULTS["denoise"])
     ap.add_argument("--cutout", choices=["auto", "local", "server"], default="auto")
     ap.add_argument("--tol", type=float, default=26.0, help="local cutout colour tolerance")
     ap.add_argument("--no-holes", action="store_true", help="local cutout: don't clear enclosed background")
@@ -137,13 +141,27 @@ def main(argv=None):
             steps_done.append({"step": "face_refine", "denoise": den, "seed": seed, "crop": info["crop"]})
 
         # 3. upscale
-        use_up = a.upscale == "on" or (a.upscale == "auto" and s.get("upscale_model"))
+        use_up = a.upscale in ("on", "tiled") or (a.upscale == "auto" and s.get("upscale_model"))
+        tiled = None
+        if a.upscale == "tiled":
+            if not s.get("upscale_model"):
+                raise P.PipelineError("--upscale tiled needs an upscale model on the server")
+            if oi and "UltimateSDUpscale" not in oi:
+                raise P.PipelineError("--upscale tiled needs the UltimateSDUpscale node (ComfyUI_UltimateSDUpscale)")
+            tiled = {"denoise": a.tiled_denoise if a.tiled_denoise is not None
+                     else workflows.TILED_DEFAULTS["denoise"], "seed": seed}
         if use_up:
             p = os.path.join(work, "%s_up_src.png" % a.hero)
             os.makedirs(work, exist_ok=True)
             img.save(p)
             name = client.upload_image(p, subfolder=P.SERVER_SUBFOLDER)
-            g = workflows.upscale(s, name, "%s/%s/upscale" % (P.SERVER_SUBFOLDER, a.hero), scale=2.0)
+            if tiled:
+                pr = prompts.full_body(bible, a.hero, s["family"], background_key=bg_key)
+                g = workflows.tiled_upscale(s, name, pr["positive"], pr["negative"], seed,
+                                            "%s/%s/upscale" % (P.SERVER_SUBFOLDER, a.hero), oi, scale=2.0,
+                                            denoise=tiled["denoise"])
+            else:
+                g = workflows.upscale(s, name, "%s/%s/upscale" % (P.SERVER_SUBFOLDER, a.hero), scale=2.0)
             out = client.run(g, "%s/upscale" % a.hero, work, timeout=a.timeout, names=["%s_up.png" % a.hero])
             factor = 2.0
             if out:
@@ -155,7 +173,8 @@ def main(argv=None):
             face_box = [int(round(v * factor)) for v in face_box]
             if a.feet_y:
                 a.feet_y = int(round(a.feet_y * factor))
-            steps_done.append({"step": "upscale", "model": s.get("upscale_model") or "lanczos", "factor": factor})
+            steps_done.append({"step": "upscale", "model": s.get("upscale_model") or "lanczos", "factor": factor,
+                               **({"tiled": tiled} if tiled else {})})
 
         # 4. background removal
         mask_img = None

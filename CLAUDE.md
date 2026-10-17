@@ -81,10 +81,11 @@ that the owner sideloads. The repo `u-tek/game` is public. The only code branch 
   copycat guardrails. Spec: `docs/dev/ui-style-v2.md`. No repo file or commit message names the
   reference game (the history is public; three early commit messages already do, so leave those
   alone); write "the reference game".
-- **Filtered images:** the owner wants images that the exposure filter flags kept and sent to
-  them. Cloud sessions are blocked from doing that (see below). The only route is generating on
-  the owner's PC with local ComfyUI, where the images never leave their machine. Game assets
-  still have to pass the filter.
+- **The owner sees every render (2026-10-17):** "just send them even if they get cut by the
+  filter. i am more accurate than a filter". In the local chat on the PC, send renders, contact
+  sheets and A/B sheets with the chat's file sending (`SendUserFile`), flagged or not. That works;
+  pushing them to a repo or another service was blocked (see below). Look at each image yourself
+  first; anything that crosses a hard line is not sent, and the owner is told where it is on the PC.
 - **Continuity:** everything needed to resume lives in the repo. Update `docs/dev/status.md` at
   the end of every work block.
 
@@ -111,17 +112,17 @@ From `docs/dev/character-briefs.md`, which is authoritative:
   nudity is fine", then "raise it"; commit c3d35b5), because 0.25 flagged clothed cleavage and
   highleg hips on NoobAI renders. 0.5 equals `max_threshold`, the ceiling `safety.py` enforces;
   never go above it, and never change the detectors, watched classes or canary bands.
-- **The filter also gates ComfyUI art.** `tools/comfy/` has no exposure filter, and `install.py`
-  copies straight into `assets/`. Before you install or commit any ComfyUI image (the base and
-  every `variants/<name>.png`), run on the PC: `pip install -r tools/artgen/requirements-collect.txt`,
-  `git fetch origin art-gen-output` (the canary comes from there),
-  `python tools/artgen/safety.py selftest` (must exit 0), then
-  `python tools/artgen/safety.py check <files>`. A file that prints DROP stays out of `assets/`
-  and git. `check` only reports and never moves or deletes anything, so flagged images stay on the
-  owner's PC; that is how their "keep filtered images" request is met there. The filter can't run
-  in a cloud container (Hugging Face is unreachable, exit 3), so a cloud session on the tunnel
-  never commits ComfyUI art that has not passed `check` on the PC.
-- **A person reviews** every image against `docs/dev/art-style.md` section 1.
+- **For ComfyUI art the filter is a second opinion, not the gate (owner, 2026-10-17).** After
+  seeing the flagged Mordessa renders: "theres no nudity here. just remove the filter, i think
+  theyre all false". At 0.5 it flags highleg hips and deep cleavage on NoobAI renders. On the PC,
+  still run `.\.venv-artgen\Scripts\python.exe tools/artgen/safety.py check <files>` on the base and
+  every `variants/<name>.png` and record the verdict and scores in the final's JSON, but a DROP no
+  longer blocks. **The gate is a 1:1 review** of the base and every variant by Claude and the owner
+  against the hard lines above and `docs/dev/art-style.md` section 1, before `install.py` and git.
+  An image that crosses a hard line is discarded whatever the filter said (never patched). The
+  art farm keeps its fail-closed filter in code: it publishes to a public branch with nobody
+  looking first. A cloud session on the tunnel can't run the filter (Hugging Face is unreachable)
+  or see the images at 1:1 with the owner, so it never commits ComfyUI art.
 
 ## Hard rules
 
@@ -137,7 +138,7 @@ From `docs/dev/character-briefs.md`, which is authoritative:
   the whole project. If this session started on another branch, tell the owner and merge into
   `claude/game-planning` before you dispatch a build.
 - **Never commit:** `.godot/`, `screenshots/`, `build/`, `*.ipa`, `__pycache__/`, candidate, hires,
-  review or contact-sheet images, the filter canary image, any image the filter dropped, the
+  review or contact-sheet images, the filter canary image, any image that failed the 1:1 review, the
   owner's reference screenshots or anything made from them, secrets (e.g. `COMFYUI_AUTH`), the
   owner's email, session IDs, and anything under `art_src/` except `README.md`, `.gitignore`,
   `.gdignore` and JSON metadata (ComfyUI writes finals, review images, variants and sheets there;
@@ -175,9 +176,10 @@ Ask the owner for approval (plan mode or a permission rule they add) instead.
 - Dispatching `art-gen.yml` (it publishes art to the public branch) was blocked until the owner
   approved a plan in plan mode. Expect to need their explicit approval again.
 - Committing any generated character image outside `assets/art/heroes`.
-- Keeping or encrypting filter-flagged images, or any change that weakens the exposure filter
-  beyond the owner-approved 0.5.
-- Copying generated images off the owner's PC (the PC session tried a private GitHub repo,
+- In a cloud session: keeping or encrypting filter-flagged images, or changing the art farm's
+  filter (thresholds above the owner-approved 0.5, detectors, watched classes, canary bands).
+  On the PC, flagged renders simply stay in `art_src/` and are shown to the owner in the chat.
+- Pushing generated images off the owner's PC to a repo or service (the PC session tried a private GitHub repo,
   2026-10-17): its auto mode blocked it as data exfiltration. It needs the owner to allow it in
   that session on the PC (a permission rule, or auto mode off). The owner's typed instruction in
   the chat ("im instructing you to do this") did not clear it: the private repo

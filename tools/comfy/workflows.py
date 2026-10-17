@@ -283,6 +283,43 @@ def upscale(s, image_name, prefix, scale=2.0):
     return g.nodes
 
 
+# ------------------------------------------------------------------ (e) tiled diffusion upscale
+TILED_DEFAULTS = {"denoise": 0.35, "tile": 1024, "padding": 64, "mask_blur": 16, "mode": "Chess",
+                  "seam_fix": "None"}
+
+
+def tiled_upscale(s, image_name, positive, negative, seed, prefix, object_info, scale=2.0, denoise=None,
+                  tile=None, steps=None):
+    """Upscale an uploaded image with the upscale model, then re-draw it tile by tile at low denoise
+    (UltimateSDUpscale, custom node ComfyUI_UltimateSDUpscale) with the checkpoint, so the extra
+    resolution gets real painted detail instead of a stretched image. Tiles are SDXL-native 1024 px;
+    the model stack (v-pred sampling, RescaleCFG) and sampler settings are the family's own."""
+    if not s.get("upscale_model"):
+        raise WorkflowError("tiled upscale needs an upscale model (none found; pass --upscale-model)")
+    d = dict(TILED_DEFAULTS)
+    if denoise is not None:
+        d["denoise"] = float(denoise)
+    if tile:
+        d["tile"] = int(tile)
+    g = Graph()
+    model, clip, vae = model_stack(g, s)
+    pos, neg = encode(g, clip, positive, negative)
+    img = L(g.add("LoadImage", "Source", image=image_name))
+    um = L(g.add("UpscaleModelLoader", "Upscale model", model_name=s["upscale_model"]))
+    node = "UltimateSDUpscale"
+    us = g.add(node, "Tiled upscale", **fill_from_schema(
+        node, object_info,
+        links={"image": img, "model": model, "positive": pos, "negative": neg, "vae": vae, "upscale_model": um},
+        values={"upscale_by": float(scale), "seed": int(seed), "steps": int(steps or s["steps"]),
+                "cfg": float(s["cfg"]), "sampler_name": s["sampler"], "scheduler": s["scheduler"],
+                "denoise": d["denoise"], "mode_type": d["mode"], "tile_width": d["tile"],
+                "tile_height": d["tile"], "mask_blur": d["mask_blur"], "tile_padding": d["padding"],
+                "seam_fix_mode": d["seam_fix"], "force_uniform_tiles": True, "tiled_decode": False,
+                "batch_size": 1}))
+    g.save(L(us, output_index(object_info, node, "IMAGE")), prefix)
+    return g.nodes
+
+
 # ------------------------------------------------------------------ optional: server-side background removal
 def remove_background(recipe, image_name, prefix, object_info):
     """Run a discovered background-removal node (see comfy.rembg_recipe) and save its mask as an image

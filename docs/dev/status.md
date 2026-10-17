@@ -1,7 +1,26 @@
 # Status and handoff
 
-**Status as of 2026-10-17, 07:50 UTC.** This is the living status file: update it at the end of
+**Status as of 2026-10-17, 08:10 UTC.** This is the living status file: update it at the end of
 every work block. Rules and conventions are in `CLAUDE.md`; this file is about where things stand.
+
+## Latest (local chat on the PC, 2026-10-17 from 07:50 UTC)
+
+- The local chat on the PC is running. The PC's clock is UTC+10, so the owner is probably on
+  Australian Eastern time. Give ETAs in UTC anyway.
+- **Owner, 07:58 UTC:** "just send them even if they get cut by the filter. i am more accurate
+  than a filter", then, after seeing the flagged Mordessa sheets: "theres no nudity here. just
+  remove the filter, i think theyre all false". From now on, for ComfyUI art the filter is a
+  second opinion and the gate is a 1:1 review by Claude and the owner (`CLAUDE.md`, content hard
+  lines). The art farm's filter and `enforce()` are unchanged. Every render is sent in the chat
+  (`SendUserFile` works from this chat).
+- **A/B sheets A-C sent** to the owner (`art_src/_review/ab/mordessa_s2010{10,11,15}.jpg`). The
+  filter flagged A, B and C of s201011 (BUTTOCKS 0.60-0.66: a highleg leotard, nothing explicit).
+- **D rendered:** B's tags + model hires (4x-AnimeSharp) at denoise 0.4, `art_src/_ab/D-*`.
+- **E (new code):** `workflows.tiled_upscale` (UltimateSDUpscale: upscale model, then 1024 px tiles
+  re-drawn at denoise 0.35 with the family's own model stack) and `finalize.py --upscale tiled
+  [--tiled-denoise X]`. Test `test_tiled_upscale_against_server_schema`; test_pipeline 54 OK. The
+  A/B runs it on the D candidates and shrinks back to candidate size
+  (`art_src/_review/tools/ab_tiled.py`, local).
 
 ## In one paragraph
 

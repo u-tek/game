@@ -223,6 +223,42 @@ class TestWorkflows(unittest.TestCase):
             errs = core_nodes.validate_graph(workflows.txt2img(s2, "p", "n", 5, "x"), schema)
             self.assertTrue(any("sampler_name" in e for e in errs))
 
+    def test_tiled_upscale_against_server_schema(self):
+        combo = lambda xs, fmt: ["COMBO", {"options": xs}] if fmt else [xs]
+        for fmt in (False, True):
+            oi = fake_object_info(new_combo_format=fmt)
+            req = {"image": ["IMAGE"], "model": ["MODEL"], "positive": ["CONDITIONING"],
+                   "negative": ["CONDITIONING"], "vae": ["VAE"], "upscale_model": ["UPSCALE_MODEL"],
+                   "upscale_by": ["FLOAT", {"default": 2}], "seed": ["INT", {"default": 0}],
+                   "steps": ["INT", {"default": 20}], "cfg": ["FLOAT", {"default": 8.0}],
+                   "sampler_name": combo(["euler", "euler_ancestral"], fmt),
+                   "scheduler": combo(["simple", "karras", "normal"], fmt),
+                   "denoise": ["FLOAT", {"default": 0.2}], "mode_type": combo(["Linear", "Chess", "None"], fmt),
+                   "tile_width": ["INT", {"default": 512}], "tile_height": ["INT", {"default": 512}],
+                   "mask_blur": ["INT", {"default": 8}], "tile_padding": ["INT", {"default": 32}],
+                   "seam_fix_mode": combo(["None", "Band Pass", "Half Tile"], fmt),
+                   "seam_fix_denoise": ["FLOAT", {"default": 1.0}], "seam_fix_width": ["INT", {"default": 64}],
+                   "seam_fix_mask_blur": ["INT", {"default": 8}], "seam_fix_padding": ["INT", {"default": 16}],
+                   "force_uniform_tiles": ["BOOLEAN", {"default": True}],
+                   "tiled_decode": ["BOOLEAN", {"default": False}], "batch_size": ["INT", {"default": 1}]}
+            oi["UltimateSDUpscale"] = {"input": {"required": req}, "output": ["IMAGE"]}
+            schema = core_nodes.schema_from_object_info(oi)
+            s = settings("noobai_vpred", ckpt="illustriousXL_v01.safetensors", upscale_model="4x-AnimeSharp.pth")
+            g = self.check(workflows.tiled_upscale(s, "a.png", "p", "n", 9, "x", oi), schema)
+            us = [n for n in g.values() if n["class_type"] == "UltimateSDUpscale"][0]["inputs"]
+            self.assertEqual((us["denoise"], us["tile_width"], us["tile_height"], us["mode_type"]),
+                             (0.35, 1024, 1024, "Chess"))
+            self.assertEqual((us["cfg"], us["sampler_name"], us["steps"]), (s["cfg"], s["sampler"], s["steps"]))
+            # the tiles are re-drawn with the family's own model stack (v-pred sampling + RescaleCFG)
+            self.assertEqual(g[us["model"][0]]["class_type"], "RescaleCFG")
+            us2 = [n for n in workflows.tiled_upscale(s, "a.png", "p", "n", 9, "x", oi, denoise=0.25, tile=768).values()
+                   if n["class_type"] == "UltimateSDUpscale"][0]["inputs"]
+            self.assertEqual((us2["denoise"], us2["tile_width"]), (0.25, 768))
+            with self.assertRaises(workflows.WorkflowError):
+                workflows.tiled_upscale(dict(s, upscale_model=None), "a.png", "p", "n", 9, "x", oi)
+            with self.assertRaises(workflows.WorkflowError):      # node not installed
+                workflows.tiled_upscale(s, "a.png", "p", "n", 9, "x", fake_object_info(new_combo_format=fmt))
+
     def test_validator_catches_errors(self):
         good = workflows.txt2img(settings(), "p", "n", 1, "x")
         self.assertEqual(core_nodes.validate_graph(good), [])
