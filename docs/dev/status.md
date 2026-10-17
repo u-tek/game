@@ -95,9 +95,20 @@ every work block. Rules and conventions are in `CLAUDE.md`; this file is about w
   texture. About 4.7 min per finished image on the 3070 (most of it the 12-tile repaint). The face
   box estimator sometimes lands on the halo or hairline: check `work/*_facebox.jpg` or pass
   `--face-box` in finalize.
-- **Next (waits for the owner):** the sampler to lock in; then Amanatsu + that sampler + the
-  cinematic style as the bible defaults, `look`/title/bio in `data/heroes.json`, a candidate round
-  for the roster (ask first: 6 candidates x 15 heroes is about 70 min of GPU), and the skin system.
+- **Locked in (owner: "2m karras. for sure. the face + hires & 2x tile really works wonders"):**
+  Amanatsu pinned, dpmpp_2m/karras, 30 steps, CFG 5.5, 832x1216, cinematic style, grey backdrops
+  (42bb648). Candidate round v4b: 3 per hero ("so i can get rid of cropped and bad outputs") at
+  seed_base + 400..402, sent per hero with `art_src/_review/tools/round_sheet.py` (framing flags
+  from run_hero's cutout check). Liora's "leaning forward" pose bent her over (s103400, review
+  only): her pose is now "hand on own hip". Wings and long weapons often run off the 832-wide
+  frame; picks can get outpainted wing tips at finals.
+- **App work while the GPU renders (owner: "you can be refining the app while you wait"):**
+  Godot 4.5.1 installed on the PC (checksum-verified) and `tools/check e2e` passes there; v4
+  hero looks, titles and bios in `data/heroes.json` (d639203); the skin system (6095de6, 13222b2):
+  `data/skins.json`, save state, Wardrobe shop tab, hero Skins tab, equipped skin in the Lobby,
+  hero page and battle. All 30 skins show "Coming soon" until their art is built.
+- **Next:** the owner picks one candidate per hero (or asks for re-rolls); finals (face pass +
+  tiled repaint, ~5 min each), face variants, 1:1 review, install, new rigs, iOS build.
 
 ## In one paragraph
 

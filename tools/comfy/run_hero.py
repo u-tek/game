@@ -108,7 +108,9 @@ def main(argv=None):
                                       "with another candidate)" % (", ".join(map(str, clash)), a.hero))
         for side in ("positive", "negative"):
             st = pr["stats"][side]
-            if st["chunks"] > (2 if side == "positive" else 3):
+            # Whole-tag chunks are joined by ConditioningConcat; 3 positive / 4 negative chunks are
+            # the tested production size (the cinematic style block), beyond that tags thin out.
+            if st["chunks"] > (3 if side == "positive" else 4):
                 log("warning: %s prompt is ~%d tokens (%d CLIP chunks); tags after the first chunks get diluted. "
                     "Trim --extra-tags or the hero's tags." % (side, st["tokens"], st["chunks"]))
         hdir = P.hero_dir(a.hero, a.dry_run)

@@ -113,7 +113,8 @@ From `docs/dev/character-briefs.md`, which is authoritative:
 - **Suggestive, never explicit.** Never: exposed or visible nipples or areolae, including through
   sheer or wet fabric, as "covered nipples" outlines, or with nipple-cover-only tops (no
   pasties-as-the-only-top designs); genitals; the pubic area; cameltoe; sexual acts or poses that
-  mimic them (no all fours, kneeling, lying or bent-over poses). Opaque where it matters: every
+  mimic them (no all fours, kneeling, lying, spread-leg poses, or bending over with the rear to the
+  viewer; front-facing leans toward the viewer are fine, owner 2026-10-17). Opaque where it matters: every
   slit, curtain and cutout sits over an opaque layer or bare non-explicit skin.
 - **Sheer only over opaque.** Sheer never sits over breasts, nipples or the groin without an
   opaque layer under it.

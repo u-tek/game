@@ -47,9 +47,11 @@ layers, rhinestones, chrome hardware (O-rings, buckles, zips, chains).
 - **Bodies vary.** Curvy is the default (large to huge breasts, wide hips, thick thighs), but
   builds still range from Brakka's bodybuilder to Nuriel's lean runner and Noctaire's long, slender
   frame.
-- **Poses.** Full body, standing, both feet visible, the 3/4 view the rig needs
-  (`docs/dev/art-style.md`): hip cocked, hand on hip, visor pushed up, weapon on the shoulder,
-  flexing, pointing a weapon at the viewer. Smirks, half-lidded eyes, winks, confident grins.
+- **Poses: dynamic** (owner, 2026-10-17: "i want more dynamic poses"). Fighting stances and
+  lunges, weapon thrusts and swings, casting, dancing, stretching, leaning toward the viewer, wind
+  in the hair and capes. Limits from the game: full body, both feet on the ground (battle sprites
+  stand on the ground line: no jumping or mid-air), the whole figure inside the frame, and the 3/4
+  or front view the rig needs (`docs/dev/art-style.md`). Smirks, half-lidded eyes, winks, grins.
 
 ### Production rules (so the art survives the pipeline)
 
@@ -76,8 +78,9 @@ layers, rhinestones, chrome hardware (O-rings, buckles, zips, chains).
 - **Suggestive, never explicit.** Never: exposed or visible nipples or areolae, including through
   sheer, clear or wet material, as "covered nipples" outlines, or with nipple-cover-only tops (no
   pasties-only tops, no `slingshot swimsuit`, which exposes them); genitals; the pubic area;
-  cameltoe; sexual acts or poses that mimic them (no all fours, kneeling, lying, bent-over or
-  spread-leg poses). Bikini cups cover nipples and areolae with margin; every bottom is opaque in
+  cameltoe; sexual acts or poses that mimic them (no all fours, kneeling, lying, spread-leg
+  poses, or bending over with the rear to the viewer). Front-facing leans toward the viewer are
+  fine: the owner asked for them (2026-10-17, "why no bent over poses? it looks so much better"). Bikini cups cover nipples and areolae with margin; every bottom is opaque in
   front. Thong backs are fine. No low-rise or `lowleg` bottoms (they bare the pubic area).
 - **Clear and sheer only over opaque.** Clear vinyl, mesh, lace and sheer drapes never sit over
   breasts, nipples or the groin without an opaque layer under them. Wet looks keep the clothing
