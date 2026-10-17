@@ -256,9 +256,12 @@ the chunks behind one sampler input back as one prompt for the content-rule chec
   `VAEEncodeForInpaint` (denoise 1.0) for replacing an object.
 - **upscale**: `LoadImage → UpscaleModelLoader + ImageUpscaleWithModel → ImageScaleBy`, or
   lanczos `ImageScaleBy` without a model.
-- **background removal** (only when discovered): the first of InspyrenetRembg, RMBG, BiRefNet,
-  BRIA RMBG, essentials, easy-use, WAS rembg; its inputs and model-loader provider are filled from
-  the server schema; the MASK is saved via `MaskToImage`. FaceDetailer and ControlNet
+- **background removal** (only when discovered): the first of ComfyUI's core `RemoveBackground`
+  (with `LoadBackgroundRemovalModel` as its provider, e.g. `birefnet.safetensors`; ComfyUI 0.39+),
+  InspyrenetRembg, RMBG, BiRefNet, BRIA RMBG, essentials, easy-use, WAS rembg; its inputs and
+  model-loader provider are filled from the server schema; the MASK is saved via `MaskToImage`.
+  On the owner's PC the core node is the one that works (essentials' node lacks the `rembg`
+  module there, and the local flood fill left grey pockets around Uriela's ponytail and spear). FaceDetailer and ControlNet
   preprocessors are reported by `discover` but not required.
 
 ## 8. Cutout and placement (`tools/comfy/post.py`)
