@@ -48,6 +48,7 @@ var _anchor: Node2D
 var _sprite: Node2D
 ## The skin the sprite was built with ("" = base look); a change rebuilds the sprite.
 var _sprite_skin := ""
+var _preview := ""        # a skin tried on from the Skins tab (not saved); "" = the equipped look
 var _poke: Control
 var _caption: Control
 var _scroll: ScrollContainer
@@ -105,6 +106,8 @@ func setup(params: Dictionary) -> void:
 	_tab = "skills" if not _owned and _pref_tab == "equip" else _pref_tab
 	# Screenshot/testing helper (params.tab): open on a given lower-panel tab.
 	var want := str(params.get("tab", ""))
+	# params.preview: open trying on a skin (as the "Try on" button does).
+	_preview = str(params.get("preview", ""))
 	for t: Array in TABS:
 		if str(t[0]) == want and (want != "equip" or _owned):
 			_tab = want
@@ -190,7 +193,7 @@ func _build() -> void:
 	_anchor = Node2D.new()
 	_anchor.name = "HeroAnchor"
 	_stage.add_child(_anchor)
-	_sprite_skin = Game.equipped_skin(_id)
+	_sprite_skin = _shown_skin()
 	_sprite = HeroArt.make_sprite(_id, _sprite_skin)
 	_anchor.add_child(_sprite)
 	if not _owned:
@@ -631,7 +634,7 @@ func _refresh() -> void:
 	if not is_inside_tree() or _stage == null:
 		return
 	_owned = Game.owns(_id)
-	if Game.equipped_skin(_id) != _sprite_skin:
+	if _shown_skin() != _sprite_skin:
 		_rebuild_sprite()
 	var h := Game.hero(_id)
 	var stars := int(h.get("stars", Kit.RARITY_STARS.get(str(_def.rarity), 1)))
@@ -944,6 +947,13 @@ func _skin_row_ui(sid: String, title: String, sub: String, desc: String, equippe
 	row.name = "SkinRow_" + (sid if sid != "" else "base")
 	var h := Kit.vbox(6)
 	row.add_child(h)
+	var top := Kit.hbox(10)
+	top.mouse_filter = MOUSE_FILTER_IGNORE
+	h.add_child(top)
+	var pic := HeroArt.make_portrait(_id, 84, sid)
+	pic.mouse_filter = MOUSE_FILTER_IGNORE
+	pic.size_flags_vertical = SIZE_SHRINK_BEGIN
+	top.add_child(pic)
 	var info := Kit.vbox(2)
 	info.size_flags_horizontal = SIZE_EXPAND_FILL
 	info.mouse_filter = MOUSE_FILTER_IGNORE
@@ -952,7 +962,7 @@ func _skin_row_ui(sid: String, title: String, sub: String, desc: String, equippe
 		info.add_child(Kit.body(sub, 15, Kit.ACCENT_DEEP))
 	if desc != "":
 		info.add_child(Kit.body(desc, 16, Kit.TEXT_DIM))
-	h.add_child(info)
+	top.add_child(info)
 	var b: Button
 	if equipped:
 		b = Kit.light_button("Equipped")
@@ -966,11 +976,33 @@ func _skin_row_ui(sid: String, title: String, sub: String, desc: String, equippe
 		b = Kit.cost_button("Buy", "gems", price, func() -> void: _buy_skin(sid), "primary", Game.currency("gems") >= price)
 	b.custom_minimum_size = Vector2(0, 88)
 	b.size_flags_horizontal = SIZE_EXPAND_FILL
+	if sid != "" and installed and not equipped:
+		# Try on: show it on the stage without buying or wearing it (tap again to go back).
+		var trying := _preview == sid
+		var t := Kit.light_button("Back to equipped" if trying else "Try on",
+			func() -> void: _try_on("" if trying else sid))
+		t.name = "TryOn_" + sid
+		t.custom_minimum_size = Vector2(0, 88)
+		t.size_flags_horizontal = SIZE_EXPAND_FILL
+		h.add_child(t)          # stacked: two buttons side by side overflow the narrow column
 	h.add_child(b)
 	return row
 
 
+## The skin on the stage: the one being tried on, else the equipped one.
+func _shown_skin() -> String:
+	return _preview if _preview != "" and HeroArt.has_skin_art(_id, _preview) else Game.equipped_skin(_id)
+
+
+func _try_on(sid: String) -> void:
+	_preview = sid
+	_rebuild_sprite()
+	_lower_sig = ""          # redraw the rows (Try on / Back to equipped)
+	_refresh_lower.call_deferred()
+
+
 func _wear_skin(sid: String) -> void:
+	_preview = ""
 	var r := Game.equip_skin(_id, sid)
 	if not bool(r.get("ok", false)):
 		UI.toast(str(r.get("error", "Could not equip")), "bad")
@@ -986,6 +1018,7 @@ func _buy_skin(sid: String) -> void:
 			if not bool(r.get("ok", false)):
 				UI.toast(str(r.get("error", "Purchase failed")), "bad")
 				return
+			_preview = ""
 			Game.equip_skin(_id, sid),
 		Callable(), "Buy")
 
@@ -997,7 +1030,7 @@ func _rebuild_sprite() -> void:
 	if _sprite and is_instance_valid(_sprite):
 		_anchor.remove_child(_sprite)
 		_sprite.queue_free()
-	_sprite_skin = Game.equipped_skin(_id)
+	_sprite_skin = _shown_skin()
 	_sprite = HeroArt.make_sprite(_id, _sprite_skin)
 	_anchor.add_child(_sprite)
 	if not _owned:

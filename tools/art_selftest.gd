@@ -20,18 +20,25 @@ func _init() -> void:
 	for e in RigAnim.EASE_NAMES.values():
 		_ok(absf(RigAnim.ease_value(e, 0.0)) < 0.001, "ease %d starts at 0" % e)
 		_ok(absf(RigAnim.ease_value(e, 1.0) - 1.0) < 0.001, "ease %d ends at 1" % e)
-	var heroes: Array[String] = []
+	var heroes: Array = []   # [hero id, skin art folder ("" = the base look)]
 	for d in DirAccess.get_directories_at("res://assets/art/heroes/"):
 		if RigData.exists(d):
-			heroes.append(d)
+			heroes.append([d, ""])
+		var sk := "res://assets/art/heroes/%s/skins/" % d
+		if DirAccess.dir_exists_absolute(sk):
+			for art in DirAccess.get_directories_at(sk):
+				if RigData.exists(d, art):
+					heroes.append([d, art])
 	_ok(heroes.size() > 0, "at least one built rig")
 	var anims: Array[String] = []
 	for dir in ["res://assets/art/anim/", "res://assets/art/anim/warp/"]:
 		for f in DirAccess.get_files_at(dir):
 			if f.ends_with(".anim.json") and not anims.has(f.trim_suffix(".anim.json")):
 				anims.append(f.trim_suffix(".anim.json"))
-	for h in heroes:
-		var r := RigData.load_rig(h)
+	for pair in heroes:
+		var hero_id: String = pair[0]
+		var h: String = hero_id if pair[1] == "" else "%s@%s" % pair    # label in messages
+		var r := RigData.load_rig(hero_id, pair[1])
 		_ok(r != null, "%s loads" % h)
 		if r == null:
 			continue
@@ -50,7 +57,7 @@ func _init() -> void:
 			var finished: Array[String] = []
 			p.anim_event.connect(func(n: String) -> void: events.append(n))
 			p.anim_finished.connect(func(n: String) -> void: finished.append(n))
-			var an := RigAnim.find(a, h, r.kind)
+			var an := RigAnim.find(a, hero_id, r.kind)
 			_ok(an != null, "%s/%s found" % [h, a])
 			if an == null:
 				p.free()
@@ -87,6 +94,22 @@ func _init() -> void:
 			spr.rig.manual = true
 			_ok(spr.play_attack(Vector2(500, 0)) != "", "%s attack" % id)
 			_ok(spr.play_cast() != "", "%s cast" % id)
+			spr.rig.advance(0.5)
+		spr.free()
+	# every installed skin through the same API
+	for s in SkinData.all():
+		var hid := str(s["hero"])
+		var sid := str(s["id"])
+		if not HeroArt.has_skin_art(hid, sid):
+			continue
+		var por := HeroArt.make_portrait(hid, 96, sid)
+		_ok(por is TextureRect and (por as TextureRect).texture != null, "make_portrait(%s, %s)" % [hid, sid])
+		por.free()
+		var spr := HeroArt.make_sprite(hid, sid) as HeroSprite
+		_ok(spr != null and spr.rig != null and spr.rig.rig != null, "make_sprite(%s, %s)" % [hid, sid])
+		if spr and spr.rig:
+			spr.rig.manual = true
+			_ok(spr.play_attack(Vector2(500, 0)) != "", "%s attack" % sid)
 			spr.rig.advance(0.5)
 		spr.free()
 	print("art_selftest: %d checks, %d failures (%d rigs, %d animations)" % [checks, fails, heroes.size(), anims.size()])

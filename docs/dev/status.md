@@ -1,6 +1,6 @@
 # Status and handoff
 
-**Status as of 2026-10-17, 23:59 UTC (09:59 on 2026-10-18 on the owner's PC clock, UTC+10).** This is the living
+**Status as of 2026-10-18, 02:30 UTC (12:30 on the owner's PC clock, UTC+10).** This is the living
 status file: update it at the end of every work block. Rules and conventions are in `CLAUDE.md`;
 this file says where things stand. Older logs are under "History" at the bottom.
 
@@ -29,7 +29,7 @@ this file says where things stand. Older logs are under "History" at the bottom.
 
 - **Game:** v1 plays end to end (`docs/dev/architecture.md`). Latest IPA is still run 38946000040
   with the old farm art (artifact expires 2026-10-30); no build since. On the PC `tools/check e2e`
-  passes: 99 unit tests, boot, 3 e2e scripts (2026-10-18).
+  passes: 100 unit tests, boot, 3 e2e scripts (2026-10-18 02:20 UTC).
 - **Designs:** briefs v4 "Aero Y2K" (`docs/dev/character-briefs.md`): Y2K / Frutiger Aero
   fashion, maximum allure without nudity, female only; Nuriel, Brakka, Orrin and Lucen redesigned.
   `data/heroes.json` look, titles and bios match v4. Every hero has a seductive standing pose in
@@ -60,8 +60,20 @@ this file says where things stand. Older logs are under "History" at the bottom.
   standing skin); Kessa s209000 shows no underwear line from behind (not for an App Store set);
   Nuriel s109002 has a made-up logo patch to paint out. All four packs are rendered: 180 images, 178
   sent, 2 held.** Skin finals tooling is built (`--skin` on every ComfyUI tool, see `docs/dev/skins.md`
-  Production). In the game: Wardrobe shop tab, hero Skins tab, equipped skin shown in the Lobby,
-  hero page and battle; every skin is "Coming soon" until its art is installed.
+  Production).
+- **All 60 skins are in the game (2026-10-18, quick install).** The owner: "just pick whatever skins
+  for now ... let's put a pin in the upscaling ... just put them into the game. We'll upscale them
+  later." Claude picked one candidate per skin (list in `art_src/_review/skin_picks.json` on the PC,
+  seeds also in each `<art>.warp_src.json` `_doc`): full figure in frame first, then pose. Each was cut
+  out (`finalize.py --no-face-refine --upscale off`: BiRefNet only, no face pass, no tiled 2x
+  repaint), installed with `install.py --skin <id> --partial` (no face variants) and rigged with
+  `tools/art_quick_rig.py` (body bones from a detected face box and the silhouette: breathing, sway,
+  head turn and all battle animations; no blinks, talking or hair/wing/tail springs). Face boxes came
+  from `face_yolov8m.pt` (in `D:/comfyui/models/ultralytics/bbox/`) run on the CPU. In the game every
+  skin can be bought, worn and tried on: Wardrobe rows and the hero Skins tab show a thumbnail, and the
+  hero page has "Try on" (preview without buying). Known: skins with wide wings are scaled down to
+  fit the 1024 px canvas, so they stand smaller than wingless skins (Seraphiel Tidal Diva is about
+  1300 px tall, Kessa Card Shark about 1890).
 - **Adult set (EroLabs):** the owner asked (2026-10-18) for fully nude versions of the skins for an
   EroLabs build ("monetise and catch a different audience"), then relaxed the adult cues ("making
   them all look 30+ and slightly fat... just keep the childlike stuff in the negative prompt"). The
@@ -106,7 +118,8 @@ this file says where things stand. Older logs are under "History" at the bottom.
    so the build is a Godot web export: needs the owner's word, because CLAUDE.md said never build a
    web version (that rule was about the main iOS game). Also open: nude-set scope (all 60 skins,
    or start with a pack) and whether the EroLabs build's nude art in the public repo is fine.
-3. **Skin picks:** one seed per skin they like (can wait).
+3. **Skin picks:** Claude picked one per skin and installed them (above); the owner can swap any pick
+   ("use s<seed> for <skin>").
 4. **Amanatsu's license** on Civitai (commercial use of generated images).
 5. **Skin prices** (proposal above) and tiers.
 6. Older open questions: `docs/open-questions.md` (business), and the iOS signing / Apple developer
@@ -123,8 +136,9 @@ this file says where things stand. Older logs are under "History" at the bottom.
 2. iOS build (`.github/workflows/ios.yml` on `claude/game-planning`), run link to the owner.
 3. Final splash cards from the picks: `splash.py card <name> --plate ... --heroes id:final_source.png`,
    copy the card folder without `work/`, `card.png` and `flat.png` into `assets/art/splash/<name>/`.
-4. **Skin finals** for each skin the owner picks: `finalize.py <id> <seed> --skin <skin>`,
-   `variants.py <id> --skin <skin>`, 1:1 review, `install.py <id> --skin <skin>`, a hand-written
+4. **Skin upscale pass (on hold: "we'll upscale them later")**: replace each quick install with a full
+   final, about 5 min of GPU per skin (5 h for all 60: ask first). For each skin: `finalize.py <id> <seed> --skin <skin> --force`,
+   `variants.py <id> --skin <skin>`, 1:1 review, `install.py <id> --skin <skin> --force`, a hand-written
    `assets/art/heroes/<id>/skins/<art>/<art>.warp_src.json`, then
    `python tools/art_warp_build.py <id>@<art> --regen-masks` and the Godot import
    (`docs/dev/skins.md` Production).
@@ -161,7 +175,8 @@ Earlier IPA runs: 38804639017 (trial), 38830308549 (v1), 38852015265 (UI v2).
 
 On the PC, 2026-10-17 23:15 UTC: `test_pipeline.py` 60 OK; `check_port.py` 48 ok; `test_artgen.py`
 80 OK plus one Windows-only symlink error; `art_warp_build.py --check` 15 heroes, 0 errors. Earlier
-(2026-10-18 local): `tools/check e2e` (99 tests, boot, 3 e2e) ok; no game code changed since. The table below is the
+(2026-10-18 02:20 UTC): `tools/check e2e` (100 tests, boot, 3 e2e) ok; `tools/art_selftest.gd` 6930 checks, 0
+failures (76 rigs: 16 base + 60 skins, 13 animations). The table below is the
 last cloud run (2026-10-17 00:15 UTC).
 
 | Check | Result |

@@ -403,6 +403,11 @@ func _wardrobe_card(h: Dictionary, lines: Dictionary) -> Control:
 func _skin_row(s: Dictionary, lines: Dictionary) -> Control:
 	var r := Kit.hbox(10)
 	r.name = "Skin_" + str(s.id)
+	if bool(s.get("installed", false)):
+		var pic := HeroArt.make_portrait(str(s.hero), 96, str(s.id))
+		pic.mouse_filter = MOUSE_FILTER_IGNORE
+		pic.size_flags_vertical = SIZE_SHRINK_CENTER
+		r.add_child(pic)
 	var info := Kit.vbox(2)
 	info.size_flags_horizontal = SIZE_EXPAND_FILL
 	info.mouse_filter = MOUSE_FILTER_IGNORE

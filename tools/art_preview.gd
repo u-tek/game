@@ -3,7 +3,7 @@ extends SceneTree
 ## Needs a rendering driver (not --headless):
 ##   flock /tmp/halo-godot.lock xvfb-run -a -s "-screen 0 1800x2400x24" godot --path . \
 ##     --rendering-driver opengl3 --resolution 64x64 -s tools/art_preview.gd -- jobs.json
-## jobs.json: [{"hero": "seraphiel", "out": "dir", "size": [600, 1000], "scale": 0.45,
+## jobs.json: [{"hero": "seraphiel", "skin": "<skin id, optional>", "out": "dir", "size": [600, 1000], "scale": 0.45,
 ##   "feet": [300, 960], "fps": 30, "warm": 1.0, "base": "idle",
 ##   "frames": [{"anim": "attack_ranged", "track": 1, "t": 0.4, "look": [0, 0],
 ##               "flip": false, "echo": false, "label": "x"}...]          # single poses
@@ -54,7 +54,7 @@ func _timeline(j: Dictionary) -> void:
 	var out := str(j.get("out", "/tmp/rigprev"))
 	DirAccess.make_dir_recursive_absolute(out)
 	var dt := 1.0 / float(j.get("fps", 30.0))
-	var sprite := HeroArt.make_sprite(str(j.get("hero", "seraphiel"))) as HeroSprite
+	var sprite := HeroArt.make_sprite(str(j.get("hero", "seraphiel")), str(j.get("skin", ""))) as HeroSprite
 	sprite.position = Vector2(float(feet[0]), float(feet[1]))
 	sprite.scale = Vector2(sc / HeroSprite.BASE_SCALE, sc / HeroSprite.BASE_SCALE)
 	_vp.add_child(sprite)
@@ -141,7 +141,7 @@ func _job(j: Dictionary) -> void:
 			if sprite != null:
 				sprite.queue_free()
 				await process_frame
-			sprite = HeroArt.make_sprite(str(j.get("hero", "seraphiel"))) as HeroSprite
+			sprite = HeroArt.make_sprite(str(j.get("hero", "seraphiel")), str(j.get("skin", ""))) as HeroSprite
 			sprite.position = Vector2(float(feet[0]), float(feet[1]))
 			sprite.scale = Vector2(sc / HeroSprite.BASE_SCALE, sc / HeroSprite.BASE_SCALE)
 			holder.add_child(sprite)
@@ -210,7 +210,7 @@ func _bench(j: Dictionary) -> void:
 	root.add_child(vp)
 	var sprites: Array = []
 	for i in n:
-		var s := HeroArt.make_sprite(str(j.get("hero", "seraphiel"))) as HeroSprite
+		var s := HeroArt.make_sprite(str(j.get("hero", "seraphiel")), str(j.get("skin", ""))) as HeroSprite
 		s.position = Vector2(80 + (i % 5) * 140, 500 + (i / 5) * 420)
 		if i >= 5:
 			s.set_facing(-1)

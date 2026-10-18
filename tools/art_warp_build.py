@@ -252,12 +252,12 @@ def build(hero, regen=False, check=False):
         open(gi, "w").close()
     regions = []
     for r in src.get("regions", []):
-        name = r["name"]
-        bone = r.get("bone", name)
+        rname = r["name"]       # not `name`: that is the rig's file name, used for the outputs below
+        bone = r.get("bone", rname)
         if bone not in index:
-            err(hero, "region %s: unknown bone %s" % (name, bone))
+            err(hero, "region %s: unknown bone %s" % (rname, bone))
             continue
-        mp = os.path.join(hdir, r.get("mask", "masks/%s.png" % name))
+        mp = os.path.join(hdir, r.get("mask", "masks/%s.png" % rname))
         if "rule" in r and (regen or not os.path.exists(mp)):
             m = rule_mask(r["rule"], img)
             if not check:
@@ -268,13 +268,13 @@ def build(hero, regen=False, check=False):
                 err(hero, "mask %s is %s, image is %s" % (mp, m.size, img.size))
                 continue
         else:
-            err(hero, "region %s: no mask file and no rule" % name)
+            err(hero, "region %s: no mask file and no rule" % rname)
             continue
         cell = max(W / cols, H / rows)
         arr = np.array(m.filter(ImageFilter.GaussianBlur(cell * 0.25))).astype(np.float32) / 255.0
         if arr.max() <= 0.01:
-            warn(hero, "region %s mask is empty" % name)
-        regions.append({"name": name, "bone": bone, "arr": arr, "raw": np.array(m).astype(np.float32) / 255.0})
+            warn(hero, "region %s mask is empty" % rname)
+        regions.append({"name": rname, "bone": bone, "arr": arr, "raw": np.array(m).astype(np.float32) / 255.0})
 
     # ---- grid over the alpha bounds (+ margin), culling fully transparent cells
     ys, xs = np.nonzero(alpha > 0.02)

@@ -104,6 +104,25 @@ needs its own pivots and region polygons; start from the hero's). Once `<art>.wa
 game shows the skin instead of "Coming soon". `finalize.py` refuses a skin candidate without
 `--skin` (and the reverse), and `run_hero.py --force` never re-renders a skin final's master seed.
 
+### Quick install (no upscale), how the 60 skins went in on 2026-10-18
+
+For a skin that should be in the game before its finishing passes (the owner: "put a pin in the
+upscaling ... just put them into the game"):
+
+```bash
+python tools/comfy/finalize.py kessa 208000 --skin card_shark --no-face-refine --upscale off   # cutout only
+python tools/comfy/install.py kessa --skin card_shark --partial          # no face variants yet
+python tools/art_quick_rig.py kessa@card_shark --face x,y,w,h --seed 208000   # or --faces faces.json
+python tools/art_warp_build.py kessa@card_shark --regen-masks
+tools/gd --headless --path . --import
+```
+
+The face box is in pixels of the installed 1024x2048 image (`finalize.py`'s own estimate often lands on
+a halo or hat; the 60 were placed with the `face_yolov8m.pt` detector from the ComfyUI models folder).
+The quick rig moves the body, chest and head; it has no blinks, talking or spring parts. The later
+upscale pass re-runs `finalize.py --force` with the defaults, then `variants.py`, `install.py --force`
+and a hand-made rig.
+
 ## Game work (built 2026-10-17)
 
 - `data/skins.json` (all 30 launch skins; tiers and lines) and `src/data/skins.gd` (`SkinData`).
@@ -119,5 +138,7 @@ game shows the skin instead of "Coming soon". `finalize.py` refuses a skin candi
   skins). The Lobby sprite, the hero page and the player's units in battle wear the equipped
   skin; enemies (campaign echoes) keep the base look.
 - Tests: `tests/unit/test_skins.gd` (data, buy, equip, save round trip, migrate, art fallback).
-- Not yet: installed skin art (the art jobs above wait for the owner's picks), the equipped skin
-  on portrait cards and the summon reveal, and skin bundles for real money.
+- Installed art (2026-10-18): all 60, quick install (above). Wardrobe rows and the hero Skins tab show
+  each skin's portrait; the hero page has "Try on" (`params.preview` opens it trying one on).
+- Not yet: the upscale pass and face variants, the equipped skin on portrait cards and the summon
+  reveal, and skin bundles for real money.

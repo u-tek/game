@@ -218,7 +218,7 @@ Ask the owner for approval (plan mode or a permission rule they add) instead.
 ## Commands (Linux)
 
 ```bash
-tools/check                 # import + 99 unit tests + headless boot (~20 s); must be green
+tools/check                 # import + 100 unit tests + headless boot (~20 s); must be green
 tools/check e2e             # plus 3 screen end-to-end scripts (~2 min)
 tools/gd --headless --path . -s tests/run_tests.gd -- test_playthrough   # one test file
 python3 -B tests/port_check/check_port.py        # independent Python rules check (48 checks)
@@ -229,6 +229,7 @@ python tools/comfy/roster.py candidates --count 3 --seed-offset N [--size 896x11
 python tools/comfy/run_hero.py <id> --skin <skin id> --count 3 --size 896x1152      # skin candidates
 python tools/comfy/finalize.py <id> <seed>          # face pass + tiled 2x repaint + cutout + canvas
 python tools/comfy/splash.py plates | card <name> --plate <png> --heroes id:png[,...]   # splash cards
+python tools/art_quick_rig.py <id>@<art> --face x,y,w,h   # quick skin rig (docs/dev/skins.md, Quick install)
 tools/art_warp --check                           # validate all 15 hero rigs
 tools/gd --headless --path . -s tools/art_selftest.gd   # every rig x every animation
 tools/shoot home --rich --safe-area-sim --out screenshots/home.png   # render a screen to PNG

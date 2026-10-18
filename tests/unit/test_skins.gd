@@ -135,4 +135,17 @@ func test_art_falls_back_to_the_base_look(t: TestCtx) -> void:
 			"a skin without built art shows the base still")
 		t.eq(HeroArt.portrait_region("uriela", "uriela_surf_racer"), HeroArt.portrait_region("uriela"))
 	t.eq(RigData.art_dir("uriela", "surf_racer"), "res://assets/art/heroes/uriela/skins/surf_racer/")
-	t.eq(RigData.exists("uriela", "surf_racer"), false, "no skin art built yet")
+	t.eq(RigData.exists("uriela", "no_such_art"), false, "an art folder without a rig is not installed")
+
+
+func test_installed_skin_art_loads(t: TestCtx) -> void:
+	var built := 0
+	for s: Dictionary in SkinData.all():
+		var hero := str(s["hero"])
+		if not HeroArt.has_skin_art(hero, str(s["id"])):
+			continue
+		built += 1
+		t.ok(RigData.load_rig(hero, str(s["art"])) != null, "%s: rig loads" % s["id"])
+		t.ok(HeroArt.texture(hero, str(s["id"])) != HeroArt.texture(hero), "%s: shows its own image" % s["id"])
+		t.ok(HeroArt.portrait_region(hero, str(s["id"])).size.x > 0, "%s: has a portrait" % s["id"])
+	t.ok(built > 0, "some skin art is installed (assets/art/heroes/<id>/skins/)")
