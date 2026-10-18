@@ -70,12 +70,15 @@ this file says where things stand. Older logs are under "History" at the bottom.
   mature cue), rating `nsfw`, nudity allowed, sex acts and childlike terms still refused; `--adult`
   on run_hero/finalize/variants/fix/install, work in `.../adult/`, seeds +5000, installs to
   `assets/.../skins/<art>/adult/` with `.gdignore` (the tame build's Godot import ignores the
-  nudes). test_pipeline 65 OK, test_artgen 80 OK + the known Windows symlink error. The pilot is
-  rendered (2026-10-18): Mordessa high_roller s209000-2, Seraphiel tidal_diva s107000-2, Vesper
-  last_login s210000-2 (9 images + `art_src/_review/sheets/adult_pilot_1.jpg`); the filter reads
-  them as expected nude (breasts/nipples on all, no male or sex-act classes; Seraphiel and Vesper
-  show more genital detail than Mordessa). The full run, the EroLabs web build and the nude art in
-  the public repo wait for the owner.
+  nudes). test_pipeline 65 OK, test_artgen 80 OK + the known Windows symlink error. The pilot passed
+  review (owner: "really really good") and the owner chose (2026-10-18): **all 60 skins**, **dynamic
+  poses** (added to every adult block, d0ae078), **keep the IPA** (EroLabs hosts iOS IPAs now; no web
+  build), **public nude art is fine**. The full candidate run (60 x 3 at 896x1152, bible order; pilot
+  skins re-rolled at +5100 so the approved +5000 pilots stay) is running detached on the PC:
+  progress in `art_src/_review/adult_run.log`, per-pack sheets land in `art_src/_review/sheets/
+  adult_<pack>.jpg` (about 3.5 h). Next after it: owner picks seeds per skin, finals + variants +
+  1:1 review + install (`--adult`), rigs, then the EroLabs IPA workflow (ios.yml variant that swaps
+  `assets/.../skins/<art>/adult/` over the tame art before export).
 - **Splash cards:** `tools/comfy/splash.py` (faction plates in `art_src/_splash/plates/`, 12 made;
   cards in `art_src/_splash/cards/<name>/` with layers). 6 test cards made from unpicked
   candidates and sent. In the game: `src/ui/components/splash_card.gd` (animated layers from
