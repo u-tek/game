@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for brakka velvet_rope, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s206001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "velvet_rope.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [494, 642, 429],
+  "look_px": [8, 5],
+  "meta": {"fx_color": "#ff8a3d", "art": "comfy s206001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [494, 1140]},
+    {"name": "torso", "parent": "hips", "pivot": [498, 1026]},
+    {"name": "chest", "parent": "torso", "pivot": [499, 887]},
+    {"name": "neck", "parent": "chest", "pivot": [498, 760]},
+    {"name": "head", "parent": "neck", "pivot": [486, 725]},
+    {"name": "face", "parent": "head", "pivot": [494, 633]},
+    {"name": "hair_front", "parent": "head", "pivot": [494, 537]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [494, 650], "radius": [83, 71], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [494, 564], "radius": [99, 48], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [494, 617], "radius": [159, 153], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[397, 750], [599, 750], [682, 827], [673, 1006], [626, 1036], [370, 1036], [325, 1006], [316, 827]], "feather": 40}}
+  ],
+  "overlays": []
+}

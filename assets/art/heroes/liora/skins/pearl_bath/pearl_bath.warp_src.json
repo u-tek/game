@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for liora pearl_bath, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s105000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "pearl_bath.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [474, 716, 429],
+  "look_px": [8, 5],
+  "meta": {"fx_color": "#ffe9a8", "art": "comfy s105000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [540, 1189]},
+    {"name": "torso", "parent": "hips", "pivot": [483, 1081]},
+    {"name": "chest", "parent": "torso", "pivot": [453, 949]},
+    {"name": "neck", "parent": "chest", "pivot": [460, 830]},
+    {"name": "head", "parent": "neck", "pivot": [467, 797]},
+    {"name": "face", "parent": "head", "pivot": [474, 708]},
+    {"name": "hair_front", "parent": "head", "pivot": [474, 613]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [474, 723], "radius": [83, 69], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [474, 640], "radius": [99, 47], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [474, 692], "radius": [159, 149], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[359, 820], [561, 820], [636, 889], [627, 1061], [611, 1091], [355, 1091], [279, 1061], [270, 889]], "feather": 40}}
+  ],
+  "overlays": []
+}

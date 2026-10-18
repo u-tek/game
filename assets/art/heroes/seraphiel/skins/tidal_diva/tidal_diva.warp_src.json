@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for seraphiel tidal_diva, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s102000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "tidal_diva.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [538, 873, 381],
+  "look_px": [8, 5],
+  "meta": {"fx_color": "#ffe9a8", "art": "comfy s102000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [539, 1286]},
+    {"name": "torso", "parent": "hips", "pivot": [539, 1192]},
+    {"name": "chest", "parent": "torso", "pivot": [516, 1076]},
+    {"name": "neck", "parent": "chest", "pivot": [566, 972]},
+    {"name": "head", "parent": "neck", "pivot": [530, 943]},
+    {"name": "face", "parent": "head", "pivot": [538, 866]},
+    {"name": "hair_front", "parent": "head", "pivot": [538, 786]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [538, 880], "radius": [73, 59], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [538, 809], "radius": [87, 40], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [538, 853], "radius": [141, 127], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[477, 962], [655, 962], [678, 1016], [670, 1172], [653, 1202], [425, 1202], [362, 1172], [354, 1016]], "feather": 40}}
+  ],
+  "overlays": []
+}

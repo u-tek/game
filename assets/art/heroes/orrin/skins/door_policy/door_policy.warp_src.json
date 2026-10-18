@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for orrin door_policy, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s306002, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "door_policy.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [518, 740, 375],
+  "look_px": [8, 5],
+  "meta": {"fx_color": "#b48cff", "art": "comfy s306002 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [529, 1199]},
+    {"name": "torso", "parent": "hips", "pivot": [561, 1093]},
+    {"name": "chest", "parent": "torso", "pivot": [518, 963]},
+    {"name": "neck", "parent": "chest", "pivot": [506, 845]},
+    {"name": "head", "parent": "neck", "pivot": [511, 813]},
+    {"name": "face", "parent": "head", "pivot": [518, 734]},
+    {"name": "hair_front", "parent": "head", "pivot": [518, 650]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [518, 747], "radius": [72, 61], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [518, 674], "radius": [86, 42], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [518, 720], "radius": [139, 132], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[418, 835], [594, 835], [678, 903], [670, 1073], [673, 1103], [449, 1103], [366, 1073], [358, 903]], "feather": 40}}
+  ],
+  "overlays": []
+}

@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for liora lounge_singer, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s107001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "lounge_singer.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [598, 769, 432],
+  "look_px": [8, 5],
+  "meta": {"fx_color": "#ffe9a8", "art": "comfy s107001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [453, 1226]},
+    {"name": "torso", "parent": "hips", "pivot": [512, 1123]},
+    {"name": "chest", "parent": "torso", "pivot": [561, 997]},
+    {"name": "neck", "parent": "chest", "pivot": [597, 883]},
+    {"name": "head", "parent": "neck", "pivot": [590, 852]},
+    {"name": "face", "parent": "head", "pivot": [598, 761]},
+    {"name": "hair_front", "parent": "head", "pivot": [598, 665]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [598, 777], "radius": [83, 70], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [598, 692], "radius": [99, 48], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [598, 745], "radius": [160, 152], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[496, 873], [698, 873], [745, 937], [736, 1103], [641, 1133], [383, 1133], [386, 1103], [377, 937]], "feather": 40}}
+  ],
+  "overlays": []
+}

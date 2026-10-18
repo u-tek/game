@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for lucen split_tide, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s305000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "split_tide.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [607, 934, 470],
+  "look_px": [8, 5],
+  "meta": {"fx_color": "#b48cff", "art": "comfy s305000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [524, 1339]},
+    {"name": "torso", "parent": "hips", "pivot": [582, 1252]},
+    {"name": "chest", "parent": "torso", "pivot": [594, 1145]},
+    {"name": "neck", "parent": "chest", "pivot": [604, 1048]},
+    {"name": "head", "parent": "neck", "pivot": [598, 1022]},
+    {"name": "face", "parent": "head", "pivot": [607, 925]},
+    {"name": "hair_front", "parent": "head", "pivot": [607, 822]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [607, 942], "radius": [90, 75], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [607, 851], "radius": [108, 51], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [607, 908], "radius": [174, 162], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[494, 1038], [714, 1038], [794, 1085], [784, 1232], [722, 1262], [442, 1262], [404, 1232], [394, 1085]], "feather": 40}}
+  ],
+  "overlays": []
+}

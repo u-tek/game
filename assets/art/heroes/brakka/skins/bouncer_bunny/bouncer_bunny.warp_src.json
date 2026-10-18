@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for brakka bouncer_bunny, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s205000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "bouncer_bunny.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [483, 370, 524],
+  "look_px": [8, 5],
+  "meta": {"fx_color": "#ff8a3d", "art": "comfy s205000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [500, 970]},
+    {"name": "torso", "parent": "hips", "pivot": [472, 833]},
+    {"name": "chest", "parent": "torso", "pivot": [463, 666]},
+    {"name": "neck", "parent": "chest", "pivot": [484, 514]},
+    {"name": "head", "parent": "neck", "pivot": [473, 472]},
+    {"name": "face", "parent": "head", "pivot": [483, 360]},
+    {"name": "hair_front", "parent": "head", "pivot": [483, 241]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [483, 379], "radius": [101, 87], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [483, 275], "radius": [120, 59], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [483, 340], "radius": [194, 187], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[361, 504], [607, 504], [686, 606], [675, 813], [628, 843], [316, 843], [251, 813], [240, 606]], "feather": 40}}
+  ],
+  "overlays": []
+}

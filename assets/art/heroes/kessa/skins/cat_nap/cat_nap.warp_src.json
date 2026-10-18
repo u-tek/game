@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for kessa cat_nap, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s207001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "cat_nap.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [584, 289, 694],
+  "look_px": [8, 5],
+  "meta": {"fx_color": "#ff8a3d", "art": "comfy s207001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [619, 933]},
+    {"name": "torso", "parent": "hips", "pivot": [636, 791]},
+    {"name": "chest", "parent": "torso", "pivot": [618, 618]},
+    {"name": "neck", "parent": "chest", "pivot": [574, 460]},
+    {"name": "head", "parent": "neck", "pivot": [571, 418]},
+    {"name": "face", "parent": "head", "pivot": [584, 277]},
+    {"name": "hair_front", "parent": "head", "pivot": [584, 128]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [584, 301], "radius": [134, 109], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [584, 170], "radius": [159, 74], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [584, 252], "radius": [257, 236], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[411, 450], [737, 450], [914, 558], [899, 771], [843, 801], [429, 801], [337, 771], [322, 558]], "feather": 40}}
+  ],
+  "overlays": []
+}

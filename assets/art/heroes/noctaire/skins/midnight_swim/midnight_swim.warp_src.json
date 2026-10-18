@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for noctaire midnight_swim, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s302000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "midnight_swim.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [536, 843, 348],
+  "look_px": [8, 5],
+  "meta": {"fx_color": "#b48cff", "art": "comfy s302000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [522, 1264]},
+    {"name": "torso", "parent": "hips", "pivot": [526, 1167]},
+    {"name": "chest", "parent": "torso", "pivot": [530, 1048]},
+    {"name": "neck", "parent": "chest", "pivot": [534, 939]},
+    {"name": "head", "parent": "neck", "pivot": [529, 910]},
+    {"name": "face", "parent": "head", "pivot": [536, 837]},
+    {"name": "hair_front", "parent": "head", "pivot": [536, 760]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [536, 849], "radius": [67, 56], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [536, 782], "radius": [80, 38], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [536, 824], "radius": [129, 122], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[452, 929], [616, 929], [678, 988], [671, 1147], [630, 1177], [422, 1177], [389, 1147], [382, 988]], "feather": 40}}
+  ],
+  "overlays": []
+}

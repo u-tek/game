@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for lucen two_faced_bunny, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s307001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "two_faced_bunny.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [396, 974, 443],
+  "look_px": [8, 5],
+  "meta": {"fx_color": "#b48cff", "art": "comfy s307001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [432, 1362]},
+    {"name": "torso", "parent": "hips", "pivot": [382, 1278]},
+    {"name": "chest", "parent": "torso", "pivot": [414, 1175]},
+    {"name": "neck", "parent": "chest", "pivot": [460, 1081]},
+    {"name": "head", "parent": "neck", "pivot": [388, 1056]},
+    {"name": "face", "parent": "head", "pivot": [396, 966]},
+    {"name": "hair_front", "parent": "head", "pivot": [396, 870]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [396, 981], "radius": [85, 70], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [396, 897], "radius": [102, 48], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [396, 950], "radius": [164, 151], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[356, 1071], [564, 1071], [603, 1115], [593, 1258], [514, 1288], [250, 1288], [235, 1258], [225, 1115]], "feather": 40}}
+  ],
+  "overlays": []
+}

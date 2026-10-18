@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for cassiel lifeguard_unit, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s103000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "lifeguard_unit.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [402, 713, 521],
+  "look_px": [8, 5],
+  "meta": {"fx_color": "#ffe9a8", "art": "comfy s103000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [459, 1199]},
+    {"name": "torso", "parent": "hips", "pivot": [518, 1092]},
+    {"name": "chest", "parent": "torso", "pivot": [400, 963]},
+    {"name": "neck", "parent": "chest", "pivot": [403, 844]},
+    {"name": "head", "parent": "neck", "pivot": [392, 813]},
+    {"name": "face", "parent": "head", "pivot": [402, 703]},
+    {"name": "hair_front", "parent": "head", "pivot": [402, 588]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [402, 723], "radius": [100, 84], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [402, 621], "radius": [120, 58], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [402, 684], "radius": [193, 182], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[281, 834], [525, 834], [622, 903], [611, 1072], [673, 1102], [363, 1102], [189, 1072], [178, 903]], "feather": 40}}
+  ],
+  "overlays": []
+}

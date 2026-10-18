@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for mordessa queens_chamber, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s203001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "queens_chamber.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [522, 786, 410],
+  "look_px": [8, 5],
+  "meta": {"fx_color": "#ff8a3d", "art": "comfy s203001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [518, 1234]},
+    {"name": "torso", "parent": "hips", "pivot": [519, 1132]},
+    {"name": "chest", "parent": "torso", "pivot": [521, 1008]},
+    {"name": "neck", "parent": "chest", "pivot": [508, 895]},
+    {"name": "head", "parent": "neck", "pivot": [514, 864]},
+    {"name": "face", "parent": "head", "pivot": [522, 779]},
+    {"name": "hair_front", "parent": "head", "pivot": [522, 690]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [522, 794], "radius": [79, 66], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [522, 715], "radius": [94, 45], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [522, 764], "radius": [152, 142], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[412, 885], [604, 885], [696, 948], [687, 1112], [641, 1142], [397, 1142], [355, 1112], [346, 948]], "feather": 40}}
+  ],
+  "overlays": []
+}

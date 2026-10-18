@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for sable holy_water, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s304000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "holy_water.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [508, 886, 451],
+  "look_px": [8, 5],
+  "meta": {"fx_color": "#b48cff", "art": "comfy s304000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [606, 1307]},
+    {"name": "torso", "parent": "hips", "pivot": [512, 1215]},
+    {"name": "chest", "parent": "torso", "pivot": [510, 1103]},
+    {"name": "neck", "parent": "chest", "pivot": [510, 1001]},
+    {"name": "head", "parent": "neck", "pivot": [499, 973]},
+    {"name": "face", "parent": "head", "pivot": [508, 878]},
+    {"name": "hair_front", "parent": "head", "pivot": [508, 778]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [508, 895], "radius": [87, 73], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [508, 806], "radius": [104, 50], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [508, 861], "radius": [167, 159], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[404, 991], [616, 991], [702, 1043], [692, 1195], [646, 1225], [378, 1225], [328, 1195], [318, 1043]], "feather": 40}}
+  ],
+  "overlays": []
+}

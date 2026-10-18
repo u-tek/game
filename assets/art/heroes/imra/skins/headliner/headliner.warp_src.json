@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for imra headliner, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s208000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "headliner.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [508, 700, 440],
+  "look_px": [8, 5],
+  "meta": {"fx_color": "#ff8a3d", "art": "comfy s208000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [492, 1179]},
+    {"name": "torso", "parent": "hips", "pivot": [482, 1070]},
+    {"name": "chest", "parent": "torso", "pivot": [484, 937]},
+    {"name": "neck", "parent": "chest", "pivot": [516, 816]},
+    {"name": "head", "parent": "neck", "pivot": [499, 783]},
+    {"name": "face", "parent": "head", "pivot": [508, 691]},
+    {"name": "hair_front", "parent": "head", "pivot": [508, 595]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [508, 708], "radius": [85, 71], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [508, 622], "radius": [101, 48], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [508, 675], "radius": [163, 153], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[413, 806], [619, 806], [671, 877], [662, 1050], [613, 1080], [351, 1080], [306, 1050], [297, 877]], "feather": 40}}
+  ],
+  "overlays": []
+}

@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for mordessa high_roller, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s204000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "high_roller.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [544, 304, 683],
+  "look_px": [8, 5],
+  "meta": {"fx_color": "#ff8a3d", "art": "comfy s204000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [476, 945]},
+    {"name": "torso", "parent": "hips", "pivot": [558, 804]},
+    {"name": "chest", "parent": "torso", "pivot": [566, 633]},
+    {"name": "neck", "parent": "chest", "pivot": [563, 477]},
+    {"name": "head", "parent": "neck", "pivot": [532, 435]},
+    {"name": "face", "parent": "head", "pivot": [544, 291]},
+    {"name": "hair_front", "parent": "head", "pivot": [544, 139]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [544, 316], "radius": [132, 111], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [544, 182], "radius": [157, 76], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [544, 266], "radius": [253, 240], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[403, 467], [723, 467], [857, 573], [842, 784], [762, 814], [354, 814], [290, 784], [275, 573]], "feather": 40}}
+  ],
+  "overlays": []
+}

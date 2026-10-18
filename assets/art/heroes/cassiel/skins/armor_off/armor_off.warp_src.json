@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for cassiel armor_off, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s104002, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "armor_off.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [502, 638, 489],
+  "look_px": [8, 5],
+  "meta": {"fx_color": "#ffe9a8", "art": "comfy s104002 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [488, 1144]},
+    {"name": "torso", "parent": "hips", "pivot": [430, 1031]},
+    {"name": "chest", "parent": "torso", "pivot": [500, 892]},
+    {"name": "neck", "parent": "chest", "pivot": [501, 766]},
+    {"name": "head", "parent": "neck", "pivot": [492, 732]},
+    {"name": "face", "parent": "head", "pivot": [502, 630]},
+    {"name": "hair_front", "parent": "head", "pivot": [502, 522]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [502, 647], "radius": [94, 79], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [502, 553], "radius": [112, 54], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [502, 612], "radius": [181, 170], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[387, 756], [615, 756], [708, 832], [698, 1011], [576, 1041], [284, 1041], [302, 1011], [292, 832]], "feather": 40}}
+  ],
+  "overlays": []
+}

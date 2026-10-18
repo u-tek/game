@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for brakka locker_room, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s204000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "locker_room.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [449, 404, 524],
+  "look_px": [8, 5],
+  "meta": {"fx_color": "#ff8a3d", "art": "comfy s204000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [430, 992]},
+    {"name": "torso", "parent": "hips", "pivot": [440, 858]},
+    {"name": "chest", "parent": "torso", "pivot": [470, 694]},
+    {"name": "neck", "parent": "chest", "pivot": [486, 545]},
+    {"name": "head", "parent": "neck", "pivot": [439, 504]},
+    {"name": "face", "parent": "head", "pivot": [449, 395]},
+    {"name": "hair_front", "parent": "head", "pivot": [449, 280]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [449, 414], "radius": [101, 84], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [449, 313], "radius": [120, 57], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [449, 376], "radius": [194, 181], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[363, 535], [609, 535], [693, 634], [682, 838], [596, 868], [284, 868], [258, 838], [247, 634]], "feather": 40}}
+  ],
+  "overlays": []
+}

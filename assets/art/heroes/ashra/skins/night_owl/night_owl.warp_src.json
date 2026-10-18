@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for ashra night_owl, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s309000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "night_owl.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [530, 606, 456],
+  "look_px": [8, 5],
+  "meta": {"fx_color": "#b48cff", "art": "comfy s309000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [527, 1119]},
+    {"name": "torso", "parent": "hips", "pivot": [536, 1002]},
+    {"name": "chest", "parent": "torso", "pivot": [550, 859]},
+    {"name": "neck", "parent": "chest", "pivot": [518, 729]},
+    {"name": "head", "parent": "neck", "pivot": [521, 693]},
+    {"name": "face", "parent": "head", "pivot": [530, 598]},
+    {"name": "hair_front", "parent": "head", "pivot": [530, 498]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [530, 615], "radius": [88, 73], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [530, 526], "radius": [105, 50], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [530, 581], "radius": [169, 159], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[411, 719], [625, 719], [744, 799], [735, 982], [672, 1012], [400, 1012], [365, 982], [356, 799]], "feather": 40}}
+  ],
+  "overlays": []
+}

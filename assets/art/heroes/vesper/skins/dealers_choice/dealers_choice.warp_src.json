@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for vesper dealers_choice, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s206002, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "dealers_choice.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [563, 893, 448],
+  "look_px": [8, 5],
+  "meta": {"fx_color": "#ff8a3d", "art": "comfy s206002 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [497, 1311]},
+    {"name": "torso", "parent": "hips", "pivot": [512, 1220]},
+    {"name": "chest", "parent": "torso", "pivot": [534, 1109]},
+    {"name": "neck", "parent": "chest", "pivot": [564, 1007]},
+    {"name": "head", "parent": "neck", "pivot": [555, 980]},
+    {"name": "face", "parent": "head", "pivot": [563, 885]},
+    {"name": "hair_front", "parent": "head", "pivot": [563, 784]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [563, 901], "radius": [86, 74], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [563, 812], "radius": [103, 50], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [563, 868], "radius": [166, 160], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[459, 997], [669, 997], [725, 1049], [715, 1200], [646, 1230], [378, 1230], [353, 1200], [343, 1049]], "feather": 40}}
+  ],
+  "overlays": []
+}
