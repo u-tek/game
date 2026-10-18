@@ -62,6 +62,16 @@ this file says where things stand. Older logs are under "History" at the bottom.
   sent, 2 held.** Skin finals tooling is built (`--skin` on every ComfyUI tool, see `docs/dev/skins.md`
   Production). In the game: Wardrobe shop tab, hero Skins tab, equipped skin shown in the Lobby,
   hero page and battle; every skin is "Coming soon" until its art is installed.
+- **Adult set (EroLabs):** the owner asked (2026-10-18) for fully nude versions of the skins for an
+  EroLabs build ("monetise and catch a different audience"), then relaxed the adult cues ("making
+  them all look 30+ and slightly fat... just keep the childlike stuff in the negative prompt"). The
+  pipeline now has an opt-in `--adult` mode: bible `content_rules_adult` + an `adult` prompt block
+  on all 60 skins (`docs/dev/skins.md` "Adult set"), subject `1girl, solo, adult` (no gendered
+  mature cue), rating `nsfw`, nudity allowed, sex acts and childlike terms still refused; `--adult`
+  on run_hero/finalize/variants/fix/install, work in `.../adult/`, seeds +5000, installs to
+  `assets/.../skins/<art>/adult/` with `.gdignore` (the tame build's Godot import ignores the
+  nudes). test_pipeline 65 OK, test_artgen 80 OK + the known Windows symlink error. A pilot render
+  of 3 nude skins is next; the full run and the EroLabs web build wait for the owner.
 - **Splash cards:** `tools/comfy/splash.py` (faction plates in `art_src/_splash/plates/`, 12 made;
   cards in `art_src/_splash/cards/<name>/` with layers). 6 test cards made from unpicked
   candidates and sent. In the game: `src/ui/components/splash_card.gd` (animated layers from
@@ -85,8 +95,10 @@ this file says where things stand. Older logs are under "History" at the bottom.
 ## Waiting on the owner
 
 1. **Base art picks:** one v5 seed per hero (or "re-roll <hero>").
-2. **The adult-site version:** which site, and what it needs (most host PC or browser builds;
-   `CLAUDE.md` says never build a web version, so that needs the owner's word).
+2. **The adult-site version (EroLabs):** the owner named EroLabs. It is a browser-game portal,
+   so the build is a Godot web export: needs the owner's word, because CLAUDE.md said never build a
+   web version (that rule was about the main iOS game). Also open: nude-set scope (all 60 skins,
+   or start with a pack) and whether the EroLabs build's nude art in the public repo is fine.
 3. **Skin picks:** one seed per skin they like (can wait).
 4. **Amanatsu's license** on Civitai (commercial use of generated images).
 5. **Skin prices** (proposal above) and tiers.

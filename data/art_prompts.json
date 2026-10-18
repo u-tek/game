@@ -21,6 +21,98 @@
   "forbidden_positive_female": ["topless", "no bra"]
  },
 
+ "content_rules_adult": {
+  "_doc": "Rules for the EroLabs nude set (--adult in tools/comfy): fully nude pinups, no sex acts. Nudity terms are allowed in the positive and not required in the negative; sex-act and childlike terms stay forbidden and the childlike negative block stays required. Adult cues relaxed 2026-10-18 (the owner: the old cues made the cast look 30+ and slightly fat): only a plain 'adult' tag is required at weight >= 0.5, the gendered 'mature female' cue is dropped, and subject_override replaces the heroes' subject line. The tame content_rules above are unchanged and still gate every non-adult render.",
+  "adult_cues": [
+   "adult",
+   "mature female",
+   "mature male"
+  ],
+  "adult_cue_required": "adult",
+  "adult_cue_by_gender": {},
+  "min_adult_cue_weight": 0.5,
+  "min_negative_weight": 0.9,
+  "subject_override": "1girl, solo, adult",
+  "family_rating": "nsfw",
+  "family_rating_negative": "explicit",
+  "required_negative": {
+   "explicit_acts": [
+    "explicit",
+    "sex",
+    "masturbation",
+    "cum",
+    "penis",
+    "testicles"
+   ],
+   "childlike": [
+    "loli",
+    "shota",
+    "child",
+    "underage",
+    "teenage",
+    "young",
+    "aged down",
+    "school uniform"
+   ]
+  },
+  "required_negative_by_gender": {},
+  "forbidden_positive": [
+   "explicit",
+   "questionable",
+   "sex",
+   "masturbation",
+   "cum",
+   "penis",
+   "testicles",
+   "bulge",
+   "erection",
+   "vaginal",
+   "anal",
+   "dildo",
+   "sex toy",
+   "blowjob",
+   "loli",
+   "shota",
+   "child",
+   "children",
+   "kid",
+   "toddler",
+   "baby",
+   "infant",
+   "preteen",
+   "minor",
+   "underage",
+   "young",
+   "young child",
+   "young girl",
+   "young boy",
+   "little girl",
+   "little boy",
+   "teen",
+   "teens",
+   "teenage",
+   "teenager",
+   "childlike",
+   "aged down",
+   "shortstack",
+   "student",
+   "schoolgirl",
+   "schoolboy",
+   "school",
+   "school uniform",
+   "elementary school",
+   "middle school",
+   "high school",
+   "serafuku",
+   "sailor collar",
+   "gym uniform",
+   "buruma",
+   "randoseru",
+   "kindergarten uniform",
+   "flat chest"
+  ]
+ },
+
  "families": {
   "noobai_vpred": {
    "label": "NoobAI-XL v-prediction (and v-pred merges)",
@@ -118,6 +210,7 @@
   "framing": "cropped, (out of frame:1.3), jumping, midair, sitting, kneeling, lying, all fours, feet out of frame, head out of frame, wings out of frame, upper body, cowboy shot, multiple views, scenery",
   "effects": "light particles, sparkle, embers, aura, light rays, smoke, speed lines",
   "explicit": "nsfw, explicit, nude, nipples, areolae, covered nipples, nipple slip, areola slip, pussy, cameltoe, anus, penis, pubic hair, sex, spread legs, see-through",
+  "explicit_adult": "explicit, sex, masturbation, cum, penis, testicles, dildo, sex toy, blowjob, vaginal, anal",
   "childlike": "loli, shota, child, underage, teenage, young, aged down, school uniform",
   "text": "text, watermark, signature, username",
   "style": "chibi, 3d, anime coloring, flat color, flat shading, simple shading, lineart, sketch, monochrome, dark background, gradient background, floor, reflection",
@@ -125,7 +218,7 @@
   "_doc": "Kept short on purpose (at most 3 CLIP chunks; the safety terms alone are about 70 tokens): the required safety terms (gender-specific ones live in 'gender'), quality, framing and effects. Order: family quality, rating, the hero's negative_extra (first, so its weighted terms win the de-duplication), then these blocks. 'effects' keeps semi-transparent FX (glows, smoke, particles) out of the art: they spill into the flat background and break the cutout, and the rig draws its own VFX. 'halo' is added when the positive has a halo: the Danbooru halo tag is dominated by Blue Archive's school-age cast."
  },
  "gender": {
-  "female": {"negative": "1boy, multiple girls, topless, flat chest, pussy peek, no panties, pantyshot, upskirt"},
+  "female": {"negative": "1boy, multiple girls, topless, flat chest, pussy peek, no panties, pantyshot, upskirt", "negative_adult": "1boy, multiple girls, flat chest"},
   "male": {"negative": "1girl, multiple boys, breasts, bulge"}
  },
  "factions": {
@@ -793,7 +886,11 @@
    "accessories": "sunglasses, eyewear on head, anklet",
    "weapon": "microphone",
    "pose": "arm up, hand in own hair, arched back",
-   "natural": "Adult. Seraphiel in a pearl micro bikini with chrome ring links and body chains, wet-look skin, mirrored shades pushed into her platinum hair, a chrome mic in hand."
+   "natural": "Adult. Seraphiel in a pearl micro bikini with chrome ring links and body chains, wet-look skin, mirrored shades pushed into her platinum hair, a chrome mic in hand.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin, body chain",
+   "natural": "Adult. Seraphiel nude on the lagoon stage: a pearl body chain on wet skin, mirrored shades pushed into her platinum hair, a chrome mic in hand."
+  }
   },
   "cassiel_lifeguard_unit": {
    "hero": "cassiel",
@@ -805,7 +902,11 @@
    "accessories": "whistle, sunglasses, eyewear on head",
    "weapon": "",
    "pose": "hand on own hip, leaning forward, arched back",
-   "natural": "Adult. Cassiel in a white-and-aqua sport micro bikini with mecha gauntlets, a chrome whistle and shades, wet skin."
+   "natural": "Adult. Cassiel in a white-and-aqua sport micro bikini with mecha gauntlets, a chrome whistle and shades, wet skin.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin, gauntlets",
+   "natural": "Adult. Cassiel nude at the poolside with her mecha gauntlets, a chrome whistle, shades on her head, wet skin."
+  }
   },
   "liora_pearl_lagoon": {
    "hero": "liora",
@@ -817,7 +918,11 @@
    "accessories": "anklet",
    "weapon": "lyre, holding instrument",
    "pose": "leaning forward, hand on own knee",
-   "natural": "Adult. Liora in a high-cut aqua one-piece plunging to the navel, pearl straps, water on her skin, glass lyre."
+   "natural": "Adult. Liora in a high-cut aqua one-piece plunging to the navel, pearl straps, water on her skin, glass lyre.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin, pearl necklace",
+   "natural": "Adult. Liora nude in the lagoon: pearls and an anklet, water beading on her skin, her glass lyre."
+  }
   },
   "uriela_surf_racer": {
    "hero": "uriela",
@@ -829,7 +934,11 @@
    "accessories": "sunglasses, eyewear on head",
    "weapon": "spear, holding spear",
    "pose": "hand on own hip, arched back",
-   "natural": "Adult. Uriela in an azure racing micro bikini, shield visor up, wet skin, her lance as a surf spear."
+   "natural": "Adult. Uriela in an azure racing micro bikini, shield visor up, wet skin, her lance as a surf spear.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin",
+   "natural": "Adult. Uriela nude after the race: visor shades up, wet skin, platform boots, her lance as a surf spear."
+  }
   },
   "nuriel_jet_stream": {
    "hero": "nuriel",
@@ -841,7 +950,11 @@
    "accessories": "eyewear on head",
    "weapon": "dagger, reverse grip",
    "pose": "leaning forward, adjusting eyewear",
-   "natural": "Adult. Nuriel in an aqua chrome micro bikini under a cropped white rash jacket, visor pushed up, crystal dagger."
+   "natural": "Adult. Nuriel in an aqua chrome micro bikini under a cropped white rash jacket, visor pushed up, crystal dagger.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin, white jacket, cropped jacket, open jacket, off shoulder",
+   "natural": "Adult. Nuriel nude under her open cropped white rash jacket, visor pushed up, crystal dagger in hand."
+  }
   },
   "mordessa_lava_lounge": {
    "hero": "mordessa",
@@ -853,7 +966,11 @@
    "accessories": "red-tinted eyewear, eyewear on head, chain belt",
    "weapon": "",
    "pose": "leaning forward, arm under breasts",
-   "natural": "Adult. Mordessa in a black latex micro bikini, red chrome shades, a fur-trimmed robe falling off her shoulders, rhinestone crown."
+   "natural": "Adult. Mordessa in a black latex micro bikini, red chrome shades, a fur-trimmed robe falling off her shoulders, rhinestone crown.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin, black coat, fur-trimmed coat, open coat, off shoulder, chain belt",
+   "natural": "Adult. Mordessa nude in the lava lounge: her fur-trimmed vinyl coat open off her shoulders, chrome chain belt, red-tinted shades, rhinestone crown."
+  }
   },
   "brakka_pool_champ": {
    "hero": "brakka",
@@ -865,7 +982,11 @@
    "accessories": "sunglasses",
    "weapon": "",
    "pose": "flexing, double biceps pose",
-   "natural": "Adult. Brakka in a black-and-chrome micro bikini and her championship belt, a towel around her neck, chrome shades."
+   "natural": "Adult. Brakka in a black-and-chrome micro bikini and her championship belt, a towel around her neck, chrome shades.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin, championship belt, towel around neck, sweat",
+   "natural": "Adult. Brakka nude at the pool: her championship belt, a towel around her neck, sweat on her skin."
+  }
   },
   "vesper_red_tide": {
    "hero": "vesper",
@@ -877,7 +998,11 @@
    "accessories": "rimless eyewear, red-tinted eyewear",
    "weapon": "",
    "pose": "leaning forward, adjusting eyewear",
-   "natural": "Adult. Vesper in a crimson latex micro bikini with chrome heart rings, tinted glasses, an open black beach robe."
+   "natural": "Adult. Vesper in a crimson latex micro bikini with chrome heart rings, tinted glasses, an open black beach robe.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin, black robe, open robe",
+   "natural": "Adult. Vesper nude at the red tide: an open black beach robe, tinted glasses, wet skin."
+  }
   },
   "imra_fire_lagoon": {
    "hero": "imra",
@@ -889,7 +1014,11 @@
    "accessories": "flower, hair flower",
    "weapon": "staff, torch",
    "pose": "dancing, arms up",
-   "natural": "Adult. Imra in an orange metallic bandeau bikini with chrome jewelry, water on her skin, a tiki-torch staff."
+   "natural": "Adult. Imra in an orange metallic bandeau bikini with chrome jewelry, water on her skin, a tiki-torch staff.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin, waist chain, armlet, navel piercing",
+   "natural": "Adult. Imra nude by the fire lagoon: chrome waist chain, armlet and navel jewel, a flower in her hair, her tiki-torch staff."
+  }
   },
   "kessa_black_cat_beach": {
    "hero": "kessa",
@@ -901,7 +1030,11 @@
    "accessories": "cat ear headphones, visor cap",
    "weapon": "",
    "pose": "leaning forward, arched back, hand on own thigh",
-   "natural": "Adult. Kessa in a black latex micro bikini with red O-rings and a cat-ear sun visor."
+   "natural": "Adult. Kessa in a black latex micro bikini with red O-rings and a cat-ear sun visor.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin, o-ring, red o-ring",
+   "natural": "Adult. Kessa nude on the beach: red chrome O-rings, cat-ear headphones, a cat-eye sun visor."
+  }
   },
   "noctaire_midnight_swim": {
    "hero": "noctaire",
@@ -913,7 +1046,11 @@
    "accessories": "body chain",
    "weapon": "",
    "pose": "hand in own hair, arched back",
-   "natural": "Adult. Noctaire in a black micro bikini with an oil-slick holographic wrap at the hip, cracked chrome halo."
+   "natural": "Adult. Noctaire in a black micro bikini with an oil-slick holographic wrap at the hip, cracked chrome halo.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin, body chain",
+   "natural": "Adult. Noctaire nude after the midnight swim: a chrome body chain, water on her skin, cracked chrome halo."
+  }
   },
   "orrin_riot_beach": {
    "hero": "orrin",
@@ -925,7 +1062,11 @@
    "accessories": "sunglasses",
    "weapon": "surfboard, holding surfboard",
    "pose": "hand on own hip, arched back",
-   "natural": "Adult. Orrin in a black-and-violet sport micro bikini, smoked shades, one chrome pauldron, her riot shield as a surfboard."
+   "natural": "Adult. Orrin in a black-and-violet sport micro bikini, smoked shades, one chrome pauldron, her riot shield as a surfboard.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin, single pauldron",
+   "natural": "Adult. Orrin nude at the riot beach: one chrome pauldron, smoked shades, her shield as a surfboard."
+  }
   },
   "sable_holy_water": {
    "hero": "sable",
@@ -937,7 +1078,11 @@
    "accessories": "",
    "weapon": "",
    "pose": "leaning forward, head tilt, arm under breasts",
-   "natural": "Adult. Sable in a black one-piece with a plunging keyhole, a holographic veil, chrome cross, wet skin."
+   "natural": "Adult. Sable in a black one-piece with a plunging keyhole, a holographic veil, chrome cross, wet skin.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin, veil, cross necklace",
+   "natural": "Adult. Sable nude in the holy water: a holographic veil, chrome cross, wet skin."
+  }
   },
   "lucen_split_tide": {
    "hero": "lucen",
@@ -949,7 +1094,11 @@
    "accessories": "sunglasses, eyewear on head",
    "weapon": "rapier",
    "pose": "leaning forward, hand on own hip, one eye closed",
-   "natural": "Adult. Lucen in a mismatched white and black micro bikini, half-and-half shades, rapier at her side."
+   "natural": "Adult. Lucen in a mismatched white and black micro bikini, half-and-half shades, rapier at her side.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin",
+   "natural": "Adult. Lucen nude in the split tide: half-and-half shades, rapier at her side, wet skin."
+  }
   },
   "ashra_lazy_river": {
    "hero": "ashra",
@@ -961,7 +1110,11 @@
    "accessories": "headphones around neck",
    "weapon": "",
    "pose": "stretching, arms up, arched back",
-   "natural": "Adult. Ashra in a violet micro bikini and a holographic sun hat, headphones around her neck, a sleepy stretch."
+   "natural": "Adult. Ashra in a violet micro bikini and a holographic sun hat, headphones around her neck, a sleepy stretch.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin, sun hat",
+   "natural": "Adult. Ashra nude on the lazy river: a holographic sun hat, headphones around her neck, a sleepy stretch."
+  }
   },
   "seraphiel_unplugged": {
    "hero": "seraphiel",
@@ -974,7 +1127,11 @@
    "weapon": "",
    "pose": "arms behind head, arched back",
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
-   "natural": "Adult. Seraphiel unplugged: her very long platinum hair falling over her bare chest, a white bikini bottom, body chains, white stockings."
+   "natural": "Adult. Seraphiel unplugged: her very long platinum hair falling over her bare chest, a white bikini bottom, body chains, white stockings.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, body chain, white thighhighs",
+   "natural": "Adult. Seraphiel unplugged: nude with a pearl body chain, white stockings, her very long hair loose."
+  }
   },
   "cassiel_armor_off": {
    "hero": "cassiel",
@@ -987,7 +1144,11 @@
    "weapon": "",
    "pose": "hand bra, standing",
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
-   "natural": "Adult. Cassiel with her armor off but the gauntlets, covering her chest with her hands, a white bikini bottom and her greaves."
+   "natural": "Adult. Cassiel with her armor off but the gauntlets, covering her chest with her hands, a white bikini bottom and her greaves.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, gauntlets",
+   "natural": "Adult. Cassiel with her armor off: nude but for her gauntlets and greaves."
+  }
   },
   "liora_pearl_bath": {
    "hero": "liora",
@@ -1000,7 +1161,11 @@
    "weapon": "",
    "pose": "hand bra, standing",
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
-   "natural": "Adult. Liora after the bath: covering her chest with her hands, pearls, a white bikini bottom, water on her skin."
+   "natural": "Adult. Liora after the bath: covering her chest with her hands, pearls, a white bikini bottom, water on her skin.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, pearl necklace",
+   "natural": "Adult. Liora after the bath: nude, pearls, water on her skin."
+  }
   },
   "uriela_cool_down": {
    "hero": "uriela",
@@ -1013,7 +1178,11 @@
    "weapon": "",
    "pose": "covering breasts, standing",
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
-   "natural": "Adult. Uriela cooling down after the race: one arm across her bare chest, racing gloves, a blue bikini bottom, boots."
+   "natural": "Adult. Uriela cooling down after the race: one arm across her bare chest, racing gloves, a blue bikini bottom, boots.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, fingerless gloves, sweat",
+   "natural": "Adult. Uriela cooling down: nude with racing gloves, sweat, platform boots, shades."
+  }
   },
   "nuriel_visor_down": {
    "hero": "nuriel",
@@ -1026,7 +1195,11 @@
    "weapon": "",
    "pose": "hand bra, standing",
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
-   "natural": "Adult. Nuriel with only her open white jacket off her shoulders, covering her chest with her hands, an aqua bikini bottom."
+   "natural": "Adult. Nuriel with only her open white jacket off her shoulders, covering her chest with her hands, an aqua bikini bottom.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, white jacket, open jacket, off shoulder",
+   "natural": "Adult. Nuriel with her visor down: nude under an open white jacket off her shoulders."
+  }
   },
   "mordessa_queens_chamber": {
    "hero": "mordessa",
@@ -1039,7 +1212,11 @@
    "weapon": "",
    "pose": "hand bra, standing",
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
-   "natural": "Adult. Mordessa in her chamber: the fur coat falling off her shoulders, hands over her bare chest, a red bikini bottom, thigh boots, crown."
+   "natural": "Adult. Mordessa in her chamber: the fur coat falling off her shoulders, hands over her bare chest, a red bikini bottom, thigh boots, crown.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, black coat, fur-trimmed coat, off shoulder, thighhighs",
+   "natural": "Adult. Mordessa in the queen's chamber: nude under a fur-trimmed coat off her shoulders, thigh boots, her crown."
+  }
   },
   "brakka_locker_room": {
    "hero": "brakka",
@@ -1052,7 +1229,11 @@
    "weapon": "",
    "pose": "covering breasts, standing",
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
-   "natural": "Adult. Brakka in the locker room: one forearm across her bare chest, her championship belt, a towel around her neck."
+   "natural": "Adult. Brakka in the locker room: one forearm across her bare chest, her championship belt, a towel around her neck.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, championship belt, towel around neck, sweat",
+   "natural": "Adult. Brakka in the locker room: nude with her championship belt, a towel around her neck."
+  }
   },
   "vesper_last_login": {
    "hero": "vesper",
@@ -1065,7 +1246,11 @@
    "weapon": "",
    "pose": "hand bra, standing",
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
-   "natural": "Adult. Vesper logged out: latex opera gloves over her bare chest, tinted glasses, a crimson bottom, her cape."
+   "natural": "Adult. Vesper logged out: latex opera gloves over her bare chest, tinted glasses, a crimson bottom, her cape.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, elbow gloves, black cape",
+   "natural": "Adult. Vesper's last login: nude with latex opera gloves, her cape, tinted glasses."
+  }
   },
   "imra_ember_bath": {
    "hero": "imra",
@@ -1078,7 +1263,11 @@
    "weapon": "",
    "pose": "hand bra, standing",
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
-   "natural": "Adult. Imra after the fire dance: hands over her bare chest, chrome body jewelry and glowing paint, a crimson bottom."
+   "natural": "Adult. Imra after the fire dance: hands over her bare chest, chrome body jewelry and glowing paint, a crimson bottom.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, waist chain, armlet, body markings",
+   "natural": "Adult. Imra after the fire dance: nude with chrome body jewelry and glowing paint."
+  }
   },
   "kessa_cat_nap": {
    "hero": "kessa",
@@ -1091,7 +1280,11 @@
    "weapon": "",
    "pose": "hand bra, standing",
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
-   "natural": "Adult. Kessa caught napping: covering her chest with her hands, a chrome collar, a black bottom, thigh boots."
+   "natural": "Adult. Kessa caught napping: covering her chest with her hands, a chrome collar, a black bottom, thigh boots.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, collar, red o-ring, thighhighs",
+   "natural": "Adult. Kessa caught napping: nude with a chrome collar, red O-rings, thigh boots."
+  }
   },
   "noctaire_last_rites": {
    "hero": "noctaire",
@@ -1104,7 +1297,11 @@
    "weapon": "",
    "pose": "hand in own hair, standing",
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
-   "natural": "Adult. Noctaire's last rites: long silver hair over her bare chest, an oil-slick drape at the hips over a black bottom, opera gloves."
+   "natural": "Adult. Noctaire's last rites: long silver hair over her bare chest, an oil-slick drape at the hips over a black bottom, opera gloves.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, elbow gloves",
+   "natural": "Adult. Noctaire's last rites: nude with opera gloves, long silver hair loose."
+  }
   },
   "orrin_stand_down": {
    "hero": "orrin",
@@ -1117,7 +1314,11 @@
    "weapon": "",
    "pose": "covering breasts, standing",
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
-   "natural": "Adult. Orrin standing down: one gauntlet across her bare chest, a single pauldron, her cables loose, a black bottom."
+   "natural": "Adult. Orrin standing down: one gauntlet across her bare chest, a single pauldron, her cables loose, a black bottom.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, single pauldron, gauntlets, cable",
+   "natural": "Adult. Orrin standing down: nude with one gauntlet, a single pauldron, her cables loose."
+  }
   },
   "sable_confession": {
    "hero": "sable",
@@ -1130,7 +1331,11 @@
    "weapon": "",
    "pose": "hand bra, head tilt, standing",
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
-   "natural": "Adult. Sable at confession: her veil and cross, hands over her bare chest, a black bottom, garters and stockings."
+   "natural": "Adult. Sable at confession: her veil and cross, hands over her bare chest, a black bottom, garters and stockings.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, veil, cross necklace, garter straps, black thighhighs",
+   "natural": "Adult. Sable at confession: nude with her veil and cross, garters and stockings."
+  }
   },
   "lucen_half_dressed": {
    "hero": "lucen",
@@ -1143,7 +1348,11 @@
    "weapon": "",
    "pose": "hand bra, one eye closed, standing",
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
-   "natural": "Adult. Lucen half dressed: one white sleeve of her jacket on, hands over her bare chest, a black bottom, one white boot."
+   "natural": "Adult. Lucen half dressed: one white sleeve of her jacket on, hands over her bare chest, a black bottom, one white boot.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, white jacket, single sleeve, asymmetrical clothes",
+   "natural": "Adult. Lucen half dressed: nude with one white sleeve of her jacket on, one white boot."
+  }
   },
   "ashra_overslept": {
    "hero": "ashra",
@@ -1156,7 +1365,11 @@
    "weapon": "",
    "pose": "hand bra, standing",
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
-   "natural": "Adult. Ashra overslept: her witch hat on, robes slipping off, hands over her bare chest, a violet bottom."
+   "natural": "Adult. Ashra overslept: her witch hat on, robes slipping off, hands over her bare chest, a violet bottom.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, witch hat, purple robe, off shoulder",
+   "natural": "Adult. Ashra overslept: nude with her witch hat, robes slipping off."
+  }
   },
   "seraphiel_encore_bunny": {
    "hero": "seraphiel",
@@ -1168,7 +1381,11 @@
    "accessories": "",
    "weapon": "microphone",
    "pose": "arm up, hand on own hip, arched back",
-   "natural": "Adult. Pearl latex bunny leotard, chrome cuffs and collar, white fishnets, aqua bow tie."
+   "natural": "Adult. Pearl latex bunny leotard, chrome cuffs and collar, white fishnets, aqua bow tie.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, playboy bunny, fake animal ears, rabbit ears, wrist cuffs, detached collar, fishnet pantyhose, aqua bowtie",
+   "natural": "Adult. Seraphiel on the encore stage: nude with pearl bunny ears, chrome cuffs and collar, an aqua bow tie, white fishnets, a chrome mic."
+  }
   },
   "cassiel_bulwark_bunny": {
    "hero": "cassiel",
@@ -1180,7 +1397,11 @@
    "accessories": "",
    "weapon": "",
    "pose": "hand on own hip, leaning forward",
-   "natural": "Adult. White latex bunny leotard with chrome plate cuffs, white fishnets, a kite-shield bow tie pin."
+   "natural": "Adult. White latex bunny leotard with chrome plate cuffs, white fishnets, a kite-shield bow tie pin.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, playboy bunny, fake animal ears, rabbit ears, wrist cuffs, detached collar, fishnet pantyhose, gauntlets, bowtie",
+   "natural": "Adult. Cassiel the bulwark bunny: nude with chrome plate gauntlets, cuffs and a kite-shield bow tie pin, white fishnets."
+  }
   },
   "liora_pearl_bunny": {
    "hero": "liora",
@@ -1192,7 +1413,11 @@
    "accessories": "",
    "weapon": "",
    "pose": "leaning forward, hand on own knee",
-   "natural": "Adult. Cream satin bunny leotard, pearl collar and cuffs, white stockings."
+   "natural": "Adult. Cream satin bunny leotard, pearl collar and cuffs, white stockings.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, playboy bunny, fake animal ears, rabbit ears, wrist cuffs, detached collar, pearl necklace, white pantyhose",
+   "natural": "Adult. Liora the pearl bunny: nude with a pearl collar and cuffs, white stockings."
+  }
   },
   "uriela_pit_bunny": {
    "hero": "uriela",
@@ -1204,7 +1429,11 @@
    "accessories": "eyewear on head",
    "weapon": "",
    "pose": "hand on own hip, arched back",
-   "natural": "Adult. Azure bunny leotard with racing stripes, white platform boots, visor on her ears."
+   "natural": "Adult. Azure bunny leotard with racing stripes, white platform boots, visor on her ears.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, playboy bunny, fake animal ears, rabbit ears, wrist cuffs, detached collar, fishnet pantyhose, bowtie",
+   "natural": "Adult. Uriela the pit bunny: nude in white platform boots, visor on her ears, a bow tie."
+  }
   },
   "nuriel_courier_bunny": {
    "hero": "nuriel",
@@ -1216,7 +1445,11 @@
    "accessories": "eyewear on head",
    "weapon": "",
    "pose": "leaning forward, adjusting eyewear",
-   "natural": "Adult. White vinyl bunny leotard with aqua racing stripes, bunny-ear visor."
+   "natural": "Adult. White vinyl bunny leotard with aqua racing stripes, bunny-ear visor.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, playboy bunny, fake animal ears, rabbit ears, wrist cuffs, detached collar, fishnet pantyhose, aqua bowtie",
+   "natural": "Adult. Nuriel the courier bunny: nude in white sneakers, an aqua bow tie, a bunny-ear visor."
+  }
   },
   "mordessa_high_roller": {
    "hero": "mordessa",
@@ -1228,7 +1461,11 @@
    "accessories": "",
    "weapon": "",
    "pose": "leaning forward, arm under breasts",
-   "natural": "Adult. Red latex bunny leotard, black fishnets, rhinestone crown between her horns."
+   "natural": "Adult. Red latex bunny leotard, black fishnets, rhinestone crown between her horns.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, playboy bunny, fake animal ears, rabbit ears, wrist cuffs, detached collar, bowtie, black fishnet pantyhose",
+   "natural": "Adult. Mordessa the high roller: nude with black fishnets, chrome cuffs and collar, a rhinestone crown between her horns."
+  }
   },
   "brakka_bouncer_bunny": {
    "hero": "brakka",
@@ -1240,7 +1477,11 @@
    "accessories": "",
    "weapon": "",
    "pose": "flexing, double biceps pose",
-   "natural": "Adult. Black latex bunny leotard straining over her muscles, chrome cuffs, her championship belt."
+   "natural": "Adult. Black latex bunny leotard straining over her muscles, chrome cuffs, her championship belt.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, playboy bunny, fake animal ears, rabbit ears, wrist cuffs, championship belt, fishnet pantyhose",
+   "natural": "Adult. Brakka the bouncer bunny: nude over her championship belt, chrome cuffs, fishnets."
+  }
   },
   "vesper_dealers_choice": {
    "hero": "vesper",
@@ -1252,7 +1493,11 @@
    "accessories": "rimless eyewear, red-tinted eyewear",
    "weapon": "holding card, playing card",
    "pose": "leaning forward, adjusting eyewear",
-   "natural": "Adult. Crimson latex bunny leotard, black fishnets, tinted glasses, a fan of cards."
+   "natural": "Adult. Crimson latex bunny leotard, black fishnets, tinted glasses, a fan of cards.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, playboy bunny, fake animal ears, rabbit ears, wrist cuffs, bowtie, black fishnet pantyhose",
+   "natural": "Adult. Vesper's dealer's choice: nude with black fishnets, tinted glasses, a fan of cards."
+  }
   },
   "imra_lucky_ember": {
    "hero": "imra",
@@ -1264,7 +1509,11 @@
    "accessories": "",
    "weapon": "",
    "pose": "dancing, arm up",
-   "natural": "Adult. Orange metallic bunny leotard, gold cuffs, fishnets, a lantern-shaped chip."
+   "natural": "Adult. Orange metallic bunny leotard, gold cuffs, fishnets, a lantern-shaped chip.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, playboy bunny, fake animal ears, rabbit ears, gold wrist cuffs, fishnet pantyhose",
+   "natural": "Adult. Imra the lucky ember: nude with gold cuffs, fishnets, a lantern-shaped chip."
+  }
   },
   "kessa_card_shark": {
    "hero": "kessa",
@@ -1276,7 +1525,11 @@
    "accessories": "",
    "weapon": "holding card, playing card",
    "pose": "leaning forward, arched back",
-   "natural": "Adult. Black latex bunny leotard with red O-rings, bunny ears over her cat-ear headphones."
+   "natural": "Adult. Black latex bunny leotard with red O-rings, bunny ears over her cat-ear headphones.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, playboy bunny, fake animal ears, rabbit ears, collar, o-ring, red o-ring, red bowtie, fishnet pantyhose",
+   "natural": "Adult. Kessa the card shark: nude with a chrome collar, red O-rings, a red bow tie, fishnets, bunny ears over her cat-ear headphones."
+  }
   },
   "noctaire_void_bunny": {
    "hero": "noctaire",
@@ -1288,7 +1541,11 @@
    "accessories": "",
    "weapon": "",
    "pose": "hand in own hair, arched back",
-   "natural": "Adult. Black latex bunny leotard, oil-slick ears, glitch-pattern fishnets."
+   "natural": "Adult. Black latex bunny leotard, oil-slick ears, glitch-pattern fishnets.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, playboy bunny, fake animal ears, rabbit ears, wrist cuffs, detached collar, fishnet pantyhose",
+   "natural": "Adult. Noctaire the void bunny: nude with glitch-pattern fishnets, oil-slick ears, a cracked chrome halo."
+  }
   },
   "orrin_pit_boss": {
    "hero": "orrin",
@@ -1300,7 +1557,11 @@
    "accessories": "",
    "weapon": "",
    "pose": "hand on own hip, arched back",
-   "natural": "Adult. Black-and-violet bunny leotard, one chrome pauldron, fishnets, her cables as a sash."
+   "natural": "Adult. Black-and-violet bunny leotard, one chrome pauldron, fishnets, her cables as a sash.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, playboy bunny, fake animal ears, rabbit ears, wrist cuffs, single pauldron, purple bowtie, fishnet pantyhose",
+   "natural": "Adult. Orrin the pit boss: nude with one chrome pauldron, a violet bow tie, fishnets, her cables as a sash."
+  }
   },
   "sable_velvet_veil": {
    "hero": "sable",
@@ -1312,7 +1573,11 @@
    "accessories": "",
    "weapon": "",
    "pose": "leaning forward, head tilt",
-   "natural": "Adult. Black bunny leotard under a holographic veil, violet fishnets, chrome cross."
+   "natural": "Adult. Black bunny leotard under a holographic veil, violet fishnets, chrome cross.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, playboy bunny, fake animal ears, rabbit ears, wrist cuffs, veil, cross necklace, purple fishnet pantyhose",
+   "natural": "Adult. Sable the velvet veil: nude under a holographic veil, a chrome cross, violet fishnets."
+  }
   },
   "lucen_two_faced_bunny": {
    "hero": "lucen",
@@ -1324,7 +1589,11 @@
    "accessories": "eyewear on head",
    "weapon": "",
    "pose": "leaning forward, one eye closed",
-   "natural": "Adult. Split white/black latex bunny leotard, one white ear, one black."
+   "natural": "Adult. Split white/black latex bunny leotard, one white ear, one black.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, playboy bunny, fake animal ears, rabbit ears, wrist cuffs, detached collar, fishnet pantyhose",
+   "natural": "Adult. Lucen the two-faced bunny: nude with one white ear and one black, chrome cuffs, fishnets."
+  }
   },
   "ashra_sleepy_bunny": {
    "hero": "ashra",
@@ -1336,7 +1605,11 @@
    "accessories": "headphones around neck",
    "weapon": "",
    "pose": "stretching, arms up",
-   "natural": "Adult. Violet holographic bunny leotard, floppy oversized ears, headphones."
+   "natural": "Adult. Violet holographic bunny leotard, floppy oversized ears, headphones.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, playboy bunny, fake animal ears, floppy ears, rabbit ears, fishnet pantyhose",
+   "natural": "Adult. Ashra the sleepy bunny: nude with floppy oversized ears, headphones around her neck."
+  }
   },
   "seraphiel_diva_night": {
    "hero": "seraphiel",
@@ -1348,7 +1621,11 @@
    "accessories": "",
    "weapon": "microphone",
    "pose": "arm up, hand on own hip",
-   "natural": "Adult. Pearl latex micro dress slit to the hip over a leotard, chrome mic, rhinestones."
+   "natural": "Adult. Pearl latex micro dress slit to the hip over a leotard, chrome mic, rhinestones.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, rhinestones, body chain",
+   "natural": "Adult. Seraphiel at the diva night: nude in platform heels, rhinestones and a chrome body chain, a chrome mic."
+  }
   },
   "cassiel_vip_guard": {
    "hero": "cassiel",
@@ -1360,7 +1637,11 @@
    "accessories": "",
    "weapon": "",
    "pose": "hand on own hip, arched back",
-   "natural": "Adult. White latex micro dress with chrome plate cuffs and a gorget choker."
+   "natural": "Adult. White latex micro dress with chrome plate cuffs and a gorget choker.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, gauntlets, gorget, choker",
+   "natural": "Adult. Cassiel the VIP guard: nude with chrome plate gauntlets and a gorget choker."
+  }
   },
   "liora_lounge_singer": {
    "hero": "liora",
@@ -1372,7 +1653,11 @@
    "accessories": "",
    "weapon": "microphone",
    "pose": "leaning forward, hand on own knee",
-   "natural": "Adult. Cream sequin micro dress slit to the hip over opaque shorts, long satin gloves, chrome mic."
+   "natural": "Adult. Cream sequin micro dress slit to the hip over opaque shorts, long satin gloves, chrome mic.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, elbow gloves, pearl necklace",
+   "natural": "Adult. Liora the lounge singer: nude with long satin gloves and pearls, a chrome mic."
+  }
   },
   "uriela_afterparty": {
    "hero": "uriela",
@@ -1384,7 +1669,11 @@
    "accessories": "eyewear on head",
    "weapon": "",
    "pose": "hand on own hip, arched back",
-   "natural": "Adult. Azure sequin micro dress over opaque shorts, racing gloves, visor in her hair."
+   "natural": "Adult. Azure sequin micro dress over opaque shorts, racing gloves, visor in her hair.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, fingerless gloves",
+   "natural": "Adult. Uriela after the party: nude with racing gloves, platform boots, a visor in her hair."
+  }
   },
   "nuriel_night_courier": {
    "hero": "nuriel",
@@ -1396,7 +1685,11 @@
    "accessories": "eyewear on head",
    "weapon": "",
    "pose": "leaning forward, adjusting eyewear",
-   "natural": "Adult. White vinyl micro dress with aqua piping, mirrored visor, platform sneakers."
+   "natural": "Adult. White vinyl micro dress with aqua piping, mirrored visor, platform sneakers.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, white jacket, cropped jacket, open jacket",
+   "natural": "Adult. Nuriel the night courier: nude in an open cropped white jacket, a mirrored visor, platform sneakers."
+  }
   },
   "mordessa_owners_booth": {
    "hero": "mordessa",
@@ -1408,7 +1701,11 @@
    "accessories": "",
    "weapon": "",
    "pose": "leaning forward, arm under breasts",
-   "natural": "Adult. Red latex micro dress, black fur stole, rhinestone crown."
+   "natural": "Adult. Red latex micro dress, black fur stole, rhinestone crown.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, black fur stole",
+   "natural": "Adult. Mordessa in the owner's booth: nude with a black fur stole, a rhinestone crown."
+  }
   },
   "brakka_velvet_rope": {
    "hero": "brakka",
@@ -1420,7 +1717,11 @@
    "accessories": "",
    "weapon": "",
    "pose": "crossed arms, legs apart",
-   "natural": "Adult. Black latex bodysuit with SECURITY in chrome letters, chain harness."
+   "natural": "Adult. Black latex bodysuit with SECURITY in chrome letters, chain harness.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, chest harness, chain, championship belt",
+   "natural": "Adult. Brakka at the velvet rope: nude with a chrome chest harness, a chain and her championship belt."
+  }
   },
   "vesper_encrypted": {
    "hero": "vesper",
@@ -1432,7 +1733,11 @@
    "accessories": "rimless eyewear, red-tinted eyewear",
    "weapon": "",
    "pose": "leaning forward, adjusting eyewear",
-   "natural": "Adult. Crimson latex mini dress under a black vinyl coat, tinted glasses."
+   "natural": "Adult. Crimson latex mini dress under a black vinyl coat, tinted glasses.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, black coat, open coat",
+   "natural": "Adult. Vesper encrypted: nude under an open black vinyl coat, tinted glasses."
+  }
   },
   "imra_headliner": {
    "hero": "imra",
@@ -1444,7 +1749,11 @@
    "accessories": "waist chain",
    "weapon": "",
    "pose": "dancing, arm up",
-   "natural": "Adult. Metallic red crop top, high-cut shorts, chrome headset mic, platform boots."
+   "natural": "Adult. Metallic red crop top, high-cut shorts, chrome headset mic, platform boots.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, waist chain, headset",
+   "natural": "Adult. Imra the headliner: nude with a chrome waist chain and headset mic, platform boots."
+  }
   },
   "kessa_heist_night": {
    "hero": "kessa",
@@ -1456,7 +1765,11 @@
    "accessories": "cat ear headphones, eyewear on head",
    "weapon": "gem",
    "pose": "leaning forward, arched back",
-   "natural": "Adult. Black latex micro dress with a red harness, cat-eye visor, a stolen diamond."
+   "natural": "Adult. Black latex micro dress with a red harness, cat-eye visor, a stolen diamond.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, harness, o-ring",
+   "natural": "Adult. Kessa on heist night: nude with a red chrome harness, a cat-eye visor, a stolen diamond."
+  }
   },
   "noctaire_glitch_gala": {
    "hero": "noctaire",
@@ -1468,7 +1781,11 @@
    "accessories": "",
    "weapon": "",
    "pose": "hand in own hair, arched back",
-   "natural": "Adult. Black latex gown slit to the hip over a leotard, oil-slick cape, cracked halo."
+   "natural": "Adult. Black latex gown slit to the hip over a leotard, oil-slick cape, cracked halo.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, elbow gloves",
+   "natural": "Adult. Noctaire at the glitch gala: nude with opera gloves, a cracked chrome halo."
+  }
   },
   "orrin_door_policy": {
    "hero": "orrin",
@@ -1480,7 +1797,11 @@
    "accessories": "",
    "weapon": "",
    "pose": "crossed arms",
-   "natural": "Adult. Black vinyl micro dress, one chrome pauldron, violet cables as jewelry."
+   "natural": "Adult. Black vinyl micro dress, one chrome pauldron, violet cables as jewelry.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, single pauldron, cable",
+   "natural": "Adult. Orrin on door policy: nude with one chrome pauldron, violet cables as jewelry."
+  }
   },
   "sable_choir_night": {
    "hero": "sable",
@@ -1492,7 +1813,11 @@
    "accessories": "",
    "weapon": "",
    "pose": "leaning forward, head tilt",
-   "natural": "Adult. Violet latex micro dress over opaque shorts, holographic veil."
+   "natural": "Adult. Violet latex micro dress over opaque shorts, holographic veil.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, veil, cross necklace",
+   "natural": "Adult. Sable on choir night: nude under a holographic veil, a chrome cross."
+  }
   },
   "lucen_split_decision": {
    "hero": "lucen",
@@ -1504,7 +1829,11 @@
    "accessories": "eyewear on head",
    "weapon": "",
    "pose": "leaning forward, one eye closed",
-   "natural": "Adult. Half-white, half-black latex micro dress, one long glove."
+   "natural": "Adult. Half-white, half-black latex micro dress, one long glove.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, single glove",
+   "natural": "Adult. Lucen's split decision: nude with one long glove, half-and-half shades."
+  }
   },
   "ashra_night_owl": {
    "hero": "ashra",
@@ -1516,7 +1845,11 @@
    "accessories": "headphones around neck",
    "weapon": "",
    "pose": "stretching, arms up",
-   "natural": "Adult. Violet holographic micro dress, her witch hat, chunky headphones."
+   "natural": "Adult. Violet holographic micro dress, her witch hat, chunky headphones.",
+   "adult": {
+   "outfit": "nude, completely nude, bottomless, nipples, witch hat",
+   "natural": "Adult. Ashra the night owl: nude with her witch hat, headphones, platform boots."
+  }
   }
  }
 }

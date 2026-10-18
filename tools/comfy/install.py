@@ -60,8 +60,9 @@ def heroes_root():
     return os.path.abspath(os.environ.get("HALO_ASSETS_HEROES") or os.path.join(comfy.ROOT, "assets", "art", "heroes"))
 
 
-def handoff_path(hero_id, art=""):
-    return os.path.join(comfy.art_src(), "_handoff", (hero_id + "@" + art if art else hero_id) + ".json")
+def handoff_path(hero_id, art="", adult=False):
+    name = hero_id + ("@" + art if art else "") + ("@adult" if adult else "")
+    return os.path.join(comfy.art_src(), "_handoff", name + ".json")
 
 
 def game_skin(target):
@@ -78,7 +79,11 @@ def game_skin(target):
 
 def dest_dir(target):
     d = os.path.join(heroes_root(), target["hero"])
-    return os.path.join(d, "skins", target["art"]) if target["art"] else d
+    if target["art"]:
+        d = os.path.join(d, "skins", target["art"])
+    if target.get("adult"):       # the EroLabs nude set: assets/.../skins/<art>/adult/
+        d = os.path.join(d, "adult")
+    return d
 
 
 def rig_id(target):
@@ -190,12 +195,16 @@ def main(argv=None):
                     help="replace existing assets whose content differs (backed up to art_src/<id>/history/ first)")
     ap.add_argument("--partial", action="store_true", help="install even if some variants of variant_set are missing")
     ap.add_argument("--skin", help="skin id (bible 'skins'): install that skin's final into assets/.../skins/<art>/")
+    ap.add_argument("--adult", action="store_true",
+                    help="install the EroLabs nude variant into assets/.../skins/<art>/adult/ (or "
+                         "assets/.../<id>/adult/ for the base look): the tame build's Godot import "
+                         "ignores it via .gdignore, and the EroLabs build swaps it over the tame art")
     a = ap.parse_args(argv)
     try:
         bible = prompts.load_bible()
         if a.hero not in bible["heroes"]:
             raise InstallError("unknown hero %r" % a.hero)
-        t = P.art_target(bible, a.hero, a.skin)
+        t = P.art_target(bible, a.hero, a.skin, adult=a.adult)
         if t["skin"]:
             game_skin(t)
         final, fmeta, record, found = verify(t, bible, a.partial)
@@ -232,9 +241,11 @@ def main(argv=None):
         vd = os.path.join(dst, "variants")
         if os.path.isdir(vd) and not os.path.exists(os.path.join(vd, ".gdignore")):
             open(os.path.join(vd, ".gdignore"), "w").close()
+        if t.get("adult") and not os.path.exists(os.path.join(dst, ".gdignore")):
+            open(os.path.join(dst, ".gdignore"), "w").close()     # the tame build ignores the nude set
         ho = handoff(t, bible, fmeta, record, found, dst)
-        P.write_json(handoff_path(a.hero, t["art"]), ho)
-        print("hand-off: %s" % P.rel(handoff_path(a.hero, t["art"])))
+        P.write_json(handoff_path(a.hero, t["art"], adult=bool(a.adult)), ho)
+        print("hand-off: %s" % P.rel(handoff_path(a.hero, t["art"], adult=bool(a.adult))))
         print("warp_src hints: %s" % json.dumps(ho["warp_src"]))
         print("next: update %s (start from %s if it is new), then tools/art_warp %s --regen-masks" % (
             P.rel(os.path.join(dst, t["name"] + ".warp_src.json")),

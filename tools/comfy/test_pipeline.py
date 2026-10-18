@@ -671,6 +671,92 @@ class TestBible(unittest.TestCase):
         with self.assertRaises(KeyError):
             prompts.skin_view(BIBLE, "kessa", "nope")
 
+    def test_adult_rules_block_relaxes_cues_keeps_childlike(self):
+        r = BIBLE["content_rules_adult"]
+        tame = BIBLE["content_rules"]
+        # every childlike negative the tame rules require stays required, and childlike positive
+        # terms stay forbidden (the guard the owner kept: "just the childlike stuff in the negative")
+        for t in tame["required_negative"]["childlike"]:
+            self.assertIn(t, r["required_negative"]["childlike"], t)
+        for t in ("loli", "shota", "child", "underage", "teenage", "young", "aged down", "school uniform",
+                  "shortstack", "serafuku", "flat chest"):
+            self.assertIn(t, r["forbidden_positive"], t)
+        # sex acts stay forbidden and required-negative; nudity terms are allowed now
+        for t in ("nude", "nipples", "bottomless", "panties", "topless", "nsfw", "pussy", "bare breasts"):
+            self.assertNotIn(t, r["forbidden_positive"], t)
+        for t in ("sex", "masturbation", "cum", "penis"):
+            self.assertIn(t, r["forbidden_positive"], t)
+            self.assertIn(t, r["required_negative"]["explicit_acts"], t)
+        # relaxed cues: only a plain 'adult' tag, no gendered mature cue
+        self.assertEqual(r["adult_cue_required"], "adult")
+        self.assertEqual(r["adult_cue_by_gender"], {})
+        self.assertEqual(r["subject_override"], "1girl, solo, adult")
+        with self.assertRaises(prompts.ContentRuleError):        # adult mode needs its own rules block
+            prompts.check_text({"content_rules": tame}, "1girl, nude", "", gender="female", adult=True)
+
+    def test_adult_skin_prompts_compose_pass_and_stay_nude(self):
+        for sid, s in BIBLE["skins"].items():
+            for fam in BIBLE["families"]:
+                pr = prompts.full_body(BIBLE, s["hero"], fam, skin=sid, adult=True)
+                self.assertEqual(prompts.check(BIBLE, s["hero"], pr["positive"], pr["negative"], adult=True),
+                                 [], (fam, sid))
+                self.assertLessEqual(pr["stats"]["positive"]["chunks"], 3, (fam, sid))
+                self.assertLessEqual(pr["stats"]["negative"]["chunks"], 4, (fam, sid))
+                tw = prompts.tag_weights(pr["positive"])
+                for t in ("nude", "completely nude", "nipples", "nsfw", "adult"):
+                    self.assertIn(t, tw, (sid, t))
+                self.assertNotIn("mature female", tw, sid)      # the relaxed subject line
+        # the same nude prompt must FAIL the tame rules, so it can never leak into the tame game
+        pr = prompts.full_body(BIBLE, "kessa", "illustrious", skin="kessa_card_shark", adult=True)
+        self.assertTrue(prompts.check(BIBLE, "kessa", pr["positive"], pr["negative"]))
+        # no nudity negatives and no hero nudity extras fight the render
+        for term in ("nude", "nipples", "panties", "pussy", "no panties"):
+            self.assertNotIn(term, prompts.tag_weights(pr["negative"]), term)
+        for term in BIBLE["content_rules_adult"]["required_negative"]["explicit_acts"] + \
+                BIBLE["content_rules_adult"]["required_negative"]["childlike"]:
+            self.assertIn(term, prompts.tag_weights(pr["negative"]), term)
+        b2 = json.loads(json.dumps(BIBLE))                     # a skin without an adult block
+        del b2["skins"]["vesper_red_tide"]["adult"]
+        with self.assertRaises(KeyError):
+            prompts.full_body(b2, "vesper", "illustrious", skin="vesper_red_tide", adult=True)
+
+    def test_adult_childlike_and_sex_acts_still_refused(self):
+        pr = prompts.full_body(BIBLE, "kessa", "illustrious", skin="kessa_card_shark", adult=True)
+        for term in ("teenage", "loli", "school uniform", "sex", "masturbation", "cum"):
+            probs = prompts.check_text(BIBLE, pr["positive"] + ", " + term, pr["negative"],
+                                       gender="female", adult=True)
+            self.assertTrue(any("forbidden term" in p for p in probs), term)
+        # missing childlike negatives are still an adult-mode violation
+        probs = prompts.check_text(BIBLE, "1girl, adult, nude", "loli", gender="female", adult=True)
+        self.assertTrue(any("childlike" in p for p in probs))
+
+    def test_adult_graph_check(self):
+        pr = prompts.full_body(BIBLE, "kessa", "illustrious", skin="kessa_card_shark", adult=True)
+        g = workflows.txt2img(settings(), pr["positive"], pr["negative"], 7, "t/adult")
+        self.assertEqual(prompts.check_graph(BIBLE, g, adult=True), [])
+        self.assertTrue(prompts.check_graph(BIBLE, g))          # tame rules refuse the nude graph
+        self.assertEqual(comfy.content_problems(g, adult=True), [])
+        self.assertTrue(comfy.content_problems(g))
+        c = comfy.Comfy(dry_run=True, verbose=False)
+        c.adult = True
+        with redirect_stdout(io.StringIO()):
+            c.queue(g, "unit/adult_rules")                      # dry-run writes, no refusal
+        c.adult = False
+        with self.assertRaisesRegex(comfy.ComfyError, "content rules"):
+            c.queue(g, "unit/adult_rules_tame")
+
+    def test_art_target_adult_dirs_and_seeds(self):
+        t = P.art_target(BIBLE, "kessa", None)
+        ta = P.art_target(BIBLE, "kessa", None, adult=True)
+        self.assertEqual(ta["dir"], t["dir"] + os.sep + "adult")
+        self.assertEqual(ta["seed_base"], t["seed_base"] + 5000)
+        self.assertTrue(ta["adult"])
+        t = P.art_target(BIBLE, "kessa", "card_shark")
+        ta = P.art_target(BIBLE, "kessa", "card_shark", adult=True)
+        self.assertEqual(ta["dir"], os.path.join(t["dir"], "adult"))
+        self.assertEqual(ta["seed_base"], t["seed_base"] + 5000)
+        self.assertEqual(ta["name"], t["name"])
+
     def test_scenery_prompts(self):
         neg = prompts.full_body(BIBLE, "kessa", "illustrious")["negative"]
         scene = "masterpiece, no humans, scenery, sky, clouds, chrome, glass, city"

@@ -313,13 +313,14 @@ def url_warnings(url):
     return out
 
 
-def content_problems(graph):
-    """Content-rule violations of a graph's prompts (prompts.check_graph); fails closed."""
+def content_problems(graph, adult=False):
+    """Content-rule violations of a graph's prompts (prompts.check_graph); fails closed.
+    adult=True checks against content_rules_adult (the EroLabs nude set, --adult)."""
     if not any("TextEncode" in str(n.get("class_type", "")) for n in graph.values()):
         return []
     try:
         import prompts
-        return prompts.check_graph(prompts.load_bible(), graph)
+        return prompts.check_graph(prompts.load_bible(), graph, adult=adult)
     except Exception as e:  # noqa: BLE001  -- no rules, no sending
         return ["cannot load the content rules from data/art_prompts.json (%s)" % e]
 
@@ -545,8 +546,9 @@ class Comfy:
 
     def queue(self, graph, label="job"):
         """POST /prompt. Returns the prompt id. In dry-run, writes art_src/_dryrun/<label>.json.
-        Refuses graphs whose prompts break the content rules, and (live) dry-run placeholders."""
-        problems = content_problems(graph)
+        Refuses graphs whose prompts break the content rules, and (live) dry-run placeholders.
+        self.adult (set by pipeline.make_client from --adult) checks against content_rules_adult."""
+        problems = content_problems(graph, adult=getattr(self, "adult", False))
         if problems:
             raise ComfyError("refusing to queue %s: its prompts break the content rules "
                              "(docs/dev/art-generation.md section 1):\n  %s" % (label, "\n  ".join(problems)))

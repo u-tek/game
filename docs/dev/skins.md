@@ -44,6 +44,30 @@ prompts are the `skins` block of `data/art_prompts.json` (Aqua Resort and After 
 After Dark is for the sideloaded build (Apple guideline 1.1.4 makes it an App Store rejection risk). There is no
 nude set: Claude declined it (2026-10-17). Every skin follows the hard lines in `docs/dev/character-briefs.md`.
 
+## Adult set (EroLabs, 2026-10-18)
+
+The owner asked for a fully nude version of the skins for an EroLabs build ("a version of this game
+for erolabs to monetise and catch a different audience"; allowed in CLAUDE.md, "Allowed if
+explicitly stated"). It is an opt-in mode of the ComfyUI pipeline, not a guardrail bypass:
+
+- `data/art_prompts.json` `content_rules_adult` gates the `--adult` mode: nudity terms are allowed
+  in the positive and no longer required in the negative; sex acts (nude pinups, no porn) and every
+  childlike term stay forbidden and required-negative. Adult cues relaxed on the owner's word
+  (2026-10-18, "the adult cues are making them all look 30+ and slightly fat"): the subject line is
+  `1girl, solo, adult`, the gendered `mature female` cue is gone, the family rating tag is `nsfw`.
+- All 60 skins have an `adult` block: nude outfit + the pack's kept items (bunny ears, cuffs,
+  collars, gloves, veils, belts, footwear; hero identity, pose and props unchanged).
+- Same flow as tame art, same settings: `run_hero.py --skin <id> --adult` (work in
+  `art_src/<id>/skins/<art>/adult/`, seeds +5000), then `finalize.py --adult`, `variants.py --adult`,
+  `fix.py --adult`, `install.py --adult` (into `assets/art/heroes/<id>/skins/<art>/adult/`, with a
+  `.gdignore` so the tame build's Godot import ignores the nudes).
+- The EroLabs build swaps the `adult/` art over the tame files at build time (same filenames), so
+  the game code and `data/skins.json` do not change. The tame rules still gate every non-adult
+  render: a nude prompt fails `enforce()` and `Comfy.queue()` without `--adult`
+  (`tools/comfy/test_pipeline.py`).
+- erolabs.com hosts browser games, so the EroLabs build is a Godot web export; CLAUDE.md said
+  "never build a web version" (about the main game), so that needs the owner's explicit word.
+
 ## Pricing (proposal for the owner)
 
 For scale: 330 gems cost $4.99 in the shop and one summon costs 300 gems.

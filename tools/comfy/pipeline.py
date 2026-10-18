@@ -34,20 +34,25 @@ def hero_dir(hero_id, dry_run=False):
     return os.path.join(comfy.dryrun_dir() if dry_run else comfy.art_src(), hero_id)
 
 
-def art_target(bible, hero_id, skin=None, dry_run=False):
+def art_target(bible, hero_id, skin=None, dry_run=False, adult=False):
     """Where one piece of hero art is worked on: the hero's base art, or one of her skins.
     Base: art_src/<id>/ with final/<id>.png etc. Skin (a bible "skins" id, or its short name after
     "<id>_"): art_src/<id>/skins/<art>/ with final/<art>.png etc., the names the game reads from
     assets/art/heroes/<id>/skins/<art>/ (RigData.load_rig(hero, art)). Candidates keep the hero's
-    name in both (<id>_s<seed>.png). Returns {hero, skin, art, dir, name, job, label, seed_base}:
-    `job` prefixes server and dry-run job names, `art` is "" for the base."""
+    name in both (<id>_s<seed>.png). adult=True (the EroLabs nude set): the same layout under an
+    adult/ subfolder (art_src/<id>/adult/ or art_src/<id>/skins/<art>/adult/) with seeds offset
+    +5000, so tame and nude candidates never mix. Returns {hero, skin, art, dir, name, job,
+    label, seed_base, adult}: `job` prefixes server and dry-run job names, `art` is "" for the base."""
     h = bible["heroes"].get(hero_id)
     if h is None:
         raise PipelineError("unknown hero %r" % hero_id)
     hdir = hero_dir(hero_id, dry_run)
+    off = 5000 if adult else 0
     if not skin:
-        return {"hero": hero_id, "skin": None, "art": "", "dir": hdir, "name": hero_id, "job": hero_id,
-                "label": hero_id, "seed_base": int(h["seed_base"])}
+        return {"hero": hero_id, "skin": None, "art": "", "dir": os.path.join(hdir, "adult") if adult else hdir,
+                "name": hero_id,
+                "job": hero_id + ("/adult" if adult else ""), "label": hero_id + (" (adult)" if adult else ""),
+                "seed_base": int(h["seed_base"]) + off, "adult": adult}
     skins = bible.get("skins") or {}
     if skin not in skins and "%s_%s" % (hero_id, skin) in skins:
         skin = "%s_%s" % (hero_id, skin)
@@ -58,9 +63,13 @@ def art_target(bible, hero_id, skin=None, dry_run=False):
     if sk.get("hero") != hero_id:
         raise PipelineError("skin %r belongs to %s, not %s" % (skin, sk.get("hero"), hero_id))
     art = str(sk.get("art") or skin)
-    return {"hero": hero_id, "skin": skin, "art": art, "dir": os.path.join(hdir, "skins", art), "name": art,
-            "job": "%s/skins/%s" % (hero_id, art), "label": "%s/%s" % (hero_id, art),
-            "seed_base": int(sk.get("seed_base", h["seed_base"]))}
+    d = os.path.join(hdir, "skins", art)
+    if adult:
+        d = os.path.join(d, "adult")
+    return {"hero": hero_id, "skin": skin, "art": art, "dir": d, "name": art,
+            "job": "%s/skins/%s%s" % (hero_id, art, "/adult" if adult else ""),
+            "label": "%s/%s%s" % (hero_id, art, " (adult)" if adult else ""),
+            "seed_base": int(sk.get("seed_base", h["seed_base"])) + off, "adult": adult}
 
 
 def rel(p):
@@ -113,6 +122,10 @@ def archive(hdir, names, log=print, reason=""):
 # ------------------------------------------------------------------ CLI
 def add_common_args(ap):
     g = ap.add_argument_group("server and model")
+    g.add_argument("--adult", action="store_true",
+                   help="the EroLabs nude variant: the bible's per-skin 'adult' prompt block and "
+                        "content_rules_adult (nudity allowed, sex acts and childlike terms still refused); "
+                        "work goes to .../adult/ and seeds shift +5000")
     g.add_argument("--dry-run", action="store_true",
                    help="send nothing: write the exact API JSON to art_src/_dryrun/ and use placeholder images")
     g.add_argument("--ckpt", help="checkpoint file name (default: COMFYUI_CKPT or best anime SDXL found)")
@@ -143,7 +156,9 @@ def parse_lora(spec):
 
 
 def make_client(args):
-    return comfy.Comfy(dry_run=args.dry_run, timeout=60, verbose=not getattr(args, "quiet", False))
+    cl = comfy.Comfy(dry_run=args.dry_run, timeout=60, verbose=not getattr(args, "quiet", False))
+    cl.adult = bool(getattr(args, "adult", False))     # queue() checks graphs against the right rules
+    return cl
 
 
 def resolve_settings(bible, args, client, hero_id=None):

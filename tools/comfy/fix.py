@@ -56,7 +56,7 @@ def main(argv=None):
     log = (lambda *x: None) if a.quiet else print
     try:
         bible = prompts.load_bible()
-        t = P.art_target(bible, a.hero, a.skin, a.dry_run)
+        t = P.art_target(bible, a.hero, a.skin, a.dry_run, adult=a.adult)
         path = find_candidate(t, a.image)
         stem = os.path.splitext(os.path.basename(path))[0]
         hdir = t["dir"]
@@ -100,7 +100,7 @@ def main(argv=None):
         client = P.make_client(a)
         P.inherit_model(a, P.read_json(path[:-4] + ".json", {}) or {}, P.rel(path[:-4] + ".json"), log)
         s, _, _ = P.resolve_settings(bible, a, client, a.hero)
-        pr = prompts.custom(bible, a.hero, s["family"], a.prompt, a.negative, skin=t["skin"])
+        pr = prompts.custom(bible, a.hero, s["family"], a.prompt, a.negative, skin=t["skin"], adult=a.adult)
         crop = P.square_box(box, rgb.size, scale=1.6)
         first = a.seed if a.seed is not None else t["seed_base"] + 800
         tries = []

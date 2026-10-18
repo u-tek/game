@@ -95,13 +95,13 @@ def main(argv=None):
         bible = prompts.load_bible()
         if a.hero not in bible["heroes"]:
             raise P.PipelineError("unknown hero %r. Heroes: %s" % (a.hero, ", ".join(bible["heroes"])))
-        t = P.art_target(bible, a.hero, a.skin, a.dry_run)
+        t = P.art_target(bible, a.hero, a.skin, a.dry_run, adult=a.adult)
         a.skin = t["skin"]
         client = P.make_client(a)
         s, disc, oi = P.resolve_settings(bible, a, client, a.hero)
         pr = prompts.full_body(bible, a.hero, s["family"], background_key=a.background, extra_tags=a.extra_tags,
-                               skin=a.skin)
-        h = prompts.skin_view(bible, a.hero, a.skin) if a.skin else bible["heroes"][a.hero]
+                               skin=a.skin, adult=a.adult)
+        h = prompts.skin_view(bible, a.hero, a.skin, adult=a.adult) if a.skin else bible["heroes"][a.hero]
         sk = bible["skins"][a.skin] if a.skin else {}
         bg_key, bg = prompts.background(bible, a.hero, a.background or sk.get("background"))
         first = a.seed if a.seed is not None else t["seed_base"]
@@ -178,7 +178,8 @@ def main(argv=None):
                 if check["flags"]:
                     log("  s%d check: %s" % (seed, " ".join(check["flags"])))
             meta = {
-                "hero": a.hero, "skin": a.skin, "seed": seed, "image": os.path.basename(png), "created": P.stamp(),
+                "hero": a.hero, "skin": a.skin, "adult": bool(a.adult), "seed": seed,
+                "image": os.path.basename(png), "created": P.stamp(),
                 "dry_run": a.dry_run, "prompt": pr["positive"], "negative": pr["negative"],
                 "prompt_stats": pr["stats"], "brief": h["natural"], "check": check,
                 "background": {"key": bg_key, "rgb": bg["rgb"]},
@@ -192,8 +193,9 @@ def main(argv=None):
             log("dry run: API JSON in %s" % P.rel(os.path.join(comfy.dryrun_dir(), a.hero)))
         if not a.no_sheet:
             build_sheet(cdir, a.hero, log=log)
-        log("next: review the contact sheet, then  python3 tools/comfy/finalize.py %s <seed>%s%s" % (
-            a.hero, " --skin " + a.skin if a.skin else "", " --dry-run" if a.dry_run else ""))
+        log("next: review the contact sheet, then  python3 tools/comfy/finalize.py %s <seed>%s%s%s" % (
+            a.hero, " --skin " + a.skin if a.skin else "", " --adult" if a.adult else "",
+            " --dry-run" if a.dry_run else ""))
     except (P.PipelineError, comfy.ComfyError, prompts.ContentRuleError, prompts.PromptError, workflows.WorkflowError,
             KeyError) as e:
         print("ERROR: %s" % e, file=sys.stderr)

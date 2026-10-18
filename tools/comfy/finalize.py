@@ -85,7 +85,7 @@ def main(argv=None):
     log = (lambda *x: None) if a.quiet else print
     try:
         bible = prompts.load_bible()
-        t = P.art_target(bible, a.hero, a.skin, a.dry_run)
+        t = P.art_target(bible, a.hero, a.skin, a.dry_run, adult=a.adult)
         name, job = t["name"], t["job"]
         src_path = find_candidate(t, a.candidate)
         cmeta = P.read_json(src_path[:-4] + ".json", {}) or {}
@@ -94,6 +94,11 @@ def main(argv=None):
                 P.rel(src_path), "skin " + cmeta["skin"] if cmeta.get("skin") else "the base look",
                 "skin " + t["skin"] if t["skin"] else "the base look",
                 "--skin " + cmeta["skin"] if cmeta.get("skin") else "no --skin"))
+        if bool(cmeta.get("adult")) != bool(a.adult):
+            raise P.PipelineError("%s was rendered for the %s look: finalize it %s, or re-run run_hero.py %s"
+                                  % (P.rel(src_path), "adult (nude)" if cmeta.get("adult") else "tame",
+                                     "with --adult" if a.adult else "without --adult",
+                                     "without --adult" if a.adult else "with --adult"))
         hdir = t["dir"]
         final_png = os.path.join(hdir, "final", name + ".png")
         if os.path.abspath(src_path).startswith(os.path.abspath(os.path.join(hdir, "final")) + os.sep):
@@ -119,7 +124,7 @@ def main(argv=None):
 
         # 1. optional full-image polish
         if a.refine_denoise and a.refine_denoise > 0:
-            pr = prompts.full_body(bible, a.hero, s["family"], background_key=bg_key, skin=t["skin"])
+            pr = prompts.full_body(bible, a.hero, s["family"], background_key=bg_key, skin=t["skin"], adult=a.adult)
             p = os.path.join(work, "%s_refine_src.png" % name)
             os.makedirs(work, exist_ok=True)
             img.save(p)
@@ -142,7 +147,7 @@ def main(argv=None):
         log("face box %s (%s)%s" % (",".join(map(str, face_box)), conf,
                                     "" if conf == "user" else "  -> check final/%s_boxes.png; override with --face-box" % name))
         if not a.no_face_refine:
-            pr = prompts.face(bible, a.hero, s["family"], background_key=bg_key, skin=t["skin"])
+            pr = prompts.face(bible, a.hero, s["family"], background_key=bg_key, skin=t["skin"], adult=a.adult)
             fr = bible["regions"]["face"]
             mbox = post.region_box(face_box, fr)
             mask = P.ellipse_mask(img.size, mbox, feather=max(3, face_box[3] // 30))
@@ -170,7 +175,7 @@ def main(argv=None):
             img.save(p)
             sname = client.upload_image(p, subfolder=P.SERVER_SUBFOLDER)
             if tiled:
-                pr = prompts.full_body(bible, a.hero, s["family"], background_key=bg_key, skin=t["skin"])
+                pr = prompts.full_body(bible, a.hero, s["family"], background_key=bg_key, skin=t["skin"], adult=a.adult)
                 g = workflows.tiled_upscale(s, sname, pr["positive"], pr["negative"], seed,
                                             "%s/%s/upscale" % (P.SERVER_SUBFOLDER, job), oi, scale=2.0,
                                             denoise=tiled["denoise"])
@@ -217,7 +222,7 @@ def main(argv=None):
             name, img, final_dir, face_box=face_box, face_source=conf, skin_profile=P.skin_profile(bible, a.hero),
             bg=None, mask=mask_img, feet_y_src=a.feet_y,
             tol=a.tol, holes=not a.no_holes, flip=a.flip,
-            extra_meta={"hero": a.hero, "skin": t["skin"], "art": t["art"] or None,
+            extra_meta={"hero": a.hero, "skin": t["skin"], "art": t["art"] or None, "adult": bool(a.adult),
                         "source_candidate": P.rel(src_path), "candidate_seed": cmeta.get("seed"),
                         "source_sha256": src_sha, "source_copy": name + "_source.png",
                         "polish_seed": seed, "steps": steps_done, "settings": P.settings_for_meta(s),
@@ -236,8 +241,9 @@ def main(argv=None):
             ",".join(map(str, meta["face_box"]))))
         log("review: %s and %s" % (P.rel(os.path.join(final_dir, name + "_check.png")),
                                    P.rel(os.path.join(final_dir, name + "_boxes.png"))))
-        log("next: python3 tools/comfy/variants.py %s%s%s" % (a.hero, " --skin " + t["skin"] if t["skin"] else "",
-                                                             " --dry-run" if a.dry_run else ""))
+        log("next: python3 tools/comfy/variants.py %s%s%s%s" % (a.hero, " --skin " + t["skin"] if t["skin"] else "",
+                                                                 " --adult" if a.adult else "",
+                                                                 " --dry-run" if a.dry_run else ""))
     except (P.PipelineError, comfy.ComfyError, prompts.ContentRuleError, workflows.WorkflowError, ValueError) as e:
         print("ERROR: %s" % e, file=sys.stderr)
         return 1

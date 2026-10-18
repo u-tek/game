@@ -15,6 +15,11 @@ graph before it is written or sent, so a prompt that breaks the rules never reac
 - the positive carries none of the forbidden terms (whole-word match, weights ignored);
 - the negative carries every required explicit-nudity and childlike-appearance term at full weight.
 
+The adult mode (--adult, the EroLabs nude set) swaps in the bible's content_rules_adult block:
+nudity terms are allowed in the positive and no longer required in the negative, the subject line
+becomes 1girl, solo, adult (no gendered mature cue), the family rating becomes `nsfw`, and the
+sex-act and childlike terms stay forbidden and required-negative. See docs/dev/skins.md.
+
 Prompts are tag lists for tag-trained SDXL anime models: no prose by default (a family may opt in
 with "use_natural": true), at most 2 CLIP chunks of 75 tokens (stats["positive"]["chunks"]).
 Weights follow ComfyUI's own parser (comfy/sd1_clip.py): "(tag:0.8)" sets 0.8, a bare "(tag)" is
@@ -278,10 +283,11 @@ SKIN_FIELDS = ("outfit", "footwear", "accessories", "weapon", "pose", "expressio
                "background", "natural")
 
 
-def skin_view(bible, hero_id, skin_id):
+def skin_view(bible, hero_id, skin_id, adult=False):
     """The hero's prompt fields with a skin's overrides (bible "skins", keyed by the skin id of
     data/skins.json). Identity (subject, body, hair, eyes, wings) always comes from the hero, so a
-    skin keeps her face and figure; its negative_extra is added to the hero's."""
+    skin keeps her face and figure; its negative_extra is added to the hero's. adult=True also
+    applies the skin's "adult" block (the EroLabs nude outfit) and requires it to exist."""
     h = _hero(bible, hero_id)
     s = (bible.get("skins") or {}).get(skin_id)
     if s is None:
@@ -292,6 +298,13 @@ def skin_view(bible, hero_id, skin_id):
     for k in SKIN_FIELDS:
         if k in s:
             v[k] = s[k]
+    if adult:
+        av = s.get("adult")
+        if not isinstance(av, dict) or not av.get("outfit"):
+            raise KeyError("skin %r has no 'adult' prompt block in the bible (add outfit + natural)" % skin_id)
+        for k in SKIN_FIELDS:
+            if k in av:
+                v[k] = av[k]
     if s.get("negative_extra"):
         v["negative_extra"] = join_tags(s["negative_extra"], h.get("negative_extra", ""))
     return v
@@ -321,65 +334,84 @@ def style_tags(bible, bg):
     return join_tags(st["tags"], bg.get("style_tags", ""), st.get("extra_tags", ""))
 
 
-def _wrap_quality(fam, body_tags):
-    q = join_tags(fam.get("quality", ""), fam.get("rating", ""))
+def _wrap_quality(fam, body_tags, rating_override=None):
+    q = join_tags(fam.get("quality", ""), rating_override if rating_override is not None else fam.get("rating", ""))
     if fam.get("quality_position", "start") == "start":
         return join_tags(q, body_tags)
     return join_tags(body_tags, q)
 
 
-def _negative(bible, fam, h, framing=True, extra="", positive=""):
+def _negative(bible, fam, h, framing=True, extra="", positive="", adult=False):
     n = bible["negative"]
+    rules = rules_for(bible, adult)
+    neg_extra = h.get("negative_extra", "")
+    if adult and neg_extra:
+        # the hero's nudity-fighting extras (e.g. "(nipples:1.2)" against slips in tame art) would
+        # fight a nude render: drop every tag from the tame nudity vocabulary, keep the rest
+        tame = bible["content_rules"]
+        drop = set(tame["required_negative"].get("explicit", [])) | set(tame["forbidden_positive"])
+        neg_extra = ", ".join(t for t in split_tags(neg_extra) if norm_tag(t) not in drop)
     # hero/variant extras first: join_tags keeps the first occurrence, so "(loli:1.3)" beats "loli"
-    parts = [fam.get("quality_negative", ""), fam.get("rating_negative", ""), h.get("negative_extra", ""), extra,
+    parts = [fam.get("quality_negative", ""),
+             rules.get("family_rating_negative") if adult else fam.get("rating_negative", ""),
+             neg_extra, extra,
              n["quality"], n["anatomy"]]
     if framing:
         parts.append(n["framing"])
-    parts += [n["effects"], n["explicit"], n["childlike"], n["text"], n["style"],
-              bible["gender"][h["gender"]]["negative"]]
+    parts += [n["effects"], n["explicit_adult" if adult else "explicit"], n["childlike"], n["text"], n["style"],
+              bible["gender"][h["gender"]]["negative_adult" if adult else "negative"]]
     if "halo" in tag_weights(positive):
         parts.append(n.get("halo", ""))
     return join_tags(*parts)
 
 
-def _finish(bible, hero_id, positive, negative):
+def _finish(bible, hero_id, positive, negative, adult=False):
     lint(positive, negative)
-    enforce(bible, hero_id, positive, negative)
+    enforce(bible, hero_id, positive, negative, adult=adult)
     return {"positive": positive, "negative": negative,
             "stats": {"positive": clip_stats(positive), "negative": clip_stats(negative)}}
 
 
+def _subject(bible, h, adult):
+    """The subject line for a mode: the adult rules' subject_override (1girl, solo, adult) for the
+    EroLabs set, the hero's own subject line otherwise."""
+    return rules_for(bible, adult).get("subject_override") or h["subject"]
+
+
 # ------------------------------------------------------------------ composers
-def full_body(bible, hero_id, family, background_key=None, extra_tags="", skin=None):
+def full_body(bible, hero_id, family, background_key=None, extra_tags="", skin=None, adult=False):
     """Positive/negative for a full-body candidate. Order: quality/rating (family position),
     subject, adult face styling, composition (full body early: the rig needs head to feet), body, hair, eyes,
     expression, head, wings/tail, outfit, footwear, accessories, weapon, pose, palette,
     background, style. The brief sentence is appended only for families with use_natural.
-    skin: a skin id from the bible's "skins" (skin_view) for that skin's outfit, pose and props."""
-    h = skin_view(bible, hero_id, skin) if skin else _hero(bible, hero_id)
+    skin: a skin id from the bible's "skins" (skin_view) for that skin's outfit, pose and props.
+    adult=True: the EroLabs nude set -- the skin's "adult" outfit block, content_rules_adult, the
+    relaxed subject line and the nsfw rating (see docs/dev/skins.md)."""
+    h = skin_view(bible, hero_id, skin, adult=adult) if skin else _hero(bible, hero_id)
     fam = family_block(bible, family)
     if skin and h.get("background") and not background_key:
         background_key = h["background"]
     _, bg = background(bible, hero_id, background_key)
     eyes = "" if h.get("default_eyes") == "closed" else h["eyes"]
-    body = join_tags(h["subject"], h.get("adult_face", ""), bible["composition"]["tags"], h["body"], h["hair"],
+    body = join_tags(_subject(bible, h, adult), h.get("adult_face", ""), bible["composition"]["tags"], h["body"], h["hair"],
                      eyes, h["expression"],
                      h["head"], h["wings_tail"], h["outfit"], h.get("footwear", ""), h["accessories"], h["weapon"],
                      h.get("pose", ""), h.get("palette") or palette(bible, hero_id), bg["tags"],
                      style_tags(bible, bg), extra_tags)
-    positive = _wrap_quality(fam, body)
+    positive = _wrap_quality(fam, body, rating_override=rules_for(bible, adult).get("family_rating") if adult else None)
     if fam.get("use_natural"):
         positive += ". " + h["natural"]
-    negative = _negative(bible, fam, h, framing=True, positive=positive)
-    return _finish(bible, hero_id, positive, negative)
+    negative = _negative(bible, fam, h, framing=True, positive=positive, adult=adult)
+    return _finish(bible, hero_id, positive, negative, adult=adult)
 
 
-def face(bible, hero_id, family, variant=None, background_key=None, skin=None):
+def face(bible, hero_id, family, variant=None, background_key=None, skin=None, adult=False):
     """Prompt for a face crop: polish (variant None) or an expression variant (eyes_closed, ...).
     Only face identity tags + the expression: no prose, costume or pose (the crop shows a face,
     and the base expression must not leak into a variant). skin: a skin's expression for the polish
-    (identity stays the hero's, skin_view)."""
-    h = skin_view(bible, hero_id, skin) if skin else _hero(bible, hero_id)
+    (identity stays the hero's, skin_view). adult=True: the skin's "adult" block and
+    content_rules_adult (the face itself only changes by the subject line)."""
+    h = skin_view(bible, hero_id, skin, adult=adult) if skin else _hero(bible, hero_id)
     fam = family_block(bible, family)
     _, bg = background(bible, hero_id, background_key)
     if variant:
@@ -391,15 +423,15 @@ def face(bible, hero_id, family, variant=None, background_key=None, skin=None):
         expr = join_tags("" if closed else h["eyes"], h["expression"], fr["tags"],
                          "" if closed else fr.get("eyes_open_tags", ""))
         vneg = ""
-    body = join_tags(h["subject"], h.get("adult_face", ""), bible["crop_tags"], h["face"], expr,
+    body = join_tags(_subject(bible, h, adult), h.get("adult_face", ""), bible["crop_tags"], h["face"], expr,
                      style_tags(bible, bg), bg["tags"])
-    positive = _wrap_quality(fam, body)
-    negative = _negative(bible, fam, h, framing=False, extra=vneg, positive=positive)
+    positive = _wrap_quality(fam, body, rating_override=rules_for(bible, adult).get("family_rating") if adult else None)
+    negative = _negative(bible, fam, h, framing=False, extra=vneg, positive=positive, adult=adult)
     if variant:
         problems = variant_conflicts(bible, hero_id, variant, positive)
         if problems:
             raise PromptError("%s %s variant contradicts itself: %s" % (hero_id, variant, "; ".join(problems)))
-    return _finish(bible, hero_id, positive, negative)
+    return _finish(bible, hero_id, positive, negative, adult=adult)
 
 
 def variant_spec(bible, hero_id, variant):
@@ -443,17 +475,18 @@ def variant_conflicts(bible, hero_id, variant, positive):
     return ["%r" % t for t in bad]
 
 
-def custom(bible, hero_id, family, tags, extra_negative="", background_key=None, skin=None):
+def custom(bible, hero_id, family, tags, extra_negative="", background_key=None, skin=None, adult=False):
     """Prompt for fixing a region (hands, a prop): hero identity tags + the given tags (no prose).
-    skin: that skin's outfit and props (skin_view)."""
-    h = skin_view(bible, hero_id, skin) if skin else _hero(bible, hero_id)
+    skin: that skin's outfit and props (skin_view). adult=True: the skin's "adult" outfit and
+    content_rules_adult (fixes on a nude candidate keep the nude look)."""
+    h = skin_view(bible, hero_id, skin, adult=adult) if skin else _hero(bible, hero_id)
     fam = family_block(bible, family)
     _, bg = background(bible, hero_id, background_key)
-    body = join_tags(h["subject"], tags, h["hair"], h["outfit"], h.get("footwear", ""), h["accessories"],
+    body = join_tags(_subject(bible, h, adult), tags, h["hair"], h["outfit"], h.get("footwear", ""), h["accessories"],
                      h["weapon"], style_tags(bible, bg), bg["tags"])
-    positive = _wrap_quality(fam, body)
-    negative = _negative(bible, fam, h, framing=False, extra=extra_negative, positive=positive)
-    return _finish(bible, hero_id, positive, negative)
+    positive = _wrap_quality(fam, body, rating_override=rules_for(bible, adult).get("family_rating") if adult else None)
+    negative = _negative(bible, fam, h, framing=False, extra=extra_negative, positive=positive, adult=adult)
+    return _finish(bible, hero_id, positive, negative, adult=adult)
 
 
 def lint(positive, negative):
@@ -464,6 +497,17 @@ def lint(positive, negative):
 
 
 # ------------------------------------------------------------------ content rules
+def rules_for(bible, adult=False):
+    """The content-rules block of a mode: bible['content_rules'], or bible['content_rules_adult']
+    for the EroLabs nude set (--adult). Raises ContentRuleError if the adult block is missing."""
+    if not adult:
+        return bible["content_rules"]
+    rules = bible.get("content_rules_adult")
+    if not isinstance(rules, dict):
+        raise ContentRuleError("bible has no 'content_rules_adult' block: the adult mode needs it")
+    return rules
+
+
 def _has_term(text, term):
     """Whole-word, case-insensitive match of a term in prompt text (weights/brackets/escapes ignored)."""
     t = re.sub(r"\\[()]|[\(\)\[\]]|:\s*[0-9.]+", " ", (text or "").lower())
@@ -471,11 +515,13 @@ def _has_term(text, term):
     return re.search(r"(?<![a-z0-9_])" + re.escape(term.lower()) + r"(?![a-z0-9_])", t) is not None
 
 
-def check_text(bible, positive, negative, gender=None):
+def check_text(bible, positive, negative, gender=None, adult=False):
     """Content-rule violations for a prompt pair ([] = ok). gender 'female'/'male' adds the gendered
     rules; None (unknown, e.g. a saved graph) requires a mature cue of either gender and applies the
-    stricter female term list unless the prompt is clearly male."""
-    rules = bible["content_rules"]
+    stricter female term list unless the prompt is clearly male. adult=True checks against
+    content_rules_adult (nudity allowed, relaxed adult cues, sex acts and childlike terms still
+    refused)."""
+    rules = rules_for(bible, adult)
     problems = []
     tw = tag_weights(positive)
     minw = float(rules.get("min_adult_cue_weight", 0.6))
@@ -487,13 +533,13 @@ def check_text(bible, positive, negative, gender=None):
         gender = "scenery"
     if gender is None:
         gender = "male" if ({"1boy", "male focus"} & set(tw)) and "1girl" not in tw else "female?"
-    need = [] if gender == "scenery" else [rules["adult_cue_required"]]
-    by_g = rules["adult_cue_by_gender"]
+    need = [c for c in ([rules.get("adult_cue_required")] if gender != "scenery" else []) if c]
+    by_g = rules.get("adult_cue_by_gender") or {}
     if gender == "scenery":
         pass
     elif gender in by_g:
         need.append(by_g[gender])
-    elif not any(c in tw for c in by_g.values()):
+    elif by_g and not any(c in tw for c in by_g.values()):
         need.append(" or ".join(sorted(by_g.values())))
     for cue in need:
         if cue not in tw:
@@ -501,7 +547,7 @@ def check_text(bible, positive, negative, gender=None):
     for cue in rules["adult_cues"]:
         if cue in tw and tw[cue] < minw:
             problems.append("adult cue %r is weighted %.2f (minimum %.2f)" % (cue, tw[cue], minw))
-    forbidden = list(rules["forbidden_positive"])
+    forbidden = list(rules.get("forbidden_positive", []))
     if gender != "male":
         forbidden += rules.get("forbidden_positive_female", [])
     for term in forbidden:
@@ -510,8 +556,10 @@ def check_text(bible, positive, negative, gender=None):
     nw = tag_weights(negative)
     min_neg = float(rules.get("min_negative_weight", 0.9))
     required = [(g, t) for g, terms in rules["required_negative"].items() for t in terms]
-    by_gender = rules.get("required_negative_by_gender", {})
-    for g in ([gender] if gender in by_gender else ["female"] if gender != "male" else []):
+    by_gender = rules.get("required_negative_by_gender") or {}
+    gs = [gender] if gender in by_gender else (
+        ["female"] if gender not in ("male", "scenery") and "female" in by_gender else [])
+    for g in gs:
         required += [(grp, t) for grp, terms in by_gender[g].items() for t in terms]
     for group, term in required:
         if term not in nw:
@@ -522,14 +570,14 @@ def check_text(bible, positive, negative, gender=None):
     return problems
 
 
-def check(bible, hero_id, positive, negative):
+def check(bible, hero_id, positive, negative, adult=False):
     """Content-rule violations for a hero's prompt pair ([] = ok)."""
     h = _hero(bible, hero_id)
-    return check_text(bible, positive, negative, gender=h.get("gender"))
+    return check_text(bible, positive, negative, gender=h.get("gender"), adult=adult)
 
 
-def enforce(bible, hero_id, positive, negative):
-    problems = check(bible, hero_id, positive, negative)
+def enforce(bible, hero_id, positive, negative, adult=False):
+    problems = check(bible, hero_id, positive, negative, adult=adult)
     if problems:
         raise ContentRuleError("prompt for %s breaks the content rules:\n  %s" % (hero_id, "\n  ".join(problems)))
 
@@ -588,8 +636,9 @@ def graph_prompts(graph):
     return pos, neg
 
 
-def check_graph(bible, graph):
-    """Content-rule violations in an API graph ([] = ok; graphs without text encoders pass)."""
+def check_graph(bible, graph, adult=False):
+    """Content-rule violations in an API graph ([] = ok; graphs without text encoders pass).
+    adult=True checks against content_rules_adult (the EroLabs nude set)."""
     pos, neg = graph_prompts(graph)
     if not pos and not neg:
         return []
@@ -598,11 +647,11 @@ def check_graph(bible, graph):
         problems.append("graph has a positive prompt but no negative prompt")
     negative = " , ".join(neg)
     for i, p in enumerate(pos):
-        for pr in check_text(bible, p, negative if neg else ""):
+        for pr in check_text(bible, p, negative if neg else "", adult=adult):
             if pr not in problems:
                 problems.append(pr)
     if not pos:
-        for pr in check_text(bible, "1girl, adult, mature female", negative):
+        for pr in check_text(bible, "1girl, adult, mature female", negative, adult=adult):
             if pr not in problems and "negative" in pr:
                 problems.append(pr)
     return problems

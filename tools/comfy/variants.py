@@ -127,7 +127,7 @@ def main(argv=None):
     log = (lambda *x: None) if a.quiet else print
     try:
         bible = prompts.load_bible()
-        t = P.art_target(bible, a.hero, a.skin, a.dry_run)
+        t = P.art_target(bible, a.hero, a.skin, a.dry_run, adult=a.adult)
         name0, job = t["name"], t["job"]
         h = bible["heroes"][a.hero]
         hdir = t["dir"]
@@ -172,7 +172,7 @@ def main(argv=None):
                       reason="variants.py --force: base %s changed to sha %s" % (P.rel(img_path), base_sha[:12]))
             record = None
         if record is None:
-            record = {"hero": a.hero, "skin": t["skin"], "variants": {}}
+            record = {"hero": a.hero, "skin": t["skin"], "adult": bool(a.adult), "variants": {}}
         os.makedirs(vcand, exist_ok=True)
 
         is_final = os.path.abspath(img_path) == os.path.abspath(os.path.join(hdir, "final", name0 + ".png"))
@@ -211,7 +211,7 @@ def main(argv=None):
             region = overrides.get(spec["region"]) or post.region_box(face_box, spec["region_frac"])
             mask = P.ellipse_mask(base.size, region, feather=max(3, region[3] // 10))
             mask.save(os.path.join(mdir, "%s.png" % spec["region"]))
-            pr = prompts.face(bible, a.hero, s["family"], variant=name, skin=t["skin"])
+            pr = prompts.face(bible, a.hero, s["family"], variant=name, skin=t["skin"], adult=a.adult)
             den = a.denoise if a.denoise is not None else spec["denoise"]
             entry = dict(record["variants"].get(name) or {})
             done = set(entry.get("seeds") or []) | existing_tries(vcand, name)
@@ -243,7 +243,8 @@ def main(argv=None):
                 tp = os.path.join(vcand, "%s_s%d.png" % (name, seed))
                 var.save(tp)
                 P.write_json(tp[:-4] + ".json", {
-                    "hero": a.hero, "skin": t["skin"], "variant": name, "seed": seed, "denoise": den, "base": P.rel(img_path),
+                    "hero": a.hero, "skin": t["skin"], "adult": bool(a.adult), "variant": name, "seed": seed,
+                    "denoise": den, "base": P.rel(img_path),
                     "base_sha": base_sha, "face_box": face_box, "region": region, "region_name": spec["region"],
                     "patch_rect": region, "crop": info["crop"], "prompt": pr["positive"], "negative": pr["negative"],
                     "settings": P.settings_for_meta(s), "dry_run": a.dry_run, "created": P.stamp()})
