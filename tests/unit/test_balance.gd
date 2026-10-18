@@ -67,8 +67,8 @@ func test_summons_are_needed_by_stage_six(t: TestCtx) -> void:
 
 func test_campaign_shape(t: TestCtx) -> void:
 	var g := _game()
-	t.eq(g.chapters().size(), 3)
-	t.eq(g.stages().size(), 30)
+	t.eq(g.chapters().size(), 6)
+	t.eq(g.stages().size(), 60)
 	var prev_level := 0
 	var prev_power := 0
 	for st in g.stages():
@@ -95,6 +95,7 @@ func test_campaign_shape(t: TestCtx) -> void:
 		for k in ["index", "id", "name", "intro", "background"]:
 			t.ok(c.has(k))
 		t.ok(String(c.intro).length() > 60, "chapter intro written")
+		t.ok(HeroArt.background(str(c.background)) != null, "%s has painted backdrop art" % c.id)
 	g.free()
 
 

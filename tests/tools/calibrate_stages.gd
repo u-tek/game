@@ -25,11 +25,14 @@ const JsonPretty := preload("res://tests/tools/json_pretty.gd")
 
 ## Hour of play (0 = the first session, 9:00 on day 1; sessions at 9, 13, 19, 23) by which an
 ## efficient free player clears each stage. Chapter 1 on day 1, chapter 2 on days 2-4,
-## chapter 3 on days 5-10.
+## chapter 3 on days 5-10, chapter 4 on days 10-15, chapter 5 on days 15-22, chapter 6 on days 22-31.
 const TIMELINE_H: Array[int] = [
 	0, 0, 0, 0, 0, 4, 4, 10, 10, 14,
 	24, 28, 34, 38, 48, 52, 58, 62, 72, 82,
 	96, 106, 120, 130, 144, 158, 168, 182, 196, 216,
+	228, 240, 252, 264, 276, 290, 304, 318, 332, 346,
+	362, 378, 394, 410, 426, 442, 460, 478, 496, 514,
+	534, 554, 574, 594, 614, 634, 656, 678, 700, 722,
 ]
 const LUCKS: Array[int] = [0, 11, 22, 33]
 const NEED_TEAMS := 3
@@ -62,6 +65,10 @@ func _init() -> void:
 			hi = int(p[p.size() - 1])
 		elif a.begins_with("seeds="):
 			seeds = int(a.substr(6))
+	if TIMELINE_H.size() != StageData.count():
+		printerr("TIMELINE_H has %d hours for %d stages" % [TIMELINE_H.size(), StageData.count()])
+		quit(1)
+		return
 	record_bots()
 	var g = load("res://src/core/game.gd").new()
 	g.save_path = ""
@@ -141,7 +148,7 @@ func record_bots() -> void:
 		var bot = Bot.new()
 		bot.start(luck)
 		var next := 0
-		for day in 12:
+		for day in TIMELINE_H[TIMELINE_H.size() - 1] / 24 + 2:
 			for s in Bot.SESSIONS_H.size():
 				bot.goto_session(day, s)
 				bot.economy(day == 0 and s == 0)

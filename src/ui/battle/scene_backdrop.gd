@@ -11,8 +11,10 @@ extends Control
 
 const MOTES := 34
 
-## "home" | "chapter-1" | "chapter-2" | "chapter-3"
+## "home" | "chapter-1" ... "chapter-6" (chapters past 3 reuse the palette of their faction:
+## 4 like 1, 5 like 2, 6 like 3, and that chapter's painted art if they have none of their own)
 var kind := "chapter-1"
+var _style := "chapter-1"
 ## Where the sky meets the floor, as a fraction of the height.
 var horizon := 0.3
 ## Battle ring on the floor at this height fraction (< 0: none).
@@ -62,10 +64,15 @@ const PALETTES := {
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if not PALETTES.has(kind):
-		kind = "chapter-1"
-	_pal = PALETTES[kind]
+	_style = kind
+	if _style.begins_with("chapter-") and not PALETTES.has(_style):
+		_style = "chapter-%d" % ((maxi(int(_style.substr(8)), 1) - 1) % 3 + 1)
+	if not PALETTES.has(_style):
+		_style = "chapter-1"
+	_pal = PALETTES[_style]
 	_tex = HeroArt.background(kind)
+	if _tex == null and _style != kind:
+		_tex = HeroArt.background(_style)
 	_rng.seed = hash(kind)
 	_mote_layer = Control.new()
 	_mote_layer.name = "Motes"
@@ -99,11 +106,11 @@ func _draw() -> void:
 		# Painted art has no floor of its own: darken below the horizon so units read on it.
 		_vgrad(Rect2(0, hy, w, h - hy), Color(0, 0, 0, 0), Color(0.01, 0.012, 0.02, floor_shade * 0.9))
 	else:
-		if kind == "home":
+		if _style == "home":
 			_draw_hall(w, h, hy)
 		else:
 			_draw_sky(w, hy)
-			match kind:
+			match _style:
 				"chapter-1":
 					_draw_sanctum(w, hy)
 				"chapter-2":

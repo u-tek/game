@@ -539,6 +539,555 @@
 					}
 				}
 			]
+		},
+		{
+			"id": "ch4",
+			"name": "Halo Skyline",
+			"background": "chapter-4",
+			"faction": "celestial",
+			"intro": "Above the broken cathedral floats the city the choir was singing for: glass towers, chrome halos and a sun that never sets. Its guardians were built to end a war, and they mistake every visitor for the enemy. Climb the skyline and show them the war is over.",
+			"hint": "Echoes of the Celestial host. Fallen heroes deal +20% damage here.",
+			"stages": [
+				{
+					"name": "Glasswing Promenade",
+					"boss": false,
+					"level": 65,
+					"stars": 4,
+					"strength_bp": 16750,
+					"recommended_power": 27582,
+					"enemies": [
+						{"hero_id": "cassiel", "slot": 0},
+						{"hero_id": "uriela", "slot": 1},
+						{"hero_id": "nuriel", "slot": 2},
+						{"hero_id": "liora", "slot": 3},
+						{"hero_id": "uriela", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 5000, "hero_exp": 3000}
+				},
+				{
+					"name": "Halo Transit",
+					"boss": false,
+					"level": 67,
+					"stars": 4,
+					"strength_bp": 14750,
+					"recommended_power": 28377,
+					"enemies": [
+						{"hero_id": "cassiel", "slot": 0},
+						{"hero_id": "nuriel", "slot": 1},
+						{"hero_id": "uriela", "slot": 2},
+						{"hero_id": "liora", "slot": 3},
+						{"hero_id": "nuriel", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 5150, "hero_exp": 3090, "gear_drops": [{"slot": "armor", "tier": 5}]}
+				},
+				{
+					"name": "Aqua Arcade",
+					"boss": false,
+					"level": 68,
+					"stars": 4,
+					"strength_bp": 19000,
+					"recommended_power": 29026,
+					"enemies": [
+						{"hero_id": "uriela", "slot": 0},
+						{"hero_id": "cassiel", "slot": 1},
+						{"hero_id": "liora", "slot": 2},
+						{"hero_id": "nuriel", "slot": 3},
+						{"hero_id": "sable", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 5300, "hero_exp": 3180, "gems": 100}
+				},
+				{
+					"name": "Chrome Chapel",
+					"boss": false,
+					"level": 70,
+					"stars": 4,
+					"strength_bp": 15250,
+					"recommended_power": 29992,
+					"enemies": [
+						{"hero_id": "cassiel", "slot": 0},
+						{"hero_id": "uriela", "slot": 1},
+						{"hero_id": "seraphiel", "slot": 2},
+						{"hero_id": "liora", "slot": 3},
+						{"hero_id": "nuriel", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 5450, "hero_exp": 3270}
+				},
+				{
+					"name": "The Skyline Sentinel",
+					"boss": true,
+					"level": 72,
+					"stars": 4,
+					"strength_bp": 13000,
+					"recommended_power": 31202,
+					"enemies": [
+						{"hero_id": "cassiel", "slot": 0, "boss": true},
+						{"hero_id": "uriela", "slot": 1},
+						{"hero_id": "nuriel", "slot": 2},
+						{"hero_id": "liora", "slot": 3},
+						{"hero_id": "uriela", "slot": 4}
+					],
+					"first_clear_reward": {
+						"gold": 5600,
+						"hero_exp": 3360,
+						"gems": 200,
+						"gear_drops": [{"slot": "weapon", "tier": 5}],
+						"dust": 125
+					}
+				},
+				{
+					"name": "Cloudfall Plaza",
+					"boss": false,
+					"level": 73,
+					"stars": 5,
+					"strength_bp": 15000,
+					"recommended_power": 31849,
+					"enemies": [
+						{"hero_id": "cassiel", "slot": 0},
+						{"hero_id": "uriela", "slot": 1},
+						{"hero_id": "liora", "slot": 2},
+						{"hero_id": "nuriel", "slot": 3},
+						{"hero_id": "imra", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 5750, "hero_exp": 3450}
+				},
+				{
+					"name": "Mirror Fountain",
+					"boss": false,
+					"level": 76,
+					"stars": 5,
+					"strength_bp": 15750,
+					"recommended_power": 32574,
+					"enemies": [
+						{"hero_id": "uriela", "slot": 0},
+						{"hero_id": "cassiel", "slot": 1},
+						{"hero_id": "nuriel", "slot": 2},
+						{"hero_id": "liora", "slot": 3},
+						{"hero_id": "vesper", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 5900, "hero_exp": 3540, "gear_drops": [{"slot": "helm", "tier": 5}]}
+				},
+				{
+					"name": "Radiant Overpass",
+					"boss": false,
+					"level": 77,
+					"stars": 5,
+					"strength_bp": 13250,
+					"recommended_power": 32959,
+					"enemies": [
+						{"hero_id": "cassiel", "slot": 0},
+						{"hero_id": "orrin", "slot": 1},
+						{"hero_id": "uriela", "slot": 2},
+						{"hero_id": "nuriel", "slot": 3},
+						{"hero_id": "liora", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 6050, "hero_exp": 3630, "scrolls": 1}
+				},
+				{
+					"name": "The Choir Spire",
+					"boss": false,
+					"level": 78,
+					"stars": 5,
+					"strength_bp": 12500,
+					"recommended_power": 33459,
+					"enemies": [
+						{"hero_id": "cassiel", "slot": 0},
+						{"hero_id": "uriela", "slot": 1},
+						{"hero_id": "liora", "slot": 2},
+						{"hero_id": "seraphiel", "slot": 3},
+						{"hero_id": "nuriel", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 6200, "hero_exp": 3720}
+				},
+				{
+					"name": "The Final Encore",
+					"boss": true,
+					"level": 80,
+					"stars": 5,
+					"strength_bp": 10750,
+					"recommended_power": 34301,
+					"enemies": [
+						{"hero_id": "cassiel", "slot": 0},
+						{"hero_id": "uriela", "slot": 1},
+						{"hero_id": "seraphiel", "slot": 2, "boss": true},
+						{"hero_id": "liora", "slot": 3},
+						{"hero_id": "nuriel", "slot": 4}
+					],
+					"first_clear_reward": {
+						"gold": 6350,
+						"hero_exp": 3810,
+						"gems": 400,
+						"scrolls": 2,
+						"gear_drops": [{"slot": "charm", "tier": 5}],
+						"dust": 125
+					}
+				}
+			]
+		},
+		{
+			"id": "ch5",
+			"name": "Neon Inferno",
+			"background": "chapter-5",
+			"faction": "infernal",
+			"intro": "Under the cinder fields the furnaces power a city that never sleeps: neon, rain and lava running in the gutters. The queen's court holds its revels here, and its echoes will dance until someone stops the music.",
+			"hint": "Echoes of the Infernal host. Celestial heroes deal +20% damage here.",
+			"stages": [
+				{
+					"name": "Neon Gutter",
+					"boss": false,
+					"level": 82,
+					"stars": 5,
+					"strength_bp": 11750,
+					"recommended_power": 35410,
+					"enemies": [
+						{"hero_id": "brakka", "slot": 0},
+						{"hero_id": "kessa", "slot": 1},
+						{"hero_id": "imra", "slot": 2},
+						{"hero_id": "vesper", "slot": 3},
+						{"hero_id": "kessa", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 6500, "hero_exp": 3900}
+				},
+				{
+					"name": "Ember Alley",
+					"boss": false,
+					"level": 84,
+					"stars": 5,
+					"strength_bp": 12750,
+					"recommended_power": 36119,
+					"enemies": [
+						{"hero_id": "brakka", "slot": 0},
+						{"hero_id": "vesper", "slot": 1},
+						{"hero_id": "kessa", "slot": 2},
+						{"hero_id": "imra", "slot": 3},
+						{"hero_id": "vesper", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 6650, "hero_exp": 3990, "gear_drops": [{"slot": "helm", "tier": 5}]}
+				},
+				{
+					"name": "Lava Karaoke",
+					"boss": false,
+					"level": 85,
+					"stars": 5,
+					"strength_bp": 14000,
+					"recommended_power": 36431,
+					"enemies": [
+						{"hero_id": "brakka", "slot": 0},
+						{"hero_id": "imra", "slot": 1},
+						{"hero_id": "kessa", "slot": 2},
+						{"hero_id": "vesper", "slot": 3},
+						{"hero_id": "lucen", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 6800, "hero_exp": 4080, "gems": 100}
+				},
+				{
+					"name": "The Velvet Rope",
+					"boss": false,
+					"level": 87,
+					"stars": 5,
+					"strength_bp": 12500,
+					"recommended_power": 37099,
+					"enemies": [
+						{"hero_id": "brakka", "slot": 0},
+						{"hero_id": "mordessa", "slot": 1},
+						{"hero_id": "kessa", "slot": 2},
+						{"hero_id": "imra", "slot": 3},
+						{"hero_id": "vesper", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 6950, "hero_exp": 4170}
+				},
+				{
+					"name": "The Dealer's Table",
+					"boss": true,
+					"level": 89,
+					"stars": 5,
+					"strength_bp": 11000,
+					"recommended_power": 38269,
+					"enemies": [
+						{"hero_id": "brakka", "slot": 0},
+						{"hero_id": "kessa", "slot": 1},
+						{"hero_id": "vesper", "slot": 2, "boss": true},
+						{"hero_id": "imra", "slot": 3},
+						{"hero_id": "kessa", "slot": 4}
+					],
+					"first_clear_reward": {
+						"gold": 7100,
+						"hero_exp": 4260,
+						"gems": 200,
+						"gear_drops": [{"slot": "weapon", "tier": 5}],
+						"dust": 150
+					}
+				},
+				{
+					"name": "Pachinko Pit",
+					"boss": false,
+					"level": 90,
+					"stars": 5,
+					"strength_bp": 12000,
+					"recommended_power": 38603,
+					"enemies": [
+						{"hero_id": "brakka", "slot": 0},
+						{"hero_id": "kessa", "slot": 1},
+						{"hero_id": "imra", "slot": 2},
+						{"hero_id": "vesper", "slot": 3},
+						{"hero_id": "nuriel", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 7250, "hero_exp": 4350}
+				},
+				{
+					"name": "Red Light Rail",
+					"boss": false,
+					"level": 92,
+					"stars": 5,
+					"strength_bp": 13250,
+					"recommended_power": 39721,
+					"enemies": [
+						{"hero_id": "brakka", "slot": 0},
+						{"hero_id": "cassiel", "slot": 1},
+						{"hero_id": "vesper", "slot": 2},
+						{"hero_id": "kessa", "slot": 3},
+						{"hero_id": "imra", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 7400, "hero_exp": 4440, "gear_drops": [{"slot": "weapon", "tier": 5}]}
+				},
+				{
+					"name": "Furnace Rooftops",
+					"boss": false,
+					"level": 94,
+					"stars": 5,
+					"strength_bp": 12250,
+					"recommended_power": 40356,
+					"enemies": [
+						{"hero_id": "brakka", "slot": 0},
+						{"hero_id": "kessa", "slot": 1},
+						{"hero_id": "imra", "slot": 2},
+						{"hero_id": "mordessa", "slot": 3},
+						{"hero_id": "vesper", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 7550, "hero_exp": 4530, "scrolls": 1}
+				},
+				{
+					"name": "The Queen's Gallery",
+					"boss": false,
+					"level": 96,
+					"stars": 5,
+					"strength_bp": 12750,
+					"recommended_power": 41047,
+					"enemies": [
+						{"hero_id": "brakka", "slot": 0},
+						{"hero_id": "orrin", "slot": 1},
+						{"hero_id": "vesper", "slot": 2},
+						{"hero_id": "imra", "slot": 3},
+						{"hero_id": "kessa", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 7700, "hero_exp": 4620}
+				},
+				{
+					"name": "Court of the Ninth Queen",
+					"boss": true,
+					"level": 97,
+					"stars": 5,
+					"strength_bp": 11000,
+					"recommended_power": 41376,
+					"enemies": [
+						{"hero_id": "brakka", "slot": 0},
+						{"hero_id": "kessa", "slot": 1},
+						{"hero_id": "mordessa", "slot": 2, "boss": true},
+						{"hero_id": "vesper", "slot": 3},
+						{"hero_id": "imra", "slot": 4}
+					],
+					"first_clear_reward": {
+						"gold": 7850,
+						"hero_exp": 4710,
+						"gems": 400,
+						"scrolls": 2,
+						"gear_drops": [{"slot": "charm", "tier": 5}],
+						"dust": 150
+					}
+				}
+			]
+		},
+		{
+			"id": "ch6",
+			"name": "Starfall Requiem",
+			"background": "chapter-6",
+			"faction": "fallen",
+			"intro": "Where the lights of Heaven and Hell cross, the Fallen built a cathedral out of every promise they broke. The reaper's last order was signed here. Climb to the bell tower and give the answer she never could.",
+			"hint": "Echoes of the Fallen host. Infernal heroes deal +20% damage here.",
+			"stages": [
+				{
+					"name": "Starfall Steps",
+					"boss": false,
+					"level": 99,
+					"stars": 5,
+					"strength_bp": 14000,
+					"recommended_power": 41915,
+					"enemies": [
+						{"hero_id": "orrin", "slot": 0},
+						{"hero_id": "lucen", "slot": 1},
+						{"hero_id": "ashra", "slot": 2},
+						{"hero_id": "sable", "slot": 3},
+						{"hero_id": "lucen", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 8000, "hero_exp": 4800}
+				},
+				{
+					"name": "Oathbreaker's Nave",
+					"boss": false,
+					"level": 101,
+					"stars": 5,
+					"strength_bp": 12250,
+					"recommended_power": 42536,
+					"enemies": [
+						{"hero_id": "orrin", "slot": 0},
+						{"hero_id": "sable", "slot": 1},
+						{"hero_id": "lucen", "slot": 2},
+						{"hero_id": "ashra", "slot": 3},
+						{"hero_id": "noctaire", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 8150, "hero_exp": 4890, "gear_drops": [{"slot": "weapon", "tier": 5}]}
+				},
+				{
+					"name": "Violet Ossuary",
+					"boss": false,
+					"level": 102,
+					"stars": 5,
+					"strength_bp": 14250,
+					"recommended_power": 43136,
+					"enemies": [
+						{"hero_id": "orrin", "slot": 0},
+						{"hero_id": "lucen", "slot": 1},
+						{"hero_id": "ashra", "slot": 2},
+						{"hero_id": "sable", "slot": 3},
+						{"hero_id": "uriela", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 8300, "hero_exp": 4980, "gems": 100}
+				},
+				{
+					"name": "Broken Halo Garden",
+					"boss": false,
+					"level": 104,
+					"stars": 5,
+					"strength_bp": 13250,
+					"recommended_power": 43856,
+					"enemies": [
+						{"hero_id": "orrin", "slot": 0},
+						{"hero_id": "lucen", "slot": 1},
+						{"hero_id": "sable", "slot": 2},
+						{"hero_id": "noctaire", "slot": 3},
+						{"hero_id": "ashra", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 8450, "hero_exp": 5070}
+				},
+				{
+					"name": "The Confessor",
+					"boss": true,
+					"level": 106,
+					"stars": 5,
+					"strength_bp": 11250,
+					"recommended_power": 44182,
+					"enemies": [
+						{"hero_id": "orrin", "slot": 0},
+						{"hero_id": "lucen", "slot": 1},
+						{"hero_id": "sable", "slot": 2, "boss": true},
+						{"hero_id": "ashra", "slot": 3},
+						{"hero_id": "noctaire", "slot": 4}
+					],
+					"first_clear_reward": {
+						"gold": 8600,
+						"hero_exp": 5160,
+						"gems": 200,
+						"gear_drops": [{"slot": "weapon", "tier": 5}],
+						"dust": 175
+					}
+				},
+				{
+					"name": "Witchlight Archive",
+					"boss": false,
+					"level": 107,
+					"stars": 6,
+					"strength_bp": 13750,
+					"recommended_power": 47272,
+					"enemies": [
+						{"hero_id": "orrin", "slot": 0},
+						{"hero_id": "ashra", "slot": 1},
+						{"hero_id": "lucen", "slot": 2},
+						{"hero_id": "sable", "slot": 3},
+						{"hero_id": "kessa", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 8750, "hero_exp": 5250}
+				},
+				{
+					"name": "Split Mirror Hall",
+					"boss": false,
+					"level": 109,
+					"stars": 6,
+					"strength_bp": 13500,
+					"recommended_power": 48009,
+					"enemies": [
+						{"hero_id": "orrin", "slot": 0},
+						{"hero_id": "lucen", "slot": 1},
+						{"hero_id": "sable", "slot": 2},
+						{"hero_id": "ashra", "slot": 3},
+						{"hero_id": "seraphiel", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 8900, "hero_exp": 5340, "gear_drops": [{"slot": "charm", "tier": 5}]}
+				},
+				{
+					"name": "The Black Choir",
+					"boss": false,
+					"level": 111,
+					"stars": 6,
+					"strength_bp": 12000,
+					"recommended_power": 48626,
+					"enemies": [
+						{"hero_id": "orrin", "slot": 0},
+						{"hero_id": "mordessa", "slot": 1},
+						{"hero_id": "lucen", "slot": 2},
+						{"hero_id": "sable", "slot": 3},
+						{"hero_id": "noctaire", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 9050, "hero_exp": 5430, "scrolls": 1}
+				},
+				{
+					"name": "Requiem Stair",
+					"boss": false,
+					"level": 113,
+					"stars": 6,
+					"strength_bp": 12000,
+					"recommended_power": 49125,
+					"enemies": [
+						{"hero_id": "orrin", "slot": 0},
+						{"hero_id": "lucen", "slot": 1},
+						{"hero_id": "ashra", "slot": 2},
+						{"hero_id": "sable", "slot": 3},
+						{"hero_id": "noctaire", "slot": 4}
+					],
+					"first_clear_reward": {"gold": 9200, "hero_exp": 5520}
+				},
+				{
+					"name": "The Reaper's Answer",
+					"boss": true,
+					"level": 115,
+					"stars": 6,
+					"strength_bp": 10750,
+					"recommended_power": 50556,
+					"enemies": [
+						{"hero_id": "orrin", "slot": 0},
+						{"hero_id": "lucen", "slot": 1},
+						{"hero_id": "noctaire", "slot": 2, "boss": true},
+						{"hero_id": "sable", "slot": 3},
+						{"hero_id": "ashra", "slot": 4}
+					],
+					"first_clear_reward": {
+						"gold": 9350,
+						"hero_exp": 5610,
+						"gems": 400,
+						"scrolls": 2,
+						"gear_drops": [{"slot": "charm", "tier": 5}],
+						"dust": 175
+					}
+				}
+			]
 		}
 	]
 }

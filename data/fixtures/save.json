@@ -70,7 +70,7 @@
 					}
 				],
 				"settings": {"battle_speed": 1, "sound": true, "music": true, "haptics": true, "auto_ultimates": true},
-				"campaign": {"cleared": 30},
+				"campaign": {"cleared": 60},
 				"formation": ["uriela", "lucen", "kessa", "", ""],
 				"created_at": 1702083600000,
 				"player_name": "Envoy",

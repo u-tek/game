@@ -147,13 +147,18 @@ func _rebuild_tabs() -> void:
 	for c in _tabs_slot.get_children():
 		c.queue_free()
 	var opts: Array = []
-	for ch: Dictionary in Game.chapters():
+	var chs := Game.chapters()
+	var compact := chs.size() > 3       # more chapters than "CH. n" tabs fit beside Back: numbers only
+	for ch: Dictionary in chs:
 		var unlocked := Game.stage_status(int(ch.get("first_stage", 0))) != "locked"
-		var o := {"text": "CH. %d" % (int(ch.get("index", 0)) + 1)}
+		var num := int(ch.get("index", 0)) + 1
+		var o := {"text": ("%d" % num) if compact else ("CH. %d" % num)}
 		if not unlocked:
 			o["icon"] = "lock"
+			if compact:
+				o["text"] = ""
 		opts.append(o)
-	var tabs := Kit.tab_strip(opts, _chapter, _on_tab, 140.0)
+	var tabs := Kit.tab_strip(opts, _chapter, _on_tab, 76.0 if compact else 140.0)
 	_tabs_slot.add_child(tabs)
 
 
