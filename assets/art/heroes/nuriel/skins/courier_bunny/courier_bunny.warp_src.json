@@ -6,7 +6,7 @@
   "texel_scale": 1.0,
   "portrait": [478, 738, 462],
   "look_px": [8, 5],
-  "meta": {"fx_color": "#ffe9a8", "art": "comfy s108000 quick"},
+  "meta": {"weapon": "dagger", "fx_color": "#ffe9a8", "art": "comfy s108000 quick"},
   "body_bone": "hips",
   "bones": [
     {"name": "hips", "parent": "root", "pivot": [573, 1209]},

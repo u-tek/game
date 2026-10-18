@@ -6,7 +6,7 @@
   "texel_scale": 1.0,
   "portrait": [502, 966, 351],
   "look_px": [8, 5],
-  "meta": {"fx_color": "#b48cff", "art": "comfy s308002 quick"},
+  "meta": {"weapon": "rapier", "fx_color": "#b48cff", "art": "comfy s308002 quick"},
   "body_bone": "hips",
   "bones": [
     {"name": "hips", "parent": "root", "pivot": [512, 1347]},

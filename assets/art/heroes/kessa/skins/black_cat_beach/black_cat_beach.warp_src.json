@@ -4,9 +4,9 @@
   "origin": [512, 1990],
   "grid": [24, 48],
   "texel_scale": 1.0,
-  "portrait": [796, 952, 840],
+  "portrait": [603, 952, 840],
   "look_px": [8, 5],
-  "meta": {"fx_color": "#ff8a3d", "art": "comfy s206002 quick"},
+  "meta": {"weapon": "sickle", "fx_color": "#ff8a3d", "art": "comfy s206002 quick"},
   "body_bone": "hips",
   "bones": [
     {"name": "hips", "parent": "root", "pivot": [712, 1397]},

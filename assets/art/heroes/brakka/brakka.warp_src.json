@@ -1,35 +1,27 @@
 {
-  "_doc": "HaloRig warp rig source for brakka (docs/dev/halorig.md section 8). Painted by the art farm (docs/dev/art-farm.md): run 38881543229-final-round1-v3, seed s202001. Coordinates are image pixels of brakka.png (1024x2048, soles at the origin). Regions are listed in priority order: where masks overlap, the first one wins.",
+  "_doc": "HaloRig warp rig source for brakka, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s202601, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
   "image": "brakka.png",
   "origin": [512, 1990],
   "grid": [24, 48],
   "texel_scale": 1.0,
-  "portrait": [499, 594, 451],
-  "look_px": [14, 8],
-  "meta": {"weapon": "fists", "fx_color": "#ff8a3d", "art": "farm 38881543229 s202001"},
+  "portrait": [556, 499, 521],
+  "look_px": [8, 5],
+  "meta": {"weapon": "fists", "fx_color": "#ff8a3d", "art": "comfy s202601 quick"},
   "body_bone": "hips",
   "bones": [
-    {"name": "hips", "parent": "root", "pivot": [500, 1100]},
-    {"name": "torso", "parent": "hips", "pivot": [500, 990]},
-    {"name": "chest", "parent": "torso", "pivot": [500, 820]},
-    {"name": "neck", "parent": "chest", "pivot": [500, 680]},
-    {"name": "head", "parent": "neck", "pivot": [492, 673]},
-    {"name": "face", "parent": "head", "pivot": [500, 578]},
-    {"name": "hair_front", "parent": "head", "pivot": [500, 478]},
-    {"name": "weapon", "parent": "chest", "pivot": [760, 560], "tip": [760, 520]},
-    {"name": "tail", "parent": "hips", "pivot": [420, 1150], "spring": "tail;limit=10;g=0.6"},
-    {"name": "ribbon", "parent": "hips", "pivot": [515, 1240], "spring": "ribbon;limit=14"}
+    {"name": "hips", "parent": "root", "pivot": [524, 1055]},
+    {"name": "torso", "parent": "hips", "pivot": [650, 930]},
+    {"name": "chest", "parent": "torso", "pivot": [670, 776]},
+    {"name": "neck", "parent": "chest", "pivot": [550, 637]},
+    {"name": "head", "parent": "neck", "pivot": [547, 599]},
+    {"name": "face", "parent": "head", "pivot": [556, 489]},
+    {"name": "hair_front", "parent": "head", "pivot": [556, 374]}
   ],
   "regions": [
-    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [500, 595], "radius": [76, 73], "feather": 14}},
-    {"name": "hair_front", "rule": {"type": "ellipse", "center": [500, 506], "radius": [91, 50], "feather": 12}},
-    {"name": "head", "rule": {"type": "ellipse", "center": [500, 561], "radius": [147, 159], "feather": 22}},
-    {"name": "chest", "rule": {"type": "polygon", "points": [[357.0, 670], [643.0, 670], [760, 760], [747.0, 970], [682.0, 1000], [318.0, 1000], [253.0, 970], [240, 760]], "feather": 40}},
-    {"name": "tail", "rule": {"type": "polygon", "points": [[440, 1120], [330, 1150], [150, 1240], [40, 1380], [60, 1560], [200, 1720], [330, 1880], [390, 1860], [300, 1700], [200, 1560], [150, 1420], [260, 1290], [420, 1220]], "feather": 16}},
-    {"name": "ribbon", "rule": {"type": "polygon", "points": [[485, 1235], [550, 1235], [565, 1560], [495, 1560]], "feather": 10}}
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [556, 509], "radius": [100, 84], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [556, 407], "radius": [120, 58], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [556, 470], "radius": [193, 182], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[428, 627], [672, 627], [892, 716], [881, 910], [805, 940], [495, 940], [459, 910], [448, 716]], "feather": 40}}
   ],
-  "overlays": [
-    {"slot": "eyes", "bone": "face", "base": "open", "default": "open", "rect": [417, 536, 166, 79], "z": 10, "variants": {"smile": "variants/smile.png"}},
-    {"slot": "mouth", "bone": "face", "base": "default", "default": "default", "rect": [457, 599, 84, 64], "z": 11, "variants": {"open": "variants/mouth_open.png", "smile": "variants/smile.png"}}
-  ]
+  "overlays": []
 }

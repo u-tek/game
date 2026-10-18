@@ -6,7 +6,7 @@
   "texel_scale": 1.0,
   "portrait": [378, 542, 516],
   "look_px": [8, 5],
-  "meta": {"fx_color": "#b48cff", "art": "comfy s306000 quick"},
+  "meta": {"weapon": "wand", "fx_color": "#b48cff", "art": "comfy s306000 quick"},
   "body_bone": "hips",
   "bones": [
     {"name": "hips", "parent": "root", "pivot": [436, 1084]},

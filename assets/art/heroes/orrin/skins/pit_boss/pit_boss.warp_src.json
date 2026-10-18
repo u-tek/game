@@ -6,7 +6,7 @@
   "texel_scale": 1.0,
   "portrait": [500, 429, 516],
   "look_px": [8, 5],
-  "meta": {"fx_color": "#b48cff", "art": "comfy s305002 quick"},
+  "meta": {"weapon": "shield", "fx_color": "#b48cff", "art": "comfy s305002 quick"},
   "body_bone": "hips",
   "bones": [
     {"name": "hips", "parent": "root", "pivot": [497, 1008]},

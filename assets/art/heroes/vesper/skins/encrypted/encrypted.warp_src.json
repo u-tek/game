@@ -4,9 +4,9 @@
   "origin": [512, 1990],
   "grid": [24, 48],
   "texel_scale": 1.0,
-  "portrait": [760, 483, 605],
+  "portrait": [721, 483, 605],
   "look_px": [8, 5],
-  "meta": {"fx_color": "#ff8a3d", "art": "comfy s207001 quick"},
+  "meta": {"weapon": "orb", "fx_color": "#ff8a3d", "art": "comfy s207001 quick"},
   "body_bone": "hips",
   "bones": [
     {"name": "hips", "parent": "root", "pivot": [778, 1053]},

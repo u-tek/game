@@ -6,7 +6,7 @@
   "texel_scale": 1.0,
   "portrait": [491, 702, 464],
   "look_px": [8, 5],
-  "meta": {"fx_color": "#ff8a3d", "art": "comfy s205001 quick"},
+  "meta": {"weapon": "orb", "fx_color": "#ff8a3d", "art": "comfy s205001 quick"},
   "body_bone": "hips",
   "bones": [
     {"name": "hips", "parent": "root", "pivot": [518, 1183]},

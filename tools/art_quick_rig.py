@@ -88,16 +88,27 @@ def build(rig_id, face, seed=None):
             (wx + sw * 0.7, wy + 10), (wx - sw * 0.7, wy + 10), (cx - sw * 0.95, wy - 20), (cx - sw, cy - 60))],
             "feather": 40}},
     ]
+    # portrait: a square around the face, kept inside the image (a face near an edge shifts it)
+    H_img, W_img = alpha.shape
+    psize = min(r(max(300, fw * 2.7)), W_img, H_img)
+    pcx = min(max(r(fcx), psize // 2 + 1), W_img - psize // 2 - 1)
+    pcy = min(max(r(fy + fh * 0.5), psize // 2 + 1), H_img - psize // 2 - 1)
     h = heroes.get(hero, {})
     label = "%s %s" % (hero, art) if art else hero
+    # weapon / attack style come from the hero's own rig (hero_sprite.attack_anim reads them);
+    # read before writing, since rebuilding the base look overwrites that same file
+    base_src = os.path.join(HEROES, hero, hero + ".warp_src.json")
+    base_meta = (json.load(open(base_src)).get("meta") or {}) if os.path.exists(base_src) else {}
+    meta = {k: base_meta[k] for k in ("weapon", "attack") if k in base_meta}
+    meta.update({"fx_color": FX.get(h.get("faction"), "#ffe9a8"), "art": "comfy s%s quick" % seed})
     src = {
         "_doc": "HaloRig warp rig source for %s, written by tools/art_quick_rig.py (body bones from the face box and "
                 "the silhouette; no spring parts or face overlays yet). ComfyUI candidate s%s, cut out without the face "
                 "pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin)."
                 % (label, seed if seed is not None else "?"),
         "image": os.path.basename(img), "origin": list(SOLES), "grid": [24, 48], "texel_scale": 1.0,
-        "portrait": [r(fcx), r(fy + fh * 0.5), r(max(300, fw * 2.7))], "look_px": [8, 5],
-        "meta": {"fx_color": FX.get(h.get("faction"), "#ffe9a8"), "art": "comfy s%s quick" % seed},
+        "portrait": [pcx, pcy, psize], "look_px": [8, 5],
+        "meta": meta,
         "body_bone": "hips", "bones": bones, "regions": regions, "overlays": [],
     }
     with open(out, "w", newline="\n") as f:
