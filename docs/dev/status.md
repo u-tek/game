@@ -1,6 +1,6 @@
 # Status and handoff
 
-**Status as of 2026-10-18, 02:30 UTC (12:30 on the owner's PC clock, UTC+10).** This is the living
+**Status as of 2026-10-18, 04:30 UTC (14:30 on the owner's PC clock, UTC+10).** This is the living
 status file: update it at the end of every work block. Rules and conventions are in `CLAUDE.md`;
 this file says where things stand. Older logs are under "History" at the bottom.
 
@@ -27,9 +27,21 @@ this file says where things stand. Older logs are under "History" at the bottom.
 
 ## Where things stand
 
-- **Game:** v1 plays end to end (`docs/dev/architecture.md`). Latest IPA is still run 38946000040
-  with the old farm art (artifact expires 2026-10-30); no build since. On the PC `tools/check e2e`
-  passes: 100 unit tests, boot, 3 e2e scripts (2026-10-18 02:20 UTC).
+- **Game:** v1 plays end to end (`docs/dev/architecture.md`). On the PC `tools/check e2e` passes:
+  103 unit tests, boot, 3 e2e scripts; `check_port.py` 49 checks, 0 differ (2026-10-18). Added
+  2026-10-18 (owner: "yeah go on" to base art, backdrops, more content):
+  - **Campaign: 6 chapters, 60 stages.** Chapters 4-6 (Halo Skyline, Neon Inferno, Starfall
+    Requiem) calibrated by the pacing bots (`tests/tools/calibrate_stages.gd stages=30-59 write`;
+    TIMELINE_H now reaches day 31; enemy levels 65-115). Campaign tabs show numbers past 3 chapters.
+  - **The Spire** (tower, `data/tower.json`, `src/data/tower.gd`, `src/ui/screens/tower_screen.gd`,
+    Lobby side button "Spire"): 120 floors built from rules (floor f = campaign stage f's level and
+    stars, a seeded mixed team, a Legendary boss every 10th floor, past the campaign +1 level a
+    floor), opens after stage 1-10, rewards every floor (gems every 5th, gear and a scroll every
+    10th). Port spec `docs/dev/unity-port.md` 9b, mirrored in `check_port.py`. Not calibrated by the
+    bots yet: floor f is at least as hard as stage f, so it trails the campaign.
+  - **Painted backdrops** (`assets/art/backgrounds/`, JPEG): Lobby and chapters 1-6 from the
+    splash-card plates (`SceneBackdrop` draws them; code-drawn scenes remain the fallback).
+  - Latest IPA is still run 38946000040 (old art); a new build follows this block.
 - **Designs:** briefs v4 "Aero Y2K" (`docs/dev/character-briefs.md`): Y2K / Frutiger Aero
   fashion, maximum allure without nudity, female only; Nuriel, Brakka, Orrin and Lucen redesigned.
   `data/heroes.json` look, titles and bios match v4. Every hero has a seductive standing pose in
@@ -43,10 +55,16 @@ this file says where things stand. Older logs are under "History" at the bottom.
   face pass 0.35 + tiled 2x repaint (UltimateSDUpscale, 0.35, 20 steps per tile), about 5 min each.
   Amanatsu's Civitai license is **not checked yet** (the owner checks; NoobAI is ruled out for
   commercial use, see History).
-- **Base art:** nothing new is in `assets/` yet; the game still shows the old farm art. Latest
-  candidate round: **v5, seed_base + 600..602, 896x1152** (`art_src/<id>/candidates/`, all 45
-  sent). Earlier rounds: v4 seed_base + 400..402 (832x1216), tests at +500, +300, +200.
-  **Waiting for the owner's pick per hero.**
+- **Base art: new Amanatsu art for all 15 is in the game (2026-10-18, quick install).** Claude
+  picked one per hero from the v5 round (seed_base + 600..602, 896x1152; picks in
+  `art_src/_review/base_picks.json` on the PC and in each `warp_src.json` `_doc`): seraphiel
+  101601, cassiel 102600, liora 103600, uriela 104601, nuriel 105601, mordessa 201601, brakka
+  202601, vesper 203601, imra 204602, kessa 205602, noctaire 301600, orrin 302602, sable 303601,
+  lucen 304600, ashra 305600. Same route as the skins: cutout only, `install.py --partial --force`
+  (the old farm art and variants are kept in `art_src/<id>/history/`), `tools/art_quick_rig.py`
+  rigs (weapon and attack style kept from the old rig meta). **Lost for now: blinks, talking and
+  the hand-drawn hair/wing/weapon springs** (the old overlays and masks no longer matched and were
+  removed). The face-variant pass brings blinks back (about 30 min of GPU for all 15: ask first).
 - **Skins:** `data/skins.json` v2: four packs x 15 heroes = 60 skins (Aqua Resort, Bunny Lounge,
   Club Chrome, After Dark), cosmetic only, Standard 980 gems / Deluxe 1,480 (Legendaries' skins and
   all of After Dark). Prompts for all 60 in the bible `skins` block. Candidates: `art_src/<id>/skins/
@@ -113,7 +131,8 @@ this file says where things stand. Older logs are under "History" at the bottom.
 
 ## Waiting on the owner
 
-1. **Base art picks:** one v5 seed per hero (or "re-roll <hero>").
+1. **Base art:** Claude picked and installed one per hero (above); the owner can swap any
+   ("use s<seed> for <hero>") or ask for the face-variant pass (blinks, talking).
 2. **The adult-site version (EroLabs):** the owner named EroLabs. It is a browser-game portal,
    so the build is a Godot web export: needs the owner's word, because CLAUDE.md said never build a
    web version (that rule was about the main iOS game). Also open: nude-set scope (all 60 skins,
@@ -127,7 +146,7 @@ this file says where things stand. Older logs are under "History" at the bottom.
 
 ## Next steps
 
-1. Finals for each picked hero: `python tools/comfy/finalize.py <id> <seed>`
+1. Upscale pass for each hero (on hold, ask first): `python tools/comfy/finalize.py <id> <seed> --force`
    (check `final/<id>_boxes.png`; pass `--face-box x,y,w,h` when the auto face box lands on hair or a
    halo), then `variants.py <id>` (eyes_closed needs denoise ~0.75 and a region covering both eyes),
    1:1 review, `install.py <id>`, rig (`python tools/art_warp_build.py <id> --regen-masks`, then

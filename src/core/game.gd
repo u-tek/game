@@ -339,6 +339,44 @@ func complete_stage(stage_index: int, outcome: Dictionary) -> Dictionary:
 	return r
 
 
+# ---------------------------------------------------------------- the Spire (tower)
+
+func tower_unlocked() -> bool:
+	return model.tower_unlocked()
+
+
+## Highest floor cleared (0 = none).
+func tower_best() -> int:
+	return model.tower_best()
+
+
+## The next floor to fight (TowerData.FLOORS + 1 when the top is cleared).
+func tower_next() -> int:
+	return model.tower_next()
+
+
+func tower_floors() -> int:
+	return TowerData.FLOORS
+
+
+## Built floor f (stage-shaped: enemies, recommended_power, first_clear_reward...), or {}.
+func tower_floor(f: int) -> Dictionary:
+	return TowerData.get_floor(f)
+
+
+func tower_battle_setup(f: int) -> Dictionary:
+	var r := model.tower_battle_setup(f)
+	_flush()
+	return r
+
+
+## Call after a floor battle. Result {ok, value: {reward, first_clear, victory}, error}.
+func complete_tower(f: int, outcome: Dictionary) -> Dictionary:
+	var r := model.complete_tower(f, outcome)
+	_flush()
+	return r
+
+
 # ---------------------------------------------------------------- heroes
 
 ## Owned hero entries {id, level, stars, shards, gear}, sorted by power desc.

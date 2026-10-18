@@ -21,6 +21,7 @@ STAGES = load("stages")
 ECO = load("economy")
 BANNER = load("banner")["banners"][0]
 BATTLE = load("battle")
+TOWER = load("tower")
 
 def idiv(a, b):
     """C#-style truncating integer division."""
@@ -88,6 +89,53 @@ def built_stages():
             out.append({"index": len(out), "id": "%d-%d" % (ci + 1, li + 1), "enemies": enemies,
                         "recommended_power": s["recommended_power"], "first_clear_reward": s["first_clear_reward"]})
     return out
+
+def tower_floor(f):
+    """The Spire (docs/dev/unity-port.md 9b): floor f at campaign stage f's difficulty, a seeded team."""
+    raws = [s for ch in STAGES["chapters"] for s in ch["stages"]]
+    n = len(raws)
+    raw = raws[min(f - 1, n - 1)]
+    past = max(0, f - n)
+    level = raw["level"] + past * TOWER["level_per_floor_past"]
+    stars = min(raw["stars"] + idiv(past, TOWER["stars_every_past"]), ECO["heroes"]["max_stars"])
+    echo_bp = idiv(STAGES["echo_stat_bp"] * TOWER["strength_bp"], 10000)
+    boss = f % TOWER["boss_every"] == 0
+    boss_id = TOWER["bosses"][(idiv(f, TOWER["boss_every"]) - 1) % len(TOWER["bosses"])] if boss else ""
+    pool = [h["id"] for h in HEROES if h["id"] != boss_id]
+    r = Rng(mix(TOWER["seed"], f))
+    picks = []
+    while len(picks) < (4 if boss else 5):
+        i = r.range_int(0, len(pool) - 1)
+        picks.append(pool.pop(i))
+    fp = ECO["formation"]["front_priority"]
+    order = sorted(range(len(picks)), key=lambda i: (-fp.get(HERO[picks[i]]["role"], 0), i))
+    slots = [0, 1, 3, 4] if boss else [0, 1, 2, 3, 4]
+    def enemy(hid, slot, is_boss):
+        return {"hero_id": hid, "level": level, "stars": max(stars, start_stars(HERO[hid]["rarity"])), "slot": slot,
+                "is_boss": is_boss, "echo_bp": echo_bp}
+    enemies = [enemy(picks[order[k]], slots[k], False) for k in range(len(order))]
+    if boss:
+        enemies.append(enemy(boss_id, 2, True))
+    enemies.sort(key=lambda e: e["slot"])
+    rec = idiv(raws[min(f - 1, n - 1)]["recommended_power"] * TOWER["rec_bp"], 10000)
+    rec = idiv(rec * (10000 + TOWER["rec_past_bp"] * past), 10000)
+    R = TOWER["rewards"]
+    gold = R["gold_base"] + R["gold_per_floor"] * f
+    reward = {"gold": gold, "hero_exp": idiv(gold * R["hero_exp_bp"], 10000), "dust": R["dust_base"] + idiv(f, R["dust_every"])}
+    gems = R["gems"] if f % R["gems_every"] == 0 else 0
+    if boss:
+        gems += R["boss_gems"]
+        reward["scrolls"] = R["boss_scrolls"]
+        reward["gear_drops"] = [{"slot": R["gear_slots"][(idiv(f, TOWER["boss_every"]) - 1) % len(R["gear_slots"])],
+                                 "tier": max(1, min(1 + idiv(f, R["gear_tier_every"]), G_MAX_TIER))}]
+    if gems > 0:
+        reward["gems"] = gems
+    bgs = TOWER["backgrounds"]
+    return {"id": "F%d" % f, "enemies": enemies, "is_boss": boss,
+            "background": bgs[idiv(f - 1, TOWER["floors_per_background"]) % len(bgs)],
+            "recommended_power": rec, "first_clear_reward": reward}
+
+G_MAX_TIER = ECO["gear"]["max_tier"]
 
 def fb_bp(count):
     arr = BATTLE["faction_bonus_bp"]
@@ -691,6 +739,13 @@ for c in f["stages"]:
     act_st.append({"id": s["id"], "enemies": en, "enemy_power": enemy_power(s["enemies"]), "recommended_power": s["recommended_power"], "first_clear_reward": s["first_clear_reward"]})
     exp_st.append({k: c[k] for k in ("id", "enemies", "enemy_power", "recommended_power", "first_clear_reward")})
 check("stats.stages", exp_st, act_st)
+exp_tw, act_tw = [], []
+for c in f.get("tower", []):
+    t = tower_floor(c["floor"])
+    en = [dict(e, stats=echo_stats(e["hero_id"], e["level"], e["stars"], e["echo_bp"])) for e in t["enemies"]]
+    act_tw.append(dict(t, floor=c["floor"], enemies=en, enemy_power=enemy_power(t["enemies"])))
+    exp_tw.append({k: c[k] for k in ("floor", "id", "enemies", "is_boss", "background", "enemy_power", "recommended_power", "first_clear_reward")})
+check("stats.tower", exp_tw, act_tw)
 
 f = fx("summon")
 check("summon.rarity_for_roll", [c["out"] for c in f["rarity_for_roll"]], [rarity_for_roll(c["roll"], BANNER) for c in f["rarity_for_roll"]])

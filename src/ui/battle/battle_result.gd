@@ -158,7 +158,7 @@ func show_victory(data: Dictionary) -> void:
 		btns.add_child(nxt)
 		Guide.mark(nxt, step == "battle", 0)
 	else:
-		var camp := Kit.primary_button("Campaign", func() -> void: _emit("campaign"), "campaign")
+		var camp := Kit.primary_button(str(data.get("back_text", "Campaign")), func() -> void: _emit("campaign"), "campaign")
 		camp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		btns.add_child(camp)
 	_col.add_child(btns)

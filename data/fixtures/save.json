@@ -25,6 +25,7 @@
 				"formation": ["uriela", "", "", "", ""],
 				"campaign": {"cleared": 4},
 				"idle": {"last_claim_at": 1702080000000, "quick_claims_used": 0, "quick_claim_day": 19700, "carry": {}, "gear_ms": 0, "full_notified": false},
+				"tower": {"best": 0},
 				"summon": {"pity": 0, "total_pulls": 0, "last_free_pull_day": -1, "seed": 1865841547},
 				"gear": [],
 				"gear_seq": 0,
@@ -75,6 +76,7 @@
 				"created_at": 1702083600000,
 				"player_name": "Envoy",
 				"currencies": {"gold": 4000, "hero_exp": 2400, "gems": 1800, "scrolls": 10, "dust": 0},
+				"tower": {"best": 0},
 				"idle": {"last_claim_at": 1702083600000, "quick_claims_used": 0, "quick_claim_day": 19700, "carry": {}, "gear_ms": 0, "full_notified": false},
 				"summon": {"pity": 0, "total_pulls": 0, "last_free_pull_day": -1, "seed": 1725470481},
 				"gear_seq": 0,
@@ -106,6 +108,7 @@
 				},
 				"formation": ["uriela", "lucen", "ashra", "kessa", "nuriel"],
 				"campaign": {"cleared": 0},
+				"tower": {"best": 0},
 				"idle": {
 					"last_claim_at": 1702098000000,
 					"quick_claims_used": 0,
@@ -151,6 +154,7 @@
 				},
 				"formation": ["uriela", "lucen", "ashra", "kessa", "nuriel"],
 				"campaign": {"cleared": 0},
+				"tower": {"best": 0},
 				"idle": {
 					"last_claim_at": 1702098000000,
 					"quick_claims_used": 0,

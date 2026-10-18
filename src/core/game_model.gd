@@ -83,6 +83,7 @@ func default_state() -> Dictionary:
 		"heroes": {},
 		"formation": ["", "", "", "", ""],
 		"campaign": {"cleared": 0},
+		"tower": {"best": 0},
 		"idle": {"last_claim_at": now, "quick_claims_used": 0, "quick_claim_day": day,
 			"carry": {}, "gear_ms": 0, "full_notified": false},
 		"summon": {"pity": 0, "total_pulls": 0, "last_free_pull_day": -1,
@@ -179,6 +180,7 @@ func migrate(loaded: Dictionary) -> Dictionary:
 	if not BATTLE_SPEEDS.has(int(loaded.settings.battle_speed)):
 		loaded.settings.battle_speed = 1
 	loaded.campaign.cleared = clampi(int(loaded.campaign.cleared), 0, StageData.count())
+	loaded.tower.best = clampi(int(loaded.tower.best), 0, TowerData.FLOORS)
 	loaded.version = SAVE_VERSION
 	state = loaded
 	if clean == ["", "", "", "", ""]:
@@ -483,21 +485,8 @@ func stage_battle_setup(stage_index: int) -> Dictionary:
 	var st := StageData.stage(stage_index)
 	if st.is_empty():
 		return {}
-	var allies: Array = []
-	var f := formation()
-	for slot in 5:
-		var id: String = f[slot]
-		if id == "":
-			continue
-		var h: Dictionary = state.heroes[id]
-		allies.append({"uid": "a%d" % slot, "hero_id": id, "side": "ally", "slot": slot,
-			"level": int(h.level), "stars": int(h.stars), "stats": hero_stats(id), "is_boss": false})
-	var enemies: Array = []
-	for e in st.enemies:
-		enemies.append({"uid": "e%d" % int(e.slot), "hero_id": e.hero_id, "side": "enemy", "slot": int(e.slot),
-			"level": int(e.level), "stars": int(e.stars),
-			"stats": StageData.echo_stats(e.hero_id, int(e.level), int(e.stars), int(e.echo_bp)),
-			"is_boss": bool(e.is_boss)})
+	var allies := _ally_setups()
+	var enemies := _enemy_setups(st.enemies)
 	var attempt := counter("battles_started")
 	state.counters["battles_started"] = attempt + 1
 	return {
@@ -508,6 +497,31 @@ func stage_battle_setup(stage_index: int) -> Dictionary:
 		"is_boss": bool(st.is_boss),
 		"background": st.background,
 	}
+
+
+## UnitSetups for the player's formation (slots 0-4, empty slots skipped).
+func _ally_setups() -> Array:
+	var allies: Array = []
+	var f := formation()
+	for slot in 5:
+		var id: String = f[slot]
+		if id == "":
+			continue
+		var h: Dictionary = state.heroes[id]
+		allies.append({"uid": "a%d" % slot, "hero_id": id, "side": "ally", "slot": slot,
+			"level": int(h.level), "stars": int(h.stars), "stats": hero_stats(id), "is_boss": false})
+	return allies
+
+
+## UnitSetups for built stage or floor enemies.
+func _enemy_setups(list: Array) -> Array:
+	var enemies: Array = []
+	for e in list:
+		enemies.append({"uid": "e%d" % int(e.slot), "hero_id": e.hero_id, "side": "enemy", "slot": int(e.slot),
+			"level": int(e.level), "stars": int(e.stars),
+			"stats": StageData.echo_stats(e.hero_id, int(e.level), int(e.stars), int(e.echo_bp)),
+			"is_boss": bool(e.is_boss)})
+	return enemies
 
 
 ## Call after a stage battle. Result {ok, value: {reward, first_clear: bool, victory}, error}.
@@ -531,6 +545,60 @@ func complete_stage(stage_index: int, outcome: Dictionary) -> Dictionary:
 		reward = grant(st.first_clear_reward)
 	_changed()
 	return _ok({"reward": reward, "first_clear": first, "victory": true})
+
+
+# ---------------------------------------------------------------- the Spire (tower)
+
+## Open once the campaign has `unlock_cleared` stages cleared (data/tower.json).
+func tower_unlocked() -> bool:
+	return cleared_count() >= TowerData.UNLOCK_CLEARED
+
+
+## Highest floor cleared (0 = none).
+func tower_best() -> int:
+	return int(state.get("tower", {}).get("best", 0))
+
+
+## The floor to fight next; TowerData.FLOORS + 1 once the top is cleared.
+func tower_next() -> int:
+	return tower_best() + 1
+
+
+## BattleSetup for the player's formation vs floor `f` (only the next floor, once unlocked).
+func tower_battle_setup(f: int) -> Dictionary:
+	var fl := TowerData.get_floor(f)
+	if fl.is_empty() or not tower_unlocked() or f != tower_next():
+		return {}
+	var attempt := counter("battles_started")
+	state.counters["battles_started"] = attempt + 1
+	return {
+		"allies": _ally_setups(),
+		"enemies": _enemy_setups(fl.enemies),
+		"seed": SeededRng.mix(int(state.rng_seed) + 500009 + f * 7717, attempt),
+		"floor": f,
+		"is_boss": bool(fl.is_boss),
+		"background": fl.background,
+	}
+
+
+## Call after a floor battle. Result {ok, value: {reward, first_clear: true, victory}, error}.
+## A win clears the floor (its reward once); a loss changes nothing but the counters.
+func complete_tower(f: int, outcome: Dictionary) -> Dictionary:
+	var fl := TowerData.get_floor(f)
+	if fl.is_empty():
+		return _err("Unknown floor")
+	if not tower_unlocked() or f != tower_next():
+		return _err("Floor locked")
+	if not bool(outcome.get("victory", false)):
+		_bump("battles_lost")
+		_changed()
+		return _ok({"reward": {}, "first_clear": false, "victory": false})
+	_bump("battles_won")
+	_bump("tower_floors")
+	state.tower.best = f
+	var reward := grant(fl.first_clear_reward)
+	_changed()
+	return _ok({"reward": reward, "first_clear": true, "victory": true})
 
 
 # ---------------------------------------------------------------- heroes

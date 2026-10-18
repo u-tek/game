@@ -30,6 +30,7 @@ signal screen_changed(screen_name: String)
 const SCREENS := {
 	"home": "res://src/ui/screens/home_screen.gd",
 	"campaign": "res://src/ui/screens/campaign_screen.gd",
+	"tower": "res://src/ui/screens/tower_screen.gd",
 	"battle": "res://src/ui/screens/battle_screen.gd",
 	"heroes": "res://src/ui/screens/heroes_screen.gd",
 	"hero_detail": "res://src/ui/screens/hero_detail_screen.gd",
@@ -50,7 +51,7 @@ const NAV_TABS: Array[String] = ["heroes", "formation", "home", "gear", "summon"
 ## Going to one of these resets the history (back returns home).
 const NAV_ROOTS: Array[String] = ["heroes", "formation", "home", "gear", "summon", "quests", "shop"]
 ## Which nav tab is highlighted for non-tab screens.
-const NAV_PARENT := {"campaign": "home", "battle": "home", "hero_detail": "heroes", "kit_demo": "home",
+const NAV_PARENT := {"campaign": "home", "tower": "home", "battle": "home", "hero_detail": "heroes", "kit_demo": "home",
 	"quests": "home", "shop": "home", "settings": "home"}
 ## Currencies shown in the top-bar resource pill per screen (default: gems, gold).
 const TOP_CURRENCIES := {"summon": ["gems", "scrolls"], "heroes": ["gold", "hero_exp"],

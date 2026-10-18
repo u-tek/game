@@ -83,6 +83,10 @@ static func skins() -> Dictionary:
 	return file("skins")
 
 
+static func tower() -> Dictionary:
+	return file("tower")
+
+
 ## JSON numbers parse as floats: turn whole numbers back into ints, recursively.
 static func intify(v: Variant) -> Variant:
 	if v is float:

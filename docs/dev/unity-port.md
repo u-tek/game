@@ -215,6 +215,14 @@ the price is the tier's `price_gems`. `art` names the folder `assets/art/heroes/
 (laid out like the base art, files named `<art>.*`). A skin whose rig is not built is "Coming soon"
 and cannot be bought (checked in the Game adapter, not the rules). Design: `docs/dev/skins.md`.
 
+### 3.6c tower.json
+
+The Spire, an endless climb beside the campaign. `{version, name, unlock_cleared, floors, seed,
+strength_bp, level_per_floor_past, stars_every_past, rec_bp, rec_past_bp, boss_every, bosses [3 hero
+ids], backgrounds [kinds], floors_per_background, rewards {gold_base, gold_per_floor, hero_exp_bp,
+dust_base, dust_every, gems_every, gems, boss_gems, boss_scrolls, gear_slots, gear_tier_every}}`.
+Floors are not stored: section 9b builds them.
+
 ### 3.7 battle.json
 
 | Field | Value | Meaning |
@@ -288,6 +296,8 @@ Every draw in the rules is listed in sections 7-9; a port must make the same dra
 |---|---|---|
 | New save | `rng_seed = mix(created_at & 0x7FFFFFFF, 104729)`, `summon.seed = mix(created_at & 0x7FFFFFFF, 7919)` | none |
 | Stage battle | `mix(rng_seed + stage_index * 7717, battles_started)`; `battles_started` is the counter before this attempt (then +1) | BattleSim (section 7) |
+| Spire battle | `mix(rng_seed + 500009 + floor * 7717, battles_started)` (same counter) | BattleSim |
+| Spire floor team | `SeededRng(mix(tower.seed, floor))` | section 9b |
 | Summon | `SeededRng(mix(summon.seed, total_pulls))`, total_pulls before the summon | section 8.1 |
 | Idle drop slot | drop i of a claim: `SeededRng(mix(rng_seed + 31, (gear_seq + i) * 13 + 5)).pick(gear.slots)`, gear_seq before the claim | 1 |
 | New gear item | `SeededRng(mix(rng_seed, seq))`, seq = the new `gear_seq` | section 8.4 |
@@ -619,7 +629,7 @@ Ordering details that change results:
 version 1 · created_at ms · player_name · dev_time_offset ms · rng_seed · gear_seq
 currencies {gold, hero_exp, gems, scrolls, dust}
 heroes {id: {id, level, stars, shards, gear {slot: gear uid}}}
-formation [5 hero ids or ""]          campaign {cleared}
+formation [5 hero ids or ""]          campaign {cleared}          tower {best}
 idle {last_claim_at, quick_claims_used, quick_claim_day, carry {currency: remainder}, gear_ms, full_notified}
 summon {pity, total_pulls, last_free_pull_day, seed}
 gear [{uid, slot, tier, name, stats {..}, equipped_by}]
@@ -628,7 +638,7 @@ shop {purchases {offer id: n}, daily {offer id: n}, day, monthly_until_day, mont
 settings {sound, music, haptics, battle_speed (1|2|4), auto_ultimates}
 skins {owned [skin id], equipped {hero id: skin id}}
 counters {name: n}   (battles_started, battles_won, battles_lost, stages_cleared, summons, level_ups,
-                      star_ups, idle_claims, quick_claims, daily_quests_done, skins_bought)
+                      star_ups, idle_claims, quick_claims, daily_quests_done, skins_bought, tower_floors)
 ```
 
 Skins: `buy_skin(id)` pays the tier's gems once (errors "Unknown skin", "Already owned", "Not enough
@@ -641,6 +651,33 @@ to that hero.
 fixes gear ownership both ways, restores the starters if no hero survived, cleans the
 formation (auto-formation if empty), resets an invalid battle speed and clamps `campaign.cleared`.
 Fixtures: `session.json` (a scripted first two days) and `save.json` (migrations).
+
+## 9b. The Spire (`src/data/tower.gd`, GameModel `tower_*`)
+
+Floor `f` (1 .. `floors`), with `n` = campaign stage count and `raw` = stage `min(f - 1, n - 1)`
+as stored in stages.json:
+- `past = max(0, f - n)`; `level = raw.level + past * level_per_floor_past`;
+  `stars = min(raw.stars + past / stars_every_past, max_stars)`, each enemy at least its hero's
+  start stars; `echo_bp = echo_stat_bp * strength_bp / 10000`.
+- Boss floor when `f % boss_every == 0`: `boss = bosses[(f / boss_every - 1) % 3]`, slot 2,
+  `is_boss` true.
+- Team: `pool` = roster ids in heroes.json order (minus the boss); `rng = SeededRng(mix(seed, f))`;
+  pick `range_int(0, pool.size - 1)` and remove it, until 5 heroes (4 on a boss floor). Order the
+  picks by `front_priority[role]` descending, then pick order; they fill slots 0,1,2,3,4 (boss
+  floor: 0,1,3,4). Enemies are listed by slot.
+- `recommended_power = raw.recommended_power * rec_bp / 10000 * (10000 + rec_past_bp * past) / 10000`
+  (two truncating steps, in that order); `enemy_power` as for stages.
+- Reward: `gold = gold_base + gold_per_floor * f`, `hero_exp = gold * hero_exp_bp / 10000`,
+  `dust = dust_base + f / dust_every`; gems `gems` when `f % gems_every == 0`; a boss floor adds
+  `boss_gems`, `scrolls = boss_scrolls` and `gear_drops [{slot: gear_slots[(f / boss_every - 1) %
+  4], tier: clamp(1 + f / gear_tier_every, 1, max_tier)}]`; `gems` is present only when > 0.
+- `background = backgrounds[((f - 1) / floors_per_background) % 3]`.
+
+Model: open when `campaign.cleared >= unlock_cleared`; `tower.best` = highest floor cleared;
+only floor `best + 1` can be fought. `complete_tower(f, outcome)`: errors "Unknown floor", "Floor
+locked"; a loss bumps `battles_lost`; a win bumps `battles_won` and `tower_floors`, sets `best = f`
+and grants the reward. Save: `tower {best}`; `migrate` clamps `best` to 0 .. floors. Fixture:
+`stats.json` `tower` (sample floors, with echo stats and enemy power).
 
 ## 10. Golden fixtures (`data/fixtures/`)
 

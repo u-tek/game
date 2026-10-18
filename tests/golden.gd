@@ -156,10 +156,11 @@ static func inputs(name: String) -> Dictionary:
 			for st in [{"atk": 140}, {"hp": 2190, "def": 66}, {"crit": 1500, "spd": 15, "atk": 52}, {}]:
 				scores.append({"stats": st})
 			return {
-				"about": "StatCalc (src/core/stat_calc.gd): hero stats (level, stars, gear, stat passives), power, gear score; and every campaign stage's enemies as built from data/stages.json, with echo stats and enemy power.",
+				"about": "StatCalc (src/core/stat_calc.gd): hero stats (level, stars, gear, stat passives), power, gear score; every campaign stage's enemies as built from data/stages.json, with echo stats and enemy power; and sample Spire floors built by TowerData (src/data/tower.gd) from data/tower.json.",
 				"hero_stats": cases,
 				"gear_score": scores,
 				"stages": range(StageData.count()).map(func(s: int) -> Dictionary: return {"index": s}),
+				"tower": [1, 2, 5, 7, 10, 11, 20, 30, 59, 60, 61, 65, 80, 100, 119, 120].map(func(f: int) -> Dictionary: return {"floor": f}),
 			}
 		"summon":
 			return {
@@ -318,7 +319,17 @@ static func _stats(f: Dictionary) -> Dictionary:
 			enemies.append(en)
 		stages.append({"index": c.index, "id": st.id, "enemies": enemies, "enemy_power": st.enemy_power,
 			"recommended_power": st.recommended_power, "first_clear_reward": st.first_clear_reward})
-	return {"hero_stats": hs, "gear_score": gs, "stages": stages}
+	var floors: Array = []
+	for c in f.get("tower", []):
+		var fl: Dictionary = TowerData.get_floor(int(c.floor))
+		var en2: Array = []
+		for e in fl.enemies:
+			var en: Dictionary = e.duplicate()
+			en["stats"] = StageData.echo_stats(e.hero_id, int(e.level), int(e.stars), int(e.echo_bp))
+			en2.append(en)
+		floors.append({"floor": c.floor, "id": fl.id, "enemies": en2, "is_boss": fl.is_boss, "background": fl.background,
+			"enemy_power": fl.enemy_power, "recommended_power": fl.recommended_power, "first_clear_reward": fl.first_clear_reward})
+	return {"hero_stats": hs, "gear_score": gs, "stages": stages, "tower": floors}
 
 
 static func _summon(f: Dictionary) -> Dictionary:

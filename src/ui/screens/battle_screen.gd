@@ -1,6 +1,7 @@
 extends Control
 ## Screen "battle": plays a campaign stage. params: stage_index (int); skip (bool, for
-## screenshots: skips to the result right away).
+## screenshots: skips to the result right away). params mode = "tower" and floor (int) play a
+## floor of the Spire instead (the floor is stage-shaped, so the rest of the screen is shared).
 ##
 ## The BattleSim runs a little ahead of what the player sees (SIM_LEAD_MS of battle time).
 ## Every event is scheduled on a display clock so animations line up with their results:
@@ -8,8 +9,8 @@ extends Control
 ## damage shows, ranged attacks launch a bolt that arrives on time, and an ultimate holds
 ## the clock for a short cinematic (dim, portrait sweep, skill name, shake) while the
 ## caster winds up. Battle speed (1x/2x/4x) scales the display clock and the rigs.
-## Game.complete_stage is called exactly once per battle: on the result, on Retreat, or
-## (as a defeat) if the player leaves mid-fight.
+## Game.complete_stage (or complete_tower) is called exactly once per battle: on the result, on
+## Retreat, or (as a defeat) if the player leaves mid-fight.
 
 const SceneBackdrop := preload("res://src/ui/battle/scene_backdrop.gd")
 const UnitView := preload("res://src/ui/battle/unit_view.gd")
@@ -48,6 +49,9 @@ const STATUS_TEXT := {
 
 var _index := -1
 var _stage: Dictionary = {}
+## "stage" (campaign) or "tower" (the Spire: _floor)
+var _mode := "stage"
+var _floor := 0
 var _setup: Dictionary = {}
 var _sim: BattleSim
 var _views: Dictionary = {}
@@ -88,14 +92,26 @@ var _shown_secs := -1
 
 func setup(params: Dictionary) -> void:
 	UI.set_chrome(false, false)
-	_index = int(params.get("stage_index", Game.cleared_count()))
-	_stage = Game.stage(_index)
-	if _stage.is_empty() or Game.stage_status(_index) == "locked":
-		_completed = true
-		UI.toast("That stage is locked", "bad")
-		UI.go("campaign")
-		return
-	_setup = Game.stage_battle_setup(_index)
+	if str(params.get("mode", "")) == "tower":
+		_mode = "tower"
+		_floor = int(params.get("floor", Game.tower_next()))
+		_stage = Game.tower_floor(_floor)
+		if _stage.is_empty() or not Game.tower_unlocked() or _floor != Game.tower_next():
+			_completed = true
+			UI.toast("That floor is locked", "bad")
+			UI.go("tower")
+			return
+		_index = int(_stage.index)
+		_setup = Game.tower_battle_setup(_floor)
+	else:
+		_index = int(params.get("stage_index", Game.cleared_count()))
+		_stage = Game.stage(_index)
+		if _stage.is_empty() or Game.stage_status(_index) == "locked":
+			_completed = true
+			UI.toast("That stage is locked", "bad")
+			UI.go("campaign")
+			return
+		_setup = Game.stage_battle_setup(_index)
 	if (_setup.get("allies", []) as Array).is_empty():
 		_completed = true
 		UI.toast("Place at least one hero in your formation", "bad")
@@ -122,7 +138,24 @@ func _exit_tree() -> void:
 	# reported exactly once.
 	if not _completed and _index >= 0 and _sim != null:
 		_completed = true
-		Game.complete_stage.call_deferred(_index, {"victory": false, "winner": "enemy", "retreat": true})
+		# Deferred on Game, not on this screen: the screen is freed before the call would run.
+		var out := {"victory": false, "winner": "enemy", "retreat": true}
+		if _mode == "tower":
+			Game.complete_tower.call_deferred(_floor, out)
+		else:
+			Game.complete_stage.call_deferred(_index, out)
+
+
+## Reports the battle to the game once: the campaign stage or the Spire floor.
+func _report(outcome: Dictionary) -> Dictionary:
+	if _mode == "tower":
+		return Game.complete_tower(_floor, outcome)
+	return Game.complete_stage(_index, outcome)
+
+
+## Where Retreat and the result's back button lead.
+func _back_screen() -> String:
+	return "tower" if _mode == "tower" else "campaign"
 
 
 # ------------------------------------------------------------------ build
@@ -483,7 +516,8 @@ func _start_intro() -> void:
 	var banner := Kit.vbox(4)
 	banner.mouse_filter = MOUSE_FILTER_IGNORE
 	banner.alignment = BoxContainer.ALIGNMENT_CENTER
-	var rib := Kit.ribbon("Stage %s" % str(_stage.get("id", "")), 440, Kit.ACCENT, Color.WHITE, 40)
+	var rib := Kit.ribbon(("Floor %d" % _floor) if _mode == "tower" else ("Stage %s" % str(_stage.get("id", ""))),
+		440, Kit.ACCENT, Color.WHITE, 40)
 	banner.add_child(rib)
 	var nm := Kit.label(str(_stage.get("name", "")).to_upper(), 30, Color.WHITE, "cond_bold", 6)
 	nm.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -923,14 +957,14 @@ func _skip() -> void:
 
 func _ask_retreat() -> void:
 	if _completed:
-		UI.go("campaign")
+		UI.go(_back_screen())
 		return
 	UI.confirm("Retreat from this battle? It counts as a defeat.", func() -> void:
 		if _completed:
 			return
 		_completed = true
-		Game.complete_stage(_index, {"victory": false, "winner": "enemy", "retreat": true})
-		UI.go("campaign"), Callable(), "Retreat", "Keep fighting", true)
+		_report({"victory": false, "winner": "enemy", "retreat": true})
+		UI.go(_back_screen()), Callable(), "Retreat", "Keep fighting", true)
 
 
 # ------------------------------------------------------------------ end
@@ -954,7 +988,7 @@ func _finish(outcome: Dictionary) -> void:
 		return
 	_completed = true
 	_phase = "result"
-	var res := Game.complete_stage(_index, outcome)
+	var res := _report(outcome)
 	var val: Dictionary = res.get("value", {}) if res.get("value") is Dictionary else {}
 	var r: Control = BattleResult.new()
 	r.set("on_action", _on_result_action)
@@ -962,14 +996,21 @@ func _finish(outcome: Dictionary) -> void:
 	if bool(outcome.get("victory", false)):
 		UI.sfx("victory")
 		UI.haptic(30)
-		var nxt := _index + 1
-		var has_next := nxt < Game.stages().size() and Game.stage_status(nxt) != "locked"
-		var new_chapter := has_next and int(Game.stage(nxt).get("chapter", 0)) != int(_stage.get("chapter", 0))
+		var has_next: bool
+		var next_text: String
+		if _mode == "tower":
+			has_next = _floor < Game.tower_floors()
+			next_text = "Next Floor"
+		else:
+			var nxt := _index + 1
+			has_next = nxt < Game.stages().size() and Game.stage_status(nxt) != "locked"
+			var new_chapter := has_next and int(Game.stage(nxt).get("chapter", 0)) != int(_stage.get("chapter", 0))
+			next_text = "Next Chapter" if new_chapter else "Next Stage"
 		r.call("show_victory", {
 			"stage": _stage, "outcome": outcome, "reward": val.get("reward", {}),
 			"first_clear": bool(val.get("first_clear", false)), "stars": _stars(outcome),
 			"team_size": _team_size, "mvp": _mvp(outcome), "has_next": has_next,
-			"next_text": "Next Chapter" if new_chapter else "Next Stage",
+			"next_text": next_text, "back_text": "Spire" if _mode == "tower" else "Campaign",
 			"safe_top": UI.safe_top(), "safe_bottom": UI.safe_bottom(),
 		})
 	else:
@@ -1013,15 +1054,21 @@ func _on_result_action(action_name: String) -> void:
 		"home":
 			UI.go("home")
 		"next":
+			if _mode == "tower":
+				UI.go("battle", {"mode": "tower", "floor": _floor + 1})
+				return
 			var nxt := _index + 1
 			if int(Game.stage(nxt).get("chapter", 0)) != int(_stage.get("chapter", 0)):
 				UI.go("campaign", {"open_stage": nxt})
 			else:
 				UI.go("battle", {"stage_index": nxt})
 		"retry":
-			UI.go("battle", {"stage_index": _index})
+			if _mode == "tower":
+				UI.go("battle", {"mode": "tower", "floor": _floor})
+			else:
+				UI.go("battle", {"stage_index": _index})
 		"campaign":
-			UI.go("campaign")
+			UI.go(_back_screen())
 		"heroes":
 			UI.go("heroes")
 		"level":

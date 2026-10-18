@@ -1,0 +1,30 @@
+{
+	"version": 1,
+	"name": "The Spire",
+	"about": "An endless climb beside the campaign (TowerData, docs/dev/unity-port.md section 9b). Floor f fights the difficulty of campaign stage f (level and stars of that stage, a fixed echo strength); floors past the last stage add levels and stars. Enemies are a seeded mix of the roster; every 10th floor a Legendary leads as the boss.",
+	"unlock_cleared": 10,
+	"floors": 120,
+	"seed": 424242,
+	"strength_bp": 12500,
+	"level_per_floor_past": 1,
+	"stars_every_past": 20,
+	"rec_bp": 11000,
+	"rec_past_bp": 400,
+	"boss_every": 10,
+	"bosses": ["seraphiel", "mordessa", "noctaire"],
+	"backgrounds": ["chapter-4", "chapter-5", "chapter-6"],
+	"floors_per_background": 10,
+	"rewards": {
+		"gold_base": 400,
+		"gold_per_floor": 60,
+		"hero_exp_bp": 6000,
+		"dust_base": 10,
+		"dust_every": 4,
+		"gems_every": 5,
+		"gems": 50,
+		"boss_gems": 100,
+		"boss_scrolls": 1,
+		"gear_slots": ["weapon", "armor", "helm", "charm"],
+		"gear_tier_every": 20
+	}
+}

@@ -828,6 +828,7 @@
 		},
 		"formation": ["cassiel", "uriela", "lucen", "kessa", "nuriel"],
 		"campaign": {"cleared": 3},
+		"tower": {"best": 0},
 		"idle": {
 			"last_claim_at": 1702177260000,
 			"quick_claims_used": 0,

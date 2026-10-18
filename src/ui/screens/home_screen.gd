@@ -3,8 +3,8 @@ extends Control
 ## the translucent chrome: the lobby hero stands full body (animated HeroSprite, cropped by
 ## the nav) in the sanctum hall, with a speech bubble. Top left: a banner carousel (summon
 ## banner, offers, chapter); top right: the objective strip (the guide's next step, else
-## "Clear Stage x-y"). Side buttons: Daily and Offers on the left, Hero and View (hide the
-## UI) on the right. The four shortcut plates: Shop and Sanctum (idle rewards, fill %, tap
+## "Clear Stage x-y"). Side buttons: Daily and Offers on the left, Hero, View (hide the
+## UI) and the Spire (tower) on the right. The four shortcut plates: Shop and Sanctum (idle rewards, fill %, tap
 ## for the claim sheet with Quick Claim) bottom left, Team and Campaign (next stage preview)
 ## bottom right. Tap the hero for another line; the edge chevrons switch the lobby hero
 ## (saved as the "lobby_hero" setting). Refreshes on Game.changed and once a second.
@@ -53,6 +53,7 @@ var _prev_btn: Button
 var _next_btn: Button
 var _side_daily: Button
 var _side_offers: Button
+var _side_tower: Button
 var _side_hero: Button
 var _side_view: Button
 var _shop: Button
@@ -146,7 +147,9 @@ func _build() -> void:
 	_side_offers = Kit.side_button("gift", "Offers", func() -> void: UI.go("shop"), "orange")
 	_side_hero = Kit.side_button("avatar", "Hero", _open_hero, "dark")
 	_side_view = Kit.side_button("eye_off", "View", _hide_ui, "dark")
-	Kit.add(_ui, [_side_daily, _side_offers, _side_hero, _side_view])
+	_side_tower = Kit.side_button("trophy", "Spire", func() -> void: UI.go("tower"), "dark")
+	_side_tower.name = "SideSpire"
+	Kit.add(_ui, [_side_daily, _side_offers, _side_hero, _side_view, _side_tower])
 
 	_speech = Kit.speech_bubble("", "", BUBBLE_W)
 	_ui.add_child(_speech)
@@ -216,11 +219,13 @@ func _layout() -> void:
 	_side_offers.position = Vector2(6, sy + SIDE_PITCH)
 	_side_hero.position = Vector2(w - sw.x - 6.0, sy)
 	_side_view.position = Vector2(w - sw.x - 6.0, sy + SIDE_PITCH)
+	_side_tower.position = Vector2(w - sw.x - 6.0, sy + SIDE_PITCH * 2.0)
 
 	# Speech bubble at the hero's waist, left of the centre line; chevrons at the edges.
 	var bh := maxf(_speech.get_combined_minimum_size().y, 96.0)
 	var bub_y := minf(vh * 0.5 - 30.0, by - bh - 40.0)
-	bub_y = maxf(bub_y, sy + SIDE_PITCH * 2.0 - 8.0)
+	# Below the side buttons (three on the right), but never into the shortcut plates.
+	bub_y = minf(maxf(bub_y, sy + SIDE_PITCH * 3.0 - 8.0), by - bh - 12.0)
 	_speech.position = Vector2(84, bub_y)
 	_speech.size = Vector2(BUBBLE_W, 0)
 	var cy := bub_y + bh * 0.5 - Kit.BUTTON_H * 0.5
