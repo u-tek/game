@@ -96,6 +96,8 @@ func _draw() -> void:
 	if _tex:
 		_draw_cover(_tex)
 		_vgrad(Rect2(0, 0, w, h * 0.25), Color(0, 0, 0, 0.35), Color(0, 0, 0, 0))
+		# Painted art has no floor of its own: darken below the horizon so units read on it.
+		_vgrad(Rect2(0, hy, w, h - hy), Color(0, 0, 0, 0), Color(0.01, 0.012, 0.02, floor_shade * 0.9))
 	else:
 		if kind == "home":
 			_draw_hall(w, h, hy)

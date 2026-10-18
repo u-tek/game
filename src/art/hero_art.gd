@@ -123,9 +123,10 @@ static func background(kind: String) -> Texture2D:
 	var path := "res://assets/art/backgrounds/%s.svg" % kind
 	if ResourceLoader.exists(path):
 		return load(path)
-	path = "res://assets/art/backgrounds/%s.png" % kind
-	if ResourceLoader.exists(path):
-		return load(path)
+	for ext in ["png", "jpg"]:      # painted backdrops are JPEGs (assets/art/backgrounds/)
+		path = "res://assets/art/backgrounds/%s.%s" % [kind, ext]
+		if ResourceLoader.exists(path):
+			return load(path)
 	return null
 
 
