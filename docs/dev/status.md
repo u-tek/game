@@ -70,8 +70,12 @@ this file says where things stand. Older logs are under "History" at the bottom.
   mature cue), rating `nsfw`, nudity allowed, sex acts and childlike terms still refused; `--adult`
   on run_hero/finalize/variants/fix/install, work in `.../adult/`, seeds +5000, installs to
   `assets/.../skins/<art>/adult/` with `.gdignore` (the tame build's Godot import ignores the
-  nudes). test_pipeline 65 OK, test_artgen 80 OK + the known Windows symlink error. A pilot render
-  of 3 nude skins is next; the full run and the EroLabs web build wait for the owner.
+  nudes). test_pipeline 65 OK, test_artgen 80 OK + the known Windows symlink error. The pilot is
+  rendered (2026-10-18): Mordessa high_roller s209000-2, Seraphiel tidal_diva s107000-2, Vesper
+  last_login s210000-2 (9 images + `art_src/_review/sheets/adult_pilot_1.jpg`); the filter reads
+  them as expected nude (breasts/nipples on all, no male or sex-act classes; Seraphiel and Vesper
+  show more genital detail than Mordessa). The full run, the EroLabs web build and the nude art in
+  the public repo wait for the owner.
 - **Splash cards:** `tools/comfy/splash.py` (faction plates in `art_src/_splash/plates/`, 12 made;
   cards in `art_src/_splash/cards/<name>/` with layers). 6 test cards made from unpicked
   candidates and sent. In the game: `src/ui/components/splash_card.gd` (animated layers from
