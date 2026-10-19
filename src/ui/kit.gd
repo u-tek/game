@@ -70,49 +70,62 @@ const Sparkle := preload("res://src/ui/components/sparkle.gd")
 const ToggleSwitch := preload("res://src/ui/components/toggle_switch.gd")
 
 # ------------------------------------------------------------------ design tokens
+# Style v4 "Signal" (owner, 2026-10-19: industrial glass, one signal red-orange, clean with grit
+# on big moments; docs/dev/ui-style-v4.md). Graphite and smoked glass, bone-metal plates, hairlines,
+# mono data type. The token names are v2's so every screen keeps compiling.
 
 # Dark chrome (bars, glass panels over art). Text on it: INK / INK_DIM.
-const BG := Color("0d1824")
-const CHROME := Color("08111b")
-const PANEL := Color("12233aeb")
-const PANEL_HI := Color("1e3a56")
-const LINE := Color(1, 1, 1, 0.14)
-const INK := Color("f4f6f8")
-const INK_DIM := Color("9ba2ac")
+const BG := Color("0b0c0e")
+const CHROME := Color("060708")
+const PANEL := Color("14171ce0")
+const PANEL_HI := Color("23272d")
+const LINE := Color(1, 1, 1, 0.13)
+const INK := Color("f1f0eb")
+const INK_DIM := Color("8f9399")
 ## Text outlines and icon outlines (near-black).
-const OUTLINE := Color("080c19")
+const OUTLINE := Color("050506")
 
-# Light pages (roster, hero info column, dialogs). Text on it: TEXT / TEXT_DIM.
-const PAPER := Color("e8f3f8")
-const WHITE := Color("ffffff")
-const TEXT := Color("0e1729")
-const TEXT_DIM := Color("6c737d")
-const LINE_LIGHT := Color("cde1ea")
+# Bone-metal plates (the light family). Text on it: TEXT / TEXT_DIM.
+const PAPER := Color("e3e3de")
+const WHITE := Color("f2f1ed")
+const TEXT := Color("111214")
+const TEXT_DIM := Color("5d6166")
+const LINE_LIGHT := Color("c3c5bf")
 
 # Accents.
-## The one bright cyan-blue: primary buttons, selected chips, active tabs, links, focus.
-const ACCENT := Color("18c3e8")
-const ACCENT_HI := Color("8cf2ff")
-## Deep blue: dialog headers, pressed primary.
-const ACCENT_DEEP := Color("0a8cc2")
-## Orange highlight: the battle call to action, legendary footers, guide marks.
-const ORANGE := Color("ff8a1e")
-const ORANGE_HI := Color("ffc23a")
-## "N" new badges.
-const NEW_RED := Color("f2481f")
-const RED_DOT := Color("ff4536")
+## Signal red-orange: THE accent (primary buttons, selected chips, active tabs, meters, focus).
+const ACCENT := Color("ff4b1f")
+const ACCENT_HI := Color("ff8a62")
+## Deep signal: pressed primary, accent text on bone.
+const ACCENT_DEEP := Color("c9300d")
+## The "go now" highlight (same family, hotter): the battle call to action, guide marks.
+const ORANGE := Color("ff5a1a")
+const ORANGE_HI := Color("ffae86")
+## "N" new badges, notification dots and status lights.
+const NEW_RED := Color("ff3b1f")
+const RED_DOT := Color("ff3b1f")
 
-# Semantic colors (kept from v1 so older screens still compile and read well).
-const GOLD := Color("ffb627")
-const GOLD_LIGHT := Color("ffd98a")
-const GOLD_DEEP := Color("b86e0a")
-const EMBER := Color("e8432a")
-const VIOLET := Color("8f6cf0")
-const SKY := Color("4fc3f7")
-const GOOD := Color("37cf8a")
-const RARE := Color("3b9cf2")
-const EPIC := Color("a95cf2")
-const LEGENDARY := Color("ff9b1e")
+# Signal extras.
+## Status-light red (Kit.led).
+const LED := Color("ff3b1f")
+## Off-white bone and the brushed sage-grey metal of plates.
+const BONE := Color("ecebe5")
+const METAL_TOP := Color("d6d9d3")
+const METAL_BOTTOM := Color("b4bab4")
+## Smoked glass fill (Kit.panel glass kinds blur what is behind them; glass.gdshader).
+const GLASS := Color("15181dad")
+
+# Semantic colors.
+const GOLD := Color("f2c45a")
+const GOLD_LIGHT := Color("ffe2a0")
+const GOLD_DEEP := Color("a8751c")
+const EMBER := Color("e8262e")
+const VIOLET := Color("9a7cff")
+const SKY := Color("8fb8d6")
+const GOOD := Color("4fd8a0")
+const RARE := Color("6aaee6")
+const EPIC := Color("b07cff")
+const LEGENDARY := Color("ffb02e")
 
 const SIZE_SMALL := 22
 const SIZE_BODY := 26
@@ -148,20 +161,33 @@ const STAT_SHORT := {"hp": "HP", "atk": "ATK", "def": "DEF", "spd": "SPD", "crit
 const GEAR_SLOT_NAMES := {"weapon": "Weapon", "armor": "Armor", "helm": "Helm", "charm": "Charm"}
 const MAX_STARS := 6
 
-## Font weights. Barlow (wide) for body and buttons, Barlow Condensed for titles, numbers
-## and uppercase labels. Old weight names map onto the new faces.
+## Font weights (style v4). Archivo is one variable font (width 62-125, weight 100-900): body and
+## buttons at normal width, titles expanded and heavy, numbers and uppercase labels semi-condensed.
+## JetBrains Mono carries data readouts ("mono", "mono_bold"); Instrument Serif the big editorial
+## moments ("serif"). Each entry is [file, width, weight]; width 0 = a static face.
+const _ARCHIVO := "res://assets/fonts/Archivo-Variable.ttf"
+const _MONO := "res://assets/fonts/JetBrainsMono-Variable.ttf"
 const _FONT_FILES := {
-	"regular": "res://assets/fonts/Barlow-Medium.ttf",
-	"medium": "res://assets/fonts/Barlow-Medium.ttf",
-	"bold": "res://assets/fonts/Barlow-SemiBold.ttf",
-	"semibold": "res://assets/fonts/Barlow-SemiBold.ttf",
-	"extrabold": "res://assets/fonts/Barlow-Bold.ttf",
-	"black": "res://assets/fonts/BarlowCondensed-Bold.ttf",
-	"title": "res://assets/fonts/BarlowCondensed-ExtraBold.ttf",
-	"cond_light": "res://assets/fonts/BarlowCondensed-Medium.ttf",
-	"cond": "res://assets/fonts/BarlowCondensed-SemiBold.ttf",
-	"cond_bold": "res://assets/fonts/BarlowCondensed-Bold.ttf",
-	"cond_black": "res://assets/fonts/BarlowCondensed-ExtraBold.ttf",
+	"regular": [_ARCHIVO, 100, 460],
+	"medium": [_ARCHIVO, 100, 500],
+	"bold": [_ARCHIVO, 100, 600],
+	"semibold": [_ARCHIVO, 100, 600],
+	"extrabold": [_ARCHIVO, 104, 720],
+	"black": [_ARCHIVO, 88, 760],
+	"title": [_ARCHIVO, 118, 820],
+	"cond_light": [_ARCHIVO, 82, 480],
+	"cond": [_ARCHIVO, 84, 600],
+	"cond_bold": [_ARCHIVO, 86, 700],
+	"cond_black": [_ARCHIVO, 92, 820],
+	"wide": [_ARCHIVO, 125, 640],
+	"wide_black": [_ARCHIVO, 125, 900],
+	"mono": [_MONO, 0, 450],
+	"mono_bold": [_MONO, 0, 700],
+	"serif": ["res://assets/fonts/InstrumentSerif-Regular.ttf", -1, 0],
+	# Poster faces: Archivo at its narrowest and heaviest; the serif slanted (signatures, captions).
+	"compressed": [_ARCHIVO, 62, 820],
+	"compressed_light": [_ARCHIVO, 62, 500],
+	"serif_italic": ["res://assets/fonts/InstrumentSerif-Regular.ttf", -2, 0],
 }
 
 static var _fonts: Dictionary = {}
@@ -178,12 +204,29 @@ static var _gray_material: ShaderMaterial
 
 # ------------------------------------------------------------------ fonts & icons
 
-## Font by weight: "regular"/"medium", "bold"/"semibold", "extrabold" (Barlow) or "black",
-## "title", "cond_light", "cond", "cond_bold", "cond_black" (Barlow Condensed).
+## Font by weight: "regular"/"medium", "bold"/"semibold", "extrabold", "black", "title",
+## "cond_light", "cond", "cond_bold", "cond_black", "wide", "wide_black" (Archivo), "mono",
+## "mono_bold" (JetBrains Mono), "serif", "serif_italic" (Instrument Serif), "compressed",
+## "compressed_light" (Archivo at its narrowest, for poster type).
 static func font(weight: String = "bold") -> Font:
 	if not _fonts.has(weight):
-		var path: String = _FONT_FILES.get(weight, _FONT_FILES["bold"])
-		_fonts[weight] = load(path)
+		var spec: Array = _FONT_FILES.get(weight, _FONT_FILES["bold"])
+		var base: Font = load(spec[0])
+		if int(spec[1]) == -2:
+			var it := FontVariation.new()
+			it.base_font = base
+			it.variation_transform = Transform2D(Vector2(1.0, 0.0), Vector2(0.22, 1.0), Vector2.ZERO)
+			_fonts[weight] = it
+		elif int(spec[1]) < 0:
+			_fonts[weight] = base
+		else:
+			var fv := FontVariation.new()
+			fv.base_font = base
+			var axes := {"wght": float(spec[2])}
+			if int(spec[1]) > 0:
+				axes["wdth"] = float(spec[1])
+			fv.variation_opentype = axes
+			_fonts[weight] = fv
 	return _fonts[weight]
 
 
@@ -1538,7 +1581,21 @@ static func panel(kind: String = "glass", pad: int = -1) -> PanelContainer:
 	p.theme_type_variation = variations.get(kind, &"GlassPanel")
 	if pad >= 0:
 		p.add_theme_stylebox_override("panel", style(kind, pad))
+	if kind == "glass" or not variations.has(kind):
+		glassify(p)
 	return p
+
+
+static var _glass_mat: ShaderMaterial
+
+## Frosted glass: the control's own StyleBox fill (alpha 0.60-0.80, the glass kinds) blurs what is
+## behind it (src/ui/shaders/glass.gdshader). Children are unaffected. Returns the control.
+static func glassify(c: CanvasItem) -> CanvasItem:
+	if _glass_mat == null:
+		_glass_mat = ShaderMaterial.new()
+		_glass_mat.shader = load("res://src/ui/shaders/glass.gdshader")
+	c.material = _glass_mat
+	return c
 
 
 ## A list-row card (shorthand for panel("card", pad)).

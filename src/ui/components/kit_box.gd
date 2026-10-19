@@ -73,8 +73,14 @@ var _committed := false
 ## Aero Y2K look (owner, 2026-10-17: "the UI looks too much like [the reference game] ... still that same
 ## vibe, that professional-looking thing"). On: skewed and chamfered plates become rounded glass, hexagons
 ## become round bubbles, the tactical hatching and corner brackets go, and faces get a glass gloss. Off
-## restores the v2 "tactical" shapes exactly.
-static var aero := true
+## restores the v2 "tactical" shapes exactly. Replaced by `signal_look` on 2026-10-19.
+static var aero := false
+
+## Style v4 "Signal" (owner, 2026-10-19: industrial glass, docs/dev/ui-style-v4.md). On: hard
+## hardware edges. Radii shrink to at most 4 px (capsules of radius >= 100 stay capsules), skew
+## becomes a chamfer on two corners, hexagons become round dials, and there is no gloss; chamfers,
+## hatching and corner brackets draw as set.
+static var signal_look := true
 
 
 ## Rebuilds cached helpers. Returns self for chaining.
@@ -113,6 +119,8 @@ func _body(rect: Rect2) -> Rect2:
 
 func _radius_for(body: Rect2) -> float:
 	var r := minf(radius, minf(body.size.x, body.size.y) * 0.5 - 0.05)
+	if signal_look and r > 0.5 and radius < 100.0:
+		return minf(radius * 0.35, 4.0)
 	if aero and r > 0.5:
 		r = minf(maxf(r * 1.6, 12.0), minf(body.size.x, body.size.y) * 0.5 - 0.05)
 	return r
@@ -217,6 +225,11 @@ static func _bounds(pts: PackedVector2Array) -> Rect2:
 ## the corners in `cut_mask` (1 TL, 2 TR, 4 BR, 8 BL) which are chamfered by `cut` px when
 ## cut > 0. skew shears it into a parallelogram that still fits in `r`.
 static func shape_points(r: Rect2, rad: float, cut: float = 0.0, cut_mask: int = 5, skew_k: float = 0.0, seg: int = 6) -> PackedVector2Array:
+	if signal_look and skew_k != 0.0:
+		# Signal: a slanted plate becomes a straight plate with two cut corners.
+		cut = maxf(cut, minf(absf(skew_k) * r.size.y * 0.8, 22.0))
+		cut_mask = 5 if cut_mask == 0 else cut_mask
+		skew_k = 0.0
 	if aero and (skew_k != 0.0 or cut > 0.0):
 		# Aero: a slanted or cut plate becomes a rounded glass plate of the same box.
 		rad = maxf(rad, maxf(cut * 1.3, 14.0))
@@ -260,8 +273,8 @@ static func rrect_points(r: Rect2, rad: float, seg: int = 8) -> PackedVector2Arr
 ## Hexagon points. flat = flat top; otherwise pointy top.
 static func hex_points(center: Vector2, rad: float, flat: bool = false, squash: float = 1.0) -> PackedVector2Array:
 	var pts := PackedVector2Array()
-	if aero:
-		# Aero: hex badges become round bubbles (slightly smaller, so they fill the hex's area).
+	if aero or signal_look:
+		# Aero / Signal: hex badges become round bubbles / dials (slightly smaller, so they fill the hex's area).
 		var rr := rad * 0.93
 		for i in 32:
 			var a := TAU * i / 32.0

@@ -27,6 +27,14 @@ this file says where things stand. Older logs are under "History" at the bottom.
 
 ## Where things stand
 
+- **UI v4 "Signal" redesign (started 2026-10-19):** the owner sent 22 reference images and asked for
+  a full redesign; brief, screen map and kit in `docs/dev/ui-style-v4.md`. Done: the Mobile
+  renderer with HDR 2D bloom and a tilt shader global, new fonts (Archivo, JetBrains Mono,
+  Instrument Serif), the restyled theme (graphite, bone, signal red-orange, cut corners), the
+  material kit (`Plate`, `GlassBlock`, `LightStrip`, HUD pieces, halftone, grain) and the approved
+  Lobby mockup (`tools/shoot lobby_v5 --rich --safe-area-sim`, owner: "this is like a billion times
+  better"). Next: the real Lobby, the shell's top line and footer strip, then the other screens
+  per the map.
 - **Game:** v1 plays end to end (`docs/dev/architecture.md`). On the PC `tools/check e2e` passes:
   103 unit tests, boot, 3 e2e scripts; `check_port.py` 49 checks, 0 differ (2026-10-18). Added
   2026-10-18 (owner: "yeah go on" to base art, backdrops, more content):

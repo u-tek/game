@@ -79,12 +79,74 @@ var _veil_tw: Tween
 var _chrome_shown := Vector2i(-1, -1)
 
 
+## Style v4 "Signal" lighting: HDR 2D bloom (WorldEnvironment glow over the canvas; emissive UI
+## colours above 1.0 bloom) and the "ui_tilt" shader global the metal plates reflect their studio by.
+## On a phone the tilt follows how the device moves (a high-passed gravity vector); elsewhere it
+## drifts slowly so reflections stay alive.
+var _tilt := Vector2.ZERO
+var _grav_base := Vector3.ZERO
+var _tilt_t := 0.0
+
+
+## The screen as an sRGB image. With HDR 2D the viewport texture holds linear colour, so it is
+## converted the way the display does it (values above 1.0 clip, as on screen).
+func _capture() -> Image:
+	var img := get_viewport().get_texture().get_image()
+	if get_viewport().use_hdr_2d and img.get_format() != Image.FORMAT_RGBA8 and img.get_format() != Image.FORMAT_RGB8:
+		# Image.linear_to_srgb only takes 8-bit images (that would band the darks): convert the
+		# float data here (a few seconds; screenshots only).
+		img.convert(Image.FORMAT_RGBAF)
+		var f := img.get_data().to_float32_array()
+		for i in f.size():
+			if i % 4 == 3:
+				continue
+			var c := clampf(f[i], 0.0, 1.0)
+			f[i] = c * 12.92 if c < 0.0031308 else 1.055 * pow(c, 1.0 / 2.4) - 0.055
+		img = Image.create_from_data(img.get_width(), img.get_height(), false, Image.FORMAT_RGBAF, f.to_byte_array())
+		img.convert(Image.FORMAT_RGBA8)
+	return img
+
+
+func _setup_light() -> void:
+	var env := Environment.new()
+	env.background_mode = Environment.BG_CANVAS
+	env.glow_enabled = true
+	env.glow_hdr_threshold = 1.0
+	env.glow_hdr_scale = 2.0
+	env.glow_intensity = 0.6
+	env.glow_strength = 1.0
+	env.glow_bloom = 0.0
+	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
+	for i in 7:
+		env.set_glow_level(i, 1.0 if i in [1, 2, 3, 4] else 0.0)
+	var we := WorldEnvironment.new()
+	we.environment = env
+	add_child(we)
+
+
+func _process(delta: float) -> void:
+	_tilt_t += delta
+	var g := Input.get_gravity()
+	var want := Vector2.ZERO
+	if g.length_squared() > 0.01:
+		if _grav_base == Vector3.ZERO:
+			_grav_base = g
+		_grav_base = _grav_base.lerp(g, clampf(delta * 0.6, 0.0, 1.0))
+		var d := (g - _grav_base) / 9.8
+		want = Vector2(d.x, -d.y) * 2.2
+	elif Kit.motion_ok():
+		want = Vector2(sin(_tilt_t * 0.31), cos(_tilt_t * 0.23)) * 0.12
+	_tilt = _tilt.lerp(want.limit_length(0.6), clampf(delta * 6.0, 0.0, 1.0))
+	RenderingServer.global_shader_parameter_set(&"ui_tilt", _tilt)
+
+
 func _ready() -> void:
 	_parse_args()
 	theme = UITheme.get_theme()
 	get_tree().root.theme = theme
 	set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	mouse_filter = MOUSE_FILTER_IGNORE
+	_setup_light()
 	_build()
 	UI.attach(self)
 	UI.screen_changed.connect(_on_screen_changed)
@@ -843,11 +905,11 @@ func _run_shoot() -> void:
 	var frames := int(_shoot.get("frames", 0))
 	for f in frames:
 		await RenderingServer.frame_post_draw
-		var fi := get_viewport().get_texture().get_image()
+		var fi := _capture()
 		fi.save_png("%s_%04d.png" % [out.get_basename(), f + 1])
 		await get_tree().create_timer(float(_shoot.get("every", 0.05))).timeout
 	await RenderingServer.frame_post_draw
-	var img := get_viewport().get_texture().get_image()
+	var img := _capture()
 	var err := img.save_png(out)
 	print("[shoot] %s -> %s (%dx%d) %s" % [screen, out, img.get_width(), img.get_height(), error_string(err)])
 	UI.release_audio()

@@ -52,6 +52,8 @@ const SCREENS := {
 	"kit_demo": "res://src/ui/components/kit_demo.gd",
 	# Splash card preview (loading screens, event cards; assets/art/splash/).
 	"splash_view": "res://src/ui/screens/splash_view_screen.gd",
+	# Style v4 Lobby mockup, the approved poster composition (debug builds only; docs/dev/ui-style-v4.md).
+	"lobby_v5": "res://src/ui/screens/lobby_v5_screen.gd",
 }
 
 ## Bottom-nav tabs, left to right (the centre one, "home", is the Lobby).
@@ -154,7 +156,7 @@ func attach(app_root: Control) -> void:
 ## Navigate to a screen by name with optional params. params "_dir" (1 / -1) picks the slide
 ## direction when a screen replaces itself (hero browse arrows).
 func go(screen: String, params: Dictionary = {}) -> void:
-	if not SCREENS.has(screen) or (screen == "kit_demo" and not OS.is_debug_build()):
+	if not SCREENS.has(screen) or (screen in ["kit_demo", "lobby_v5"] and not OS.is_debug_build()):
 		push_error("UI.go: unknown screen '%s'" % screen)
 		toast("That screen doesn't exist yet")
 		return

@@ -40,7 +40,15 @@ pointing/emulate_touch_from_mouse=true
 
 [rendering]
 
-renderer/rendering_method="gl_compatibility"
-renderer/rendering_method.mobile="gl_compatibility"
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="mobile"
+viewport/hdr_2d=true
 textures/vram_compression/import_etc2_astc=true
 environment/defaults/default_clear_color=Color(0.07, 0.055, 0.14, 1)
+
+[shader_globals]
+
+ui_tilt={
+"type": "vec2",
+"value": Vector2(0, 0)
+}

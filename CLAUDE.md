@@ -18,7 +18,7 @@ Since 2026-10-17 the art work runs in a regular Claude Code chat on the owner's 
 
 A mobile idle/AFK gacha RPG close to *Idle Angels*: angels (Celestial), demons (Infernal) and the
 Fallen, 15 heroes, 5-hero auto battles with manual ultimates, idle rewards, summons with pity.
-Godot 4.5.1 (GDScript, GL Compatibility, portrait 720x1280 base). It ships as an unsigned iOS IPA
+Godot 4.5.1 (GDScript, Mobile renderer with HDR 2D since 2026-10-19, portrait 720x1280 base). It ships as an unsigned iOS IPA
 that the owner sideloads. The repo `u-tek/game` is public. The only code branch is
 `claude/game-planning`, which is also the default branch; there is no `main`.
 
@@ -106,6 +106,11 @@ that the owner sideloads. The repo `u-tek/game` is public. The only code branch 
   App Store 4.1 copycat guardrails. No repo file or commit message names the
   reference game (the history is public; three early commit messages already do, so leave those
   alone); write "the reference game".
+  **v4 "Signal" (owner, 2026-10-19) replaces v3:** a full redesign from 22 reference images; every
+  screen is composed like one of them (the Lobby as a printed poster, the hero page as a dossier,
+  the campaign as a layered 3D map ...) with signal red-orange, machined-metal and glass objects,
+  and grit on big moments. Never reskin the old menu layout: that failed four times. The brief,
+  the screen map and the kit are in `docs/dev/ui-style-v4.md`.
 - **The owner sees every render (2026-10-17):** "just send them even if they get cut by the
   filter. i am more accurate than a filter". In the local chat on the PC, send renders, contact
   sheets and A/B sheets with the chat's file sending (`SendUserFile`), flagged or not. That works;
