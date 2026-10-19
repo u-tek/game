@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for seyra fortune_bunny, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s353000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "fortune_bunny.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [500, 370, 548],
+  "look_px": [8, 5],
+  "meta": {"weapon": "orb", "attack": "attack_ranged", "fx_color": "#b48cff", "art": "comfy s353000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [474, 972]},
+    {"name": "torso", "parent": "hips", "pivot": [536, 836]},
+    {"name": "chest", "parent": "torso", "pivot": [503, 668]},
+    {"name": "neck", "parent": "chest", "pivot": [527, 517]},
+    {"name": "head", "parent": "neck", "pivot": [490, 475]},
+    {"name": "face", "parent": "head", "pivot": [500, 360]},
+    {"name": "hair_front", "parent": "head", "pivot": [500, 239]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [500, 380], "radius": [106, 89], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [500, 273], "radius": [126, 61], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [500, 340], "radius": [203, 192], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[399, 507], [655, 507], [736, 608], [725, 816], [699, 846], [373, 846], [281, 816], [270, 608]], "feather": 40}}
+  ],
+  "overlays": []
+}

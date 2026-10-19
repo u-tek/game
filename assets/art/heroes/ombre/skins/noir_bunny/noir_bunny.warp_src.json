@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for ombre noir_bunny, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s383000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "noir_bunny.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [502, 927, 354],
+  "look_px": [8, 5],
+  "meta": {"weapon": "rifle", "attack": "attack_ranged", "fx_color": "#b48cff", "art": "comfy s383000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [450, 1321]},
+    {"name": "torso", "parent": "hips", "pivot": [522, 1232]},
+    {"name": "chest", "parent": "torso", "pivot": [538, 1122]},
+    {"name": "neck", "parent": "chest", "pivot": [555, 1022]},
+    {"name": "head", "parent": "neck", "pivot": [495, 995]},
+    {"name": "face", "parent": "head", "pivot": [502, 920]},
+    {"name": "hair_front", "parent": "head", "pivot": [502, 842]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [502, 934], "radius": [68, 57], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [502, 865], "radius": [81, 39], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [502, 908], "radius": [131, 124], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[472, 1012], [638, 1012], [689, 1062], [681, 1212], [627, 1242], [417, 1242], [395, 1212], [387, 1062]], "feather": 40}}
+  ],
+  "overlays": []
+}
