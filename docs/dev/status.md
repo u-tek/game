@@ -56,7 +56,8 @@ this file says where things stand. Older logs are under "History" at the bottom.
   label tape for equip, an arcade press for Level Up, tickets for summons). Hero framing: views fit
   each art's real outline (HeroArt.used_rect / fit_sprite, HeroSprite.figure_rect), so wide poses
   and skins are never cut (most arts were fitted to the canvas by width). Touch-scroll audit in
-  tools/check e2e. Banner prices and the Wish's 30-a-week cap are Claude's numbers (owner to confirm).
+  tools/check e2e. Banner prices and the Wish's 30-a-week cap are Claude's numbers; the owner said to
+  keep them as they are (2026-10-19).
 - **Game:** v1 plays end to end (`docs/dev/architecture.md`). On the PC `tools/check e2e` passes:
   103 unit tests, boot, 3 e2e scripts; `check_port.py` 49 checks, 0 differ (2026-10-18). Added
   2026-10-18 (owner: "yeah go on" to base art, backdrops, more content):
