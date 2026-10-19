@@ -841,12 +841,24 @@ func set_formation(slots: Array) -> Dictionary:
 	return _ok(clean)
 
 
-## Best 5 owned heroes by power, guardians and strikers in front, then gear them up.
+## Best 5 owned heroes by power, guardians and strikers in front, then gear them up. The team
+## always fields a guardian when one is owned: if the best 5 have none, the strongest owned
+## guardian takes the place of the weakest of them.
 func auto_formation() -> void:
 	var ids: Array = []
 	for h in owned_heroes():
 		ids.append(h.id)
-	state.formation = _arrange(ids.slice(0, 5))
+	var team := ids.slice(0, 5)
+	var has_guardian := false
+	for id in team:
+		if str(hero_def(id).role) == "guardian":
+			has_guardian = true
+	if team.size() == 5 and not has_guardian:
+		for id in ids.slice(5):
+			if str(hero_def(id).role) == "guardian":
+				team[4] = id
+				break
+	state.formation = _arrange(team)
 	_auto_equip_team()
 	_changed()
 

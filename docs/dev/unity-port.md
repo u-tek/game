@@ -704,7 +704,8 @@ Ordering details that change results:
   earlier item in the bag on ties.
 - **Formation** (`_arrange`): sort by `front_priority[role] * 1000000 + hp` descending, then id
   ascending; fill slots 0..4. `auto_formation` takes the five strongest owned heroes (power
-  descending, then id). A new hero joins only a formation with an empty slot (re-arranged), then
+  descending, then id); when none of the five is a guardian and one is owned, the strongest owned
+  guardian replaces the fifth (2026-10-20). A new hero joins only a formation with an empty slot (re-arranged), then
   auto-equips.
 - **Idle claim**: compute with the rules, set `last_claim_at = now`, then grant; a claim counts
   for the quest when elapsed >= `min_claim_for_quest_ms`.
