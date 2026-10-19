@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
 # Render one screen to a PNG in a phone-shaped window (needs main.gd --shoot support).
-#   tools/shoot <screen> [--res 720x1560] [--out path.png] [any extra game args...]
+#   tools/shoot <screen> [--res 720x1560] [--out path.png] [--place] [any extra game args...]
 # Extra game args: --fresh | --rich (+ --skins: owned heroes wear a skin, --nudity), --safe-area-sim,
 #   --shoot-params='{"hero_id":"seraphiel"}',
 #   --shoot-wait=2.0
+# --place (Windows): holds the window 60 s so the owner can drag it where shots should open; the
+#   spot is saved in screenshots/.shot_window and every later shot opens there.
 # Prints the PNG path and any script errors. View the PNG with the Read tool.
 cd "$(dirname "$0")/.." || exit 1
 screen="$1"; shift
-res=720x1560; out="screenshots/${screen}.png"; extra=()
+res=720x1560; out="screenshots/${screen}.png"; extra=(); place=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --res) res="$2"; shift 2;;
     --out) out="$2"; shift 2;;
+    --place) place=60; shift;;
     *) extra+=("$1"); shift;;
   esac
 done
@@ -20,7 +23,7 @@ mkdir -p "$(dirname "$out")"
 rm -f "$out"
 NOISE='ALSA|audio_driver_alsa|All audio drivers failed|audio_server.cpp|init_output_device|Condition "status < 0" is true|^\s*at: (init_output_device|initialize) '
 # GODOT names the binary (see tools/gd). Without xvfb-run/flock (Git Bash on Windows) the window
-# opens briefly on the desktop and the PNG path is passed in Windows form.
+# opens where the owner parked it, without focus (see below), and the PNG path is in Windows form.
 G="${GODOT:-godot}"
 # The game uses the Mobile renderer (Vulkan on desktop, Metal on iPhone). Headless cloud boxes without
 # a Vulkan driver render with OpenGL instead (no HDR bloom): SHOOT_DRIVER overrides.
@@ -33,6 +36,23 @@ if command -v xvfb-run >/dev/null 2>&1 && command -v flock >/dev/null 2>&1; then
     "$G" --path . --rendering-driver "$drv" --resolution "$res" -- \
     --shoot="$screen" --shoot-out="$out_abs" "${extra[@]}" 2>&1 | grep -vE "$NOISE")
 else
+  # Windows: the owner may be playing a game on the main monitor. The window opens where they parked
+  # it (screenshots/.shot_window, from --place; by default on the left-hand monitor of the owner's
+  # PC) and can't take focus. override.cfg is read before the window opens; removed afterwards.
+  # SHOOT_VISIBLE=1 opens it the old way (centred, focused).
+  if [ -z "${SHOOT_VISIBLE:-}" ] && [ ! -f override.cfg ]; then
+    # Godot counts window positions from the top-left of the whole desktop (all monitors), not
+    # from the main monitor: on the owner's PC the left monitor is x 0-1920 there.
+    pos=$(cat screenshots/.shot_window 2>/dev/null | tr -d '\r\n ')
+    [ -n "$pos" ] || pos="60,120"
+    focus=true; [ -n "$place" ] && focus=false
+    printf '%s\n' '[display]' '' "window/size/no_focus=$focus" 'window/size/initial_position_type=0' \
+      "window/size/initial_position=Vector2i($pos)" > override.cfg
+    trap 'rm -f override.cfg' EXIT
+  fi
+  if [ -n "$place" ]; then
+    extra+=("--shoot-place=$place" "--shoot-place-file=$(cygpath -m "$(realpath -m screenshots/.shot_window)")")
+  fi
   log=$(timeout 120 "$G" --path . --rendering-driver "$drv" --resolution "$res" -- \
     --shoot="$screen" --shoot-out="$out_abs" "${extra[@]}" 2>&1 | grep -vE "$NOISE")
 fi

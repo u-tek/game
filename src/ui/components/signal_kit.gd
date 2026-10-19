@@ -27,7 +27,8 @@ const ETCH := Color("131416")
 
 
 ## A Plate at pos (added to parent when given). opts: cuts [TL, TR, BR, BL], shape (polygon),
-## circle, screws (Array of Vector2), glow, glow_radius, pulse, topo, shadow (alpha), recess, bevel.
+## circle, screws (Array of Vector2), glow, glow_radius, pulse, topo, shadow (alpha), recess, bevel,
+## hole (Vector3: a round cut-out, x, y centre and z radius in body px).
 static func plate(preset: String, pos: Vector2, size: Vector2, opts: Dictionary = {}, parent: Node = null) -> Control:
 	var p := Plate.new()
 	p.preset = preset
@@ -49,6 +50,8 @@ static func plate(preset: String, pos: Vector2, size: Vector2, opts: Dictionary 
 	p.recess = opts.get("recess", false)
 	if opts.has("bevel"):
 		p.bevel = opts["bevel"]
+	if opts.has("hole"):
+		p.hole = opts["hole"]
 	if parent:
 		parent.add_child(p)
 	return p

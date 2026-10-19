@@ -33,8 +33,14 @@ this file says where things stand. Older logs are under "History" at the bottom.
   Instrument Serif), the restyled theme (graphite, bone, signal red-orange, cut corners), the
   material kit (`Plate`, `GlassBlock`, `LightStrip`, HUD pieces, halftone, grain) and the approved
   Lobby mockup (`tools/shoot lobby_v5 --rich --safe-area-sim`, owner: "this is like a billion times
-  better"). Next: the real Lobby, the shell's top line and footer strip, then the other screens
-  per the map.
+  better"). After two more concepts the owner chose the poster as the look of every screen. Since
+  then: the shell's masthead and footer strip printed on paper ("01 HEROES / 02 TEAM ..." with a
+  signal underline), the real Lobby rebuilt as the poster (`home_screen.gd`, every old function
+  kept; the guided first session passes through it), and the first Blender renders (coil, stamp
+  disc; `tools/blender/`). Three background agents are rebuilding Heroes/Team, Campaign/Spire/Quests
+  and Summon/Shop/Gear in the poster style (their diffs are merged by the lead). Next: screenshots
+  of the real Lobby (waiting on the owner, who was gaming), merge the agents' screens, then battle,
+  settings, dialogs and loading screens.
 - **Game:** v1 plays end to end (`docs/dev/architecture.md`). On the PC `tools/check e2e` passes:
   103 unit tests, boot, 3 e2e scripts; `check_port.py` 49 checks, 0 differ (2026-10-18). Added
   2026-10-18 (owner: "yeah go on" to base art, backdrops, more content):

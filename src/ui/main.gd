@@ -29,7 +29,7 @@ const TOP_H := 104.0
 const NAV_H := 120.0
 ## How far the raised Lobby hexagon (and its glow) pokes up above the nav bar. Bars pinned to
 ## the bottom of a screen's content keep this much clear (UI.pinned_bottom_inset()).
-const NAV_RISE := 26.0
+const NAV_RISE := 0.0
 ## Toasts start this far below the top of the content area (clear of screen headers).
 const TOAST_GAP := 112.0
 ## [screen id, label, icon]; the middle one is the raised Lobby hexagon.
@@ -142,6 +142,8 @@ func _process(delta: float) -> void:
 
 func _ready() -> void:
 	_parse_args()
+	if _shoot.has("screen"):
+		_size_shot_window()
 	theme = UITheme.get_theme()
 	get_tree().root.theme = theme
 	set_anchors_and_offsets_preset(PRESET_FULL_RECT)
@@ -331,13 +333,7 @@ func _build_top_bar() -> void:
 	var cluster := PanelContainer.new()
 	cluster.name = "Cluster"
 	cluster.mouse_filter = MOUSE_FILTER_PASS
-	var csb := UITheme.style("chip")
-	csb.set("draw_inset", Vector2(0, 12))
-	csb.content_margin_left = 0
-	csb.content_margin_right = 0
-	csb.content_margin_top = 0
-	csb.content_margin_bottom = 0
-	cluster.add_theme_stylebox_override("panel", csb)
+	cluster.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	cluster.size_flags_vertical = SIZE_SHRINK_CENTER
 	var crow := Kit.hbox(0)
 	_quests_btn = _cluster_button("quests", func() -> void: UI.go("quests"))
@@ -353,7 +349,7 @@ func _cluster_button(icon_name: String, cb: Callable) -> Button:
 	b.name = "Top_" + icon_name.capitalize()
 	b.custom_minimum_size = Vector2(Kit.BUTTON_H, Kit.BUTTON_H)
 	var g := b.get_node("Glyph") as Control
-	g.modulate = Color(1, 1, 1, 0.92)
+	g.modulate = Color(SignalKit.INK, 0.9)
 	return b
 
 
@@ -380,11 +376,23 @@ func _rebuild_pill(ids: Array) -> void:
 	_pill = Kit.resource_pill(entries, 120.0)
 	_pill.size_flags_horizontal = SIZE_EXPAND_FILL
 	_pill.size_flags_vertical = SIZE_SHRINK_CENTER
-	var psb := UITheme.style("chip")
-	psb.set("draw_inset", Vector2(0, 12))
-	psb.content_margin_top += 12
-	psb.content_margin_bottom += 12
+	var psb := StyleBoxEmpty.new()
+	psb.content_margin_top = 12
+	psb.content_margin_bottom = 12
 	_pill.add_theme_stylebox_override("panel", psb)
+	# Printed readouts: ink mono amounts, ink plus marks, hairline separators.
+	var map: Dictionary = _pill.get_meta("entries", {})
+	for cid: Variant in map:
+		var cell := map[cid] as Control
+		var amt := cell.get_meta("amount_label") as Label
+		amt.add_theme_font_override("font", Kit.font("mono_bold"))
+		amt.add_theme_font_size_override("font_size", 21)
+		amt.add_theme_color_override("font_color", SignalKit.INK)
+		var icons := cell.find_children("*", "TextureRect", true, false)
+		for k in range(1, icons.size()):
+			(icons[k] as CanvasItem).modulate = Color(SignalKit.INK, 0.75)
+	for sep in _pill.find_children("*", "ColorRect", true, false):
+		(sep as ColorRect).color = Color(SignalKit.INK, 0.18)
 	_pill.custom_minimum_size.y = Kit.BUTTON_H
 	_top_row.add_child(_pill)
 	_top_row.move_child(_pill, at if at >= 0 else 1)
@@ -414,11 +422,13 @@ func _build_nav() -> void:
 	row.offset_top = 4
 	row.offset_bottom = NAV_H
 	nav_bar.add_child(row)
+	var n := 0
 	for t: Array in TABS:
+		n += 1
 		var tab := NavTab.new()
 		var id: String = t[0]
 		tab.shared_ink = true
-		tab.setup(id, t[1], t[2], id == "home")
+		tab.setup(id, "%02d %s" % [n, t[1]], t[2], id == "home")
 		tab.pressed.connect(func() -> void:
 			if UI.current_name != id:
 				UI.sfx("tab")
@@ -426,13 +436,13 @@ func _build_nav() -> void:
 				UI.go(id))
 		row.add_child(tab)
 		_tabs[id] = tab
-	# One white bar above the active tab that slides from tab to tab (hidden on the Lobby hex).
+	# One signal underline under the active tab's label that slides from tab to tab.
 	_nav_ink = ColorRect.new()
 	_nav_ink.name = "Ink"
-	_nav_ink.color = Color.WHITE
+	_nav_ink.color = SignalKit.SIGNAL
 	_nav_ink.mouse_filter = MOUSE_FILTER_IGNORE
-	_nav_ink.size = Vector2(88, 4)
-	_nav_ink.position = Vector2(0, 8)
+	_nav_ink.size = Vector2(44, 3)
+	_nav_ink.position = Vector2(0, 4.0 + 84.0)
 	_nav_ink.modulate.a = 0.0
 	nav_bar.add_child(_nav_ink)
 
@@ -454,8 +464,10 @@ func _layout() -> void:
 	var bleed := UI.full_bleed
 	if bleed != _bleed or not _top_bg.has_theme_stylebox_override("panel"):
 		_bleed = bleed
-		_top_bg.add_theme_stylebox_override("panel", UITheme.style("topbar_clear" if bleed else "topbar"))
-		_nav_bg.add_theme_stylebox_override("panel", UITheme.style("navbar_clear" if bleed else "navbar"))
+		# Style v4: the masthead and footer strip are printed on the paper matte (the poster look),
+		# with a hairline rule against the page.
+		_top_bg.add_theme_stylebox_override("panel", _paper_strip(false))
+		_nav_bg.add_theme_stylebox_override("panel", _paper_strip(true))
 	_show_bar(top_bar, UI.chrome_top, 0)
 	top_bar.offset_top = 0
 	top_bar.offset_bottom = st + TOP_H
@@ -468,6 +480,17 @@ func _layout() -> void:
 	# Below a sub-screen's header row (back button, title), so toasts never hide it.
 	toast_box.offset_top = (st + TOP_H if UI.chrome_top else st) + TOAST_GAP
 	_place_ink.call_deferred(false)
+
+
+func _paper_strip(rule_on_top: bool) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = SignalKit.MATTE
+	sb.border_color = Color(SignalKit.INK, 0.18)
+	if rule_on_top:
+		sb.border_width_top = 1
+	else:
+		sb.border_width_bottom = 1
+	return sb
 
 
 ## Shows or hides a chrome bar: hiding is instant (full-screen moments), coming back fades
@@ -490,15 +513,8 @@ func _place_ink(animate: bool) -> void:
 		return
 	var id := _ink_tab
 	var tab: Control = _tabs.get(id, null)
-	if tab == null or id == "home":
-		if animate and Kit.motion_ok():
-			var c: Control = _tabs.get("home", null)
-			var tw := _nav_ink.create_tween().set_parallel(true)
-			tw.tween_property(_nav_ink, "modulate:a", 0.0, 0.18)
-			if c:
-				tw.tween_property(_nav_ink, "position:x", _ink_x(c), 0.3).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-		else:
-			_nav_ink.modulate.a = 0.0
+	if tab == null:
+		_nav_ink.modulate.a = 0.0
 		return
 	var x := _ink_x(tab)
 	Kit._kill_tween(_nav_ink, "_tw")
@@ -507,14 +523,6 @@ func _place_ink(animate: bool) -> void:
 		tw2.tween_property(_nav_ink, "position:x", x, 0.34).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 		tw2.tween_property(_nav_ink, "modulate:a", 1.0, 0.15)
 		_nav_ink.set_meta("_tw", tw2)
-	elif animate and Kit.motion_ok():
-		# Coming off the Lobby: rise out of the hexagon's side.
-		var home: Control = _tabs.get("home", null)
-		_nav_ink.position.x = _ink_x(home) if home else x
-		var tw3 := _nav_ink.create_tween().set_parallel(true)
-		tw3.tween_property(_nav_ink, "position:x", x, 0.34).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-		tw3.tween_property(_nav_ink, "modulate:a", 1.0, 0.2)
-		_nav_ink.set_meta("_tw", tw3)
 	else:
 		_nav_ink.position.x = x
 		_nav_ink.modulate.a = 1.0
@@ -841,6 +849,47 @@ func _on_screen_changed(screen: String) -> void:
 
 # ------------------------------------------------------------------ screenshots
 
+## tools/shoot on Windows opens the window where the owner parked it (override.cfg, never on the
+## main monitor) and without focus. Windows shrinks a new window to fit its screen, so the
+## requested --resolution is applied again here (the PNG is the viewport, not the screen).
+func _size_shot_window() -> void:
+	if OS.get_name() != "Windows":
+		return
+	var args := OS.get_cmdline_args()
+	var i := args.find("--resolution")
+	if i >= 0 and i + 1 < args.size():
+		var p := args[i + 1].split("x")
+		if p.size() == 2:
+			DisplayServer.window_set_size(Vector2i(p[0].to_int(), p[1].to_int()))
+
+
+## tools/shoot --place: keeps the window up so the owner can drag it where shots should open
+## (another monitor) and saves its position every half second to `file` (tools/shoot reads it).
+func _hold_for_placement(secs: float, file: String) -> void:
+	var bg := ColorRect.new()
+	bg.color = Color(0.06, 0.065, 0.07, 0.86)
+	bg.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	bg.mouse_filter = MOUSE_FILTER_IGNORE
+	fx_layer.add_child(bg)
+	var note := Kit.label("", 40, Color.WHITE, "wide_black")
+	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	note.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	bg.add_child(note)
+	var left := secs
+	while left > 0.0:
+		note.text = "DRAG THIS WINDOW\nwhere screenshots\nshould open\n\n%d" % ceili(left)
+		if file != "":
+			var f := FileAccess.open(file, FileAccess.WRITE)
+			if f:
+				var p := DisplayServer.window_get_position()
+				f.store_string("%d,%d\n" % [p.x, p.y])
+		await get_tree().create_timer(0.5).timeout
+		left -= 0.5
+	bg.queue_free()
+
+
 func _parse_args() -> void:
 	var args := OS.get_cmdline_user_args()
 	args.append_array(OS.get_cmdline_args())
@@ -866,6 +915,10 @@ func _parse_args() -> void:
 			_shoot["from"] = a.substr("--shoot-from=".length())
 		elif a.begins_with("--shoot-do="):
 			_shoot["do"] = a.substr("--shoot-do=".length())
+		elif a.begins_with("--shoot-place="):
+			_shoot["place"] = a.substr("--shoot-place=".length()).to_float()
+		elif a.begins_with("--shoot-place-file="):
+			_shoot["place_file"] = a.substr("--shoot-place-file=".length())
 		elif a == "--safe-area-sim":
 			UI.safe_override = Vector2(108, 62)
 
@@ -899,6 +952,8 @@ func _run_shoot() -> void:
 			for n in find_children("Shine", "", true, false):
 				if n.has_method("sweep_now"):
 					n.call("sweep_now")
+	if float(_shoot.get("place", 0.0)) > 0.0:
+		await _hold_for_placement(float(_shoot["place"]), str(_shoot.get("place_file", "")))
 	await get_tree().create_timer(float(_shoot.get("wait", 1.0))).timeout
 	var out: String = _shoot.get("out", "user://shot.png")
 	DirAccess.make_dir_recursive_absolute(out.get_base_dir())

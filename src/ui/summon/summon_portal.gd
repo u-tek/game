@@ -1,216 +1,179 @@
 extends Control
-## The summoning portal charging up (drawn with additive light): a rune sigil of rotating
-## rings that light up rune by rune, light streaks pulled in from off-screen, motes spiralling
-## into a growing core, and lightning crackle when a Legendary is coming. The sequence drives
-## `charge` (0..1), `color` (the rarity tell), `crackle` and `implode` (the core collapsing
-## just before the burst). Size it to the whole screen and set `center` / `radius`.
+## The press run (the summon charge, in the poster look): a sheet on the matte being printed. A
+## halftone rosette grows out of its middle as the charge rises, its dot screen turning faster and
+## faster; a registration target and a ring of ticks spin up around it; the run's number and the
+## count of prints are set huge on the sheet. The ink is the rarity tell (the sequence drives
+## `color`): ink black for Rares only, signal red when an Epic is inside, and for a Legendary
+## (`crackle`) the whole sheet floods signal and the screen prints in black, shaking out of
+## register. `implode` pulls the rosette in just before the burst. Size it to the whole screen and
+## set `center` / `radius`; `count` is the number of prints in the run.
 
-const Fx := preload("res://src/ui/summon/summon_fx.gd")
-
-const STREAKS := 40
-const MOTES := 70
-const RUNES := 60
-const BOLTS := 4
-const BOLT_SEGS := 8
-const RAYS := 20
+const PK := preload("res://src/ui/v4/poster_kit.gd")
 
 var center := Vector2(360, 600)
 var radius := 290.0
 var charge := 0.0
-var color := Color("18c3e8")
+var color := PK.INK
 var crackle := 0.0
 var implode := 0.0
-## Whole-sigil opacity (fades it in at the start).
+## Whole-sheet opacity (fades it in at the start).
 var reveal := 0.0
+var count := 10
 
 var _t := 0.0
 var _spin := 0.0
+var _sheet: Control
+var _flood: ColorRect
+var _dots: TextureRect
+var _dots2: TextureRect
+var _m1: ShaderMaterial
+var _m2: ShaderMaterial
+var _marks: Control
+var _pct: Label
+var _ink_l: Label
 var _rng := RandomNumberGenerator.new()
-# Streaks: angle, phase, speed, width. Motes: angle, phase, size.
-var _s := PackedFloat32Array()
-var _m := PackedFloat32Array()
-var _bolts: Array[PackedVector2Array] = []
-var _bolt_t := 0.0
-var _quad := PackedVector2Array()
-var _qcol := PackedColorArray()
-var _hex := PackedVector2Array()
-var _rune := PackedVector2Array()
-var _tri := PackedVector2Array()
-var _tcol := PackedColorArray()
+var _giant: Array[RichTextLabel] = []
+var _root: Control
 
 
 func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_IGNORE
-	material = Fx.additive()
-	_rng.seed = 1234
-	_quad.resize(4)
-	_qcol.resize(4)
-	_hex.resize(4)
-	_rune.resize(3)
-	_tri.resize(3)
-	_tcol.resize(3)
-	_s.resize(STREAKS * 4)
-	for i in STREAKS:
-		_s[i * 4] = _rng.randf() * TAU
-		_s[i * 4 + 1] = _rng.randf()
-		_s[i * 4 + 2] = _rng.randf_range(0.6, 1.3)
-		_s[i * 4 + 3] = _rng.randf_range(2.0, 5.0)
-	_m.resize(MOTES * 3)
-	for i in MOTES:
-		_m[i * 3] = _rng.randf() * TAU
-		_m[i * 3 + 1] = _rng.randf()
-		_m[i * 3 + 2] = _rng.randf_range(5.0, 15.0)
-	for b in BOLTS:
-		var p := PackedVector2Array()
-		p.resize(BOLT_SEGS + 1)
-		_bolts.append(p)
+	_rng.seed = 4711
+	var sw := radius * 2.1
+	var sh := minf(radius * 3.0, get_viewport_rect().size.y * 0.74)
+	var rect := Rect2(center.x - sw * 0.5, center.y - sh * 0.48, sw, sh)
+	_root = Control.new()
+	_root.mouse_filter = MOUSE_FILTER_IGNORE
+	_root.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	add_child(_root)
+	_sheet = PK.poster(_root, rect)
+	_flood = ColorRect.new()
+	_flood.color = PK.SIGNAL
+	_flood.mouse_filter = MOUSE_FILTER_IGNORE
+	_flood.size = Vector2(sw, 0)
+	_flood.position = Vector2(0, sh)
+	_sheet.add_child(_flood)
+	# The giant count of prints, cut off by the sheet's bottom left corner.
+	_giant = PK.giant(_sheet, "×%02d" % count, 230, [[0.0, sw, PK.INK]], Vector2(-12, sh - 196), Vector2(sw, 260), 0.0)
+	for g in _giant:
+		g.modulate.a = 0.9
+	# The rosette (and its misregistered black copy).
+	var c := center - rect.position
+	var d := radius * 2.2
+	_dots2 = _rosette(PK.INK)
+	_m2 = _dots2.material as ShaderMaterial
+	_dots2.position = c - Vector2(d, d) * 0.5
+	_dots2.size = Vector2(d, d)
+	_sheet.add_child(_dots2)
+	_dots = _rosette(color)
+	_m1 = _dots.material as ShaderMaterial
+	_dots.position = c - Vector2(d, d) * 0.5
+	_dots.size = Vector2(d, d)
+	_dots.pivot_offset = Vector2(d, d) * 0.5
+	_dots2.pivot_offset = Vector2(d, d) * 0.5
+	_sheet.add_child(_dots)
+	_marks = Control.new()
+	_marks.mouse_filter = MOUSE_FILTER_IGNORE
+	_marks.size = rect.size
+	_marks.draw.connect(_draw_marks.bind(c))
+	_sheet.add_child(_marks)
+	# Press micro type.
+	PK.at(_sheet, PK.t("PRESS RUN Nº 0047\n%d SHEETS · 19.10.26" % count, 12, PK.INK, "mono_bold"), Vector2(sw - 230, 18))
+	_ink_l = PK.t("INK —", 12, PK.INK, "mono_bold")
+	PK.at(_sheet, _ink_l, Vector2(sw - 230, sh - 64))
+	_pct = PK.t("CHARGE 000%", 12, PK.INK, "mono_bold")
+	PK.at(_sheet, _pct, Vector2(sw - 230, sh - 44))
+	PK.vt(_sheet, "©2026 HH · HALO & HORN · PORTAL", 10, Color(PK.INK, 0.7), Vector2(sw - 14, 20))
+	_root.modulate.a = 0.0
+
+
+func _rosette(ink: Color) -> TextureRect:
+	var g := Gradient.new()
+	# Bright in the middle, gone (transparent) at the rim, so the screen ends in a circle.
+	g.set_color(0, Color(1, 1, 1, 1))
+	g.set_color(1, Color(0, 0, 0, 0))
+	g.add_point(0.55, Color(0.45, 0.45, 0.45, 1))
+	g.add_point(0.85, Color(0.15, 0.15, 0.15, 0.7))
+	var gt := GradientTexture2D.new()
+	gt.gradient = g
+	gt.fill = GradientTexture2D.FILL_RADIAL
+	gt.fill_from = Vector2(0.5, 0.5)
+	gt.fill_to = Vector2(0.5, 0.0)
+	gt.width = 128
+	gt.height = 128
+	var tr := TextureRect.new()
+	tr.mouse_filter = MOUSE_FILTER_IGNORE
+	tr.texture = gt
+	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tr.stretch_mode = TextureRect.STRETCH_SCALE
+	tr.material = SignalKit.halftone_material(11.0, ink, true)
+	return tr
 
 
 func _process(delta: float) -> void:
 	_t += delta
-	_spin += delta * (0.35 + charge * charge * 4.5)
-	if crackle > 0.0:
-		_bolt_t -= delta
-		if _bolt_t <= 0.0:
-			_bolt_t = 0.05
-			_make_bolts()
-	queue_redraw()
+	_spin += delta * (0.25 + charge * charge * 5.0) * (1.0 if Kit.motion_ok() else 0.0)
+	_root.modulate.a = reveal
+	var flood := clampf(crackle, 0.0, 1.0)
+	var sh := _sheet.size.y
+	_flood.size = Vector2(_sheet.size.x, sh * flood)
+	_flood.position = Vector2(0, sh * (1.0 - flood))
+	# The screen: dots spread out from the middle as the charge rises; the implosion pulls them in.
+	var lift := lerpf(-0.75, 0.25, _ease_out(charge)) - implode * 1.1
+	var ink := color
+	_m1.set_shader_parameter("ink", Color(ink, 0.95))
+	_m1.set_shader_parameter("lift", lift)
+	_m1.set_shader_parameter("gain", 1.3 + 0.4 * charge)
+	_m1.set_shader_parameter("angle", 0.5236 + _spin * 0.6)
+	_m1.set_shader_parameter("cell", 11.0 - 3.0 * charge)
+	_m2.set_shader_parameter("ink", Color(PK.INK, 0.85 if flood > 0.0 else 0.35 * charge))
+	_m2.set_shader_parameter("lift", lift - 0.1)
+	_m2.set_shader_parameter("angle", 0.26 - _spin * 0.4)
+	_m2.set_shader_parameter("cell", 11.0 - 3.0 * charge)
+	# Out of register: the black copy shakes off the red one, harder for a Legendary.
+	var off := (2.0 + 10.0 * charge * charge + 26.0 * flood) * (1.0 if Kit.motion_ok() else 0.2)
+	_dots2.position = _dots.position + Vector2(_rng.randf_range(-1, 1), _rng.randf_range(-1, 1)) * off * 0.5 + Vector2(off, -off * 0.5)
+	var s := 1.0 - 0.55 * implode
+	_dots.scale = Vector2(s, s)
+	_dots2.scale = Vector2(s, s)
+	var pal := PK.PAPER if flood > 0.5 else PK.INK
+	_pct.text = "CHARGE %03d%%" % int(round(charge * 100.0))
+	_ink_l.text = "INK  %s" % ("BLACK ON SIGNAL" if flood > 0.5 else ("SIGNAL" if color.r > 0.5 else "BLACK"))
+	_pct.add_theme_color_override("font_color", PK.INK)
+	_ink_l.add_theme_color_override("font_color", PK.INK)
+	for g in _giant:
+		g.add_theme_color_override("default_color", pal if flood > 0.5 else PK.INK)
+	_marks.queue_redraw()
 
 
-func _make_bolts() -> void:
-	for b in BOLTS:
-		var p := _bolts[b]
-		var ang := _rng.randf() * TAU
-		var end := center + Vector2.from_angle(ang) * radius * _rng.randf_range(0.75, 1.05)
-		var start := center + Vector2.from_angle(ang + _rng.randf_range(-0.4, 0.4)) * radius * 0.08
-		var n := (end - start).orthogonal().normalized()
-		for i in BOLT_SEGS + 1:
-			var k := float(i) / BOLT_SEGS
-			var off := 0.0 if i == 0 or i == BOLT_SEGS else _rng.randf_range(-1.0, 1.0) * radius * 0.09
-			p[i] = start.lerp(end, k) + n * off
+static func _ease_out(x: float) -> float:
+	var u := 1.0 - clampf(x, 0.0, 1.0)
+	return 1.0 - u * u * u
 
 
-func _draw() -> void:
-	var c := center
-	var r := radius * (1.0 - implode * 0.18)
-	var col := color
-	var hot := col.lerp(Color.WHITE, 0.45)
-	var soft := Fx.soft_dot()
-	var ch := charge
-	var vis := reveal
-
-	# Outer aura.
-	var ar := r * (1.35 + 0.65 * ch)
-	draw_texture_rect(soft, Rect2(c - Vector2(ar, ar), Vector2(ar, ar) * 2.0), false, Color(col, (0.22 + 0.4 * ch) * vis))
-
-	# God rays fanning out behind the sigil, growing with the charge.
-	if ch > 0.2:
-		var ra := (ch - 0.2) / 0.8
-		for i in RAYS:
-			var a0 := TAU * i / RAYS + _spin * 0.04
-			var ln := r * (1.3 + 1.1 * ra) * (1.0 if i % 2 == 0 else 0.7)
-			var hw := 0.045 + 0.02 * float(i % 3)
-			_tri[0] = c
-			_tri[1] = c + Vector2.from_angle(a0 - hw) * ln
-			_tri[2] = c + Vector2.from_angle(a0 + hw) * ln
-			_tcol[0] = Color(hot, 0.22 * ra * vis)
-			_tcol[1] = Color(col, 0.0)
-			_tcol[2] = Color(col, 0.0)
-			draw_polygon(_tri, _tcol)
-
-	# Light streaks pulled in from off-screen.
-	if ch > 0.05:
-		var spd := 0.25 + 2.4 * ch * ch
-		for i in STREAKS:
-			var ang := _s[i * 4]
-			var u := fposmod(_s[i * 4 + 1] + _t * spd * _s[i * 4 + 2], 1.0)
-			var d := lerpf(r * 2.7, r * 0.12, u * u)
-			var ln := (60.0 + 260.0 * ch) * (1.0 - u * 0.6)
-			var a := sin(PI * u) * (0.12 + 0.75 * ch) * minf(1.0, (ch - 0.05) * 6.0)
-			var dir := Vector2.from_angle(ang)
-			Fx.streak(_quad, c + dir * d, c + dir * (d + ln), _s[i * 4 + 3] * (0.8 + ch), 0.0)
-			_qcol[0] = Color(hot, a)
-			_qcol[1] = Color(col, 0.0)
-			_qcol[2] = Color(col, 0.0)
-			_qcol[3] = Color(hot, a)
-			draw_polygon(_quad, _qcol)
-
-	# The sigil.
-	var base_a := (0.22 + 0.6 * ch) * vis
-	draw_arc(c, r, 0.0, TAU, 96, Color(col, base_a), 2.5, true)
-	draw_arc(c, r * 0.9, 0.0, TAU, 96, Color(col, base_a * 0.7), 1.5, true)
-	# Runes between the two outer circles, lighting up one by one as the charge rises.
-	var rot := _spin * 0.18
-	for i in RUNES:
-		var fi := float(i) / RUNES
-		var ang := rot + TAU * fi
-		var lit := clampf((ch * 1.25 - fi) * 8.0, 0.0, 1.0)
-		var sweep := pow(maxf(0.0, cos(ang * 1.0 - _t * 3.0)), 12.0) * ch
-		var a := (0.16 + 0.7 * lit + 0.5 * sweep) * vis
-		var rc := col.lerp(Color.WHITE, 0.3 * lit + 0.5 * sweep)
-		var dir := Vector2.from_angle(ang)
-		var p := c + dir * r * 0.95
-		var t := dir.orthogonal()
-		match i % 5:
-			0:
-				draw_line(c + dir * r * 0.915, c + dir * r * 0.985, Color(rc, a), 2.0, true)
-			1:
-				draw_arc(p, r * 0.016, 0.0, TAU, 10, Color(rc, a), 1.6, true)
-			2:
-				_hex[0] = p + dir * r * 0.025
-				_hex[1] = p + t * r * 0.016
-				_hex[2] = p - dir * r * 0.025
-				_hex[3] = p - t * r * 0.016
-				draw_colored_polygon(_hex, Color(rc, a * 0.85))
-			3:
-				_rune[0] = p - t * r * 0.018 - dir * r * 0.02
-				_rune[1] = p + dir * r * 0.02
-				_rune[2] = p + t * r * 0.018 - dir * r * 0.02
-				draw_polyline(_rune, Color(rc, a), 1.8, true)
-			_:
-				draw_line(p - t * r * 0.012, p + t * r * 0.012, Color(rc, a), 2.0, true)
-	# Segmented ring, counter-rotating.
-	var seg := 10
-	for i in seg:
-		var a0 := -_spin * 0.55 + TAU * i / seg
-		draw_arc(c, r * 0.78, a0, a0 + TAU / seg * 0.62, 18, Color(col, base_a * 0.9), 3.0 + 4.0 * ch, true)
-	# Hexagram: two triangles turning slowly, small orbs at the points.
-	var hr := r * 0.66
-	for tri in 2:
-		var a0 := _spin * 0.12 + (PI / 3.0 if tri == 1 else 0.0) - PI / 2.0
-		for k in 3:
-			var p0 := c + Vector2.from_angle(a0 + TAU * k / 3.0) * hr
-			var p1 := c + Vector2.from_angle(a0 + TAU * (k + 1) / 3.0) * hr
-			draw_line(p0, p1, Color(col, base_a * 0.75), 2.0, true)
-			draw_texture_rect(soft, Rect2(p0 - Vector2(14, 14) * (1.0 + ch), Vector2(28, 28) * (1.0 + ch)), false, Color(hot, base_a))
-	draw_arc(c, hr, 0.0, TAU, 72, Color(col, base_a * 0.5), 1.5, true)
-	# Fast dashed inner ring.
-	var dashes := 24
-	for i in dashes:
-		var a0 := _spin * 1.1 + TAU * i / dashes
-		draw_arc(c, r * 0.4, a0, a0 + TAU / dashes * 0.45, 6, Color(hot, base_a * 0.8), 2.5, true)
-
-	# Motes spiralling into the core.
-	var mspd := 0.3 + 1.2 * ch
-	for i in MOTES:
-		var life := fposmod(_m[i * 3 + 1] + _t * mspd, 1.0)
-		var dist := r * 1.35 * (1.0 - life)
-		var ang := _m[i * 3] + life * 3.4 + _spin * 0.2
-		var p := c + Vector2.from_angle(ang) * dist
-		var sz := _m[i * 3 + 2] * (0.5 + life)
-		draw_texture_rect(soft, Rect2(p - Vector2(sz, sz), Vector2(sz, sz) * 2.0), false, Color(hot, life * (0.35 + 0.6 * ch) * vis))
-
-	# Lightning crackle (a Legendary is coming).
-	if crackle > 0.01:
-		for p in _bolts:
-			draw_polyline(p, Color(col, 0.35 * crackle), 9.0, true)
-			draw_polyline(p, Color(1, 1, 1, 0.9 * crackle), 2.5, true)
-
-	# Core: coloured bloom and a white-hot centre that pulses faster as it charges.
-	var pulse := 1.0 + 0.08 * sin(_t * (6.0 + 22.0 * ch))
-	var shrink := 1.0 - implode * 0.75
-	var cr := r * (0.22 + 0.32 * ch) * pulse * (1.0 - implode * 0.4)
-	draw_texture_rect(soft, Rect2(c - Vector2(cr, cr) * 2.0, Vector2(cr, cr) * 4.0), false, Color(col, (0.35 + 0.5 * ch) * vis))
-	var wr := r * (0.06 + 0.12 * ch) * pulse * shrink
-	draw_texture_rect(soft, Rect2(c - Vector2(wr, wr) * 2.0, Vector2(wr, wr) * 4.0), false, Color(1, 1, 1, (0.6 + 0.4 * ch) * vis))
-	draw_circle(c, wr * 0.55, Color(1, 1, 1, (0.5 + 0.5 * ch) * vis), true, -1.0, true)
+## The registration target, a ring of ticks spinning up and the charge arc, in ink.
+func _draw_marks(c: Vector2) -> void:
+	var ci := _marks
+	var ink := PK.INK
+	var r := radius * (1.0 - 0.3 * implode)
+	ci.draw_arc(c, 34.0, 0.0, TAU, 48, ink, 1.6, true)
+	ci.draw_line(c - Vector2(58, 0), c + Vector2(58, 0), ink, 1.4)
+	ci.draw_line(c - Vector2(0, 58), c + Vector2(0, 58), ink, 1.4)
+	ci.draw_circle(c, 5.0, ink)
+	var n := 72
+	for i in n:
+		var a := TAU * i / n + _spin * 0.35
+		var long := i % 6 == 0
+		var d := Vector2.from_angle(a)
+		ci.draw_line(c + d * (r * 0.96), c + d * (r * (0.96 - (0.06 if long else 0.025))), Color(ink, 0.9 if long else 0.5), 1.2, true)
+	ci.draw_arc(c, r, 0.0, TAU, 128, Color(ink, 0.5), 1.0, true)
+	if charge > 0.0:
+		ci.draw_arc(c, r * 1.04, -PI * 0.5, -PI * 0.5 + TAU * charge, maxi(4, int(128 * charge)), PK.SIGNAL if crackle < 0.5 else ink, 4.0, true)
+		var e := -PI * 0.5 + TAU * charge
+		ci.draw_circle(c + Vector2.from_angle(e) * r * 1.04, 6.0, PK.SIGNAL if crackle < 0.5 else ink)
+	# Crop marks around the screen.
+	var q := r * 1.12
+	for s: Vector2 in [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]:
+		var p := c + s * q
+		ci.draw_line(p, p - Vector2(s.x * 22, 0), ink, 1.2)
+		ci.draw_line(p, p - Vector2(0, s.y * 22), ink, 1.2)

@@ -106,10 +106,12 @@ that the owner sideloads. The repo `u-tek/game` is public. The only code branch 
   App Store 4.1 copycat guardrails. No repo file or commit message names the
   reference game (the history is public; three early commit messages already do, so leave those
   alone); write "the reference game".
-  **v4 "Signal" (owner, 2026-10-19) replaces v3:** a full redesign from 22 reference images; every
-  screen is composed like one of them (the Lobby as a printed poster, the hero page as a dossier,
-  the campaign as a layered 3D map ...) with signal red-orange, machined-metal and glass objects,
-  and grit on big moments. Never reskin the old menu layout: that failed four times. The brief,
+  **v4 "Signal" (owner, 2026-10-19) replaces v3:** a full redesign from 22 reference images. The
+  approved Lobby poster (`lobby_v5`: paper matte, ink, red halftone bands, giant rotated compressed
+  type, vertical mono labels, stuck-on pass and stamps) is the look of **every** screen ("i want
+  that visual style to be maintained throughout the UI"); a screen's content may borrow its
+  reference's idea (a dossier, a layered map ...), drawn in the poster style. Don't pitch other
+  visual styles unless asked. Never reskin the old menu layout: that failed four times. The brief,
   the screen map and the kit are in `docs/dev/ui-style-v4.md`.
 - **The owner sees every render (2026-10-17):** "just send them even if they get cut by the
   filter. i am more accurate than a filter". In the local chat on the PC, send renders, contact
@@ -141,7 +143,8 @@ that the owner sideloads. The repo `u-tek/game` is public. The only code branch 
 - **Images.** Committed images live only under `assets/`. Hero art goes in
   `assets/art/heroes/<id>/`: `<id>.png` (1024x2048 RGBA, soles at 512,1990), `variants/*.png`
   (same alpha as the base, only the face changes) and the `tools/art_warp` outputs. UI icons are
-  SVGs from `assets/art/ui/src/make_icons.py`.
+  SVGs from `assets/art/ui/src/make_icons.py`. UI collage objects (coil, stamp disc ...) are Cycles
+  renders in `assets/art/ui/objects/` from `tools/blender/ui_objects.py` + `finish_objects.py`.
 - **Farm output** goes to the orphan branch `art-gen-output`, written only by art-gen.yml's publish
   job. Fetch it; never push to it by hand.
 - **Godot runs go through `tools/gd`** (a flock on `/tmp/halo-godot.lock`, so parallel agents never
@@ -212,6 +215,16 @@ Ask the owner for approval (plan mode or a permission rule they add) instead.
   build instead of `tools/art_warp`: `python tools/art_warp_build.py <id> --regen-masks`, then
   `tools/gd --headless --path . --import`. ComfyUI runs headless on 127.0.0.1:8188 (start line in
   `art_src/_review/HANDOFF.md`); the pinned checkpoint is Amanatsu Illustrious v2.
+  **The owner games on this PC (2026-10-19):** windows popping up on the main monitor (2560x1440)
+  interrupted a match ("i can't play like this"). Tests run headless; `tools/shoot` opens its
+  window without focus where the owner parked it (`tools/shoot <screen> --place` holds it 60 s to
+  drag; saved in `screenshots/.shot_window`; default the left monitor, 1920x1080 at x -1920).
+  Subagents must not open windows at all. When the owner says they are playing, no windows and no
+  GPU renders until they say they're done.
+  Blender 4.0 (`C:\Program Files\Blender Foundation\Blender 4.0\blender.exe`, Cycles on OptiX) and
+  Photoshop 2026 (COM: `New-Object -ComObject Photoshop.Application`) are installed; renders are
+  scripted (`blender --background --factory-startup --python tools/blender/ui_objects.py -- <dir>
+  <which>`, 4-10 s each).
 - **Restarts:** background agents and workflows don't survive a container or worker restart, and
   the session may come back in plan mode; GitHub Actions runs keep going. After a restart, check
   `gh run list -R u-tek/game` and `git fetch origin art-gen-output` before relaunching anything.

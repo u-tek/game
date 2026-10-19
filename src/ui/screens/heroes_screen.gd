@@ -1,22 +1,35 @@
 extends Control
-## Screen "heroes" (style v2 roster, docs/dev/ui-style-v2.md section 6): a dark header strip
-## with the page tabs (HEROES = owned heroes, CODEX = every hero, the ones still to be
-## summoned greyed out like a dex) and the sort dropdown, then a light hatched page with
-## square filter chips (ALL + the five roles, plus a Filter chip for faction and rarity),
-## a hint line and the 4-column grid of tall portrait cards (Kit.portrait_card: waist-up art,
-## role hex + tier numeral, "LV." and the level bottom-left, name, rarity chevrons).
-## A red dot marks a team hero who can level or star up now, an "N" a hero summoned this
-## session and not opened yet. Tap a card to open hero_detail (browse = the shown order).
-## Tabs, filters, sort and scroll position are remembered for the session (static vars).
-## Params: tab: 0 | 1 (Heroes / Codex).
+## Screen "heroes" (params: tab: 0 | 1 = Heroes / Codex). Style v4 (docs/dev/ui-style-v4.md): the
+## roster as a printed catalogue sheet in the approved Lobby poster's look, on a paper matte.
+## A masthead poster: a dark band with the team lead's red halftone print and the catalogue marks,
+## "HEROES" (or "CODEX") set huge in compressed type crossing the band (paper over it, ink beyond),
+## the count and the two pages as a printed index ("01 HEROES / 02 CODEX", signal underline). Under
+## it the filters as printed tabs: ALL and the five roles (glyph and code), SORT (opens the sort list)
+## and FILTER (faction and rarity), then a printed hint line and the catalogue: every hero as a small
+## printed poster (src/ui/v4/poster_card.gd: her band and turned name, her art in full colour in the
+## look she wears, level, role, power, stars, tier). Status lights: in the team; blinking when a team
+## hero can level or star up now; NEW for a hero summoned this session and not opened yet. Tap a card
+## to open her dossier (browse = the shown order). The Codex shows every hero, the ones still to be
+## summoned printed grey; under a short roster a printed line points to it. Tabs, filters, sort and
+## scroll position are remembered for the session (static vars).
 
-const COLS := 4
-const CARD_GAP := 12
-const ROW_GAP := 18
+const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
+const PosterCard := preload("res://src/ui/v4/poster_card.gd")
+const HUD := preload("res://src/ui/components/hud.gd")
+
+const COLS := 3
+const CARD_GAP := 14
+const ROW_GAP := 22
 const SORTS: Array[String] = ["power", "rarity", "level", "stars"]
 const SORT_NAMES := {"power": "Power", "rarity": "Rarity", "level": "Level", "stars": "Stars"}
 const RARITY_RANK := {"legendary": 3, "epic": 2, "rare": 1}
 const RARITIES: Array[String] = ["rare", "epic", "legendary"]
+const ROLE_CODES := {"guardian": "GRD", "striker": "STR", "caster": "CST", "support": "SUP", "assassin": "ASN"}
+const INK := Color("101113")
+const SIG := Color("ff4b1f")
+const HEAD_H := 176.0
+## The catalogue is never wider than this (tablets centre it on the matte).
+const MAX_W := 760.0
 
 static var _tab_idx := 0
 static var _faction_idx := 0
@@ -24,18 +37,22 @@ static var _role_idx := 0
 static var _rarity_idx := 0
 static var _sort_idx := 0
 static var _scroll_y := 0
-## Heroes summoned this session that the player hasn't opened yet ("N" badges).
+## Heroes summoned this session that the player hasn't opened yet ("NEW" tags).
 static var _new_ids := {}
 
 var _guide_level_id := ""
 var _scroll: ScrollContainer
 var _list: VBoxContainer
 var _hint: Label
-var _sort_btn: Button
-var _filter_chip: Button
+var _count_l: Label
+var _head: Control
+var _head_sig := ""
+var _tabs_row: Control
+var _sort_l: Label
+var _filter_l: Label
 var _modal: Control
 var _restore_scroll := true
-var _card_w := 160.0
+var _card_w := 214.0
 
 
 ## The summon screen calls this for every hero a summon brings in for the first time.
@@ -43,7 +60,7 @@ static func mark_new(hero_id: String) -> void:
 	_new_ids[hero_id] = true
 
 
-## Hero detail calls this when the hero's page opens (clears the "N" badge).
+## Hero detail calls this when the hero's page opens (clears the "NEW" tag).
 static func mark_seen(hero_id: String) -> void:
 	_new_ids.erase(hero_id)
 
@@ -71,73 +88,175 @@ func _exit_tree() -> void:
 # ------------------------------------------------------------------ build
 
 func _build() -> void:
-	var w := get_viewport_rect().size.x
-	_card_w = floorf(minf(160.0, (w - 36.0 - CARD_GAP * (COLS - 1)) / COLS))
-
-	# Dark header strip: page tabs left, the sort dropdown right. The active tab is a white
-	# plate that runs into the light page below.
-	var head := Kit.hbox(10)
-	head.set_anchors_and_offsets_preset(PRESET_TOP_WIDE)
-	head.offset_left = 16
-	head.offset_right = -16
-	head.offset_top = 10
-	head.offset_bottom = 10 + Kit.BUTTON_H
-	var tabs := Kit.tab_strip([{"text": "Heroes", "icon": "nav_heroes"}, {"text": "Codex", "icon": "codex"}], _tab_idx, func(i: int) -> void:
-		_tab_idx = i
-		_refresh(true), 196.0)
-	head.add_child(tabs)
-	head.add_child(Kit.spacer(0, 0, true))
-	_sort_btn = Kit.secondary_button("", _open_sort, "sort")
-	_sort_btn.name = "Sort"
-	_sort_btn.custom_minimum_size = Vector2(176, Kit.BUTTON_H)
-	_sort_btn.add_theme_font_override("font", Kit.font("cond_bold"))
-	_sort_btn.add_theme_font_size_override("font_size", 28)
-	head.add_child(_sort_btn)
-	add_child(head)
-
-	var page := Kit.page_bg("light")
-	page.offset_top = 10 + Kit.BUTTON_H
-	add_child(page)
-
-	var col := Kit.vbox(8)
-	col.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	col.offset_top = 10 + Kit.BUTTON_H + 16
-	col.offset_left = 16
-	col.offset_right = -16
-	add_child(col)
-
-	var chips := Kit.hbox(4)
-	var opts: Array = ["ALL"]
-	for r: String in Kit.ROLES:
-		opts.append({"icon": "role_" + r})
-	var role_chips := Kit.filter_chips(opts, _role_idx, func(i: int) -> void:
-		_role_idx = i
-		_refresh(true))
-	role_chips.name = "RoleChips"
-	chips.add_child(role_chips)
-	chips.add_child(Kit.spacer(0, 0, true))
-	# Faction / rarity filter: one more chip that opens the filter dialog (cyan when active).
-	var fc := Kit.filter_chips([{"icon": "filter"}], -1, Callable())
-	_filter_chip = fc.get_child(0) as Button
-	_filter_chip.name = "FilterChip"
-	_filter_chip.button_group = null
-	_filter_chip.pressed.connect(func() -> void:
-		Kit.sfx("tap")
-		_filter_chip.set_pressed_no_signal(_faction_idx > 0 or _rarity_idx > 0)
-		_open_filter())
-	chips.add_child(fc)
-	col.add_child(chips)
-
-	_hint = Kit.label("", 20, Kit.TEXT_DIM, "bold")
-	_hint.custom_minimum_size.y = 26
-	col.add_child(_hint)
-
-	_list = Kit.vbox(14)
-	var m := Kit.margin(_list, 0, 0)
-	m.add_theme_constant_override("margin_top", 8)
-	m.add_theme_constant_override("margin_bottom", 28)
+	var vw := get_viewport_rect().size.x
+	# Wider windows (tablets) keep the sheet at phone width, centred on the matte.
+	var w := minf(vw, MAX_W)
+	var ox := floorf((vw - w) * 0.5)
+	_card_w = floorf(minf(230.0, (w - 36.0 - CARD_GAP * (COLS - 1)) / COLS))
+	PK.matte(self)
+	# The matte line.
+	PK.at(self, PK.t("HALO & HORN  ©2026", 12, INK, "mono_bold"), Vector2(ox + 20, 8))
+	_count_l = PK.t("", 12, Color(INK, 0.7), "mono")
+	_count_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_count_l.size = Vector2(420, 16)
+	PK.at(self, _count_l, Vector2(ox + w - 20 - 420, 9))
+	# The masthead poster (rebuilt when the page or the lead hero changes).
+	_head = Control.new()
+	_head.name = "Masthead"
+	_head.mouse_filter = MOUSE_FILTER_IGNORE
+	_head.position = Vector2(ox + 18, 32)
+	_head.size = Vector2(w - 36, HEAD_H)
+	add_child(_head)
+	# The printed filter tabs.
+	_tabs_row = Control.new()
+	_tabs_row.name = "Tabs"
+	_tabs_row.mouse_filter = MOUSE_FILTER_IGNORE
+	_tabs_row.position = Vector2(ox + 18, 32 + HEAD_H + 14)
+	_tabs_row.size = Vector2(w - 36, 64)
+	add_child(_tabs_row)
+	_build_tabs()
+	_hint = PK.t("", 12, Color(INK, 0.65), "mono")
+	_hint.position = Vector2(ox + 20, 32 + HEAD_H + 84)
+	_hint.size = Vector2(w - 40, 16)
+	_hint.clip_text = true
+	add_child(_hint)
+	PK.rule(self, Vector2(ox + 20, 32 + HEAD_H + 106), Vector2(w - 40, 1), Color(INK, 0.4))
+	_list = VBoxContainer.new()
+	_list.add_theme_constant_override("separation", 22)
+	var m := MarginContainer.new()
+	m.add_theme_constant_override("margin_top", 16)
+	m.add_theme_constant_override("margin_bottom", 40)
+	m.add_theme_constant_override("margin_left", int(ox) + 18)
+	m.add_theme_constant_override("margin_right", int(ox) + 18)
+	m.add_child(_list)
 	_scroll = Kit.scroll(m)
-	col.add_child(_scroll)
+	_scroll.name = "Catalogue"
+	_scroll.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	_scroll.offset_top = 32 + HEAD_H + 108
+	add_child(_scroll)
+	PK.grain(self)
+
+
+## Masthead: band with the lead's print, the giant page word, the count and the page index.
+func _build_head(owned_total: int, total: int) -> void:
+	var lead := ""
+	for id: Variant in Game.formation():
+		if str(id) != "" and lead == "":
+			lead = str(id)
+	if lead == "":
+		lead = "noctaire"
+	var sig := "%d|%s|%s|%d" % [_tab_idx, lead, HeroArt.art_key(lead, Game.equipped_skin(lead)), owned_total]
+	if sig == _head_sig:
+		return
+	_head_sig = sig
+	for c in _head.get_children():
+		_head.remove_child(c)
+		c.queue_free()
+	var hw := _head.size.x
+	var hh := _head.size.y
+	var p := PK.poster(_head, Rect2(Vector2.ZERO, _head.size))
+	var band := 170.0
+	PK.rect(p, Rect2(0, 0, band, hh), PK.BAND)
+	var ht := PK.halftone_print(lead, Game.equipped_skin(lead), Vector2(band, hh), 6.0, PK.PRINT, 1.3)
+	p.add_child(ht)
+	PK.at(p, PK.t("HH", 22, PK.PAPER, "wide_black"), Vector2(14, 12))
+	PK.at(p, PK.t("™", 10, PK.PAPER, "mono"), Vector2(56, 13))
+	PK.at(p, PK.t("CATALOGUE\nNo.%02d" % owned_total, 11, Color(PK.PAPER, 0.85), "mono_bold"), Vector2(14, hh - 44))
+	var word := "HEROES" if _tab_idx == 0 else "CODEX"
+	var bb := "%s[color=#%s].[/color]" % [word, SIG.to_html(false)]
+	# As big as the masthead allows, from inside the band to the right-hand rule.
+	var room := hw - 44.0 - 92.0 - 14.0
+	var fs := clampi(int(120.0 * room / maxf(PK.text_w(word + ".", 120), 1.0)), 90, 150)
+	PK.giant(p, bb, fs, Vector2(92, hh - fs * 1.02), Vector2(hw * 1.2, fs * 1.4),
+		[[Rect2(0, 0, band, hh), PK.PAPER], [Rect2(band, 0, hw - band - 44, hh), INK]], 0, "compressed", false)
+	# Right rule with the count and the page index as turned labels.
+	PK.rule(p, Vector2(hw - 44, 0), Vector2(1, hh))
+	PK.at(p, PK.vlabel("%02d / %02d" % [owned_total, total], 12, INK), Vector2(hw - 14, 12))
+	var ix := hw - 44.0 - 236.0
+	for i in 2:
+		var on := i == _tab_idx
+		var l := PK.t("%02d %s" % [i + 1, ["HEROES", "CODEX"][i]], 13, SIG if on else INK, "mono_bold")
+		PK.at(p, l, Vector2(ix + i * 120, 14))
+		if on:
+			PK.rect(p, Rect2(ix + i * 120, 36, PK.text_w(l.text, 13, "mono_bold"), 3), SIG)
+		var b := _hit(_head, Rect2(ix + i * 120 - 10, 0, 118, 88), _select_tab.bind(i))
+		b.name = "Page_%d" % i
+	PK.at(p, PK.t("/", 13, Color(INK, 0.35), "mono"), Vector2(ix + 104, 14))
+	var note := PK.t("EVERY HERO WHO ANSWERS THE PORTAL" if _tab_idx == 1 else "HEROES YOU CAN PLACE IN YOUR TEAM", 9, Color(INK, 0.6), "mono")
+	PK.at(p, note, Vector2(ix, 46))
+
+
+## The filter tabs: ALL + the roles, then SORT and FILTER, printed on the matte.
+func _build_tabs() -> void:
+	for c in _tabs_row.get_children():
+		_tabs_row.remove_child(c)
+		c.queue_free()
+	var tw := _tabs_row.size.x
+	var n := 1 + Kit.ROLES.size()
+	var cw := 74.0
+	for i in n:
+		var on := i == _role_idx
+		var col := SIG if on else INK
+		var x := i * cw
+		var text := "ALL" if i == 0 else str(ROLE_CODES.get(Kit.ROLES[i - 1], ""))
+		if i > 0:
+			var ic := Kit.icon("role_" + Kit.ROLES[i - 1], 24, col)
+			ic.size = Vector2(24, 24)
+			PK.at(_tabs_row, ic, Vector2(x + (cw - 24) * 0.5, 2))
+		else:
+			var a := PK.t("*", 20, col, "mono_bold")
+			a.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			a.size = Vector2(cw, 24)
+			PK.at(_tabs_row, a, Vector2(x, 2))
+		var l := PK.t(text, 12, col, "mono_bold")
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.size = Vector2(cw, 16)
+		PK.at(_tabs_row, l, Vector2(x, 32))
+		if on:
+			PK.rect(_tabs_row, Rect2(x + cw * 0.5 - 16, 52, 32, 3), SIG)
+		if i < n - 1:
+			PK.rule(_tabs_row, Vector2(x + cw, 8), Vector2(1, 38), Color(INK, 0.25))
+		var idx := i
+		var b := _hit(_tabs_row, Rect2(x, -12, cw, 88), func() -> void:
+			_role_idx = idx
+			# Deferred: the refresh reprints the tabs, this button included.
+			_refresh.call_deferred(true))
+		b.name = "Role_%d" % i
+	# SORT and FILTER on the right.
+	var sx := tw - 210.0
+	PK.at(_tabs_row, PK.t("SORT", 10, Color(INK, 0.6), "mono_bold"), Vector2(sx, 6))
+	_sort_l = PK.t(str(SORT_NAMES[SORTS[_sort_idx]]).to_upper() + " v", 15, INK, "mono_bold")
+	PK.at(_tabs_row, _sort_l, Vector2(sx, 26))
+	var sb := _hit(_tabs_row, Rect2(sx - 10, -12, 110, 88), _open_sort)
+	sb.name = "Sort"
+	var fx := tw - 96.0
+	var active := _faction_idx > 0 or _rarity_idx > 0
+	PK.at(_tabs_row, PK.t("FILTER", 10, Color(INK, 0.6), "mono_bold"), Vector2(fx, 6))
+	var ft := "ALL"
+	if active:
+		var parts: Array[String] = []
+		if _faction_idx > 0:
+			parts.append(str(Kit.FACTION_NAMES.get(Kit.FACTIONS[_faction_idx - 1], "")).substr(0, 3).to_upper())
+		if _rarity_idx > 0:
+			parts.append(str(Kit.RARITY_TIER.get(RARITIES[_rarity_idx - 1], "")))
+		ft = " ".join(parts)
+	_filter_l = PK.t(ft + " v", 15, SIG if active else INK, "mono_bold")
+	PK.at(_tabs_row, _filter_l, Vector2(fx, 26))
+	var fb := _hit(_tabs_row, Rect2(fx - 10, -12, 106, 88), _open_filter)
+	fb.name = "FilterChip"
+	PK.rule(_tabs_row, Vector2(sx - 18, 8), Vector2(1, 38), Color(INK, 0.25))
+
+
+func _hit(parent: Control, r: Rect2, cb: Callable) -> Button:
+	var b := Button.new()
+	b.theme_type_variation = &"BareButton"
+	b.focus_mode = FOCUS_NONE
+	b.mouse_filter = MOUSE_FILTER_PASS
+	b.position = r.position
+	b.size = r.size
+	parent.add_child(b)
+	Kit._connect_pressed(b, cb, "tab")
+	return b
 
 
 # ------------------------------------------------------------------ refresh
@@ -146,18 +265,6 @@ func _refresh(reset_scroll: bool = false) -> void:
 	if not is_inside_tree() or _list == null:
 		return
 	var keep := _scroll.scroll_vertical
-	_sort_btn.text = str(SORT_NAMES[SORTS[_sort_idx]]).to_upper()
-	_filter_chip.set_pressed_no_signal(_faction_idx > 0 or _rarity_idx > 0)
-	for c in _filter_chip.get_children():
-		if c.name == "FacMark":
-			_filter_chip.remove_child(c)
-			c.queue_free()
-	if _faction_idx > 0:
-		var fm := Kit.faction_icon(Kit.FACTIONS[_faction_idx - 1], 30)
-		fm.name = "FacMark"
-		fm.position = Vector2(_filter_chip.custom_minimum_size.x - 34, 4)
-		fm.size = Vector2(30, 30)
-		_filter_chip.add_child(fm)
 	# First-session guidance: the hero to level next.
 	_guide_level_id = Guide.level_target() if Guide.step() == "level" else ""
 	for c in _list.get_children():
@@ -186,30 +293,32 @@ func _refresh(reset_scroll: bool = false) -> void:
 		var rb := int(RARITY_RANK.get(str(Game.hero_def(b).rarity), 0))
 		return ra > rb if ra != rb else a < b)
 
+	_build_head(owned_total, total)
+	_build_tabs()
+	_count_l.text = "%02d OF %02d SUMMONED  ·  SORTED BY %s" % [owned_total, total, str(SORT_NAMES[SORTS[_sort_idx]]).to_upper()]
 	if _tab_idx == 0:
-		_hint.text = "Heroes you can place in your team.  %d of %d summoned." % [owned_total, total]
+		_hint.text = "HEROES YOU CAN PLACE IN YOUR TEAM.  %d OF %d SUMMONED." % [owned_total, total]
 	else:
-		_hint.text = "Every hero who answers the portal.  %d of %d collected." % [owned_total, total]
+		_hint.text = "EVERY HERO WHO ANSWERS THE PORTAL.  %d OF %d COLLECTED." % [owned_total, total]
 
 	var shown: Array[String] = []
 	shown.append_array(owned_ids)
 	shown.append_array(unowned_ids)
 	if shown.is_empty():
-		var es := Kit.empty_state("No heroes match these filters." if owned_total > 0 or _tab_idx == 1 else "No heroes yet. Summon some!", "heroes", true)
-		es.custom_minimum_size.y = 420
+		var msg := "No heroes match these filters." if owned_total > 0 or _tab_idx == 1 else "No heroes yet. Summon some!"
+		var es := PK.t(msg.to_upper(), 14, Color(INK, 0.6), "mono_bold")
+		es.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		es.custom_minimum_size = Vector2(0, 300)
+		es.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		_list.add_child(es)
 	else:
-		var g := Kit.grid(COLS, CARD_GAP)
+		var g := GridContainer.new()
+		g.columns = COLS
+		g.add_theme_constant_override("h_separation", CARD_GAP)
 		g.add_theme_constant_override("v_separation", ROW_GAP)
-		g.size_flags_horizontal = SIZE_SHRINK_BEGIN
 		for id in shown:
 			g.add_child(_card(id, shown))
-		# Left-aligned like a roster, the full 4-column width centred on the page.
-		var gw := COLS * _card_w + (COLS - 1) * CARD_GAP
-		var pad := maxi(0, int((get_viewport_rect().size.x - 32.0 - gw) * 0.5))
-		var gm := Kit.margin(g, 0, 0)
-		gm.add_theme_constant_override("margin_left", pad)
-		_list.add_child(gm)
+		_list.add_child(g)
 	if _tab_idx == 0 and owned_total < total:
 		_list.add_child(_codex_teaser(total - owned_total))
 
@@ -273,8 +382,10 @@ func _card(id: String, browse: Array[String]) -> Control:
 		else:
 			var sc := Game.star_up_cost(id)
 			dot = not sc.is_empty() and int(sc.get("shards_have", 0)) >= int(sc.get("shards", 1))
-	var card := Kit.portrait_card(id, {
-		"size": _card_w, "owned": own, "new": own and is_new(id), "dot": dot,
+	var card := PosterCard.new()
+	card.setup(id, {
+		"size": _card_w, "ratio": 1.52, "owned": own, "new": own and is_new(id), "dot": dot,
+		"in_team": own and Game.formation().has(id),
 		"on_pressed": func() -> void: _open(id, browse),
 	})
 	if id == _guide_level_id:
@@ -284,25 +395,28 @@ func _card(id: String, browse: Array[String]) -> Control:
 
 ## Under a short roster: how many heroes are still out there, with a jump to the codex.
 func _codex_teaser(missing: int) -> Control:
-	var row := Kit.panel("light_inset", 12)
-	var h := Kit.hbox(14)
-	h.add_child(Kit.hex_badge("summon", 56, Color("182640"), Color.WHITE))
-	var t := Kit.label("%d more hero%s answer the Summon portal." % [missing, "" if missing == 1 else "es"], 22, Kit.TEXT, "bold")
-	t.size_flags_horizontal = SIZE_EXPAND_FILL
-	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	h.add_child(t)
-	var b := Kit.light_button("Codex", _select_tab.bind(1), "codex")
-	b.custom_minimum_size.x = 176
-	h.add_child(b)
-	row.add_child(h)
+	var row := Control.new()
+	row.custom_minimum_size = Vector2(0, 96)
+	var w := minf(get_viewport_rect().size.x, MAX_W) - 36.0
+	PK.rule(row, Vector2(0, 8), Vector2(w, 1), Color(INK, 0.4))
+	PK.at(row, PK.t("%02d MORE HERO%s ANSWER THE SUMMON PORTAL." % [missing, "" if missing == 1 else "ES"], 13, INK, "mono_bold"), Vector2(0, 30))
+	var go := PK.t("02 CODEX ->", 15, SIG, "mono_bold")
+	go.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	go.size = Vector2(200, 20)
+	PK.at(row, go, Vector2(w - 200, 28))
+	PK.rect(row, Rect2(w - PK.text_w(go.text, 15, "mono_bold"), 52, PK.text_w(go.text, 15, "mono_bold"), 3), SIG)
+	var b := _hit(row, Rect2(0, 6, w, 88), _select_tab.bind(1))
+	b.name = "CodexLink"
 	return row
 
 
-## Presses a page tab (its toggled handler switches the page).
+## Switches the page (0 Heroes, 1 Codex).
 func _select_tab(i: int) -> void:
-	var tabs := find_child("TabStrip", true, false) as HBoxContainer
-	if tabs and i < tabs.get_child_count():
-		(tabs.get_child(i) as Button).button_pressed = true
+	if i == _tab_idx:
+		return
+	_tab_idx = i
+	# Deferred: the refresh reprints the masthead, the pressed page label included.
+	_refresh.call_deferred(true)
 
 
 # ------------------------------------------------------------------ sort & filter
@@ -348,8 +462,8 @@ func _open_filter() -> void:
 	var reset := Kit.light_button("Reset", func() -> void:
 		_faction_idx = 0
 		_rarity_idx = 0
+		_role_idx = 0
 		_close_modal()
-		_reselect_roles()
 		_refresh(true), "refresh")
 	var ok := Kit.primary_button("OK", _close_modal)
 	reset.size_flags_horizontal = SIZE_EXPAND_FILL
@@ -359,13 +473,6 @@ func _open_filter() -> void:
 	col.add_child(Kit.spacer(0, 4))
 	col.add_child(row)
 	_modal = UI.popup("Filter", col, Callable(), 600.0, true)
-
-
-## Back to ALL roles (pressing the chip runs its handler).
-func _reselect_roles() -> void:
-	var rc := find_child("RoleChips", true, false) as HBoxContainer
-	if rc and rc.get_child_count() > 0:
-		(rc.get_child(0) as Button).button_pressed = true
 
 
 func _close_modal() -> void:

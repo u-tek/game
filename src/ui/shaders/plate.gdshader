@@ -17,6 +17,9 @@ uniform int shape = 0;
 uniform int npts = 4;
 uniform vec2 pts[16];
 uniform vec3 circle = vec3(50.0, 50.0, 40.0);
+// A round cut-out through the plate (xy centre, z radius; 0 = none): its rim gets the bevel and the
+// plate's shadow falls into it, so whatever shows through sits deeper.
+uniform vec3 hole = vec3(0.0);
 uniform float bevel = 5.0;
 uniform float bevel_tilt = 1.4;
 // Cut into the surface instead of raised (engraved panels, wells): inner shadow, no cast shadow.
@@ -104,10 +107,11 @@ float sd_poly(vec2 p) {
 }
 
 float sdf(vec2 p) {
-	if (shape == 1) {
-		return length(p - circle.xy) - circle.z;
+	float d = shape == 1 ? length(p - circle.xy) - circle.z : sd_poly(p);
+	if (hole.z > 0.0) {
+		d = max(d, hole.z - length(p - hole.xy));
 	}
-	return sd_poly(p);
+	return d;
 }
 
 // The studio, as seen along reflection direction r (x right, y down, z toward the viewer).

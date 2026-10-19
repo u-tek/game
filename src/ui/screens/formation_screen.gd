@@ -1,19 +1,39 @@
 extends Control
-## Screen "formation" (bottom-nav Team tab), style v2: pick the five heroes who fight.
-## A dark header with the TEAM tab and the team power, then the squad on a dark glass floor:
-## five tall portrait cards in a row, the FRONT pair (slots 0-1, facing the enemy) and the
-## BACK three (slots 2-4), with the faction bonus and a counter hint for the next stage under
-## them. Below, a light page with faction filter chips and the bench (square hero cards; the
-## ones in the team are checked), then Auto-fill and Battle.
-## Tap an empty slot to select it (cyan ring), then a bench hero to place them there; tapping
-## a bench hero with no slot selected puts them in the best free slot (front for guardians
-## and strikers). Tap a placed hero to take them out. Every valid change is saved right away
-## with Game.set_formation.
+## Screen "formation" (bottom-nav Team tab): pick the five heroes who fight. Style v4
+## (docs/dev/ui-style-v4.md): the team as a printed poster in the approved Lobby poster's look, on a
+## paper matte (the idea of numbered units: five positions set as huge compressed numerals).
+## The poster: a dark band down the left with the lead hero's red halftone print, the brand marks and
+## the team's data in paper type (faction counts and the bonus they give, the next stage's enemy
+## factions and which of ours counter them); the Auto-fill stamp on a silver disc stuck on its foot;
+## on the paper the team power set big, then the five positions "01"-"05": the FRONT pair (slots 0-1,
+## facing the enemy) large, the BACK three below, each a giant numeral with the hero's art in full
+## colour boxed by a hairline in front of it, her name, level and role, and an "x" to take her out.
+## An empty position prints a hollow numeral and "+ ASSIGN"; the chosen one turns signal ("PICK A
+## HERO"). Down the right-hand rule FRONT and BACK as turned labels. Under the poster the bench:
+## faction tabs, the owned heroes as small printed cards in a sideways strip (the ones in the team
+## carry their position number), and the Battle pass (to the campaign).
+## Tap an empty position to choose it, then a bench hero to place them there; tapping a bench hero
+## with no position chosen puts them in the best free one (front for guardians and strikers). Tap a
+## placed hero to take them out. Every valid change is saved right away with Game.set_formation.
+
+const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
+const PosterCard := preload("res://src/ui/v4/poster_card.gd")
+const HUD := preload("res://src/ui/components/hud.gd")
 
 const SLOT_ORDER_FRONT: Array[int] = [0, 1, 2, 3, 4]
 const SLOT_ORDER_BACK: Array[int] = [2, 3, 4, 0, 1]
 const FRONT_ROLES: Array[String] = ["guardian", "striker"]
-const BENCH_COLS := 5
+const BAND := 150.0
+const RULE_IN := 44.0
+const INK := Color("101113")
+const PAPER := Color("e9e8e2")
+const SIG := Color("ff4b1f")
+const FACTION_SHORT := {"celestial": "CEL", "infernal": "INF", "fallen": "FAL"}
+## Room under the poster: bench header, strip and the pass beside it.
+const BELOW := 256.0
+const BENCH_W := 104.0
+## The poster is never wider than this (tablets centre it on the matte).
+const MAX_W := 760.0
 
 static var _filter_idx := 0
 
@@ -21,17 +41,18 @@ var _auto_btn: Button
 var _slots: Array = ["", "", "", "", ""]
 var _selected := -1
 var _slot_holders: Array[Control] = []
-var _slot_w := 126.0
-var _bench_card := 120.0
-var _compact := false
-
+var _poster: Control
+var _band_print: Control
+var _band_lead := ""
 var _power_label: Label
 var _power_value := -1
-var _bonus_box: HBoxContainer
-var _hint_box: HBoxContainer
-var _grid: GridContainer
-var _list_scroll: ScrollContainer
+var _data_l: Label
+var _bench: HBoxContainer
+var _bench_scroll: ScrollContainer
+var _filter_row: Control
 var _warn: Label
+var _hint: Label
+var _pass: PK.Pass
 var _built := false
 
 
@@ -63,146 +84,153 @@ func _build() -> void:
 	if _built:
 		return
 	_built = true
-	_compact = size.y < 1100.0
-	var w := size.x
-	_slot_w = floorf(minf(112.0 if size.y < 1000.0 else 128.0, (w - 32.0 - 4 * 8.0 - 14.0) / 5.0))
-	_bench_card = floorf(minf(112.0 if size.y < 1000.0 else 124.0, (w - 40.0 - (BENCH_COLS - 1) * 12.0) / BENCH_COLS))
+	# Wider windows (tablets) keep the poster at phone width, centred on the matte.
+	var w := minf(size.x, MAX_W)
+	var ox := floorf((size.x - w) * 0.5)
+	var h := maxf(size.y, 820.0)
+	PK.matte(self)
+	PK.at(self, PK.t("HALO & HORN  ©2026", 12, INK, "mono_bold"), Vector2(ox + 20, 8))
+	var pub := PK.t("FORMATION  ·  FIVE POSITIONS", 12, Color(INK, 0.7), "mono")
+	pub.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	pub.size = Vector2(420, 16)
+	PK.at(self, pub, Vector2(ox + w - 20 - 420, 9))
 
-	# Dark header: the page tab, team power on the right.
-	var head := Kit.hbox(10)
-	head.set_anchors_and_offsets_preset(PRESET_TOP_WIDE)
-	head.offset_left = 16
-	head.offset_right = -16
-	head.offset_top = 10
-	head.offset_bottom = 10 + Kit.BUTTON_H
-	head.add_child(Kit.tab_strip([{"text": "Team", "icon": "nav_team"}], 0, Callable(), 210.0))
-	head.add_child(Kit.spacer(0, 0, true))
-	var pw := Kit.hbox(6)
-	pw.mouse_filter = MOUSE_FILTER_IGNORE
-	pw.size_flags_vertical = SIZE_SHRINK_CENTER
-	pw.add_child(Kit.icon("power", 40))
-	var pv := Kit.vbox(-8)
-	pv.mouse_filter = MOUSE_FILTER_IGNORE
-	pv.add_child(Kit.label("TEAM POWER", 17, Kit.INK_DIM, "cond_bold"))
-	_power_label = Kit.label("0", 44, Kit.INK, "title")
-	pv.add_child(_power_label)
-	pw.add_child(pv)
-	head.add_child(pw)
-	add_child(head)
+	var pr := Rect2(ox + 18, 30, w - 36, h - 30 - BELOW)
+	_poster = PK.poster(self, pr)
+	var p := _poster
+	var pw := pr.size.x
+	var ph := pr.size.y
 
-	var stage := _build_stage()
-	stage.position = Vector2(12, 10 + Kit.BUTTON_H + 10)
-	stage.size = Vector2(w - 24, 0)
-	add_child(stage)
-	var stage_h := stage.get_combined_minimum_size().y
-	var page_top := 10 + Kit.BUTTON_H + 10 + stage_h + 12
+	# ---- The band: the lead's print, the marks, the team's data.
+	PK.rect(p, Rect2(0, 0, BAND, ph), PK.BAND)
+	PK.at(p, PK.t("HH", 28, PAPER, "wide_black"), Vector2(14, 12))
+	PK.at(p, PK.t("™", 11, PAPER, "mono"), Vector2(70, 14))
+	PK.at(p, PK.t("FORMATION\nNo.05", 11, Color(PAPER, 0.85), "mono_bold"), Vector2(14, 54))
+	_data_l = PK.t("", 10, Color(PAPER, 0.9), "mono")
+	_data_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_data_l.size = Vector2(BAND - 36, 0)
+	PK.at(p, _data_l, Vector2(14, 104))
+	PK.at(p, PK.vlabel("©2026 HH, ALL RIGHTS RESERVED.", 10, Color(PAPER, 0.45)), Vector2(BAND - 6, 10))
 
-	var page := Kit.page_bg("light")
-	page.offset_top = page_top
-	add_child(page)
+	# ---- The right-hand rule.
+	PK.rule(p, Vector2(pw - RULE_IN, 0), Vector2(1, ph))
+	PK.at(p, PK.vlabel("©2026 ·", 12, INK), Vector2(pw - 12, 12))
 
-	var col := Kit.vbox(8)
-	col.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	col.offset_top = page_top + 12
-	col.offset_left = 16
-	col.offset_right = -16
-	col.offset_bottom = -14 - UI.pinned_bottom_inset()
-	add_child(col)
-	var chips := Kit.hbox(10)
-	var fac_opts: Array = ["ALL"]
-	for f: String in Kit.FACTIONS:
-		fac_opts.append({"icon": "faction_" + f})
-	chips.add_child(Kit.filter_chips(fac_opts, _filter_idx, func(i: int) -> void:
-		_filter_idx = i
-		_refresh_list()))
-	var hint := Kit.label("Tap a hero to add or remove them. Tap an empty slot first to choose where.", 19, Kit.TEXT_DIM, "bold")
-	hint.size_flags_horizontal = SIZE_EXPAND_FILL
-	hint.custom_minimum_size.x = 120
-	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	hint.add_theme_constant_override("line_spacing", -2)
-	chips.add_child(hint)
-	col.add_child(chips)
+	# ---- Team power, big, top right of the paper.
+	var xr := pw - RULE_IN - 12.0
+	var x0 := BAND + 16.0
+	PK.at(p, PK.t("05 POSITIONS", 12, INK, "mono_bold"), Vector2(x0, 14))
+	PK.at(p, PK.t("FRONT FACES THE ENEMY\nBACK IS PROTECTED", 9, Color(INK, 0.6), "mono"), Vector2(x0, 34))
+	var pt := PK.t("TEAM POWER", 10, INK, "mono_bold")
+	pt.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	pt.size = Vector2(200, 14)
+	PK.at(p, pt, Vector2(xr - 200, 12))
+	_power_label = PK.t("0", 62, INK, "compressed")
+	_power_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_power_label.size = Vector2(300, 70)
+	PK.at(p, _power_label, Vector2(xr - 300, 18))
 
-	_grid = Kit.grid(BENCH_COLS, 12)
-	_grid.add_theme_constant_override("v_separation", 10)
-	var gm := Kit.margin(_grid, 4, 6)
-	_list_scroll = Kit.scroll(gm)
-	_list_scroll.custom_minimum_size.y = 140
-	col.add_child(_list_scroll)
+	# ---- The five positions.
+	var top := 100.0
+	var usable := ph - top - 54.0
+	var front_h := floorf(usable * 0.54)
+	var back_h := usable - front_h
+	var cx0 := BAND + 10.0
+	var cx1 := pw - RULE_IN - 6.0
+	var cw_f := (cx1 - cx0) / 2.0
+	var cw_b := (cx1 - cx0) / 3.0
+	_slot_holders.clear()
+	for i in 5:
+		var r := Rect2(cx0 + i * cw_f, top, cw_f, front_h) if i < 2 else Rect2(cx0 + (i - 2) * cw_b, top + front_h, cw_b, back_h)
+		var holder := Control.new()
+		holder.name = "Slot%d" % i
+		holder.mouse_filter = MOUSE_FILTER_IGNORE
+		holder.position = r.position
+		holder.size = r.size
+		p.add_child(holder)
+		_slot_holders.append(holder)
+	PK.rule(p, Vector2(cx0, top + front_h - 4), Vector2(cx1 - cx0, 1), Color(INK, 0.3))
+	_edge_label(p, "FRONT", top + 10)
+	_edge_label(p, "BACK", top + front_h + 10)
 
-	_warn = Kit.label("", 21, Color("d42a12"), "extrabold")
-	_warn.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	# ---- Notes at the poster's foot: the hint, or the empty-team warning in signal.
+	_hint = PK.t("TAP A BENCH HERO TO ADD OR REMOVE THEM. TAP AN EMPTY POSITION FIRST TO CHOOSE WHERE.", 9, Color(INK, 0.6), "mono")
+	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_hint.size = Vector2(cx1 - x0, 0)
+	PK.at(p, _hint, Vector2(x0, ph - 40))
+	_warn = PK.t("", 11, SIG, "mono_bold")
 	_warn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_warn.size = Vector2(cx1 - x0, 0)
 	_warn.visible = false
-	col.add_child(_warn)
+	PK.at(p, _warn, Vector2(x0, ph - 44))
 
-	var buttons := Kit.hbox(12)
-	var auto := Kit.light_button("Auto-fill", _on_auto, "auto")
-	auto.name = "AutoFill"
-	auto.size_flags_horizontal = SIZE_EXPAND_FILL
-	buttons.add_child(auto)
-	_auto_btn = auto
-	var go := Kit.primary_button("Battle", func() -> void: UI.go("campaign"), "sword")
-	go.name = "Battle"
-	go.size_flags_horizontal = SIZE_EXPAND_FILL
-	buttons.add_child(go)
-	col.add_child(buttons)
+	# ---- The Auto-fill stamp on a silver disc, stuck on the band's foot.
+	var disc := SignalKit.plate("silver", pr.position + Vector2(20, ph - 132), Vector2(112, 112), {"circle": true, "shadow": 0.5}, self)
+	disc.rotation = -0.1
+	disc.add_child(SignalKit.stamp("AUTO-FILL · STRONGEST FIVE · ", "AUTO", 112))
+	_auto_btn = Button.new()
+	_auto_btn.name = "AutoFill"
+	_auto_btn.theme_type_variation = &"BareButton"
+	_auto_btn.focus_mode = FOCUS_NONE
+	_auto_btn.mouse_filter = MOUSE_FILTER_PASS
+	_auto_btn.position = pr.position + Vector2(14, ph - 138)
+	_auto_btn.size = Vector2(124, 124)
+	add_child(_auto_btn)
+	Kit.add_press_fx(_auto_btn, disc)
+	Kit._connect_pressed(_auto_btn, _on_auto)
+
+	# ---- Under the poster: the bench and the Battle pass.
+	var by := pr.end.y
+	_filter_row = Control.new()
+	_filter_row.name = "BenchTabs"
+	_filter_row.mouse_filter = MOUSE_FILTER_IGNORE
+	_filter_row.position = Vector2(ox + 18, by + 12)
+	_filter_row.size = Vector2(w - 36 - 320, 28)
+	add_child(_filter_row)
+	_bench = HBoxContainer.new()
+	_bench.add_theme_constant_override("separation", 12)
+	var bm := MarginContainer.new()
+	bm.add_theme_constant_override("margin_top", 6)
+	bm.add_theme_constant_override("margin_bottom", 6)
+	bm.add_theme_constant_override("margin_left", 4)
+	bm.add_theme_constant_override("margin_right", 12)
+	bm.add_child(_bench)
+	_bench_scroll = ScrollContainer.new()
+	_bench_scroll.name = "Bench"
+	_bench_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	_bench_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_bench_scroll.scroll_deadzone = 14
+	_bench_scroll.follow_focus = false
+	_bench_scroll.mouse_filter = MOUSE_FILTER_PASS
+	_bench_scroll.add_child(bm)
+	_bench_scroll.position = Vector2(ox + 14, by + 46)
+	_bench_scroll.size = Vector2(w - 28 - 324, h - by - 46 - 6)
+	add_child(_bench_scroll)
+	_pass = PK.make_pass(300.0, "sword", false, false)
+	_pass.hit.name = "Battle"
+	Kit._connect_pressed(_pass.hit, func() -> void: UI.go("campaign"))
+	_pass.position = Vector2(ox + w - 18 - 300, by + 40)
+	_pass.rotation = -0.025
+	add_child(_pass)
+	_refresh_pass()
+	PK.grain(self)
+	SignalKit.relight(self)
 	_refresh()
 
 
-## The squad floor: FRONT / BACK captions, five slots, the faction bonus and the counter hint.
-func _build_stage() -> Control:
-	var field := Kit.panel("glass", 12)
-	field.name = "Squad"
-	var v := Kit.vbox(6 if _compact else 8)
-	field.add_child(v)
-	var slot_h := roundf(_slot_w * 1.62)
-	# Captions over the two rows: a technical line with the row name.
-	var caps := Kit.hbox(14)
-	caps.alignment = BoxContainer.ALIGNMENT_CENTER
-	caps.mouse_filter = MOUSE_FILTER_IGNORE
-	caps.add_child(_row_caption("FRONT", "Faces the enemy", 2))
-	caps.add_child(_row_caption("BACK", "Protected", 3))
-	v.add_child(caps)
-	var r := Kit.hbox(14)
-	r.alignment = BoxContainer.ALIGNMENT_CENTER
-	_slot_holders.clear()
-	for grp: Array in [[0, 1], [2, 3, 4]]:
-		var g := Kit.hbox(8)
-		for i: int in grp:
-			var holder := Control.new()
-			holder.name = "Slot%d" % i
-			holder.custom_minimum_size = Vector2(_slot_w, slot_h)
-			holder.mouse_filter = MOUSE_FILTER_PASS
-			g.add_child(holder)
-			_slot_holders.append(holder)
-		r.add_child(g)
-	v.add_child(r)
-	# Faction counts and the bonus they give, then the next stage's counter hint.
-	_bonus_box = Kit.hbox(10)
-	_bonus_box.mouse_filter = MOUSE_FILTER_IGNORE
-	_bonus_box.custom_minimum_size.y = 40
-	v.add_child(_bonus_box)
-	_hint_box = Kit.hbox(8)
-	_hint_box.mouse_filter = MOUSE_FILTER_IGNORE
-	_hint_box.custom_minimum_size.y = 40
-	v.add_child(_hint_box)
-	return field
+## A turned label down the right-hand rule with a tick (row markers).
+func _edge_label(p: Control, text: String, y: float) -> void:
+	PK.at(p, PK.vlabel(text, 13, INK, "mono_bold"), Vector2(p.size.x - 14, y))
+	PK.rule(p, Vector2(p.size.x - RULE_IN - 4, y + 2), Vector2(9, 1), INK)
 
 
-func _row_caption(title_text: String, sub: String, slots: int) -> Control:
-	var wdt := slots * _slot_w + (slots - 1) * 8.0
-	var c := Kit.vbox(0)
-	c.mouse_filter = MOUSE_FILTER_IGNORE
-	c.custom_minimum_size.x = wdt
-	var h := Kit.hbox(8)
-	h.mouse_filter = MOUSE_FILTER_IGNORE
-	h.add_child(Kit.label(title_text, 22, Kit.INK, "cond_black"))
-	h.add_child(Kit.label(sub.to_upper(), 16, Kit.INK_DIM, "cond_bold"))
-	c.add_child(h)
-	c.add_child(Kit.deco("techline", Vector2(wdt, 8), Color(1, 1, 1, 0.3)))
-	return c
+func _refresh_pass() -> void:
+	var st := Game.current_stage()
+	if st.is_empty():
+		_pass.set_text("CAMPAIGN // ALL CLEAR", "REPLAY", "EVERY STAGE IS CLEARED", "BATTLE  >>>", "")
+	else:
+		_pass.set_text("CAMPAIGN // NEXT", "STAGE %s" % str(st.id), str(st.get("name", "")).to_upper(), "BATTLE  >>>",
+			"REC PWR %s" % Kit.format_full(int(st.get("recommended_power", 0))))
 
 
 # ------------------------------------------------------------------ refresh
@@ -212,14 +240,12 @@ func _refresh() -> void:
 		return
 	_refresh_slots()
 	_refresh_summary()
-	_refresh_hint()
-	_refresh_list()
+	_refresh_bench()
 	# First-session guidance: Auto-fill when it would clearly help.
 	Guide.mark(_auto_btn, Guide.step() == "formation")
 
 
 func _refresh_slots() -> void:
-	var slot_h := roundf(_slot_w * 1.62)
 	for i in 5:
 		var holder := _slot_holders[i]
 		for c in holder.get_children():
@@ -227,42 +253,88 @@ func _refresh_slots() -> void:
 			c.queue_free()
 		var id := str(_slots[i])
 		var idx := i
+		var r := Rect2(Vector2.ZERO, holder.size)
+		var front := i < 2
+		# The numeral as big as the position allows: its height, and two digits across 80% of its
+		# width (wider and neighbouring numerals run together: "0102").
+		var num := clampf(r.size.y * (0.62 if front else 0.66), 80.0, 240.0)
+		num = minf(num, num * r.size.x * 0.8 / maxf(PK.text_w("%02d" % (i + 1), int(num)), 1.0))
+		var box := Rect2(r.size.x * (0.3 if front else 0.2), r.size.y * (0.26 if front else 0.3),
+			r.size.x * (0.64 if front else 0.74), r.size.y * (0.6 if front else 0.52))
+		var numeral := PK.t("%02d" % (i + 1), int(num), INK, "compressed")
+		numeral.position = Vector2(-2, -num * 0.17)
+		holder.add_child(numeral)
 		if id == "":
-			var e := Kit.empty_slot(_slot_w, "Front" if i < 2 else "Back", func() -> void: _tap_slot(idx))
-			e.custom_minimum_size = Vector2(_slot_w, slot_h)
-			e.size = e.custom_minimum_size
-			holder.add_child(e)
-			if _selected == i:
-				var ring := Panel.new()
-				ring.mouse_filter = MOUSE_FILTER_IGNORE
-				ring.add_theme_stylebox_override("panel", Kit.box(Color(Kit.ACCENT, 0.12), Color(Kit.ACCENT, 0.12), Kit.ACCENT_HI, 6.0, 3))
-				ring.position = Vector2(-4, -4)
-				ring.size = Vector2(_slot_w + 8, slot_h + 8)
-				holder.add_child(ring)
-				var tw := ring.create_tween().set_loops()
-				tw.tween_property(ring, "modulate:a", 0.35, 0.5).set_trans(Tween.TRANS_SINE)
-				tw.tween_property(ring, "modulate:a", 1.0, 0.5).set_trans(Tween.TRANS_SINE)
-				var pick := Kit.tag("PICK A HERO", Kit.ACCENT, Color.WHITE, 16)
-				holder.add_child(pick)
-				pick.position = Vector2((_slot_w - pick.get_combined_minimum_size().x) * 0.5, slot_h * 0.3)
+			var sel := _selected == i
+			if sel:
+				numeral.add_theme_color_override("font_color", SIG)
+			else:
+				# A hollow numeral: outline only.
+				numeral.add_theme_color_override("font_color", Color(INK, 0.0))
+				numeral.add_theme_constant_override("outline_size", 3)
+				numeral.add_theme_color_override("font_outline_color", Color(INK, 0.45))
+			var dash := Dashed.new()
+			dash.color = SIG if sel else Color(INK, 0.45)
+			dash.position = box.position
+			dash.size = box.size
+			holder.add_child(dash)
+			var cap := PK.t("PICK A HERO" if sel else "+ ASSIGN", 11, SIG if sel else Color(INK, 0.6), "mono_bold")
+			cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			cap.size = Vector2(box.size.x, 16)
+			PK.at(holder, cap, box.position + Vector2(0, box.size.y * 0.5 - 8))
+			PK.at(holder, PK.t("FRONT" if front else "BACK", 9, Color(INK, 0.5), "mono"), box.position + Vector2(0, box.size.y + 6))
+			if sel:
+				var led := HUD.Led.new()
+				led.mode = "breathe"
+				led.size = Vector2(16, 16)
+				led.position = box.position + Vector2(box.size.x - 20, 4)
+				holder.add_child(led)
+			var e := _hit(holder, Rect2(Vector2(0, box.position.y - 20), Vector2(r.size.x, box.size.y + 40)), func() -> void: _tap_slot(idx))
+			e.name = "Empty%d" % i
 		else:
-			var card := Kit.portrait_card(id, {"size": _slot_w, "on_pressed": func() -> void: _tap_slot(idx)})
-			holder.add_child(card)
-			# The "x" really removes the hero (as a tap on the card does), with an 88 px
-			# touch area around the small hex.
-			var xb := Button.new()
+			var def := Game.hero_def(id)
+			PK.rect(holder, box, Color("dedcd4"))
+			var art := TextureRect.new()
+			art.name = "Art"
+			art.mouse_filter = MOUSE_FILTER_IGNORE
+			art.texture = Kit.art_crop(id, box.size.x / box.size.y, 1.0, Kit.hero_look(id))
+			art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+			art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+			art.position = box.position
+			art.size = box.size
+			holder.add_child(art)
+			var fr := Panel.new()
+			fr.mouse_filter = MOUSE_FILTER_IGNORE
+			var fb := StyleBoxFlat.new()
+			fb.draw_center = false
+			fb.border_color = Color(INK, 0.7)
+			fb.set_border_width_all(1)
+			fr.add_theme_stylebox_override("panel", fb)
+			fr.position = box.position
+			fr.size = box.size
+			holder.add_child(fr)
+			var nm := PK.t(str(def.get("name", id)).to_upper(), 13 if front else 11, INK, "mono_bold")
+			nm.size = Vector2(box.size.x + 10, 16)
+			nm.clip_text = true
+			PK.at(holder, nm, box.position + Vector2(0, box.size.y + 5))
+			var lv := int(Game.hero(id).get("level", 1))
+			var sub := PK.t("LV %d  ·  %s" % [lv, str(Kit.ROLE_NAMES.get(str(def.get("role", "")), "")).to_upper()], 9, Color(INK, 0.6), "mono")
+			sub.size = Vector2(box.size.x + 10, 14)
+			sub.clip_text = true
+			PK.at(holder, sub, box.position + Vector2(0, box.size.y + 22))
+			var card := _hit(holder, Rect2(box.position - Vector2(4, 4), box.size + Vector2(8, 8)), func() -> void: _tap_slot(idx))
+			card.name = "Placed%d" % i
+			Kit.add_press_fx(card, art)
+			# The "x" takes the hero out too (as a tap on her does), with an 88 px target.
+			var xl := PK.t("x", 15, PAPER, "mono_bold")
+			xl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			xl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			xl.size = Vector2(22, 22)
+			var xbg := PK.rect(holder, Rect2(box.position + Vector2(box.size.x - 22, 0), Vector2(22, 22)), INK)
+			xbg.add_child(xl)
+			var xb := _hit(holder, Rect2(box.position + Vector2(box.size.x - 11 - 44, 11 - 44), Vector2(88, 88)), func() -> void: _tap_slot(idx))
 			xb.name = "Remove"
-			xb.theme_type_variation = &"BareButton"
-			xb.focus_mode = FOCUS_NONE
-			xb.mouse_filter = MOUSE_FILTER_PASS
-			xb.size = Vector2(Kit.BUTTON_H, Kit.BUTTON_H)
-			xb.position = Vector2(_slot_w - 8.0 - Kit.BUTTON_H * 0.5, 6.0 - Kit.BUTTON_H * 0.5)
-			var x := Kit.hex_badge("close", 32, Color("182640"), Color.WHITE)
-			x.position = Vector2((Kit.BUTTON_H - 32.0) * 0.5, (Kit.BUTTON_H - 32.0) * 0.5)
-			xb.add_child(x)
-			Kit.add_press_fx(xb, x)
-			Kit._connect_pressed(xb, func() -> void: _tap_slot(idx))
-			holder.add_child(xb)
 
 
 func _refresh_summary() -> void:
@@ -272,89 +344,109 @@ func _refresh_summary() -> void:
 			power += int(Game.hero_power(str(id)))
 	if _power_value >= 0 and power != _power_value:
 		Kit.count_to(_power_label, _power_value, power, 0.45, true)
-		Kit.pulse(_power_label, 1.1)
+		Kit.pulse(_power_label, 1.06)
 	else:
 		_power_label.text = Kit.format_full(power)
 	_power_value = power
-
-	for c in _bonus_box.get_children():
-		_bonus_box.remove_child(c)
-		c.queue_free()
+	# The band: faction counts and their bonus, then the next stage's counter hint.
+	var lines: Array[String] = ["FACTIONS"]
 	var counts := _faction_counts(_slots)
 	var best := ""
-	_bonus_box.add_child(Kit.label("FACTIONS", 18, Kit.INK_DIM, "cond_bold"))
+	var parts: Array[String] = []
 	for f: String in Kit.FACTIONS:
 		var n := int(counts.get(f, 0))
+		parts.append("%s %d" % [str(FACTION_SHORT.get(f, f)), n])
 		if n > 0 and (best == "" or n > int(counts.get(best, 0))):
 			best = f
-		var chip := Kit.hbox(2)
-		chip.mouse_filter = MOUSE_FILTER_IGNORE
-		chip.add_child(Kit.faction_icon(f, 32))
-		chip.add_child(Kit.label("%d" % n, 26, Kit.faction_color(f).lerp(Color.WHITE, 0.35) if n > 0 else Kit.INK_DIM, "cond_bold"))
-		if n == 0:
-			chip.modulate.a = 0.45
-		_bonus_box.add_child(chip)
-	_bonus_box.add_child(Kit.spacer(0, 0, true))
+	lines.append(" · ".join(parts))
 	var bp := BattleSim.faction_bonus_bp(int(counts.get(best, 0))) if best != "" else 0
 	if bp > 0:
-		var t := Kit.tag("%s +%d%% HP & ATK" % [str(Kit.FACTION_NAMES.get(best, best)).to_upper(), bp / 100], Kit.faction_color(best).darkened(0.1), Color.WHITE, 18)
-		t.size_flags_vertical = SIZE_SHRINK_CENTER
-		_bonus_box.add_child(t)
+		lines.append("%s +%d%% HP & ATK" % [str(Kit.FACTION_NAMES.get(best, best)).to_upper(), bp / 100])
 	else:
-		var l := Kit.label("3 / 4 / 5 ALIKE: +%d / %d / %d%%" % [
-			BattleSim.faction_bonus_bp(3) / 100, BattleSim.faction_bonus_bp(4) / 100, BattleSim.faction_bonus_bp(5) / 100], 18, Kit.INK_DIM, "cond_bold")
-		_bonus_box.add_child(l)
-
-
-## Next stage: its enemy factions and which of ours counter them (and how many are fielded).
-func _refresh_hint() -> void:
-	for c in _hint_box.get_children():
-		_hint_box.remove_child(c)
-		c.queue_free()
+		lines.append("3/4/5 ALIKE: +%d/%d/%d%%" % [BattleSim.faction_bonus_bp(3) / 100, BattleSim.faction_bonus_bp(4) / 100, BattleSim.faction_bonus_bp(5) / 100])
+	lines.append("")
 	var st := Game.current_stage()
 	if st.is_empty():
-		_hint_box.add_child(Kit.label("Every stage is cleared. Replay stages from the campaign map.", 20, Kit.INK_DIM, "bold"))
-		return
-	var enemy_counts := {}
-	for e: Dictionary in st.get("enemies", []):
-		var f := str(Game.hero_def(str(e.hero_id)).get("faction", ""))
-		enemy_counts[f] = int(enemy_counts.get(f, 0)) + 1
-	var tg := Kit.tag("NEXT %s" % str(st.id), Kit.ORANGE, Color.WHITE, 18)
-	tg.size_flags_vertical = SIZE_SHRINK_CENTER
-	_hint_box.add_child(tg)
-	for f: String in Kit.FACTIONS:
-		if enemy_counts.has(f):
-			_hint_box.add_child(Kit.faction_icon(f, 28))
-			_hint_box.add_child(Kit.label("x%d" % int(enemy_counts[f]), 20, Kit.INK, "cond_bold"))
-	_hint_box.add_child(Kit.spacer(0, 0, true))
-	var mine := _faction_counts(_slots)
-	_hint_box.add_child(Kit.label("COUNTER", 18, Kit.INK_DIM, "cond_bold"))
-	var fielded := 0
-	var shown := {}
-	for ef: String in Kit.FACTIONS:
-		if not enemy_counts.has(ef):
-			continue
+		lines.append("EVERY STAGE IS CLEARED. REPLAY STAGES FROM THE CAMPAIGN MAP.")
+	else:
+		var enemy_counts := {}
+		for e: Dictionary in st.get("enemies", []):
+			var f := str(Game.hero_def(str(e.hero_id)).get("faction", ""))
+			enemy_counts[f] = int(enemy_counts.get(f, 0)) + 1
+		lines.append("NEXT %s" % str(st.id))
+		var ep: Array[String] = []
 		for f: String in Kit.FACTIONS:
-			if str(BattleSim.BEATS.get(f, "")) == ef and not shown.has(f):
-				shown[f] = true
-				_hint_box.add_child(Kit.faction_icon(f, 28))
-				fielded += int(mine.get(f, 0))
-	var adv := Kit.label("+%d%%" % (BattleSim.ADVANTAGE_BP / 100), 20, Kit.GOOD, "cond_bold")
-	_hint_box.add_child(adv)
-	_hint_box.add_child(Kit.label("%d IN TEAM" % fielded, 18, Kit.ACCENT_HI if fielded > 0 else Kit.INK_DIM, "cond_bold"))
+			if enemy_counts.has(f):
+				ep.append("%s x%d" % [str(FACTION_SHORT.get(f, f)), int(enemy_counts[f])])
+		lines.append("ENEMY " + " ".join(ep))
+		var mine := _faction_counts(_slots)
+		var fielded := 0
+		var shown := {}
+		var cp: Array[String] = []
+		for ef: String in Kit.FACTIONS:
+			if not enemy_counts.has(ef):
+				continue
+			for f: String in Kit.FACTIONS:
+				if str(BattleSim.BEATS.get(f, "")) == ef and not shown.has(f):
+					shown[f] = true
+					cp.append(str(FACTION_SHORT.get(f, f)))
+					fielded += int(mine.get(f, 0))
+		lines.append("COUNTER %s +%d%%" % [" ".join(cp), BattleSim.ADVANTAGE_BP / 100])
+		lines.append("%d IN TEAM" % fielded)
+	_data_l.text = "\n".join(lines)
+	# The band print follows the lead (the first hero in the team).
+	var lead := ""
+	for id: Variant in _slots:
+		if str(id) != "" and lead == "":
+			lead = str(id)
+	if lead == "":
+		lead = "noctaire"
+	var key := HeroArt.art_key(lead, Kit.hero_look(lead))
+	if key != _band_lead:
+		_band_lead = key
+		if _band_print and is_instance_valid(_band_print):
+			_band_print.queue_free()
+		var ph := _poster.size.y
+		_band_print = PK.halftone_print(lead, Kit.hero_look(lead), Vector2(BAND, ph * 0.46), 6.0, PK.PRINT, 1.2)
+		_band_print.position = Vector2(0, ph * 0.54)
+		_poster.add_child(_band_print)
+		_poster.move_child(_band_print, 1)
 
 
-func _refresh_list() -> void:
-	if _grid == null:
+func _refresh_bench() -> void:
+	if _bench == null:
 		return
-	var keep := _list_scroll.scroll_vertical
-	for c in _grid.get_children():
-		_grid.remove_child(c)
+	# Faction tabs: ALL and the three factions, printed, the chosen one signal.
+	for c in _filter_row.get_children():
+		_filter_row.remove_child(c)
 		c.queue_free()
 	var owned := Game.owned_heroes()
+	PK.at(_filter_row, PK.t("BENCH  %02d" % owned.size(), 13, INK, "mono_bold"), Vector2(0, 4))
+	var opts := ["ALL"]
+	for f: String in Kit.FACTIONS:
+		opts.append(str(FACTION_SHORT.get(f, f)))
+	for i in opts.size():
+		var on := i == _filter_idx
+		var x := 140.0 + i * 60.0
+		var l := PK.t(str(opts[i]), 13, SIG if on else INK, "mono_bold")
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.size = Vector2(60, 18)
+		PK.at(_filter_row, l, Vector2(x, 4))
+		if on:
+			PK.rect(_filter_row, Rect2(x + 16, 26, 28, 3), SIG)
+		var idx := i
+		var b := _hit(_filter_row, Rect2(x, -48, 60, 88), func() -> void:
+			_filter_idx = idx
+			# Deferred: the refresh reprints these tabs, this one included.
+			_refresh_bench.call_deferred())
+		b.name = "Faction_%d" % i
+	var keep := _bench_scroll.scroll_horizontal
+	for c in _bench.get_children():
+		_bench.remove_child(c)
+		c.queue_free()
 	var ids: Array[String] = []
-	for h: Dictionary in owned:
-		var id := str(h.id)
+	for hd: Dictionary in owned:
+		var id := str(hd.id)
 		var fac := str(Game.hero_def(id).get("faction", ""))
 		if _filter_idx > 0 and fac != Kit.FACTIONS[_filter_idx - 1]:
 			continue
@@ -369,25 +461,37 @@ func _refresh_list() -> void:
 		var pb := int(Game.hero_power(b))
 		return pa > pb if pa != pb else a < b)
 	for id in ids:
-		var in_team := _slots.has(id)
-		var cb := func() -> void: _tap_hero(id)
-		var card := Kit.hero_card(id, {"size": _bench_card, "show_name": true, "light": true, "selected": in_team, "on_pressed": cb})
-		if in_team:
-			var chk := Kit.hex_badge("check", 32, Kit.ACCENT, Color.WHITE)
-			chk.position = Vector2(_bench_card - 24, -8)
-			card.add_child(chk)
-		_grid.add_child(card)
+		var at := _slots.find(id)
+		var o := {"size": BENCH_W, "ratio": 1.42, "compact": true, "owned": true, "in_team": at >= 0,
+			"on_pressed": func() -> void: _tap_hero(id)}
+		if at >= 0:
+			o["slot"] = at
+		var card := PosterCard.new()
+		card.setup(id, o)
+		_bench.add_child(card)
 	if ids.is_empty():
-		var l := Kit.label("No heroes of this faction yet.", 22, Kit.TEXT_DIM, "bold")
-		l.custom_minimum_size = Vector2(600, 120)
-		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		_grid.add_child(l)
-	_restore_list_scroll.call_deferred(keep)
+		var l2 := PK.t("NO HEROES OF THIS FACTION YET.", 12, Color(INK, 0.6), "mono_bold")
+		l2.custom_minimum_size = Vector2(300, 140)
+		l2.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		_bench.add_child(l2)
+	_restore_bench_scroll.call_deferred(keep)
 
 
-func _restore_list_scroll(y: int) -> void:
-	if is_instance_valid(_list_scroll):
-		_list_scroll.scroll_vertical = y
+func _restore_bench_scroll(x: int) -> void:
+	if is_instance_valid(_bench_scroll):
+		_bench_scroll.scroll_horizontal = x
+
+
+func _hit(parent: Control, r: Rect2, cb: Callable) -> Button:
+	var b := Button.new()
+	b.theme_type_variation = &"BareButton"
+	b.focus_mode = FOCUS_NONE
+	b.mouse_filter = MOUSE_FILTER_PASS
+	b.position = r.position
+	b.size = r.size
+	parent.add_child(b)
+	Kit._connect_pressed(b, cb)
+	return b
 
 
 # ------------------------------------------------------------------ editing
@@ -400,7 +504,7 @@ func _tap_slot(i: int) -> void:
 		_commit()
 		return
 	_selected = -1 if _selected == i else i
-	_refresh_slots()
+	_refresh_slots.call_deferred()
 
 
 func _tap_hero(id: String) -> void:
@@ -426,9 +530,12 @@ func _tap_hero(id: String) -> void:
 	_selected = -1
 	_commit()
 	if target < _slot_holders.size():
-		for c in _slot_holders[target].get_children():
-			if c is Control:
-				Kit.pop_in(c as Control, 0.0, 0.28)
+		_pop_slot.call_deferred(target)
+
+
+func _pop_slot(i: int) -> void:
+	if i < _slot_holders.size() and is_instance_valid(_slot_holders[i]):
+		Kit.pop_in(_slot_holders[i], 0.0, 0.28)
 
 
 ## Front for guardians and strikers, back for everyone else, else any free slot.
@@ -444,27 +551,29 @@ func _best_free_slot(id: String) -> int:
 func _commit() -> void:
 	if _has_hero(_slots):
 		_warn.visible = false
+		_hint.visible = true
 		var r := Game.set_formation(_slots.duplicate())
 		if not bool(r.get("ok", false)):
 			UI.toast(str(r.get("error", "Couldn't save the team")), "bad")
 		# Game.changed refreshes everything.
 	else:
-		_warn.text = "Place at least one hero. Your last saved team is kept until then."
+		_warn.text = "PLACE AT LEAST ONE HERO. YOUR LAST SAVED TEAM IS KEPT UNTIL THEN."
 		_warn.visible = true
-		_refresh()
+		_hint.visible = false
+		_refresh.call_deferred()
 
 
 func _on_auto() -> void:
 	Game.auto_formation()
 	_selected = -1
 	_slots = Game.formation()
+	_warn.visible = false
+	_hint.visible = true
 	_refresh()
 	UI.sfx("reward")
 	UI.toast("Strongest team placed and equipped", "good")
 	for h in _slot_holders:
-		for c in h.get_children():
-			if c is Control:
-				Kit.pop_in(c as Control, randf() * 0.12, 0.3)
+		Kit.pop_in(h, randf() * 0.12, 0.3)
 
 
 static func _has_hero(slots: Array) -> bool:
@@ -483,3 +592,25 @@ func _faction_counts(slots: Array) -> Dictionary:
 		var f := str(Game.hero_def(id).get("faction", ""))
 		counts[f] = int(counts.get(f, 0)) + 1
 	return counts
+
+
+## A dashed hairline box (an empty position).
+class Dashed:
+	extends Control
+	var color := Color(0.06, 0.07, 0.08, 0.45)
+	var dash := 8.0
+
+	func _init() -> void:
+		mouse_filter = MOUSE_FILTER_IGNORE
+
+	func _draw() -> void:
+		var pts := [Vector2.ZERO, Vector2(size.x, 0), size, Vector2(0, size.y), Vector2.ZERO]
+		for k in 4:
+			var a: Vector2 = pts[k]
+			var b: Vector2 = pts[k + 1]
+			var dl := a.distance_to(b)
+			var d := (b - a) / maxf(dl, 0.001)
+			var t := 0.0
+			while t < dl:
+				draw_line(a + d * t, a + d * minf(t + dash, dl), color, 1.2)
+				t += dash * 2.0

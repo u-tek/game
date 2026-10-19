@@ -1,19 +1,22 @@
 extends Control
 ## The full-screen summon sequence (owner, 2026-10-19: "a really cool animation ... show a
 ## splash of each hero, so 10 cards that the user has to actually tap through, and then a
-## big reveal if the user gets a rare card"). The summon screen creates it with Game.summon's
+## big reveal if the user gets a rare card"), in the poster look of style v4 (a run of posters
+## coming off the press; docs/dev/ui-style-v4.md). The summon screen creates it with Game.summon's
 ## results; it plays three phases:
 ##
-##   charge   (2.7 s) The portal charges: a rune sigil spins up and lights rune by rune, light
-##            streaks and motes pour into a growing core, the camera starts to shake. Its
-##            color is the rarity tell: aqua drifting to blue for Rares only, violet at
-##            1.05 s if an Epic is inside, then an "upgrade" to gold with lightning at 1.8 s
-##            for a Legendary. Then the core implodes and bursts (flash, shockwaves).
-##   reveal   One hero at a time (summon_reveal.gd), the player taps through: a tap
-##            fast-forwards the current hero, the next tap brings the next one. Pips at the
-##            top show how many are left and the rarities seen so far.
-##   results  All heroes on cards (5x2 grid, or one big card), NEW / shards, the totals, the
-##            pity counter, "Summon xN Again" and "Done".
+##   charge   (2.7 s) The press run (summon_portal.gd): a halftone rosette grows on a sheet, its
+##            screen turning faster, a registration target and a tick ring spinning up, the page
+##            starting to shake. The ink is the rarity tell: black for Rares only, signal red at
+##            1.05 s if an Epic is inside, then at 1.8 s the sheet floods signal and prints in
+##            black, shaking out of register, for a Legendary. Then the rosette implodes and the
+##            press bursts (paper-white flash, an ink burst, a grain burst).
+##   reveal   One poster per hero (summon_reveal.gd), the player taps through: a tap
+##            fast-forwards the current hero, the next tap brings the next one. A row of printed
+##            squares at the top counts the sheets and marks the rarities seen so far.
+##   results  The contact sheet: every hero as a small poster on one sheet (5 x 2, or one big
+##            poster), NEW / shards, the totals as a bracketed table, the pity, "Summon xN
+##            Again" (a pass) and "Done".
 ##
 ## "Skip" (top-right) jumps to the results from anywhere. A tap during the charge jumps to the
 ## burst. Signals: done (Done pressed), again(count) (Summon again pressed).
@@ -27,13 +30,15 @@ const Backdrop := preload("res://src/ui/summon/summon_backdrop.gd")
 const Portal := preload("res://src/ui/summon/summon_portal.gd")
 const Burst := preload("res://src/ui/summon/summon_burst.gd")
 const Reveal := preload("res://src/ui/summon/summon_reveal.gd")
+const PK := preload("res://src/ui/v4/poster_kit.gd")
 
 const CHARGE_TIME := 2.7
 const TELL_1 := 1.05
 const TELL_2 := 1.8
 const BURST_GAP := 0.42
 const RARITY_ORDER := {"rare": 0, "epic": 1, "legendary": 2}
-const CARD_RATIO := 1.62
+const CARD_RATIO := 1.72
+const GRAIN := 0.06
 
 ## "charge" | "reveal" | "results" ("" before start).
 var phase := ""
@@ -54,6 +59,7 @@ var _cam: Control
 var _backdrop: Backdrop
 var _portal: Portal
 var _flash: ColorRect
+var _grain: ColorRect
 var _summary: Control
 var _ui: Control
 var _skip: Button
@@ -71,9 +77,8 @@ var _kick := 0.0
 var _punch := 0.0
 var _flash_a := 0.0
 var _flash_col := Color.WHITE
-var _portal_col := Kit.ACCENT
-var _grid_box: Control
-var _results_box: VBoxContainer
+var _grain_k := 0.0
+var _portal_col := PK.INK
 # Hero images loading on a worker thread during the charge, and the loaded ones (kept so
 # they stay cached until the reveals use them).
 var _warm_paths: Array[String] = []
@@ -95,6 +100,8 @@ func setup(res: Array, price: Callable, pity: int) -> void:
 	_backdrop = Backdrop.new()
 	_backdrop.name = "Backdrop"
 	_backdrop.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	_backdrop.inset_top = UI.safe_top()
+	_backdrop.inset_bottom = UI.safe_bottom()
 	add_child(_backdrop)
 	_cam = Control.new()
 	_cam.name = "Camera"
@@ -112,9 +119,13 @@ func setup(res: Array, price: Callable, pity: int) -> void:
 	_flash.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	_flash.color = Color(1, 1, 1, 0)
 	_flash.visible = false
-	# Additive: a flash brightens the scene toward white instead of veiling it in a flat tint.
+	# Additive: the paper overexposes toward white (and blooms) instead of a flat veil.
 	_flash.material = Fx.additive()
 	add_child(_flash)
+	# Film grain over the whole run; it bursts with every reveal.
+	_grain = SignalKit.grain(GRAIN, false)
+	_grain.name = "Grain"
+	add_child(_grain)
 	_ui = Control.new()
 	_ui.name = "Hud"
 	_ui.mouse_filter = MOUSE_FILTER_IGNORE
@@ -163,30 +174,30 @@ func _build_hud() -> void:
 	_pips.name = "Pips"
 	_pips.count = results.size()
 	_pips.anchor_right = 1.0
-	_pips.offset_top = st + 26.0
+	_pips.offset_left = 20.0
+	_pips.offset_right = -190.0
+	_pips.offset_top = st + 22.0
 	_pips.offset_bottom = st + 74.0
 	_pips.visible = false
 	_ui.add_child(_pips)
-	_skip = Kit.secondary_button("Skip", skip_all, "skip")
+	_skip = PK.print_button("Skip  >>", skip_all, {"size": Vector2(160, Kit.BUTTON_H), "align": "right", "text_size": 17})
 	_skip.name = "Skip"
 	_skip.mouse_filter = MOUSE_FILTER_STOP
-	_skip.custom_minimum_size = Vector2(150, Kit.BUTTON_H)
 	_skip.anchor_left = 1.0
 	_skip.anchor_right = 1.0
-	_skip.offset_left = -166.0
-	_skip.offset_right = -16.0
-	_skip.offset_top = st + 6.0
-	_skip.offset_bottom = st + 6.0 + Kit.BUTTON_H
-	_skip.modulate.a = 0.85
+	_skip.offset_left = -180.0
+	_skip.offset_right = -20.0
+	_skip.offset_top = st + 4.0
+	_skip.offset_bottom = st + 4.0 + Kit.BUTTON_H
 	_ui.add_child(_skip)
-	_hint = Kit.label("TAP TO CONTINUE", 24, Kit.INK, "cond_bold", 5)
+	_hint = Kit.label("TAP TO CONTINUE  ———  >>>", 15, PK.INK, "mono_bold")
 	_hint.name = "Hint"
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hint.anchor_left = 0.0
 	_hint.anchor_right = 1.0
 	_hint.anchor_top = 1.0
 	_hint.anchor_bottom = 1.0
-	_hint.offset_top = -sb - 78.0
+	_hint.offset_top = -sb - 72.0
 	_hint.offset_bottom = -sb - 40.0
 	_hint.modulate.a = 0.0
 	_ui.add_child(_hint)
@@ -197,12 +208,12 @@ func _on_resized() -> void:
 		_cam.pivot_offset = size * 0.5
 
 
-## The portal's centre (a little above the middle of the safe area).
+## The press's centre (a little above the middle of the safe area).
 func _focus() -> Vector2:
 	var st := UI.safe_top()
 	var h := size.y if size.y > 0.0 else get_viewport_rect().size.y
 	var w := size.x if size.x > 0.0 else get_viewport_rect().size.x
-	return Vector2(w * 0.5, st + (h - st - UI.safe_bottom()) * 0.44)
+	return Vector2(w * 0.5, st + (h - st - UI.safe_bottom()) * 0.46)
 
 
 # ------------------------------------------------------------------ phases
@@ -217,12 +228,13 @@ func start(fade_in: bool = true) -> void:
 	_portal.name = "Portal"
 	_portal.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	_portal.center = _focus()
-	_portal.radius = w * 0.4
+	_portal.radius = w * 0.38
+	_portal.count = results.size()
 	_cam.add_child(_portal)
-	_portal_col = Kit.ACCENT
+	_portal_col = PK.INK
 	_backdrop.focus = _portal.center
-	_backdrop.target_tint = Kit.ACCENT
-	_backdrop.target_amount = 0.3
+	_backdrop.target_tint = PK.INK
+	_backdrop.target_amount = 0.0
 	_backdrop.snap()
 	if fade_in:
 		modulate.a = 0.0
@@ -241,7 +253,7 @@ func start_at(i: int, hold: float = -1.0) -> void:
 	_backdrop.snap()
 	_pips.visible = results.size() > 1
 	for k in i:
-		_pips.colors[k] = Kit.rarity_color(str((results[k] as Dictionary).get("rarity", "rare")))
+		_pips.colors[k] = _pip_color(str((results[k] as Dictionary).get("rarity", "rare")))
 	_show_card(clampi(i, 0, results.size() - 1))
 	_reveal.hold = hold
 
@@ -261,47 +273,47 @@ func _process(delta: float) -> void:
 func _step_charge(delta: float) -> void:
 	_charge_t = _charge_t + delta if charge_hold < 0.0 else minf(_charge_t + delta, charge_hold)
 	var k := clampf(_charge_t / CHARGE_TIME, 0.0, 1.0)
-	_portal.reveal = Fx.out_cubic(Fx.k01(_charge_t, 0.0, 0.4))
+	_portal.reveal = Fx.out_cubic(Fx.k01(_charge_t, 0.0, 0.3))
 	_portal.charge = k
 	var target := _tell_color(_charge_t)
-	_portal_col = _portal_col.lerp(target, 1.0 - exp(-delta * 9.0))
+	_portal_col = _portal_col.lerp(target, 1.0 - exp(-delta * 12.0))
 	_portal.color = _portal_col
-	_portal.crackle = Fx.k01(_charge_t, TELL_2, TELL_2 + 0.25) if _best == "legendary" else 0.0
+	_portal.crackle = Fx.out_cubic(Fx.k01(_charge_t, TELL_2, TELL_2 + 0.3)) if _best == "legendary" else 0.0
 	_portal.implode = Fx.in_cubic(Fx.k01(_charge_t, CHARGE_TIME - 0.45, CHARGE_TIME))
-	_backdrop.target_tint = _portal_col
-	_backdrop.target_amount = 0.3 + 0.45 * k
+	_backdrop.target_tint = PK.SIGNAL if _best != "rare" and _charge_t >= TELL_1 else PK.INK
+	_backdrop.target_amount = 0.2 + 0.4 * k
 	_backdrop.bubble_speed = 1.0 + 5.0 * k * k
 	_base_trauma = 0.05 + 0.3 * k * k + 0.3 * _portal.implode
+	_grain_k = maxf(_grain_k, 0.04 * k)
 	if _tells == 0 and _charge_t >= TELL_1:
 		_tells = 1
 		if _best != "rare":
-			_tell(Kit.EPIC, false)
+			_tell(PK.SIGNAL, false)
 	if _tells == 1 and _charge_t >= TELL_2:
 		_tells = 2
 		if _best == "legendary":
-			_tell(Kit.LEGENDARY, true)
+			_tell(PK.SIGNAL, true)
 	if _charge_t >= CHARGE_TIME:
 		_open_portal()
 
 
-## The portal color at time t of the charge: the rarity tell.
+## The press ink at time t of the charge: the rarity tell (a Legendary's flood prints in black).
 func _tell_color(t: float) -> Color:
 	if _best == "legendary" and t >= TELL_2:
-		return Kit.LEGENDARY
+		return PK.INK
 	if _best != "rare" and t >= TELL_1:
-		return Kit.EPIC
-	if _best == "rare":
-		return Kit.ACCENT.lerp(Kit.RARE, Fx.k01(t, 1.0, 2.2))
-	return Kit.ACCENT
+		return PK.SIGNAL
+	return PK.INK
 
 
 func _tell(col: Color, big: bool) -> void:
 	UI.sfx("tell_big" if big else "tell")
 	UI.haptic(40 if big else 25)
-	_fx_flash(col.lerp(Color.WHITE, 0.4), 0.5 if big else 0.3)
+	_fx_flash(col.lerp(Color.WHITE, 0.5), 0.45 if big else 0.25)
 	_kick = maxf(_kick, 0.5 if big else 0.32)
 	_punch = maxf(_punch, 0.5 if big else 0.3)
-	_spawn_burst(_portal.center, col, 1.0 if big else 0.6)
+	_grain_k = maxf(_grain_k, 0.2 if big else 0.12)
+	_spawn_burst(_portal.center, col if not big else PK.INK, 1.0 if big else 0.6)
 
 
 ## The burst at the end of the charge; the first hero is built under the flash.
@@ -312,16 +324,17 @@ func _open_portal() -> void:
 	_kick = 0.9
 	_punch = 1.0
 	_portal_col = _tell_color(CHARGE_TIME)
-	_fx_flash(_portal_col.lerp(Color.WHITE, 0.65), 1.0)
+	_fx_flash(Color(1, 0.98, 0.95), 1.0)
+	_grain_k = 0.3
 	var at := _portal.center if _portal else _focus()
-	_spawn_burst(at, _portal_col, 1.4 + 0.3 * float(RARITY_ORDER.get(_best, 0)))
+	_spawn_burst(at, PK.SIGNAL if _best != "rare" else PK.INK, 1.4 + 0.3 * float(RARITY_ORDER.get(_best, 0)))
 	UI.sfx("burst")
 	UI.haptic(50)
 	if _portal:
 		var p := _portal
 		p.pivot_offset = p.center
 		var tw := p.create_tween().set_parallel(true)
-		tw.tween_property(p, "scale", Vector2(1.9, 1.9), 0.32).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tw.tween_property(p, "scale", Vector2(1.6, 1.6), 0.32).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		tw.tween_property(p, "modulate:a", 0.0, 0.28)
 		tw.chain().tween_callback(p.queue_free)
 	_portal = null
@@ -330,7 +343,7 @@ func _open_portal() -> void:
 	_prepare(0)
 
 
-## Between the portal burst and the first hero: count down the gap. Then pulse the "tap to
+## Between the press burst and the first hero: count down the gap. Then pulse the "tap to
 ## continue" hint while the current hero has landed.
 func _step_reveal(delta: float) -> void:
 	if _reveal == null:
@@ -357,7 +370,7 @@ func _prepare(i: int) -> void:
 	_cam.add_child(r)
 	r.visible = false
 	r.process_mode = PROCESS_MODE_DISABLED
-	r.setup(res, _stars(id, str(res.get("rarity", "rare"))), Game.equipped_skin(id), UI.safe_top(), UI.safe_bottom())
+	r.setup(res, _stars(id, str(res.get("rarity", "rare"))), Game.equipped_skin(id), UI.safe_top(), UI.safe_bottom(), i + 1, results.size())
 	r.fx.connect(_on_reveal_fx)
 	r.landed.connect(_on_landed)
 	_next = r
@@ -378,7 +391,7 @@ func _show_card(i: int) -> void:
 	_reveal = r
 	showcase = r if r.rarity == "legendary" else null
 	_pips.current = i
-	_hint.text = "TAP TO CONTINUE" if i < results.size() - 1 else ("TAP FOR RESULTS" if results.size() > 1 else "TAP TO CONTINUE")
+	_hint.text = "TAP TO CONTINUE  ———  >>>" if i < results.size() - 1 else ("TAP FOR THE CONTACT SHEET  >>>" if results.size() > 1 else "TAP TO CONTINUE  ———  >>>")
 
 
 func _on_landed() -> void:
@@ -387,7 +400,7 @@ func _on_landed() -> void:
 
 func _advance() -> void:
 	if _reveal:
-		_pips.colors[index] = Kit.rarity_color(_reveal.rarity)
+		_pips.colors[index] = _pip_color(_reveal.rarity)
 		_reveal.leave()
 		_reveal = null
 	showcase = null
@@ -396,6 +409,16 @@ func _advance() -> void:
 		_show_card(index + 1)
 	else:
 		_show_summary(false)
+
+
+## Printed squares: ink for a Rare, signal for an Epic or a Legendary (a Legendary also gets a ring).
+static func _pip_color(rarity: String) -> Color:
+	match rarity:
+		"legendary":
+			return Color(PK.SIGNAL, 0.999)
+		"epic":
+			return PK.SIGNAL
+	return PK.INK
 
 
 # ------------------------------------------------------------------ input
@@ -461,6 +484,8 @@ func _on_reveal_fx(kind: String, color: Color, amount: float) -> void:
 			_backdrop.target_amount = amount
 		"darken":
 			_backdrop.target_darken = amount
+		"grain":
+			_grain_k = maxf(_grain_k, amount)
 
 
 func _fx_flash(col: Color, alpha: float) -> void:
@@ -474,11 +499,13 @@ func _step_fx(delta: float) -> void:
 	var amp := tr * tr * 30.0
 	_cam.position = Vector2(Fx.wave(_time, 0.0), Fx.wave(_time, 4.1)) * amp
 	_punch = maxf(0.0, _punch - delta * 2.4)
-	var z := 1.0 + 0.06 * _punch * _punch
+	var z := 1.0 + 0.05 * _punch * _punch
 	_cam.scale = Vector2(z, z)
 	_flash_a = maxf(0.0, _flash_a - delta * 2.0)
 	_flash.visible = _flash_a > 0.002
 	_flash.color = Color(_flash_col, _flash_a * _flash_a * (3.0 - 2.0 * _flash_a))
+	_grain_k = maxf(0.0, _grain_k - delta * 0.6)
+	(_grain.material as ShaderMaterial).set_shader_parameter("amount", GRAIN + _grain_k)
 
 
 func _spawn_burst(at: Vector2, col: Color, strength: float, parent: Control = null) -> void:
@@ -494,7 +521,7 @@ func _stars(id: String, rarity: String) -> int:
 	return int(h.get("stars", Kit.RARITY_STARS.get(rarity, 1)))
 
 
-# ------------------------------------------------------------------ results
+# ------------------------------------------------------------------ results: the contact sheet
 
 func _show_summary(skipped: bool) -> void:
 	phase = "results"
@@ -507,134 +534,203 @@ func _show_summary(skipped: bool) -> void:
 	_skip.visible = false
 	_hint.visible = false
 	_base_trauma = 0.0
-	_backdrop.target_tint = Kit.ACCENT
-	_backdrop.target_amount = 0.32
+	_backdrop.target_tint = PK.INK
+	_backdrop.target_amount = 0.0
 	_backdrop.target_darken = 0.0
-	_backdrop.focus = Vector2(size.x * 0.5, size.y * 0.4)
+	_grain_k = maxf(_grain_k, 0.12)
 	if skipped and _best == "legendary":
 		UI.sfx("legendary")
 		UI.haptic(60)
 	else:
 		UI.sfx("reward")
-	_build_grid()
-	_build_results_box()
+	_build_sheet()
 
 
-func _build_grid() -> void:
+func _build_sheet() -> void:
 	var st := UI.safe_top()
-	_grid_box = Control.new()
-	_grid_box.name = "Grid"
-	_grid_box.mouse_filter = MOUSE_FILTER_IGNORE
-	_grid_box.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	_grid_box.offset_top = st
-	_grid_box.offset_bottom = -UI.safe_bottom()
-	_summary.add_child(_grid_box)
-	var area := size - Vector2(0, st + UI.safe_bottom())
+	var sb := UI.safe_bottom()
+	var w := size.x if size.x > 0.0 else get_viewport_rect().size.x
+	var h := size.y if size.y > 0.0 else get_viewport_rect().size.y
 	var single := results.size() == 1
+	var news := 0
+	var shards := 0
+	for x: Variant in results:
+		var d := x as Dictionary
+		if bool(d.get("is_new", false)):
+			news += 1
+		shards += int(d.get("shards", 0))
+	# The sheet, leaving the bottom for the pass and Done.
+	var sr := Rect2(18, st + 22, w - 36, h - sb - 222 - (st + 22))
+	var sheet := PK.poster(_summary, sr)
+	sheet.name = "Sheet"
+	var pw := sr.size.x
+	var ph := sr.size.y
+	PK.at(sheet, PK.t("CONTACT SHEET  ·  PRESS RUN Nº 0047  ·  %d PRINT%s  ·  19.10.26" % [results.size(), "" if single else "S"], 11, PK.INK, "mono_bold"), Vector2(20, 16))
+	var word := ("NEW HERO" if news > 0 else "RESULT") if single else "RESULTS"
+	var tf := Kit.font("compressed")
+	var tsz := 150
+	while tsz > 70 and tf.get_string_size(word, HORIZONTAL_ALIGNMENT_LEFT, -1, tsz).x > pw - 190:
+		tsz -= 4
+	var g := PK.giant(sheet, word, tsz, [[0.0, pw, PK.INK]], Vector2(14, 22), Vector2(pw + 200, tsz * 1.2), 0.0)
+	for l in g:
+		l.modulate.a = 0.0
+		l.create_tween().tween_property(l, "modulate:a", 1.0, 0.25)
+	var head_b := 36.0 + tsz * 0.86
+	PK.rule(sheet, Rect2(20, head_b, pw - 40, 1), Color(PK.INK, 0.55))
+	PK.at(sheet, PK.t("%d NEW  ·  +%d SHARDS  ·  BEST: %s" % [news, shards, str(Kit.RARITY_NAMES.get(_best, _best)).to_upper()], 11,
+		PK.INK, "mono"), Vector2(20, head_b + 8))
+	if news > 0:
+		var stp := PK.stamp_disc(sheet, Vector2(pw - 136, 18), 116, "NEW · HEROES · NEW · ", "%02d" % news, 0.12)
+		Kit.pop_in(stp, 0.25)
+	# The totals table (built first: the prints fill the space above it).
+	var rows_t: Array = []
+	if single:
+		var d0 := Game.hero_def(str((results[0] as Dictionary).get("hero_id", "")))
+		rows_t.append([str(d0.get("title", "")).to_upper(), "%s · %s" % [str(Kit.FACTION_NAMES.get(str(d0.get("faction", "")), "")).to_upper(),
+			str(Kit.ROLE_NAMES.get(str(d0.get("role", "")), "")).to_upper()]])
+	if news > 0:
+		rows_t.append(["NEW HERO%s" % ("" if news == 1 else "ES"), "%d" % news])
+	if shards > 0:
+		rows_t.append(["SHARDS", "+%d" % shards])
+	rows_t.append(["LEGENDARY GUARANTEED WITHIN", "%d PULL%s" % [maxi(1, pity_left), "" if pity_left == 1 else "S"], true])
+	var tb := PK.data_table(rows_t, pw - 40, {"size": 14, "row_h": 28.0, "bar": Color(1, 1, 1, 0.7)})
+	tb.position = Vector2(20, ph - 16 - tb.size.y)
+	# The prints, on strips of film with sprocket holes and frame numbers.
+	var area := Rect2(0, head_b + 34, pw, tb.position.y - 18 - (head_b + 34))
 	var cols := 1 if single else 5
-	var cw := 250.0 if single else floorf(minf(128.0, (area.x - 40.0 - 4 * 10.0) / 5.0))
-	var ch := roundf(cw * CARD_RATIO)
-	var gap := Vector2(10, 52)
-	var rows := ceili(float(results.size()) / cols)
-	var total_w := cols * cw + (cols - 1) * gap.x
-	var total_h := rows * ch + (rows - 1) * gap.y
-	var origin := Vector2((area.x - total_w) * 0.5, area.y * 0.42 - total_h * 0.5)
+	var nrows := ceili(float(results.size()) / cols)
+	var gap := 12.0
+	var strip_h := floorf((area.size.y - (nrows - 1) * 14.0) / nrows)
+	var cw := floorf((pw - 40 - (cols - 1) * gap) / cols)
+	var ch := minf(strip_h - 56.0, cw * 2.5)
+	if single:
+		ch = strip_h - 56.0
+		cw = roundf(minf(ch / CARD_RATIO, pw * 0.56))
 	cards.clear()
-	for i in results.size():
-		var cxy := Vector2(i % cols, i / cols)
-		var holder := Control.new()
-		holder.name = "Card%d" % i
-		holder.mouse_filter = MOUSE_FILTER_IGNORE
-		holder.position = origin + cxy * (Vector2(cw, ch) + gap)
-		holder.size = Vector2(cw, ch)
-		_grid_box.add_child(holder)
-		cards.append(holder)
-		_summary_card(i, holder, cw, ch, 0.08 + i * 0.07)
+	for r in nrows:
+		var sy := area.position.y + r * (strip_h + 14.0)
+		var film := _Film.new()
+		film.position = Vector2(0, sy)
+		film.size = Vector2(pw, strip_h)
+		film.first = r * cols
+		film.cols = cols
+		film.frame_w = cw + gap
+		film.x0 = (pw - (cols * cw + (cols - 1) * gap)) * 0.5
+		sheet.add_child(film)
+		for c in cols:
+			var i := r * cols + c
+			if i >= results.size():
+				break
+			var holder := Control.new()
+			holder.name = "Card%d" % i
+			holder.mouse_filter = MOUSE_FILTER_IGNORE
+			holder.position = Vector2(film.x0 + c * (cw + gap), sy + (strip_h - ch) * 0.5)
+			holder.size = Vector2(cw, ch)
+			sheet.add_child(holder)
+			cards.append(holder)
+			_mini_poster(i, holder, cw, ch, 0.1 + i * 0.07, sr.position)
+	# The totals under the prints, then the pass and Done under the sheet.
+	sheet.add_child(tb)
+	PK.grain(sheet, 0.06)
+	_build_buttons(sr)
 
 
-## One result card: glow (Epic) or glow + rays (Legendary) behind, the portrait card, and
-## NEW HERO / +N SHARDS under it; a single pull also shows the rarity on top and the title,
-## faction and role under it. It flips in after `delay` seconds.
-func _summary_card(i: int, holder: Control, cw: float, ch: float, delay: float) -> void:
+func _build_buttons(sr: Rect2) -> void:
+	var again_n := 10 if results.size() >= 10 else 1
+	var p: Dictionary = price_of.call(again_n) if price_of.is_valid() else {"currency": "gems", "amount": 0, "ok": false}
+	var cost := "%d SCROLL%s" % [int(p.amount), "" if int(p.amount) == 1 else "S"] if str(p.currency) == "scrolls" else "%s GEMS" % Kit.format_full(int(p.amount))
+	var box := Control.new()
+	box.name = "Buttons"
+	box.mouse_filter = MOUSE_FILTER_IGNORE
+	box.position = Vector2(0, sr.end.y + 14)
+	box.size = Vector2(size.x, 200)
+	_summary.add_child(box)
+	var again_b := PK.pass_button({"width": 420.0, "kicker": "SUMMON // PRESS AGAIN", "title": "AGAIN ×%d" % again_n,
+		"sub": "SAME RATES · SAME PITY", "action": "PULL ×%d  >>>" % again_n, "info": cost, "icon": "summon",
+		"disabled": not bool(p.ok), "title_size": 26}, func() -> void: again.emit(again_n))
+	again_b.name = "Again"
+	again_b.position = Vector2(14, 0)
+	again_b.rotation = -0.02
+	box.add_child(again_b)
+	var done_b := PK.plate_button("Done", func() -> void: done.emit(), {"size": Vector2(236, 112), "kicker": "CLOSE THE RUN",
+		"icon": "check", "text_size": 30, "screws": true, "cuts": [14, 0, 14, 0]})
+	done_b.name = "Done"
+	done_b.position = Vector2(size.x - 236 - 18, 34)
+	box.add_child(done_b)
+	if not bool(p.ok):
+		var why := PK.t("NOT ENOUGH GEMS OR SCROLLS FOR ANOTHER x%d" % again_n, 12, PK.SIGNAL, "mono_bold")
+		why.position = Vector2(24, 172)
+		box.add_child(why)
+	var fade := 0.15 + results.size() * 0.05
+	box.modulate.a = 0.0
+	box.create_tween().tween_property(box, "modulate:a", 1.0, 0.25).set_delay(fade)
+	SignalKit.relight(box)
+
+
+## One small poster on the contact sheet: her art in full colour over a strip in the rarity's
+## ink, her name in compressed type, the sheet number, NEW or her shards. A Legendary is printed on
+## signal paper and ringed in grease pencil. It drops onto the sheet after `delay` seconds.
+func _mini_poster(i: int, holder: Control, cw: float, ch: float, delay: float, sheet_pos: Vector2) -> void:
 	var res: Dictionary = results[i]
 	var id := str(res.get("hero_id", ""))
 	var rarity := str(res.get("rarity", "rare"))
-	var rc := Kit.rarity_color(rarity)
-	var mid := Vector2(cw, ch) * 0.5
-	var back_fx: Array[Control] = []
-	if rarity != "rare":
-		var gl := Kit.glow(rc, cw * (2.6 if rarity == "legendary" else 2.0))
-		gl.size = gl.custom_minimum_size
-		gl.position = mid - gl.size * 0.5
-		gl.modulate.a = 0.9 if rarity == "legendary" else 0.7
-		holder.add_child(gl)
-		back_fx.append(gl)
-		if rarity == "legendary":
-			var rays := Kit.rays(rc, cw * 3.2, 14)
-			rays.position = mid - rays.size * 0.5
-			rays.modulate.a = 0.55
-			holder.add_child(rays)
-			holder.move_child(rays, 0)
-			back_fx.append(rays)
-	var is_new := bool(res.get("is_new", false))
-	var face := Kit.portrait_card(id, {"size": cw, "owned": true, "level": int(Game.hero(id).get("level", 1)), "new": is_new})
+	var d := Game.hero_def(id)
+	var big := cw >= 200.0
+	var legend := rarity == "legendary"
+	var face := Control.new()
 	face.mouse_filter = MOUSE_FILTER_IGNORE
-	face.focus_mode = FOCUS_NONE
+	face.size = Vector2(cw, ch)
 	holder.add_child(face)
-	var extras: Array[Control] = []
-	var note := ""
-	if not is_new:
-		note = "+%d SHARDS" % int(res.get("shards", 0))
-		if int(res.get("dust", 0)) > 0:
-			note = "+%d DUST" % int(res.get("dust", 0)) if int(res.get("shards", 0)) == int(res.get("dust", 0)) else note + "  +%d DUST" % int(res.get("dust", 0))
-	elif cw < 200.0:
-		note = "NEW HERO"
-	if note != "":
-		var nl := Kit.label(note, 18 if cw < 200 else 24, Kit.ORANGE_HI if is_new else Kit.ACCENT_HI, "cond_bold", 4)
-		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		nl.position = Vector2(-20, ch + 6)
-		nl.size = Vector2(cw + 40, 26)
-		holder.add_child(nl)
-		extras.append(nl)
-	if cw >= 200.0:
-		var badge := Kit.rarity_mark(rarity, 30)
-		holder.add_child(badge)
-		badge.position = Vector2(cw * 0.5 - badge.get_combined_minimum_size().x * 0.5, -54)
-		extras.append(badge)
-		var d := Game.hero_def(id)
-		var info := Kit.vbox(8)
-		info.mouse_filter = MOUSE_FILTER_IGNORE
-		info.position = Vector2(cw * 0.5 - 300.0, ch + (40.0 if note != "" else 14.0))
-		info.size = Vector2(600, 100)
-		var tl := Kit.label(str(d.get("title", "")).to_upper(), 24, Kit.INK, "cond_bold", 4)
-		tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		info.add_child(tl)
-		var br := Kit.hbox(12)
-		br.alignment = BoxContainer.ALIGNMENT_CENTER
-		br.mouse_filter = MOUSE_FILTER_IGNORE
-		br.add_child(Kit.faction_badge(str(d.get("faction", "")), 34))
-		var rb := Kit.role_badge(str(d.get("role", "")), 30)
-		rb.size_flags_vertical = SIZE_SHRINK_CENTER
-		br.add_child(rb)
-		info.add_child(br)
-		holder.add_child(info)
-		extras.append(info)
-	# Flip in: squeezed from the side with a little overshoot; glows and text fade up after.
+	var p := PK.poster(face, Rect2(Vector2.ZERO, Vector2(cw, ch)), PK.SIGNAL if legend else PK.PAPER, 0.3)
+	var strip := 16.0 if not big else 34.0
+	var sc := PK.BAND if rarity == "rare" else (PK.SIGNAL if rarity == "epic" else PK.INK)
+	PK.rule(p, Rect2(0, 0, strip, ch), sc)
+	var art_h := ch * 0.68
+	var art := TextureRect.new()
+	art.mouse_filter = MOUSE_FILTER_IGNORE
+	art.texture = Kit.art_crop(id, (cw - strip - 8) / art_h, 1.0, Game.equipped_skin(id))
+	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	art.position = Vector2(strip + 4, 4)
+	art.size = Vector2(cw - strip - 8, art_h)
+	p.add_child(art)
+	PK.hairbox(p, Rect2(art.position, art.size), Color(PK.INK, 0.6))
+	var nm := PK.t(str(d.get("name", id)).to_upper(), 64 if big else 30, PK.INK, "compressed")
+	Kit.fit_label(nm, cw - strip - 10, 64 if big else 30, 14)
+	nm.position = Vector2(strip + 5, art_h + (6 if big else 2))
+	p.add_child(nm)
+	var info := "Nº %02d · %s" % [i + 1, str(Kit.RARITY_NAMES.get(rarity, rarity)).to_upper()]
+	var il := PK.t(info, 13 if big else 9, PK.INK if legend or rarity == "rare" else PK.SIGNAL, "mono_bold")
+	il.position = Vector2(strip + 6, ch - (58 if big else 34))
+	p.add_child(il)
+	var is_new := bool(res.get("is_new", false))
+	var note := "NEW HERO" if is_new else "+%d SHARDS" % int(res.get("shards", 0))
+	if not is_new and int(res.get("dust", 0)) > 0:
+		note = "+%d DUST" % int(res.get("dust", 0)) if int(res.get("shards", 0)) == int(res.get("dust", 0)) else note + " +%d DUST" % int(res.get("dust", 0))
+	var nl := PK.t(note, 15 if big else 10, PK.PAPER if legend and is_new else (PK.SIGNAL if is_new else PK.INK), "mono_bold")
+	nl.position = Vector2(strip + 6, ch - (34 if big else 20))
+	p.add_child(nl)
+	if big:
+		var vt := PK.vt(p, "©2026 HH · %s" % str(Kit.FACTION_NAMES.get(str(d.get("faction", "")), "")).to_upper(), 10, PK.PAPER, Vector2(strip - 6, 10))
+		vt.modulate.a = 0.9
+	if legend:
+		var loop := _Loop.new()
+		loop.position = Vector2(-10, -10)
+		loop.size = Vector2(cw + 20, ch + 20)
+		holder.add_child(loop)
+	# Drops onto the sheet: from a little bigger and turned, with a print's slight tilt.
+	var rot := (float((i * 7919) % 11) - 5.0) * 0.004
 	face.pivot_offset = Vector2(cw, ch) * 0.5
-	face.scale = Vector2(0.05, 1.08)
+	face.rotation = rot + 0.08
+	face.scale = Vector2(1.18, 1.18)
 	face.modulate.a = 0.0
 	var tw := face.create_tween()
 	tw.tween_interval(delay)
-	tw.tween_property(face, "modulate:a", 1.0, 0.05)
-	tw.tween_property(face, "scale", Vector2(1.08, 1.08), 0.13).set_trans(Tween.TRANS_SINE)
-	tw.tween_property(face, "scale", Vector2.ONE, 0.13)
-	back_fx.append_array(extras)
-	for c: Control in back_fx:
-		var target: float = c.modulate.a
-		c.modulate.a = 0.0
-		c.create_tween().tween_property(c, "modulate:a", target, 0.25).set_delay(delay + 0.12)
+	tw.tween_property(face, "modulate:a", 1.0, 0.06)
+	tw.parallel().tween_property(face, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(face, "rotation", rot, 0.22).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	if rarity != "rare":
-		tw.tween_callback(_card_burst.bind(holder, mid, rc, rarity == "legendary"))
+		tw.tween_callback(_card_burst.bind(holder, Vector2(cw, ch) * 0.5, PK.SIGNAL if not legend else PK.INK, legend))
 
 
 func _card_burst(holder: Control, mid: Vector2, rc: Color, big: bool) -> void:
@@ -645,114 +741,11 @@ func _card_burst(holder: Control, mid: Vector2, rc: Color, big: bool) -> void:
 		UI.haptic(25)
 
 
-func _build_results_box() -> void:
-	var st := UI.safe_top()
-	var sb := UI.safe_bottom()
-	var title := "SUMMON RESULTS"
-	if results.size() == 1:
-		title = "NEW HERO" if bool((results[0] as Dictionary).get("is_new", false)) else "SUMMON RESULT"
-	var top := Kit.ribbon(title, 520.0, Kit.ACCENT, Color.WHITE, 40)
-	top.position = Vector2(size.x * 0.5 - 260.0, st + 24.0)
-	top.size = Vector2(520, 84)
-	_summary.add_child(top)
-	Kit.pop_in(top, 0.0, 0.3)
-	var summary := Kit.vbox(6)
-	summary.mouse_filter = MOUSE_FILTER_IGNORE
-	_summary.add_child(summary)
+# ------------------------------------------------------------------ progress: printed squares
 
-	_results_box = Kit.vbox(12)
-	_results_box.anchor_left = 0.0
-	_results_box.anchor_right = 1.0
-	_results_box.anchor_top = 1.0
-	_results_box.anchor_bottom = 1.0
-	_results_box.offset_left = 20
-	_results_box.offset_right = -20
-	_results_box.offset_bottom = -sb - 20.0
-	_results_box.offset_top = -sb - 20.0 - 250.0
-	_results_box.alignment = BoxContainer.ALIGNMENT_END
-	_summary.add_child(_results_box)
-	var news := 0
-	var shards := 0
-	for x: Variant in results:
-		var d := x as Dictionary
-		if bool(d.get("is_new", false)):
-			news += 1
-		shards += int(d.get("shards", 0))
-	var parts: Array[String] = []
-	if news > 0:
-		parts.append("%d NEW HERO%s" % [news, "" if news == 1 else "ES"])
-	if shards > 0:
-		parts.append("+%d SHARDS" % shards)
-	if results.size() > 1 and not parts.is_empty():
-		var srow := Kit.hbox(10)
-		srow.alignment = BoxContainer.ALIGNMENT_CENTER
-		srow.mouse_filter = MOUSE_FILTER_IGNORE
-		srow.add_child(Kit.deco("techline", Vector2(70, 8), Color(1, 1, 1, 0.4)))
-		srow.add_child(Kit.label("  ·  ".join(parts), 24, Color.WHITE, "cond_bold", 4))
-		var tl2 := Kit.deco("techline", Vector2(70, 8), Color(1, 1, 1, 0.4))
-		tl2.scale.x = -1
-		tl2.pivot_offset = Vector2(35, 4)
-		srow.add_child(tl2)
-		summary.add_child(srow)
-	var pl := Kit.label("LEGENDARY GUARANTEED WITHIN %d PULLS" % maxi(1, pity_left), 18, Kit.ACCENT_HI, "cond_bold")
-	pl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	summary.add_child(pl)
-	var row := Kit.hbox(12)
-	var again_n := 10 if results.size() >= 10 else 1
-	var p: Dictionary = price_of.call(again_n) if price_of.is_valid() else {"currency": "gems", "amount": 0, "ok": false}
-	var again_b := Kit.cost_button("Summon x%d Again" % again_n, str(p.currency), int(p.amount), func() -> void: again.emit(again_n), "secondary", bool(p.ok))
-	again_b.name = "Again"
-	again_b.disabled = not bool(p.ok)
-	again_b.size_flags_horizontal = SIZE_EXPAND_FILL
-	row.add_child(again_b)
-	var done_b := Kit.primary_button("Done", func() -> void: done.emit(), "check")
-	done_b.name = "Done"
-	done_b.custom_minimum_size.y = 108
-	done_b.size_flags_horizontal = SIZE_EXPAND_FILL
-	row.add_child(done_b)
-	_results_box.add_child(row)
-	if not bool(p.ok):
-		var why := Kit.label("Not enough gems or scrolls for another x%d." % again_n, 20, Color("ff6a50"), "bold")
-		why.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		_results_box.add_child(why)
-	var fade_delay := 0.15 + results.size() * 0.05
-	_results_box.modulate.a = 0.0
-	_results_box.create_tween().tween_property(_results_box, "modulate:a", 1.0, 0.25).set_delay(fade_delay)
-	summary.modulate.a = 0.0
-	summary.create_tween().tween_property(summary, "modulate:a", 1.0, 0.25).set_delay(fade_delay)
-	_stack_results(top, summary)
-
-
-## Ribbon, cards and the shard / pity summary as one block, centred in the space above the
-## buttons.
-func _stack_results(ribbon: Control, summary: Control) -> void:
-	if cards.is_empty() or _grid_box == null:
-		return
-	var st := UI.safe_top()
-	var g_top := INF
-	var g_bot := -INF
-	for h in cards:
-		g_top = minf(g_top, h.position.y)
-		g_bot = maxf(g_bot, h.position.y + h.size.y)
-	var single := cards.size() == 1
-	var above := 64.0 if single else 0.0
-	var below := 160.0 if single else 40.0
-	var sum_h := summary.get_combined_minimum_size().y
-	var block := 84.0 + 22.0 + above + (g_bot - g_top) + below + sum_h
-	var region_top := st + 16.0
-	var region_bot := size.y + _results_box.offset_bottom - _results_box.get_combined_minimum_size().y - 20.0
-	var want := region_top + maxf(0.0, (region_bot - region_top - block) * 0.5)
-	var dy := (want + 84.0 + 22.0 + above) - (st + g_top)
-	_grid_box.position.y += dy
-	ribbon.position.y = want
-	summary.position = Vector2(0, want + block - sum_h)
-	summary.size = Vector2(size.x, sum_h)
-
-
-# ------------------------------------------------------------------ progress pips
-
-## A row of glossy bubbles, one per hero: hollow until seen, then filled in its rarity color;
-## the current one wears a pulsing ring.
+## A row of printed squares, one per sheet: hollow until seen, then filled (ink for a Rare,
+## signal for an Epic, signal with a ring for a Legendary); the current one blinks. "07 / 10" next
+## to them.
 class Pips extends Control:
 	var count := 10
 	var current := 0
@@ -769,23 +762,63 @@ class Pips extends Control:
 		queue_redraw()
 
 	func _draw() -> void:
-		var gap := minf(34.0, (size.x - 360.0) / maxf(1.0, float(count - 1)))
-		var r := 9.0
-		var y := size.y * 0.5
-		var x0 := size.x * 0.5 - (count - 1) * gap * 0.5
-		draw_line(Vector2(x0, y), Vector2(x0 + (count - 1) * gap, y), Color(1, 1, 1, 0.16), 2.0, true)
+		var ink := Color("101113")
+		var s := 14.0
+		var gap := 8.0
+		var y := size.y * 0.5 - s * 0.5
+		var f := Kit.font("mono_bold")
+		draw_string(f, Vector2(0, y + 12), "SHEET %02d / %02d" % [current + 1, count], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, ink)
+		var x0 := 140.0
 		for i in count:
-			var c := Vector2(x0 + i * gap, y)
+			var r := Rect2(x0 + i * (s + gap), y, s, s)
 			var col: Color = colors[i] if i < colors.size() else Color(0, 0, 0, 0)
 			if i == current:
-				var pr := r * (1.55 + 0.12 * sin(_t * 5.0))
-				draw_circle(c, pr + 3.0, Color(1, 1, 1, 0.12), true, -1.0, true)
-				draw_arc(c, pr, 0.0, TAU, 28, Color(1, 1, 1, 0.95), 2.0, true)
-				draw_circle(c, r * 0.9, Color(1, 1, 1, 0.9), true, -1.0, true)
+				var on := fmod(_t, 0.8) < 0.5
+				draw_rect(r, Color("ff4b1f") if on else ink, false, 2.0)
+				draw_rect(r.grow(-4), Color("ff4b1f") if on else ink)
 			elif col.a > 0.0:
-				draw_circle(c, r, col, true, -1.0, true)
-				draw_circle(c + Vector2(-0.3, -0.35) * r, r * 0.35, Color(1, 1, 1, 0.6), true, -1.0, true)
-				draw_arc(c, r, 0.0, TAU, 20, Color(1, 1, 1, 0.5), 1.4, true)
+				draw_rect(r, Color(col, 1.0))
+				if col.a < 1.0:
+					draw_rect(r.grow(3), ink, false, 1.0)
 			else:
-				draw_circle(c, r, Color(0.02, 0.05, 0.12, 0.55), true, -1.0, true)
-				draw_arc(c, r, 0.0, TAU, 20, Color(1, 1, 1, 0.35), 1.6, true)
+				draw_rect(r, Color(ink, 0.6), false, 1.0)
+
+
+## A strip of film on the contact sheet: sprocket holes along both edges, frame numbers.
+class _Film extends Control:
+	var first := 0
+	var cols := 5
+	var frame_w := 130.0
+	var x0 := 20.0
+
+	func _ready() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func _draw() -> void:
+		var paper := Color("e9e8e2")
+		draw_rect(Rect2(Vector2.ZERO, size), Color("141517"))
+		var x := 8.0
+		while x < size.x - 10.0:
+			for y: float in [8.0, size.y - 17.0]:
+				draw_rect(Rect2(x, y, 12, 9), Color(paper, 0.85))
+			x += 24.0
+		var f := Kit.font("mono_bold")
+		for c in cols:
+			var n := first + c + 1
+			draw_string(f, Vector2(x0 + c * frame_w, 32), "%02dA  >" % n, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(paper, 0.7))
+		draw_string(f, Vector2(size.x - 120, size.y - 22), "HH 400 · 0047", HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color("ff4b1f", 0.9))
+
+
+## A grease-pencil loop around a print (a Legendary on the contact sheet).
+class _Loop extends Control:
+	func _ready() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func _draw() -> void:
+		var c := size * 0.5
+		var pts := PackedVector2Array()
+		for k in 66:
+			var a := TAU * k / 60.0 - 0.6
+			var wob := 1.0 + 0.03 * sin(a * 3.0 + 1.0) + 0.02 * sin(a * 7.0)
+			pts.append(c + Vector2(cos(a) * size.x * 0.52, sin(a) * size.y * 0.51) * wob)
+		draw_polyline(pts, Color("ff4b1f"), 3.0, true)

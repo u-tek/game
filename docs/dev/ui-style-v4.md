@@ -5,6 +5,32 @@ full redesign on 2026-10-19 from 22 reference images and chose: signal red-orang
 accent, "clean, grit on big moments", "rethink every screen", the Godot Mobile renderer ("I need
 this to look exceptional"), and, after four rejected rounds, "mix them per screen".
 
+## 0. The house style: the poster (owner, 2026-10-19)
+
+After seeing two more Lobby concepts (a dark lab with the hero sealed under shrink-wrap film, and
+a pale instrument housing with a round window), the owner chose the poster: "the one i okay'd
+before was so much better. i want that visual style to be maintained throughout the UI". So the
+**look of every screen is the approved Lobby poster** (`lobby_v5_screen.gd`); "mix them per
+screen" only means a screen's content may borrow its reference's idea (a dossier, a layered map, a
+contact sheet), drawn in the poster style:
+
+- A paper matte page (#f5f4f0) with printed poster panels (paper #e9e8e2, soft shadow), still
+  film grain on top.
+- Ink #101113 for type and hairline rules; signal red-orange for one keyword or accent per poster,
+  the halftone print and status lights.
+- Dark vertical bands (#141517) carrying a red halftone print of a hero, with paper-white mono
+  micro type.
+- Giant compressed display type, turned on its side and cut off by the poster edge, two-tone where
+  it crosses a band; mono micro type for labels, serials, issue numbers and dates; the slanted
+  serif for signatures.
+- Menus as small vertical mono labels with tick marks on a hairline rule, and footer strips
+  ("01 HEROES / 02 TEAM ...") with a signal underline.
+- Collage objects stuck on, sparingly: the pass button (main actions), stamps on silver discs, the
+  coil, barcodes, matrix codes, status lights.
+- Hero art in full colour in front of the type, boxed by a hairline, with a blurred red echo.
+- Not: dark full-screen HUDs, glass panels, instrument housings, specimen film, machined
+  dashboards, grids of game buttons.
+
 ## 1. The brief (read this first)
 
 **Each screen is composed like one of the references. The interface lives inside that
@@ -46,10 +72,16 @@ So, for every screen:
 | HUD pieces | `src/ui/components/hud.gd` | `Ring` (instrument dial), `Leader` (callout that draws on), `Ruler`, `Led`, `Dots` (stat dots), `Scan`, `Dust` (bokeh) |
 | Halftone | `src/ui/shaders/halftone.gdshader` | Any texture as rotated ink dots (light or dark dots) |
 | Grain | `src/ui/shaders/grain.gdshader` | Multiplied film grain |
-| Engraving | `_etch` in `lobby_v5_screen.gd` (moves to Kit) | Text cut into metal: light lip below, dark wall above |
+| SignalKit | `src/ui/components/signal_kit.gd` | Shared v4 pieces: `plate()`, `pass_button()` (the OG-pass call to action), `etch` / `etch_icon` (text cut into metal), `pill`, `stamp`, `matrix`, `barcode`, `coil`, `halftone_material`, `grain`, `relight` |
+| Rendered objects | `assets/art/ui/objects/`, `tools/blender/ui_objects.py` | Collage objects rendered in Cycles on the owner's GPU (4-10 s each): `coil_ink` (the poster's coil as black gloss), `coil_chrome`, `disc` (the machined coin under the Sanctum stamp). `finish_objects.py` crops them and bakes a soft paper shadow; each file's object size and padding are constants in `home_screen.gd` |
 | Old Kit/theme | `theme.gd`, `KitBox.signal_look` | Restyled to graphite, bone and signal with cut corners, so screens not yet rebuilt stay coherent |
 
 ## 3. Screen by screen
+
+The content ideas per screen, all drawn in the poster style of section 0 (the summon's specimen
+packs, the gear's studio objects, the dark map terrain and the device panels below are replaced
+by printed equivalents: a run of printed posters, a printed catalogue sheet, ink line work on
+paper).
 
 | Screen | Built like (reference no.) | Composition |
 |---|---|---|
@@ -108,5 +140,12 @@ outlines, engraved glyphs, light tube, frosted glass block, round knob, cut-out 
 ## 6. Mockups
 
 ```bash
-tools/shoot lobby_v5 --rich --safe-area-sim     # the approved Lobby poster
+tools/shoot lobby_v5 --rich --safe-area-sim     # the approved Lobby poster (mockup)
+tools/shoot home --rich --safe-area-sim         # the real Lobby (home_screen.gd), built from it
 ```
+
+The real Lobby keeps every function of the old one: the bulletin in the band is the old banner
+carousel (summon, offers, chapter), the paper label at the foot of the band is the objective strip,
+the Sanctum stamp opens the claim sheet, the pass is the Campaign plate, `< >` switch the lobby
+hero, and the vertical labels are the side buttons (Daily, Offers, Team, Spire, Shop, Hero, View).
+The guide marks the stamp, the Team label and the pass.

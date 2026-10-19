@@ -24,6 +24,7 @@ const PRESETS := {
 	"signal": {"mat": 3, "albedo": Color("ff4b1f"), "albedo_low": Color("ff4b1f"), "bevel": 6.0},
 	"dial": {"mat": 4, "albedo": Color("7d838a"), "albedo_low": Color("33373c"), "bevel": 7.0},
 	"ink": {"mat": 5, "albedo": Color("0c0d0f"), "albedo_low": Color("0c0d0f"), "bevel": 3.0},
+	"white": {"mat": 2, "albedo": Color("f4f4f2"), "albedo_low": Color("cfd1ce"), "bevel": 6.0},
 }
 
 var preset := "silver"
@@ -46,6 +47,8 @@ var shadow_off := Vector2(3, 9)
 var albedo_override := Color(0, 0, 0, 0)
 ## Cut into the surface (an engraved pocket or well) instead of raised.
 var recess := false
+## A round cut-out (body px: x, y centre, z radius; z 0 = none).
+var hole := Vector3.ZERO
 
 var _surf: ColorRect
 var _mat: ShaderMaterial
@@ -151,6 +154,7 @@ func _apply() -> void:
 		_mat.set_shader_parameter("pts", arr)
 	_mat.set_shader_parameter("mat", int(pr["mat"]))
 	_mat.set_shader_parameter("recess", recess)
+	_mat.set_shader_parameter("hole", Vector3(hole.x + margin, hole.y + margin, hole.z) if hole.z > 0.0 else Vector3.ZERO)
 	var alb: Color = pr["albedo"] if albedo_override.a <= 0.0 else albedo_override
 	_mat.set_shader_parameter("albedo", alb)
 	_mat.set_shader_parameter("albedo_low", pr["albedo_low"] if albedo_override.a <= 0.0 else albedo_override.darkened(0.35))

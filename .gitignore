@@ -14,3 +14,6 @@ __pycache__/
 *.pyc
 # Local checkout of the art-gen-output branch (tools/art_import)
 /artgen-out/
+
+# tools/shoot on Windows (off-screen, no-focus window)
+override.cfg
