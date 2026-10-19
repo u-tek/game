@@ -1,0 +1,873 @@
+{
+	"version": 1,
+	"about": "PrintRules (src/core/print_rules.gd) on data/prints.json: edition_on(banner, day, epoch_day), flaw_for_roll, grade_for_roll, make_prints (each case's inputs -> out {prints, ed}), notable and score of sample prints, and trim(list, keep_plain) (out with keep_plain, out_default with the file's keep_plain).",
+	"regenerate": "tools/gd --headless --path . -s tests/tools/make_fixtures.gd",
+	"editions": [
+		{
+			"banner": "standard",
+			"day": 20715,
+			"epoch_day": 20745,
+			"out": {"index": -2, "edition": 1, "open_day": 20689, "days": 28, "run": 5000, "per_hour": 6}
+		},
+		{
+			"banner": "standard",
+			"day": 20744,
+			"epoch_day": 20745,
+			"out": {"index": -1, "edition": 1, "open_day": 20717, "days": 28, "run": 5000, "per_hour": 6}
+		},
+		{
+			"banner": "standard",
+			"day": 20745,
+			"epoch_day": 20745,
+			"out": {"index": 0, "edition": 1, "open_day": 20745, "days": 28, "run": 5000, "per_hour": 6}
+		},
+		{
+			"banner": "standard",
+			"day": 20746,
+			"epoch_day": 20745,
+			"out": {"index": 0, "edition": 1, "open_day": 20745, "days": 28, "run": 5000, "per_hour": 6}
+		},
+		{
+			"banner": "standard",
+			"day": 20751,
+			"epoch_day": 20745,
+			"out": {"index": 0, "edition": 1, "open_day": 20745, "days": 28, "run": 5000, "per_hour": 6}
+		},
+		{
+			"banner": "standard",
+			"day": 20752,
+			"epoch_day": 20745,
+			"out": {"index": 0, "edition": 1, "open_day": 20745, "days": 28, "run": 5000, "per_hour": 6}
+		},
+		{
+			"banner": "standard",
+			"day": 20772,
+			"epoch_day": 20745,
+			"out": {"index": 0, "edition": 1, "open_day": 20745, "days": 28, "run": 5000, "per_hour": 6}
+		},
+		{
+			"banner": "standard",
+			"day": 20773,
+			"epoch_day": 20745,
+			"out": {"index": 1, "edition": 2, "open_day": 20773, "days": 28, "run": 5000, "per_hour": 6}
+		},
+		{
+			"banner": "standard",
+			"day": 20774,
+			"epoch_day": 20745,
+			"out": {"index": 1, "edition": 2, "open_day": 20773, "days": 28, "run": 5000, "per_hour": 6}
+		},
+		{
+			"banner": "standard",
+			"day": 20845,
+			"epoch_day": 20745,
+			"out": {"index": 3, "edition": 4, "open_day": 20829, "days": 28, "run": 5000, "per_hour": 6}
+		},
+		{
+			"banner": "featured",
+			"day": 20715,
+			"epoch_day": 20745,
+			"out": {"index": -5, "edition": 1, "open_day": 20710, "days": 7, "run": 2500, "per_hour": 12}
+		},
+		{
+			"banner": "featured",
+			"day": 20744,
+			"epoch_day": 20745,
+			"out": {"index": -1, "edition": 1, "open_day": 20738, "days": 7, "run": 2500, "per_hour": 12}
+		},
+		{
+			"banner": "featured",
+			"day": 20745,
+			"epoch_day": 20745,
+			"out": {"index": 0, "edition": 1, "open_day": 20745, "days": 7, "run": 2500, "per_hour": 12}
+		},
+		{
+			"banner": "featured",
+			"day": 20746,
+			"epoch_day": 20745,
+			"out": {"index": 0, "edition": 1, "open_day": 20745, "days": 7, "run": 2500, "per_hour": 12}
+		},
+		{
+			"banner": "featured",
+			"day": 20751,
+			"epoch_day": 20745,
+			"out": {"index": 0, "edition": 1, "open_day": 20745, "days": 7, "run": 2500, "per_hour": 12}
+		},
+		{
+			"banner": "featured",
+			"day": 20752,
+			"epoch_day": 20745,
+			"out": {"index": 1, "edition": 2, "open_day": 20752, "days": 7, "run": 2500, "per_hour": 12}
+		},
+		{
+			"banner": "featured",
+			"day": 20772,
+			"epoch_day": 20745,
+			"out": {"index": 3, "edition": 4, "open_day": 20766, "days": 7, "run": 2500, "per_hour": 12}
+		},
+		{
+			"banner": "featured",
+			"day": 20773,
+			"epoch_day": 20745,
+			"out": {"index": 4, "edition": 5, "open_day": 20773, "days": 7, "run": 2500, "per_hour": 12}
+		},
+		{
+			"banner": "featured",
+			"day": 20774,
+			"epoch_day": 20745,
+			"out": {"index": 4, "edition": 5, "open_day": 20773, "days": 7, "run": 2500, "per_hour": 12}
+		},
+		{
+			"banner": "featured",
+			"day": 20845,
+			"epoch_day": 20745,
+			"out": {"index": 14, "edition": 15, "open_day": 20843, "days": 7, "run": 2500, "per_hour": 12}
+		},
+		{
+			"banner": "faction",
+			"day": 20715,
+			"epoch_day": 20745,
+			"out": {"index": -10, "edition": 1, "open_day": 20715, "days": 3, "run": 1500, "per_hour": 16}
+		},
+		{
+			"banner": "faction",
+			"day": 20744,
+			"epoch_day": 20745,
+			"out": {"index": -1, "edition": 1, "open_day": 20742, "days": 3, "run": 1500, "per_hour": 16}
+		},
+		{
+			"banner": "faction",
+			"day": 20745,
+			"epoch_day": 20745,
+			"out": {"index": 0, "edition": 1, "open_day": 20745, "days": 3, "run": 1500, "per_hour": 16}
+		},
+		{
+			"banner": "faction",
+			"day": 20746,
+			"epoch_day": 20745,
+			"out": {"index": 0, "edition": 1, "open_day": 20745, "days": 3, "run": 1500, "per_hour": 16}
+		},
+		{
+			"banner": "faction",
+			"day": 20751,
+			"epoch_day": 20745,
+			"out": {"index": 2, "edition": 3, "open_day": 20751, "days": 3, "run": 1500, "per_hour": 16}
+		},
+		{
+			"banner": "faction",
+			"day": 20752,
+			"epoch_day": 20745,
+			"out": {"index": 2, "edition": 3, "open_day": 20751, "days": 3, "run": 1500, "per_hour": 16}
+		},
+		{
+			"banner": "faction",
+			"day": 20772,
+			"epoch_day": 20745,
+			"out": {"index": 9, "edition": 10, "open_day": 20772, "days": 3, "run": 1500, "per_hour": 16}
+		},
+		{
+			"banner": "faction",
+			"day": 20773,
+			"epoch_day": 20745,
+			"out": {"index": 9, "edition": 10, "open_day": 20772, "days": 3, "run": 1500, "per_hour": 16}
+		},
+		{
+			"banner": "faction",
+			"day": 20774,
+			"epoch_day": 20745,
+			"out": {"index": 9, "edition": 10, "open_day": 20772, "days": 3, "run": 1500, "per_hour": 16}
+		},
+		{
+			"banner": "faction",
+			"day": 20845,
+			"epoch_day": 20745,
+			"out": {"index": 33, "edition": 34, "open_day": 20844, "days": 3, "run": 1500, "per_hour": 16}
+		},
+		{
+			"banner": "wish",
+			"day": 20715,
+			"epoch_day": 20745,
+			"out": {"index": -5, "edition": 1, "open_day": 20710, "days": 7, "run": 1200, "per_hour": 5}
+		},
+		{
+			"banner": "wish",
+			"day": 20744,
+			"epoch_day": 20745,
+			"out": {"index": -1, "edition": 1, "open_day": 20738, "days": 7, "run": 1200, "per_hour": 5}
+		},
+		{
+			"banner": "wish",
+			"day": 20745,
+			"epoch_day": 20745,
+			"out": {"index": 0, "edition": 1, "open_day": 20745, "days": 7, "run": 1200, "per_hour": 5}
+		},
+		{
+			"banner": "wish",
+			"day": 20746,
+			"epoch_day": 20745,
+			"out": {"index": 0, "edition": 1, "open_day": 20745, "days": 7, "run": 1200, "per_hour": 5}
+		},
+		{
+			"banner": "wish",
+			"day": 20751,
+			"epoch_day": 20745,
+			"out": {"index": 0, "edition": 1, "open_day": 20745, "days": 7, "run": 1200, "per_hour": 5}
+		},
+		{
+			"banner": "wish",
+			"day": 20752,
+			"epoch_day": 20745,
+			"out": {"index": 1, "edition": 2, "open_day": 20752, "days": 7, "run": 1200, "per_hour": 5}
+		},
+		{
+			"banner": "wish",
+			"day": 20772,
+			"epoch_day": 20745,
+			"out": {"index": 3, "edition": 4, "open_day": 20766, "days": 7, "run": 1200, "per_hour": 5}
+		},
+		{
+			"banner": "wish",
+			"day": 20773,
+			"epoch_day": 20745,
+			"out": {"index": 4, "edition": 5, "open_day": 20773, "days": 7, "run": 1200, "per_hour": 5}
+		},
+		{
+			"banner": "wish",
+			"day": 20774,
+			"epoch_day": 20745,
+			"out": {"index": 4, "edition": 5, "open_day": 20773, "days": 7, "run": 1200, "per_hour": 5}
+		},
+		{
+			"banner": "wish",
+			"day": 20845,
+			"epoch_day": 20745,
+			"out": {"index": 14, "edition": 15, "open_day": 20843, "days": 7, "run": 1200, "per_hour": 5}
+		},
+		{
+			"banner": "envoy",
+			"day": 20715,
+			"epoch_day": 20745,
+			"out": {"index": -5, "edition": 1, "open_day": 20710, "days": 7, "run": 4000, "per_hour": 20}
+		},
+		{
+			"banner": "envoy",
+			"day": 20744,
+			"epoch_day": 20745,
+			"out": {"index": -1, "edition": 1, "open_day": 20738, "days": 7, "run": 4000, "per_hour": 20}
+		},
+		{
+			"banner": "envoy",
+			"day": 20745,
+			"epoch_day": 20745,
+			"out": {"index": 0, "edition": 1, "open_day": 20745, "days": 7, "run": 4000, "per_hour": 20}
+		},
+		{
+			"banner": "envoy",
+			"day": 20746,
+			"epoch_day": 20745,
+			"out": {"index": 0, "edition": 1, "open_day": 20745, "days": 7, "run": 4000, "per_hour": 20}
+		},
+		{
+			"banner": "envoy",
+			"day": 20751,
+			"epoch_day": 20745,
+			"out": {"index": 0, "edition": 1, "open_day": 20745, "days": 7, "run": 4000, "per_hour": 20}
+		},
+		{
+			"banner": "envoy",
+			"day": 20752,
+			"epoch_day": 20745,
+			"out": {"index": 1, "edition": 2, "open_day": 20752, "days": 7, "run": 4000, "per_hour": 20}
+		},
+		{
+			"banner": "envoy",
+			"day": 20772,
+			"epoch_day": 20745,
+			"out": {"index": 3, "edition": 4, "open_day": 20766, "days": 7, "run": 4000, "per_hour": 20}
+		},
+		{
+			"banner": "envoy",
+			"day": 20773,
+			"epoch_day": 20745,
+			"out": {"index": 4, "edition": 5, "open_day": 20773, "days": 7, "run": 4000, "per_hour": 20}
+		},
+		{
+			"banner": "envoy",
+			"day": 20774,
+			"epoch_day": 20745,
+			"out": {"index": 4, "edition": 5, "open_day": 20773, "days": 7, "run": 4000, "per_hour": 20}
+		},
+		{
+			"banner": "envoy",
+			"day": 20845,
+			"epoch_day": 20745,
+			"out": {"index": 14, "edition": 15, "open_day": 20843, "days": 7, "run": 4000, "per_hour": 20}
+		},
+		{
+			"banner": "unknown",
+			"day": 20715,
+			"epoch_day": 20745,
+			"out": {"index": -2, "edition": 1, "open_day": 20689, "days": 28, "run": 5000, "per_hour": 6}
+		},
+		{
+			"banner": "unknown",
+			"day": 20744,
+			"epoch_day": 20745,
+			"out": {"index": -1, "edition": 1, "open_day": 20717, "days": 28, "run": 5000, "per_hour": 6}
+		},
+		{
+			"banner": "unknown",
+			"day": 20745,
+			"epoch_day": 20745,
+			"out": {"index": 0, "edition": 1, "open_day": 20745, "days": 28, "run": 5000, "per_hour": 6}
+		},
+		{
+			"banner": "unknown",
+			"day": 20746,
+			"epoch_day": 20745,
+			"out": {"index": 0, "edition": 1, "open_day": 20745, "days": 28, "run": 5000, "per_hour": 6}
+		},
+		{
+			"banner": "unknown",
+			"day": 20751,
+			"epoch_day": 20745,
+			"out": {"index": 0, "edition": 1, "open_day": 20745, "days": 28, "run": 5000, "per_hour": 6}
+		},
+		{
+			"banner": "unknown",
+			"day": 20752,
+			"epoch_day": 20745,
+			"out": {"index": 0, "edition": 1, "open_day": 20745, "days": 28, "run": 5000, "per_hour": 6}
+		},
+		{
+			"banner": "unknown",
+			"day": 20772,
+			"epoch_day": 20745,
+			"out": {"index": 0, "edition": 1, "open_day": 20745, "days": 28, "run": 5000, "per_hour": 6}
+		},
+		{
+			"banner": "unknown",
+			"day": 20773,
+			"epoch_day": 20745,
+			"out": {"index": 1, "edition": 2, "open_day": 20773, "days": 28, "run": 5000, "per_hour": 6}
+		},
+		{
+			"banner": "unknown",
+			"day": 20774,
+			"epoch_day": 20745,
+			"out": {"index": 1, "edition": 2, "open_day": 20773, "days": 28, "run": 5000, "per_hour": 6}
+		},
+		{
+			"banner": "unknown",
+			"day": 20845,
+			"epoch_day": 20745,
+			"out": {"index": 3, "edition": 4, "open_day": 20829, "days": 28, "run": 5000, "per_hour": 6}
+		}
+	],
+	"flaw_rolls": [0, 259, 260, 399, 400, 489, 490, 549, 550, 599, 600, 9999],
+	"flaws": ["shift", "shift", "swap", "swap", "ghost", "ghost", "double", "double", "flood", "flood", "", ""],
+	"grade_rolls": [0, 99, 100, 699, 700, 2499, 2500, 5499, 5500, 7999, 8000, 9199, 9200, 9699, 9700, 9999],
+	"grades": [10, 10, 9, 9, 8, 8, 7, 7, 6, 6, 5, 5, 4, 4, 3, 3],
+	"make_prints": [
+		{
+			"name": "fresh_standard_ten",
+			"banner": "standard",
+			"hero_ids": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "argentiel", "sanariel", "rimelle", "avienne", "cirella"],
+			"day": 20748,
+			"epoch_day": 20745,
+			"hours_open": 77,
+			"ed": {},
+			"seed": 31337,
+			"seq": 0,
+			"out": {
+				"prints": [
+					{"hero": "seraphiel", "banner": "standard", "edition": 1, "printing": 1, "serial": 463, "run": 5000, "flaw": "shift", "ink": "", "holo": false, "grade": 7, "v": 415},
+					{"hero": "cassiel", "banner": "standard", "edition": 1, "printing": 1, "serial": 464, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 548},
+					{"hero": "liora", "banner": "standard", "edition": 1, "printing": 1, "serial": 467, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 186},
+					{"hero": "uriela", "banner": "standard", "edition": 1, "printing": 1, "serial": 468, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 4, "v": 184},
+					{"hero": "nuriel", "banner": "standard", "edition": 1, "printing": 1, "serial": 472, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 107},
+					{"hero": "argentiel", "banner": "standard", "edition": 1, "printing": 1, "serial": 476, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 221},
+					{"hero": "sanariel", "banner": "standard", "edition": 1, "printing": 1, "serial": 480, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 433},
+					{"hero": "rimelle", "banner": "standard", "edition": 1, "printing": 1, "serial": 483, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 69},
+					{"hero": "avienne", "banner": "standard", "edition": 1, "printing": 1, "serial": 485, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 127},
+					{"hero": "cirella", "banner": "standard", "edition": 1, "printing": 1, "serial": 488, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 77}
+				],
+				"ed": {"e": 0, "n": 29}
+			}
+		},
+		{
+			"name": "same_edition_continues",
+			"banner": "standard",
+			"hero_ids": ["seraphiel", "cassiel", "liora"],
+			"day": 20749,
+			"epoch_day": 20745,
+			"hours_open": 101,
+			"ed": {"e": 0, "n": 25},
+			"seed": 31337,
+			"seq": 10,
+			"out": {
+				"prints": [
+					{"hero": "seraphiel", "banner": "standard", "edition": 1, "printing": 1, "serial": 632, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 726},
+					{"hero": "cassiel", "banner": "standard", "edition": 1, "printing": 1, "serial": 633, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 759},
+					{"hero": "liora", "banner": "standard", "edition": 1, "printing": 1, "serial": 637, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 599}
+				],
+				"ed": {"e": 0, "n": 34}
+			}
+		},
+		{
+			"name": "new_edition_restarts",
+			"banner": "standard",
+			"hero_ids": ["uriela", "nuriel", "argentiel"],
+			"day": 20774,
+			"epoch_day": 20745,
+			"hours_open": 5,
+			"ed": {"e": 0, "n": 900},
+			"seed": 31337,
+			"seq": 13,
+			"out": {
+				"prints": [
+					{"hero": "uriela", "banner": "standard", "edition": 2, "printing": 1, "serial": 31, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 668},
+					{"hero": "nuriel", "banner": "standard", "edition": 2, "printing": 1, "serial": 35, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 4},
+					{"hero": "argentiel", "banner": "standard", "edition": 2, "printing": 1, "serial": 39, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 69}
+				],
+				"ed": {"e": 1, "n": 12}
+			}
+		},
+		{
+			"name": "second_printing",
+			"banner": "faction",
+			"hero_ids": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "argentiel", "sanariel", "rimelle", "avienne", "cirella"],
+			"day": 20747,
+			"epoch_day": 20745,
+			"hours_open": 70,
+			"ed": {"e": 0, "n": 400},
+			"seed": 9,
+			"seq": 400,
+			"out": {
+				"prints": [
+					{"hero": "seraphiel", "banner": "faction", "edition": 1, "printing": 2, "serial": 21, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 503},
+					{"hero": "cassiel", "banner": "faction", "edition": 1, "printing": 2, "serial": 24, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 724},
+					{"hero": "liora", "banner": "faction", "edition": 1, "printing": 2, "serial": 28, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 20},
+					{"hero": "uriela", "banner": "faction", "edition": 1, "printing": 2, "serial": 29, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 157},
+					{"hero": "nuriel", "banner": "faction", "edition": 1, "printing": 2, "serial": 33, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 835},
+					{"hero": "argentiel", "banner": "faction", "edition": 1, "printing": 2, "serial": 35, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 50},
+					{"hero": "sanariel", "banner": "faction", "edition": 1, "printing": 2, "serial": 38, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 585},
+					{"hero": "rimelle", "banner": "faction", "edition": 1, "printing": 2, "serial": 40, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 190},
+					{"hero": "avienne", "banner": "faction", "edition": 1, "printing": 2, "serial": 44, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 3, "v": 806},
+					{"hero": "cirella", "banner": "faction", "edition": 1, "printing": 2, "serial": 45, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 584}
+				],
+				"ed": {"e": 0, "n": 427}
+			}
+		},
+		{
+			"name": "featured_before_epoch",
+			"banner": "featured",
+			"hero_ids": ["seraphiel"],
+			"day": 20736,
+			"epoch_day": 20745,
+			"hours_open": 0,
+			"ed": {},
+			"seed": 2,
+			"seq": 7,
+			"out": {
+				"prints": [
+					{"hero": "seraphiel", "banner": "featured", "edition": 1, "printing": 1, "serial": 1, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 630}
+				],
+				"ed": {"e": -2, "n": 2}
+			}
+		},
+		{
+			"name": "envoy_whole_roster",
+			"banner": "envoy",
+			"hero_ids": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "argentiel", "sanariel", "rimelle", "avienne", "cirella", "ferrael", "verdelle", "isobel", "halcia", "mordessa", "brakka", "vesper", "imra", "kessa", "drezza", "zecchina", "torqua", "sigilla", "carmesa", "thrasha", "kindra", "cordia", "noctaire", "orrin", "sable", "lucen", "ashra", "nadira", "gantra", "severine", "benthe", "seyra", "rivette", "vandra", "ombre"],
+			"day": 20760,
+			"epoch_day": 20745,
+			"hours_open": 15,
+			"ed": {"e": 2, "n": 33},
+			"seed": -77,
+			"seq": 5000,
+			"out": {
+				"prints": [
+					{"hero": "seraphiel", "banner": "envoy", "edition": 3, "printing": 1, "serial": 334, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 466},
+					{"hero": "cassiel", "banner": "envoy", "edition": 3, "printing": 1, "serial": 335, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 321},
+					{"hero": "liora", "banner": "envoy", "edition": 3, "printing": 1, "serial": 337, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 603},
+					{"hero": "uriela", "banner": "envoy", "edition": 3, "printing": 1, "serial": 338, "run": 4000, "flaw": "flood", "ink": "", "holo": false, "grade": 9, "v": 679},
+					{"hero": "nuriel", "banner": "envoy", "edition": 3, "printing": 1, "serial": 342, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 126},
+					{"hero": "argentiel", "banner": "envoy", "edition": 3, "printing": 1, "serial": 343, "run": 4000, "flaw": "", "ink": "", "holo": true, "grade": 7, "v": 700},
+					{"hero": "sanariel", "banner": "envoy", "edition": 3, "printing": 1, "serial": 347, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 342},
+					{"hero": "rimelle", "banner": "envoy", "edition": 3, "printing": 1, "serial": 348, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 357},
+					{"hero": "avienne", "banner": "envoy", "edition": 3, "printing": 1, "serial": 349, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 37},
+					{"hero": "cirella", "banner": "envoy", "edition": 3, "printing": 1, "serial": 351, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 865},
+					{"hero": "ferrael", "banner": "envoy", "edition": 3, "printing": 1, "serial": 354, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 787},
+					{"hero": "verdelle", "banner": "envoy", "edition": 3, "printing": 1, "serial": 358, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 990},
+					{"hero": "isobel", "banner": "envoy", "edition": 3, "printing": 1, "serial": 362, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 360},
+					{"hero": "halcia", "banner": "envoy", "edition": 3, "printing": 1, "serial": 365, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 562},
+					{"hero": "mordessa", "banner": "envoy", "edition": 3, "printing": 1, "serial": 368, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 944},
+					{"hero": "brakka", "banner": "envoy", "edition": 3, "printing": 1, "serial": 369, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 419},
+					{"hero": "vesper", "banner": "envoy", "edition": 3, "printing": 1, "serial": 371, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 558},
+					{"hero": "imra", "banner": "envoy", "edition": 3, "printing": 1, "serial": 374, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 47},
+					{"hero": "kessa", "banner": "envoy", "edition": 3, "printing": 1, "serial": 376, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 909},
+					{"hero": "drezza", "banner": "envoy", "edition": 3, "printing": 1, "serial": 379, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 635},
+					{"hero": "zecchina", "banner": "envoy", "edition": 3, "printing": 1, "serial": 380, "run": 4000, "flaw": "swap", "ink": "cyan", "holo": false, "grade": 7, "v": 428},
+					{"hero": "torqua", "banner": "envoy", "edition": 3, "printing": 1, "serial": 381, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 805},
+					{"hero": "sigilla", "banner": "envoy", "edition": 3, "printing": 1, "serial": 385, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 59},
+					{"hero": "carmesa", "banner": "envoy", "edition": 3, "printing": 1, "serial": 389, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 620},
+					{"hero": "thrasha", "banner": "envoy", "edition": 3, "printing": 1, "serial": 392, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 582},
+					{"hero": "kindra", "banner": "envoy", "edition": 3, "printing": 1, "serial": 395, "run": 4000, "flaw": "swap", "ink": "gold", "holo": false, "grade": 7, "v": 715},
+					{"hero": "cordia", "banner": "envoy", "edition": 3, "printing": 1, "serial": 396, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 979},
+					{"hero": "noctaire", "banner": "envoy", "edition": 3, "printing": 1, "serial": 398, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 254},
+					{"hero": "orrin", "banner": "envoy", "edition": 3, "printing": 1, "serial": 402, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 143},
+					{"hero": "sable", "banner": "envoy", "edition": 3, "printing": 1, "serial": 405, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 101},
+					{"hero": "lucen", "banner": "envoy", "edition": 3, "printing": 1, "serial": 408, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 850},
+					{"hero": "ashra", "banner": "envoy", "edition": 3, "printing": 1, "serial": 412, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 4, "v": 171},
+					{"hero": "nadira", "banner": "envoy", "edition": 3, "printing": 1, "serial": 415, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 819},
+					{"hero": "gantra", "banner": "envoy", "edition": 3, "printing": 1, "serial": 418, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 733},
+					{"hero": "severine", "banner": "envoy", "edition": 3, "printing": 1, "serial": 421, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 464},
+					{"hero": "benthe", "banner": "envoy", "edition": 3, "printing": 1, "serial": 422, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 690},
+					{"hero": "seyra", "banner": "envoy", "edition": 3, "printing": 1, "serial": 424, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 812},
+					{"hero": "rivette", "banner": "envoy", "edition": 3, "printing": 1, "serial": 426, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 980},
+					{"hero": "vandra", "banner": "envoy", "edition": 3, "printing": 1, "serial": 429, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 670},
+					{"hero": "ombre", "banner": "envoy", "edition": 3, "printing": 1, "serial": 433, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 909}
+				],
+				"ed": {"e": 2, "n": 135}
+			}
+		},
+		{
+			"name": "long_run",
+			"banner": "featured",
+			"hero_ids": ["seraphiel", "rimelle", "mordessa", "torqua", "orrin", "benthe", "liora", "cirella", "vesper", "carmesa", "lucen", "rivette", "nuriel", "verdelle", "kessa", "kindra", "nadira", "ombre", "sanariel", "halcia", "zecchina", "noctaire", "severine", "cassiel", "avienne", "brakka", "sigilla", "sable", "seyra", "uriela", "ferrael", "imra", "thrasha", "ashra", "vandra", "argentiel", "isobel", "drezza", "cordia", "gantra", "seraphiel", "rimelle", "mordessa", "torqua", "orrin", "benthe", "liora", "cirella", "vesper", "carmesa", "lucen", "rivette", "nuriel", "verdelle", "kessa", "kindra", "nadira", "ombre", "sanariel", "halcia", "zecchina", "noctaire", "severine", "cassiel", "avienne", "brakka", "sigilla", "sable", "seyra", "uriela", "ferrael", "imra", "thrasha", "ashra", "vandra", "argentiel", "isobel", "drezza", "cordia", "gantra", "seraphiel", "rimelle", "mordessa", "torqua", "orrin", "benthe", "liora", "cirella", "vesper", "carmesa", "lucen", "rivette", "nuriel", "verdelle", "kessa", "kindra", "nadira", "ombre", "sanariel", "halcia", "zecchina", "noctaire", "severine", "cassiel", "avienne", "brakka", "sigilla", "sable", "seyra", "uriela", "ferrael", "imra", "thrasha", "ashra", "vandra", "argentiel", "isobel", "drezza", "cordia", "gantra", "seraphiel", "rimelle", "mordessa", "torqua", "orrin", "benthe", "liora", "cirella", "vesper", "carmesa", "lucen", "rivette", "nuriel", "verdelle", "kessa", "kindra", "nadira", "ombre", "sanariel", "halcia", "zecchina", "noctaire", "severine", "cassiel", "avienne", "brakka", "sigilla", "sable", "seyra", "uriela", "ferrael", "imra", "thrasha", "ashra", "vandra", "argentiel", "isobel", "drezza", "cordia", "gantra", "seraphiel", "rimelle", "mordessa", "torqua", "orrin", "benthe", "liora", "cirella", "vesper", "carmesa", "lucen", "rivette", "nuriel", "verdelle", "kessa", "kindra", "nadira", "ombre", "sanariel", "halcia", "zecchina", "noctaire", "severine", "cassiel", "avienne", "brakka", "sigilla", "sable", "seyra", "uriela", "ferrael", "imra", "thrasha", "ashra", "vandra", "argentiel", "isobel", "drezza", "cordia", "gantra", "seraphiel", "rimelle", "mordessa", "torqua", "orrin", "benthe", "liora", "cirella", "vesper", "carmesa", "lucen", "rivette", "nuriel", "verdelle", "kessa", "kindra", "nadira", "ombre", "sanariel", "halcia", "zecchina", "noctaire", "severine", "cassiel", "avienne", "brakka", "sigilla", "sable", "seyra", "uriela", "ferrael", "imra", "thrasha", "ashra", "vandra", "argentiel", "isobel", "drezza", "cordia", "gantra"],
+			"day": 20746,
+			"epoch_day": 20745,
+			"hours_open": 30,
+			"ed": {},
+			"seed": 424243,
+			"seq": 0,
+			"out": {
+				"prints": [
+					{"hero": "seraphiel", "banner": "featured", "edition": 1, "printing": 1, "serial": 361, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 68},
+					{"hero": "rimelle", "banner": "featured", "edition": 1, "printing": 1, "serial": 362, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 994},
+					{"hero": "mordessa", "banner": "featured", "edition": 1, "printing": 1, "serial": 364, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 349},
+					{"hero": "torqua", "banner": "featured", "edition": 1, "printing": 1, "serial": 367, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 845},
+					{"hero": "orrin", "banner": "featured", "edition": 1, "printing": 1, "serial": 369, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 370},
+					{"hero": "benthe", "banner": "featured", "edition": 1, "printing": 1, "serial": 373, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 995},
+					{"hero": "liora", "banner": "featured", "edition": 1, "printing": 1, "serial": 375, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 827},
+					{"hero": "cirella", "banner": "featured", "edition": 1, "printing": 1, "serial": 377, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 904},
+					{"hero": "vesper", "banner": "featured", "edition": 1, "printing": 1, "serial": 378, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 961},
+					{"hero": "carmesa", "banner": "featured", "edition": 1, "printing": 1, "serial": 380, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 67},
+					{"hero": "lucen", "banner": "featured", "edition": 1, "printing": 1, "serial": 383, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 245},
+					{"hero": "rivette", "banner": "featured", "edition": 1, "printing": 1, "serial": 385, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 883},
+					{"hero": "nuriel", "banner": "featured", "edition": 1, "printing": 1, "serial": 386, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 260},
+					{"hero": "verdelle", "banner": "featured", "edition": 1, "printing": 1, "serial": 388, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 832},
+					{"hero": "kessa", "banner": "featured", "edition": 1, "printing": 1, "serial": 389, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 725},
+					{"hero": "kindra", "banner": "featured", "edition": 1, "printing": 1, "serial": 393, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 428},
+					{"hero": "nadira", "banner": "featured", "edition": 1, "printing": 1, "serial": 394, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 134},
+					{"hero": "ombre", "banner": "featured", "edition": 1, "printing": 1, "serial": 395, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 175},
+					{"hero": "sanariel", "banner": "featured", "edition": 1, "printing": 1, "serial": 398, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 481},
+					{"hero": "halcia", "banner": "featured", "edition": 1, "printing": 1, "serial": 399, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 514},
+					{"hero": "zecchina", "banner": "featured", "edition": 1, "printing": 1, "serial": 401, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 320},
+					{"hero": "noctaire", "banner": "featured", "edition": 1, "printing": 1, "serial": 402, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 334},
+					{"hero": "severine", "banner": "featured", "edition": 1, "printing": 1, "serial": 404, "run": 2500, "flaw": "shift", "ink": "", "holo": false, "grade": 5, "v": 206},
+					{"hero": "cassiel", "banner": "featured", "edition": 1, "printing": 1, "serial": 407, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 593},
+					{"hero": "avienne", "banner": "featured", "edition": 1, "printing": 1, "serial": 409, "run": 2500, "flaw": "swap", "ink": "gold", "holo": false, "grade": 4, "v": 51},
+					{"hero": "brakka", "banner": "featured", "edition": 1, "printing": 1, "serial": 410, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 201},
+					{"hero": "sigilla", "banner": "featured", "edition": 1, "printing": 1, "serial": 414, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 905},
+					{"hero": "sable", "banner": "featured", "edition": 1, "printing": 1, "serial": 415, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 428},
+					{"hero": "seyra", "banner": "featured", "edition": 1, "printing": 1, "serial": 416, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 3},
+					{"hero": "uriela", "banner": "featured", "edition": 1, "printing": 1, "serial": 417, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 142},
+					{"hero": "ferrael", "banner": "featured", "edition": 1, "printing": 1, "serial": 418, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 287},
+					{"hero": "imra", "banner": "featured", "edition": 1, "printing": 1, "serial": 419, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 808},
+					{"hero": "thrasha", "banner": "featured", "edition": 1, "printing": 1, "serial": 423, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 7},
+					{"hero": "ashra", "banner": "featured", "edition": 1, "printing": 1, "serial": 426, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 834},
+					{"hero": "vandra", "banner": "featured", "edition": 1, "printing": 1, "serial": 427, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 155},
+					{"hero": "argentiel", "banner": "featured", "edition": 1, "printing": 1, "serial": 430, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 4, "v": 391},
+					{"hero": "isobel", "banner": "featured", "edition": 1, "printing": 1, "serial": 431, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 10, "v": 275},
+					{"hero": "drezza", "banner": "featured", "edition": 1, "printing": 1, "serial": 435, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 677},
+					{"hero": "cordia", "banner": "featured", "edition": 1, "printing": 1, "serial": 438, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 347},
+					{"hero": "gantra", "banner": "featured", "edition": 1, "printing": 1, "serial": 439, "run": 2500, "flaw": "shift", "ink": "", "holo": false, "grade": 5, "v": 551},
+					{"hero": "seraphiel", "banner": "featured", "edition": 1, "printing": 1, "serial": 443, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 172},
+					{"hero": "rimelle", "banner": "featured", "edition": 1, "printing": 1, "serial": 445, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 872},
+					{"hero": "mordessa", "banner": "featured", "edition": 1, "printing": 1, "serial": 447, "run": 2500, "flaw": "", "ink": "", "holo": true, "grade": 7, "v": 80},
+					{"hero": "torqua", "banner": "featured", "edition": 1, "printing": 1, "serial": 449, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 350},
+					{"hero": "orrin", "banner": "featured", "edition": 1, "printing": 1, "serial": 451, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 761},
+					{"hero": "benthe", "banner": "featured", "edition": 1, "printing": 1, "serial": 455, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 452},
+					{"hero": "liora", "banner": "featured", "edition": 1, "printing": 1, "serial": 459, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 10, "v": 619},
+					{"hero": "cirella", "banner": "featured", "edition": 1, "printing": 1, "serial": 463, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 947},
+					{"hero": "vesper", "banner": "featured", "edition": 1, "printing": 1, "serial": 466, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 711},
+					{"hero": "carmesa", "banner": "featured", "edition": 1, "printing": 1, "serial": 467, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 58},
+					{"hero": "lucen", "banner": "featured", "edition": 1, "printing": 1, "serial": 470, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 927},
+					{"hero": "rivette", "banner": "featured", "edition": 1, "printing": 1, "serial": 473, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 455},
+					{"hero": "nuriel", "banner": "featured", "edition": 1, "printing": 1, "serial": 474, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 523},
+					{"hero": "verdelle", "banner": "featured", "edition": 1, "printing": 1, "serial": 475, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 325},
+					{"hero": "kessa", "banner": "featured", "edition": 1, "printing": 1, "serial": 476, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 299},
+					{"hero": "kindra", "banner": "featured", "edition": 1, "printing": 1, "serial": 479, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 3, "v": 352},
+					{"hero": "nadira", "banner": "featured", "edition": 1, "printing": 1, "serial": 482, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 586},
+					{"hero": "ombre", "banner": "featured", "edition": 1, "printing": 1, "serial": 483, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 549},
+					{"hero": "sanariel", "banner": "featured", "edition": 1, "printing": 1, "serial": 486, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 357},
+					{"hero": "halcia", "banner": "featured", "edition": 1, "printing": 1, "serial": 488, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 955},
+					{"hero": "zecchina", "banner": "featured", "edition": 1, "printing": 1, "serial": 490, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 513},
+					{"hero": "noctaire", "banner": "featured", "edition": 1, "printing": 1, "serial": 492, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 703},
+					{"hero": "severine", "banner": "featured", "edition": 1, "printing": 1, "serial": 493, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 4, "v": 595},
+					{"hero": "cassiel", "banner": "featured", "edition": 1, "printing": 1, "serial": 495, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 276},
+					{"hero": "avienne", "banner": "featured", "edition": 1, "printing": 1, "serial": 499, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 4, "v": 268},
+					{"hero": "brakka", "banner": "featured", "edition": 1, "printing": 1, "serial": 502, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 325},
+					{"hero": "sigilla", "banner": "featured", "edition": 1, "printing": 1, "serial": 503, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 536},
+					{"hero": "sable", "banner": "featured", "edition": 1, "printing": 1, "serial": 505, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 136},
+					{"hero": "seyra", "banner": "featured", "edition": 1, "printing": 1, "serial": 507, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 631},
+					{"hero": "uriela", "banner": "featured", "edition": 1, "printing": 1, "serial": 508, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 660},
+					{"hero": "ferrael", "banner": "featured", "edition": 1, "printing": 1, "serial": 510, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 771},
+					{"hero": "imra", "banner": "featured", "edition": 1, "printing": 1, "serial": 514, "run": 2500, "flaw": "double", "ink": "", "holo": false, "grade": 5, "v": 785},
+					{"hero": "thrasha", "banner": "featured", "edition": 1, "printing": 1, "serial": 517, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 905},
+					{"hero": "ashra", "banner": "featured", "edition": 1, "printing": 1, "serial": 520, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 824},
+					{"hero": "vandra", "banner": "featured", "edition": 1, "printing": 1, "serial": 524, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 113},
+					{"hero": "argentiel", "banner": "featured", "edition": 1, "printing": 1, "serial": 526, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 472},
+					{"hero": "isobel", "banner": "featured", "edition": 1, "printing": 1, "serial": 528, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 699},
+					{"hero": "drezza", "banner": "featured", "edition": 1, "printing": 1, "serial": 531, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 3, "v": 268},
+					{"hero": "cordia", "banner": "featured", "edition": 1, "printing": 1, "serial": 534, "run": 2500, "flaw": "swap", "ink": "cyan", "holo": false, "grade": 7, "v": 232},
+					{"hero": "gantra", "banner": "featured", "edition": 1, "printing": 1, "serial": 535, "run": 2500, "flaw": "shift", "ink": "", "holo": false, "grade": 6, "v": 254},
+					{"hero": "seraphiel", "banner": "featured", "edition": 1, "printing": 1, "serial": 536, "run": 2500, "flaw": "swap", "ink": "violet", "holo": false, "grade": 8, "v": 889},
+					{"hero": "rimelle", "banner": "featured", "edition": 1, "printing": 1, "serial": 539, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 86},
+					{"hero": "mordessa", "banner": "featured", "edition": 1, "printing": 1, "serial": 541, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 453},
+					{"hero": "torqua", "banner": "featured", "edition": 1, "printing": 1, "serial": 543, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 802},
+					{"hero": "orrin", "banner": "featured", "edition": 1, "printing": 1, "serial": 547, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 444},
+					{"hero": "benthe", "banner": "featured", "edition": 1, "printing": 1, "serial": 548, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 167},
+					{"hero": "liora", "banner": "featured", "edition": 1, "printing": 1, "serial": 550, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 222},
+					{"hero": "cirella", "banner": "featured", "edition": 1, "printing": 1, "serial": 553, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 565},
+					{"hero": "vesper", "banner": "featured", "edition": 1, "printing": 1, "serial": 555, "run": 2500, "flaw": "swap", "ink": "acid", "holo": false, "grade": 6, "v": 210},
+					{"hero": "carmesa", "banner": "featured", "edition": 1, "printing": 1, "serial": 559, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 892},
+					{"hero": "lucen", "banner": "featured", "edition": 1, "printing": 1, "serial": 563, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 654},
+					{"hero": "rivette", "banner": "featured", "edition": 1, "printing": 1, "serial": 565, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 318},
+					{"hero": "nuriel", "banner": "featured", "edition": 1, "printing": 1, "serial": 566, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 600},
+					{"hero": "verdelle", "banner": "featured", "edition": 1, "printing": 1, "serial": 569, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 48},
+					{"hero": "kessa", "banner": "featured", "edition": 1, "printing": 1, "serial": 572, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 375},
+					{"hero": "kindra", "banner": "featured", "edition": 1, "printing": 1, "serial": 576, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 948},
+					{"hero": "nadira", "banner": "featured", "edition": 1, "printing": 1, "serial": 577, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 233},
+					{"hero": "ombre", "banner": "featured", "edition": 1, "printing": 1, "serial": 581, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 534},
+					{"hero": "sanariel", "banner": "featured", "edition": 1, "printing": 1, "serial": 583, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 825},
+					{"hero": "halcia", "banner": "featured", "edition": 1, "printing": 1, "serial": 584, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 739},
+					{"hero": "zecchina", "banner": "featured", "edition": 1, "printing": 1, "serial": 588, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 991},
+					{"hero": "noctaire", "banner": "featured", "edition": 1, "printing": 1, "serial": 589, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 10, "v": 274},
+					{"hero": "severine", "banner": "featured", "edition": 1, "printing": 1, "serial": 591, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 775},
+					{"hero": "cassiel", "banner": "featured", "edition": 1, "printing": 1, "serial": 592, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 307},
+					{"hero": "avienne", "banner": "featured", "edition": 1, "printing": 1, "serial": 594, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 68},
+					{"hero": "brakka", "banner": "featured", "edition": 1, "printing": 1, "serial": 597, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 867},
+					{"hero": "sigilla", "banner": "featured", "edition": 1, "printing": 1, "serial": 600, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 900},
+					{"hero": "sable", "banner": "featured", "edition": 1, "printing": 1, "serial": 602, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 151},
+					{"hero": "seyra", "banner": "featured", "edition": 1, "printing": 1, "serial": 605, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 867},
+					{"hero": "uriela", "banner": "featured", "edition": 1, "printing": 1, "serial": 608, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 934},
+					{"hero": "ferrael", "banner": "featured", "edition": 1, "printing": 1, "serial": 610, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 582},
+					{"hero": "imra", "banner": "featured", "edition": 1, "printing": 1, "serial": 612, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 920},
+					{"hero": "thrasha", "banner": "featured", "edition": 1, "printing": 1, "serial": 615, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 86},
+					{"hero": "ashra", "banner": "featured", "edition": 1, "printing": 1, "serial": 618, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 21},
+					{"hero": "vandra", "banner": "featured", "edition": 1, "printing": 1, "serial": 619, "run": 2500, "flaw": "shift", "ink": "", "holo": false, "grade": 7, "v": 600},
+					{"hero": "argentiel", "banner": "featured", "edition": 1, "printing": 1, "serial": 620, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 30},
+					{"hero": "isobel", "banner": "featured", "edition": 1, "printing": 1, "serial": 621, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 845},
+					{"hero": "drezza", "banner": "featured", "edition": 1, "printing": 1, "serial": 623, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 301},
+					{"hero": "cordia", "banner": "featured", "edition": 1, "printing": 1, "serial": 625, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 785},
+					{"hero": "gantra", "banner": "featured", "edition": 1, "printing": 1, "serial": 628, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 519},
+					{"hero": "seraphiel", "banner": "featured", "edition": 1, "printing": 1, "serial": 630, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 4, "v": 991},
+					{"hero": "rimelle", "banner": "featured", "edition": 1, "printing": 1, "serial": 633, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 358},
+					{"hero": "mordessa", "banner": "featured", "edition": 1, "printing": 1, "serial": 635, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 3, "v": 488},
+					{"hero": "torqua", "banner": "featured", "edition": 1, "printing": 1, "serial": 639, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 945},
+					{"hero": "orrin", "banner": "featured", "edition": 1, "printing": 1, "serial": 642, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 455},
+					{"hero": "benthe", "banner": "featured", "edition": 1, "printing": 1, "serial": 643, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 885},
+					{"hero": "liora", "banner": "featured", "edition": 1, "printing": 1, "serial": 645, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 4, "v": 394},
+					{"hero": "cirella", "banner": "featured", "edition": 1, "printing": 1, "serial": 648, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 231},
+					{"hero": "vesper", "banner": "featured", "edition": 1, "printing": 1, "serial": 651, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 452},
+					{"hero": "carmesa", "banner": "featured", "edition": 1, "printing": 1, "serial": 655, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 102},
+					{"hero": "lucen", "banner": "featured", "edition": 1, "printing": 1, "serial": 657, "run": 2500, "flaw": "ghost", "ink": "", "holo": false, "grade": 9, "v": 878},
+					{"hero": "rivette", "banner": "featured", "edition": 1, "printing": 1, "serial": 658, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 145},
+					{"hero": "nuriel", "banner": "featured", "edition": 1, "printing": 1, "serial": 661, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 518},
+					{"hero": "verdelle", "banner": "featured", "edition": 1, "printing": 1, "serial": 665, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 212},
+					{"hero": "kessa", "banner": "featured", "edition": 1, "printing": 1, "serial": 669, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 512},
+					{"hero": "kindra", "banner": "featured", "edition": 1, "printing": 1, "serial": 670, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 63},
+					{"hero": "nadira", "banner": "featured", "edition": 1, "printing": 1, "serial": 674, "run": 2500, "flaw": "double", "ink": "", "holo": false, "grade": 6, "v": 929},
+					{"hero": "ombre", "banner": "featured", "edition": 1, "printing": 1, "serial": 675, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 997},
+					{"hero": "sanariel", "banner": "featured", "edition": 1, "printing": 1, "serial": 676, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 4, "v": 497},
+					{"hero": "halcia", "banner": "featured", "edition": 1, "printing": 1, "serial": 680, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 509},
+					{"hero": "zecchina", "banner": "featured", "edition": 1, "printing": 1, "serial": 682, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 929},
+					{"hero": "noctaire", "banner": "featured", "edition": 1, "printing": 1, "serial": 684, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 905},
+					{"hero": "severine", "banner": "featured", "edition": 1, "printing": 1, "serial": 686, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 682},
+					{"hero": "cassiel", "banner": "featured", "edition": 1, "printing": 1, "serial": 687, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 378},
+					{"hero": "avienne", "banner": "featured", "edition": 1, "printing": 1, "serial": 691, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 962},
+					{"hero": "brakka", "banner": "featured", "edition": 1, "printing": 1, "serial": 694, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 384},
+					{"hero": "sigilla", "banner": "featured", "edition": 1, "printing": 1, "serial": 696, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 541},
+					{"hero": "sable", "banner": "featured", "edition": 1, "printing": 1, "serial": 697, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 4, "v": 791},
+					{"hero": "seyra", "banner": "featured", "edition": 1, "printing": 1, "serial": 699, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 359},
+					{"hero": "uriela", "banner": "featured", "edition": 1, "printing": 1, "serial": 700, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 893},
+					{"hero": "ferrael", "banner": "featured", "edition": 1, "printing": 1, "serial": 703, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 198},
+					{"hero": "imra", "banner": "featured", "edition": 1, "printing": 1, "serial": 706, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 3, "v": 403},
+					{"hero": "thrasha", "banner": "featured", "edition": 1, "printing": 1, "serial": 710, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 649},
+					{"hero": "ashra", "banner": "featured", "edition": 1, "printing": 1, "serial": 712, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 798},
+					{"hero": "vandra", "banner": "featured", "edition": 1, "printing": 1, "serial": 716, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 190},
+					{"hero": "argentiel", "banner": "featured", "edition": 1, "printing": 1, "serial": 719, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 270},
+					{"hero": "isobel", "banner": "featured", "edition": 1, "printing": 1, "serial": 722, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 8},
+					{"hero": "drezza", "banner": "featured", "edition": 1, "printing": 1, "serial": 725, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 767},
+					{"hero": "cordia", "banner": "featured", "edition": 1, "printing": 1, "serial": 727, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 281},
+					{"hero": "gantra", "banner": "featured", "edition": 1, "printing": 1, "serial": 729, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 864},
+					{"hero": "seraphiel", "banner": "featured", "edition": 1, "printing": 1, "serial": 732, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 4, "v": 610},
+					{"hero": "rimelle", "banner": "featured", "edition": 1, "printing": 1, "serial": 733, "run": 2500, "flaw": "swap", "ink": "violet", "holo": false, "grade": 6, "v": 801},
+					{"hero": "mordessa", "banner": "featured", "edition": 1, "printing": 1, "serial": 734, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 705},
+					{"hero": "torqua", "banner": "featured", "edition": 1, "printing": 1, "serial": 737, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 772},
+					{"hero": "orrin", "banner": "featured", "edition": 1, "printing": 1, "serial": 740, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 908},
+					{"hero": "benthe", "banner": "featured", "edition": 1, "printing": 1, "serial": 743, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 850},
+					{"hero": "liora", "banner": "featured", "edition": 1, "printing": 1, "serial": 744, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 831},
+					{"hero": "cirella", "banner": "featured", "edition": 1, "printing": 1, "serial": 745, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 117},
+					{"hero": "vesper", "banner": "featured", "edition": 1, "printing": 1, "serial": 749, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 257},
+					{"hero": "carmesa", "banner": "featured", "edition": 1, "printing": 1, "serial": 752, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 126},
+					{"hero": "lucen", "banner": "featured", "edition": 1, "printing": 1, "serial": 755, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 3, "v": 266},
+					{"hero": "rivette", "banner": "featured", "edition": 1, "printing": 1, "serial": 756, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 333},
+					{"hero": "nuriel", "banner": "featured", "edition": 1, "printing": 1, "serial": 757, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 438},
+					{"hero": "verdelle", "banner": "featured", "edition": 1, "printing": 1, "serial": 760, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 3, "v": 811},
+					{"hero": "kessa", "banner": "featured", "edition": 1, "printing": 1, "serial": 761, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 309},
+					{"hero": "kindra", "banner": "featured", "edition": 1, "printing": 1, "serial": 765, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 769},
+					{"hero": "nadira", "banner": "featured", "edition": 1, "printing": 1, "serial": 768, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 181},
+					{"hero": "ombre", "banner": "featured", "edition": 1, "printing": 1, "serial": 772, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 820},
+					{"hero": "sanariel", "banner": "featured", "edition": 1, "printing": 1, "serial": 775, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 167},
+					{"hero": "halcia", "banner": "featured", "edition": 1, "printing": 1, "serial": 776, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 399},
+					{"hero": "zecchina", "banner": "featured", "edition": 1, "printing": 1, "serial": 779, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 420},
+					{"hero": "noctaire", "banner": "featured", "edition": 1, "printing": 1, "serial": 782, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 172},
+					{"hero": "severine", "banner": "featured", "edition": 1, "printing": 1, "serial": 784, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 300},
+					{"hero": "cassiel", "banner": "featured", "edition": 1, "printing": 1, "serial": 787, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 93},
+					{"hero": "avienne", "banner": "featured", "edition": 1, "printing": 1, "serial": 791, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 404},
+					{"hero": "brakka", "banner": "featured", "edition": 1, "printing": 1, "serial": 794, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 200},
+					{"hero": "sigilla", "banner": "featured", "edition": 1, "printing": 1, "serial": 797, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 620},
+					{"hero": "sable", "banner": "featured", "edition": 1, "printing": 1, "serial": 801, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 616},
+					{"hero": "seyra", "banner": "featured", "edition": 1, "printing": 1, "serial": 805, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 528},
+					{"hero": "uriela", "banner": "featured", "edition": 1, "printing": 1, "serial": 809, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 706},
+					{"hero": "ferrael", "banner": "featured", "edition": 1, "printing": 1, "serial": 812, "run": 2500, "flaw": "ghost", "ink": "", "holo": false, "grade": 8, "v": 807},
+					{"hero": "imra", "banner": "featured", "edition": 1, "printing": 1, "serial": 814, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 904},
+					{"hero": "thrasha", "banner": "featured", "edition": 1, "printing": 1, "serial": 817, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 433},
+					{"hero": "ashra", "banner": "featured", "edition": 1, "printing": 1, "serial": 820, "run": 2500, "flaw": "swap", "ink": "violet", "holo": false, "grade": 8, "v": 481},
+					{"hero": "vandra", "banner": "featured", "edition": 1, "printing": 1, "serial": 821, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 614},
+					{"hero": "argentiel", "banner": "featured", "edition": 1, "printing": 1, "serial": 823, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 596},
+					{"hero": "isobel", "banner": "featured", "edition": 1, "printing": 1, "serial": 824, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 243},
+					{"hero": "drezza", "banner": "featured", "edition": 1, "printing": 1, "serial": 825, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 725},
+					{"hero": "cordia", "banner": "featured", "edition": 1, "printing": 1, "serial": 827, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 318},
+					{"hero": "gantra", "banner": "featured", "edition": 1, "printing": 1, "serial": 829, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 800},
+					{"hero": "seraphiel", "banner": "featured", "edition": 1, "printing": 1, "serial": 831, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 471},
+					{"hero": "rimelle", "banner": "featured", "edition": 1, "printing": 1, "serial": 835, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 608},
+					{"hero": "mordessa", "banner": "featured", "edition": 1, "printing": 1, "serial": 839, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 4, "v": 866},
+					{"hero": "torqua", "banner": "featured", "edition": 1, "printing": 1, "serial": 841, "run": 2500, "flaw": "", "ink": "", "holo": true, "grade": 8, "v": 298},
+					{"hero": "orrin", "banner": "featured", "edition": 1, "printing": 1, "serial": 844, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 952},
+					{"hero": "benthe", "banner": "featured", "edition": 1, "printing": 1, "serial": 848, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 708},
+					{"hero": "liora", "banner": "featured", "edition": 1, "printing": 1, "serial": 849, "run": 2500, "flaw": "flood", "ink": "", "holo": false, "grade": 8, "v": 0},
+					{"hero": "cirella", "banner": "featured", "edition": 1, "printing": 1, "serial": 850, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 416},
+					{"hero": "vesper", "banner": "featured", "edition": 1, "printing": 1, "serial": 853, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 519},
+					{"hero": "carmesa", "banner": "featured", "edition": 1, "printing": 1, "serial": 856, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 899},
+					{"hero": "lucen", "banner": "featured", "edition": 1, "printing": 1, "serial": 857, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 405},
+					{"hero": "rivette", "banner": "featured", "edition": 1, "printing": 1, "serial": 861, "run": 2500, "flaw": "ghost", "ink": "", "holo": false, "grade": 5, "v": 903},
+					{"hero": "nuriel", "banner": "featured", "edition": 1, "printing": 1, "serial": 863, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 3, "v": 357},
+					{"hero": "verdelle", "banner": "featured", "edition": 1, "printing": 1, "serial": 864, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 620},
+					{"hero": "kessa", "banner": "featured", "edition": 1, "printing": 1, "serial": 866, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 510},
+					{"hero": "kindra", "banner": "featured", "edition": 1, "printing": 1, "serial": 868, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 122},
+					{"hero": "nadira", "banner": "featured", "edition": 1, "printing": 1, "serial": 869, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 720},
+					{"hero": "ombre", "banner": "featured", "edition": 1, "printing": 1, "serial": 872, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 4, "v": 525},
+					{"hero": "sanariel", "banner": "featured", "edition": 1, "printing": 1, "serial": 874, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 934},
+					{"hero": "halcia", "banner": "featured", "edition": 1, "printing": 1, "serial": 876, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 542},
+					{"hero": "zecchina", "banner": "featured", "edition": 1, "printing": 1, "serial": 877, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 971},
+					{"hero": "noctaire", "banner": "featured", "edition": 1, "printing": 1, "serial": 880, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 10, "v": 637},
+					{"hero": "severine", "banner": "featured", "edition": 1, "printing": 1, "serial": 884, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 389},
+					{"hero": "cassiel", "banner": "featured", "edition": 1, "printing": 1, "serial": 888, "run": 2500, "flaw": "double", "ink": "", "holo": false, "grade": 7, "v": 858},
+					{"hero": "avienne", "banner": "featured", "edition": 1, "printing": 1, "serial": 890, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 644},
+					{"hero": "brakka", "banner": "featured", "edition": 1, "printing": 1, "serial": 894, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 3, "v": 33},
+					{"hero": "sigilla", "banner": "featured", "edition": 1, "printing": 1, "serial": 898, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 876},
+					{"hero": "sable", "banner": "featured", "edition": 1, "printing": 1, "serial": 899, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 651},
+					{"hero": "seyra", "banner": "featured", "edition": 1, "printing": 1, "serial": 901, "run": 2500, "flaw": "", "ink": "", "holo": true, "grade": 8, "v": 53},
+					{"hero": "uriela", "banner": "featured", "edition": 1, "printing": 1, "serial": 904, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 497},
+					{"hero": "ferrael", "banner": "featured", "edition": 1, "printing": 1, "serial": 906, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 17},
+					{"hero": "imra", "banner": "featured", "edition": 1, "printing": 1, "serial": 907, "run": 2500, "flaw": "", "ink": "", "holo": true, "grade": 6, "v": 947},
+					{"hero": "thrasha", "banner": "featured", "edition": 1, "printing": 1, "serial": 910, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 621},
+					{"hero": "ashra", "banner": "featured", "edition": 1, "printing": 1, "serial": 912, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 132},
+					{"hero": "vandra", "banner": "featured", "edition": 1, "printing": 1, "serial": 916, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 851},
+					{"hero": "argentiel", "banner": "featured", "edition": 1, "printing": 1, "serial": 917, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 604},
+					{"hero": "isobel", "banner": "featured", "edition": 1, "printing": 1, "serial": 921, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 3, "v": 253},
+					{"hero": "drezza", "banner": "featured", "edition": 1, "printing": 1, "serial": 925, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 630},
+					{"hero": "cordia", "banner": "featured", "edition": 1, "printing": 1, "serial": 928, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 245},
+					{"hero": "gantra", "banner": "featured", "edition": 1, "printing": 1, "serial": 931, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 4, "v": 576}
+				],
+				"ed": {"e": 0, "n": 574}
+			}
+		}
+	],
+	"samples": [
+		{
+			"print": {"hero": "kessa", "serial": 412, "printing": 1, "flaw": "", "holo": false, "grade": 7},
+			"notable": false,
+			"score": 750
+		},
+		{
+			"print": {"hero": "kessa", "serial": 12, "printing": 1, "flaw": "", "holo": false, "grade": 6},
+			"notable": true,
+			"score": 1338
+		},
+		{
+			"print": {"hero": "kessa", "serial": 900, "printing": 2, "flaw": "shift", "holo": false, "grade": 5},
+			"notable": true,
+			"score": 2540
+		},
+		{
+			"print": {"hero": "kessa", "serial": 900, "printing": 1, "flaw": "flood", "holo": true, "grade": 10},
+			"notable": true,
+			"score": 6300
+		},
+		{
+			"print": {"hero": "kessa", "serial": 101, "printing": 1, "flaw": "", "holo": false, "grade": 9},
+			"notable": true,
+			"score": 950
+		},
+		{
+			"print": {"hero": "kessa", "serial": 3000, "printing": 3, "flaw": "", "holo": false, "grade": 8, "first": true},
+			"notable": true,
+			"score": 800
+		},
+		{
+			"print": {"hero": "kessa", "serial": 3000, "printing": 3, "flaw": "", "holo": false, "grade": 8, "from": "rival"},
+			"notable": true,
+			"score": 800
+		},
+		{
+			"print": {"hero": "kessa", "serial": 2000, "printing": 1, "flaw": "", "holo": false, "grade": 3},
+			"notable": false,
+			"score": 350
+		}
+	],
+	"trim": {
+		"list": [
+			{"uid": "p1", "hero": "uriela", "serial": 500, "printing": 1, "flaw": "", "holo": false, "grade": 6},
+			{"uid": "p2", "hero": "uriela", "serial": 501, "printing": 1, "flaw": "", "holo": false, "grade": 6},
+			{"uid": "p3", "hero": "uriela", "serial": 502, "printing": 1, "flaw": "ghost", "holo": false, "grade": 6},
+			{"uid": "p4", "hero": "uriela", "serial": 503, "printing": 1, "flaw": "", "holo": false, "grade": 6},
+			{"uid": "p5", "hero": "uriela", "serial": 504, "printing": 1, "flaw": "", "holo": false, "grade": 6},
+			{"uid": "p6", "hero": "uriela", "serial": 505, "printing": 1, "flaw": "", "holo": false, "grade": 6},
+			{"uid": "p7", "hero": "uriela", "serial": 506, "printing": 1, "flaw": "", "holo": false, "grade": 6},
+			{"uid": "p8", "hero": "uriela", "serial": 507, "printing": 1, "flaw": "", "holo": true, "grade": 6},
+			{"uid": "p9", "hero": "uriela", "serial": 508, "printing": 1, "flaw": "", "holo": false, "grade": 6},
+			{"uid": "p10", "hero": "uriela", "serial": 509, "printing": 1, "flaw": "", "holo": false, "grade": 10},
+			{"uid": "p11", "hero": "uriela", "serial": 510, "printing": 1, "flaw": "", "holo": false, "grade": 6},
+			{"uid": "p12", "hero": "uriela", "serial": 511, "printing": 1, "flaw": "", "holo": false, "grade": 6}
+		],
+		"keep_plain": 3,
+		"out": [
+			{"uid": "p3", "hero": "uriela", "serial": 502, "printing": 1, "flaw": "ghost", "holo": false, "grade": 6},
+			{"uid": "p8", "hero": "uriela", "serial": 507, "printing": 1, "flaw": "", "holo": true, "grade": 6},
+			{"uid": "p9", "hero": "uriela", "serial": 508, "printing": 1, "flaw": "", "holo": false, "grade": 6},
+			{"uid": "p10", "hero": "uriela", "serial": 509, "printing": 1, "flaw": "", "holo": false, "grade": 10},
+			{"uid": "p11", "hero": "uriela", "serial": 510, "printing": 1, "flaw": "", "holo": false, "grade": 6},
+			{"uid": "p12", "hero": "uriela", "serial": 511, "printing": 1, "flaw": "", "holo": false, "grade": 6}
+		],
+		"out_default": [
+			{"uid": "p1", "hero": "uriela", "serial": 500, "printing": 1, "flaw": "", "holo": false, "grade": 6},
+			{"uid": "p2", "hero": "uriela", "serial": 501, "printing": 1, "flaw": "", "holo": false, "grade": 6},
+			{"uid": "p3", "hero": "uriela", "serial": 502, "printing": 1, "flaw": "ghost", "holo": false, "grade": 6},
+			{"uid": "p4", "hero": "uriela", "serial": 503, "printing": 1, "flaw": "", "holo": false, "grade": 6},
+			{"uid": "p5", "hero": "uriela", "serial": 504, "printing": 1, "flaw": "", "holo": false, "grade": 6},
+			{"uid": "p6", "hero": "uriela", "serial": 505, "printing": 1, "flaw": "", "holo": false, "grade": 6},
+			{"uid": "p7", "hero": "uriela", "serial": 506, "printing": 1, "flaw": "", "holo": false, "grade": 6},
+			{"uid": "p8", "hero": "uriela", "serial": 507, "printing": 1, "flaw": "", "holo": true, "grade": 6},
+			{"uid": "p9", "hero": "uriela", "serial": 508, "printing": 1, "flaw": "", "holo": false, "grade": 6},
+			{"uid": "p10", "hero": "uriela", "serial": 509, "printing": 1, "flaw": "", "holo": false, "grade": 10},
+			{"uid": "p11", "hero": "uriela", "serial": 510, "printing": 1, "flaw": "", "holo": false, "grade": 6},
+			{"uid": "p12", "hero": "uriela", "serial": 511, "printing": 1, "flaw": "", "holo": false, "grade": 6}
+		]
+	}
+}

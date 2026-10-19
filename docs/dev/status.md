@@ -61,7 +61,16 @@ this file says where things stand. Older logs are under "History" at the bottom.
 - **Feature ideas (2026-10-19):** the owner asked for features new to the genre and picked **the
   Rival** (a simulated summoner who competes, learns your team and tags your posters) and
   **Misprints** (numbered, graded, limited prints with rare cosmetic flaws). Everything from the
-  brainstorm, picked and open, is in `docs/dev/feature-ideas.md`. Nothing is built yet.
+  brainstorm, picked and open, is in `docs/dev/feature-ideas.md`. **Both are built (2026-10-20, a
+  worktree agent):** every summoned hero is a numbered, graded print (`PrintRules`, `data/prints.json`;
+  6% misprinted, 1.5% holo; cosmetic only) with a misprint beat in the summon reveal, the album screen
+  `prints` and a showcase on the profile; Rue (`RivalRules`, `data/rival.json`) pulls every day, keeps
+  her best prints, counter-picks after 2 fights, tags the Lobby when she wins (a loss costs nothing)
+  and pays a haul plus one of her prints on the first win of a day; screen `rival`, battle mode
+  `rival`, RIVAL in the Lobby menu. Her strength (`strength_bp` 16000) gives a team at her level 75%
+  wins (`tests/tools/rival_bench.gd`). New collage renders from the owner's refs 23-26
+  (`tools/blender/rival_objects.py`). Fixtures `prints.json`, `rival.json`; `check_port.py` 84
+  checks.
 - **Latest IPA: run 39248997675** (2026-10-19 12:07 UTC): five summon banners, framing fix and the
   owner's list.
 - **Game:** v1 plays end to end (`docs/dev/architecture.md`). On the PC `tools/check e2e` passes:

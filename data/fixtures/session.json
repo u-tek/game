@@ -79,7 +79,12 @@
 		{"advance_ms": 0, "call": "pity_count", "args": ["featured"]},
 		{"advance_ms": 86400000, "call": "banners", "args": []},
 		{"advance_ms": 0, "call": "summon", "args": [1, false, "envoy"]},
-		{"advance_ms": 604800000, "call": "banners", "args": []}
+		{"advance_ms": 604800000, "call": "banners", "args": []},
+		{"advance_ms": 0, "call": "print_stats", "args": []},
+		{"advance_ms": 0, "call": "prints", "args": ["misprint"]},
+		{"advance_ms": 0, "call": "set_showcase", "args": [["p1", "p12"]]},
+		{"advance_ms": 0, "call": "showcase", "args": []},
+		{"advance_ms": 0, "call": "rival", "args": []}
 	],
 	"results": [
 		{"call": "new_game", "value": null, "notify": []},
@@ -103,16 +108,96 @@
 			"value": {
 				"ok": true,
 				"value": [
-					{"hero_id": "verdelle", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 1},
-					{"hero_id": "kindra", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 2},
-					{"hero_id": "avienne", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 3},
-					{"hero_id": "severine", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 4},
-					{"hero_id": "nuriel", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 5},
-					{"hero_id": "ferrael", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 6},
-					{"hero_id": "imra", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 7},
-					{"hero_id": "brakka", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 8},
-					{"hero_id": "verdelle", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 9},
-					{"hero_id": "kessa", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 10}
+					{
+						"hero_id": "verdelle",
+						"rarity": "rare",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 1,
+						"print": {"hero": "verdelle", "banner": "standard", "edition": 1, "printing": 1, "serial": 2743, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 296, "uid": "p1", "day": 19700, "first": true, "from": ""}
+					},
+					{
+						"hero_id": "kindra",
+						"rarity": "rare",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 2,
+						"print": {"hero": "kindra", "banner": "standard", "edition": 1, "printing": 1, "serial": 2746, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 794, "uid": "p2", "day": 19700, "first": true, "from": ""}
+					},
+					{
+						"hero_id": "avienne",
+						"rarity": "epic",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 3,
+						"print": {"hero": "avienne", "banner": "standard", "edition": 1, "printing": 1, "serial": 2750, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 323, "uid": "p3", "day": 19700, "first": true, "from": ""}
+					},
+					{
+						"hero_id": "severine",
+						"rarity": "epic",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 4,
+						"print": {"hero": "severine", "banner": "standard", "edition": 1, "printing": 1, "serial": 2753, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 958, "uid": "p4", "day": 19700, "first": true, "from": ""}
+					},
+					{
+						"hero_id": "nuriel",
+						"rarity": "rare",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 5,
+						"print": {"hero": "nuriel", "banner": "standard", "edition": 1, "printing": 1, "serial": 2756, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 944, "uid": "p5", "day": 19700, "first": true, "from": ""}
+					},
+					{
+						"hero_id": "ferrael",
+						"rarity": "rare",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 6,
+						"print": {"hero": "ferrael", "banner": "standard", "edition": 1, "printing": 1, "serial": 2760, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 694, "uid": "p6", "day": 19700, "first": true, "from": ""}
+					},
+					{
+						"hero_id": "imra",
+						"rarity": "rare",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 7,
+						"print": {"hero": "imra", "banner": "standard", "edition": 1, "printing": 1, "serial": 2762, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 4, "v": 765, "uid": "p7", "day": 19700, "first": true, "from": ""}
+					},
+					{
+						"hero_id": "brakka",
+						"rarity": "epic",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 8,
+						"print": {"hero": "brakka", "banner": "standard", "edition": 1, "printing": 1, "serial": 2764, "run": 5000, "flaw": "shift", "ink": "", "holo": false, "grade": 6, "v": 808, "uid": "p8", "day": 19700, "first": true, "from": ""}
+					},
+					{
+						"hero_id": "verdelle",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 9,
+						"print": {"hero": "verdelle", "banner": "standard", "edition": 1, "printing": 1, "serial": 2768, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 177, "uid": "p9", "day": 19700, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "kessa",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 10,
+						"print": {"hero": "kessa", "banner": "standard", "edition": 1, "printing": 1, "serial": 2772, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 492, "uid": "p10", "day": 19700, "first": false, "from": ""}
+					}
 				],
 				"error": ""
 			},
@@ -132,7 +217,17 @@
 			"call": "summon",
 			"value": {
 				"ok": true,
-				"value": [{"hero_id": "isobel", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 11}],
+				"value": [
+					{
+						"hero_id": "isobel",
+						"rarity": "rare",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 11,
+						"print": {"hero": "isobel", "banner": "standard", "edition": 1, "printing": 1, "serial": 2774, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 322, "uid": "p11", "day": 19700, "first": true, "from": ""}
+					}
+				],
 				"error": ""
 			},
 			"notify": [{"type": "new_hero", "hero_id": "isobel", "rarity": "rare"}]
@@ -143,7 +238,15 @@
 			"value": {
 				"ok": true,
 				"value": [
-					{"hero_id": "severine", "rarity": "epic", "is_new": false, "shards": 20, "dust": 0, "pity": 12}
+					{
+						"hero_id": "severine",
+						"rarity": "epic",
+						"is_new": false,
+						"shards": 20,
+						"dust": 0,
+						"pity": 12,
+						"print": {"hero": "severine", "banner": "standard", "edition": 1, "printing": 1, "serial": 2775, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 571, "uid": "p12", "day": 19700, "first": false, "from": ""}
+					}
 				],
 				"error": ""
 			},
@@ -153,7 +256,17 @@
 			"call": "summon",
 			"value": {
 				"ok": true,
-				"value": [{"hero_id": "vandra", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 13}],
+				"value": [
+					{
+						"hero_id": "vandra",
+						"rarity": "rare",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 13,
+						"print": {"hero": "vandra", "banner": "standard", "edition": 1, "printing": 1, "serial": 2779, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 850, "uid": "p13", "day": 19700, "first": true, "from": ""}
+					}
+				],
 				"error": ""
 			},
 			"notify": [{"type": "new_hero", "hero_id": "vandra", "rarity": "rare"}]
@@ -163,7 +276,15 @@
 			"value": {
 				"ok": true,
 				"value": [
-					{"hero_id": "kindra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 14}
+					{
+						"hero_id": "kindra",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 14,
+						"print": {"hero": "kindra", "banner": "standard", "edition": 1, "printing": 1, "serial": 2783, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 550, "uid": "p14", "day": 19700, "first": false, "from": ""}
+					}
 				],
 				"error": ""
 			},
@@ -174,7 +295,15 @@
 			"value": {
 				"ok": true,
 				"value": [
-					{"hero_id": "isobel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 15}
+					{
+						"hero_id": "isobel",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 15,
+						"print": {"hero": "isobel", "banner": "standard", "edition": 1, "printing": 1, "serial": 2787, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 69, "uid": "p15", "day": 19700, "first": false, "from": ""}
+					}
 				],
 				"error": ""
 			},
@@ -185,7 +314,15 @@
 			"value": {
 				"ok": true,
 				"value": [
-					{"hero_id": "nuriel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 16}
+					{
+						"hero_id": "nuriel",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 16,
+						"print": {"hero": "nuriel", "banner": "standard", "edition": 1, "printing": 1, "serial": 2790, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 526, "uid": "p16", "day": 19700, "first": false, "from": ""}
+					}
 				],
 				"error": ""
 			},
@@ -195,7 +332,17 @@
 			"call": "summon",
 			"value": {
 				"ok": true,
-				"value": [{"hero_id": "rivette", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 17}],
+				"value": [
+					{
+						"hero_id": "rivette",
+						"rarity": "rare",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 17,
+						"print": {"hero": "rivette", "banner": "standard", "edition": 1, "printing": 1, "serial": 2792, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 959, "uid": "p17", "day": 19700, "first": true, "from": ""}
+					}
+				],
 				"error": ""
 			},
 			"notify": [{"type": "new_hero", "hero_id": "rivette", "rarity": "rare"}]
@@ -605,7 +752,15 @@
 			"value": {
 				"ok": true,
 				"value": [
-					{"hero_id": "verdelle", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 18}
+					{
+						"hero_id": "verdelle",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 18,
+						"print": {"hero": "verdelle", "banner": "standard", "edition": 1, "printing": 1, "serial": 2952, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 775, "uid": "p18", "day": 19701, "first": false, "from": ""}
+					}
 				],
 				"error": ""
 			},
@@ -838,16 +993,96 @@
 			"value": {
 				"ok": true,
 				"value": [
-					{"hero_id": "kessa", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 1},
-					{"hero_id": "rivette", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 2},
-					{"hero_id": "halcia", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 3},
-					{"hero_id": "brakka", "rarity": "epic", "is_new": false, "shards": 20, "dust": 0, "pity": 4},
-					{"hero_id": "cassiel", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 5},
-					{"hero_id": "ferrael", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 6},
-					{"hero_id": "verdelle", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 7},
-					{"hero_id": "cordia", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 8},
-					{"hero_id": "rivette", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 9},
-					{"hero_id": "uriela", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 10}
+					{
+						"hero_id": "kessa",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 1,
+						"print": {"hero": "kessa", "banner": "wish", "edition": 1, "printing": 1, "serial": 16, "run": 1200, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 888, "uid": "p19", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "rivette",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 2,
+						"print": {"hero": "rivette", "banner": "wish", "edition": 1, "printing": 1, "serial": 19, "run": 1200, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 298, "uid": "p20", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "halcia",
+						"rarity": "rare",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 3,
+						"print": {"hero": "halcia", "banner": "wish", "edition": 1, "printing": 1, "serial": 20, "run": 1200, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 639, "uid": "p21", "day": 19702, "first": true, "from": ""}
+					},
+					{
+						"hero_id": "brakka",
+						"rarity": "epic",
+						"is_new": false,
+						"shards": 20,
+						"dust": 0,
+						"pity": 4,
+						"print": {"hero": "brakka", "banner": "wish", "edition": 1, "printing": 1, "serial": 24, "run": 1200, "flaw": "", "ink": "", "holo": true, "grade": 8, "v": 206, "uid": "p22", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "cassiel",
+						"rarity": "epic",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 5,
+						"print": {"hero": "cassiel", "banner": "wish", "edition": 1, "printing": 1, "serial": 27, "run": 1200, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 2, "uid": "p23", "day": 19702, "first": true, "from": ""}
+					},
+					{
+						"hero_id": "ferrael",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 6,
+						"print": {"hero": "ferrael", "banner": "wish", "edition": 1, "printing": 1, "serial": 30, "run": 1200, "flaw": "shift", "ink": "", "holo": false, "grade": 6, "v": 782, "uid": "p24", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "verdelle",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 7,
+						"print": {"hero": "verdelle", "banner": "wish", "edition": 1, "printing": 1, "serial": 33, "run": 1200, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 532, "uid": "p25", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "cordia",
+						"rarity": "rare",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 8,
+						"print": {"hero": "cordia", "banner": "wish", "edition": 1, "printing": 1, "serial": 34, "run": 1200, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 195, "uid": "p26", "day": 19702, "first": true, "from": ""}
+					},
+					{
+						"hero_id": "rivette",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 9,
+						"print": {"hero": "rivette", "banner": "wish", "edition": 1, "printing": 1, "serial": 36, "run": 1200, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 618, "uid": "p27", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "uriela",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 10,
+						"print": {"hero": "uriela", "banner": "wish", "edition": 1, "printing": 1, "serial": 38, "run": 1200, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 625, "uid": "p28", "day": 19702, "first": false, "from": ""}
+					}
 				],
 				"error": ""
 			},
@@ -863,16 +1098,106 @@
 			"value": {
 				"ok": true,
 				"value": [
-					{"hero_id": "nuriel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 1, "featured": false},
-					{"hero_id": "lucen", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 2, "featured": false},
-					{"hero_id": "rivette", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 3, "featured": false},
-					{"hero_id": "isobel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 4, "featured": false},
-					{"hero_id": "kindra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 5, "featured": false},
-					{"hero_id": "vesper", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 6, "featured": false},
-					{"hero_id": "imra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 7, "featured": false},
-					{"hero_id": "seyra", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 8, "featured": false},
-					{"hero_id": "thrasha", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 9, "featured": false},
-					{"hero_id": "vandra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 10, "featured": false}
+					{
+						"hero_id": "nuriel",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 1,
+						"featured": false,
+						"print": {"hero": "nuriel", "banner": "featured", "edition": 1, "printing": 1, "serial": 37, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 253, "uid": "p29", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "lucen",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 2,
+						"featured": false,
+						"print": {"hero": "lucen", "banner": "featured", "edition": 1, "printing": 1, "serial": 38, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 639, "uid": "p30", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "rivette",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 3,
+						"featured": false,
+						"print": {"hero": "rivette", "banner": "featured", "edition": 1, "printing": 1, "serial": 42, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 674, "uid": "p31", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "isobel",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 4,
+						"featured": false,
+						"print": {"hero": "isobel", "banner": "featured", "edition": 1, "printing": 1, "serial": 43, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 762, "uid": "p32", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "kindra",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 5,
+						"featured": false,
+						"print": {"hero": "kindra", "banner": "featured", "edition": 1, "printing": 1, "serial": 45, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 159, "uid": "p33", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "vesper",
+						"rarity": "epic",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 6,
+						"featured": false,
+						"print": {"hero": "vesper", "banner": "featured", "edition": 1, "printing": 1, "serial": 46, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 990, "uid": "p34", "day": 19702, "first": true, "from": ""}
+					},
+					{
+						"hero_id": "imra",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 7,
+						"featured": false,
+						"print": {"hero": "imra", "banner": "featured", "edition": 1, "printing": 1, "serial": 48, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 383, "uid": "p35", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "seyra",
+						"rarity": "epic",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 8,
+						"featured": false,
+						"print": {"hero": "seyra", "banner": "featured", "edition": 1, "printing": 1, "serial": 50, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 705, "uid": "p36", "day": 19702, "first": true, "from": ""}
+					},
+					{
+						"hero_id": "thrasha",
+						"rarity": "rare",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 9,
+						"featured": false,
+						"print": {"hero": "thrasha", "banner": "featured", "edition": 1, "printing": 1, "serial": 53, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 334, "uid": "p37", "day": 19702, "first": true, "from": ""}
+					},
+					{
+						"hero_id": "vandra",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 10,
+						"featured": false,
+						"print": {"hero": "vandra", "banner": "featured", "edition": 1, "printing": 1, "serial": 56, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 529, "uid": "p38", "day": 19702, "first": false, "from": ""}
+					}
 				],
 				"error": ""
 			},
@@ -887,16 +1212,96 @@
 			"value": {
 				"ok": true,
 				"value": [
-					{"hero_id": "uriela", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 1},
-					{"hero_id": "halcia", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 2},
-					{"hero_id": "ferrael", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 3},
-					{"hero_id": "ferrael", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 4},
-					{"hero_id": "ferrael", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 5},
-					{"hero_id": "verdelle", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 6},
-					{"hero_id": "argentiel", "rarity": "legendary", "is_new": true, "shards": 0, "dust": 0, "pity": 0},
-					{"hero_id": "rimelle", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 1},
-					{"hero_id": "nuriel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 2},
-					{"hero_id": "cirella", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 3}
+					{
+						"hero_id": "uriela",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 1,
+						"print": {"hero": "uriela", "banner": "faction", "edition": 1, "printing": 1, "serial": 433, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 705, "uid": "p39", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "halcia",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 2,
+						"print": {"hero": "halcia", "banner": "faction", "edition": 1, "printing": 1, "serial": 434, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 326, "uid": "p40", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "ferrael",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 3,
+						"print": {"hero": "ferrael", "banner": "faction", "edition": 1, "printing": 1, "serial": 436, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 261, "uid": "p41", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "ferrael",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 4,
+						"print": {"hero": "ferrael", "banner": "faction", "edition": 1, "printing": 1, "serial": 438, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 852, "uid": "p42", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "ferrael",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 5,
+						"print": {"hero": "ferrael", "banner": "faction", "edition": 1, "printing": 1, "serial": 442, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 575, "uid": "p43", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "verdelle",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 6,
+						"print": {"hero": "verdelle", "banner": "faction", "edition": 1, "printing": 1, "serial": 446, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 601, "uid": "p44", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "argentiel",
+						"rarity": "legendary",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 0,
+						"print": {"hero": "argentiel", "banner": "faction", "edition": 1, "printing": 1, "serial": 448, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 169, "uid": "p45", "day": 19702, "first": true, "from": ""}
+					},
+					{
+						"hero_id": "rimelle",
+						"rarity": "epic",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 1,
+						"print": {"hero": "rimelle", "banner": "faction", "edition": 1, "printing": 1, "serial": 451, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 369, "uid": "p46", "day": 19702, "first": true, "from": ""}
+					},
+					{
+						"hero_id": "nuriel",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 2,
+						"print": {"hero": "nuriel", "banner": "faction", "edition": 1, "printing": 1, "serial": 453, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 716, "uid": "p47", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "cirella",
+						"rarity": "epic",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 3,
+						"print": {"hero": "cirella", "banner": "faction", "edition": 1, "printing": 1, "serial": 455, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 570, "uid": "p48", "day": 19702, "first": true, "from": ""}
+					}
 				],
 				"error": ""
 			},
@@ -917,16 +1322,96 @@
 			"value": {
 				"ok": true,
 				"value": [
-					{"hero_id": "verdelle", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0},
-					{"hero_id": "ashra", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 0},
-					{"hero_id": "kessa", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0},
-					{"hero_id": "ombre", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 0},
-					{"hero_id": "kindra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0},
-					{"hero_id": "isobel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0},
-					{"hero_id": "ashra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0},
-					{"hero_id": "imra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0},
-					{"hero_id": "avienne", "rarity": "epic", "is_new": false, "shards": 20, "dust": 0, "pity": 0},
-					{"hero_id": "nuriel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0}
+					{
+						"hero_id": "verdelle",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 0,
+						"print": {"hero": "verdelle", "banner": "envoy", "edition": 1, "printing": 1, "serial": 61, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 553, "uid": "p49", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "ashra",
+						"rarity": "rare",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 0,
+						"print": {"hero": "ashra", "banner": "envoy", "edition": 1, "printing": 1, "serial": 64, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 207, "uid": "p50", "day": 19702, "first": true, "from": ""}
+					},
+					{
+						"hero_id": "kessa",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 0,
+						"print": {"hero": "kessa", "banner": "envoy", "edition": 1, "printing": 1, "serial": 65, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 14, "uid": "p51", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "ombre",
+						"rarity": "rare",
+						"is_new": true,
+						"shards": 0,
+						"dust": 0,
+						"pity": 0,
+						"print": {"hero": "ombre", "banner": "envoy", "edition": 1, "printing": 1, "serial": 69, "run": 4000, "flaw": "", "ink": "", "holo": true, "grade": 6, "v": 724, "uid": "p52", "day": 19702, "first": true, "from": ""}
+					},
+					{
+						"hero_id": "kindra",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 0,
+						"print": {"hero": "kindra", "banner": "envoy", "edition": 1, "printing": 1, "serial": 71, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 374, "uid": "p53", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "isobel",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 0,
+						"print": {"hero": "isobel", "banner": "envoy", "edition": 1, "printing": 1, "serial": 74, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 433, "uid": "p54", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "ashra",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 0,
+						"print": {"hero": "ashra", "banner": "envoy", "edition": 1, "printing": 1, "serial": 77, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 413, "uid": "p55", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "imra",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 0,
+						"print": {"hero": "imra", "banner": "envoy", "edition": 1, "printing": 1, "serial": 79, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 658, "uid": "p56", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "avienne",
+						"rarity": "epic",
+						"is_new": false,
+						"shards": 20,
+						"dust": 0,
+						"pity": 0,
+						"print": {"hero": "avienne", "banner": "envoy", "edition": 1, "printing": 1, "serial": 81, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 252, "uid": "p57", "day": 19702, "first": false, "from": ""}
+					},
+					{
+						"hero_id": "nuriel",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 0,
+						"print": {"hero": "nuriel", "banner": "envoy", "edition": 1, "printing": 1, "serial": 83, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 767, "uid": "p58", "day": 19702, "first": false, "from": ""}
+					}
 				],
 				"error": ""
 			},
@@ -1094,7 +1579,17 @@
 			"call": "summon",
 			"value": {
 				"ok": true,
-				"value": [{"hero_id": "imra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0}],
+				"value": [
+					{
+						"hero_id": "imra",
+						"rarity": "rare",
+						"is_new": false,
+						"shards": 10,
+						"dust": 0,
+						"pity": 0,
+						"print": {"hero": "imra", "banner": "envoy", "edition": 1, "printing": 1, "serial": 566, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 873, "uid": "p59", "day": 19703, "first": false, "from": ""}
+					}
+				],
 				"error": ""
 			},
 			"notify": [
@@ -1249,6 +1744,42 @@
 				}
 			],
 			"notify": []
+		},
+		{
+			"call": "print_stats",
+			"value": {
+				"total": 59,
+				"kept": 59,
+				"misprints": 2,
+				"holo": 2,
+				"top": 1,
+				"from_rival": 0,
+				"best_grade": 9,
+				"best": {"hero": "brakka", "banner": "wish", "edition": 1, "printing": 1, "serial": 24, "run": 1200, "flaw": "", "ink": "", "holo": true, "grade": 8, "v": 206, "uid": "p22", "day": 19702, "first": false, "from": ""}
+			},
+			"notify": []
+		},
+		{
+			"call": "prints",
+			"value": [
+				{"hero": "ferrael", "banner": "wish", "edition": 1, "printing": 1, "serial": 30, "run": 1200, "flaw": "shift", "ink": "", "holo": false, "grade": 6, "v": 782, "uid": "p24", "day": 19702, "first": false, "from": ""},
+				{"hero": "brakka", "banner": "standard", "edition": 1, "printing": 1, "serial": 2764, "run": 5000, "flaw": "shift", "ink": "", "holo": false, "grade": 6, "v": 808, "uid": "p8", "day": 19700, "first": true, "from": ""}
+			],
+			"notify": []
+		},
+		{"call": "set_showcase", "value": {"ok": true, "value": ["p1", "p12"], "error": ""}, "notify": []},
+		{
+			"call": "showcase",
+			"value": [
+				{"hero": "verdelle", "banner": "standard", "edition": 1, "printing": 1, "serial": 2743, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 296, "uid": "p1", "day": 19700, "first": true, "from": ""},
+				{"hero": "severine", "banner": "standard", "edition": 1, "printing": 1, "serial": 2775, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 571, "uid": "p12", "day": 19700, "first": false, "from": ""}
+			],
+			"notify": []
+		},
+		{
+			"call": "rival",
+			"value": {"name": "Rue", "title": "The other summoner", "unlocked": false, "unlock_cleared": 6},
+			"notify": []
 		}
 	],
 	"final_state": {
@@ -1397,6 +1928,81 @@
 		},
 		"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 4, "auto_ultimates": true, "nudity": false},
 		"skins": {"owned": [], "equipped": {}},
+		"prints": {
+			"seed": 2023190264,
+			"seq": 59,
+			"ed": {
+				"standard": {"e": -38, "n": 55},
+				"wish": {"e": -149, "n": 24},
+				"featured": {"e": -149, "n": 21},
+				"faction": {"e": -348, "n": 26},
+				"envoy": {"e": -149, "n": 28}
+			},
+			"list": [
+				{"hero": "verdelle", "banner": "standard", "edition": 1, "printing": 1, "serial": 2743, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 296, "uid": "p1", "day": 19700, "first": true, "from": ""},
+				{"hero": "kindra", "banner": "standard", "edition": 1, "printing": 1, "serial": 2746, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 794, "uid": "p2", "day": 19700, "first": true, "from": ""},
+				{"hero": "avienne", "banner": "standard", "edition": 1, "printing": 1, "serial": 2750, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 323, "uid": "p3", "day": 19700, "first": true, "from": ""},
+				{"hero": "severine", "banner": "standard", "edition": 1, "printing": 1, "serial": 2753, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 958, "uid": "p4", "day": 19700, "first": true, "from": ""},
+				{"hero": "nuriel", "banner": "standard", "edition": 1, "printing": 1, "serial": 2756, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 944, "uid": "p5", "day": 19700, "first": true, "from": ""},
+				{"hero": "ferrael", "banner": "standard", "edition": 1, "printing": 1, "serial": 2760, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 694, "uid": "p6", "day": 19700, "first": true, "from": ""},
+				{"hero": "imra", "banner": "standard", "edition": 1, "printing": 1, "serial": 2762, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 4, "v": 765, "uid": "p7", "day": 19700, "first": true, "from": ""},
+				{"hero": "brakka", "banner": "standard", "edition": 1, "printing": 1, "serial": 2764, "run": 5000, "flaw": "shift", "ink": "", "holo": false, "grade": 6, "v": 808, "uid": "p8", "day": 19700, "first": true, "from": ""},
+				{"hero": "verdelle", "banner": "standard", "edition": 1, "printing": 1, "serial": 2768, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 177, "uid": "p9", "day": 19700, "first": false, "from": ""},
+				{"hero": "kessa", "banner": "standard", "edition": 1, "printing": 1, "serial": 2772, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 492, "uid": "p10", "day": 19700, "first": false, "from": ""},
+				{"hero": "isobel", "banner": "standard", "edition": 1, "printing": 1, "serial": 2774, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 322, "uid": "p11", "day": 19700, "first": true, "from": ""},
+				{"hero": "severine", "banner": "standard", "edition": 1, "printing": 1, "serial": 2775, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 571, "uid": "p12", "day": 19700, "first": false, "from": ""},
+				{"hero": "vandra", "banner": "standard", "edition": 1, "printing": 1, "serial": 2779, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 850, "uid": "p13", "day": 19700, "first": true, "from": ""},
+				{"hero": "kindra", "banner": "standard", "edition": 1, "printing": 1, "serial": 2783, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 550, "uid": "p14", "day": 19700, "first": false, "from": ""},
+				{"hero": "isobel", "banner": "standard", "edition": 1, "printing": 1, "serial": 2787, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 69, "uid": "p15", "day": 19700, "first": false, "from": ""},
+				{"hero": "nuriel", "banner": "standard", "edition": 1, "printing": 1, "serial": 2790, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 526, "uid": "p16", "day": 19700, "first": false, "from": ""},
+				{"hero": "rivette", "banner": "standard", "edition": 1, "printing": 1, "serial": 2792, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 959, "uid": "p17", "day": 19700, "first": true, "from": ""},
+				{"hero": "verdelle", "banner": "standard", "edition": 1, "printing": 1, "serial": 2952, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 775, "uid": "p18", "day": 19701, "first": false, "from": ""},
+				{"hero": "kessa", "banner": "wish", "edition": 1, "printing": 1, "serial": 16, "run": 1200, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 888, "uid": "p19", "day": 19702, "first": false, "from": ""},
+				{"hero": "rivette", "banner": "wish", "edition": 1, "printing": 1, "serial": 19, "run": 1200, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 298, "uid": "p20", "day": 19702, "first": false, "from": ""},
+				{"hero": "halcia", "banner": "wish", "edition": 1, "printing": 1, "serial": 20, "run": 1200, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 639, "uid": "p21", "day": 19702, "first": true, "from": ""},
+				{"hero": "brakka", "banner": "wish", "edition": 1, "printing": 1, "serial": 24, "run": 1200, "flaw": "", "ink": "", "holo": true, "grade": 8, "v": 206, "uid": "p22", "day": 19702, "first": false, "from": ""},
+				{"hero": "cassiel", "banner": "wish", "edition": 1, "printing": 1, "serial": 27, "run": 1200, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 2, "uid": "p23", "day": 19702, "first": true, "from": ""},
+				{"hero": "ferrael", "banner": "wish", "edition": 1, "printing": 1, "serial": 30, "run": 1200, "flaw": "shift", "ink": "", "holo": false, "grade": 6, "v": 782, "uid": "p24", "day": 19702, "first": false, "from": ""},
+				{"hero": "verdelle", "banner": "wish", "edition": 1, "printing": 1, "serial": 33, "run": 1200, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 532, "uid": "p25", "day": 19702, "first": false, "from": ""},
+				{"hero": "cordia", "banner": "wish", "edition": 1, "printing": 1, "serial": 34, "run": 1200, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 195, "uid": "p26", "day": 19702, "first": true, "from": ""},
+				{"hero": "rivette", "banner": "wish", "edition": 1, "printing": 1, "serial": 36, "run": 1200, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 618, "uid": "p27", "day": 19702, "first": false, "from": ""},
+				{"hero": "uriela", "banner": "wish", "edition": 1, "printing": 1, "serial": 38, "run": 1200, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 625, "uid": "p28", "day": 19702, "first": false, "from": ""},
+				{"hero": "nuriel", "banner": "featured", "edition": 1, "printing": 1, "serial": 37, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 253, "uid": "p29", "day": 19702, "first": false, "from": ""},
+				{"hero": "lucen", "banner": "featured", "edition": 1, "printing": 1, "serial": 38, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 639, "uid": "p30", "day": 19702, "first": false, "from": ""},
+				{"hero": "rivette", "banner": "featured", "edition": 1, "printing": 1, "serial": 42, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 674, "uid": "p31", "day": 19702, "first": false, "from": ""},
+				{"hero": "isobel", "banner": "featured", "edition": 1, "printing": 1, "serial": 43, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 762, "uid": "p32", "day": 19702, "first": false, "from": ""},
+				{"hero": "kindra", "banner": "featured", "edition": 1, "printing": 1, "serial": 45, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 159, "uid": "p33", "day": 19702, "first": false, "from": ""},
+				{"hero": "vesper", "banner": "featured", "edition": 1, "printing": 1, "serial": 46, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 990, "uid": "p34", "day": 19702, "first": true, "from": ""},
+				{"hero": "imra", "banner": "featured", "edition": 1, "printing": 1, "serial": 48, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 383, "uid": "p35", "day": 19702, "first": false, "from": ""},
+				{"hero": "seyra", "banner": "featured", "edition": 1, "printing": 1, "serial": 50, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 705, "uid": "p36", "day": 19702, "first": true, "from": ""},
+				{"hero": "thrasha", "banner": "featured", "edition": 1, "printing": 1, "serial": 53, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 334, "uid": "p37", "day": 19702, "first": true, "from": ""},
+				{"hero": "vandra", "banner": "featured", "edition": 1, "printing": 1, "serial": 56, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 529, "uid": "p38", "day": 19702, "first": false, "from": ""},
+				{"hero": "uriela", "banner": "faction", "edition": 1, "printing": 1, "serial": 433, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 705, "uid": "p39", "day": 19702, "first": false, "from": ""},
+				{"hero": "halcia", "banner": "faction", "edition": 1, "printing": 1, "serial": 434, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 326, "uid": "p40", "day": 19702, "first": false, "from": ""},
+				{"hero": "ferrael", "banner": "faction", "edition": 1, "printing": 1, "serial": 436, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 261, "uid": "p41", "day": 19702, "first": false, "from": ""},
+				{"hero": "ferrael", "banner": "faction", "edition": 1, "printing": 1, "serial": 438, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 852, "uid": "p42", "day": 19702, "first": false, "from": ""},
+				{"hero": "ferrael", "banner": "faction", "edition": 1, "printing": 1, "serial": 442, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 575, "uid": "p43", "day": 19702, "first": false, "from": ""},
+				{"hero": "verdelle", "banner": "faction", "edition": 1, "printing": 1, "serial": 446, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 601, "uid": "p44", "day": 19702, "first": false, "from": ""},
+				{"hero": "argentiel", "banner": "faction", "edition": 1, "printing": 1, "serial": 448, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 169, "uid": "p45", "day": 19702, "first": true, "from": ""},
+				{"hero": "rimelle", "banner": "faction", "edition": 1, "printing": 1, "serial": 451, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 369, "uid": "p46", "day": 19702, "first": true, "from": ""},
+				{"hero": "nuriel", "banner": "faction", "edition": 1, "printing": 1, "serial": 453, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 716, "uid": "p47", "day": 19702, "first": false, "from": ""},
+				{"hero": "cirella", "banner": "faction", "edition": 1, "printing": 1, "serial": 455, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 570, "uid": "p48", "day": 19702, "first": true, "from": ""},
+				{"hero": "verdelle", "banner": "envoy", "edition": 1, "printing": 1, "serial": 61, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 553, "uid": "p49", "day": 19702, "first": false, "from": ""},
+				{"hero": "ashra", "banner": "envoy", "edition": 1, "printing": 1, "serial": 64, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 207, "uid": "p50", "day": 19702, "first": true, "from": ""},
+				{"hero": "kessa", "banner": "envoy", "edition": 1, "printing": 1, "serial": 65, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 14, "uid": "p51", "day": 19702, "first": false, "from": ""},
+				{"hero": "ombre", "banner": "envoy", "edition": 1, "printing": 1, "serial": 69, "run": 4000, "flaw": "", "ink": "", "holo": true, "grade": 6, "v": 724, "uid": "p52", "day": 19702, "first": true, "from": ""},
+				{"hero": "kindra", "banner": "envoy", "edition": 1, "printing": 1, "serial": 71, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 374, "uid": "p53", "day": 19702, "first": false, "from": ""},
+				{"hero": "isobel", "banner": "envoy", "edition": 1, "printing": 1, "serial": 74, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 433, "uid": "p54", "day": 19702, "first": false, "from": ""},
+				{"hero": "ashra", "banner": "envoy", "edition": 1, "printing": 1, "serial": 77, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 413, "uid": "p55", "day": 19702, "first": false, "from": ""},
+				{"hero": "imra", "banner": "envoy", "edition": 1, "printing": 1, "serial": 79, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 658, "uid": "p56", "day": 19702, "first": false, "from": ""},
+				{"hero": "avienne", "banner": "envoy", "edition": 1, "printing": 1, "serial": 81, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 252, "uid": "p57", "day": 19702, "first": false, "from": ""},
+				{"hero": "nuriel", "banner": "envoy", "edition": 1, "printing": 1, "serial": 83, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 767, "uid": "p58", "day": 19702, "first": false, "from": ""},
+				{"hero": "imra", "banner": "envoy", "edition": 1, "printing": 1, "serial": 566, "run": 4000, "flaw": "", "ink": "", "holo": false, "grade": 7, "v": 873, "uid": "p59", "day": 19703, "first": false, "from": ""}
+			],
+			"total": 59,
+			"showcase": ["p1", "p12"]
+		},
+		"rival": {"seed": 2125292450, "met": false, "day": -1, "heroes": {}, "pulls": 0, "pity": {}, "lost": false, "ed": {}, "print_seq": 0, "prints": [], "feed": [], "feed_seq": 0, "seen": 0, "wins": 0, "losses": 0, "fights": 0, "haul_day": -1, "tag_you": false, "tag_her": false, "tag_v": 0},
 		"counters": {"summons": 59, "battles_started": 10, "battles_won": 3, "stages_cleared": 3, "battles_lost": 3, "level_ups": 6, "idle_claims": 3, "quick_claims": 3, "daily_quests_done": 4},
 		"dev_time_offset": 0,
 		"rng_seed": 5422372

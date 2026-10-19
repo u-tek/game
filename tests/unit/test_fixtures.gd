@@ -133,3 +133,32 @@ func test_fixture_save(t: TestCtx) -> void:
 	for c in f.get("cases", []):
 		if c.name == "current_save_unchanged":
 			t.eq(Golden.diff(c.input, c.out), "", "a valid current save passes migrate unchanged")
+
+
+func test_fixture_prints(t: TestCtx) -> void:
+	var f := _check(t, "prints")
+	if f.is_empty():
+		return
+	# The long run shows every flaw and holo foil, so a port's print rolls are fully covered.
+	var seen := {}
+	for c in f.make_prints:
+		for p in c.out.prints:
+			if str(p.flaw) != "":
+				seen[str(p.flaw)] = true
+			if bool(p.holo):
+				seen["holo"] = true
+	for k in ["shift", "swap", "ghost", "double", "flood", "holo"]:
+		t.ok(seen.has(k), "print fixtures cover '%s'" % k)
+
+
+func test_fixture_rival(t: TestCtx) -> void:
+	var f := _check(t, "rival")
+	if f.is_empty():
+		return
+	var kinds := {}
+	for c in f.sims:
+		for o in c.out:
+			for e in o.state.feed:
+				kinds[str(e.type)] = true
+	for k in ["legendary", "misprint"]:
+		t.ok(kinds.has(k), "rival fixtures cover '%s' feed entries" % k)

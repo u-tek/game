@@ -1,0 +1,28 @@
+{
+	"version": 1,
+	"about": "Misprints (PrintRules, docs/dev/unity-port.md section 8.5): every hero a summon gives comes as a numbered print of that banner's edition. A few come out misprinted (a flaw), some carry a holo foil, every one has a grade. Cosmetic only: prints never change stats and never fade. Editions: a banner's edition is the period of `days` days it falls in (from banner.json's epoch_day); other collectors take `per_hour` prints every hour after the edition opens, so pulling early gets low serials. A print run holds `run` prints; past that, the next printing starts again at No. 1.",
+	"seed": 31337,
+	"editions": {
+		"standard": {"days": 28, "run": 5000, "per_hour": 6},
+		"featured": {"days": 7, "run": 2500, "per_hour": 12},
+		"faction": {"days": 3, "run": 1500, "per_hour": 16},
+		"wish": {"days": 7, "run": 1200, "per_hour": 5},
+		"envoy": {"days": 7, "run": 4000, "per_hour": 20}
+	},
+	"other_takers_max": 3,
+	"flaws": [
+		{"id": "shift", "name": "Off register", "adj": "off-register", "bp": 260, "about": "The signal plate landed off its marks, so the red sits beside the ink."},
+		{"id": "swap", "name": "Wrong ink", "adj": "wrong-ink", "bp": 140, "about": "The press was loaded with the wrong colour for the second plate."},
+		{"id": "ghost", "name": "Missing plate", "adj": "ghosted", "bp": 90, "about": "One plate never touched the paper: ink only, no signal red."},
+		{"id": "double", "name": "Double hit", "adj": "double-struck", "bp": 60, "about": "The key plate struck twice, a hair apart."},
+		{"id": "flood", "name": "Ink flood", "adj": "ink-flooded", "bp": 50, "about": "Far too much ink: the shadows pooled and spread."}
+	],
+	"inks": ["cyan", "violet", "acid", "gold"],
+	"ink_names": {"cyan": "Cyan", "violet": "Violet", "acid": "Acid green", "gold": "Gold"},
+	"holo_bp": 150,
+	"grades": [[10, 100], [9, 600], [8, 1800], [7, 3000], [6, 2500], [5, 1200], [4, 500], [3, 300]],
+	"grade_names": {"10": "Gem Mint", "9": "Mint", "8": "Near Mint", "7": "Excellent", "6": "Very Good", "5": "Good", "4": "Fair", "3": "Poor"},
+	"early_serial": 100,
+	"keep_plain": 200,
+	"showcase_max": 3
+}

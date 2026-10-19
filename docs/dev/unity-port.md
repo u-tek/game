@@ -241,6 +241,18 @@ it (`src/ui/v4/survey/world_dossier.gd`) and the survey map takes its surface te
 only needs it to draw the same dossier. The planet maps are equirectangular in Godot's SphereMesh
 layout (u = longitude from +Z towards +X, v = 0 at the north pole); the normal map stores the
 normal in the sphere's own frame (R east, G north; B rebuilt), see `planet.gdshader`.
+### 3.6d prints.json
+Misprints (section 8.5). `{version, seed, editions {banner id: {days, run, per_hour}},
+other_takers_max, flaws [{id, name, adj, bp, about}], inks [ids], ink_names {id: name}, holo_bp,
+grades [[grade, bp]], grade_names {"10": "Gem Mint", ...}, early_serial, keep_plain, showcase_max}`.
+Flaw and grade bp are per 10000 prints; the five flaws total 6%.
+### 3.6e rival.json
+The Rival (section 9c). `{version, name, title, faction, unlock_cleared, seed, start_heroes [ids],
+pulls_per_day, banner_cycle [banner ids], pull_hour, catch_up_days, dupes_per_star, stars_over_you,
+level_wobble [7], counter_level, learn_after, strength_bp, stage_lead [5], tower_lead [5],
+backgrounds [kinds], haul {gems, gold_base, gold_per_stage, dust}, feed_max, prints_max, lines {kind:
+[text]}}`. Line kinds: intro, idle, win (she won), lose (she lost), featured_first, legendary,
+misprint, holo, counter.
 
 ### 3.7 battle.json
 
@@ -623,6 +635,46 @@ Unknown rarities price as `rare`. Fixture: `progression.json`.
 stats, equipped_by: ""}`. `salvage_value(tier) = {gold: salvage_gold_per_tier * tier, dust: salvage_dust_per_tier * tier}`.
 Fixture: `gear.json`.
 
+### 8.5 Prints: misprints (`print_rules.gd`, data/prints.json)
+
+Cosmetic only: a print never changes a stat and never fades. Every hero a summon gives is a
+numbered print of the banner's **edition**:
+
+- `edition_on(banner, day, epoch_day)`: `ed = editions[banner]` (unknown banners use `standard`);
+  `days = max(1, ed.days)`; `index = period_index(day, epoch_day, days)` (8.1, a true floor);
+  `edition = max(1, index + 1)`; `open_day = epoch_day + index * days`; also `run`, `per_hour`.
+- `flaw_for_roll(r)` (r in 0..9999): the first flaw (in file order) whose running `bp` total is
+  `> r`, else `""` (a clean print). `grade_for_roll(g)`: the first `[grade, bp]` row of `grades`
+  whose running total is `> g`, else the last row's grade.
+- `make_prints(banner, hero_ids, day, epoch_day, hours_open, ed, seed, seq)` -> `{prints, ed}`.
+  `info = edition_on(...)`; `n = ed.n` if `ed.e == info.index` else 0 (a missing `ed` counts as
+  another edition); `run = max(1, info.run)`; `rng = SeededRng(mix(seed, seq))`; for each hero in
+  order: `raw = 1 + max(0, hours_open) * per_hour + n`; draws in this order: `flaw =
+  flaw_for_roll(range_int(0, 9999))`, `holo = chance_bp(holo_bp)`, `grade =
+  grade_for_roll(range_int(0, 9999))`, `v = range_int(0, 999)`, `gap = range_int(0,
+  other_takers_max)`; the print is `{hero, banner, edition, printing: (raw - 1) / run + 1, serial:
+  (raw - 1) % run + 1, run, flaw, ink: inks[v % inks.size] when flaw == "swap" else "", holo,
+  grade, v}`; then `n += 1 + gap`. Returns `ed = {e: info.index, n}`.
+- `notable(p)`: a flaw, holo, `grade >= 9`, `serial <= early_serial`, `first` true, or a non-empty
+  `from`. `score(p) = grade * 100 (+ 3000 holo) (+ 2000 + (300 - flaw bp) for a flaw) (+ 600 +
+  (early_serial - serial) for an early serial) (+ 50 for printing 1)`; missing keys count as grade
+  0, no holo, no flaw, serial `early_serial + 1`, printing 1.
+- `trim(list, keep_plain = file's keep_plain)`: `drop = max(0, plain count - keep_plain)`; walk the
+  list (oldest first) skipping the first `drop` plain prints; order is kept.
+
+Model (`summon`): one `make_prints` per summon on the pulled ids with `day = today`,
+`hours_open = (now + tz_bias_ms - open_day * 86400000) / 3600000` (whole hours, at least 0),
+`ed = prints.ed[banner]`, `seed = prints.seed`, `seq = prints.seq` (before the summon); then
+`prints.ed[banner] = out.ed`, `prints.seq += count`. Print i gets `uid "p<seq + i + 1>"`, `day`,
+`first` (= the hero was new) and `from ""`; it is appended to `prints.list` and copied into the
+summon result as `print`. Then `total += count`, `list = trim(list)` and the showcase drops uids no
+longer in the list. This stream never touches the summon's own (`summon.seed`, `total_pulls`), so
+the pulls are the same with or without prints. API: `prints(filter)` newest first (`all`,
+`misprint` = a flaw, `holo`, `top` = grade 9+, `rival` = `from == "rival"`, `hero:<id>`),
+`print_by_uid`, `print_stats() {total, kept, misprints, holo, top, from_rival, best_grade, best}`
+(best = the highest score, the earlier print on ties), `set_showcase(uids)` (errors: more than
+`showcase_max`, a repeated uid, an unknown uid), `showcase()`. Fixture: `prints.json`.
+
 ## 9. GameModel and the save format
 
 `GameModel` (src/core/game_model.gd) holds `state` and implements every Game API action
@@ -674,6 +726,9 @@ quests {day, progress {quest id: n}, claimed [quest id]}
 shop {purchases {offer id: n}, daily {offer id: n}, day, monthly_until_day, monthly_last_day}
 settings {sound, music, haptics, battle_speed (1|2|4), auto_ultimates, nudity}
 skins {owned [skin id], equipped {hero id: skin id}}
+prints {seed, seq, ed {banner: {e, n}}, list [print (oldest first)], total, showcase [uid]}   (8.5)
+rival {seed, met, day, heroes {id: dupes}, pulls, pity {banner: n}, lost, ed, print_seq, prints,
+       feed, feed_seq, seen, wins, losses, fights, haul_day, tag_you, tag_her, tag_v}        (9c)
 counters {name: n}   (battles_started, battles_won, battles_lost, stages_cleared, summons, level_ups,
                       star_ups, idle_claims, quick_claims, daily_quests_done, skins_bought, tower_floors)
 ```
@@ -716,6 +771,82 @@ locked"; a loss bumps `battles_lost`; a win bumps `battles_won` and `tower_floor
 and grants the reward. Save: `tower {best}`; `migrate` clamps `best` to 0 .. floors. Fixture:
 `stats.json` `tower` (sample floors, with echo stats and enemy power).
 
+## 9c. The Rival (`src/core/rival_rules.gd`, data/rival.json, GameModel `rival*`)
+
+Rue is another summoner simulated on the phone. She never takes anything from the player.
+
+- `new_state(save_seed)`: `{seed: mix(save_seed, rival.seed), met false, day -1, heroes {}, pulls
+  0, pity {}, lost false, ed {}, print_seq 0, prints [], feed [], feed_seq 0, seen 0, wins 0,
+  losses 0, fights 0, haul_day -1, tag_you false, tag_her false, tag_v 0}`. The model passes
+  `now & 0x7FFFFFFF` of the new game.
+- `banner_on(day, epoch_day) = banner_cycle[posmod(day - epoch_day, size)]`.
+  `counter_faction(main)`: the faction (battle.json `factions` order) whose `beats` is `main`.
+- `stars_for(id, dupes, cap) = max(s0, min(s0 + max(0, dupes) / max(1, dupes_per_star),
+  min(cap + stars_over_you, max_stars)))`, `s0` = the rarity's start stars.
+  `level_on(avg, day, countering) = max(1, avg + level_wobble[posmod(day, 7)] + (counter_level if
+  countering))`. `counters(fights, main) = fights >= learn_after and main != ""`.
+  `echo_bp = echo_stat_bp * strength_bp / 10000`.
+- `team(heroes, cap, level, prefer)`: for each of her heroes in heroes.json order (index i):
+  `stars = stars_for`, `lv = clamp(level, 1, level_cap(stars))`, `power = power(stats(id, lv,
+  stars))` (no gear); sort by (`prefer` faction first, power descending, i ascending); take 5;
+  order those by `front_priority[role]` descending, then that rank; slot = position (0..4). Entry
+  `{hero_id, level, stars, slot, is_boss false, echo_bp, power: power(echo_stats(id, lv, stars,
+  echo_bp))}`. `ace` = the entry with the highest power (the first on ties).
+- `keeps(p)`: a flaw, holo, grade >= 9 or `serial <= early_serial`.
+  `sort_prints(list)`: sort by (taken last, score descending, n ascending), cut to `prints_max`,
+  then sort by (score descending, n ascending).
+- `sim_day(rs, day, epoch_day, owns)`: `bid = banner_on(day)`, `b` its banner; opts as in 8.1
+  (featured: `{featured: featured_for(b, day), lost: rs.lost}`, faction: `{faction:
+  faction_for(b, day)}`, wish: `{target: first Legendary of the pool}`); `roll = pull(b, rs.seed,
+  rs.pulls, rs.pity[bid] or 0, pulls_per_day, opts)`; `rs.pulls = roll.total_pulls`,
+  `rs.pity[bid] = roll.pity`, `rs.lost = roll.lost` when present. For each result in order: a new
+  hero joins with 0 dupes, a known one gets `+1`; a Legendary queues `{type: "featured_first"}` if
+  it is `featured` and not in `owns`, else `"legendary"` (`hero`, `flaw ""`, `ink ""`). Prints:
+  `info = edition_on(bid, day)`, `hours = (day - info.open_day) * 24 + pull_hour`, `made =
+  make_prints(bid, ids, day, epoch_day, hours, rs.ed[bid] or {}, mix(rs.seed, prints.seed),
+  rs.print_seq)`; `rs.ed[bid] = made.ed`; print k gets `n = print_seq + k + 1`, `uid "rue-<n>"`,
+  `day`, `first` (her new hero), `taken false`, queues `"misprint"` if it has a flaw, then `"holo"`
+  if holo, and is appended to `rs.prints` when `keeps`; `print_seq += count`; `rs.prints =
+  sort_prints(rs.prints)`. Each queued event k (in order): `feed_seq += 1`, push to the front of
+  `rs.feed` `{n: feed_seq, day, type, hero, flaw, ink, line: line(type, rs.seed, day, k, {hero:
+  the hero's name, flaw: the flaw's adj ("" for none)})}`; cut the feed to `feed_max`.
+- `catch_up(rs, today, epoch_day, owns)`: empty `heroes` -> `start_heroes` with 0 dupes; `day < 0`
+  -> `day = today - 1`; `today <= day` -> 0; else simulate `max(day + 1, today - catch_up_days +
+  1) .. today`, set `day = today` and return the count.
+- `best_untaken(rs)`: the untaken print with the highest score (lowest `n` on ties), `{}` if none.
+  `haul(cleared) = {gems, gold: gold_base + gold_per_stage * cleared, dust}`.
+  `cleared_on(c, day) = clamp(c + stage_lead[posmod(day, 5)], 0, stage count)`,
+  `tower_on(b, day) = clamp(b + tower_lead[posmod(day, 5)], 0, floors)`,
+  `background(day) = backgrounds[posmod(day, size)]`.
+- `line(kind, seed, day, salt, fills)`: `lines[kind][posmod(mix(seed, day) + salt, size)]` ("" when the
+  kind has none), then `fill`: replace each `{key}` with its value, upper-case the first letter.
+
+Model: open when `campaign.cleared >= unlock_cleared`. Every rival call first syncs her
+(`catch_up` to today, `owns` = the player's heroes; a query that simulated sets `changed_later`).
+The player context: the formation's heroes give `avg` (sum of levels / count, 1 with none), `best`
+stars (at least 1) and `main` (the most common faction, battle.json order on ties).
+`counter = counters(fights, main)`, `prefer = counter_faction(main)` when countering, her team
+`team(heroes, best, level_on(avg, today, counter), prefer)`. `rival()` returns the view
+(`name, title, unlocked, unlock_cleared, met, team, ace, level, roster [{hero_id, dupes, stars}],
+power` (sum of the team's power), `your_power, record {wins, losses, fights}, cleared, tower_best,
+pulls, banner, feed, new_feed (feed_seq - seen), prints, tags {you, her, v}, haul, haul_ready
+(haul_day != today), haul_print, counter {faction, main}, line, line_kind`); `line_kind` is
+`intro` (not met), `win` (tag_you), `lose` (tag_her), `counter`, today's newest feed entry (its
+stored line), else `idle`; the line is `line(kind, seed, today, fights, {you: player_name, faction,
+main})` (faction names capitalised). `rival_meet()` sets `met` (line `intro`, salt 0);
+`rival_seen()` sets `seen = feed_seq`; `rival_alert() = haul_day != today or feed_seq > seen`.
+`rival_battle_setup()`: allies as for stages, enemies = her team as echoes, `seed = mix(rng_seed
++ 900001, battles_started)` (then `battles_started += 1`), `background(today)`. `complete_rival(outcome)`:
+`fights += 1`, `tag_v = mix(seed, fights) % 1000`; a win bumps `battles_won`, `wins += 1`, `tag_her
+= true`, `tag_you = false`, and if `haul_day != today`: `haul_day = today`, grant `haul(cleared)`,
+mark `best_untaken` taken and append a copy (without `taken` and `n`, with `from "rival"`, `day`
+today, `first false`) to the album (`total += 1`, then trim); line `lose`. A loss bumps
+`battles_lost`, `losses += 1`, `tag_you = true`, `tag_her = false`, line `win`; nothing is taken.
+Save: `rival {...}` as in `new_state`; `migrate` keeps known heroes (dupes >= 0), known banners'
+pity (clamped below their pity limit) and editions, dict prints with a known hero and a uid, at
+most `feed_max` dict feed entries, counters >= 0 and `seen <= feed_seq`. Fixture: `rival.json`.
+Tuning: `tests/tools/rival_bench.gd` (strength_bp sweep).
+
 ## 10. Golden fixtures (`data/fixtures/`)
 
 Each file: `{version, about, regenerate, ...}`. Inputs and expected outputs sit side by side.
@@ -732,13 +863,16 @@ Each file: `{version, about, regenerate, ...}`. Inputs and expected outputs sit 
 | `battles.json` | `battles[]`: setup (+ `auto_ultimates`, `manual_ultimates [{tick, uid, accepted}]`) -> `steps`, every event of every step in order, `outcome`, `final_units`, `skip_outcome` (run_to_end on a fresh sim). Manual requests are made before step number `tick` (1 = the first step). |
 | `session.json` | GameModel: `start_ms`, `tz_bias_ms`, `steps [{advance_ms, call, args}]` -> `results [{value, notify}]`, `final_state`. Each step advances the clock, then calls the method; `"battle"` = `stage_battle_setup(i)` + `run_to_end` + `complete_stage(i, outcome)`, value `{seed, victory, duration_ms, complete}`. |
 | `save.json` | `cases []`: `now_ms`, `input` (a save) -> `out` (`migrate(input)`). |
+| `prints.json` | `editions[]` (banner, day, epoch_day -> out); `flaw_rolls` -> `flaws`, `grade_rolls` -> `grades`; `make_prints[]` (inputs -> `out {prints, ed}`, a long run covers every flaw and holo); `samples[]` (print -> notable, score); `trim` (list, keep_plain -> `out`, `out_default`). |
+| `rival.json` | `banner_days` -> `banners`; `factions` -> `counters`; `stars[]`, `levels[]`, `teams[]` -> out; `sims[]`: `new_state(seed)` then each step `catch_up(state, today, epoch_day, owns)` -> `{days, state, best_untaken}`; `hauls` -> `haul_out`; `leads` ([cleared, Spire best, day]) -> `lead_out`; `lines` ([kind, seed, day, salt, fills]) -> `line_out`. |
 
 **Checking (NUnit sketch):** load each file with Newtonsoft, run the inputs through your port,
 serialize the result to a `JToken`, and assert `JToken.DeepEquals(expected, actual)` (DeepEquals
 treats object key order as irrelevant). Report the first differing path to debug.
 
 **Second reference:** `tests/port_check/check_port.py` is an independent Python
-implementation of sections 4-8 (RNG, stats, battle, summon, idle, progression, gear), written
+implementation of sections 4-8 (RNG, stats, battle, summon, idle, progression, gear), 8.5 (prints),
+9b (the Spire's floors) and 9c (the Rival's rules), written
 from this document, that passes every fixture except `session`/`save` (GameModel is not
 covered). Run `python3 -B tests/port_check/check_port.py`. It is a compact model for the C#
 code, and proof that this document is precise enough to port from.

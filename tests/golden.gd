@@ -10,7 +10,7 @@ extends RefCounted
 ##
 ## Outputs are compared as JSON values: objects by key (order-free), arrays in order.
 
-const FILES: Array[String] = ["rng", "progression", "idle", "gear", "stats", "summon", "battles", "session", "save"]
+const FILES: Array[String] = ["rng", "progression", "idle", "gear", "stats", "summon", "battles", "session", "save", "prints", "rival"]
 const REGENERATE := "tools/gd --headless --path . -s tests/tools/make_fixtures.gd"
 ## Fixed clock for model-driven fixtures: 2023-12-09 01:00 UTC.
 const BASE_MS := 1_702_083_600_000
@@ -34,6 +34,8 @@ static func compute(name: String, f: Dictionary) -> Dictionary:
 		"battles": out = _battles(f)
 		"session": out = _session(f)
 		"save": out = _save(f)
+		"prints": out = _prints(f)
+		"rival": out = _rival(f)
 		_: return {}
 	var head := {"version": 1, "about": str(f.get("about", "")), "regenerate": REGENERATE}
 	head.merge(out)
@@ -217,6 +219,10 @@ static func inputs(name: String) -> Dictionary:
 				"about": "GameModel.migrate (save repair): an old or damaged save (numbers as ints) at clock now_ms -> the repaired state.",
 				"cases": _save_cases(),
 			}
+		"prints":
+			return _prints_inputs()
+		"rival":
+			return _rival_inputs()
 	return {}
 
 
@@ -634,6 +640,12 @@ static func _session_steps() -> Array:
 	add.call("banners", [], DAY)
 	add.call("summon", [1, false, "envoy"])
 	add.call("banners", [], 7 * DAY)
+	# Prints (every summon above made some) and the Rival while she is still locked.
+	add.call("print_stats")
+	add.call("prints", ["misprint"])
+	add.call("set_showcase", [["p1", "p12"]])
+	add.call("showcase")
+	add.call("rival")
 	return s
 
 
@@ -707,3 +719,205 @@ static func _save(f: Dictionary) -> Dictionary:
 		var input: Dictionary = normalize(c.input)
 		cases.append({"name": c.name, "now_ms": c.now_ms, "input": c.input, "out": m.migrate(input)})
 	return {"cases": cases}
+
+
+# ---------------------------------------------------------------- prints (misprints)
+
+static func _prints_inputs() -> Dictionary:
+	var e := EconomyData.BANNER_EPOCH_DAY
+	var heroes: Array = []
+	for id in HeroData.ids():
+		heroes.append(id)
+	var ten := heroes.slice(0, 10)
+	var make: Array = [
+		{"name": "fresh_standard_ten", "banner": "standard", "hero_ids": ten, "day": e + 3, "epoch_day": e, "hours_open": 77, "ed": {}, "seed": 31337, "seq": 0},
+		{"name": "same_edition_continues", "banner": "standard", "hero_ids": ten.slice(0, 3), "day": e + 4, "epoch_day": e, "hours_open": 101, "ed": {"e": 0, "n": 25}, "seed": 31337, "seq": 10},
+		{"name": "new_edition_restarts", "banner": "standard", "hero_ids": ten.slice(3, 6), "day": e + 29, "epoch_day": e, "hours_open": 5, "ed": {"e": 0, "n": 900}, "seed": 31337, "seq": 13},
+		{"name": "second_printing", "banner": "faction", "hero_ids": ten, "day": e + 2, "epoch_day": e, "hours_open": 70, "ed": {"e": 0, "n": 400}, "seed": 9, "seq": 400},
+		{"name": "featured_before_epoch", "banner": "featured", "hero_ids": ten.slice(0, 1), "day": e - 9, "epoch_day": e, "hours_open": 0, "ed": {}, "seed": 2, "seq": 7},
+		{"name": "envoy_whole_roster", "banner": "envoy", "hero_ids": heroes, "day": e + 15, "epoch_day": e, "hours_open": 15, "ed": {"e": 2, "n": 33}, "seed": -77, "seq": 5000},
+	]
+	# A long run on one seed, so every flaw, holo and most grades turn up.
+	var long_ids: Array = []
+	for i in 240:
+		long_ids.append(heroes[(i * 7) % heroes.size()])
+	make.append({"name": "long_run", "banner": "featured", "hero_ids": long_ids, "day": e + 1, "epoch_day": e, "hours_open": 30, "ed": {},
+		"seed": _long_run_seed(long_ids, e), "seq": 0})
+	var editions: Array = []
+	for b: String in ["standard", "featured", "faction", "wish", "envoy", "unknown"]:
+		for k: int in [-30, -1, 0, 1, 6, 7, 27, 28, 29, 100]:
+			editions.append({"banner": b, "day": e + k, "epoch_day": e})
+	var samples: Array = [
+		{"hero": "kessa", "serial": 412, "printing": 1, "flaw": "", "holo": false, "grade": 7},
+		{"hero": "kessa", "serial": 12, "printing": 1, "flaw": "", "holo": false, "grade": 6},
+		{"hero": "kessa", "serial": 900, "printing": 2, "flaw": "shift", "holo": false, "grade": 5},
+		{"hero": "kessa", "serial": 900, "printing": 1, "flaw": "flood", "holo": true, "grade": 10},
+		{"hero": "kessa", "serial": 101, "printing": 1, "flaw": "", "holo": false, "grade": 9},
+		{"hero": "kessa", "serial": 3000, "printing": 3, "flaw": "", "holo": false, "grade": 8, "first": true},
+		{"hero": "kessa", "serial": 3000, "printing": 3, "flaw": "", "holo": false, "grade": 8, "from": "rival"},
+		{"hero": "kessa", "serial": 2000, "printing": 1, "flaw": "", "holo": false, "grade": 3},
+	]
+	var trim_list: Array = []
+	for i in 12:
+		trim_list.append({"uid": "p%d" % (i + 1), "hero": "uriela", "serial": 500 + i, "printing": 1,
+			"flaw": "ghost" if i == 2 else "", "holo": i == 7, "grade": 10 if i == 9 else 6})
+	return {
+		"about": "PrintRules (src/core/print_rules.gd) on data/prints.json: edition_on(banner, day, epoch_day), flaw_for_roll, grade_for_roll, make_prints (each case's inputs -> out {prints, ed}), notable and score of sample prints, and trim(list, keep_plain) (out with keep_plain, out_default with the file's keep_plain).",
+		"editions": editions,
+		"flaw_rolls": [0, 259, 260, 399, 400, 489, 490, 549, 550, 599, 600, 9999],
+		"grade_rolls": [0, 99, 100, 699, 700, 2499, 2500, 5499, 5500, 7999, 8000, 9199, 9200, 9699, 9700, 9999],
+		"make_prints": make,
+		"samples": samples,
+		"trim": {"list": trim_list, "keep_plain": 3},
+	}
+
+
+## The first seed from 424242 up whose long run has every flaw and a holo foil.
+static func _long_run_seed(ids: Array, e: int) -> int:
+	for s in range(424242, 425242):
+		var out := PrintRules.make_prints("featured", ids, e + 1, e, 30, {}, s, 0)
+		var seen := {}
+		for p: Dictionary in out.prints:
+			seen[str(p.flaw)] = true
+			if bool(p.holo):
+				seen["holo"] = true
+		if seen.size() >= 7:
+			return s
+	return 424242
+
+
+static func _prints(f: Dictionary) -> Dictionary:
+	var eds: Array = []
+	for c in f.editions:
+		eds.append({"banner": c.banner, "day": c.day, "epoch_day": c.epoch_day,
+			"out": PrintRules.edition_on(str(c.banner), int(c.day), int(c.epoch_day))})
+	var made: Array = []
+	for c in f.make_prints:
+		var cc: Dictionary = (c as Dictionary).duplicate(true)
+		cc.erase("out")
+		cc["out"] = PrintRules.make_prints(str(c.banner), c.hero_ids, int(c.day), int(c.epoch_day), int(c.hours_open), c.ed,
+			int(c.seed), int(c.seq))
+		made.append(cc)
+	var samples: Array = []
+	for s in f.samples:
+		var p: Dictionary = s.get("print", s)
+		samples.append({"print": p, "notable": PrintRules.notable(p), "score": PrintRules.score(p)})
+	var flaws: Array = []
+	for r in f.flaw_rolls:
+		flaws.append(PrintRules.flaw_for_roll(int(r)))
+	var grades: Array = []
+	for r in f.grade_rolls:
+		grades.append(PrintRules.grade_for_roll(int(r)))
+	return {
+		"editions": eds,
+		"flaw_rolls": f.flaw_rolls,
+		"flaws": flaws,
+		"grade_rolls": f.grade_rolls,
+		"grades": grades,
+		"make_prints": made,
+		"samples": samples,
+		"trim": {"list": f.trim.list, "keep_plain": f.trim.keep_plain,
+			"out": PrintRules.trim(f.trim.list, int(f.trim.keep_plain)), "out_default": PrintRules.trim(f.trim.list)},
+	}
+
+
+# ---------------------------------------------------------------- the Rival
+
+static func _rival_inputs() -> Dictionary:
+	var e := EconomyData.BANNER_EPOCH_DAY
+	var stars_cases: Array = []
+	for c: Array in [["uriela", 0, 1], ["uriela", 5, 3], ["uriela", 40, 6], ["seraphiel", 0, 1], ["seraphiel", 9, 4], ["cassiel", 3, 2]]:
+		stars_cases.append({"hero_id": c[0], "dupes": c[1], "cap": c[2]})
+	var level_cases: Array = []
+	for c: Array in [[1, 0, false], [30, 1, false], [30, 2, true], [55, 6, false], [2, 4, true], [80, -3, true]]:
+		level_cases.append({"avg": c[0], "day": e + int(c[1]), "countering": c[2]})
+	var all := {}
+	for id in HeroData.ids():
+		all[id] = 3
+	var team_cases: Array = [
+		{"heroes": {"noctaire": 0, "orrin": 0, "sable": 0, "lucen": 0, "ashra": 0}, "cap": 3, "level": 12, "prefer": ""},
+		{"heroes": all, "cap": 4, "level": 40, "prefer": ""},
+		{"heroes": all, "cap": 4, "level": 40, "prefer": "celestial"},
+		{"heroes": {"uriela": 8, "kessa": 1, "cassiel": 0, "imra": 2, "mordessa": 0, "noctaire": 4, "liora": 0}, "cap": 5, "level": 60, "prefer": "infernal"},
+		{"heroes": {"orrin": 0, "brakka": 0}, "cap": 2, "level": 9, "prefer": "fallen"},
+	]
+	var sims: Array = [
+		{"name": "first_week", "seed": 12345, "steps": [{"today": e + 2, "owns": ["uriela", "kessa"]}, {"today": e + 9, "owns": ["uriela", "kessa", "mordessa"]}]},
+		{"name": "catch_up_cap", "seed": 777, "steps": [{"today": e - 40, "owns": []}, {"today": e + 3, "owns": ["noctaire"]}, {"today": e + 3, "owns": []}, {"today": e + 1, "owns": []}]},
+		{"name": "long_month", "seed": 660601, "steps": [{"today": e + 5, "owns": []}, {"today": e + 12, "owns": []}, {"today": e + 19, "owns": []}, {"today": e + 26, "owns": []}]},
+	]
+	var days: Array = []
+	for k in range(-4, 10):
+		days.append(e + k)
+	return {
+		"about": "RivalRules (src/core/rival_rules.gd) on data/rival.json: banner_on and the counter wheel, stars_for, level_on, team (her five best as echoes), new_state(seed) then catch_up(state, today, epoch_day, owns) steps (the days simulated, the state after each step and best_untaken), haul, cleared_on / tower_on ([player cleared, player Spire best, day]) and lines ([kind, seed, day, salt, fills]).",
+		"epoch_day": e,
+		"banner_days": days,
+		"factions": ["celestial", "infernal", "fallen", ""],
+		"stars": stars_cases,
+		"levels": level_cases,
+		"teams": team_cases,
+		"sims": sims,
+		"hauls": [0, 6, 25, 60],
+		"leads": [[12, 30, e], [12, 30, e + 1], [59, 119, e + 2], [0, 0, e + 3], [60, 120, e + 4]],
+		"lines": [["intro", 5, e, 0, {}], ["idle", 5, e + 1, 3, {"you": "Envoy"}], ["win", 99, e + 2, 1, {"you": "Envoy"}],
+			["misprint", 7, e + 3, 2, {"hero": "Kessa", "flaw": "off-register"}], ["counter", 7, e, 4, {"faction": "Celestial", "main": "Infernal"}],
+			["nope", 1, e, 0, {}]],
+	}
+
+
+static func _rival(f: Dictionary) -> Dictionary:
+	var e := int(f.epoch_day)
+	var sims: Array = []
+	for c in f.sims:
+		var rs := RivalRules.new_state(int(c.seed))
+		var outs: Array = []
+		for st in c.steps:
+			var owns := {}
+			for id in st.owns:
+				owns[str(id)] = true
+			var n := RivalRules.catch_up(rs, int(st.today), e, owns)
+			outs.append({"days": n, "state": normalize(rs), "best_untaken": RivalRules.best_untaken(rs)})
+		sims.append({"name": c.name, "seed": c.seed, "steps": c.steps, "out": outs})
+	var banners: Array = []
+	for d in f.banner_days:
+		banners.append(RivalRules.banner_on(int(d), e))
+	var counters: Array = []
+	for x in f.factions:
+		counters.append(RivalRules.counter_faction(str(x)))
+	var stars: Array = []
+	for c in f.stars:
+		stars.append({"hero_id": c.hero_id, "dupes": c.dupes, "cap": c.cap, "out": RivalRules.stars_for(str(c.hero_id), int(c.dupes), int(c.cap))})
+	var levels: Array = []
+	for c in f.levels:
+		levels.append({"avg": c.avg, "day": c.day, "countering": c.countering, "out": RivalRules.level_on(int(c.avg), int(c.day), bool(c.countering))})
+	var teams: Array = []
+	for c in f.teams:
+		teams.append({"heroes": c.heroes, "cap": c.cap, "level": c.level, "prefer": c.prefer,
+			"out": RivalRules.team(c.heroes, int(c.cap), int(c.level), str(c.prefer))})
+	var hauls: Array = []
+	for c in f.hauls:
+		hauls.append(RivalRules.haul(int(c)))
+	var leads: Array = []
+	for c in f.leads:
+		leads.append([RivalRules.cleared_on(int(c[0]), int(c[2])), RivalRules.tower_on(int(c[1]), int(c[2]))])
+	var lines: Array = []
+	for c in f.lines:
+		lines.append(RivalRules.line(str(c[0]), int(c[1]), int(c[2]), int(c[3]), c[4]))
+	return {
+		"epoch_day": f.epoch_day,
+		"banner_days": f.banner_days,
+		"banners": banners,
+		"factions": f.factions,
+		"counters": counters,
+		"stars": stars,
+		"levels": levels,
+		"teams": teams,
+		"sims": sims,
+		"hauls": f.hauls,
+		"haul_out": hauls,
+		"leads": f.leads,
+		"lead_out": leads,
+		"lines": f.lines,
+		"line_out": lines,
+	}

@@ -1,6 +1,10 @@
 # Feature ideas
 
-Brainstorm with the owner, 2026-10-19. Nothing here is built yet. The owner asked for ideas that are
+Brainstorm with the owner, 2026-10-19. **Built since (2026-10-20): the Rival (1 and 2: she learns
+your team and tags your Lobby poster; she collects prints, 11 in part) and Misprints (numbered
+prints, flaws, holo foil and grading: 7 and 8 in part)**; rules in `src/core/rival_rules.gd` and
+`print_rules.gd` (port spec `docs/dev/unity-port.md` 8.5 and 9c), screens `rival` and `prints`.
+Everything else here is not built. The owner asked for ideas that are
 new to the genre ("no i need something novel"), not the usual idle gacha features, and picked two:
 **the Rival** and **Misprints** ("i like the rival and the misprints ... keep these too"). The rest
 are open. Rules for any of these follow `CLAUDE.md`: simulations (the Rival, the market) are plain

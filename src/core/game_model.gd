@@ -33,6 +33,9 @@ var changed_now: bool = false
 var changed_later: bool = false
 
 var _def_cache: Dictionary = {}
+## Debug only (never saved): the next summon's prints take these looks, one per pull in order,
+## e.g. [{"flaw": "shift"}, {"holo": true}] (Game sets it for screenshots on throwaway saves).
+var dev_print_looks: Array = []
 
 
 # ---------------------------------------------------------------- time
@@ -95,6 +98,9 @@ func default_state() -> Dictionary:
 		"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 1, "auto_ultimates": true,
 			"nudity": false},
 		"skins": {"owned": [], "equipped": {}},
+		"prints": {"seed": SeededRng.mix(now & 0x7FFFFFFF, PrintRules.SEED), "seq": 0, "ed": {}, "list": [], "total": 0,
+			"showcase": []},
+		"rival": RivalRules.new_state(now & 0x7FFFFFFF),
 		"counters": {},
 		"dev_time_offset": 0,
 		"rng_seed": SeededRng.mix(now & 0x7FFFFFFF, 104729),
@@ -181,6 +187,8 @@ func migrate(loaded: Dictionary) -> Dictionary:
 	if not BATTLE_SPEEDS.has(int(loaded.settings.battle_speed)):
 		loaded.settings.battle_speed = 1
 	_migrate_summon(loaded.summon)
+	_migrate_prints(loaded.prints)
+	_migrate_rival(loaded.rival)
 	loaded.campaign.cleared = clampi(int(loaded.campaign.cleared), 0, StageData.count())
 	loaded.tower.best = clampi(int(loaded.tower.best), 0, TowerData.FLOORS)
 	loaded.version = SAVE_VERSION
@@ -1249,13 +1257,37 @@ func summon(count: int, use_free: bool = false, banner_id: String = "standard") 
 				bs.period = period
 				bs.period_pulls = 0
 			bs.period_pulls = int(bs.period_pulls) + count
-	var results: Array = []
+	# Every hero comes as a numbered print of the banner's edition (cosmetic; its own random stream,
+	# so the pulls above are the same with or without prints).
+	var ps: Dictionary = state.prints
+	var ids: Array = []
 	for p in roll.results:
+		ids.append(str(p.hero_id))
+	var eds: Dictionary = ps.ed
+	var seq0 := int(ps.seq)
+	var made := PrintRules.make_prints(banner_id, ids, day, epoch, _hours_open(banner_id, day), eds.get(banner_id, {}),
+		int(ps.seed), seq0)
+	eds[banner_id] = made.ed
+	ps.seq = seq0 + ids.size()
+	var results: Array = []
+	for i in roll.results.size():
+		var p: Dictionary = roll.results[i]
 		var r := receive_hero(str(p.hero_id))
 		r["pity"] = int(p.pity)
 		if p.has("featured"):
 			r["featured"] = bool(p.featured)
+		var pr: Dictionary = made.prints[i]
+		pr["uid"] = "p%d" % (seq0 + i + 1)
+		pr["day"] = day
+		pr["first"] = bool(r.is_new)
+		pr["from"] = ""
+		_dev_print(pr, i)
+		(ps.list as Array).append(pr)
+		r["print"] = pr.duplicate()
 		results.append(r)
+	dev_print_looks.clear()
+	ps.total = int(ps.total) + ids.size()
+	_trim_prints()
 	_bump("summons", count)
 	_changed()
 	return _ok(results)
@@ -1468,6 +1500,444 @@ func equip_skin(hero_id: String, skin_id: String) -> Dictionary:
 	return _ok(skin_id)
 
 
+# ---------------------------------------------------------------- prints (cosmetic)
+
+## Whole hours since the banner's current edition opened (local midnight of its first day).
+func _hours_open(banner_id: String, day: int) -> int:
+	var info := PrintRules.edition_on(banner_id, day, EconomyData.BANNER_EPOCH_DAY)
+	return maxi(0, (now_ms() + tz_bias_ms - int(info.open_day) * DAY_MS) / HOUR_MS)
+
+
+## Debug: gives print i of this summon the look queued in dev_print_looks (summon() clears the
+## queue afterwards).
+func _dev_print(pr: Dictionary, i: int) -> void:
+	if i >= dev_print_looks.size() or not (dev_print_looks[i] is Dictionary):
+		return
+	var look: Dictionary = dev_print_looks[i]
+	if look.has("flaw"):
+		pr.flaw = str(look.flaw)
+		pr.ink = str(PrintRules.inks()[int(pr.v) % PrintRules.inks().size()]) if pr.flaw == "swap" else ""
+		if look.has("ink") and pr.flaw == "swap":
+			pr.ink = str(look.ink)
+	if look.has("holo"):
+		pr.holo = bool(look.holo)
+	if look.has("grade"):
+		pr.grade = clampi(int(look.grade), 1, 10)
+
+
+## Keeps the album to every notable print plus the newest plain ones (PrintRules.trim); the
+## showcase only lists prints still in the album.
+func _trim_prints() -> void:
+	var ps: Dictionary = state.prints
+	ps.list = PrintRules.trim(ps.list)
+	var have := {}
+	for p: Dictionary in ps.list:
+		have[str(p.uid)] = true
+	var sc: Array = []
+	for u: Variant in ps.showcase:
+		if have.has(str(u)) and not sc.has(str(u)):
+			sc.append(str(u))
+	ps.showcase = sc
+
+
+## The album, newest first (copies). filter: "all" | "misprint" (a flaw) | "holo" | "top" (grade
+## 9 or 10) | "rival" (won from the Rival) | "hero:<id>".
+func prints(filter: String = "all") -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if state.is_empty():
+		return out
+	var list: Array = state.prints.list
+	for i in range(list.size() - 1, -1, -1):
+		var p: Dictionary = list[i]
+		var keep := true
+		match filter:
+			"misprint":
+				keep = str(p.get("flaw", "")) != ""
+			"holo":
+				keep = bool(p.get("holo", false))
+			"top":
+				keep = int(p.get("grade", 0)) >= 9
+			"rival":
+				keep = str(p.get("from", "")) == "rival"
+			_:
+				if filter.begins_with("hero:"):
+					keep = str(p.get("hero", "")) == filter.substr(5)
+		if keep:
+			out.append(p.duplicate())
+	return out
+
+
+## One album print by uid (a copy), {} if not there.
+func print_by_uid(uid: String) -> Dictionary:
+	for p: Dictionary in state.get("prints", {}).get("list", []):
+		if str(p.get("uid", "")) == uid:
+			return p.duplicate()
+	return {}
+
+
+## {total (every print ever received), kept (in the album), misprints, holo, top (grade 9+),
+## from_rival, best_grade, best (the rarest print by PrintRules.score, {} when none)}.
+func print_stats() -> Dictionary:
+	var out := {"total": 0, "kept": 0, "misprints": 0, "holo": 0, "top": 0, "from_rival": 0, "best_grade": 0, "best": {}}
+	if state.is_empty():
+		return out
+	var ps: Dictionary = state.prints
+	out.total = int(ps.total)
+	var best := {}
+	for p: Dictionary in ps.list:
+		out.kept = int(out.kept) + 1
+		if str(p.get("flaw", "")) != "":
+			out.misprints = int(out.misprints) + 1
+		if bool(p.get("holo", false)):
+			out.holo = int(out.holo) + 1
+		if int(p.get("grade", 0)) >= 9:
+			out.top = int(out.top) + 1
+		if str(p.get("from", "")) == "rival":
+			out.from_rival = int(out.from_rival) + 1
+		out.best_grade = maxi(int(out.best_grade), int(p.get("grade", 0)))
+		if best.is_empty() or PrintRules.score(p) > PrintRules.score(best):
+			best = p
+	out.best = best.duplicate()
+	return out
+
+
+## Prints shown on the profile: up to showcase_max album uids, in order. Unknown or repeated uids
+## are refused. Result {ok, value: the showcase uids, error}.
+func set_showcase(uids: Array) -> Dictionary:
+	if uids.size() > PrintRules.SHOWCASE_MAX:
+		return _err("Only %d prints fit the showcase" % PrintRules.SHOWCASE_MAX)
+	var clean: Array = []
+	for u: Variant in uids:
+		var s := str(u)
+		if clean.has(s):
+			return _err("That print is already in the showcase")
+		if print_by_uid(s).is_empty():
+			return _err("Unknown print")
+		clean.append(s)
+	state.prints.showcase = clean
+	_changed()
+	return _ok(clean.duplicate())
+
+
+## The showcased prints (copies), in showcase order.
+func showcase() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if state.is_empty():
+		return out
+	for u: Variant in state.prints.showcase:
+		var p := print_by_uid(str(u))
+		if not p.is_empty():
+			out.append(p)
+	return out
+
+
+## Save repair for the prints block (after the defaults merge): known heroes only, sane numbers,
+## unique uids, a showcase of album uids.
+func _migrate_prints(ps: Dictionary) -> void:
+	ps.seq = maxi(0, int(ps.seq))
+	ps.total = maxi(0, int(ps.total))
+	var eds := {}
+	for bid: Variant in ps.ed:
+		var e: Variant = ps.ed[bid]
+		if e is Dictionary and not EconomyData.banner_def(str(bid)).is_empty():
+			eds[str(bid)] = {"e": int(e.get("e", 0)), "n": maxi(0, int(e.get("n", 0)))}
+	ps.ed = eds
+	var list: Array = []
+	var seen := {}
+	for p: Variant in ps.list:
+		if not (p is Dictionary) or HeroData.get_def(str(p.get("hero", ""))).is_empty():
+			continue
+		var d: Dictionary = p
+		var uid := str(d.get("uid", ""))
+		if uid == "" or seen.has(uid):
+			continue
+		seen[uid] = true
+		_merge_defaults(d, {"banner": "standard", "edition": 1, "printing": 1, "serial": 1, "run": 1, "flaw": "", "ink": "",
+			"holo": false, "grade": 5, "v": 0, "day": 0, "first": false, "from": ""})
+		d.uid = uid
+		if str(d.flaw) != "" and PrintRules.flaw_def(str(d.flaw)).is_empty():
+			d.flaw = ""
+		d.grade = clampi(int(d.grade), 1, 10)
+		list.append(d)
+	ps.list = list
+	ps.total = maxi(int(ps.total), list.size())
+	_merge_defaults(ps, {"showcase": []})
+	var sc: Array = []
+	for u: Variant in ps.showcase:
+		if seen.has(str(u)) and not sc.has(str(u)) and sc.size() < PrintRules.SHOWCASE_MAX:
+			sc.append(str(u))
+	ps.showcase = sc
+
+
+# ---------------------------------------------------------------- the Rival (Rue)
+
+## She shows up once the campaign has `unlock_cleared` stages cleared (data/rival.json).
+func rival_unlocked() -> bool:
+	return cleared_count() >= RivalRules.UNLOCK_CLEARED
+
+
+## What she reads off the player's team: {avg (formation average level), best (best stars),
+## main (the faction most of the formation belongs to, "" with none)}.
+func _rival_ctx() -> Dictionary:
+	var lv := 0
+	var n := 0
+	var best := 1
+	var counts := {}
+	for id in formation():
+		if id == "" or not owns(id):
+			continue
+		var h: Dictionary = state.heroes[id]
+		lv += int(h.level)
+		n += 1
+		best = maxi(best, int(h.stars))
+		var fac := str(hero_def(id).faction)
+		counts[fac] = int(counts.get(fac, 0)) + 1
+	var main := ""
+	var top := 0
+	for f in BattleSim.FACTIONS:
+		if int(counts.get(f, 0)) > top:
+			top = int(counts.get(f, 0))
+			main = f
+	return {"avg": lv / n if n > 0 else 1, "best": best, "main": main}
+
+
+## Simulates her days up to today (once she is unlocked). A query may do it, like the daily
+## rollover: the adapter saves and emits `changed` later.
+func _rival_sync() -> void:
+	if state.is_empty() or not rival_unlocked():
+		return
+	var owned := {}
+	for id in state.heroes:
+		owned[str(id)] = true
+	var rs: Dictionary = state.rival
+	var before := int(rs.day)
+	var was_empty := (rs.heroes as Dictionary).is_empty()
+	RivalRules.catch_up(rs, today(), EconomyData.BANNER_EPOCH_DAY, owned)
+	if int(rs.day) != before or was_empty:
+		changed_later = true
+
+
+## Her team today: {team (enemy entries in slot order), level, countering, prefer, main}.
+func _rival_team() -> Dictionary:
+	var rs: Dictionary = state.rival
+	var ctx := _rival_ctx()
+	var day := today()
+	var countering := RivalRules.counters(int(rs.fights), str(ctx.main))
+	var prefer := RivalRules.counter_faction(str(ctx.main)) if countering else ""
+	var lv := RivalRules.level_on(int(ctx.avg), day, countering)
+	return {"team": RivalRules.team(rs.heroes, int(ctx.best), lv, prefer), "level": lv, "countering": countering,
+		"prefer": prefer, "main": str(ctx.main)}
+
+
+## The Rival as the UI shows her: {name, title, unlocked, unlock_cleared, met, team [{hero_id,
+## level, stars, slot, power, ...}], ace (her strongest hero), level, roster [{hero_id, stars,
+## dupes}], power (her team as echoes), your_power, record {wins, losses, fights}, cleared,
+## tower_best, pulls, banner (today's), feed (newest first: {n, day, type, hero, flaw, ink, line}),
+## new_feed (entries since rival_seen), prints (her kept prints, best first), tags {you, her, v},
+## haul (a first win today pays it: {gems, gold, dust}), haul_ready, haul_print (the print it
+## would bring, {} when none), counter {faction, main} ("" when she isn't counter-picking), line,
+## line_kind}.
+func rival() -> Dictionary:
+	var out := {"name": RivalRules.NAME, "title": RivalRules.TITLE, "unlocked": rival_unlocked(),
+		"unlock_cleared": RivalRules.UNLOCK_CLEARED}
+	if state.is_empty() or not rival_unlocked():
+		return out
+	_rival_sync()
+	var rs: Dictionary = state.rival
+	var day := today()
+	var tm := _rival_team()
+	var team: Array = tm.team
+	var power := 0
+	for e: Dictionary in team:
+		power += int(e.power)
+	var roster: Array = []
+	var best := int(_rival_ctx().best)
+	for id in HeroData.ids():
+		if (rs.heroes as Dictionary).has(id):
+			roster.append({"hero_id": id, "dupes": int(rs.heroes[id]), "stars": RivalRules.stars_for(id, int(rs.heroes[id]), best)})
+	var countering := bool(tm.countering)
+	var fills := {"you": str(state.get("player_name", "you")), "faction": str(tm.prefer).capitalize(),
+		"main": str(tm.main).capitalize()}
+	var kind := "idle"
+	var ln := ""
+	var feed: Array = rs.feed
+	if not bool(rs.met):
+		kind = "intro"
+	elif bool(rs.tag_you):
+		kind = "win"
+	elif bool(rs.tag_her):
+		kind = "lose"
+	elif countering:
+		kind = "counter"
+	elif not feed.is_empty() and int((feed[0] as Dictionary).day) == day:
+		kind = str(feed[0].type)
+		ln = str(feed[0].line)
+	if ln == "":
+		ln = RivalRules.line(kind, int(rs.seed), day, int(rs.fights), fills)
+	out.merge({
+		"met": bool(rs.met),
+		"team": team,
+		"ace": RivalRules.ace(team),
+		"level": int(tm.level),
+		"roster": roster,
+		"power": power,
+		"your_power": team_power(),
+		"record": {"wins": int(rs.wins), "losses": int(rs.losses), "fights": int(rs.fights)},
+		"cleared": RivalRules.cleared_on(cleared_count(), day),
+		"tower_best": RivalRules.tower_on(tower_best(), day),
+		"pulls": int(rs.pulls),
+		"banner": RivalRules.banner_on(day, EconomyData.BANNER_EPOCH_DAY),
+		"feed": feed.duplicate(true),
+		"new_feed": maxi(0, int(rs.feed_seq) - int(rs.seen)),
+		"prints": (rs.prints as Array).duplicate(true),
+		"tags": {"you": bool(rs.tag_you), "her": bool(rs.tag_her), "v": int(rs.tag_v)},
+		"haul": RivalRules.haul(cleared_count()),
+		"haul_ready": int(rs.haul_day) != day,
+		"haul_print": RivalRules.best_untaken(rs).duplicate(),
+		"counter": {"faction": str(tm.prefer), "main": str(tm.main)} if countering else {"faction": "", "main": ""},
+		"line": ln,
+		"line_kind": kind,
+	}, true)
+	return out
+
+
+## True when the Lobby should light her label: a haul is waiting or her feed has news.
+func rival_alert() -> bool:
+	if state.is_empty() or not rival_unlocked():
+		return false
+	_rival_sync()
+	var rs: Dictionary = state.rival
+	return int(rs.haul_day) != today() or int(rs.feed_seq) > int(rs.seen)
+
+
+## The first visit: she introduces herself. Result {ok, value: {line}, error}.
+func rival_meet() -> Dictionary:
+	if not rival_unlocked():
+		return _err("Clear stage %d first" % RivalRules.UNLOCK_CLEARED)
+	_rival_sync()
+	var rs: Dictionary = state.rival
+	var ln := RivalRules.line("intro", int(rs.seed), today(), 0, {"you": str(state.get("player_name", "you"))})
+	rs.met = true
+	_changed()
+	return _ok({"line": ln})
+
+
+## The player has read her feed (the Lobby light goes out until something new happens).
+func rival_seen() -> void:
+	if state.is_empty() or not rival_unlocked():
+		return
+	_rival_sync()
+	var rs: Dictionary = state.rival
+	if int(rs.seen) != int(rs.feed_seq):
+		rs.seen = int(rs.feed_seq)
+		_changed()
+
+
+## BattleSetup for the player's formation vs her team (echoes at strength_bp). Each call is a
+## new attempt with its own seed: mix(rng_seed + 900001, battles_started). {} while locked.
+func rival_battle_setup() -> Dictionary:
+	if not rival_unlocked():
+		return {}
+	_rival_sync()
+	var tm := _rival_team()
+	var attempt := counter("battles_started")
+	state.counters["battles_started"] = attempt + 1
+	return {
+		"allies": _ally_setups(),
+		"enemies": _enemy_setups(tm.team),
+		"seed": SeededRng.mix(int(state.rng_seed) + 900001, attempt),
+		"rival": true,
+		"is_boss": false,
+		"background": RivalRules.background(today()),
+	}
+
+
+## Call after a fight with her. A win records it, tags her poster, clears her tag on yours, and the
+## first win of a day pays her haul plus the best print you have not taken from her (copied into
+## the album with from "rival"). A loss records it and lets her tag your Lobby poster; it costs
+## nothing. Result {ok, value: {victory, reward, print ({} when none), haul (bool), line, record}, error}.
+func complete_rival(outcome: Dictionary) -> Dictionary:
+	if not rival_unlocked():
+		return _err("Clear stage %d first" % RivalRules.UNLOCK_CLEARED)
+	_rival_sync()
+	var rs: Dictionary = state.rival
+	var day := today()
+	var victory := bool(outcome.get("victory", false))
+	rs.fights = int(rs.fights) + 1
+	rs.tag_v = SeededRng.mix(int(rs.seed), int(rs.fights)) % 1000
+	var reward := {}
+	var won_print := {}
+	var paid := false
+	var fills := {"you": str(state.get("player_name", "you"))}
+	var ln := ""
+	if victory:
+		_bump("battles_won")
+		rs.wins = int(rs.wins) + 1
+		rs.tag_her = true
+		rs.tag_you = false
+		if int(rs.haul_day) != day:
+			rs.haul_day = day
+			paid = true
+			reward = grant(RivalRules.haul(cleared_count()))
+			var best := RivalRules.best_untaken(rs)
+			if not best.is_empty():
+				best.taken = true
+				won_print = best.duplicate()
+				won_print.erase("taken")
+				won_print.erase("n")
+				won_print["from"] = "rival"
+				won_print["day"] = day
+				won_print["first"] = false
+				var ps: Dictionary = state.prints
+				(ps.list as Array).append(won_print.duplicate())
+				ps.total = int(ps.total) + 1
+				_trim_prints()
+		ln = RivalRules.line("lose", int(rs.seed), day, int(rs.fights), fills)
+	else:
+		_bump("battles_lost")
+		rs.losses = int(rs.losses) + 1
+		rs.tag_you = true
+		rs.tag_her = false
+		ln = RivalRules.line("win", int(rs.seed), day, int(rs.fights), fills)
+	_changed()
+	return _ok({"victory": victory, "reward": reward, "print": won_print, "haul": paid, "line": ln,
+		"record": {"wins": int(rs.wins), "losses": int(rs.losses), "fights": int(rs.fights)}})
+
+
+## Save repair for the rival block (after the defaults merge): known heroes only, sane numbers,
+## lists of the right shape.
+func _migrate_rival(rs: Dictionary) -> void:
+	var heroes := {}
+	for id: Variant in rs.heroes:
+		if not HeroData.get_def(str(id)).is_empty():
+			heroes[str(id)] = maxi(0, int(rs.heroes[id]))
+	rs.heroes = heroes
+	for k: String in ["pulls", "print_seq", "feed_seq", "seen", "wins", "losses", "fights"]:
+		rs[k] = maxi(0, int(rs[k]))
+	rs.seen = mini(int(rs.seen), int(rs.feed_seq))
+	var pity := {}
+	for bid: Variant in rs.pity:
+		if not EconomyData.banner_def(str(bid)).is_empty():
+			pity[str(bid)] = clampi(int(rs.pity[bid]), 0, maxi(0, int(EconomyData.banner_def(str(bid)).get("pity_legendary", 0)) - 1))
+	rs.pity = pity
+	var eds := {}
+	for bid: Variant in rs.ed:
+		var e: Variant = rs.ed[bid]
+		if e is Dictionary and not EconomyData.banner_def(str(bid)).is_empty():
+			eds[str(bid)] = {"e": int(e.get("e", 0)), "n": maxi(0, int(e.get("n", 0)))}
+	rs.ed = eds
+	var prints: Array = []
+	for p: Variant in rs.prints:
+		if p is Dictionary and not HeroData.get_def(str(p.get("hero", ""))).is_empty() and str(p.get("uid", "")) != "":
+			prints.append(p)
+	rs.prints = prints
+	var feed: Array = []
+	for e: Variant in rs.feed:
+		if e is Dictionary and feed.size() < RivalRules.FEED_MAX:
+			feed.append(e)
+	rs.feed = feed
+
+
 # ---------------------------------------------------------------- settings & dev
 
 func setting(key: String) -> Variant:
@@ -1558,7 +2028,58 @@ func make_rich_state() -> void:
 		"period": SummonRules.limit_period(EconomyData.banner_def("wish"), today(), EconomyData.BANNER_EPOCH_DAY)}, true)
 	_bstate("envoy").merge({"pulls": 10, "period": today(), "period_pulls": 3}, true)
 	state.counters = {"battles_won": 14, "summons": 120, "stages_cleared": 12, "level_ups": 500}
+	_make_rich_prints()
+	# Rue: met, a week of her pulls to catch up on, three fights (so she counter-picks), you won last.
+	var rs: Dictionary = state.rival
+	rs.merge({"met": true, "day": today() - RivalRules.CATCH_UP_DAYS, "wins": 2, "losses": 1, "fights": 3,
+		"tag_her": true, "tag_v": 417}, true)
 	_changed()
+
+
+## --rich album: 120 pulls' worth of prints (the summon counters above), every flaw and a holo or
+## two among them so the album and the profile have something to show.
+func _make_rich_prints() -> void:
+	var ps: Dictionary = state.prints
+	var ids: Array = []
+	for id in HeroData.ids():
+		ids.append(id)
+	var day := today()
+	var banners := ["standard", "featured", "faction", "standard", "wish", "envoy"]
+	var list: Array = []
+	var n := 0
+	for k in 12:
+		var bid: String = banners[k % banners.size()]
+		var pull: Array = []
+		for j in 10:
+			pull.append(ids[(k * 7 + j * 3) % ids.size()])
+		var made := PrintRules.make_prints(bid, pull, day - 30 + k * 2, EconomyData.BANNER_EPOCH_DAY, 6 + k * 13,
+			(ps.ed as Dictionary).get(bid, {}), int(ps.seed), n)
+		ps.ed[bid] = made.ed
+		for p: Dictionary in made.prints:
+			n += 1
+			p["uid"] = "p%d" % n
+			p["day"] = day - 30 + k * 2
+			p["first"] = n <= ids.size()
+			p["from"] = ""
+			list.append(p)
+	var looks := [[7, {"flaw": "shift"}], [19, {"flaw": "swap", "ink": "cyan", "holo": true}], [33, {"flaw": "ghost"}],
+		[48, {"flaw": "double", "grade": 10}], [61, {"flaw": "flood"}], [77, {"holo": true, "grade": 10}],
+		[90, {"flaw": "swap", "ink": "gold"}], [104, {"flaw": "shift", "holo": true}], [115, {"grade": 10}]]
+	for lk: Array in looks:
+		var p: Dictionary = list[int(lk[0])]
+		var look: Dictionary = lk[1]
+		if look.has("flaw"):
+			p.flaw = str(look.flaw)
+			p.ink = str(look.get("ink", "")) if p.flaw == "swap" else ""
+		if look.has("holo"):
+			p.holo = bool(look.holo)
+		if look.has("grade"):
+			p.grade = int(look.grade)
+	ps.list = list
+	ps.seq = n
+	ps.total = n
+	_trim_prints()
+	ps.showcase = [str(list[48].uid), str(list[19].uid), str(list[77].uid)]
 
 
 # ---------------------------------------------------------------- helpers

@@ -50,7 +50,11 @@ extends Control
 ## starts at hero k's reveal, summary: true shows the results, hold: t freezes the clock at
 ## t seconds (of the charge, or of hero k's reveal with card), autotap: s taps every s
 ## seconds. frames: "<abs dir>" saves `count` (default 40) PNG frames `every` (default 0.1)
-## seconds apart, starting `after` seconds in, for checking motion.
+## seconds apart, starting `after` seconds in, for checking motion. Prints: the demo results carry
+## made-up prints (the ten-pull has a misprint at 3, holo foil at 5, a wrong ink at 8); flaw
+## ("shift" | "swap" | "ghost" | "double" | "flood") and holo (true) set the look of the single
+## demo or of hero `card`. looks: [{flaw, ink, holo, grade}, ...] with pull: a real summon whose
+## prints take those looks (debug builds, throwaway saves only; Game.dev_print_looks).
 
 const Roster := preload("res://src/ui/screens/heroes_screen.gd")
 const Sequence := preload("res://src/ui/summon/summon_sequence.gd")
@@ -89,6 +93,7 @@ var _composed_for := Vector2.ZERO
 
 # Summon sequence (the e2e scripts read _phase, _cards, _showcase and _results).
 var _seq: Sequence
+var _params: Dictionary = {}
 var _results: Array = []
 ## "" (banner), "charge", "reveal" or "results".
 var _phase: String:
@@ -105,6 +110,7 @@ var _showcase: Control:
 
 
 func setup(params: Dictionary) -> void:
+	_params = params
 	var want := str(params.get("banner", _last_banner))
 	# First session: the guide points at the standard banner's free pull and 10-pull.
 	if Guide.step() == "summon" and not params.has("banner"):
@@ -144,6 +150,8 @@ func _exit_tree() -> void:
 
 func _shot_pull(count: int, skip: bool) -> void:
 	await get_tree().process_frame
+	if _params.has("looks") and _params["looks"] is Array and OS.is_debug_build():
+		Game.dev_print_looks(_params["looks"])
 	_do_summon(count, count == 1 and _bid == "standard" and Game.free_pull_available())
 	if skip and _seq:
 		_seq.skip_all()
@@ -153,6 +161,7 @@ func _shot_pull(count: int, skip: bool) -> void:
 func _shot_demo(params: Dictionary) -> void:
 	await get_tree().process_frame
 	_results = _demo_results(str(params.get("demo", "ten")), str(params.get("hero", "")))
+	_demo_prints(_results, params)
 	var feat := str(_banner.get("featured", ""))
 	for x: Variant in _results:
 		if feat != "":
@@ -196,6 +205,25 @@ static func _demo_results(kind: String, hero: String) -> Array:
 		var shards := 0 if is_new else Progression.dupe_shards(rarity)
 		out.append({"hero_id": id, "rarity": rarity, "is_new": is_new, "shards": shards, "dust": 0, "pity": 0})
 	return out
+
+
+## Made-up prints for the demo results (screenshots): numbered on this banner's edition, a misprint
+## at 3, holo foil at 5 and a wrong ink at 8 of a ten-pull; params flaw / holo set the look of the
+## single demo or of hero `card`.
+func _demo_prints(res: Array, params: Dictionary) -> void:
+	var ed := PrintRules.edition_on(_bid, Game.today(), EconomyData.BANNER_EPOCH_DAY)
+	var looks := {2: {"flaw": "shift"}, 4: {"holo": true}, 7: {"flaw": "swap", "ink": "violet"}} if res.size() >= 10 else {}
+	var at := int(params.get("card", 0)) if res.size() >= 10 else 0
+	if params.has("flaw") or params.has("holo"):
+		looks[at] = {"flaw": str(params.get("flaw", "")), "holo": bool(params.get("holo", false)), "ink": str(params.get("ink", "cyan"))}
+	for i in res.size():
+		var r: Dictionary = res[i]
+		var lk: Dictionary = looks.get(i, {})
+		var flaw := str(lk.get("flaw", ""))
+		r["print"] = {"uid": "demo%d" % i, "hero": str(r.hero_id), "banner": _bid, "edition": int(ed.edition), "printing": 1,
+			"serial": 37 + i * 3 if i == 0 else 412 + i * 3, "run": int(ed.run), "flaw": flaw,
+			"ink": str(lk.get("ink", "cyan")) if flaw == "swap" else "", "holo": bool(lk.get("holo", false)),
+			"grade": 10 if i == 4 else 7 + i % 3, "v": (i * 137 + 211) % 1000, "day": Game.today(), "first": bool(r.is_new), "from": ""}
 
 
 ## Saves `count` PNG frames of the window, one every `every` seconds, starting `after`

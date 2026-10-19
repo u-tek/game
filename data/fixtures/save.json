@@ -44,6 +44,8 @@
 				"shop": {"purchases": {}, "daily": {}, "day": 19700, "monthly_until_day": -1, "monthly_last_day": -1},
 				"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 1, "auto_ultimates": true, "nudity": false},
 				"skins": {"owned": [], "equipped": {}},
+				"prints": {"seed": 1417960604, "seq": 0, "ed": {}, "list": [], "total": 0, "showcase": []},
+				"rival": {"seed": 845043984, "met": false, "day": -1, "heroes": {}, "pulls": 0, "pity": {}, "lost": false, "ed": {}, "print_seq": 0, "prints": [], "feed": [], "feed_seq": 0, "seen": 0, "wins": 0, "losses": 0, "fights": 0, "haul_day": -1, "tag_you": false, "tag_her": false, "tag_v": 0},
 				"counters": {},
 				"dev_time_offset": 0,
 				"rng_seed": 1055219407
@@ -105,6 +107,8 @@
 				"quests": {"day": 19700, "progress": {}, "claimed": []},
 				"shop": {"purchases": {}, "daily": {}, "day": 19700, "monthly_until_day": -1, "monthly_last_day": -1},
 				"skins": {"owned": [], "equipped": {}},
+				"prints": {"seed": 2023190264, "seq": 0, "ed": {}, "list": [], "total": 0, "showcase": []},
+				"rival": {"seed": 2125292450, "met": false, "day": -1, "heroes": {}, "pulls": 0, "pity": {}, "lost": false, "ed": {}, "print_seq": 0, "prints": [], "feed": [], "feed_seq": 0, "seen": 0, "wins": 0, "losses": 0, "fights": 0, "haul_day": -1, "tag_you": false, "tag_her": false, "tag_v": 0},
 				"counters": {},
 				"dev_time_offset": 0,
 				"rng_seed": 5422372
@@ -147,6 +151,8 @@
 				"shop": {"purchases": {}, "daily": {}, "day": 19700, "monthly_until_day": -1, "monthly_last_day": -1},
 				"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 1, "auto_ultimates": true, "nudity": false},
 				"skins": {"owned": [], "equipped": {}},
+				"prints": {"seed": 1417960604, "seq": 0, "ed": {}, "list": [], "total": 0, "showcase": []},
+				"rival": {"seed": 845043984, "met": false, "day": -1, "heroes": {}, "pulls": 0, "pity": {}, "lost": false, "ed": {}, "print_seq": 0, "prints": [], "feed": [], "feed_seq": 0, "seen": 0, "wins": 0, "losses": 0, "fights": 0, "haul_day": -1, "tag_you": false, "tag_her": false, "tag_v": 0},
 				"counters": {},
 				"dev_time_offset": 0,
 				"rng_seed": 1055219407
@@ -199,6 +205,8 @@
 				"shop": {"purchases": {}, "daily": {}, "day": 19700, "monthly_until_day": -1, "monthly_last_day": -1},
 				"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 1, "auto_ultimates": true, "nudity": false},
 				"skins": {"owned": [], "equipped": {}},
+				"prints": {"seed": 2023190264, "seq": 0, "ed": {}, "list": [], "total": 0, "showcase": []},
+				"rival": {"seed": 2125292450, "met": false, "day": -1, "heroes": {}, "pulls": 0, "pity": {}, "lost": false, "ed": {}, "print_seq": 0, "prints": [], "feed": [], "feed_seq": 0, "seen": 0, "wins": 0, "losses": 0, "fights": 0, "haul_day": -1, "tag_you": false, "tag_her": false, "tag_v": 0},
 				"counters": {},
 				"dev_time_offset": 0,
 				"rng_seed": 5422372
@@ -264,6 +272,27 @@
 				"shop": {"purchases": {}, "daily": {}, "day": 19700, "monthly_until_day": -1, "monthly_last_day": -1},
 				"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 1, "auto_ultimates": true, "nudity": false},
 				"skins": {"owned": [], "equipped": {}},
+				"prints": {
+					"seed": 2023190264,
+					"seq": 11,
+					"ed": {"standard": {"e": -38, "n": 31}, "featured": {"e": -150, "n": 1}},
+					"list": [
+						{"hero": "verdelle", "banner": "standard", "edition": 1, "printing": 1, "serial": 2743, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 296, "uid": "p1", "day": 19700, "first": true, "from": ""},
+						{"hero": "kindra", "banner": "standard", "edition": 1, "printing": 1, "serial": 2746, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 794, "uid": "p2", "day": 19700, "first": true, "from": ""},
+						{"hero": "avienne", "banner": "standard", "edition": 1, "printing": 1, "serial": 2750, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 323, "uid": "p3", "day": 19700, "first": true, "from": ""},
+						{"hero": "severine", "banner": "standard", "edition": 1, "printing": 1, "serial": 2753, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 958, "uid": "p4", "day": 19700, "first": true, "from": ""},
+						{"hero": "nuriel", "banner": "standard", "edition": 1, "printing": 1, "serial": 2756, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 944, "uid": "p5", "day": 19700, "first": true, "from": ""},
+						{"hero": "ferrael", "banner": "standard", "edition": 1, "printing": 1, "serial": 2760, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 694, "uid": "p6", "day": 19700, "first": true, "from": ""},
+						{"hero": "imra", "banner": "standard", "edition": 1, "printing": 1, "serial": 2762, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 4, "v": 765, "uid": "p7", "day": 19700, "first": true, "from": ""},
+						{"hero": "brakka", "banner": "standard", "edition": 1, "printing": 1, "serial": 2764, "run": 5000, "flaw": "shift", "ink": "", "holo": false, "grade": 6, "v": 808, "uid": "p8", "day": 19700, "first": true, "from": ""},
+						{"hero": "verdelle", "banner": "standard", "edition": 1, "printing": 1, "serial": 2768, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 177, "uid": "p9", "day": 19700, "first": false, "from": ""},
+						{"hero": "kessa", "banner": "standard", "edition": 1, "printing": 1, "serial": 2772, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 492, "uid": "p10", "day": 19700, "first": false, "from": ""},
+						{"hero": "isobel", "banner": "featured", "edition": 1, "printing": 1, "serial": 1453, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 322, "uid": "p11", "day": 19700, "first": true, "from": ""}
+					],
+					"total": 11,
+					"showcase": []
+				},
+				"rival": {"seed": 2125292450, "met": false, "day": -1, "heroes": {}, "pulls": 0, "pity": {}, "lost": false, "ed": {}, "print_seq": 0, "prints": [], "feed": [], "feed_seq": 0, "seen": 0, "wins": 0, "losses": 0, "fights": 0, "haul_day": -1, "tag_you": false, "tag_her": false, "tag_v": 0},
 				"counters": {"summons": 11, "idle_claims": 1},
 				"dev_time_offset": 0,
 				"rng_seed": 5422372
@@ -325,6 +354,27 @@
 				"shop": {"purchases": {}, "daily": {}, "day": 19700, "monthly_until_day": -1, "monthly_last_day": -1},
 				"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 1, "auto_ultimates": true, "nudity": false},
 				"skins": {"owned": [], "equipped": {}},
+				"prints": {
+					"seed": 2023190264,
+					"seq": 11,
+					"ed": {"standard": {"e": -38, "n": 31}, "featured": {"e": -150, "n": 1}},
+					"list": [
+						{"hero": "verdelle", "banner": "standard", "edition": 1, "printing": 1, "serial": 2743, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 296, "uid": "p1", "day": 19700, "first": true, "from": ""},
+						{"hero": "kindra", "banner": "standard", "edition": 1, "printing": 1, "serial": 2746, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 794, "uid": "p2", "day": 19700, "first": true, "from": ""},
+						{"hero": "avienne", "banner": "standard", "edition": 1, "printing": 1, "serial": 2750, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 323, "uid": "p3", "day": 19700, "first": true, "from": ""},
+						{"hero": "severine", "banner": "standard", "edition": 1, "printing": 1, "serial": 2753, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 958, "uid": "p4", "day": 19700, "first": true, "from": ""},
+						{"hero": "nuriel", "banner": "standard", "edition": 1, "printing": 1, "serial": 2756, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 944, "uid": "p5", "day": 19700, "first": true, "from": ""},
+						{"hero": "ferrael", "banner": "standard", "edition": 1, "printing": 1, "serial": 2760, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 6, "v": 694, "uid": "p6", "day": 19700, "first": true, "from": ""},
+						{"hero": "imra", "banner": "standard", "edition": 1, "printing": 1, "serial": 2762, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 4, "v": 765, "uid": "p7", "day": 19700, "first": true, "from": ""},
+						{"hero": "brakka", "banner": "standard", "edition": 1, "printing": 1, "serial": 2764, "run": 5000, "flaw": "shift", "ink": "", "holo": false, "grade": 6, "v": 808, "uid": "p8", "day": 19700, "first": true, "from": ""},
+						{"hero": "verdelle", "banner": "standard", "edition": 1, "printing": 1, "serial": 2768, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 5, "v": 177, "uid": "p9", "day": 19700, "first": false, "from": ""},
+						{"hero": "kessa", "banner": "standard", "edition": 1, "printing": 1, "serial": 2772, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 8, "v": 492, "uid": "p10", "day": 19700, "first": false, "from": ""},
+						{"hero": "isobel", "banner": "featured", "edition": 1, "printing": 1, "serial": 1453, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 322, "uid": "p11", "day": 19700, "first": true, "from": ""}
+					],
+					"total": 11,
+					"showcase": []
+				},
+				"rival": {"seed": 2125292450, "met": false, "day": -1, "heroes": {}, "pulls": 0, "pity": {}, "lost": false, "ed": {}, "print_seq": 0, "prints": [], "feed": [], "feed_seq": 0, "seen": 0, "wins": 0, "losses": 0, "fights": 0, "haul_day": -1, "tag_you": false, "tag_her": false, "tag_v": 0},
 				"counters": {"summons": 11, "idle_claims": 1},
 				"dev_time_offset": 0,
 				"rng_seed": 5422372

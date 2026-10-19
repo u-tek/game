@@ -3,6 +3,7 @@ shadow and writes 8-bit PNGs (style v4 collage objects).
 
     python tools/blender/finish_objects.py <render_dir>          # coil / disc -> assets/art/ui/objects/
     python tools/blender/finish_objects.py gear <render_dir>     # <noun>_<tier> -> assets/art/ui/gear/
+    python tools/blender/finish_objects.py rival <render_dir>    # rival_objects.py renders -> assets/art/ui/objects/
 """
 import os
 import sys
@@ -16,6 +17,14 @@ JOBS = {
     "coil_ink": (480, (10, 18), 14, 0.30),
     "coil_chrome": (480, (10, 18), 14, 0.26),
     "disc": (300, (5, 9), 7, 0.34),
+}
+# rival_objects.py renders already carry their contact shadow (a shadow catcher): crop and size only.
+JOBS_RIVAL = {
+    "thorns_corner": (720, (0, 0), 0, 0.0),
+    "thorns_vine": (560, (0, 0), 0, 0.0),
+    "dome": (220, (0, 0), 0, 0.0),
+    "button": (240, (0, 0), 0, 0.0),
+    "seal": (260, (0, 0), 0, 0.0),
 }
 
 
@@ -47,6 +56,13 @@ if __name__ == "__main__":
         for f in sorted(os.listdir(d)):
             if f.endswith(".png") and "_" in f and f[:-4].split("_")[-1].isdigit():
                 finish(os.path.join(d, f), f[:-4], (300, (5, 9), 7, 0.3), gear_out, True)
+        sys.exit(0)
+    if sys.argv[1] == "rival":
+        d = sys.argv[2]
+        for n, spec in JOBS_RIVAL.items():
+            p = os.path.join(d, n + ".png")
+            if os.path.exists(p):
+                finish(p, n, spec, OUT, True)
         sys.exit(0)
     d = sys.argv[1]
     for n, spec in JOBS.items():

@@ -1,0 +1,572 @@
+{
+	"version": 1,
+	"about": "RivalRules (src/core/rival_rules.gd) on data/rival.json: banner_on and the counter wheel, stars_for, level_on, team (her five best as echoes), new_state(seed) then catch_up(state, today, epoch_day, owns) steps (the days simulated, the state after each step and best_untaken), haul, cleared_on / tower_on ([player cleared, player Spire best, day]) and lines ([kind, seed, day, salt, fills]).",
+	"regenerate": "tools/gd --headless --path . -s tests/tools/make_fixtures.gd",
+	"epoch_day": 20745,
+	"banner_days": [20741, 20742, 20743, 20744, 20745, 20746, 20747, 20748, 20749, 20750, 20751, 20752, 20753, 20754],
+	"banners": ["faction", "featured", "standard", "faction", "featured", "standard", "faction", "featured", "standard", "faction", "featured", "standard", "faction", "featured"],
+	"factions": ["celestial", "infernal", "fallen", ""],
+	"counters": ["fallen", "celestial", "infernal", ""],
+	"stars": [
+		{"hero_id": "uriela", "dupes": 0, "cap": 1, "out": 1},
+		{"hero_id": "uriela", "dupes": 5, "cap": 3, "out": 3},
+		{"hero_id": "uriela", "dupes": 40, "cap": 6, "out": 6},
+		{"hero_id": "seraphiel", "dupes": 0, "cap": 1, "out": 3},
+		{"hero_id": "seraphiel", "dupes": 9, "cap": 4, "out": 4},
+		{"hero_id": "cassiel", "dupes": 3, "cap": 2, "out": 2}
+	],
+	"levels": [
+		{"avg": 1, "day": 20745, "countering": false, "out": 1},
+		{"avg": 30, "day": 20746, "countering": false, "out": 30},
+		{"avg": 30, "day": 20747, "countering": true, "out": 28},
+		{"avg": 55, "day": 20751, "countering": false, "out": 56},
+		{"avg": 2, "day": 20749, "countering": true, "out": 1},
+		{"avg": 80, "day": 20742, "countering": true, "out": 78}
+	],
+	"teams": [
+		{
+			"heroes": {"noctaire": 0, "orrin": 0, "sable": 0, "lucen": 0, "ashra": 0},
+			"cap": 3,
+			"level": 12,
+			"prefer": "",
+			"out": [
+				{"hero_id": "orrin", "level": 12, "stars": 2, "slot": 0, "is_boss": false, "echo_bp": 12000, "power": 1103},
+				{"hero_id": "lucen", "level": 12, "stars": 1, "slot": 1, "is_boss": false, "echo_bp": 12000, "power": 930},
+				{"hero_id": "sable", "level": 12, "stars": 2, "slot": 2, "is_boss": false, "echo_bp": 12000, "power": 904},
+				{"hero_id": "ashra", "level": 12, "stars": 1, "slot": 3, "is_boss": false, "echo_bp": 12000, "power": 791},
+				{"hero_id": "noctaire", "level": 12, "stars": 3, "slot": 4, "is_boss": false, "echo_bp": 12000, "power": 1739}
+			]
+		},
+		{
+			"heroes": {"seraphiel": 3, "cassiel": 3, "liora": 3, "uriela": 3, "nuriel": 3, "argentiel": 3, "sanariel": 3, "rimelle": 3, "avienne": 3, "cirella": 3, "ferrael": 3, "verdelle": 3, "isobel": 3, "halcia": 3, "mordessa": 3, "brakka": 3, "vesper": 3, "imra": 3, "kessa": 3, "drezza": 3, "zecchina": 3, "torqua": 3, "sigilla": 3, "carmesa": 3, "thrasha": 3, "kindra": 3, "cordia": 3, "noctaire": 3, "orrin": 3, "sable": 3, "lucen": 3, "ashra": 3, "nadira": 3, "gantra": 3, "severine": 3, "benthe": 3, "seyra": 3, "rivette": 3, "vandra": 3, "ombre": 3},
+			"cap": 4,
+			"level": 40,
+			"prefer": "",
+			"out": [
+				{"hero_id": "mordessa", "level": 40, "stars": 4, "slot": 0, "is_boss": false, "echo_bp": 12000, "power": 3444},
+				{"hero_id": "noctaire", "level": 40, "stars": 4, "slot": 1, "is_boss": false, "echo_bp": 12000, "power": 4058},
+				{"hero_id": "zecchina", "level": 40, "stars": 4, "slot": 2, "is_boss": false, "echo_bp": 12000, "power": 3508},
+				{"hero_id": "cirella", "level": 40, "stars": 3, "slot": 3, "is_boss": false, "echo_bp": 12000, "power": 3311},
+				{"hero_id": "carmesa", "level": 40, "stars": 3, "slot": 4, "is_boss": false, "echo_bp": 12000, "power": 3223}
+			]
+		},
+		{
+			"heroes": {"seraphiel": 3, "cassiel": 3, "liora": 3, "uriela": 3, "nuriel": 3, "argentiel": 3, "sanariel": 3, "rimelle": 3, "avienne": 3, "cirella": 3, "ferrael": 3, "verdelle": 3, "isobel": 3, "halcia": 3, "mordessa": 3, "brakka": 3, "vesper": 3, "imra": 3, "kessa": 3, "drezza": 3, "zecchina": 3, "torqua": 3, "sigilla": 3, "carmesa": 3, "thrasha": 3, "kindra": 3, "cordia": 3, "noctaire": 3, "orrin": 3, "sable": 3, "lucen": 3, "ashra": 3, "nadira": 3, "gantra": 3, "severine": 3, "benthe": 3, "seyra": 3, "rivette": 3, "vandra": 3, "ombre": 3},
+			"cap": 4,
+			"level": 40,
+			"prefer": "celestial",
+			"out": [
+				{"hero_id": "cassiel", "level": 40, "stars": 3, "slot": 0, "is_boss": false, "echo_bp": 12000, "power": 2753},
+				{"hero_id": "avienne", "level": 40, "stars": 3, "slot": 1, "is_boss": false, "echo_bp": 12000, "power": 2704},
+				{"hero_id": "argentiel", "level": 40, "stars": 4, "slot": 2, "is_boss": false, "echo_bp": 12000, "power": 3120},
+				{"hero_id": "sanariel", "level": 40, "stars": 4, "slot": 3, "is_boss": false, "echo_bp": 12000, "power": 2798},
+				{"hero_id": "cirella", "level": 40, "stars": 3, "slot": 4, "is_boss": false, "echo_bp": 12000, "power": 3311}
+			]
+		},
+		{
+			"heroes": {"uriela": 8, "kessa": 1, "cassiel": 0, "imra": 2, "mordessa": 0, "noctaire": 4, "liora": 0},
+			"cap": 5,
+			"level": 60,
+			"prefer": "infernal",
+			"out": [
+				{"hero_id": "mordessa", "level": 60, "stars": 3, "slot": 0, "is_boss": false, "echo_bp": 12000, "power": 4278},
+				{"hero_id": "uriela", "level": 60, "stars": 5, "slot": 1, "is_boss": false, "echo_bp": 12000, "power": 4534},
+				{"hero_id": "imra", "level": 60, "stars": 2, "slot": 2, "is_boss": false, "echo_bp": 12000, "power": 2424},
+				{"hero_id": "kessa", "level": 40, "stars": 1, "slot": 3, "is_boss": false, "echo_bp": 12000, "power": 2036},
+				{"hero_id": "noctaire", "level": 60, "stars": 5, "slot": 4, "is_boss": false, "echo_bp": 12000, "power": 6122}
+			]
+		},
+		{
+			"heroes": {"orrin": 0, "brakka": 0},
+			"cap": 2,
+			"level": 9,
+			"prefer": "fallen",
+			"out": [
+				{"hero_id": "orrin", "level": 9, "stars": 2, "slot": 0, "is_boss": false, "echo_bp": 12000, "power": 973},
+				{"hero_id": "brakka", "level": 9, "stars": 2, "slot": 1, "is_boss": false, "echo_bp": 12000, "power": 904}
+			]
+		}
+	],
+	"sims": [
+		{
+			"name": "first_week",
+			"seed": 12345,
+			"steps": [
+				{"today": 20747, "owns": ["uriela", "kessa"]},
+				{"today": 20754, "owns": ["uriela", "kessa", "mordessa"]}
+			],
+			"out": [
+				{
+					"days": 1,
+					"state": {
+						"seed": 1378408734,
+						"met": false,
+						"day": 20747,
+						"heroes": {"noctaire": 0, "orrin": 0, "sable": 0, "lucen": 0, "ashra": 0, "brakka": 0, "cordia": 0, "imra": 0, "kessa": 1, "vesper": 2, "sigilla": 0, "kindra": 0},
+						"pulls": 10,
+						"pity": {"faction": 10},
+						"lost": false,
+						"ed": {"faction": {"e": 0, "n": 28}},
+						"print_seq": 10,
+						"prints": [],
+						"feed": [],
+						"feed_seq": 0,
+						"seen": 0,
+						"wins": 0,
+						"losses": 0,
+						"fights": 0,
+						"haul_day": -1,
+						"tag_you": false,
+						"tag_her": false,
+						"tag_v": 0
+					},
+					"best_untaken": {}
+				},
+				{
+					"days": 7,
+					"state": {
+						"seed": 1378408734,
+						"met": false,
+						"day": 20754,
+						"heroes": {"noctaire": 0, "orrin": 0, "sable": 1, "lucen": 3, "ashra": 0, "brakka": 3, "cordia": 10, "imra": 5, "kessa": 8, "vesper": 3, "sigilla": 0, "kindra": 3, "ferrael": 2, "halcia": 1, "cassiel": 0, "liora": 0, "thrasha": 1, "ombre": 3, "rivette": 3, "uriela": 2, "verdelle": 2, "torqua": 1, "carmesa": 0, "isobel": 2, "nuriel": 2, "severine": 2, "rimelle": 0, "nadira": 0},
+						"pulls": 80,
+						"pity": {"faction": 30, "featured": 30, "standard": 2},
+						"lost": false,
+						"ed": {
+							"faction": {"e": 2, "n": 23},
+							"featured": {"e": 1, "n": 28},
+							"standard": {"e": 0, "n": 48}
+						},
+						"print_seq": 80,
+						"prints": [
+							{"hero": "kessa", "banner": "featured", "edition": 1, "printing": 1, "serial": 1863, "run": 2500, "flaw": "", "ink": "", "holo": true, "grade": 8, "v": 422, "n": 42, "uid": "rue-42", "day": 20751, "first": false, "taken": false},
+							{"hero": "cordia", "banner": "faction", "edition": 3, "printing": 1, "serial": 916, "run": 1500, "flaw": "", "ink": "", "holo": true, "grade": 8, "v": 844, "n": 63, "uid": "rue-63", "day": 20753, "first": false, "taken": false},
+							{"hero": "verdelle", "banner": "standard", "edition": 1, "printing": 1, "serial": 637, "run": 5000, "flaw": "shift", "ink": "", "holo": false, "grade": 9, "v": 310, "n": 23, "uid": "rue-23", "day": 20749, "first": true, "taken": false},
+							{"hero": "rivette", "banner": "featured", "edition": 1, "printing": 1, "serial": 1873, "run": 2500, "flaw": "shift", "ink": "", "holo": false, "grade": 9, "v": 866, "n": 48, "uid": "rue-48", "day": 20751, "first": false, "taken": false},
+							{"hero": "ferrael", "banner": "featured", "edition": 1, "printing": 1, "serial": 978, "run": 2500, "flaw": "shift", "ink": "", "holo": false, "grade": 8, "v": 465, "n": 13, "uid": "rue-13", "day": 20748, "first": false, "taken": false},
+							{"hero": "cassiel", "banner": "featured", "edition": 1, "printing": 1, "serial": 983, "run": 2500, "flaw": "swap", "ink": "violet", "holo": false, "grade": 6, "v": 801, "n": 15, "uid": "rue-15", "day": 20748, "first": true, "taken": false},
+							{"hero": "ombre", "banner": "featured", "edition": 1, "printing": 1, "serial": 991, "run": 2500, "flaw": "shift", "ink": "", "holo": false, "grade": 7, "v": 28, "n": 19, "uid": "rue-19", "day": 20748, "first": true, "taken": false},
+							{"hero": "kindra", "banner": "featured", "edition": 1, "printing": 1, "serial": 973, "run": 2500, "flaw": "ghost", "ink": "", "holo": false, "grade": 5, "v": 662, "n": 11, "uid": "rue-11", "day": 20748, "first": false, "taken": false},
+							{"hero": "cordia", "banner": "faction", "edition": 2, "printing": 1, "serial": 917, "run": 1500, "flaw": "shift", "ink": "", "holo": false, "grade": 5, "v": 748, "n": 32, "uid": "rue-32", "day": 20750, "first": false, "taken": false},
+							{"hero": "ferrael", "banner": "standard", "edition": 1, "printing": 1, "serial": 645, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 10, "v": 683, "n": 28, "uid": "rue-28", "day": 20749, "first": false, "taken": false},
+							{"hero": "uriela", "banner": "featured", "edition": 1, "printing": 1, "serial": 1864, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 720, "n": 43, "uid": "rue-43", "day": 20751, "first": false, "taken": false},
+							{"hero": "rivette", "banner": "standard", "edition": 1, "printing": 1, "serial": 1094, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 766, "n": 55, "uid": "rue-55", "day": 20752, "first": false, "taken": false}
+						],
+						"feed": [
+							{"n": 10, "day": 20753, "type": "holo", "hero": "cordia", "flaw": "", "ink": "", "line": "A holo Cordia. Don't drool on it."},
+							{"n": 9, "day": 20752, "type": "legendary", "hero": "nadira", "flaw": "", "ink": "", "line": "Pulled Nadira. Try to keep up."},
+							{"n": 8, "day": 20751, "type": "misprint", "hero": "rivette", "flaw": "shift", "ink": "", "line": "Off-register Rivette in my binder. Eat your heart out."},
+							{"n": 7, "day": 20751, "type": "holo", "hero": "kessa", "flaw": "", "ink": "", "line": "A holo Kessa. Don't drool on it."},
+							{"n": 6, "day": 20750, "type": "misprint", "hero": "cordia", "flaw": "shift", "ink": "", "line": "Off-register Cordia in my binder. Eat your heart out."},
+							{"n": 5, "day": 20749, "type": "misprint", "hero": "verdelle", "flaw": "shift", "ink": "", "line": "My Verdelle came out off-register. Worth a fortune."},
+							{"n": 4, "day": 20748, "type": "misprint", "hero": "ombre", "flaw": "shift", "ink": "", "line": "Pulled Ombre, off-register. You'll never see one."},
+							{"n": 3, "day": 20748, "type": "misprint", "hero": "cassiel", "flaw": "swap", "ink": "violet", "line": "Wrong-ink Cassiel in my binder. Eat your heart out."},
+							{"n": 2, "day": 20748, "type": "misprint", "hero": "ferrael", "flaw": "shift", "ink": "", "line": "My Ferrael came out off-register. Worth a fortune."},
+							{"n": 1, "day": 20748, "type": "misprint", "hero": "kindra", "flaw": "ghost", "ink": "", "line": "Pulled Kindra, ghosted. You'll never see one."}
+						],
+						"feed_seq": 10,
+						"seen": 0,
+						"wins": 0,
+						"losses": 0,
+						"fights": 0,
+						"haul_day": -1,
+						"tag_you": false,
+						"tag_her": false,
+						"tag_v": 0
+					},
+					"best_untaken": {"hero": "kessa", "banner": "featured", "edition": 1, "printing": 1, "serial": 1863, "run": 2500, "flaw": "", "ink": "", "holo": true, "grade": 8, "v": 422, "n": 42, "uid": "rue-42", "day": 20751, "first": false, "taken": false}
+				}
+			]
+		},
+		{
+			"name": "catch_up_cap",
+			"seed": 777,
+			"steps": [
+				{"today": 20705, "owns": []},
+				{"today": 20748, "owns": ["noctaire"]},
+				{"today": 20748, "owns": []},
+				{"today": 20746, "owns": []}
+			],
+			"out": [
+				{
+					"days": 1,
+					"state": {
+						"seed": 147273750,
+						"met": false,
+						"day": 20705,
+						"heroes": {"noctaire": 0, "orrin": 0, "sable": 0, "lucen": 0, "ashra": 0, "thrasha": 1, "imra": 1, "kessa": 2, "kindra": 0, "sigilla": 1},
+						"pulls": 10,
+						"pity": {"faction": 10},
+						"lost": false,
+						"ed": {"faction": {"e": -14, "n": 25}},
+						"print_seq": 10,
+						"prints": [],
+						"feed": [],
+						"feed_seq": 0,
+						"seen": 0,
+						"wins": 0,
+						"losses": 0,
+						"fights": 0,
+						"haul_day": -1,
+						"tag_you": false,
+						"tag_her": false,
+						"tag_v": 0
+					},
+					"best_untaken": {}
+				},
+				{
+					"days": 7,
+					"state": {
+						"seed": 147273750,
+						"met": false,
+						"day": 20748,
+						"heroes": {"noctaire": 0, "orrin": 1, "sable": 0, "lucen": 3, "ashra": 3, "thrasha": 7, "imra": 5, "kessa": 10, "kindra": 4, "sigilla": 2, "nuriel": 2, "uriela": 1, "cordia": 6, "vandra": 2, "rivette": 2, "halcia": 2, "liora": 1, "vesper": 2, "torqua": 0, "brakka": 1, "carmesa": 1, "verdelle": 1, "benthe": 1, "ferrael": 1, "zecchina": 0, "ombre": 0, "rimelle": 0},
+						"pulls": 80,
+						"pity": {"faction": 3, "featured": 30, "standard": 20},
+						"lost": false,
+						"ed": {
+							"faction": {"e": 0, "n": 21},
+							"featured": {"e": 0, "n": 50},
+							"standard": {"e": 0, "n": 28}
+						},
+						"print_seq": 80,
+						"prints": [
+							{"hero": "halcia", "banner": "standard", "edition": 1, "printing": 1, "serial": 199, "run": 5000, "flaw": "swap", "ink": "violet", "holo": false, "grade": 8, "v": 241, "n": 51, "uid": "rue-51", "day": 20746, "first": false, "taken": false},
+							{"hero": "verdelle", "banner": "featured", "edition": 1, "printing": 1, "serial": 109, "run": 2500, "flaw": "shift", "ink": "", "holo": false, "grade": 8, "v": 895, "n": 41, "uid": "rue-41", "day": 20745, "first": true, "taken": false},
+							{"hero": "imra", "banner": "faction", "edition": 1, "printing": 1, "serial": 915, "run": 1500, "flaw": "ghost", "ink": "", "holo": false, "grade": 5, "v": 420, "n": 33, "uid": "rue-33", "day": 20744, "first": false, "taken": false},
+							{"hero": "nuriel", "banner": "featured", "edition": 1, "printing": 1, "serial": 1263, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 555, "n": 12, "uid": "rue-12", "day": 20742, "first": true, "taken": false},
+							{"hero": "lucen", "banner": "standard", "edition": 1, "printing": 1, "serial": 3807, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 761, "n": 23, "uid": "rue-23", "day": 20743, "first": false, "taken": false},
+							{"hero": "liora", "banner": "standard", "edition": 1, "printing": 1, "serial": 3820, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 638, "n": 28, "uid": "rue-28", "day": 20743, "first": true, "taken": false},
+							{"hero": "kessa", "banner": "faction", "edition": 1, "printing": 1, "serial": 929, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 104, "n": 68, "uid": "rue-68", "day": 20747, "first": false, "taken": false},
+							{"hero": "lucen", "banner": "featured", "edition": 1, "printing": 1, "serial": 1008, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 0, "n": 74, "uid": "rue-74", "day": 20748, "first": false, "taken": false},
+							{"hero": "ombre", "banner": "featured", "edition": 1, "printing": 1, "serial": 1012, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 833, "n": 75, "uid": "rue-75", "day": 20748, "first": true, "taken": false}
+						],
+						"feed": [
+							{"n": 4, "day": 20747, "type": "legendary", "hero": "zecchina", "flaw": "", "ink": "", "line": "Look who answered my call: Zecchina."},
+							{"n": 3, "day": 20746, "type": "misprint", "hero": "halcia", "flaw": "swap", "ink": "violet", "line": "Pulled Halcia, wrong-ink. You'll never see one."},
+							{"n": 2, "day": 20745, "type": "misprint", "hero": "verdelle", "flaw": "shift", "ink": "", "line": "Pulled Verdelle, off-register. You'll never see one."},
+							{"n": 1, "day": 20744, "type": "misprint", "hero": "imra", "flaw": "ghost", "ink": "", "line": "My Imra came out ghosted. Worth a fortune."}
+						],
+						"feed_seq": 4,
+						"seen": 0,
+						"wins": 0,
+						"losses": 0,
+						"fights": 0,
+						"haul_day": -1,
+						"tag_you": false,
+						"tag_her": false,
+						"tag_v": 0
+					},
+					"best_untaken": {"hero": "halcia", "banner": "standard", "edition": 1, "printing": 1, "serial": 199, "run": 5000, "flaw": "swap", "ink": "violet", "holo": false, "grade": 8, "v": 241, "n": 51, "uid": "rue-51", "day": 20746, "first": false, "taken": false}
+				},
+				{
+					"days": 0,
+					"state": {
+						"seed": 147273750,
+						"met": false,
+						"day": 20748,
+						"heroes": {"noctaire": 0, "orrin": 1, "sable": 0, "lucen": 3, "ashra": 3, "thrasha": 7, "imra": 5, "kessa": 10, "kindra": 4, "sigilla": 2, "nuriel": 2, "uriela": 1, "cordia": 6, "vandra": 2, "rivette": 2, "halcia": 2, "liora": 1, "vesper": 2, "torqua": 0, "brakka": 1, "carmesa": 1, "verdelle": 1, "benthe": 1, "ferrael": 1, "zecchina": 0, "ombre": 0, "rimelle": 0},
+						"pulls": 80,
+						"pity": {"faction": 3, "featured": 30, "standard": 20},
+						"lost": false,
+						"ed": {
+							"faction": {"e": 0, "n": 21},
+							"featured": {"e": 0, "n": 50},
+							"standard": {"e": 0, "n": 28}
+						},
+						"print_seq": 80,
+						"prints": [
+							{"hero": "halcia", "banner": "standard", "edition": 1, "printing": 1, "serial": 199, "run": 5000, "flaw": "swap", "ink": "violet", "holo": false, "grade": 8, "v": 241, "n": 51, "uid": "rue-51", "day": 20746, "first": false, "taken": false},
+							{"hero": "verdelle", "banner": "featured", "edition": 1, "printing": 1, "serial": 109, "run": 2500, "flaw": "shift", "ink": "", "holo": false, "grade": 8, "v": 895, "n": 41, "uid": "rue-41", "day": 20745, "first": true, "taken": false},
+							{"hero": "imra", "banner": "faction", "edition": 1, "printing": 1, "serial": 915, "run": 1500, "flaw": "ghost", "ink": "", "holo": false, "grade": 5, "v": 420, "n": 33, "uid": "rue-33", "day": 20744, "first": false, "taken": false},
+							{"hero": "nuriel", "banner": "featured", "edition": 1, "printing": 1, "serial": 1263, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 555, "n": 12, "uid": "rue-12", "day": 20742, "first": true, "taken": false},
+							{"hero": "lucen", "banner": "standard", "edition": 1, "printing": 1, "serial": 3807, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 761, "n": 23, "uid": "rue-23", "day": 20743, "first": false, "taken": false},
+							{"hero": "liora", "banner": "standard", "edition": 1, "printing": 1, "serial": 3820, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 638, "n": 28, "uid": "rue-28", "day": 20743, "first": true, "taken": false},
+							{"hero": "kessa", "banner": "faction", "edition": 1, "printing": 1, "serial": 929, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 104, "n": 68, "uid": "rue-68", "day": 20747, "first": false, "taken": false},
+							{"hero": "lucen", "banner": "featured", "edition": 1, "printing": 1, "serial": 1008, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 0, "n": 74, "uid": "rue-74", "day": 20748, "first": false, "taken": false},
+							{"hero": "ombre", "banner": "featured", "edition": 1, "printing": 1, "serial": 1012, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 833, "n": 75, "uid": "rue-75", "day": 20748, "first": true, "taken": false}
+						],
+						"feed": [
+							{"n": 4, "day": 20747, "type": "legendary", "hero": "zecchina", "flaw": "", "ink": "", "line": "Look who answered my call: Zecchina."},
+							{"n": 3, "day": 20746, "type": "misprint", "hero": "halcia", "flaw": "swap", "ink": "violet", "line": "Pulled Halcia, wrong-ink. You'll never see one."},
+							{"n": 2, "day": 20745, "type": "misprint", "hero": "verdelle", "flaw": "shift", "ink": "", "line": "Pulled Verdelle, off-register. You'll never see one."},
+							{"n": 1, "day": 20744, "type": "misprint", "hero": "imra", "flaw": "ghost", "ink": "", "line": "My Imra came out ghosted. Worth a fortune."}
+						],
+						"feed_seq": 4,
+						"seen": 0,
+						"wins": 0,
+						"losses": 0,
+						"fights": 0,
+						"haul_day": -1,
+						"tag_you": false,
+						"tag_her": false,
+						"tag_v": 0
+					},
+					"best_untaken": {"hero": "halcia", "banner": "standard", "edition": 1, "printing": 1, "serial": 199, "run": 5000, "flaw": "swap", "ink": "violet", "holo": false, "grade": 8, "v": 241, "n": 51, "uid": "rue-51", "day": 20746, "first": false, "taken": false}
+				},
+				{
+					"days": 0,
+					"state": {
+						"seed": 147273750,
+						"met": false,
+						"day": 20748,
+						"heroes": {"noctaire": 0, "orrin": 1, "sable": 0, "lucen": 3, "ashra": 3, "thrasha": 7, "imra": 5, "kessa": 10, "kindra": 4, "sigilla": 2, "nuriel": 2, "uriela": 1, "cordia": 6, "vandra": 2, "rivette": 2, "halcia": 2, "liora": 1, "vesper": 2, "torqua": 0, "brakka": 1, "carmesa": 1, "verdelle": 1, "benthe": 1, "ferrael": 1, "zecchina": 0, "ombre": 0, "rimelle": 0},
+						"pulls": 80,
+						"pity": {"faction": 3, "featured": 30, "standard": 20},
+						"lost": false,
+						"ed": {
+							"faction": {"e": 0, "n": 21},
+							"featured": {"e": 0, "n": 50},
+							"standard": {"e": 0, "n": 28}
+						},
+						"print_seq": 80,
+						"prints": [
+							{"hero": "halcia", "banner": "standard", "edition": 1, "printing": 1, "serial": 199, "run": 5000, "flaw": "swap", "ink": "violet", "holo": false, "grade": 8, "v": 241, "n": 51, "uid": "rue-51", "day": 20746, "first": false, "taken": false},
+							{"hero": "verdelle", "banner": "featured", "edition": 1, "printing": 1, "serial": 109, "run": 2500, "flaw": "shift", "ink": "", "holo": false, "grade": 8, "v": 895, "n": 41, "uid": "rue-41", "day": 20745, "first": true, "taken": false},
+							{"hero": "imra", "banner": "faction", "edition": 1, "printing": 1, "serial": 915, "run": 1500, "flaw": "ghost", "ink": "", "holo": false, "grade": 5, "v": 420, "n": 33, "uid": "rue-33", "day": 20744, "first": false, "taken": false},
+							{"hero": "nuriel", "banner": "featured", "edition": 1, "printing": 1, "serial": 1263, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 555, "n": 12, "uid": "rue-12", "day": 20742, "first": true, "taken": false},
+							{"hero": "lucen", "banner": "standard", "edition": 1, "printing": 1, "serial": 3807, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 761, "n": 23, "uid": "rue-23", "day": 20743, "first": false, "taken": false},
+							{"hero": "liora", "banner": "standard", "edition": 1, "printing": 1, "serial": 3820, "run": 5000, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 638, "n": 28, "uid": "rue-28", "day": 20743, "first": true, "taken": false},
+							{"hero": "kessa", "banner": "faction", "edition": 1, "printing": 1, "serial": 929, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 104, "n": 68, "uid": "rue-68", "day": 20747, "first": false, "taken": false},
+							{"hero": "lucen", "banner": "featured", "edition": 1, "printing": 1, "serial": 1008, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 0, "n": 74, "uid": "rue-74", "day": 20748, "first": false, "taken": false},
+							{"hero": "ombre", "banner": "featured", "edition": 1, "printing": 1, "serial": 1012, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 833, "n": 75, "uid": "rue-75", "day": 20748, "first": true, "taken": false}
+						],
+						"feed": [
+							{"n": 4, "day": 20747, "type": "legendary", "hero": "zecchina", "flaw": "", "ink": "", "line": "Look who answered my call: Zecchina."},
+							{"n": 3, "day": 20746, "type": "misprint", "hero": "halcia", "flaw": "swap", "ink": "violet", "line": "Pulled Halcia, wrong-ink. You'll never see one."},
+							{"n": 2, "day": 20745, "type": "misprint", "hero": "verdelle", "flaw": "shift", "ink": "", "line": "Pulled Verdelle, off-register. You'll never see one."},
+							{"n": 1, "day": 20744, "type": "misprint", "hero": "imra", "flaw": "ghost", "ink": "", "line": "My Imra came out ghosted. Worth a fortune."}
+						],
+						"feed_seq": 4,
+						"seen": 0,
+						"wins": 0,
+						"losses": 0,
+						"fights": 0,
+						"haul_day": -1,
+						"tag_you": false,
+						"tag_her": false,
+						"tag_v": 0
+					},
+					"best_untaken": {"hero": "halcia", "banner": "standard", "edition": 1, "printing": 1, "serial": 199, "run": 5000, "flaw": "swap", "ink": "violet", "holo": false, "grade": 8, "v": 241, "n": 51, "uid": "rue-51", "day": 20746, "first": false, "taken": false}
+				}
+			]
+		},
+		{
+			"name": "long_month",
+			"seed": 660601,
+			"steps": [
+				{"today": 20750, "owns": []},
+				{"today": 20757, "owns": []},
+				{"today": 20764, "owns": []},
+				{"today": 20771, "owns": []}
+			],
+			"out": [
+				{
+					"days": 1,
+					"state": {
+						"seed": 1136562147,
+						"met": false,
+						"day": 20750,
+						"heroes": {"noctaire": 0, "orrin": 0, "sable": 0, "lucen": 0, "ashra": 0, "imra": 1, "kindra": 1, "cordia": 2, "kessa": 0, "thrasha": 0, "carmesa": 0},
+						"pulls": 10,
+						"pity": {"faction": 10},
+						"lost": false,
+						"ed": {"faction": {"e": 1, "n": 18}},
+						"print_seq": 10,
+						"prints": [
+							{"hero": "kindra", "banner": "faction", "edition": 2, "printing": 1, "serial": 914, "run": 1500, "flaw": "", "ink": "", "holo": true, "grade": 5, "v": 920, "n": 2, "uid": "rue-2", "day": 20750, "first": true, "taken": false}
+						],
+						"feed": [
+							{"n": 1, "day": 20750, "type": "holo", "hero": "kindra", "flaw": "", "ink": "", "line": "A holo Kindra. Don't drool on it."}
+						],
+						"feed_seq": 1,
+						"seen": 0,
+						"wins": 0,
+						"losses": 0,
+						"fights": 0,
+						"haul_day": -1,
+						"tag_you": false,
+						"tag_her": false,
+						"tag_v": 0
+					},
+					"best_untaken": {"hero": "kindra", "banner": "faction", "edition": 2, "printing": 1, "serial": 914, "run": 1500, "flaw": "", "ink": "", "holo": true, "grade": 5, "v": 920, "n": 2, "uid": "rue-2", "day": 20750, "first": true, "taken": false}
+				},
+				{
+					"days": 7,
+					"state": {
+						"seed": 1136562147,
+						"met": false,
+						"day": 20757,
+						"heroes": {"noctaire": 0, "orrin": 0, "sable": 1, "lucen": 1, "ashra": 1, "imra": 4, "kindra": 7, "cordia": 12, "kessa": 4, "thrasha": 7, "carmesa": 0, "halcia": 1, "rimelle": 3, "cirella": 2, "ferrael": 2, "brakka": 0, "isobel": 3, "verdelle": 2, "nuriel": 1, "ombre": 2, "avienne": 0, "vesper": 1, "rivette": 2, "seyra": 0, "uriela": 2, "torqua": 0, "severine": 0},
+						"pulls": 80,
+						"pity": {"faction": 30, "featured": 30, "standard": 20},
+						"lost": false,
+						"ed": {
+							"faction": {"e": 3, "n": 30},
+							"featured": {"e": 1, "n": 49},
+							"standard": {"e": 0, "n": 49}
+						},
+						"print_seq": 80,
+						"prints": [
+							{"hero": "kindra", "banner": "faction", "edition": 2, "printing": 1, "serial": 914, "run": 1500, "flaw": "", "ink": "", "holo": true, "grade": 5, "v": 920, "n": 2, "uid": "rue-2", "day": 20750, "first": true, "taken": false},
+							{"hero": "cirella", "banner": "featured", "edition": 2, "printing": 1, "serial": 691, "run": 2500, "flaw": "flood", "ink": "", "holo": false, "grade": 9, "v": 203, "n": 43, "uid": "rue-43", "day": 20754, "first": false, "taken": false},
+							{"hero": "kindra", "banner": "faction", "edition": 3, "printing": 1, "serial": 935, "run": 1500, "flaw": "flood", "ink": "", "holo": false, "grade": 6, "v": 785, "n": 38, "uid": "rue-38", "day": 20753, "first": false, "taken": false},
+							{"hero": "vesper", "banner": "faction", "edition": 3, "printing": 1, "serial": 938, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 10, "v": 21, "n": 40, "uid": "rue-40", "day": 20753, "first": true, "taken": false},
+							{"hero": "cirella", "banner": "featured", "edition": 1, "printing": 1, "serial": 1846, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 269, "n": 14, "uid": "rue-14", "day": 20751, "first": true, "taken": false},
+							{"hero": "isobel", "banner": "featured", "edition": 1, "printing": 1, "serial": 1856, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 788, "n": 17, "uid": "rue-17", "day": 20751, "first": true, "taken": false}
+						],
+						"feed": [
+							{"n": 3, "day": 20754, "type": "misprint", "hero": "cirella", "flaw": "flood", "ink": "", "line": "Ink-flooded Cirella in my binder. Eat your heart out."},
+							{"n": 2, "day": 20753, "type": "misprint", "hero": "kindra", "flaw": "flood", "ink": "", "line": "Pulled Kindra, ink-flooded. You'll never see one."},
+							{"n": 1, "day": 20750, "type": "holo", "hero": "kindra", "flaw": "", "ink": "", "line": "A holo Kindra. Don't drool on it."}
+						],
+						"feed_seq": 3,
+						"seen": 0,
+						"wins": 0,
+						"losses": 0,
+						"fights": 0,
+						"haul_day": -1,
+						"tag_you": false,
+						"tag_her": false,
+						"tag_v": 0
+					},
+					"best_untaken": {"hero": "kindra", "banner": "faction", "edition": 2, "printing": 1, "serial": 914, "run": 1500, "flaw": "", "ink": "", "holo": true, "grade": 5, "v": 920, "n": 2, "uid": "rue-2", "day": 20750, "first": true, "taken": false}
+				},
+				{
+					"days": 7,
+					"state": {
+						"seed": 1136562147,
+						"met": false,
+						"day": 20764,
+						"heroes": {"noctaire": 0, "orrin": 2, "sable": 3, "lucen": 1, "ashra": 5, "imra": 7, "kindra": 13, "cordia": 17, "kessa": 11, "thrasha": 17, "carmesa": 1, "halcia": 2, "rimelle": 3, "cirella": 3, "ferrael": 4, "brakka": 0, "isobel": 6, "verdelle": 6, "nuriel": 1, "ombre": 2, "avienne": 1, "vesper": 4, "rivette": 5, "seyra": 0, "uriela": 4, "torqua": 2, "severine": 2, "sigilla": 1, "seraphiel": 0, "liora": 0, "vandra": 0, "drezza": 0},
+						"pulls": 150,
+						"pity": {"faction": 50, "featured": 12, "standard": 5},
+						"lost": false,
+						"ed": {
+							"faction": {"e": 5, "n": 27},
+							"featured": {"e": 2, "n": 54},
+							"standard": {"e": 0, "n": 121}
+						},
+						"print_seq": 150,
+						"prints": [
+							{"hero": "isobel", "banner": "standard", "edition": 1, "printing": 1, "serial": 2892, "run": 5000, "flaw": "", "ink": "", "holo": true, "grade": 9, "v": 246, "n": 144, "uid": "rue-144", "day": 20764, "first": false, "taken": false},
+							{"hero": "kindra", "banner": "faction", "edition": 2, "printing": 1, "serial": 914, "run": 1500, "flaw": "", "ink": "", "holo": true, "grade": 5, "v": 920, "n": 2, "uid": "rue-2", "day": 20750, "first": true, "taken": false},
+							{"hero": "cirella", "banner": "featured", "edition": 2, "printing": 1, "serial": 691, "run": 2500, "flaw": "flood", "ink": "", "holo": false, "grade": 9, "v": 203, "n": 43, "uid": "rue-43", "day": 20754, "first": false, "taken": false},
+							{"hero": "ashra", "banner": "featured", "edition": 3, "printing": 1, "serial": 1289, "run": 2500, "flaw": "flood", "ink": "", "holo": false, "grade": 8, "v": 974, "n": 131, "uid": "rue-131", "day": 20763, "first": false, "taken": false},
+							{"hero": "kindra", "banner": "faction", "edition": 3, "printing": 1, "serial": 935, "run": 1500, "flaw": "flood", "ink": "", "holo": false, "grade": 6, "v": 785, "n": 38, "uid": "rue-38", "day": 20753, "first": false, "taken": false},
+							{"hero": "ferrael", "banner": "standard", "edition": 1, "printing": 1, "serial": 2907, "run": 5000, "flaw": "double", "ink": "", "holo": false, "grade": 6, "v": 906, "n": 149, "uid": "rue-149", "day": 20764, "first": false, "taken": false},
+							{"hero": "kessa", "banner": "faction", "edition": 5, "printing": 1, "serial": 913, "run": 1500, "flaw": "flood", "ink": "", "holo": false, "grade": 5, "v": 118, "n": 91, "uid": "rue-91", "day": 20759, "first": false, "taken": false},
+							{"hero": "severine", "banner": "featured", "edition": 3, "printing": 1, "serial": 421, "run": 2500, "flaw": "swap", "ink": "acid", "holo": false, "grade": 4, "v": 842, "n": 110, "uid": "rue-110", "day": 20760, "first": false, "taken": false},
+							{"hero": "vesper", "banner": "faction", "edition": 3, "printing": 1, "serial": 938, "run": 1500, "flaw": "", "ink": "", "holo": false, "grade": 10, "v": 21, "n": 40, "uid": "rue-40", "day": 20753, "first": true, "taken": false},
+							{"hero": "rivette", "banner": "featured", "edition": 3, "printing": 1, "serial": 409, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 10, "v": 62, "n": 106, "uid": "rue-106", "day": 20760, "first": false, "taken": false},
+							{"hero": "cirella", "banner": "featured", "edition": 1, "printing": 1, "serial": 1846, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 269, "n": 14, "uid": "rue-14", "day": 20751, "first": true, "taken": false},
+							{"hero": "isobel", "banner": "featured", "edition": 1, "printing": 1, "serial": 1856, "run": 2500, "flaw": "", "ink": "", "holo": false, "grade": 9, "v": 788, "n": 17, "uid": "rue-17", "day": 20751, "first": true, "taken": false}
+						],
+						"feed": [
+							{"n": 10, "day": 20764, "type": "misprint", "hero": "ferrael", "flaw": "double", "ink": "", "line": "Double-struck Ferrael in my binder. Eat your heart out."},
+							{"n": 9, "day": 20764, "type": "holo", "hero": "isobel", "flaw": "", "ink": "", "line": "Holo Isobel. Shines like me."},
+							{"n": 8, "day": 20764, "type": "legendary", "hero": "drezza", "flaw": "", "ink": "", "line": "Look who answered my call: Drezza."},
+							{"n": 7, "day": 20763, "type": "misprint", "hero": "ashra", "flaw": "flood", "ink": "", "line": "Pulled Ashra, ink-flooded. You'll never see one."},
+							{"n": 6, "day": 20760, "type": "misprint", "hero": "severine", "flaw": "swap", "ink": "acid", "line": "My Severine came out wrong-ink. Worth a fortune."},
+							{"n": 5, "day": 20760, "type": "featured_first", "hero": "seraphiel", "flaw": "", "ink": "", "line": "Got Seraphiel before you. Jealous?"},
+							{"n": 4, "day": 20759, "type": "misprint", "hero": "kessa", "flaw": "flood", "ink": "", "line": "My Kessa came out ink-flooded. Worth a fortune."},
+							{"n": 3, "day": 20754, "type": "misprint", "hero": "cirella", "flaw": "flood", "ink": "", "line": "Ink-flooded Cirella in my binder. Eat your heart out."},
+							{"n": 2, "day": 20753, "type": "misprint", "hero": "kindra", "flaw": "flood", "ink": "", "line": "Pulled Kindra, ink-flooded. You'll never see one."},
+							{"n": 1, "day": 20750, "type": "holo", "hero": "kindra", "flaw": "", "ink": "", "line": "A holo Kindra. Don't drool on it."}
+						],
+						"feed_seq": 10,
+						"seen": 0,
+						"wins": 0,
+						"losses": 0,
+						"fights": 0,
+						"haul_day": -1,
+						"tag_you": false,
+						"tag_her": false,
+						"tag_v": 0
+					},
+					"best_untaken": {"hero": "isobel", "banner": "standard", "edition": 1, "printing": 1, "serial": 2892, "run": 5000, "flaw": "", "ink": "", "holo": true, "grade": 9, "v": 246, "n": 144, "uid": "rue-144", "day": 20764, "first": false, "taken": false}
+				},
+				{
+					"days": 7,
+					"state": {
+						"seed": 1136562147,
+						"met": false,
+						"day": 20771,
+						"heroes": {"noctaire": 0, "orrin": 2, "sable": 5, "lucen": 6, "ashra": 8, "imra": 11, "kindra": 23, "cordia": 22, "kessa": 20, "thrasha": 23, "carmesa": 3, "halcia": 2, "rimelle": 3, "cirella": 4, "ferrael": 4, "brakka": 2, "isobel": 9, "verdelle": 8, "nuriel": 2, "ombre": 2, "avienne": 2, "vesper": 5, "rivette": 9, "seyra": 1, "uriela": 6, "torqua": 4, "severine": 2, "sigilla": 1, "seraphiel": 0, "liora": 1, "vandra": 2, "drezza": 0, "mordessa": 0},
+						"pulls": 220,
+						"pity": {"faction": 7, "featured": 32, "standard": 25},
+						"lost": false,
+						"ed": {
+							"faction": {"e": 8, "n": 23},
+							"featured": {"e": 3, "n": 44},
+							"standard": {"e": 0, "n": 178}
+						},
+						"print_seq": 220,
+						"prints": [
+							{"hero": "isobel", "banner": "standard", "edition": 1, "printing": 1, "serial": 2892, "run": 5000, "flaw": "", "ink": "", "holo": true, "grade": 9, "v": 246, "n": 144, "uid": "rue-144", "day": 20764, "first": false, "taken": false},
+							{"hero": "brakka", "banner": "faction", "edition": 9, "printing": 1, "serial": 923, "run": 1500, "flaw": "", "ink": "", "holo": true, "grade": 9, "v": 421, "n": 215, "uid": "rue-215", "day": 20771, "first": false, "taken": false},
+							{"hero": "kindra", "banner": "faction", "edition": 2, "printing": 1, "serial": 914, "run": 1500, "flaw": "", "ink": "", "holo": true, "grade": 5, "v": 920, "n": 2, "uid": "rue-2", "day": 20750, "first": true, "taken": false},
+							{"hero": "cirella", "banner": "featured", "edition": 2, "printing": 1, "serial": 691, "run": 2500, "flaw": "flood", "ink": "", "holo": false, "grade": 9, "v": 203, "n": 43, "uid": "rue-43", "day": 20754, "first": false, "taken": false},
+							{"hero": "ashra", "banner": "featured", "edition": 3, "printing": 1, "serial": 1289, "run": 2500, "flaw": "flood", "ink": "", "holo": false, "grade": 8, "v": 974, "n": 131, "uid": "rue-131", "day": 20763, "first": false, "taken": false},
+							{"hero": "kindra", "banner": "faction", "edition": 3, "printing": 1, "serial": 935, "run": 1500, "flaw": "flood", "ink": "", "holo": false, "grade": 6, "v": 785, "n": 38, "uid": "rue-38", "day": 20753, "first": false, "taken": false},
+							{"hero": "ferrael", "banner": "standard", "edition": 1, "printing": 1, "serial": 2907, "run": 5000, "flaw": "double", "ink": "", "holo": false, "grade": 6, "v": 906, "n": 149, "uid": "rue-149", "day": 20764, "first": false, "taken": false},
+							{"hero": "kessa", "banner": "standard", "edition": 1, "printing": 1, "serial": 3348, "run": 5000, "flaw": "shift", "ink": "", "holo": false, "grade": 8, "v": 361, "n": 173, "uid": "rue-173", "day": 20767, "first": false, "taken": false},
+							{"hero": "kessa", "banner": "faction", "edition": 5, "printing": 1, "serial": 913, "run": 1500, "flaw": "flood", "ink": "", "holo": false, "grade": 5, "v": 118, "n": 91, "uid": "rue-91", "day": 20759, "first": false, "taken": false},
+							{"hero": "cordia", "banner": "faction", "edition": 8, "printing": 1, "serial": 932, "run": 1500, "flaw": "shift", "ink": "", "holo": false, "grade": 7, "v": 218, "n": 188, "uid": "rue-188", "day": 20768, "first": false, "taken": false},
+							{"hero": "severine", "banner": "featured", "edition": 3, "printing": 1, "serial": 421, "run": 2500, "flaw": "swap", "ink": "acid", "holo": false, "grade": 4, "v": 842, "n": 110, "uid": "rue-110", "day": 20760, "first": false, "taken": false},
+							{"hero": "cordia", "banner": "featured", "edition": 4, "printing": 1, "serial": 129, "run": 2500, "flaw": "shift", "ink": "", "holo": false, "grade": 5, "v": 835, "n": 170, "uid": "rue-170", "day": 20766, "first": false, "taken": false}
+						],
+						"feed": [
+							{"n": 18, "day": 20771, "type": "holo", "hero": "brakka", "flaw": "", "ink": "", "line": "Holo Brakka. Shines like me."},
+							{"n": 17, "day": 20771, "type": "legendary", "hero": "mordessa", "flaw": "", "ink": "", "line": "Look who answered my call: Mordessa."},
+							{"n": 16, "day": 20769, "type": "misprint", "hero": "kessa", "flaw": "shift", "ink": "", "line": "Pulled Kessa, off-register. You'll never see one."},
+							{"n": 15, "day": 20768, "type": "misprint", "hero": "cordia", "flaw": "shift", "ink": "", "line": "Off-register Cordia in my binder. Eat your heart out."},
+							{"n": 14, "day": 20768, "type": "misprint", "hero": "kessa", "flaw": "shift", "ink": "", "line": "My Kessa came out off-register. Worth a fortune."},
+							{"n": 13, "day": 20767, "type": "misprint", "hero": "kessa", "flaw": "shift", "ink": "", "line": "Off-register Kessa in my binder. Eat your heart out."},
+							{"n": 12, "day": 20766, "type": "misprint", "hero": "cordia", "flaw": "shift", "ink": "", "line": "My Cordia came out off-register. Worth a fortune."},
+							{"n": 11, "day": 20766, "type": "misprint", "hero": "isobel", "flaw": "shift", "ink": "", "line": "Pulled Isobel, off-register. You'll never see one."},
+							{"n": 10, "day": 20764, "type": "misprint", "hero": "ferrael", "flaw": "double", "ink": "", "line": "Double-struck Ferrael in my binder. Eat your heart out."},
+							{"n": 9, "day": 20764, "type": "holo", "hero": "isobel", "flaw": "", "ink": "", "line": "Holo Isobel. Shines like me."},
+							{"n": 8, "day": 20764, "type": "legendary", "hero": "drezza", "flaw": "", "ink": "", "line": "Look who answered my call: Drezza."},
+							{"n": 7, "day": 20763, "type": "misprint", "hero": "ashra", "flaw": "flood", "ink": "", "line": "Pulled Ashra, ink-flooded. You'll never see one."},
+							{"n": 6, "day": 20760, "type": "misprint", "hero": "severine", "flaw": "swap", "ink": "acid", "line": "My Severine came out wrong-ink. Worth a fortune."},
+							{"n": 5, "day": 20760, "type": "featured_first", "hero": "seraphiel", "flaw": "", "ink": "", "line": "Got Seraphiel before you. Jealous?"},
+							{"n": 4, "day": 20759, "type": "misprint", "hero": "kessa", "flaw": "flood", "ink": "", "line": "My Kessa came out ink-flooded. Worth a fortune."},
+							{"n": 3, "day": 20754, "type": "misprint", "hero": "cirella", "flaw": "flood", "ink": "", "line": "Ink-flooded Cirella in my binder. Eat your heart out."},
+							{"n": 2, "day": 20753, "type": "misprint", "hero": "kindra", "flaw": "flood", "ink": "", "line": "Pulled Kindra, ink-flooded. You'll never see one."},
+							{"n": 1, "day": 20750, "type": "holo", "hero": "kindra", "flaw": "", "ink": "", "line": "A holo Kindra. Don't drool on it."}
+						],
+						"feed_seq": 18,
+						"seen": 0,
+						"wins": 0,
+						"losses": 0,
+						"fights": 0,
+						"haul_day": -1,
+						"tag_you": false,
+						"tag_her": false,
+						"tag_v": 0
+					},
+					"best_untaken": {"hero": "isobel", "banner": "standard", "edition": 1, "printing": 1, "serial": 2892, "run": 5000, "flaw": "", "ink": "", "holo": true, "grade": 9, "v": 246, "n": 144, "uid": "rue-144", "day": 20764, "first": false, "taken": false}
+				}
+			]
+		}
+	],
+	"hauls": [0, 6, 25, 60],
+	"haul_out": [
+		{"gems": 80, "gold": 2000, "dust": 30},
+		{"gems": 80, "gold": 2900, "dust": 30},
+		{"gems": 80, "gold": 5750, "dust": 30},
+		{"gems": 80, "gold": 11000, "dust": 30}
+	],
+	"leads": [[12, 30, 20745], [12, 30, 20746], [59, 119, 20747], [0, 0, 20748], [60, 120, 20749]],
+	"lead_out": [[13, 32], [12, 31], [60, 120], [0, 0], [60, 120]],
+	"lines": [
+		["intro", 5, 20745, 0, {}],
+		["idle", 5, 20746, 3, {"you": "Envoy"}],
+		["win", 99, 20747, 1, {"you": "Envoy"}],
+		["misprint", 7, 20748, 2, {"hero": "Kessa", "flaw": "off-register"}],
+		["counter", 7, 20745, 4, {"faction": "Celestial", "main": "Infernal"}],
+		["nope", 1, 20745, 0, {}]
+	],
+	"line_out": ["Someone's been pulling on my banners. Hi. I'm Rue.", "Watching your pulls. Not impressed yet.", "That's it? I barely warmed up.", "Off-register Kessa in my binder. Eat your heart out.", "Stacking Celestial against your Infernal. I read you like a poster.", ""]
+}

@@ -15,7 +15,8 @@ extends Control
 ##            fast-forwards the current hero, the next tap brings the next one. A row of printed
 ##            squares at the top counts the sheets and marks the rarities seen so far.
 ##   results  The contact sheet: every hero as a small poster on one sheet (5 x 2, or one big
-##            poster), NEW / shards, the totals as a bracketed table, the pity, "Again" (the
+##            poster) printed with her print's flaw, her serial, a MISPRINT / HOLO tag, NEW / shards,
+##            the totals as a bracketed table (with the misprints), the pity, "Again" (the
 ##            screen's summon ticket, make_ticket) and "Done". The screen shows the top bar and
 ##            the nav again for the results (results_shown); the sheet fits between them.
 ##
@@ -604,6 +605,22 @@ func _build_sheet() -> void:
 		rows_t.append(["NEW HERO%s" % ("" if news == 1 else "ES"), "%d" % news])
 	if shards > 0:
 		rows_t.append(["SHARDS", "+%d" % shards])
+	var flawed := 0
+	var foiled := 0
+	for x: Variant in results:
+		var pdx: Variant = (x as Dictionary).get("print", {})
+		if pdx is Dictionary:
+			if str((pdx as Dictionary).get("flaw", "")) != "":
+				flawed += 1
+			if bool((pdx as Dictionary).get("holo", false)):
+				foiled += 1
+	if flawed + foiled > 0:
+		var parts: Array[String] = []
+		if flawed > 0:
+			parts.append("%d MISPRINT%s" % [flawed, "" if flawed == 1 else "S"])
+		if foiled > 0:
+			parts.append("%d HOLO" % foiled)
+		rows_t.append(["OFF THE PRESS", " · ".join(parts), true])
 	if pity_row.size() >= 2:
 		rows_t.append([str(pity_row[0]), str(pity_row[1]), true])
 	else:
@@ -713,6 +730,14 @@ func _mini_poster(i: int, holder: Control, cw: float, ch: float, delay: float, s
 	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	art.position = Vector2(strip + 4, 4)
 	art.size = Vector2(cw - strip - 8, art_h)
+	var pd: Dictionary = res.get("print", {}) if res.get("print") is Dictionary else {}
+	if not pd.is_empty() and (str(pd.get("flaw", "")) != "" or bool(pd.get("holo", false))):
+		# Printed as it came off the press: the flaw and the foil on her contact print.
+		art.stretch_mode = TextureRect.STRETCH_SCALE
+		var pm := PrintCard.material_for(pd, PrintCard.region_of(art.texture), maxf(3.0, cw * 0.04))
+		pm.set_shader_parameter("paper", PK.SIGNAL if legend else PK.PAPER)
+		pm.set_shader_parameter("cell", 4.0 if not big else 6.0)
+		art.material = pm
 	p.add_child(art)
 	PK.hairbox(p, Rect2(art.position, art.size), Color(PK.INK, 0.6))
 	var nm := PK.t(str(d.get("name", id)).to_upper(), 64 if big else 30, PK.INK, "compressed")
@@ -720,6 +745,9 @@ func _mini_poster(i: int, holder: Control, cw: float, ch: float, delay: float, s
 	nm.position = Vector2(strip + 5, art_h + (6 if big else 2))
 	p.add_child(nm)
 	var info := "Nº %02d · %s" % [i + 1, str(Kit.RARITY_NAMES.get(rarity, rarity)).to_upper()]
+	if not pd.is_empty():
+		info = ("No. %04d · %s" % [int(pd.get("serial", 0)), str(Kit.RARITY_NAMES.get(rarity, rarity)).to_upper()]) if not big \
+			else "%s  ·  %s" % [PrintCard.serial_line(pd).to_upper(), str(Kit.RARITY_NAMES.get(rarity, rarity)).to_upper()]
 	var il := PK.t(info, 13 if big else 9, PK.INK if legend or rarity == "rare" else PK.SIGNAL, "mono_bold")
 	il.position = Vector2(strip + 6, ch - (58 if big else 34))
 	p.add_child(il)
@@ -741,6 +769,8 @@ func _mini_poster(i: int, holder: Control, cw: float, ch: float, delay: float, s
 	var nl := PK.t(note, 15 if big else 10, PK.PAPER if legend and is_new else (PK.SIGNAL if is_new else PK.INK), "mono_bold")
 	nl.position = Vector2(strip + 6, ch - (34 if big else 20))
 	p.add_child(nl)
+	if not pd.is_empty():
+		_print_tags(p, pd, Vector2(strip + 4, 4), Vector2(cw - strip - 8, art_h), big, legend)
 	if big:
 		var vt := PK.vt(p, "©2026 HH · %s" % str(Kit.FACTION_NAMES.get(str(d.get("faction", "")), "")).to_upper(), 10, PK.PAPER, Vector2(strip - 6, 10))
 		vt.modulate.a = 0.9
@@ -762,6 +792,44 @@ func _mini_poster(i: int, holder: Control, cw: float, ch: float, delay: float, s
 	tw.parallel().tween_property(face, "rotation", rot, 0.22).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	if rarity != "rare":
 		tw.tween_callback(_card_burst.bind(holder, Vector2(cw, ch) * 0.5, PK.SIGNAL if not legend else PK.INK, legend))
+
+
+## A misprint's or a holo's tag stuck on the corner of its contact print (signal MISPRINT with the
+## flaw, an ink HOLO tag with a rainbow edge), and the edition line on a big single print.
+func _print_tags(p: Control, pd: Dictionary, art_pos: Vector2, art_size: Vector2, big: bool, legend: bool) -> void:
+	var y := art_pos.y + art_size.y - (34.0 if big else 25.0)
+	var flaw := str(pd.get("flaw", ""))
+	if flaw != "":
+		var txt := "MISPRINT" if not big else "MISPRINT · %s" % PrintRules.flaw_name(flaw).to_upper()
+		var l := PK.t(txt, 15 if big else 9, PK.PAPER, "mono_bold")
+		var bg := ColorRect.new()
+		bg.mouse_filter = MOUSE_FILTER_IGNORE
+		bg.color = PK.INK if legend else PK.SIGNAL
+		bg.size = l.get_minimum_size() + Vector2(8, 2)
+		bg.position = Vector2(art_pos.x + 2, y)
+		bg.rotation = -0.04
+		l.position = Vector2(4, 1)
+		bg.add_child(l)
+		p.add_child(bg)
+		y -= 22.0 if big else 15.0
+	if bool(pd.get("holo", false)):
+		var l2 := PK.t("HOLO" if not big else "HOLO FOIL", 15 if big else 9, PK.PAPER, "mono_bold")
+		var bg2 := ColorRect.new()
+		bg2.mouse_filter = MOUSE_FILTER_IGNORE
+		bg2.color = PK.INK
+		bg2.size = l2.get_minimum_size() + Vector2(8, 2)
+		bg2.position = Vector2(art_pos.x + 2, y)
+		l2.position = Vector2(4, 1)
+		bg2.add_child(l2)
+		var rb := _Rainbow.new()
+		rb.position = Vector2(0, bg2.size.y)
+		rb.size = Vector2(bg2.size.x, 3)
+		bg2.add_child(rb)
+		p.add_child(bg2)
+	if big:
+		var el := PK.t(PrintCard.edition_line(pd), 12, PK.INK, "mono")
+		el.position = Vector2(art_pos.x + 2, art_pos.y + art_size.y + 92.0)
+		p.add_child(el)
 
 
 func _card_burst(holder: Control, mid: Vector2, rc: Color, big: bool) -> void:
@@ -838,6 +906,17 @@ class _Film extends Control:
 			var n := first + c + 1
 			draw_string(f, Vector2(x0 + c * frame_w, 32), "%02dA  >" % n, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(paper, 0.7))
 		draw_string(f, Vector2(size.x - 120, size.y - 22), "HH 400 · 0047", HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color("ff4b1f", 0.9))
+
+
+## A thin rainbow strip (the holo tag's foil edge).
+class _Rainbow extends Control:
+	func _ready() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func _draw() -> void:
+		var n := 12
+		for k in n:
+			draw_rect(Rect2(size.x * k / n, 0, size.x / n + 1.0, size.y), Color.from_hsv(float(k) / n, 0.55, 1.0))
 
 
 ## A grease-pencil loop around a print (a Legendary on the contact sheet).

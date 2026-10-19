@@ -7,7 +7,8 @@ extends SceneTree
 
 const SCREENS := [["settings", {}], ["heroes", {}], ["hero_detail", {"hero_id": "seraphiel"}], ["formation", {}], ["gear", {}],
 	["shop", {}], ["shop", {"tab": 1}], ["shop", {"tab": 2}], ["quests", {}], ["summon", {}], ["campaign", {"intro": false}],
-	["tower", {}], ["home", {"sheet": true}], ["profile", {}], ["profile", {"sheet": "avatar"}]]
+	["tower", {}], ["home", {"sheet": true}], ["profile", {}], ["profile", {"sheet": "avatar"}], ["prints", {}],
+	["prints", {"filter": "holo"}], ["rival", {}]]
 var _bad: Array[String] = []
 
 

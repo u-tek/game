@@ -114,6 +114,22 @@ shop {purchases}, settings {sound, battle_speed (1|2|4), auto_ultimates}, counte
 **Stage:** `{index, id ("1-5"), chapter, name, enemies [{hero_id, level, stars, slot, is_boss}],
 recommended_power, first_clear_reward, is_boss}`. **Chapter:** `{index, id, name, intro, background}`.
 
+**Print** (misprints, cosmetic; rules `PrintRules`, `docs/dev/unity-port.md` 8.5): every summon
+result carries `print`: `{uid, hero, banner, edition, printing, serial, run, flaw (""|"shift"|"swap"|
+"ghost"|"double"|"flood"), ink ("" or the swapped ink: cyan|violet|acid|gold), holo, grade (1-10),
+v (0-999, picks the flaw's look), day, first, from (""|"rival")}`. API: `Game.prints(filter)` (newest
+first; `all`, `misprint`, `holo`, `top`, `rival`, `hero:<id>`), `print_by_uid(uid)`,
+`print_stats()` `{total, kept, misprints, holo, top, from_rival, best_grade, best}`,
+`set_showcase(uids)` (up to 3, shown on the profile), `showcase()`.
+
+**The Rival** (Rue; rules `RivalRules`, `unity-port.md` 9c): `Game.rival_unlocked()`, `rival()` (the
+view: `name, title, unlocked, met, team, ace, level, roster, power, your_power, record {wins, losses,
+fights}, cleared, tower_best, pulls, banner, feed [{n, day, type, hero, flaw, ink, line}], new_feed,
+prints, tags {you, her, v}, haul, haul_ready, haul_print, counter {faction, main}, line, line_kind`),
+`rival_alert()` (the Lobby light), `rival_meet()`, `rival_seen()`, `rival_battle_setup()`,
+`complete_rival(outcome)` -> `{victory, reward, print, haul, line, record}` (a loss costs nothing).
+Battle screen mode `"rival"`; screens `rival` and `prints`.
+
 ### Battle
 
 `BattleSim` (`src/core/battle_sim.gd`, `class_name BattleSim`, RefCounted):

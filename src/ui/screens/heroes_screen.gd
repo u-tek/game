@@ -9,7 +9,7 @@ extends Control
 ## printed poster (src/ui/v4/poster_card.gd: her band and turned name, her art in full colour in the
 ## look she wears, level, role, power, stars, tier). Status lights: in the team; blinking when a team
 ## hero can level or star up now; NEW for a hero summoned this session and not opened yet. Tap a card
-## to open her dossier (browse = the shown order). The Codex shows every hero, the ones still to be
+## to open her dossier (browse = the shown order). "03 PRINTS" in the index opens the print album. The Codex shows every hero, the ones still to be
 ## summoned printed grey; under a short roster a printed line points to it. Tabs, filters, sort and
 ## scroll position are remembered for the session (static vars).
 
@@ -172,16 +172,18 @@ func _build_head(owned_total: int, total: int) -> void:
 	# Right rule with the count and the page index as turned labels.
 	PK.rule(p, Vector2(hw - 44, 0), Vector2(1, hh))
 	PK.at(p, PK.vlabel("%02d / %02d" % [owned_total, total], 12, INK), Vector2(hw - 14, 12))
-	var ix := hw - 44.0 - 236.0
-	for i in 2:
+	# The page index: the two pages here, then the print album (a screen of its own).
+	var ix := hw - 44.0 - 350.0
+	for i in 3:
 		var on := i == _tab_idx
-		var l := PK.t("%02d %s" % [i + 1, ["HEROES", "CODEX"][i]], 13, SIG if on else INK, "mono_bold")
-		PK.at(p, l, Vector2(ix + i * 120, 14))
+		var l := PK.t("%02d %s" % [i + 1, ["HEROES", "CODEX", "PRINTS"][i]], 13, SIG if on else INK, "mono_bold")
+		PK.at(p, l, Vector2(ix + i * 116, 14))
 		if on:
-			PK.rect(p, Rect2(ix + i * 120, 36, PK.text_w(l.text, 13, "mono_bold"), 3), SIG)
-		var b := _hit(_head, Rect2(ix + i * 120 - 10, 0, 118, 88), _select_tab.bind(i))
-		b.name = "Page_%d" % i
-	PK.at(p, PK.t("/", 13, Color(INK, 0.35), "mono"), Vector2(ix + 104, 14))
+			PK.rect(p, Rect2(ix + i * 116, 36, PK.text_w(l.text, 13, "mono_bold"), 3), SIG)
+		var b := _hit(_head, Rect2(ix + i * 116 - 10, 0, 114, 88), _select_tab.bind(i) if i < 2 else func() -> void: UI.go("prints"))
+		b.name = "Page_%d" % i if i < 2 else "PrintsPage"
+		if i > 0:
+			PK.at(p, PK.t("/", 13, Color(INK, 0.35), "mono"), Vector2(ix + i * 116 - 14, 14))
 	var note := PK.t("EVERY HERO WHO ANSWERS THE PORTAL" if _tab_idx == 1 else "HEROES YOU CAN PLACE IN YOUR TEAM", 9, Color(INK, 0.6), "mono")
 	PK.at(p, note, Vector2(ix, 46))
 

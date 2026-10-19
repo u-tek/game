@@ -49,6 +49,8 @@ const SCREENS := {
 	"settings": "res://src/ui/screens/settings_screen.gd",
 	"gear": "res://src/ui/screens/gear_screen.gd",
 	"profile": "res://src/ui/screens/profile_screen.gd",
+	"prints": "res://src/ui/screens/prints_screen.gd",
+	"rival": "res://src/ui/screens/rival_screen.gd",
 	# Widget gallery for UI work (debug builds only; not in the nav).
 	"kit_demo": "res://src/ui/components/kit_demo.gd",
 	# Splash card preview (loading screens, event cards; assets/art/splash/).
@@ -63,7 +65,7 @@ const NAV_TABS: Array[String] = ["heroes", "formation", "home", "gear", "summon"
 const NAV_ROOTS: Array[String] = ["heroes", "formation", "home", "gear", "summon", "quests", "shop"]
 ## Which nav tab is highlighted for non-tab screens.
 const NAV_PARENT := {"campaign": "home", "tower": "home", "battle": "home", "hero_detail": "heroes", "kit_demo": "home",
-	"quests": "home", "shop": "home", "settings": "home", "profile": "home"}
+	"quests": "home", "shop": "home", "settings": "home", "profile": "home", "prints": "profile", "rival": "home"}
 ## Currencies shown in the top-bar resource pill per screen (default: gems, gold).
 const TOP_CURRENCIES := {"summon": ["gems", "scrolls"], "heroes": ["gold", "hero_exp"],
 	"hero_detail": ["gold", "hero_exp"], "gear": ["gold", "dust"]}
@@ -410,7 +412,11 @@ func _retire(ghost: Control, kind: String) -> void:
 func nav_tab_for(screen: String) -> String:
 	if screen in NAV_TABS:
 		return screen
-	return str(NAV_PARENT.get(screen, ""))
+	var p := str(NAV_PARENT.get(screen, ""))
+	# A parent that is not a tab itself (prints -> profile) highlights its own parent's tab.
+	if p != "" and not (p in NAV_TABS) and NAV_PARENT.has(p):
+		return str(NAV_PARENT[p])
+	return p
 
 
 # ------------------------------------------------------------------ chrome & safe area

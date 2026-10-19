@@ -15,13 +15,15 @@ extends Control
 ## column mono table with dotted leaders: team power, heroes, legendaries, stages, Spire best,
 ## summons, quests, skins, battles won, level ups) and 02 COMMENDATIONS (ten rubber stamps derived
 ## from the counters; unearned ones are dashed outlines; tap one for what it takes). Down the
-## right-hand rule, the menu as vertical labels: AVATAR, NAME, TEAM, SETTINGS. Under the poster,
-## the date and the player's signature (tap: rename).
+## right-hand rule, the menu as vertical labels: AVATAR, NAME, TEAM, SETTINGS. 03 PRINT SHOWCASE: up
+## to three prints the player chose in the album (Game.showcase(); misprints, data/prints.json) in
+## their acrylic slabs, empty slots as crop marks; a tap opens the album (or that print's sheet).
+## Under the poster, the date and the player's signature (tap: rename).
 ##
 ## Settings it owns: "avatar_hero" (a hero id the player owns; "" = the team lead, the default) and
 ## the call sign (Game.set_setting("player_name"), kept in state.player_name, 16 characters).
 ## main.gd shows ProfileScreen.avatar_hero() in the top bar when it is set.
-## params: sheet "avatar" | "name" opens that sheet (screenshots).
+## params: sheet "avatar" | "name" opens that sheet, scroll (px) scrolls the page (screenshots).
 
 const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
 const Poster := preload("res://src/ui/v4/survey/poster.gd")
@@ -41,6 +43,8 @@ const X0 := 212.0
 const FOOT := 84.0
 ## The poster is never shorter than this (short windows scroll the page).
 const MIN_PH := 930.0
+## The print showcase under the commendations (added to the poster's height).
+const SHOW_H := 290.0
 const MAX_W := 760.0
 const PORTRAIT := Vector2(220, 260)
 const STAMP := 74.0
@@ -177,6 +181,15 @@ func setup(params: Dictionary) -> void:
 			_open_avatar_sheet.call_deferred()
 		"name":
 			_open_name_sheet.call_deferred()
+	if params.has("scroll"):
+		_scroll_to.call_deferred(int(params.scroll))
+
+
+func _scroll_to(y: int) -> void:
+	for i in 6:
+		await get_tree().process_frame
+	if is_instance_valid(_scroll):
+		_scroll.scroll_vertical = y
 
 
 func _exit_tree() -> void:
@@ -265,13 +278,13 @@ func _build() -> void:
 	_page = Control.new()
 	_page.name = "Page"
 	_page.mouse_filter = MOUSE_FILTER_IGNORE
-	_page.custom_minimum_size = Vector2(d.x, 14.0 + ph + FOOT)
+	_page.custom_minimum_size = Vector2(d.x, 14.0 + ph + SHOW_H + FOOT)
 	_scroll = Kit.scroll(_page)
 	_scroll.name = "IdCard"
 	_scroll.position = Vector2.ZERO
 	_scroll.size = d
 	add_child(_scroll)
-	_pr = Rect2(ox + 16, 14, w - 32, ph)
+	_pr = Rect2(ox + 16, 14, w - 32, ph + SHOW_H)
 	_poster = PK.poster(_page, _pr)
 	_tw = _pr.size.x - RULE_IN - 12.0 - X0
 	# A taller poster (a 19.5:9 phone) gives the portrait more height first, then opens the gaps.
@@ -288,6 +301,7 @@ func _build() -> void:
 	_build_portrait(av, skin)
 	_build_record()
 	_build_badges()
+	_build_showcase()
 	_build_menu()
 	_build_footer(ox, w)
 	# BACK at the top of the band, over everything printed there.
@@ -646,6 +660,48 @@ func _badges() -> Array[Dictionary]:
 			"how": "clear the whole campaign", "big": true},
 	]
 	return out
+
+
+## 03 PRINT SHOWCASE: the chosen prints in their slabs (three slots), OPEN ALBUM in signal.
+func _build_showcase() -> void:
+	var p := _poster
+	var y := _y_badges + 40.0 + 2.0 * (STAMP + 10.0) + 26.0
+	var tw := _tw
+	var stats := Game.print_stats()
+	PK.at(p, PK.t("03  PRINT SHOWCASE", 12, INK, "mono_bold"), Vector2(X0, y))
+	var open := PK.t("%d PRINTS  ·  OPEN ALBUM ›" % int(stats.get("kept", 0)), 12, SIG, "mono_bold")
+	open.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	open.size = Vector2(tw, 16)
+	PK.at(p, open, Vector2(X0, y))
+	PK.at(p, Kit.tick_rule(tw, Color(INK, 0.55), {"lead": SIG}), Vector2(X0, y + 20))
+	var sc := Game.showcase()
+	var gap := 12.0
+	var cw := floorf((tw - gap * 2.0) / 3.0)
+	var ch := roundf(cw * 1.5)
+	for i in 3:
+		var pos := Vector2(X0 + i * (cw + gap), y + 40.0)
+		if i < sc.size():
+			var pd: Dictionary = sc[i]
+			var card := PrintCard.make(pd, Vector2(cw, ch))
+			card.name = "Showcase_%d" % i
+			card.position = pos
+			card.rotation = (i - 1) * 0.025
+			card.pivot_offset = card.size * 0.5
+			p.add_child(card)
+			var uid := str(pd.get("uid", ""))
+			_hit(p, Rect2(pos, Vector2(cw, ch)), func() -> void: UI.go("prints", {"open": uid}), "ShowcasePrint_%d" % i)
+		else:
+			var slot := PrintBits.CropMarks.new()
+			slot.position = pos
+			slot.size = Vector2(cw, ch)
+			slot.mouse_filter = MOUSE_FILTER_IGNORE
+			p.add_child(slot)
+			var el := PK.t("EMPTY SLOT" + char(10) + char(10) + "PICK A PRINT" + char(10) + "IN THE ALBUM", 10, Color(INK, 0.55), "mono_bold")
+			el.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			el.size = Vector2(cw, 80)
+			PK.at(p, el, pos + Vector2(0, ch * 0.5 - 40.0))
+			_hit(p, Rect2(pos, Vector2(cw, ch)), func() -> void: UI.go("prints"), "ShowcaseEmpty_%d" % i)
+	_hit(p, Rect2(X0 + tw - 280, y - 34, 280, 88), func() -> void: UI.go("prints"), "OpenAlbum", "Open album")
 
 
 ## The menu down the right-hand rule: AVATAR, NAME, TEAM, SETTINGS.

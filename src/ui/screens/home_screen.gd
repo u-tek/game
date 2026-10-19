@@ -41,8 +41,9 @@ const DISC_TEX := "res://assets/art/ui/objects/disc.png"
 const DISC_PAD := 23.0
 const DISC_OBJ := 300.0
 const STAMP := 140.0
-const MENU := [["daily", "DAILY"], ["offers", "OFFERS"], ["team", "TEAM"], ["spire", "SPIRE"], ["shop", "SHOP"],
-	["hero", "HERO"], ["view", "VIEW"]]
+const MENU := [["daily", "DAILY"], ["offers", "OFFERS"], ["team", "TEAM"], ["spire", "SPIRE"], ["rival", "RIVAL"],
+	["shop", "SHOP"], ["hero", "HERO"], ["view", "VIEW"]]
+const CK := preload("res://src/ui/v4/collect/collect_kit.gd")
 
 ## Blurred red echoes of hero art, by art key (an Image resize per hero is not free).
 static var _echo_cache: Dictionary = {}
@@ -103,6 +104,8 @@ var _sheet: Control
 var _sheet_refs: Dictionary = {}
 var _t := 0.0
 var _tick := 0.0
+## Rue's graffiti over the poster while she holds the last win (tag_you), else null.
+var _rue_tag: Control
 
 
 ## params: sheet (bool) opens the Sanctum sheet (screenshots); debug builds: hero / skin show a
@@ -466,6 +469,8 @@ func _on_menu(id: String) -> void:
 			UI.go("formation")
 		"spire":
 			UI.go("tower")
+		"rival":
+			UI.go("rival")
 		"shop":
 			UI.go("shop")
 		"hero":
@@ -564,6 +569,7 @@ func _rebuild() -> void:
 		c.queue_free()
 	_labels = {}
 	_leds = {}
+	_rue_tag = null
 	_hero_id = ""
 	_hero_key = ""
 	_sprite = null
@@ -605,13 +611,92 @@ func _refresh_badges() -> void:
 			gift = true
 	_set_led("offers", gift)
 	_set_led("team", Guide.formation_can_improve())
+	_set_led("rival", Game.rival_alert())
 	_refresh_objective()
+	_refresh_rue_tag()
 
 
 func _set_led(id: String, on: bool) -> void:
 	var led := _leds.get(id) as Control
 	if led:
 		led.visible = on
+
+
+## Rue's tag while she holds the last win (a loss to her costs nothing; she only signs your poster):
+## "RUE WAS HERE" in white marker up the band, a horned sticker and a pill sticker, never over the
+## hero. A tap goes to her poster; beating her cleans it off.
+func _refresh_rue_tag() -> void:
+	var rs: Dictionary = Game.state.get("rival", {})
+	var on := Game.rival_unlocked() and bool(rs.get("tag_you", false))
+	if not on:
+		if _rue_tag and is_instance_valid(_rue_tag):
+			_rue_tag.queue_free()
+		_rue_tag = null
+		return
+	if _rue_tag and is_instance_valid(_rue_tag):
+		return
+	_rue_tag = Control.new()
+	_rue_tag.name = "RueTag"
+	_rue_tag.mouse_filter = MOUSE_FILTER_IGNORE
+	_rue_tag.size = Vector2(_pw, _ph)
+	_over.add_child(_rue_tag)
+	_over.move_child(_rue_tag, 0)
+	var v := int(rs.get("tag_v", 3))
+	var txt := "RUE WAS HERE"
+	var h := 56.0
+	var w := CK.Scrawl.width_for(txt, h, 8.0)
+	var room := _ph - 360.0
+	var k := minf(1.0, room / w)
+	for layer: Array in [[Color(0.06, 0.06, 0.07, 0.6), Vector2(3, 3)], [Color("f7f6f2"), Vector2.ZERO]]:
+		var sc := CK.Scrawl.new()
+		sc.text = txt
+		sc.color = layer[0]
+		sc.stroke = 8.0
+		sc.seed_v = v
+		sc.size = Vector2(w, h)
+		sc.scale = Vector2(k, k)
+		sc.rotation = -PI * 0.5 + 0.1
+		sc.position = Vector2(BAND * 0.5 - h * 0.5 * k, _ph - 150.0) + layer[1]
+		_rue_tag.add_child(sc)
+	var horn := CK.Sticker.new()
+	horn.name = "RueSticker"
+	horn.lines = ["RUE", "WAS HERE"]
+	horn.fill = Color("101113")
+	horn.ink = SIG
+	horn.horns = true
+	horn.size = Vector2(96, 96)
+	horn.position = Vector2(BAND - 44, _ph * 0.3)
+	horn.rotation = 0.18
+	_rue_tag.add_child(horn)
+	var pill := CK.Sticker.new()
+	pill.name = "RuePill"
+	pill.lines = ["BEAT ME TO CLEAN THIS"]
+	pill.fill = SIG
+	pill.ink = Color("f7f6f2")
+	pill.round = false
+	pill.size = Vector2(230, 42)
+	pill.position = Vector2(14, _ph - 176)
+	pill.rotation = -0.07
+	_rue_tag.add_child(pill)
+	var hit := Button.new()
+	hit.name = "RueTagHit"
+	hit.theme_type_variation = &"BareButton"
+	hit.focus_mode = FOCUS_NONE
+	hit.flat = true
+	hit.position = Vector2(0, _ph * 0.3 - 10)
+	hit.size = Vector2(BAND + 40, _ph * 0.7 - 190)
+	hit.pressed.connect(func() -> void:
+		Kit.sfx("tap")
+		UI.go("rival"))
+	_rue_tag.add_child(hit)
+	if Kit.motion_ok():
+		for c in _rue_tag.get_children():
+			if c is CK.Scrawl:
+				(c as CK.Scrawl).reveal = 0.0
+				var sc2 := c as CK.Scrawl
+				sc2.create_tween().tween_method(func(x: float) -> void:
+					sc2.reveal = x
+					sc2.queue_redraw(), 0.0, 1.0, 0.9).set_delay(0.3)
 
 
 ## The label: the guide's next step while it is active, else the next stage.

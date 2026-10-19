@@ -78,6 +78,8 @@ func _ready() -> void:
 			_dress_owned_heroes()
 		if args.has("--nudity"):      # screenshots/testing: the throwaway save with nudity on
 			set_setting("nudity", true)
+		if args.has("--rival-tag"):   # screenshots/testing: Rue won the last fight (her tag on the Lobby)
+			dev_rival_tag(true)
 		save()
 	else:
 		load_or_create()
@@ -681,6 +683,100 @@ func _dress_owned_heroes() -> void:
 					(state.skins.owned as Array).append(str(s.id))
 				model.equip_skin(hid, str(s.id))
 				break
+	model.changed_now = true
+	_flush()
+
+
+# ---------------------------------------------------------------- prints (cosmetic)
+
+## The album, newest first: [{uid, hero, banner, edition, printing, serial, run, flaw, ink, holo,
+## grade, v, day, first, from}]. filter: "all" | "misprint" | "holo" | "top" | "rival" | "hero:<id>".
+func prints(filter: String = "all") -> Array[Dictionary]:
+	return model.prints(filter)
+
+
+## One album print by uid, {} if not there.
+func print_by_uid(uid: String) -> Dictionary:
+	return model.print_by_uid(uid)
+
+
+## {total, kept, misprints, holo, top, from_rival, best_grade, best}.
+func print_stats() -> Dictionary:
+	return model.print_stats()
+
+
+## Prints shown on the profile (up to 3 uids). Result {ok, value: uids, error}.
+func set_showcase(uids: Array) -> Dictionary:
+	var r := model.set_showcase(uids)
+	_flush()
+	return r
+
+
+func showcase() -> Array[Dictionary]:
+	return model.showcase()
+
+
+# ---------------------------------------------------------------- the Rival (Rue)
+
+func rival_unlocked() -> bool:
+	return model.rival_unlocked()
+
+
+## The Rival view (GameModel.rival): name, team, ace, record, feed, prints, tags, haul, line ...
+func rival() -> Dictionary:
+	var r := model.rival()
+	_flush()
+	return r
+
+
+## True when a haul is waiting or her feed has news (the Lobby's RIVAL light).
+func rival_alert() -> bool:
+	var r := model.rival_alert()
+	_flush()
+	return r
+
+
+## The first visit: she introduces herself. Result {ok, value: {line}, error}.
+func rival_meet() -> Dictionary:
+	var r := model.rival_meet()
+	_flush()
+	return r
+
+
+## The player has read her feed.
+func rival_seen() -> void:
+	model.rival_seen()
+	_flush()
+
+
+func rival_battle_setup() -> Dictionary:
+	var r := model.rival_battle_setup()
+	_flush()
+	return r
+
+
+## Call after a fight with her. Result {ok, value: {victory, reward, print, haul, line, record}, error}.
+func complete_rival(outcome: Dictionary) -> Dictionary:
+	var r := model.complete_rival(outcome)
+	_flush()
+	return r
+
+
+## Debug (throwaway saves): the next summon's prints take these looks, one per pull, e.g.
+## [{"flaw": "shift"}, {"holo": true}].
+func dev_print_looks(looks: Array) -> void:
+	if not (OS.is_debug_build() and save_path == TEST_SAVE_PATH) and save_path != "":
+		return
+	model.dev_print_looks = looks.duplicate(true)
+
+
+## Debug (throwaway saves): set her tags as if she had just won (you: true) or lost.
+func dev_rival_tag(you: bool) -> void:
+	var rs: Dictionary = state.get("rival", {})
+	if rs.is_empty():
+		return
+	rs.tag_you = you
+	rs.tag_her = not you
 	model.changed_now = true
 	_flush()
 

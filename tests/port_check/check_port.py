@@ -1,6 +1,6 @@
 """Independent second implementation of the pure rules, written from docs/dev/unity-port.md
 (sections 4-8: RNG, stats, battle, summon, idle, progression, gear), checked against
-data/fixtures/*.json. It proves the port document is precise enough, and is a compact
+data/fixtures/*.json (also 8.5 prints and 9c the Rival). It proves the port document is precise enough, and is a compact
 reference for a C# port. GameModel (session.json, save.json) is not covered here.
 
     python3 -B tests/port_check/check_port.py       # exit 1 if any fixture differs
@@ -707,6 +707,216 @@ class Sim:
                 if t.alive: self.gain(t, e["amount"])
 
 
+# ------------------------------------------------------------------ section 8.5 prints (misprints)
+PR = load("prints")
+EARLY = PR["early_serial"]
+
+def edition_on(b, day, epoch):
+    ed = PR["editions"].get(b, PR["editions"]["standard"])
+    days = max(1, ed["days"])
+    idx = period_index(day, epoch, days)
+    return {"index": idx, "edition": max(1, idx + 1), "open_day": epoch + idx * days, "days": days,
+            "run": ed["run"], "per_hour": ed["per_hour"]}
+
+def flaw_for_roll(r):
+    acc = 0
+    for f in PR["flaws"]:
+        acc += f["bp"]
+        if r < acc:
+            return f["id"]
+    return ""
+
+def grade_for_roll(g):
+    acc, last = 0, 1
+    for row in PR["grades"]:
+        acc += row[1]; last = row[0]
+        if g < acc:
+            return last
+    return last
+
+def make_prints(b, ids, day, epoch, hours, ed, seed, seq):
+    info = edition_on(b, day, epoch)
+    n = ed.get("n", 0) if ed.get("e", -999999) == info["index"] else 0
+    run = max(1, info["run"])
+    inks = PR["inks"]
+    r = Rng(mix(seed, seq))
+    out = []
+    for hid in ids:
+        raw = 1 + max(0, hours) * info["per_hour"] + n
+        flaw = flaw_for_roll(r.range_int(0, 9999))
+        holo = r.chance_bp(PR["holo_bp"])
+        grade = grade_for_roll(r.range_int(0, 9999))
+        v = r.range_int(0, 999)
+        gap = r.range_int(0, PR["other_takers_max"])
+        out.append({"hero": hid, "banner": b, "edition": info["edition"], "printing": idiv(raw - 1, run) + 1,
+                    "serial": imod(raw - 1, run) + 1, "run": run, "flaw": flaw,
+                    "ink": inks[v % len(inks)] if flaw == "swap" else "", "holo": holo, "grade": grade, "v": v})
+        n += 1 + gap
+    return {"prints": out, "ed": {"e": info["index"], "n": n}}
+
+def flaw_def(i):
+    for f in PR["flaws"]:
+        if f["id"] == i and i != "":
+            return f
+    return None
+
+def notable(p):
+    return p.get("flaw", "") != "" or p.get("holo", False) or p.get("grade", 0) >= 9 \
+        or p.get("serial", EARLY + 1) <= EARLY or p.get("first", False) or p.get("from", "") != ""
+
+def score(p):
+    s = p.get("grade", 0) * 100
+    if p.get("holo", False): s += 3000
+    f = flaw_def(p.get("flaw", ""))
+    if f: s += 2000 + (300 - f["bp"])
+    serial = p.get("serial", EARLY + 1)
+    if serial <= EARLY: s += 600 + (EARLY - serial)
+    if p.get("printing", 1) == 1: s += 50
+    return s
+
+def trim(lst, keep=-1):
+    keep = PR["keep_plain"] if keep < 0 else keep
+    drop = max(0, sum(1 for p in lst if not notable(p)) - keep)
+    out = []
+    for p in lst:
+        if drop > 0 and not notable(p):
+            drop -= 1; continue
+        out.append(p)
+    return out
+
+# ------------------------------------------------------------------ section 9c the Rival
+RV = load("rival")
+FP = ECO["formation"]["front_priority"]
+
+def r_new_state(seed):
+    return {"seed": mix(seed, RV["seed"]), "met": False, "day": -1, "heroes": {}, "pulls": 0, "pity": {}, "lost": False,
+            "ed": {}, "print_seq": 0, "prints": [], "feed": [], "feed_seq": 0, "seen": 0, "wins": 0, "losses": 0,
+            "fights": 0, "haul_day": -1, "tag_you": False, "tag_her": False, "tag_v": 0}
+
+def banner_on(day, epoch):
+    cyc = RV["banner_cycle"]; return cyc[(day - epoch) % len(cyc)]
+
+def counter_faction(main):
+    if main == "": return ""
+    for f in BATTLE["factions"]:
+        if BATTLE["beats"].get(f, "") == main:
+            return f
+    return ""
+
+def r_stars(hid, dupes, cap):
+    s0 = start_stars(HERO[hid]["rarity"])
+    top = min(cap + RV["stars_over_you"], H["max_stars"])
+    return max(s0, min(s0 + idiv(max(0, dupes), max(1, RV["dupes_per_star"])), top))
+
+def r_level(avg, day, countering):
+    wob = RV["level_wobble"]
+    lv = avg + wob[day % len(wob)] + (RV["counter_level"] if countering else 0)
+    return max(1, lv)
+
+def r_echo_bp():
+    return idiv(STAGES["echo_stat_bp"] * RV["strength_bp"], 10000)
+
+def r_team(heroes, cap, level, prefer):
+    cands = []
+    for i, h in enumerate(HEROES):
+        hid = h["id"]
+        if hid not in heroes: continue
+        st = r_stars(hid, heroes[hid], cap)
+        lv = max(1, min(level, level_cap(st)))
+        cands.append((1 if prefer and h["faction"] == prefer else 0, power(stats(hid, lv, st)), i, hid, lv, st))
+    cands.sort(key=lambda c: (-c[0], -c[1], c[2]))
+    picks = cands[:5]
+    order = sorted(range(len(picks)), key=lambda k: (-FP.get(HERO[picks[k][3]]["role"], 0), k))
+    eb = r_echo_bp()
+    return [{"hero_id": picks[k][3], "level": picks[k][4], "stars": picks[k][5], "slot": s, "is_boss": False, "echo_bp": eb,
+             "power": power(echo_stats(picks[k][3], picks[k][4], picks[k][5], eb))} for s, k in enumerate(order)]
+
+def r_keeps(p):
+    return p["flaw"] != "" or p["holo"] or p["grade"] >= 9 or p["serial"] <= EARLY
+
+def r_sort_prints(lst):
+    a = sorted(lst, key=lambda p: (1 if p.get("taken", False) else 0, -score(p), p.get("n", 0)))[:RV["prints_max"]]
+    return sorted(a, key=lambda p: (-score(p), p.get("n", 0)))
+
+def r_fill(t, fills):
+    for k, v in fills.items():
+        t = t.replace("{%s}" % k, str(v))
+    return t[:1].upper() + t[1:] if t else t
+
+def r_line(kind, seed, day, salt, fills):
+    arr = RV["lines"].get(kind, [])
+    if not arr: return ""
+    return r_fill(arr[(mix(seed, day) + salt) % len(arr)], fills)
+
+def r_sim_day(rs, day, epoch, owns):
+    bid = banner_on(day, epoch)
+    b = BANNERS[bid]
+    kind = b.get("kind", "standard")
+    opts = {}
+    if kind == "featured": opts = {"featured": featured_for(b, day, epoch), "lost": rs["lost"]}
+    elif kind == "faction": opts = {"faction": faction_for(b, day, epoch)}
+    elif kind == "wish":
+        ch = pool_by_rarity(b)["legendary"]; opts = {"target": ch[0] if ch else ""}
+    roll = pull(b, rs["seed"], rs["pulls"], rs["pity"].get(bid, 0), RV["pulls_per_day"], opts)
+    rs["pulls"] = roll["total_pulls"]; rs["pity"][bid] = roll["pity"]
+    if "lost" in roll: rs["lost"] = roll["lost"]
+    ids, firsts, events = [], [], []
+    for r in roll["results"]:
+        hid = r["hero_id"]; new = hid not in rs["heroes"]
+        rs["heroes"][hid] = 0 if new else rs["heroes"][hid] + 1
+        ids.append(hid); firsts.append(new)
+        if r["rarity"] == "legendary":
+            first = r.get("featured", False) and hid not in owns
+            events.append({"type": "featured_first" if first else "legendary", "hero": hid, "flaw": "", "ink": ""})
+    info = edition_on(bid, day, epoch)
+    hours = (day - info["open_day"]) * 24 + RV["pull_hour"]
+    made = make_prints(bid, ids, day, epoch, hours, rs["ed"].get(bid, {}), mix(rs["seed"], PR["seed"]), rs["print_seq"])
+    rs["ed"][bid] = made["ed"]
+    kept, seq = rs["prints"], rs["print_seq"]
+    for k, p in enumerate(made["prints"]):
+        n = seq + k + 1
+        p.update({"n": n, "uid": "rue-%d" % n, "day": day, "first": firsts[k], "taken": False})
+        if p["flaw"] != "": events.append({"type": "misprint", "hero": p["hero"], "flaw": p["flaw"], "ink": p["ink"]})
+        if p["holo"]: events.append({"type": "holo", "hero": p["hero"], "flaw": p["flaw"], "ink": p["ink"]})
+        if r_keeps(p): kept.append(p)
+    rs["print_seq"] = seq + len(ids)
+    rs["prints"] = r_sort_prints(kept)
+    for k, e in enumerate(events):
+        rs["feed_seq"] += 1
+        fills = {"hero": HERO[e["hero"]]["name"], "flaw": (flaw_def(e["flaw"]) or {}).get("adj", "")}
+        rs["feed"].insert(0, {"n": rs["feed_seq"], "day": day, "type": e["type"], "hero": e["hero"], "flaw": e["flaw"],
+                              "ink": e["ink"], "line": r_line(e["type"], rs["seed"], day, k, fills)})
+    del rs["feed"][RV["feed_max"]:]
+    return events
+
+def r_catch_up(rs, today, epoch, owns):
+    if not rs["heroes"]:
+        for hid in RV["start_heroes"]: rs["heroes"][hid] = 0
+    if rs["day"] < 0: rs["day"] = today - 1
+    if today <= rs["day"]: return 0
+    frm = max(rs["day"] + 1, today - RV["catch_up_days"] + 1)
+    for d in range(frm, today + 1): r_sim_day(rs, d, epoch, owns)
+    rs["day"] = today
+    return today - frm + 1
+
+def r_best_untaken(rs):
+    best = None
+    for p in rs["prints"]:
+        if p.get("taken", False): continue
+        if best is None or score(p) > score(best) or (score(p) == score(best) and p["n"] < best["n"]):
+            best = p
+    return dict(best) if best else {}
+
+def r_haul(cleared):
+    h = RV["haul"]; return {"gems": h["gems"], "gold": h["gold_base"] + h["gold_per_stage"] * cleared, "dust": h["dust"]}
+
+N_STAGES = sum(len(ch["stages"]) for ch in STAGES["chapters"])
+def r_cleared_on(c, day):
+    lead = RV["stage_lead"]; return max(0, min(c + lead[day % len(lead)], N_STAGES))
+def r_tower_on(b, day):
+    lead = RV["tower_lead"]; return max(0, min(b + lead[day % len(lead)], TOWER["floors"]))
+
+
 # ------------------------------------------------------------------ checker
 def fx(name):
     with open(os.path.join(ROOT, "data", "fixtures", name + ".json")) as f:
@@ -827,6 +1037,33 @@ for b in f["battles"]:
     check("battle.%s.outcome" % b["name"], b["outcome"], sim.outcome())
     check("battle.%s.final_units" % b["name"], b["final_units"], units)
     if reqs: check("battle.%s.requests" % b["name"], b["manual_ultimates"], reqs)
+
+f = fx("prints")
+check("prints.editions", [c["out"] for c in f["editions"]], [edition_on(c["banner"], c["day"], c["epoch_day"]) for c in f["editions"]])
+check("prints.flaw_for_roll", f["flaws"], [flaw_for_roll(r) for r in f["flaw_rolls"]])
+check("prints.grade_for_roll", f["grades"], [grade_for_roll(r) for r in f["grade_rolls"]])
+for c in f["make_prints"]:
+    check("prints." + c["name"], c["out"], make_prints(c["banner"], c["hero_ids"], c["day"], c["epoch_day"], c["hours_open"], c["ed"], c["seed"], c["seq"]))
+check("prints.notable_score", [[c["notable"], c["score"]] for c in f["samples"]], [[notable(c["print"]), score(c["print"])] for c in f["samples"]])
+check("prints.trim", [f["trim"]["out"], f["trim"]["out_default"]], [trim(f["trim"]["list"], f["trim"]["keep_plain"]), trim(f["trim"]["list"])])
+
+f = fx("rival")
+e = f["epoch_day"]
+check("rival.epoch_day", e, EPOCH)
+check("rival.banner_on", f["banners"], [banner_on(d, e) for d in f["banner_days"]])
+check("rival.counter_faction", f["counters"], [counter_faction(x) for x in f["factions"]])
+check("rival.stars_for", [c["out"] for c in f["stars"]], [r_stars(c["hero_id"], c["dupes"], c["cap"]) for c in f["stars"]])
+check("rival.level_on", [c["out"] for c in f["levels"]], [r_level(c["avg"], c["day"], c["countering"]) for c in f["levels"]])
+check("rival.team", [c["out"] for c in f["teams"]], [r_team(c["heroes"], c["cap"], c["level"], c["prefer"]) for c in f["teams"]])
+for c in f["sims"]:
+    rs, outs = r_new_state(c["seed"]), []
+    for st in c["steps"]:
+        n = r_catch_up(rs, st["today"], e, set(st["owns"]))
+        outs.append({"days": n, "state": json.loads(json.dumps(rs)), "best_untaken": r_best_untaken(rs)})
+    check("rival.sim." + c["name"], c["out"], outs)
+check("rival.haul", f["haul_out"], [r_haul(c) for c in f["hauls"]])
+check("rival.leads", f["lead_out"], [[r_cleared_on(c[0], c[2]), r_tower_on(c[1], c[2])] for c in f["leads"]])
+check("rival.lines", f["line_out"], [r_line(c[0], c[1], c[2], c[3], c[4]) for c in f["lines"]])
 
 bad = [k for k, v in results.items() if v]
 print("\n%d checks, %d differ" % (len(results), len(bad)))

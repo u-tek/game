@@ -2,6 +2,9 @@ extends Control
 ## Screen "battle": plays a campaign stage. params: stage_index (int); skip (bool, for
 ## screenshots: skips to the result right away). params mode = "tower" and floor (int) play a
 ## floor of the Spire instead (the floor is stage-shaped, so the rest of the screen is shared).
+## params mode = "rival" fights Rue's team today (Game.rival_battle_setup; a result poster of its own,
+## src/ui/rival/rival_result.gd: YOU BEAT RUE with the haul and her print, or RUE WINS, which costs
+## nothing).
 ## Debug builds on a throwaway save (--rich / --fresh), for screenshots: result = "victory" |
 ## "defeat" skips to that result; manual = true plays with manual ultimates (cards fill and wait).
 ##
@@ -26,6 +29,7 @@ const BattleFx := preload("res://src/ui/battle/battle_fx.gd")
 const UltCinematic := preload("res://src/ui/battle/ult_cinematic.gd")
 const AllyPortrait := preload("res://src/ui/battle/ally_portrait.gd")
 const BattleResult := preload("res://src/ui/battle/battle_result.gd")
+const RivalResult := preload("res://src/ui/rival/rival_result.gd")
 const StageInfo := preload("res://src/ui/battle/stage_info.gd")
 const BP := preload("res://src/ui/v4/battle/battle_print.gd")
 const PK := preload("res://src/ui/v4/poster_kit.gd")
@@ -70,7 +74,7 @@ const NUM_SHIELD := Color("c9d6de")
 
 var _index := -1
 var _stage: Dictionary = {}
-## "stage" (campaign) or "tower" (the Spire: _floor)
+## "stage" (campaign), "tower" (the Spire: _floor) or "rival" (Rue)
 var _mode := "stage"
 var _floor := 0
 var _setup: Dictionary = {}
@@ -125,7 +129,20 @@ var _shown_secs := -1
 
 func setup(params: Dictionary) -> void:
 	UI.set_chrome(false, false)
-	if str(params.get("mode", "")) == "tower":
+	if str(params.get("mode", "")) == "rival":
+		_mode = "rival"
+		if not Game.rival_unlocked():
+			_completed = true
+			UI.toast("Rue hasn't shown up yet", "bad")
+			UI.go("rival")
+			return
+		_setup = Game.rival_battle_setup()
+		var rv: Dictionary = Game.rival()
+		_index = 0
+		_stage = {"index": 0, "id": "RUE", "chapter": 0, "name": "Lv %d" % int(rv.get("level", 0)), "is_boss": false,
+			"background": str(_setup.get("background", "")), "enemies": _setup.get("enemies", []),
+			"recommended_power": int(rv.get("power", 0))}
+	elif str(params.get("mode", "")) == "tower":
 		_mode = "tower"
 		_floor = int(params.get("floor", Game.tower_next()))
 		_stage = Game.tower_floor(_floor)
@@ -186,6 +203,8 @@ func _exit_tree() -> void:
 		var out := {"victory": false, "winner": "enemy", "retreat": true}
 		if _mode == "tower":
 			Game.complete_tower.call_deferred(_floor, out)
+		elif _mode == "rival":
+			Game.complete_rival.call_deferred(out)
 		else:
 			Game.complete_stage.call_deferred(_index, out)
 
@@ -194,11 +213,15 @@ func _exit_tree() -> void:
 func _report(outcome: Dictionary) -> Dictionary:
 	if _mode == "tower":
 		return Game.complete_tower(_floor, outcome)
+	if _mode == "rival":
+		return Game.complete_rival(outcome)
 	return Game.complete_stage(_index, outcome)
 
 
 ## Where Retreat and the result's back button lead.
 func _back_screen() -> String:
+	if _mode == "rival":
+		return "rival"
 	return "tower" if _mode == "tower" else "campaign"
 
 
@@ -389,7 +412,7 @@ func _build_hud() -> void:
 	BP.rect(_hud, Rect2(98, y0 + 14, 1, TOP_H - 30), Color(BP.INK, 0.55))
 
 	# The stage block.
-	var kick := BP.t(("SPIRE · FLOOR" if _mode == "tower" else "STAGE · CH.%02d" % (int(_stage.get("chapter", 0)) + 1)), 11, Color(BP.INK, 0.7), "mono_bold")
+	var kick := BP.t(("SPIRE · FLOOR" if _mode == "tower" else ("RIVAL · CHALLENGE" if _mode == "rival" else "STAGE · CH.%02d" % (int(_stage.get("chapter", 0)) + 1))), 11, Color(BP.INK, 0.7), "mono_bold")
 	kick.position = Vector2(110, y0 + 10)
 	_hud.add_child(kick)
 	var id_text := ("F%02d" % _floor) if _mode == "tower" else str(_stage.get("id", ""))
@@ -730,6 +753,8 @@ func _start_intro() -> void:
 	var col := Kit.vbox(0)
 	col.mouse_filter = MOUSE_FILTER_IGNORE
 	var kick := ("SPIRE  ·  FLOOR %02d" % _floor) if _mode == "tower" else ("STAGE %s  ·  CH.%02d" % [str(_stage.get("id", "")), int(_stage.get("chapter", 0)) + 1])
+	if _mode == "rival":
+		kick = "RIVAL  ·  SHE CHOSE THIS TEAM FOR YOU"
 	col.add_child(BP.t(kick, 12, BP.SIG, "mono_bold"))
 	var nm := BP.t(str(_stage.get("name", "")).to_upper(), 44, BP.INK, "compressed")
 	col.add_child(nm)
@@ -1263,6 +1288,9 @@ func _finish(outcome: Dictionary) -> void:
 		outcome = _forced(outcome)
 	var res := _report(outcome)
 	var val: Dictionary = res.get("value", {}) if res.get("value") is Dictionary else {}
+	if _mode == "rival":
+		_finish_rival(outcome, val)
+		return
 	var r: Control = BattleResult.new()
 	r.set("on_action", _on_result_action)
 	_overlay.add_child(r)
@@ -1295,6 +1323,20 @@ func _finish(outcome: Dictionary) -> void:
 			"mvp": _mvp(outcome), "foe": _foe_mvp(outcome), "team_size": _team_size,
 			"mode": _mode, "floor": _floor, "report_no": _report_no(),
 		})
+
+
+## The Rival's result poster: YOU BEAT RUE (the haul, her print, your tag) or RUE WINS (costs nothing).
+func _finish_rival(outcome: Dictionary, val: Dictionary) -> void:
+	var r: Control = RivalResult.new()
+	r.set("on_action", _on_result_action)
+	_overlay.add_child(r)
+	var win := bool(outcome.get("victory", false))
+	UI.sfx("victory" if win else "defeat")
+	if win:
+		UI.haptic(30)
+	r.call("show_rival", {"victory": win, "value": val, "outcome": outcome, "mvp": _mvp(outcome), "foe": _foe_mvp(outcome),
+		"team_size": _team_size, "safe_top": UI.safe_top(), "safe_bottom": UI.safe_bottom(), "report_no": _report_no(),
+		"rival": Game.rival()})
 
 
 ## Debug screenshots: the outcome turned into the forced result (counts kept plausible).
@@ -1374,7 +1416,12 @@ func _on_result_action(action_name: String) -> void:
 				UI.go("campaign", {"open_stage": nxt})
 			else:
 				UI.go("battle", {"stage_index": nxt})
+		"rival":
+			UI.go("rival")
 		"retry":
+			if _mode == "rival":
+				UI.go("battle", {"mode": "rival"})
+				return
 			if _mode == "tower":
 				UI.go("battle", {"mode": "tower", "floor": _floor})
 			else:

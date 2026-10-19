@@ -17,6 +17,11 @@ extends Control
 ##              big burst (flash, double ink burst, grain), she resolves out of an overexposed
 ##              glow, "LEGENDARY" and her name slam down.
 ##
+## Every hero arrives as a numbered print (Game.summon's "print"): her serial is stamped on with the
+## badges ("No. 0412 / 5,000", the edition and printing). A misprint or a holo foil gets its own beat
+## once she has landed: a big rubber stamp MISPRINT (with the flaw) or HOLO FOIL slams down, then the
+## poster's figure flips like a card to the flawed print (misprint.gdshader on her still).
+##
 ## The sequence (summon_sequence.gd) owns it: start() begins the clock, tap() fast-forwards
 ## (held beat -> burst -> settled) and returns true once settled (= next hero), leave() slides it
 ## out and frees it. Screen-wide effects go out through the fx signal: ("flash", color, alpha),
@@ -41,6 +46,9 @@ const SCHEDULE := {
 ## How long the print takes to come into register and turn into her, per rarity.
 const RESOLVE := {"rare": 0.34, "epic": 0.42, "legendary": 0.7}
 const PULSES := [0.15, 0.6, 1.02, 1.36]
+## The misprint / holo beat: it starts this long after she has landed and lasts BEAT_FLAW.
+const FLAW_GAP := 0.12
+const BEAT_FLAW := 1.05
 const BAND_W := 200.0
 const INK := PK.INK
 const PAPER := PK.PAPER
@@ -82,6 +90,14 @@ var _badges: Control
 var _tag: Control
 var _chest := Vector2.ZERO
 var _rng := RandomNumberGenerator.new()
+## The print this pull made ({} for made-up results without one).
+var print_data: Dictionary = {}
+## Start of the misprint / holo beat (< 0: a plain print, no beat).
+var _flaw_t := -1.0
+var _flawed: TextureRect
+var _flaw_mat: ShaderMaterial
+var _flaw_stamp: Control
+var _serial: Control
 
 
 ## res: one entry of Game.summon's results ({hero_id, rarity, is_new, shards, dust}).
@@ -101,6 +117,10 @@ func setup(res: Dictionary, stars: int, skin: String, top_inset: float, bottom_i
 	_burst_t = float(BEAT[rarity])
 	_sched = SCHEDULE[rarity]
 	_settle_t = _burst_t + float(_sched[5])
+	print_data = res.get("print", {}) if res.get("print") is Dictionary else {}
+	if str(print_data.get("flaw", "")) != "" or bool(print_data.get("holo", false)):
+		_flaw_t = _settle_t + FLAW_GAP
+		_settle_t = _flaw_t + BEAT_FLAW
 	name = "Reveal_" + hero_id
 	mouse_filter = MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(PRESET_FULL_RECT)
@@ -230,7 +250,94 @@ func _build(stars: int, skin: String) -> void:
 			label = "DUPLICATE · DUST · "
 			value = "+%d" % dust
 	_tag = PK.stamp_disc(_p, Vector2(BAND_W - 64, ph - 300), 124, label, value, -0.14)
+	_build_print_marks(tex, sr, feet, pw, ph, box)
 	PK.grain(_p, 0.07)
+
+
+## The print's marks: the serial stamp, and for a misprint or holo the flawed still (hidden until the
+## flip) and the big rubber stamp.
+func _build_print_marks(tex: Texture2D, sr: Rect2, feet: Vector2, pw: float, ph: float, box: Control) -> void:
+	if print_data.is_empty():
+		return
+	var ss := SerialStamp.new()
+	ss.name = "Serial"
+	ss.print_data = print_data
+	ss.size = Vector2(250, 66)
+	ss.position = Vector2(pw - 48 - 262, 18)
+	ss.pivot_offset = ss.size * 0.5
+	ss.rotation = -0.035
+	_p.add_child(ss)
+	_serial = ss
+	if _flaw_t < 0.0:
+		return
+	_flawed = TextureRect.new()
+	_flawed.name = "FlawedPrint"
+	_flawed.mouse_filter = MOUSE_FILTER_IGNORE
+	_flawed.texture = tex
+	_flawed.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_flawed.stretch_mode = TextureRect.STRETCH_SCALE
+	_flawed.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	_flawed.position = sr.position
+	_flawed.size = sr.size
+	_flawed.pivot_offset = Vector2(feet.x - sr.position.x, sr.size.y * 0.5)
+	_flaw_mat = PrintCard.material_for(print_data, Vector4(0, 0, 1, 1), 24.0)
+	_flaw_mat.set_shader_parameter("on_paper", false)
+	_flaw_mat.set_shader_parameter("paper", PAPER)
+	_flaw_mat.set_shader_parameter("cell", 6.0)
+	if bool(print_data.get("holo", false)):
+		_flaw_mat.set_shader_parameter("holo", 1.5)
+	_flawed.material = _flaw_mat
+	_flawed.visible = false
+	box.add_child(_flawed)
+	var flaw := str(print_data.get("flaw", ""))
+	var st := PrintCard.Stamp.new()
+	st.name = "FlawStamp"
+	if flaw != "":
+		st.text = "MISPRINT"
+		var fl := PrintRules.flaw_name(flaw).to_upper()
+		if flaw == "swap":
+			fl += " · %s" % PrintRules.ink_name(str(print_data.get("ink", ""))).to_upper()
+		st.sub = fl + ("  ·  HOLO FOIL" if bool(print_data.get("holo", false)) else "")
+		st.color = SIG
+	else:
+		st.text = "HOLO FOIL"
+		st.sub = "A FOILED PRINT  ·  TILT IT"
+		st.color = INK
+	var sw := minf(pw - 120.0, 520.0)
+	st.size = Vector2(sw, sw * 0.32)
+	st.position = Vector2((pw - sw) * 0.5 + 30.0, ph * 0.56)
+	st.pivot_offset = st.size * 0.5
+	st.rotation = -0.22
+	st.modulate.a = 0.0
+	_p.add_child(st)
+	_flaw_stamp = st
+
+
+## The misprint beat on the clock: the stamp slams (big to its size with a bounce), then the figure
+## flips like a card (squash to nothing, the flawed print grows back).
+func _apply_flaw(t: float, zoom: float) -> void:
+	var ks := Fx.k01(t, _flaw_t, _flaw_t + 0.3)
+	if _flaw_stamp:
+		_flaw_stamp.modulate.a = Fx.k01(t, _flaw_t, _flaw_t + 0.05)
+		var sc := lerpf(2.6, 1.0, Fx.out_back(ks, 1.3))
+		_flaw_stamp.scale = Vector2(sc, sc)
+	if _flawed == null:
+		return
+	var kf := Fx.k01(t, _flaw_t + 0.36, _flaw_t + 0.74)
+	if kf <= 0.0:
+		_flawed.visible = false
+		_anchor.visible = true
+		return
+	if kf < 0.5:
+		var sx := 1.0 - kf * 2.0
+		_anchor.visible = true
+		_anchor.scale = Vector2(zoom * sx, zoom)
+		_flawed.visible = false
+	else:
+		_anchor.visible = false
+		_flawed.visible = true
+		var sx2 := Fx.out_back((kf - 0.5) * 2.0, 1.2)
+		_flawed.scale = Vector2(sx2, 1.0)
 
 
 ## A halftone print of the hero's still, lined up with the live figure.
@@ -269,6 +376,9 @@ func _build_events() -> void:
 			_events.append([_burst_t, "burst"])
 			_events.append([_burst_t + float(_sched[0]), "slam"])
 			_events.append([_burst_t + float(_sched[1]) + 0.24, "name"])
+	if _flaw_t >= 0.0:
+		_events.append([_flaw_t, "flaw_stamp"])
+		_events.append([_flaw_t + 0.36, "flip"])
 	_events.append([_settle_t, "settle"])
 	_next_event = 0
 
@@ -288,6 +398,10 @@ func tap() -> bool:
 		return false
 	if _t < _burst_t - 0.02:
 		_jump(_burst_t)
+		return false
+	if _flaw_t >= 0.0 and _t < _flaw_t - 0.02:
+		# Land everything, but let the misprint beat play: it is the moment.
+		_jump(_flaw_t)
 		return false
 	if not settled:
 		_jump(_settle_t)
@@ -363,6 +477,20 @@ func _on_event(id: String) -> void:
 			UI.haptic(25)
 			fx.emit("shake", Color.WHITE, 0.4 if rarity == "legendary" else 0.25)
 			fx.emit("grain", Color.WHITE, 0.14)
+		"flaw_stamp":
+			var is_flaw := str(print_data.get("flaw", "")) != ""
+			UI.sfx("slam")
+			UI.sfx("legendary" if is_flaw else "sparkle")
+			UI.haptic(60)
+			fx.emit("shake", Color.WHITE, 0.7)
+			fx.emit("flash", SIG if is_flaw else Color(0.85, 0.95, 1.0), 0.35)
+			fx.emit("grain", Color.WHITE, 0.25)
+			if _flaw_stamp:
+				_spawn_burst(_pr.position + _flaw_stamp.position + _flaw_stamp.size * 0.5, SIG if is_flaw else INK, 1.1)
+		"flip":
+			UI.sfx("reveal")
+			UI.haptic(25)
+			fx.emit("grain", Color.WHITE, 0.18)
 		"settle":
 			settled = true
 			landed.emit()
@@ -491,3 +619,41 @@ func _apply() -> void:
 	_tag.modulate.a = Fx.k01(tb, s4, s4 + 0.1)
 	var sc4 := lerpf(0.4, 1.0, Fx.out_back(p4, 2.2))
 	_tag.scale = Vector2(sc4, sc4)
+	if _serial:
+		var p5 := Fx.k01(tb, s4 + 0.14, s4 + 0.42)
+		_serial.modulate.a = Fx.k01(tb, s4 + 0.14, s4 + 0.2)
+		var sc5 := lerpf(1.8, 1.0, Fx.out_back(p5, 1.6))
+		_serial.scale = Vector2(sc5, sc5)
+	if _flaw_t >= 0.0:
+		_apply_flaw(t, zoom)
+
+
+## The serial stamped on the poster: "No." small, the number big in mono, "/ 5,000", the edition and
+## printing under it, inked by hand (specks where the ink missed); an early serial (No. 0100 or
+## lower) is inked in signal.
+class SerialStamp:
+	extends Control
+	var print_data: Dictionary = {}
+
+	func _ready() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func _draw() -> void:
+		var p := print_data
+		var early := int(p.get("serial", 9999)) <= PrintRules.EARLY_SERIAL
+		var c := Color(Color("ff4b1f") if early else Color("101113"), 0.9)
+		var fm := Kit.font("mono_bold")
+		var fr := Kit.font("mono")
+		draw_rect(Rect2(Vector2.ZERO, size), c, false, 2.0)
+		draw_string(fr, Vector2(10, 24), "No.", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, c)
+		var num := "%04d" % int(p.get("serial", 0))
+		draw_string(fm, Vector2(42, 32), num, HORIZONTAL_ALIGNMENT_LEFT, -1, 30, c)
+		var nw := fm.get_string_size(num, HORIZONTAL_ALIGNMENT_LEFT, -1, 30).x
+		draw_string(fr, Vector2(48 + nw, 30), "/ %s" % Kit.format_full(int(p.get("run", 0))), HORIZONTAL_ALIGNMENT_LEFT, -1, 14, c)
+		draw_line(Vector2(8, 42), Vector2(size.x - 8, 42), Color(c, 0.6), 1.0)
+		draw_string(fm, Vector2(10, 58), PrintCard.edition_line(p), HORIZONTAL_ALIGNMENT_LEFT, size.x - 18, 10, c)
+		var rng := RandomNumberGenerator.new()
+		rng.seed = int(p.get("v", 7)) + 11
+		var paper := Color("e9e8e2")
+		for i in 90:
+			draw_circle(Vector2(rng.randf() * size.x, rng.randf() * size.y), rng.randf_range(0.4, 1.2), Color(paper, rng.randf_range(0.5, 0.9)))
