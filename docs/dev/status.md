@@ -1,6 +1,6 @@
 # Status and handoff
 
-**Status as of 2026-10-18, 04:30 UTC (14:30 on the owner's PC clock, UTC+10).** This is the living
+**Status as of 2026-10-19, 06:30 UTC (16:30 on the owner's PC clock, UTC+10).** This is the living
 status file: update it at the end of every work block. Rules and conventions are in `CLAUDE.md`;
 this file says where things stand. Older logs are under "History" at the bottom.
 
@@ -41,8 +41,8 @@ this file says where things stand. Older logs are under "History" at the bottom.
     bots yet: floor f is at least as hard as stage f, so it trails the campaign.
   - **Painted backdrops** (`assets/art/backgrounds/`, JPEG): Lobby and chapters 1-6 from the
     splash-card plates (`SceneBackdrop` draws them; code-drawn scenes remain the fallback).
-  - **Latest IPA: run 39198494464** (2026-10-19 04:18 UTC, artifact `HaloAndHorn-ipa` 224 MB,
-    expires 2026-11-02): everything above plus the nudity toggle and the 60 adult skins.
+  - **Latest IPA:** see "Polish round" below; previous run 39198494464 (2026-10-19 04:18
+    UTC): the nudity toggle and the 60 adult skins.
     Previous: 39097803986 (2026-10-18), 38946000040 (old farm art).
 - **Designs:** briefs v4 "Aero Y2K" (`docs/dev/character-briefs.md`): Y2K / Frutiger Aero
   fashion, maximum allure without nudity, female only; Nuriel, Brakka, Orrin and Lucen redesigned.
@@ -94,6 +94,29 @@ this file says where things stand. Older logs are under "History" at the bottom.
   hero page has "Try on" (preview without buying). Known: skins with wide wings are scaled down to
   fit the 1024 px canvas, so they stand smaller than wingless skins (Seraphiel Tidal Diva is about
   1300 px tall, Kessa Card Shark about 1890).
+- **Polish round (2026-10-19, owner: animations "nowhere near as responsive, dynamic &
+  professional", UI "amateur and janky", skins not shown on cards, nudity not everywhere,
+  summoning not exciting).** Done and merged (three worktree agents plus the lead):
+  - **Rigs v5:** hand-drawn rigs for all 15 (`tools/art_rigs_v5.py`): springs for hair,
+    wings, tails, capes, cloth, bust/rear, weapons on their own arm; blinks, talking and
+    smiles from `variants.py` for all 15 (picks swapped for Vesper's tinted lenses and
+    Liora's aqua lipstick). Livelier shared idle. Skins and adult art keep quick rigs.
+    Limit: one flat painting can only bend; the next step up is layered (cut-out) art,
+    to prototype on one hero.
+  - **Battle effects:** layered additive slashes, star/shockwave impacts with sparks,
+    comet bolts, hit stop on crits/ultimates, screen flash, shake on every hit.
+  - **Skins everywhere:** cards, portraits, avatars, banners, Lobby, hero page, ult
+    cut-ins and battle show the equipped skin (`Kit.hero_look`, `HeroArt.art_key`).
+  - **Nudity mode everywhere:** nude base looks for all 15 (renders seed_base+5000..5002,
+    picks in `art_src/_review/adult_base_picks.json`, quick cutouts, quick rigs, rig ids
+    `<id>@@adult`, art in `assets/art/heroes/<id>/adult/`); splash cards read `adult/`
+    layers; a big "NUDITY MODE ENABLED/DISABLED" notice. Public on the owner's word.
+  - **UI feel:** press squash/spring with haptics and new sounds, light sweeps, screen
+    transitions and entrances, launch screen, "Preparing battle" veil, sliding nav and tab
+    bars, animated switches, springy popups and toasts, reward pops and coin flights,
+    counting currency, Settings > Display > Reduce motion (`docs/dev/ui-style-v2.md` 8).
+  - **Summon:** charging portal with rarity tells, one tap-through animated splash per
+    hero, big Epic/Legendary reveals, Skip, flip-in results (`src/ui/summon/`).
 - **Nudity toggle in the game (2026-10-19):** Settings > Adult content > "Toggle nudity" (18+
   confirm, off by default) swaps every skin to its nude art in `assets/.../skins/<art>/adult/`.
   All 60 installed (44 full finals by OpenCode, 16 quick cutouts by Claude), reviewed, rigged;

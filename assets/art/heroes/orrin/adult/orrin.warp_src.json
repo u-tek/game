@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for orrin adult, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s307001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "orrin.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [551, 874, 335],
+  "look_px": [8, 5],
+  "meta": {"weapon": "shield", "fx_color": "#b48cff", "art": "comfy s307001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [590, 1282]},
+    {"name": "torso", "parent": "hips", "pivot": [530, 1187]},
+    {"name": "chest", "parent": "torso", "pivot": [540, 1070]},
+    {"name": "neck", "parent": "chest", "pivot": [495, 965]},
+    {"name": "head", "parent": "neck", "pivot": [545, 935]},
+    {"name": "face", "parent": "head", "pivot": [551, 868]},
+    {"name": "hair_front", "parent": "head", "pivot": [551, 796]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [551, 879], "radius": [64, 52], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [551, 816], "radius": [77, 36], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [551, 856], "radius": [124, 113], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[417, 955], [573, 955], [683, 1010], [675, 1167], [630, 1197], [430, 1197], [405, 1167], [397, 1010]], "feather": 40}}
+  ],
+  "overlays": []
+}

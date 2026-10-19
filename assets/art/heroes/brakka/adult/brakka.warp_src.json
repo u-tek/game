@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for brakka adult, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s207001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "brakka.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [637, 381, 497],
+  "look_px": [8, 5],
+  "meta": {"weapon": "fists", "fx_color": "#ff8a3d", "art": "comfy s207001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [640, 974]},
+    {"name": "torso", "parent": "hips", "pivot": [644, 837]},
+    {"name": "chest", "parent": "torso", "pivot": [648, 670]},
+    {"name": "neck", "parent": "chest", "pivot": [635, 519]},
+    {"name": "head", "parent": "neck", "pivot": [628, 477]},
+    {"name": "face", "parent": "head", "pivot": [637, 372]},
+    {"name": "hair_front", "parent": "head", "pivot": [637, 261]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [637, 390], "radius": [96, 81], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [637, 293], "radius": [114, 55], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [637, 353], "radius": [184, 175], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[519, 509], [751, 509], [860, 610], [849, 817], [792, 847], [496, 847], [447, 817], [436, 610]], "feather": 40}}
+  ],
+  "overlays": []
+}

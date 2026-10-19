@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for sable adult, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s308002, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "sable.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [309, 888, 437],
+  "look_px": [8, 5],
+  "meta": {"weapon": "chain", "fx_color": "#b48cff", "art": "comfy s308002 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [568, 1307]},
+    {"name": "torso", "parent": "hips", "pivot": [365, 1215]},
+    {"name": "chest", "parent": "torso", "pivot": [339, 1103]},
+    {"name": "neck", "parent": "chest", "pivot": [375, 1001]},
+    {"name": "head", "parent": "neck", "pivot": [301, 973]},
+    {"name": "face", "parent": "head", "pivot": [309, 880]},
+    {"name": "hair_front", "parent": "head", "pivot": [309, 781]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [309, 896], "radius": [84, 72], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [309, 809], "radius": [100, 49], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [309, 863], "radius": [162, 156], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[273, 991], [477, 991], [525, 1043], [516, 1195], [495, 1225], [235, 1225], [162, 1195], [153, 1043]], "feather": 40}}
+  ],
+  "overlays": []
+}
