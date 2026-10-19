@@ -1082,7 +1082,8 @@ func _browse_step(dir: int) -> void:
 	if i < 0 or _browse.size() < 2:
 		return
 	var n := _browse[(i + dir + _browse.size()) % _browse.size()]
-	UI.go("hero_detail", {"hero_id": n, "browse": Array(_browse)})
+	# _dir: the next hero slides in from the side the arrow points to.
+	UI.go("hero_detail", {"hero_id": n, "browse": Array(_browse), "_dir": dir})
 
 
 func _poke_hero() -> void:

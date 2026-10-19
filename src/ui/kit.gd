@@ -33,15 +33,24 @@ extends RefCounted
 ##   Economy    have(currency_id), can_afford(costs)
 ##   Colors     faction_color, rarity_color, rarity_frame, tier_color
 ##   Numbers    format_num (12.5K / 3.4M), format_full (1,234,567), format_time (2h 05m)
-##   Motion     pop_in, pulse, shake, count_to
+##   Motion     pop_in, pulse, shake, deny, count_to, offset_in, stagger_in, float_text,
+##              sparkle, spinner, add_shine, add_glow_pulse, motion_ok
 ##
 ## Conventions: sizes are viewport px on the 720 px wide canvas. Light-on-dark is the
 ## default (INK text on dark chrome); builders that also live on light pages take a
 ## `light` flag (TEXT colors). Builders only read Game (never write): hero cards (owned
 ## level/stars when not given), reward tiles (gear names), cost rows / costs buttons /
-## have / can_afford (currency amounts). Buttons play UI.sfx("tap"). Every clickable Kit
-## widget uses MOUSE_FILTER_PASS so it works inside Kit.scroll lists (a drag scrolls
-## instead of pressing). Touch targets are at least BUTTON_H (88 px) tall.
+## have / can_afford (currency amounts). Buttons play UI.sfx("tap") and a light haptic.
+## Every clickable Kit widget uses MOUSE_FILTER_PASS so it works inside Kit.scroll lists (a
+## drag scrolls instead of pressing). Touch targets are at least BUTTON_H (88 px) tall.
+##
+## Feel (2026-10-19): every Kit button, tile and card squashes and brightens the instant a
+## finger lands and springs back past full size on release (add_press_fx); a tap on a
+## disabled button shakes "no". Primary and orange buttons, banners and the lobby call to
+## action catch a light sweep now and then (add_shine); orange buttons breathe a glow.
+## Progress bars fill in, currency amounts count with a colour flash, tabs slide their
+## underline, switches slide their knob. Settings > Reduce motion (motion_ok() false) turns
+## the decorative motion off; press feedback stays.
 
 const KitBox := preload("res://src/ui/components/kit_box.gd")
 const HeroCard := preload("res://src/ui/components/hero_card.gd")
@@ -55,6 +64,10 @@ const Rays := preload("res://src/ui/components/rays.gd")
 const Ribbon := preload("res://src/ui/components/ribbon.gd")
 const ShortcutButton := preload("res://src/ui/components/shortcut_button.gd")
 const Backdrop := preload("res://src/ui/components/backdrop.gd")
+const Shine := preload("res://src/ui/components/shine.gd")
+const Spinner := preload("res://src/ui/components/spinner.gd")
+const Sparkle := preload("res://src/ui/components/sparkle.gd")
+const ToggleSwitch := preload("res://src/ui/components/toggle_switch.gd")
 
 # ------------------------------------------------------------------ design tokens
 
@@ -224,11 +237,29 @@ static func hero_look(hero_id: String, opts: Dictionary = {}) -> String:
 	return ""
 
 
-## Plays a UI sound through the UI autoload (no-op without it).
-static func sfx(sound_name: String) -> void:
+## Plays a UI sound through the UI autoload (no-op without it). pitch > 0 sets the playback
+## pitch (rising pitches for a run of pops).
+static func sfx(sound_name: String, pitch: float = -1.0) -> void:
 	var ui := autoload("UI")
 	if ui:
-		ui.call("sfx", sound_name)
+		ui.call("sfx", sound_name, pitch)
+
+
+## A short vibration through the UI autoload (phones only; follows the Vibration setting).
+## amplitude 0..1 (iOS/Android intensity), -1 = the device default.
+static func haptic(ms: int = 10, amplitude: float = -1.0) -> void:
+	var ui := autoload("UI")
+	if ui:
+		ui.call("haptic", ms, amplitude)
+
+
+## False when the player turned on Settings > Reduce motion: decorative motion (screen slides,
+## content stagger, shine sweeps, glow pulses, fill-ins) is skipped. Press feedback stays.
+static func motion_ok() -> bool:
+	var g := autoload("Game")
+	if g == null or not g.has_method("setting"):
+		return true
+	return g.call("setting", "reduce_motion") != true
 
 
 # ------------------------------------------------------------------ text
@@ -389,6 +420,7 @@ static func cost_button(text: String, currency_id: String, amount: int, on_press
 	col.offset_bottom = -4
 	b.add_child(col)
 	b.set_meta("price_box", price)
+	_dress_button(b, look)
 	return b
 
 
@@ -440,7 +472,17 @@ static func costs_button(text: String, costs: Dictionary, on_pressed: Callable =
 	col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	col.offset_bottom = -4
 	b.add_child(col)
+	_dress_button(b, look)
 	return b
+
+
+## Idle life for a call-to-action button: a glint now and then (primary, orange) and a
+## breathing glow behind orange ones. Added last so the glint passes over the label.
+static func _dress_button(b: Button, look: String) -> void:
+	if look == "primary" or look == "orange":
+		add_shine(b)
+	if look == "orange":
+		add_glow_pulse(b, ORANGE)
 
 
 ## Fits a Kit text button into `width` px (tight rows): narrows its side padding to `pad`
@@ -536,10 +578,12 @@ static func segmented(options: Array, selected: int, on_select: Callable = Calla
 		else:
 			b.text = str(opt)
 		b.button_pressed = i == selected
+		add_press_fx(b)
 		var idx := i
 		b.toggled.connect(func(on: bool) -> void:
 			if on:
-				sfx("tap")
+				sfx("tab")
+				haptic(10, 0.3)
 				if on_select.is_valid():
 					on_select.call(idx))
 		row.add_child(b)
@@ -585,10 +629,12 @@ static func filter_chips(options: Array, selected: int, on_select: Callable = Ca
 			b.add_theme_constant_override("icon_max_width", int(size * 0.5))
 			b.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 		b.button_pressed = i == selected
+		add_press_fx(b)
 		var idx := i
 		b.toggled.connect(func(on: bool) -> void:
 			if on:
-				sfx("tap")
+				sfx("tab")
+				haptic(10, 0.3)
 				if on_select.is_valid():
 					on_select.call(idx))
 		row.add_child(b)
@@ -597,7 +643,8 @@ static func filter_chips(options: Array, selected: int, on_select: Callable = Ca
 
 ## Tab strip (page tabs, dialog tabs): the active tab is a white plate with a cyan top bar
 ## and near-black text, the others are dark glass with light text. options: String or
-## {text, icon}. on_select(index). Each tab is 88 px tall.
+## {text, icon}. on_select(index). Each tab is 88 px tall. The cyan bar ("Ink") slides from
+## the old tab to the new one.
 static func tab_strip(options: Array, selected: int, on_select: Callable = Callable(), min_width: float = 200.0) -> HBoxContainer:
 	var row := hbox(2)
 	row.name = "TabStrip"
@@ -611,33 +658,77 @@ static func tab_strip(options: Array, selected: int, on_select: Callable = Calla
 		b.mouse_filter = Control.MOUSE_FILTER_PASS
 		b.custom_minimum_size = Vector2(min_width, BUTTON_H)
 		b.theme_type_variation = &"TabButton"
+		# The active plate without its own bar: the shared Ink draws (and slides) it.
+		b.add_theme_stylebox_override("pressed", UITheme.style("tab_on_flat"))
+		b.add_theme_stylebox_override("hover_pressed", UITheme.style("tab_on_flat"))
 		var text := str(opt.get("text", "")) if opt is Dictionary else str(opt)
 		b.text = text.to_upper()
 		if opt is Dictionary and opt.has("icon"):
 			b.icon = icon_texture(str(opt.icon))
 			b.add_theme_constant_override("icon_max_width", 34)
 			b.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		var ink := ColorRect.new()
+		ink.name = "Ink"
+		ink.color = ACCENT
+		ink.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		ink.z_index = 1
+		ink.anchor_right = 1.0
+		ink.offset_bottom = 5
+		ink.visible = i == selected
+		b.add_child(ink)
 		b.button_pressed = i == selected
+		add_press_fx(b)
 		var idx := i
 		b.toggled.connect(func(on: bool) -> void:
 			if on:
-				sfx("tap")
+				_slide_ink(row, b)
+				sfx("tab")
+				haptic(10, 0.3)
 				if on_select.is_valid():
 					on_select.call(idx))
 		row.add_child(b)
 	return row
 
 
-## On/off switch (settings). on_toggled(on: bool).
+## Moves a tab strip's cyan bar from the tab that had it to `to` (an eased slide that also
+## takes on the new tab's width).
+static func _slide_ink(row: Control, to: Button) -> void:
+	var ink := to.get_node_or_null("Ink") as Control
+	if ink == null:
+		return
+	var from: Button = null
+	for c in row.get_children():
+		if c != to and c is Button:
+			var other := (c as Button).get_node_or_null("Ink") as Control
+			if other and other.visible:
+				from = c as Button
+				other.visible = false
+	ink.visible = true
+	var prev: Variant = ink.get_meta("_tw") if ink.has_meta("_tw") else null
+	if prev is Tween and (prev as Tween).is_valid():
+		(prev as Tween).kill()
+	if from == null or not motion_ok() or not to.is_inside_tree():
+		ink.offset_left = 0
+		ink.offset_right = 0
+		return
+	var dx := from.position.x - to.position.x
+	ink.offset_left = dx
+	ink.offset_right = dx + from.size.x - to.size.x
+	var tw := ink.create_tween().set_parallel(true)
+	tw.tween_property(ink, "offset_left", 0.0, 0.32).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tw.tween_property(ink, "offset_right", 0.0, 0.32).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	ink.set_meta("_tw", tw)
+
+
+## On/off switch (settings): an animated Aero switch (ToggleSwitch, still a CheckButton).
+## on_toggled(on: bool).
 static func toggle(on: bool, on_toggled: Callable = Callable()) -> CheckButton:
-	var c := CheckButton.new()
+	var c := ToggleSwitch.new()
 	c.button_pressed = on
-	c.focus_mode = Control.FOCUS_NONE
-	c.mouse_filter = Control.MOUSE_FILTER_PASS
 	c.custom_minimum_size = Vector2(120, BUTTON_H)
-	c.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	c.toggled.connect(func(v: bool) -> void:
-		sfx("tap")
+		sfx("toggle", 1.1 if v else 0.9)
+		haptic(12, 0.4)
 		if on_toggled.is_valid():
 			on_toggled.call(v))
 	return c
@@ -659,38 +750,94 @@ static func make_tappable(target: Control, on_pressed: Callable) -> Button:
 	return b
 
 
-## Press animation (squash to 95% and spring back) on `button`, scaling `target`
-## (defaults to the button). Safe inside ScrollContainers (cancelled presses restore).
+## Press feel for `button`, shown on `target` (defaults to the button): the instant a finger
+## lands it squashes (small buttons a bit more than big plates) and lights up; on release it
+## springs a little past full size and settles. A press that turns into a scroll (or slides
+## off) restores quietly. A tap on a disabled button shakes it with the "no" sound (deny).
 static func add_press_fx(button: BaseButton, target: Control = null) -> void:
 	var t: Control = target if target else button
 	t.pivot_offset = t.size * 0.5
 	t.resized.connect(func() -> void: t.pivot_offset = t.size * 0.5)
 	button.button_down.connect(func() -> void:
 		button.set_meta("_down_at", button.get_global_mouse_position())
-		_scale_to(t, 0.95, 0.06))
-	button.button_up.connect(func() -> void: _scale_to(t, 1.0, 0.18))
+		_press_down(t))
+	button.button_up.connect(func() -> void: _press_up(t, true))
 	button.draw.connect(func() -> void:
+		if not t.has_meta("_held"):
+			return
 		var mode := button.get_draw_mode()
-		if mode != BaseButton.DRAW_PRESSED and mode != BaseButton.DRAW_HOVER_PRESSED and t.scale.x < 0.999:
-			_scale_to(t, 1.0, 0.18))
+		if mode != BaseButton.DRAW_PRESSED and mode != BaseButton.DRAW_HOVER_PRESSED:
+			_press_up(t, false))
+	button.gui_input.connect(func(ev: InputEvent) -> void:
+		if not button.disabled:
+			return
+		var mb := ev as InputEventMouseButton
+		if mb and mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+			deny(t))
 
 
-static func _scale_to(c: Control, s: float, dur: float) -> void:
-	if not c.is_inside_tree():
+static func _press_down(t: Control) -> void:
+	if not t.is_inside_tree():
 		return
-	var prev: Variant = c.get_meta("_press_tween") if c.has_meta("_press_tween") else null
-	if prev is Tween and (prev as Tween).is_valid():
-		(prev as Tween).kill()
-	var tw := c.create_tween()
-	if s < 1.0:
-		tw.tween_property(c, "scale", Vector2(s, s), dur).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	t.set_meta("_held", true)
+	_kill_tween(t, "_press_tween")
+	var area := maxf(t.size.x * t.size.y, 1.0)
+	var k := 1.0 - clampf(11.0 / sqrt(area), 0.035, 0.08)
+	var tw := t.create_tween()
+	tw.tween_property(t, "scale", Vector2(k, k), 0.07).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	t.set_meta("_press_tween", tw)
+	_brighten_to(t, 1.14, 0.06)
+
+
+static func _press_up(t: Control, spring: bool) -> void:
+	if not t.has_meta("_held"):
+		return
+	t.remove_meta("_held")
+	if not t.is_inside_tree():
+		t.scale = Vector2.ONE
+		return
+	_kill_tween(t, "_press_tween")
+	var tw := t.create_tween()
+	if spring and motion_ok():
+		var over := 1.0 + (1.0 - t.scale.x) * 0.6
+		tw.tween_property(t, "scale", Vector2(over, over), 0.09).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(t, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	else:
-		tw.tween_property(c, "scale", Vector2.ONE, dur).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	c.set_meta("_press_tween", tw)
+		tw.tween_property(t, "scale", Vector2.ONE, 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	t.set_meta("_press_tween", tw)
+	_brighten_to(t, 1.0, 0.3)
 
 
-## Connects `pressed` with the tap sound and a drag guard (a press that turned into a
-## scroll gesture does not fire).
+## Lights `t` up (modulate above 1) for presses, but only when nothing else tints it: a
+## colour or a fade set by a screen is left alone.
+static func _brighten_to(t: Control, to: float, dur: float) -> void:
+	var m := t.modulate
+	if absf(m.r - m.g) > 0.001 or absf(m.g - m.b) > 0.001 or m.r < 0.999 or m.r > 1.2:
+		return
+	_kill_tween(t, "_bright_tween")
+	var tw := t.create_tween()
+	tw.tween_method(func(v: float) -> void:
+		if is_instance_valid(t):
+			t.modulate = Color(v, v, v, t.modulate.a), m.r, to, dur).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	t.set_meta("_bright_tween", tw)
+
+
+static func _kill_tween(c: Object, key: String) -> void:
+	if c.has_meta(key):
+		var prev: Variant = c.get_meta(key)
+		if prev is Tween and (prev as Tween).is_valid():
+			(prev as Tween).kill()
+
+
+## "Not allowed" feedback on `c`: a short shake, the deny sound and a firm buzz.
+static func deny(c: Control) -> void:
+	sfx("deny")
+	haptic(22, 0.7)
+	shake(c, 8.0)
+
+
+## Connects `pressed` with the tap sound, a light haptic tick and a drag guard (a press that
+## turned into a scroll gesture does not fire).
 static func _connect_pressed(b: BaseButton, cb: Callable, sound: String = "tap") -> void:
 	b.pressed.connect(func() -> void:
 		var down: Variant = b.get_meta("_down_at") if b.has_meta("_down_at") else null
@@ -698,6 +845,7 @@ static func _connect_pressed(b: BaseButton, cb: Callable, sound: String = "tap")
 			return
 		if sound != "":
 			sfx(sound)
+		haptic(10, 0.35)
 		if cb.is_valid():
 			cb.call())
 
@@ -716,6 +864,8 @@ static func _button(text: String, variation: StringName, on_pressed: Callable, i
 	add_press_fx(b)
 	if on_pressed.is_valid():
 		_connect_pressed(b, on_pressed)
+	if text != "" or icon_name != "":
+		_dress_button(b, "primary" if variation == &"PrimaryButton" else ("orange" if variation == &"OrangeButton" else ""))
 	return b
 
 
@@ -997,6 +1147,8 @@ static func banner_card(title_text: String, subtitle: String = "", on_pressed: C
 		dots.set_meta("active", int(opts.get("page", 0)))
 		dots.filled = int(opts.get("page", 0)) + 1
 		b.add_child(dots)
+	# Featured banners catch the light more often than buttons.
+	add_shine(face, Callable(), 0.26, Vector2(3.2, 5.5), Vector2(0.5, 1.6))
 	add_press_fx(b, face)
 	if on_pressed.is_valid():
 		_connect_pressed(b, on_pressed)
@@ -1060,6 +1212,18 @@ static func notice_bar(text: String, on_pressed: Callable = Callable(), width: f
 	ai.offset_top = -13
 	ai.offset_bottom = 13
 	face.add_child(ai)
+	# The chevron nudges right now and then: "this way".
+	if motion_ok():
+		var nudge := func(v: float) -> void:
+			ai.offset_left = -40.0 + v
+			ai.offset_right = -14.0 + v
+		ai.ready.connect(func() -> void:
+			var tw := ai.create_tween().set_loops()
+			tw.tween_interval(2.6)
+			tw.tween_method(nudge, 0.0, 7.0, 0.16).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tw.tween_method(nudge, 7.0, 0.0, 0.38).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tw.tween_method(nudge, 0.0, 5.0, 0.14).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tw.tween_method(nudge, 5.0, 0.0, 0.34).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT), CONNECT_ONE_SHOT)
 	b.set_meta("text_label", l)
 	add_press_fx(b, face)
 	if on_pressed.is_valid():
@@ -1523,17 +1687,38 @@ static func progress_bar(value: float, max_value: float, color: Color = GOOD, he
 	l.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	l.visible = text != ""
 	bar.add_child(l)
+	# Fill in from empty when it first appears (and when its first value arrives right after).
+	bar.set_meta("_born", Time.get_ticks_msec())
+	bar.tree_entered.connect(func() -> void: _fill_in(bar), CONNECT_ONE_SHOT)
 	return bar
 
 
-## Updates a Kit progress bar (animated by default). max_value < 0 keeps the old max.
+static func _fill_in(bar: ProgressBar) -> void:
+	var target := bar.value
+	if target <= bar.min_value or not motion_ok():
+		return
+	bar.value = bar.min_value
+	_tween_bar(bar, target, 0.75, 0.1)
+
+
+static func _tween_bar(bar: ProgressBar, target: float, dur: float, delay: float = 0.0) -> void:
+	_kill_tween(bar, "_fill_tw")
+	var tw := bar.create_tween()
+	tw.tween_property(bar, "value", target, dur).set_delay(delay).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	bar.set_meta("_fill_tw", tw)
+
+
+## Updates a Kit progress bar (animated by default; a bar that just appeared fills in even
+## when animate is off). max_value < 0 keeps the old max.
 static func set_progress(bar: ProgressBar, value: float, max_value: float = -1.0, text: String = "", animate: bool = true) -> void:
 	if max_value >= 0.0:
 		bar.max_value = maxf(max_value, 0.0001)
 	var target := clampf(value, 0.0, bar.max_value)
-	if animate and bar.is_inside_tree():
-		bar.create_tween().tween_property(bar, "value", target, 0.35).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	var young := Time.get_ticks_msec() - int(bar.get_meta("_born", -100000)) < 450
+	if bar.is_inside_tree() and (animate or (young and motion_ok())):
+		_tween_bar(bar, target, 0.35 if animate and not young else 0.75)
 	else:
+		_kill_tween(bar, "_fill_tw")
 		bar.value = target
 	var l := bar.get_node_or_null("Text") as Label
 	if l:
@@ -1596,13 +1781,28 @@ static func set_chip_amount(chip: Control, amount: int, animate: bool = true) ->
 	var old: int = chip.get_meta("amount", amount)
 	chip.set_meta("amount", amount)
 	if old == amount:
-		l.text = format_num(amount)
+		var counting: Variant = l.get_meta("_count_tw") if l.has_meta("_count_tw") else null
+		if not (counting is Tween and (counting as Tween).is_running()):
+			l.text = format_num(amount)
 		return
 	if animate and chip.is_inside_tree():
-		count_to(l, old, amount, 0.45)
-		pulse(chip, 1.06)
+		count_to(l, old, amount, 0.7)
+		pulse(chip, 1.07)
+		var gain := amount > old
+		_flash(l, Color("a8f7ff") if gain else Color("ffb27a"))
+		if gain and chip.is_visible_in_tree() and motion_ok():
+			float_text(chip, "+" + format_num(amount - old), Color("8dffc8"))
 	else:
 		l.text = format_num(amount)
+
+
+## Tints a label (its modulate) with `col` and eases it back to white: number changes.
+static func _flash(l: CanvasItem, col: Color, dur: float = 0.8) -> void:
+	_kill_tween(l, "_flash_tw")
+	l.modulate = col
+	var tw := l.create_tween()
+	tw.tween_property(l, "modulate", Color.WHITE, dur).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	l.set_meta("_flash_tw", tw)
 
 
 # ------------------------------------------------------------------ rewards
@@ -2440,35 +2640,273 @@ static func pop_in(c: Control, delay: float = 0.0, dur: float = 0.32) -> void:
 	tw.tween_property(c, "modulate:a", 1.0, dur * 0.6).set_delay(delay)
 
 
-## Quick scale bump (feedback on value changes).
+## Quick scale bump (feedback on value changes). A new pulse replaces a running one.
 static func pulse(c: Control, amount: float = 1.12) -> void:
 	if not c.is_inside_tree():
 		return
+	_kill_tween(c, "_pulse_tw")
 	c.pivot_offset = c.size * 0.5
 	var tw := c.create_tween()
 	tw.tween_property(c, "scale", Vector2(amount, amount), 0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_property(c, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(c, "scale", Vector2.ONE, 0.26).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	c.set_meta("_pulse_tw", tw)
 
 
-## Horizontal shake (errors, can't afford).
+## Horizontal shake (errors, can't afford). Safe in containers (it never leaves the control
+## off its laid-out place).
 static func shake(c: Control, strength: float = 10.0) -> void:
 	if not c.is_inside_tree():
 		return
-	var x := c.position.x
+	_kill_tween(c, "_shake_tw")
+	if c.has_meta("_shake_done"):
+		(c.get_meta("_shake_done") as Callable).call()
+	var drv := _offset_driver(c)
+	var apply: Callable = drv[0]
+	var done: Callable = drv[1]
+	c.set_meta("_shake_done", done)
 	var tw := c.create_tween()
-	for i in 4:
-		tw.tween_property(c, "position:x", x + (strength if i % 2 == 0 else -strength) * (1.0 - i * 0.2), 0.04)
-	tw.tween_property(c, "position:x", x, 0.04)
+	var x := 0.0
+	for i in 5:
+		var to := (strength if i % 2 == 0 else -strength) * (1.0 - i * 0.18)
+		tw.tween_method(func(v: float) -> void: apply.call(Vector2(v, 0)), x, to, 0.035 if i == 0 else 0.05)
+		x = to
+	tw.tween_method(func(v: float) -> void: apply.call(Vector2(v, 0)), x, 0.0, 0.05)
+	tw.tween_callback(func() -> void:
+		done.call()
+		if is_instance_valid(c):
+			c.remove_meta("_shake_done"))
+	c.set_meta("_shake_tw", tw)
 
 
-## Animates a Label's number from `from` to `to` (compact formatted).
+## Animates a Label's number from `from` to `to` (compact formatted). A new count replaces a
+## running one.
 static func count_to(l: Label, from: int, to: int, dur: float = 0.5, full: bool = false) -> void:
 	if not l.is_inside_tree():
 		l.text = format_full(to) if full else format_num(to)
 		return
+	_kill_tween(l, "_count_tw")
 	var tw := l.create_tween()
 	tw.tween_method(func(v: float) -> void:
 		l.text = format_full(int(v)) if full else format_num(int(v)), float(from), float(to), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	l.set_meta("_count_tw", tw)
+
+
+## Moves `c` by an offset that survives its container re-laying it out: returns
+## [apply(offset: Vector2), finish()]. finish() removes the offset and stops listening.
+static func _offset_driver(c: Control) -> Array:
+	# Weak references only: these callables can outlive `c` and its parent.
+	var ref: WeakRef = weakref(c)
+	var st := {"off": Vector2.ZERO, "want": Vector2.ZERO, "live": true}
+	var apply := func(v: Vector2) -> void:
+		var n := ref.get_ref() as Control
+		if n == null or not st.live:
+			return
+		st.want = v
+		var d: Vector2 = v - (st.off as Vector2)
+		if d != Vector2.ZERO:
+			n.position += d
+		st.off = v
+	var parent := c.get_parent() as Container
+	var pref: WeakRef = weakref(parent)
+	var resort := func() -> void:
+		# The container just put `c` back in its slot (without our offset): re-apply it.
+		st.off = Vector2.ZERO
+		apply.call(st.want)
+	if parent:
+		parent.sort_children.connect(resort)
+	var unhook := func() -> void:
+		st.live = false
+		var p := pref.get_ref() as Container if pref else null
+		if p and p.sort_children.is_connected(resort):
+			p.sort_children.disconnect(resort)
+	var finish := func() -> void:
+		apply.call(Vector2.ZERO)
+		unhook.call()
+	# Leaving the tree (freed, or turned into a transition ghost) ends it where it is.
+	c.tree_exiting.connect(unhook, CONNECT_ONE_SHOT)
+	return [apply, finish]
+
+
+## Brings `c` in from `from` px away (and fades it in from transparent to its own alpha)
+## after `delay` s: screen content, list rows, lobby plates. Works for children of
+## containers too. No-op with Reduce motion.
+static func offset_in(c: Control, from: Vector2, delay: float = 0.0, dur: float = 0.34, fade: bool = true) -> void:
+	if not c.is_inside_tree() or not motion_ok():
+		return
+	var a0 := c.modulate.a
+	if fade:
+		c.modulate.a = 0.0
+	var drv := _offset_driver(c)
+	var apply: Callable = drv[0]
+	apply.call(from)
+	var tw := c.create_tween().set_parallel(true)
+	tw.tween_method(apply, from, Vector2.ZERO, dur).set_delay(delay).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	if fade:
+		tw.tween_property(c, "modulate:a", a0, dur * 0.65).set_delay(delay).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.chain().tween_callback(drv[1])
+
+
+## Staggered entrance for a freshly built screen (UI.go does this): the header blocks, then
+## the rows of its scrolling list (the first few), each rising in a little after the one
+## before. Backgrounds stay put. No-op with Reduce motion.
+static func stagger_in(root: Control, delay: float = 0.0, step: float = 0.035, max_items: int = 12, rise: float = 26.0) -> void:
+	if not motion_ok():
+		return
+	var items: Array[Control] = []
+	_stagger_collect(root, items, 0)
+	var i := 0
+	for c in items:
+		if i >= max_items:
+			break
+		offset_in(c, Vector2(0, rise), delay + minf(i * step, 0.3), 0.36)
+		i += 1
+
+
+static func _stagger_collect(n: Node, items: Array[Control], depth: int) -> void:
+	for ch in n.get_children():
+		var c := ch as Control
+		if c == null or not c.visible or c.top_level or _is_backdrop(c):
+			continue
+		if c is ScrollContainer:
+			var list := _list_in(c, 0)
+			if list == null:
+				items.append(c)
+				continue
+			var k := 0
+			for r in list.get_children():
+				var rc := r as Control
+				if rc and rc.visible and not rc.top_level:
+					items.append(rc)
+					k += 1
+					if k >= 8:
+						break
+		elif depth < 2 and c is VBoxContainer and _wraps_scroll(c):
+			_stagger_collect(c, items, depth + 1)
+		else:
+			items.append(c)
+
+
+## The list container inside a scroll (through margins / single-child wrappers), or null.
+static func _list_in(n: Node, depth: int) -> Container:
+	if depth > 5:
+		return null
+	if n is ScrollContainer or n is MarginContainer or n is CenterContainer or (n is PanelContainer and n.get_child_count() == 1):
+		for c in n.get_children():
+			if c is Control and (c as Control).visible:
+				return _list_in(c, depth + 1)
+		return null
+	if n is BoxContainer or n is GridContainer or n is FlowContainer:
+		var vis := 0
+		for c in n.get_children():
+			if c is Control and (c as Control).visible:
+				vis += 1
+		return n as Container if vis >= 2 else null
+	return null
+
+
+static func _wraps_scroll(c: Control) -> bool:
+	for ch in c.get_children():
+		if ch is ScrollContainer:
+			return true
+	return false
+
+
+static func _is_backdrop(c: Control) -> bool:
+	if c is TextureRect or c is ColorRect:
+		return true
+	var s: Variant = c.get_script()
+	if s is Script and (s as Script).resource_path.contains("backdrop"):
+		return true
+	var n := String(c.name)
+	for key: String in ["Bg", "Backdrop", "Background", "Shade", "Veil", "Stripes"]:
+		if n.contains(key):
+			return true
+	return c.mouse_filter == Control.MOUSE_FILTER_IGNORE and c.get_child_count() == 0
+
+
+## A number or word that floats up from `anchor` and fades ("+1,500" over a currency).
+static func float_text(anchor: Control, text: String, color: Color = GOOD, size: int = 24) -> void:
+	if not anchor.is_inside_tree():
+		return
+	var l := label(text, size, color, "cond_bold", 4)
+	l.top_level = true
+	l.z_index = 20
+	anchor.add_child(l)
+	var ms := l.get_combined_minimum_size()
+	l.size = ms
+	var p := anchor.global_position + Vector2(anchor.size.x * 0.5 - ms.x * 0.5, anchor.size.y * 0.5)
+	l.position = p
+	l.pivot_offset = ms * 0.5
+	l.scale = Vector2(0.6, 0.6)
+	var tw := l.create_tween().set_parallel(true)
+	tw.tween_property(l, "position:y", p.y - 40.0, 0.85).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tw.tween_property(l, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(l, "modulate:a", 0.0, 0.4).set_delay(0.5)
+	tw.chain().tween_callback(l.queue_free)
+
+
+## A burst of glints at `at` (local to `parent`, which must not be a Container).
+static func sparkle(parent: Control, at: Vector2, color: Color = Color.WHITE, count: int = 7, radius: float = 64.0) -> void:
+	if not parent.is_inside_tree() or not motion_ok():
+		return
+	var s := Sparkle.new()
+	s.color = color
+	s.count = count
+	s.radius = radius
+	s.star = clampf(radius * 0.2, 7.0, 16.0)
+	s.position = at
+	s.z_index = 5
+	parent.add_child(s)
+
+
+## Loading spinner (an aqua arc turning around a faint ring), `size` px square.
+static func spinner(size: float = 64.0, color: Color = ACCENT_HI) -> Control:
+	var s := Spinner.new()
+	s.color = color
+	s.custom_minimum_size = Vector2(size, size)
+	s.size = Vector2(size, size)
+	return s
+
+
+## A light sweep across `c` now and then (Shine). shape: () -> outline in c's local
+## coordinates (default: c's KitBox stylebox). every / first: seconds between sweeps and
+## before the first. Returns the Shine node (sweep_now() plays one at once).
+static func add_shine(c: Control, shape: Callable = Callable(), strength: float = 0.32, every: Vector2 = Vector2(4.5, 8.5), first: Vector2 = Vector2(0.8, 3.5)) -> Control:
+	var s := Shine.new()
+	s.name = "Shine"
+	s.shape = shape
+	s.strength = strength
+	s.every = every
+	s.first = first
+	c.add_child(s)
+	return s
+
+
+## A soft glow behind `c` (drawn behind it) that breathes: the main call to action.
+static func add_glow_pulse(c: Control, color: Color = ORANGE, size: int = 16, radius: int = 16) -> Control:
+	var g := Panel.new()
+	g.name = "GlowPulse"
+	g.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	g.show_behind_parent = true
+	g.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var sb := StyleBoxFlat.new()
+	sb.draw_center = false
+	sb.bg_color = Color(color, 0.0)
+	sb.shadow_color = Color(color, 0.5)
+	sb.shadow_size = size
+	sb.set_corner_radius_all(radius)
+	sb.anti_aliasing = true
+	g.add_theme_stylebox_override("panel", sb)
+	c.add_child(g)
+	if motion_ok():
+		g.modulate.a = 0.3
+		g.ready.connect(func() -> void:
+			var tw := g.create_tween().set_loops()
+			tw.tween_property(g, "modulate:a", 1.0, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tw.tween_property(g, "modulate:a", 0.3, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT), CONNECT_ONE_SHOT)
+	else:
+		g.modulate.a = 0.6
+	return g
 
 
 # ------------------------------------------------------------------ number formatting

@@ -1,10 +1,12 @@
 extends RefCounted
 ## Procedural sound effects (no audio files). UI.sfx(name) plays these.
 ## Every sound is synthesized once into a 16-bit mono AudioStreamWAV.
-## Names: tap, reward, summon, legendary, hit, ult, victory, defeat.
+## Names: tap, tab, pop, close, deny, toggle, coin, sparkle (UI feel), reward, summon,
+## legendary, hit, ult, victory, defeat.
 
 const RATE := 22050
-const NAMES: Array[String] = ["tap", "hit", "reward", "ult", "summon", "victory", "defeat", "legendary"]
+const NAMES: Array[String] = ["tap", "tab", "pop", "deny", "toggle", "coin", "sparkle", "close", "hit", "reward",
+	"ult", "summon", "victory", "defeat", "legendary"]
 
 
 ## Builds the stream for `sound_name` (null if unknown).
@@ -13,6 +15,20 @@ static func make(sound_name: String) -> AudioStreamWAV:
 	match sound_name:
 		"tap":
 			s = _tap()
+		"tab":
+			s = _tab()
+		"pop":
+			s = _pop()
+		"close":
+			s = _close()
+		"deny":
+			s = _deny()
+		"toggle":
+			s = _toggle()
+		"coin":
+			s = _coin()
+		"sparkle":
+			s = _sparkle()
 		"hit":
 			s = _hit()
 		"reward":
@@ -88,17 +104,109 @@ static func _brass(b: PackedFloat32Array, start: float, freq: float, amp: float,
 		b[i0 + i] += v * att * rel * amp * (0.85 + 0.15 * exp(-t * 4.0))
 
 
+## Button tap: a crisp glassy tick (high partial) over a soft round body, like pressing a
+## glossy bubble. About 60 ms.
 static func _tap() -> PackedFloat32Array:
-	var b := _buf(0.06)
-	var phase := 0.0
+	return _tick(0.065, 2350.0, 210.0, 0.34, 0.42, 11)
+
+
+## Bottom-nav / tab switch: the same family, lower and softer.
+static func _tab() -> PackedFloat32Array:
+	return _tick(0.08, 1650.0, 165.0, 0.26, 0.46, 13)
+
+
+## Switch flip: short and clicky (callers pitch it up for on, down for off).
+static func _toggle() -> PackedFloat32Array:
+	return _tick(0.05, 2900.0, 260.0, 0.4, 0.3, 17)
+
+
+## Shared tick: `hi` Hz glass partial, `body` Hz thump with a quick upward bend, a 1 ms
+## noise click. Amplitudes are relative.
+static func _tick(dur: float, hi: float, body: float, hi_amp: float, body_amp: float, seed_v: int) -> PackedFloat32Array:
+	var b := _buf(dur)
 	var rng := RandomNumberGenerator.new()
-	rng.seed = 11
+	rng.seed = seed_v
+	var p_hi := 0.0
+	var p_body := 0.0
 	for i in b.size():
 		var t := float(i) / RATE
-		var f := lerpf(1500.0, 900.0, t / 0.06)
-		phase += TAU * f / RATE
-		var click := rng.randf_range(-1.0, 1.0) * exp(-t * 900.0) * 0.4
-		b[i] = sin(phase) * exp(-t * 85.0) * 0.55 + click
+		var att := minf(1.0, t * 1200.0)
+		p_hi += TAU * hi * (1.0 + 0.04 * exp(-t * 200.0)) / RATE
+		p_body += TAU * body * (1.0 + 0.9 * (1.0 - exp(-t * 120.0))) / RATE
+		var v := sin(p_hi) * exp(-t * 150.0) * hi_amp
+		v += (sin(p_hi * 1.51) * 0.35) * exp(-t * 260.0) * hi_amp
+		v += sin(p_body) * exp(-t * 55.0) * body_amp
+		v += rng.randf_range(-1.0, 1.0) * exp(-t * 1800.0) * 0.18
+		b[i] = v * att
+	return b
+
+
+## Popup open: an airy upward swoosh ending in a soft bubble.
+static func _pop() -> PackedFloat32Array:
+	var dur := 0.2
+	var b := _buf(dur)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 29
+	var lp := 0.0
+	var phase := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		var k := t / dur
+		var env := sin(PI * clampf(k * 1.15, 0.0, 1.0)) * (1.0 - k * 0.4)
+		lp += (rng.randf_range(-1.0, 1.0) - lp) * (0.04 + 0.22 * k)
+		phase += TAU * (420.0 + 620.0 * k * k) / RATE
+		b[i] = lp * env * 0.55 + sin(phase) * env * 0.16
+	_bell(b, 0.1, 1760.0, 0.16, 22.0, 0.1)
+	return b
+
+
+## Popup close: a short falling swoosh (quiet).
+static func _close() -> PackedFloat32Array:
+	var dur := 0.14
+	var b := _buf(dur)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 31
+	var lp := 0.0
+	var phase := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		var k := t / dur
+		var env := sin(PI * k) * (1.0 - k * 0.3)
+		lp += (rng.randf_range(-1.0, 1.0) - lp) * (0.22 - 0.17 * k)
+		phase += TAU * (760.0 - 360.0 * k) / RATE
+		b[i] = lp * env * 0.45 + sin(phase) * env * 0.12
+	return b
+
+
+## Not allowed / can't afford: two dull, slightly buzzy low notes.
+static func _deny() -> PackedFloat32Array:
+	var b := _buf(0.2)
+	for nd: Array in [[0.0, 233.0], [0.095, 185.0]]:
+		var i0 := int(float(nd[0]) * RATE)
+		var f: float = nd[1]
+		var phase := 0.0
+		for i in mini(int(0.085 * RATE), b.size() - i0):
+			var t := float(i) / RATE
+			phase += TAU * f / RATE
+			var env := minf(1.0, t * 400.0) * exp(-t * 22.0)
+			var v := sin(phase) + 0.32 * sin(phase * 3.0) + 0.12 * sin(phase * 5.0)
+			b[i0 + i] += v * env * 0.42
+	return b
+
+
+## A coin / gem landing in the wallet: a bright metallic ting.
+static func _coin() -> PackedFloat32Array:
+	var b := _buf(0.26)
+	_bell(b, 0.0, 2637.0, 0.3, 16.0, 0.26)
+	_bell(b, 0.012, 3951.0, 0.16, 24.0, 0.2)
+	return b
+
+
+## Reward tile pop: a small high shimmer.
+static func _sparkle() -> PackedFloat32Array:
+	var b := _buf(0.24)
+	_bell(b, 0.0, 3136.0, 0.2, 15.0, 0.22)
+	_bell(b, 0.035, 4186.0, 0.12, 18.0, 0.2)
 	return b
 
 

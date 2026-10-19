@@ -8,7 +8,9 @@ extends Button
 ##   "orange"  dark glass with a glowing orange rim (the "go fight" call to action)
 ##   "dark"    deep blue glass with a cyan rim and hatching, cyan text (meters, idle)
 ## A sub control (meter, art strip) can sit in the lower part with set_sub(). The plate,
-## glyph and text scale together on press.
+## glyph and text scale together on press. The orange plate's glow breathes (a separate
+## layer whose alpha a looping tween drives: no per-frame redraw) and the orange and blue
+## plates catch a light sweep now and then.
 
 const KitBox := preload("res://src/ui/components/kit_box.gd")
 
@@ -30,6 +32,9 @@ var _sub: Control
 var _art: Control
 var _title_tag: Control
 var _t := 0.0
+## Behind the plate: the orange call-to-action glow (alpha pulses).
+var _glow: Control
+var _shine: Control
 
 
 func setup(text_: String, icon_: String, look_: String, side_: int, size_: Vector2) -> void:
@@ -48,6 +53,21 @@ func setup(text_: String, icon_: String, look_: String, side_: int, size_: Vecto
 	face.mouse_filter = MOUSE_FILTER_IGNORE
 	face.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	add_child(face)
+	if look == "orange":
+		_glow = Control.new()
+		_glow.name = "Glow"
+		_glow.mouse_filter = MOUSE_FILTER_IGNORE
+		_glow.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+		_glow.draw.connect(func() -> void:
+			KitBox.soft_shadow(_glow.get_canvas_item(), quad(), Color(1.0, 0.55, 0.1, 0.5), 18.0, Vector2(0, 2)))
+		face.add_child(_glow)
+		_glow.modulate.a = 0.62
+		_glow.ready.connect(func() -> void:
+			if not Kit.motion_ok():
+				return
+			var tw := _glow.create_tween().set_loops()
+			tw.tween_property(_glow, "modulate:a", 1.0, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tw.tween_property(_glow, "modulate:a", 0.45, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT), CONNECT_ONE_SHOT)
 	_plate = Control.new()
 	_plate.name = "Plate"
 	_plate.mouse_filter = MOUSE_FILTER_IGNORE
@@ -64,8 +84,17 @@ func setup(text_: String, icon_: String, look_: String, side_: int, size_: Vecto
 	_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.0 if look == "white" else 0.45))
 	_label.add_theme_constant_override("shadow_offset_y", 2)
 	face.add_child(_label)
+	if look == "orange" or look == "blue":
+		_shine = Kit.add_shine(face, quad, 0.3 if look == "orange" else 0.22,
+			Vector2(3.5, 6.0) if look == "orange" else Vector2(6.0, 10.0))
 	resized.connect(_layout)
 	_layout()
+
+
+## Keeps the glint above anything added to the face later (meters, art, tags).
+func _shine_on_top() -> void:
+	if _shine and is_instance_valid(_shine):
+		face.move_child(_shine, face.get_child_count() - 1)
 
 
 ## Puts `c` in the lower part of the plate (under the title), e.g. a Kit.percent_meter.
@@ -76,6 +105,7 @@ func set_sub(c: Control) -> void:
 	if c:
 		c.mouse_filter = MOUSE_FILTER_IGNORE
 		face.add_child(c)
+	_shine_on_top()
 	_layout()
 
 
@@ -90,6 +120,7 @@ func set_title_tag(text: String) -> void:
 		_title_tag = Kit.tag(text, Color("10304f"), Color("bfe8ff"), 17)
 		_title_tag.name = "TitleTag"
 		face.add_child(_title_tag)
+		_shine_on_top()
 	else:
 		(_title_tag.get_child(0) as Label).text = text
 	_layout()
@@ -132,6 +163,7 @@ func set_art(tex: Texture2D, caption: String = "") -> void:
 		frame.add_child(t)
 	face.add_child(frame)
 	_art = frame
+	_shine_on_top()
 	_layout()
 
 
@@ -171,6 +203,8 @@ func _layout() -> void:
 		_sub.size = Vector2(minf(ms.x, w * 0.86), ms.y)
 		_sub.position = Vector2(w * 0.04, h - ms.y - h * 0.07)
 		_plate.queue_redraw()
+		if _glow:
+			_glow.queue_redraw()
 		return
 	if _art:
 		var aw := w * 0.46
@@ -192,6 +226,8 @@ func _layout() -> void:
 	Kit.fit_label(_label, _label.size.x, fs, int(fs * 0.7))
 	_place_title_tag(fs)
 	_plate.queue_redraw()
+	if _glow:
+		_glow.queue_redraw()
 
 
 func _place_title_tag(_fs: int) -> void:
@@ -216,12 +252,6 @@ func quad() -> PackedVector2Array:
 	if side < 0:
 		return PackedVector2Array([Vector2(0, 0), Vector2(w, d * 0.18), Vector2(w, h - d * 0.82), Vector2(0, h)])
 	return PackedVector2Array([Vector2(0, d * 0.18), Vector2(w, 0), Vector2(w, h), Vector2(0, h - d * 0.82)])
-
-
-func _process(delta: float) -> void:
-	if look == "orange" and is_visible_in_tree():
-		_t += delta
-		_plate.queue_redraw()
 
 
 func _draw_plate() -> void:
@@ -292,16 +322,17 @@ func _draw_aero(ci: RID, q: PackedVector2Array, b: Rect2) -> void:
 			bot = Color("d8eef6b0")
 			rim = Color(1, 1, 1, 0.95)
 		"orange":
-			var k := 0.5 + 0.5 * sin(_t * 2.6)
+			# Its glow is the separate breathing layer behind the plate.
 			top = Color("ffb04ee8")
 			bot = Color("e8641ad8")
 			rim = Color("ffe2b0")
-			glow = Color(1.0, 0.55, 0.1, 0.30 + 0.18 * k)
+			glow = Color(0, 0, 0, 0)
 		_:
 			top = Color("1c5a86b0")
 			bot = Color("0a2a48a0")
 			rim = Color("7fe8ff")
-	KitBox.soft_shadow(ci, q, glow, 12.0 if look == "orange" else 9.0, Vector2(0, 4))
+	if glow.a > 0.0:
+		KitBox.soft_shadow(ci, q, glow, 9.0, Vector2(0, 4))
 	KitBox.fill_poly(ci, q, top, bot, false)
 	# Gloss: the upper ~45% of the plate gets a soft white highlight (the Frutiger Aero "jelly").
 	var gl := Rect2(b.position + Vector2(6, 4), Vector2(b.size.x - 12, b.size.y * 0.46))

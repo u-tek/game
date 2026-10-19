@@ -95,17 +95,36 @@ func commit() -> StyleBox:
 	return self
 
 
-func _draw(ci: RID, rect: Rect2) -> void:
-	if not _committed:
-		commit()
+## The face outline this box draws inside `rect` (convex, clockwise): for overlays that must
+## match its shape exactly (the button shine, press highlights).
+func face_outline(rect: Rect2) -> PackedVector2Array:
+	var body := _body(rect)
+	if body.size.x < 1.0 or body.size.y < 1.0:
+		return PackedVector2Array()
+	return shape_points(body, _radius_for(body), chamfer, chamfer_corners, skew)
+
+
+func _body(rect: Rect2) -> Rect2:
 	var body := rect.grow_individual(-draw_inset.x, -draw_inset.y, -draw_inset.x, -draw_inset.y)
 	body.position.y += offset_y
 	body.size.y -= offset_y
-	if body.size.x < 1.0 or body.size.y < 1.0:
-		return
+	return body
+
+
+func _radius_for(body: Rect2) -> float:
 	var r := minf(radius, minf(body.size.x, body.size.y) * 0.5 - 0.05)
 	if aero and r > 0.5:
 		r = minf(maxf(r * 1.6, 12.0), minf(body.size.x, body.size.y) * 0.5 - 0.05)
+	return r
+
+
+func _draw(ci: RID, rect: Rect2) -> void:
+	if not _committed:
+		commit()
+	var body := _body(rect)
+	if body.size.x < 1.0 or body.size.y < 1.0:
+		return
+	var r := _radius_for(body)
 	var outline := shape_points(body, r, chamfer, chamfer_corners, skew)
 	var gl_alpha := gloss
 	if aero and fill and gl_alpha <= 0.0 and r > 0.5:

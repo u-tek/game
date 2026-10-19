@@ -453,17 +453,23 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 				b.top_color = Color("f28a1e")
 				b.bottom_color = Color("e46a0c")
 		"btn_primary_disabled", "btn_secondary_disabled", "btn_danger_disabled", "btn_orange_disabled":
+			# Frosted, flat and quiet: clearly "not now", never mistaken for a pressed button.
 			b.radius = 8
-			b.top_color = Color("24395d")
-			b.bottom_color = Color("1f3252")
-			b.border_width = 1.0
-			b.border_color = Color(1, 1, 1, 0.06)
+			b.top_color = Color("3a4a64d9")
+			b.bottom_color = Color("2b3850d9")
+			b.border_width = 1.5
+			b.border_color = Color(1, 1, 1, 0.1)
+			b.gloss = 0.06
+			b.shadow_size = 3
+			b.shadow_color = Color(0, 0, 0, 0.18)
+			b.shadow_offset = Vector2(0, 2)
 		"btn_light_disabled":
 			b.radius = 8
-			b.top_color = Color("e3e6ea")
-			b.bottom_color = Color("dde1e5")
-			b.border_width = 1.0
-			b.border_color = Color("d3d8de")
+			b.top_color = Color("eef1f4")
+			b.bottom_color = Color("e2e7ec")
+			b.border_width = 1.5
+			b.border_color = Color("d5dce3")
+			b.gloss = 0.08
 		"seg_off":
 			b.radius = 6
 			b.top_color = Color("253b61")
@@ -482,12 +488,14 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			b.shadow_color = Color(0.05, 0.55, 0.95, 0.35)
 			b.shadow_offset = Vector2(0, 2)
 			m = Vector4(14, 6, 14, 6)
-		"tab_on":
+		"tab_on", "tab_on_flat":
+			# tab_on_flat: the same plate without the cyan bar (Kit.tab_strip slides its own).
 			b.radius = 0
 			b.top_color = Color("ffffff")
 			b.bottom_color = Color("f2f4f6")
-			b.accent_color = Kit.ACCENT
-			b.accent_top = 5
+			if kind == "tab_on":
+				b.accent_color = Kit.ACCENT
+				b.accent_top = 5
 			m = Vector4(18, 8, 18, 6)
 		"tab_off":
 			b.radius = 0
@@ -553,12 +561,12 @@ static func build() -> Theme:
 	t.set_font_size("bold_font_size", "RichTextLabel", Kit.SIZE_BODY)
 
 	# Buttons: the plain Button looks like the secondary button.
-	_button_type(t, "Button", "btn_secondary", Kit.INK, Color("80868f"))
-	_button_type(t, "PrimaryButton", "btn_primary", Color.WHITE, Color("80868f"))
-	_button_type(t, "SecondaryButton", "btn_secondary", Kit.INK, Color("80868f"))
-	_button_type(t, "DangerButton", "btn_danger", Color.WHITE, Color("80868f"))
-	_button_type(t, "LightButton", "btn_light", Kit.TEXT, Color("9aa1aa"))
-	_button_type(t, "OrangeButton", "btn_orange", Color.WHITE, Color("80868f"))
+	_button_type(t, "Button", "btn_secondary", Kit.INK, Color("8e9bb0"))
+	_button_type(t, "PrimaryButton", "btn_primary", Color.WHITE, Color("8e9bb0"))
+	_button_type(t, "SecondaryButton", "btn_secondary", Kit.INK, Color("8e9bb0"))
+	_button_type(t, "DangerButton", "btn_danger", Color.WHITE, Color("8e9bb0"))
+	_button_type(t, "LightButton", "btn_light", Kit.TEXT, Color("a3acb6"))
+	_button_type(t, "OrangeButton", "btn_orange", Color.WHITE, Color("8e9bb0"))
 	for v in ["PrimaryButton", "SecondaryButton", "DangerButton", "LightButton", "OrangeButton"]:
 		t.set_type_variation(v, "Button")
 	for v in ["Button", "PrimaryButton", "SecondaryButton", "DangerButton", "OrangeButton"]:

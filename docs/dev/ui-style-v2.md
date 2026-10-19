@@ -318,7 +318,8 @@ Every builder is static on `Kit` and returns a ready Control. Old names keep wor
   settings and campaign highlight the Lobby tab.
 - **Toasts**: dark glass bar 540 px wide (every toast the same width, so a stack lines up),
   1 px light hairline, soft shadow, 6 px left edge in cyan (info), green (good) or red (bad),
-  glyph + white SemiBold text, centred under the top bar.
+  a glyph in a round bubble of that colour + white SemiBold text, centred under the top bar
+  (motion: section 8).
 - **Modals**: dim black 72%. `UI.popup(title, content, on_closed, width, light)` (Kit.dialog),
   `UI.confirm` (white dialog, light Cancel + cyan Confirm or red for danger),
   `UI.show_reward` (cyan rays and skewed cyan banner, white panel with a cyan top edge,
@@ -470,7 +471,44 @@ never assumes the placeholder silhouettes:
   content height; leave the face area clear of widgets.
 - Battle sprites are unchanged (`HeroArt.make_sprite`).
 
-## 8. Notes for screen owners
+## 8. Motion and feel (2026-10-19)
+
+The owner asked for "the 1% parts that make a game feel really nice to use". What every
+screen gets for free, and how to stay inside it:
+- **Presses** (`Kit.add_press_fx`, on every Kit button, tile, card and `make_tappable`): on
+  touch-down the target squashes at once (3.5-8 %, more for small buttons) and brightens
+  14 %; on release it springs ~4 % past full size and settles (back ease). A press that
+  turns into a scroll restores quietly. Tapping a disabled button shakes it with the `deny`
+  sound (`Kit.deny`). Taps play `tap` plus a light haptic (`Kit.haptic(10, 0.35)`); tabs and
+  chips play `tab`; switches `toggle`. Disabled buttons are frosted slate (`*_disabled`).
+- **Glints**: primary and orange buttons, banners and the orange / blue lobby plates catch a
+  soft light sweep every 4-9 s (`Kit.add_shine`, drawn only while it moves). Orange buttons
+  breathe a glow behind them (`Kit.add_glow_pulse`). Keep one orange call to action per
+  screen.
+- **Navigation** (`UI.go`): deeper screens slide in from the right (the old one drifts left,
+  darkens and fades), Back mirrors it, bottom-nav tabs cross-fade, hero browse slides the
+  way the arrow points, a battle zooms in behind a "Preparing battle" veil (`UI.busy` /
+  `UI.idle`, `Kit.spinner`). New content rises in with a short stagger (`Kit.stagger_in`);
+  a screen with an `intro()` method runs its own instead (the lobby: plates rise, side
+  buttons slide in from their edges). The bottom nav's white bar and the tab strips' cyan
+  bar slide between tabs; the new tab's glyph hops.
+- **Popups**: the backdrop dims in, the panel springs up from 80 % (`pop` sound); closing
+  shrinks and fades it and releases input at once. Toasts drop in with a spring, carry an
+  icon bubble, stack, glide up as one leaves and dismiss themselves ("bad" ones play `deny`).
+- **Numbers**: wallet amounts count with a colour flash and a floating "+N" (`Kit.float_text`);
+  after a reward popup the currencies fly from their tiles into the wallet, which counts up
+  as they land (`main.fly_currency`). Reward tiles pop in one by one with glints and rising
+  notes; progress bars fill in when they appear; badges and red dots breathe.
+- **Launch**: `BootScreen` (halo wordmark, Aero bubbles, shimmering bar, tips) covers the first
+  frames while the lobby builds.
+- **Reduce motion** (Settings > Display, `Kit.motion_ok()`): slides, staggers, glints, glow
+  pulses and fill-ins stop; presses and fades stay. Check it for anything new that moves.
+- **Cost rules**: animate with tweens on transform / modulate, not `_process` redraws; draw
+  shapes once and move or fade the node. Nothing here runs on the battle HUD during a fight.
+- **Containers reset scale and position when they re-sort.** For position offsets use
+  `Kit.offset_in` / `Kit.shake` (they survive re-sorts); scale tweens re-apply each frame.
+
+## 9. Notes for screen owners
 
 - Start from the mocks in `kit_demo.gd`; they use only public Kit API.
 - On light pages use `TEXT` / `TEXT_DIM`, `light_button`, `stat_row(..., light)`,

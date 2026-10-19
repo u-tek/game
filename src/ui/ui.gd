@@ -2,19 +2,27 @@ extends Node
 ## Autoload "UI": navigation, feedback and modals every screen uses.
 ## Contract: docs/dev/architecture.md section 5.
 ##
-##   UI.go("hero_detail", {"hero_id": "seraphiel"})  # navigate (0.15 s fade, history kept)
+##   UI.go("hero_detail", {"hero_id": "seraphiel"})  # navigate (animated, history kept)
 ##   UI.back()                                       # previous screen (or home)
-##   UI.toast("Not enough gold")                     # stacked message, top center
+##   UI.toast("Not enough gold", "bad")              # sliding message with an icon, top center
 ##   UI.show_reward("Stage cleared!", reward, on_closed)  # reward popup (queued)
 ##   UI.confirm("Spend 300 gems?", on_yes)           # in-game yes/no dialog
 ##   UI.set_chrome(show_top_bar, show_nav)           # reset to (true, true) on every go()
 ##   UI.safe_top() / UI.safe_bottom()                # notch / home-indicator insets (px)
 ##   UI.pinned_bottom_inset()                        # keep bottom-pinned bars clear of the Lobby hex
-##   UI.sfx("tap")                                   # tap reward summon legendary hit ult victory defeat
+##   UI.sfx("tap")                                   # see Sfx.NAMES (tap tab pop deny coin reward ...)
 ##   UI.haptic(20)                                   # short vibration on phones
+##   UI.busy("Preparing battle") / UI.idle()         # full-screen loading veil with a spinner
 ## Background music plays by itself and follows Game.setting("music").
 ## Extras: UI.popup(title, content) for custom dialogs, UI.modal(content) / close_modal(m),
 ## signal screen_changed(name), UI.current_name, UI.history.
+##
+## Transitions (2026-10-19): going deeper slides the new screen in from the right while the
+## old one drifts left and fades (back mirrors it), bottom-nav tabs cross-fade, a battle
+## zooms in behind a loading veil. The old screen leaves the tree at once (its _exit_tree
+## runs as before) and is shown as a frozen "ghost" for the moment it takes to fade.
+## Content then staggers in (Kit.stagger_in), or the screen runs its own intro() if it has
+## one. Settings > Reduce motion swaps all of it for a short fade.
 ##
 ## Screens fill the content area between the top bar and the bottom nav. A screen that hides
 ## the chrome (battle, summon) fills the whole window and should keep its own controls
@@ -58,14 +66,21 @@ const TOP_CURRENCIES := {"summon": ["gems", "scrolls"], "heroes": ["gold", "hero
 	"hero_detail": ["gold", "hero_exp"], "gear": ["gold", "dust"]}
 ## Screens never kept in history (back from the next screen skips them).
 const NO_HISTORY: Array[String] = ["battle"]
+## Screens with their own entrance (no automatic content stagger).
+const NO_STAGGER: Array[String] = ["battle", "summon", "splash_view"]
+## Screens slow enough to build that a loading veil shows first (in the app, not in tests).
+const HEAVY: Array[String] = ["battle"]
 const FADE_TIME := 0.15
 ## Ambient loop (rendered by assets/art/ui/src/make_music.py). Follows Game.setting("music").
 const MUSIC_PATH := "res://assets/art/ui/music_twilight.ogg"
 const MUSIC_DB := -15.0
 const MAX_TOASTS := 3
 const TOAST_W := 540.0
+const TOAST_GAP := 10.0
+const TOAST_SECS := 2.4
 const SFX_VOLUME_DB := {
-	"tap": -9.0, "hit": -6.0, "reward": -5.0, "summon": -4.0, "legendary": -3.0,
+	"tap": -10.0, "tab": -11.0, "pop": -13.0, "close": -17.0, "deny": -9.0, "toggle": -11.0,
+	"coin": -13.0, "sparkle": -15.0, "hit": -6.0, "reward": -5.0, "summon": -4.0, "legendary": -3.0,
 	"ult": -5.0, "victory": -4.0, "defeat": -5.0,
 }
 
@@ -82,8 +97,11 @@ var chrome_top := true
 var chrome_nav := true
 ## The current screen fills the window under translucent chrome (set_full_bleed).
 var full_bleed := false
+## While true (the boot screen is up), new screens wait to play their intro: play_intro().
+var hold_intro := false
 
 var _fade: Tween
+var _heavy_pending := false
 var _modals: Array[Control] = []
 var _reward_queue: Array[Array] = []
 var _reward_open := false
@@ -133,12 +151,25 @@ func attach(app_root: Control) -> void:
 
 # ------------------------------------------------------------------ navigation
 
-## Navigate to a screen by name with optional params.
+## Navigate to a screen by name with optional params. params "_dir" (1 / -1) picks the slide
+## direction when a screen replaces itself (hero browse arrows).
 func go(screen: String, params: Dictionary = {}) -> void:
 	if not SCREENS.has(screen) or (screen == "kit_demo" and not OS.is_debug_build()):
 		push_error("UI.go: unknown screen '%s'" % screen)
 		toast("That screen doesn't exist yet")
 		return
+	if screen in HEAVY and _veil_first():
+		# Show the loading veil for a moment so it is up (and spinning) before the build.
+		if _heavy_pending:
+			return
+		_heavy_pending = true
+		busy("Preparing battle" if screen == "battle" else "Loading")
+		await get_tree().create_timer(0.18).timeout
+		await get_tree().process_frame
+		_heavy_pending = false
+		if root == null or not is_instance_valid(root):
+			return
+	var kind := _kind_for(screen, params)
 	if screen in NAV_ROOTS:
 		history.clear()
 		if screen != "home":
@@ -149,17 +180,62 @@ func go(screen: String, params: Dictionary = {}) -> void:
 			history.resize(idx)
 		elif not (current_name in NO_HISTORY):
 			history.append({"name": current_name, "params": current_params})
-	_show(screen, params)
+	_show(screen, params, kind)
 
 
 ## Go back to the previous screen (or home).
 func back() -> void:
 	if history.is_empty():
 		if current_name != "home":
-			_show("home", {})
+			_show("home", {}, "pop")
 		return
 	var e: Dictionary = history.pop_back()
-	_show(str(e.get("name", "home")), e.get("params", {}))
+	_show(str(e.get("name", "home")), e.get("params", {}), "pop")
+
+
+## How a navigation looks: "tab" (bottom-nav cross-fade), "push" / "pop" (slide deeper /
+## back), "swap" (a screen replacing itself), "zoom" (into a battle), "fade".
+func _kind_for(screen: String, params: Dictionary) -> String:
+	if current_name == "":
+		return "first"
+	if screen == "battle":
+		return "zoom"
+	if current_name == "battle":
+		return "fade"
+	if screen == current_name:
+		return "swap_back" if int(params.get("_dir", 1)) < 0 else "swap"
+	if screen in NAV_TABS and current_name in NAV_TABS:
+		return "tab"
+	if _history_index(screen) >= 0:
+		return "pop"
+	return "push"
+
+
+## True when heavy screens should show the loading veil first: the real app (the main scene
+## is running), not the test scripts that drive UI.go directly.
+func _veil_first() -> bool:
+	if root == null or not is_instance_valid(root) or not root.has_method("show_veil"):
+		return false
+	return root == get_tree().current_scene
+
+
+## Full-screen loading veil (dim glass, a spinner and `text`) over everything; blocks taps.
+func busy(text: String = "Loading") -> void:
+	if root and is_instance_valid(root) and root.has_method("show_veil"):
+		root.call("show_veil", text)
+
+
+## Fades the loading veil out (no-op when it isn't up).
+func idle() -> void:
+	if root and is_instance_valid(root) and root.has_method("hide_veil"):
+		root.call("hide_veil")
+
+
+## Plays the current screen's entrance now (after the boot screen lifts).
+func play_intro() -> void:
+	hold_intro = false
+	if current and is_instance_valid(current):
+		_intro(current)
 
 
 ## Back gesture / Escape: closes the top modal first, then navigates back.
@@ -186,7 +262,7 @@ func _content_host() -> Control:
 	return c if c is Control else root
 
 
-func _show(screen: String, params: Dictionary) -> void:
+func _show(screen: String, params: Dictionary, kind: String = "push") -> void:
 	var host := _content_host()
 	if host == null:
 		push_error("UI.go before UI.attach")
@@ -195,10 +271,19 @@ func _show(screen: String, params: Dictionary) -> void:
 	if not (script is Script) or not (script as Script).can_instantiate():
 		push_error("UI.go: screen '%s' failed to load" % screen)
 		toast("Couldn't open %s" % screen.capitalize())
+		idle()
 		return
+	var ghost: Control = null
 	if current and is_instance_valid(current):
-		host.remove_child(current)
-		current.queue_free()
+		var old := current
+		old.set_meta("_ui_rect", old.get_global_rect())
+		# Leaves the tree now (its _exit_tree runs as it always did) ...
+		host.remove_child(old)
+		# ... and comes back as a frozen picture for the transition, if it was ever shown.
+		if bool(old.get_meta("_ui_shown", false)) and Kit.motion_ok() and kind != "first":
+			ghost = old
+		else:
+			old.queue_free()
 	current = null
 	full_bleed = false
 	set_chrome(true, true)
@@ -207,6 +292,9 @@ func _show(screen: String, params: Dictionary) -> void:
 		push_error("UI.go: screen '%s' is not a Control" % screen)
 		if s is Node:
 			(s as Node).queue_free()
+		if ghost:
+			ghost.queue_free()
+		idle()
 		return
 	var sc := s as Control
 	sc.name = screen.to_pascal_case() + "Screen"
@@ -220,16 +308,99 @@ func _show(screen: String, params: Dictionary) -> void:
 	if sc.has_method("setup"):
 		sc.setup(params)
 	if current != sc:
-		return # setup() navigated somewhere else; that call already finished the job
+		# setup() navigated somewhere else; that call already finished the job.
+		if ghost:
+			ghost.queue_free()
+		return
+	sc.set_meta("_ui_shown", true)
+	if ghost:
+		_retire(ghost, kind)
+	_enter(sc, kind)
+	screen_changed.emit(screen)
+	idle()
+
+
+## The new screen's entrance for a navigation `kind` (see _kind_for), then its content intro.
+func _enter(sc: Control, kind: String) -> void:
 	if _fade and _fade.is_valid():
 		_fade.kill()
-	if is_instance_valid(sc):
-		var y0 := sc.position.y
-		sc.position.y = y0 + 12.0
-		_fade = sc.create_tween().set_parallel(true)
-		_fade.tween_property(sc, "modulate:a", 1.0, FADE_TIME).set_trans(Tween.TRANS_SINE)
-		_fade.tween_property(sc, "position:y", y0, FADE_TIME + 0.05).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	screen_changed.emit(screen)
+	_fade = sc.create_tween().set_parallel(true)
+	if not Kit.motion_ok():
+		_fade.tween_property(sc, "modulate:a", 1.0, 0.12)
+		return
+	var w := maxf(sc.size.x, 360.0)
+	sc.pivot_offset = sc.size * 0.5
+	match kind:
+		"push", "pop", "swap", "swap_back":
+			var dir := -1.0 if kind == "pop" or kind == "swap_back" else 1.0
+			sc.position.x = dir * w * (0.12 if kind.begins_with("swap") else 0.09)
+			_fade.tween_property(sc, "position:x", 0.0, 0.42).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+			_fade.tween_property(sc, "modulate:a", 1.0, 0.13).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		"zoom":
+			sc.scale = Vector2(1.08, 1.08)
+			_fade.tween_property(sc, "scale", Vector2.ONE, 0.5).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+			_fade.tween_property(sc, "modulate:a", 1.0, 0.24).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		_:
+			# Tabs, first screen, leaving a battle: a quick cross-fade with a breath of scale.
+			sc.scale = Vector2(0.985, 0.985)
+			_fade.tween_property(sc, "scale", Vector2.ONE, 0.34).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			_fade.tween_property(sc, "modulate:a", 1.0, 0.16 if kind == "tab" else 0.24).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	if not hold_intro:
+		_intro(sc)
+
+
+## A screen's own intro() or the generic content stagger.
+func _intro(sc: Control) -> void:
+	if not Kit.motion_ok():
+		return
+	if sc.has_method("intro"):
+		sc.call("intro")
+	elif not (current_name in NO_STAGGER):
+		Kit.stagger_in(sc, 0.05)
+
+
+## Shows the screen that is being replaced as a frozen picture behind the new one while it
+## fades away, then frees it. It no longer processes or takes input.
+func _retire(ghost: Control, kind: String) -> void:
+	var host := _content_host()
+	if host == null:
+		ghost.queue_free()
+		return
+	ghost.process_mode = Node.PROCESS_MODE_DISABLED
+	ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ghost.name = "Leaving_" + String(ghost.name)
+	host.add_child(ghost)
+	host.move_child(ghost, 0)
+	# Keep the picture exactly where it was, even if the content area changed size (the
+	# full-bleed lobby leaving for a framed screen): no reflow while it fades.
+	var r: Variant = ghost.get_meta("_ui_rect", null)
+	if r is Rect2:
+		ghost.set_anchors_preset(Control.PRESET_TOP_LEFT)
+		ghost.size = (r as Rect2).size
+		ghost.global_position = (r as Rect2).position
+	var x0 := ghost.position.x
+	var w := maxf(ghost.size.x, 360.0)
+	ghost.pivot_offset = ghost.size * 0.5
+	var tw := create_tween().set_parallel(true)
+	# It stays solid at first and drops out fast: the new screen is opaque by then, so the
+	# change never passes through a milky half-and-half.
+	match kind:
+		"push", "swap":
+			tw.tween_property(ghost, "position:x", x0 - w * 0.06, 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			tw.tween_property(ghost, "modulate", Color(0.6, 0.62, 0.68, 0.0), 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		"pop", "swap_back":
+			tw.tween_property(ghost, "position:x", x0 + w * 0.06, 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			tw.tween_property(ghost, "modulate", Color(0.6, 0.62, 0.68, 0.0), 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		"zoom":
+			tw.tween_property(ghost, "scale", Vector2(0.96, 0.96), 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			tw.tween_property(ghost, "modulate:a", 0.0, 0.24).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		_:
+			tw.tween_property(ghost, "modulate:a", 0.0, 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	var gref: WeakRef = weakref(ghost)
+	tw.chain().tween_callback(func() -> void:
+		var g := gref.get_ref() as Node
+		if g:
+			g.queue_free())
 
 
 ## Which bottom-nav tab is highlighted for `screen` ("" = none).
@@ -320,55 +491,114 @@ func _device_insets() -> Vector2:
 
 # ------------------------------------------------------------------ toasts
 
-## Short message at the top of the screen. kind: "info" | "good" | "bad" (icon + accent).
-## Style v2: a dark glass bar with a colored left edge, white text.
+## Short message at the top of the screen. kind: "info" | "good" | "bad" (icon bubble +
+## accent; "bad" also plays the deny sound). Style: a dark glass bar with a coloured left
+## edge. Toasts drop in with a spring, stack (newest at the bottom, at most MAX_TOASTS),
+## glide up when one above leaves, and leave by themselves after TOAST_SECS.
 func toast(text: String, kind: String = "info") -> void:
 	var box: Variant = root.get("toast_box") if root and is_instance_valid(root) else null
-	if not (box is Container):
+	if not (box is Control):
 		print("[toast] ", text)
 		return
-	var host := box as Container
-	while host.get_child_count() >= MAX_TOASTS:
-		var old := host.get_child(0)
-		host.remove_child(old)
-		old.queue_free()
+	var host := box as Control
+	var live := _live_toasts(host)
+	while live.size() >= MAX_TOASTS:
+		_toast_out(live.pop_front(), true)
 	var p := PanelContainer.new()
 	p.theme_type_variation = &"ToastPanel"
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	p.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var accent: Color = {"good": Kit.GOOD, "bad": Kit.EMBER}.get(kind, Kit.ACCENT)
 	var sb := UITheme.style("toast")
 	sb.set("accent_color", accent)
 	p.add_theme_stylebox_override("panel", sb)
-	var row := Kit.hbox(12)
+	var row := Kit.hbox(14)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var ic: String = {"good": "check", "bad": "info"}.get(kind, "")
-	if ic != "":
-		row.add_child(Kit.icon(ic, 32, accent.lightened(0.2)))
+	var ic: String = {"good": "check", "bad": "close"}.get(kind, "info")
+	var bubble := Kit.hex_badge(ic, 44, accent.darkened(0.15), Color.WHITE)
+	bubble.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(bubble)
 	var l := Kit.label(text, Kit.SIZE_BODY, Color.WHITE, "bold")
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	# Every toast has the same width, so a stack lines up as one column.
-	l.custom_minimum_size.x = TOAST_W - 58.0 - (44.0 if ic != "" else 0.0)
+	l.custom_minimum_size.x = TOAST_W - 58.0 - 58.0
 	row.add_child(l)
 	p.add_child(row)
 	host.add_child(p)
-	p.modulate.a = 0.0
-	p.position.y -= 8.0
-	var tw := p.create_tween()
-	tw.tween_property(p, "modulate:a", 1.0, 0.18)
-	tw.tween_interval(2.2)
-	tw.tween_property(p, "modulate:a", 0.0, 0.35)
-	tw.tween_callback(p.queue_free)
+	p.size = p.get_combined_minimum_size()
+	p.position = Vector2(-p.size.x * 0.5, _toast_slot_y(host, p))
+	p.pivot_offset = p.size * 0.5
+	if kind == "bad":
+		sfx("deny")
+		haptic(18, 0.6)
+	if Kit.motion_ok():
+		p.modulate.a = 0.0
+		p.scale = Vector2(0.92, 0.92)
+		var y := p.position.y
+		p.position.y = y - 26.0
+		var tw := p.create_tween().set_parallel(true)
+		tw.tween_property(p, "modulate:a", 1.0, 0.16)
+		tw.tween_property(p, "position:y", y, 0.42).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.tween_property(p, "scale", Vector2.ONE, 0.36).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		bubble.pivot_offset = Vector2(22, 22)
+		bubble.scale = Vector2(0.4, 0.4)
+		tw.tween_property(bubble, "scale", Vector2.ONE, 0.4).set_delay(0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	var life := p.create_tween()
+	life.tween_interval(TOAST_SECS + 0.1 * text.length() / 10.0)
+	life.tween_callback(func() -> void: _toast_out(p, false))
+
+
+## Toasts still on screen (not leaving), oldest first.
+func _live_toasts(host: Control) -> Array[Control]:
+	var out: Array[Control] = []
+	for c in host.get_children():
+		if c is Control and not (c as Control).has_meta("leaving"):
+			out.append(c)
+	return out
+
+
+## Y of `p`'s slot: under the live toasts before it.
+func _toast_slot_y(host: Control, p: Control) -> float:
+	var y := 0.0
+	for c in _live_toasts(host):
+		if c == p:
+			break
+		y += c.size.y + TOAST_GAP
+	return y
+
+
+func _toast_out(p: Control, fast: bool) -> void:
+	if not is_instance_valid(p) or p.has_meta("leaving"):
+		return
+	p.set_meta("leaving", true)
+	var host := p.get_parent() as Control
+	var tw := p.create_tween().set_parallel(true)
+	var d := 0.14 if fast else 0.26
+	tw.tween_property(p, "modulate:a", 0.0, d).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tw.tween_property(p, "position:y", p.position.y - 18.0, d).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tw.tween_property(p, "scale", Vector2(0.95, 0.95), d)
+	tw.chain().tween_callback(p.queue_free)
+	if host:
+		_restack_toasts(host)
+
+
+## Glides the live toasts up into their slots after one leaves.
+func _restack_toasts(host: Control) -> void:
+	var y := 0.0
+	for c in _live_toasts(host):
+		if absf(c.position.y - y) > 0.5:
+			var tw := c.create_tween()
+			tw.tween_property(c, "position:y", y, 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		y += c.size.y + TOAST_GAP
 
 
 # ------------------------------------------------------------------ modals
 
-## Opens `content` as a modal over everything (dim backdrop, centered, pop-in).
-## dismissable: tapping the backdrop or Back closes it (calls on_closed).
-## Returns the modal root; close it with close_modal(m).
-func modal(content: Control, dismissable: bool = true, on_closed: Callable = Callable()) -> Control:
+## Opens `content` as a modal over everything (the backdrop dims in, the panel springs up
+## from 80 % with a soft "pop" sound). dismissable: tapping the backdrop or Back closes it
+## (calls on_closed). sound: "" for none. Returns the modal root; close it with close_modal(m).
+func modal(content: Control, dismissable: bool = true, on_closed: Callable = Callable(), sound: String = "pop") -> Control:
 	var layer := _modal_layer()
 	if layer == null:
 		push_warning("UI.modal before UI.attach")
@@ -397,30 +627,51 @@ func modal(content: Control, dismissable: bool = true, on_closed: Callable = Cal
 	holder.add_child(content)
 	layer.add_child(m)
 	_modals.append(m)
+	m.set_meta("content", content)
+	m.set_meta("dim", dim)
 	dim.modulate.a = 0.0
-	dim.create_tween().tween_property(dim, "modulate:a", 1.0, 0.18)
+	dim.create_tween().tween_property(dim, "modulate:a", 1.0, 0.22).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	content.pivot_offset = content.get_combined_minimum_size() * 0.5
-	content.scale = Vector2(0.86, 0.86)
 	content.modulate.a = 0.0
 	var tw := content.create_tween().set_parallel(true)
-	tw.tween_property(content, "scale", Vector2.ONE, 0.26).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(content, "modulate:a", 1.0, 0.14)
+	if Kit.motion_ok():
+		content.scale = Vector2(0.8, 0.8)
+		tw.tween_property(content, "scale", Vector2.ONE, 0.38).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.tween_property(content, "modulate:a", 1.0, 0.16)
+	else:
+		tw.tween_property(content, "modulate:a", 1.0, 0.12)
 	content.resized.connect(func() -> void: content.pivot_offset = content.size * 0.5)
+	if sound != "":
+		sfx(sound)
 	return m
 
 
-## Closes a modal opened with modal()/popup() without calling its on_closed.
+## Closes a modal opened with modal()/popup() without calling its on_closed. It stops
+## taking input at once, then shrinks and fades away.
 func close_modal(m: Control) -> void:
-	if m == null or not is_instance_valid(m) or m.is_queued_for_deletion():
+	if m == null or not is_instance_valid(m) or m.is_queued_for_deletion() or m.has_meta("closing"):
 		return
 	_modals.erase(m)
-	m.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	for c in m.get_children():
-		if c is Control:
-			(c as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var tw := m.create_tween()
-	tw.tween_property(m, "modulate:a", 0.0, 0.12)
-	tw.tween_callback(m.queue_free)
+	m.set_meta("closing", true)
+	_ignore_input(m)
+	var content: Variant = m.get_meta("content", null)
+	var dim: Variant = m.get_meta("dim", null)
+	var tw := m.create_tween().set_parallel(true)
+	if content is Control and dim is Control and is_instance_valid(content) and Kit.motion_ok():
+		var c := content as Control
+		tw.tween_property(c, "scale", Vector2(0.9, 0.9), 0.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw.tween_property(c, "modulate:a", 0.0, 0.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw.tween_property(dim as Control, "modulate:a", 0.0, 0.2)
+	else:
+		tw.tween_property(m, "modulate:a", 0.0, 0.12)
+	tw.chain().tween_callback(m.queue_free)
+
+
+func _ignore_input(n: Node) -> void:
+	if n is Control:
+		(n as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for c in n.get_children():
+		_ignore_input(c)
 
 
 func _dismiss(m: Control) -> void:
@@ -552,16 +803,46 @@ func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callab
 	var hint := Kit.caption("Tap anywhere to close", 20, Color(1, 1, 1, 0.6))
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(hint)
+	# The top-bar wallet holds its old numbers while the popup is up; on close the currencies
+	# fly from their tiles to the wallet and it counts up as they land.
+	var hold := _hold_currency()
+	var tiles_ref: Array[Control] = []
 	var closed := func() -> void:
 		_reward_open = false
+		_fly_rewards(entries, tiles_ref, hold)
 		if on_closed.is_valid():
 			on_closed.call()
 		if not _reward_queue.is_empty():
 			var nxt: Array = _reward_queue.pop_front()
 			show_reward.call_deferred(nxt[0], nxt[1], nxt[2])
-	var m := modal(col, true, closed)
+	var m := modal(col, true, closed, "")
 	m_ref.append(m)
-	# Tiles pop in one after another.
+	# Never leave the wallet frozen, however the popup goes away.
+	m.tree_exited.connect(func() -> void: hold.call())
+	var motion := Kit.motion_ok()
+	if motion:
+		banner.pivot_offset = Vector2(290, 46)
+		banner.scale = Vector2(1.45, 1.45)
+		banner.modulate.a = 0.0
+		var bt := banner.create_tween().set_parallel(true)
+		bt.tween_property(banner, "scale", Vector2.ONE, 0.42).set_delay(0.06).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		bt.tween_property(banner, "modulate:a", 1.0, 0.18).set_delay(0.06)
+		var ga := glow.modulate.a
+		glow.modulate.a = 0.0
+		glow.pivot_offset = Vector2(220, 220)
+		glow.scale = Vector2(0.4, 0.4)
+		var gt := glow.create_tween().set_parallel(true)
+		gt.tween_property(glow, "modulate:a", ga, 0.35).set_delay(0.1)
+		gt.tween_property(glow, "scale", Vector2.ONE, 0.5).set_delay(0.1).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+		hint.modulate.a = 0.0
+		var ht := hint.create_tween()
+		ht.tween_interval(0.9)
+		ht.tween_property(hint, "modulate:a", 1.0, 0.4)
+		ht.tween_callback(func() -> void:
+			var loop := hint.create_tween().set_loops()
+			loop.tween_property(hint, "modulate:a", 0.45, 1.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			loop.tween_property(hint, "modulate:a", 1.0, 1.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT))
+	# Tiles pop in one after another, each with a glint and a rising note.
 	await get_tree().process_frame
 	if not is_instance_valid(m):
 		return
@@ -572,8 +853,56 @@ func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callab
 	if list_node:
 		var i := 0
 		for tile in list_node.get_children():
-			Kit.pop_in(tile as Control, 0.12 + i * 0.06)
+			var tc := tile as Control
+			tiles_ref.append(tc)
+			var delay := 0.16 + i * 0.07
+			Kit.pop_in(tc, delay, 0.36)
+			if motion and i < 10:
+				var pitch := 1.0 + 0.06 * i
+				var face := tc.get_child(0) as Control if tc.get_child_count() > 0 else null
+				var tt := tc.create_tween()
+				tt.tween_interval(delay + 0.08)
+				tt.tween_callback(func() -> void:
+					sfx("sparkle", pitch)
+					if face and is_instance_valid(face) and not (face is Container):
+						Kit.sparkle(face, face.size * 0.5, Kit.ACCENT_HI, 6, face.size.x * 0.62))
 			i += 1
+	var shine := ok.get_node_or_null("Shine")
+	if shine and shine.has_method("sweep_now"):
+		shine.call("sweep_now", 0.35 + tiles_ref.size() * 0.07)
+
+
+## Freezes the top-bar wallet (its amounts stay put while a reward popup is open). Returns
+## the release callable; calling it more than once is harmless.
+func _hold_currency() -> Callable:
+	var r: Variant = root if root and is_instance_valid(root) else null
+	if r == null or not (r as Node).has_method("hold_currency"):
+		return func() -> void: pass
+	(r as Node).call("hold_currency", true)
+	var token := {"done": false}
+	var rref: WeakRef = weakref(r)
+	return func() -> void:
+		if token.done:
+			return
+		token.done = true
+		var n := rref.get_ref() as Node
+		if n:
+			n.call("hold_currency", false)
+
+
+## On closing a reward popup: currency icons fly from their tiles to the wallet in the top
+## bar (when it shows that currency), then `release` lets the wallet count up.
+func _fly_rewards(entries: Array[Dictionary], tiles: Array[Control], release: Callable) -> void:
+	if root == null or not is_instance_valid(root) or not root.has_method("fly_currency") or not chrome_top or not Kit.motion_ok():
+		release.call()
+		return
+	var sources: Array[Dictionary] = []
+	for i in mini(entries.size(), tiles.size()):
+		var e := entries[i]
+		var t := tiles[i]
+		if str(e.get("kind", "")) == "currency" and is_instance_valid(t):
+			sources.append({"id": str(e.get("id", "")), "from": t.get_global_rect().get_center(), "amount": int(e.get("amount", 0))})
+	root.call("fly_currency", sources, release)
 
 
 func _modal_layer() -> Control:
@@ -590,9 +919,11 @@ func has_modal() -> bool:
 
 # ------------------------------------------------------------------ sound & haptics
 
-## Plays a short generated sound: tap, reward, summon, legendary, hit, ult, victory, defeat.
-## Silent when Game.setting("sound") is false.
-func sfx(sound_name: String) -> void:
+## Plays a short generated sound (Sfx.NAMES: tap, tab, pop, close, deny, toggle, coin,
+## sparkle, reward, summon, legendary, hit, ult, victory, defeat). pitch > 0 sets the pitch
+## (taps and hits otherwise vary a little by themselves). Silent when Game.setting("sound")
+## is false.
+func sfx(sound_name: String, pitch: float = -1.0) -> void:
 	if _audio_released or not _sound_on():
 		return
 	# The same sound within 45 ms only gets louder, not better (fast battles): skip it.
@@ -607,7 +938,12 @@ func sfx(sound_name: String) -> void:
 	_next_player = (_next_player + 1) % _players.size()
 	p.stream = stream
 	p.volume_db = float(SFX_VOLUME_DB.get(sound_name, -6.0))
-	p.pitch_scale = _sfx_rng.randf_range(0.92, 1.08) if sound_name == "hit" or sound_name == "tap" else 1.0
+	if pitch > 0.0:
+		p.pitch_scale = pitch
+	elif sound_name in ["hit", "tap", "tab", "coin"]:
+		p.pitch_scale = _sfx_rng.randf_range(0.94, 1.06)
+	else:
+		p.pitch_scale = 1.0
 	p.play()
 
 
@@ -626,14 +962,15 @@ func release_audio() -> void:
 		p.stream = null
 
 
-## Short vibration (phones only).
-func haptic(ms: int = 20) -> void:
+## Short vibration (phones only; follows the Vibration setting). amplitude 0..1 sets the
+## strength (a light tick for taps, firmer for "no"); -1 = the device default.
+func haptic(ms: int = 20, amplitude: float = -1.0) -> void:
 	if not OS.has_feature("mobile"):
 		return
 	var v: Variant = Game.setting("haptics") if Game.has_method("setting") else null
 	if v is bool and not v:
 		return
-	Input.vibrate_handheld(ms)
+	Input.vibrate_handheld(ms, amplitude)
 
 
 ## Starts/stops the ambient music to match Game.setting("music") (null = on).

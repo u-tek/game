@@ -90,6 +90,48 @@ func _exit_tree() -> void:
 	_close_sheet()
 
 
+## Entrance (UI calls it after the screen appears): the hero fades up, the banner and the
+## objective strip drop in, the side buttons slide in from their edges and the four plates
+## rise from below, one after another. Moves only the buttons' faces, so it never fights
+## _layout().
+func intro() -> void:
+	if _anchor:
+		_anchor.modulate.a = 0.0
+		var ht := _anchor.create_tween()
+		ht.tween_property(_anchor, "modulate:a", 1.0, 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	for b in _banner_slot.get_children():
+		_face_in(b as Control, Vector2(0, -30), 0.05)
+	_face_in(_notice, Vector2(40, 0), 0.08)
+	var i := 0
+	for b: Button in [_side_daily, _side_offers]:
+		_face_in(b, Vector2(-70, 0), 0.12 + i * 0.05)
+		i += 1
+	i = 0
+	for b: Button in [_side_hero, _side_view, _side_tower]:
+		_face_in(b, Vector2(70, 0), 0.12 + i * 0.05)
+		i += 1
+	if _speech.visible:
+		_speech.modulate.a = 0.0
+		var st := _speech.create_tween()
+		st.tween_property(_speech, "modulate:a", 1.0, 0.3).set_delay(0.25)
+	i = 0
+	for b: Button in [_shop, _team, _sanctum, _campaign]:
+		_face_in(b, Vector2(0, 60), 0.16 + i * 0.06)
+		i += 1
+
+
+## Moves a lobby button's Face in from `from` (the button itself stays where _layout put it).
+func _face_in(b: Control, from: Vector2, delay: float) -> void:
+	if b == null or not is_instance_valid(b):
+		return
+	var f: Control = b.get("face") if b.get("face") is Control else b.get_node_or_null("Face") as Control
+	Kit.offset_in(f if f else b, from, delay, 0.5)
+	# Badges that sit on the button (not on its face) travel with it.
+	for c in b.get_children():
+		if c != f and c is Control and (String(c.name) == "KitNew" or String(c.name) == "KitDot"):
+			Kit.offset_in(c as Control, from, delay, 0.5)
+
+
 # ------------------------------------------------------------------ build
 
 func _build() -> void:

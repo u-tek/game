@@ -9,12 +9,20 @@ extends Control
 ## UI.set_full_bleed(true) (the lobby) it fills the window and the bars turn into
 ## translucent gradients over its art. UI.set_chrome() hides either bar (battle, summon).
 ##
+## Launch: when this is the running main scene, a boot screen (BootScreen) covers the first
+## frames while the lobby builds, then lifts and the lobby plays its intro. Test scripts that
+## add main.tscn themselves skip it.
+##
 ## Screenshot mode (docs/dev/architecture.md section 1), args after "--":
 ##   --shoot=<screen> --shoot-out=<png> --shoot-params=<json> --shoot-wait=<s>
 ##   --safe-area-sim  (108 px top / 62 px bottom insets, like a notched iPhone)
+##   --shoot=boot                 the boot screen (held), --shoot-from=<screen> opens that
+##   screen first and navigates after 0.6 s (catch a transition with a short --shoot-wait),
+##   --shoot-do=toast|confirm|reward|veil  opens one of those over the screen.
 
 const Backdrop := preload("res://src/ui/components/backdrop.gd")
 const NavTab := preload("res://src/ui/components/nav_tab.gd")
+const BootScreen := preload("res://src/ui/components/boot_screen.gd")
 
 ## Heights of the chrome bars, not counting the safe-area insets.
 const TOP_H := 104.0
@@ -33,13 +41,17 @@ const DEFAULT_CURRENCIES: Array[String] = ["gems", "gold"]
 
 ## Where screens are mounted (UI.go adds them here).
 var content: Control
-## Toasts stack here (UI.toast).
-var toast_box: VBoxContainer
+## Toasts stack here (UI.toast lays them out itself).
+var toast_box: Control
 ## Modals are added here (UI.modal / popup / confirm / show_reward).
 var modal_layer: Control
+## Effects over everything (currencies flying to the wallet).
+var fx_layer: Control
 var backdrop: Control
 var top_bar: Control
 var nav_bar: Control
+## > 0 while a reward popup is open: the wallet keeps its old amounts (hold_currency).
+var currency_hold := 0
 
 var _top_bg: Panel
 var _nav_bg: Panel
@@ -57,9 +69,14 @@ var _quests_btn: Button
 var _bell_btn: Button
 var _menu_btn: Button
 var _tabs: Dictionary = {}
+var _nav_ink: ColorRect
+var _ink_tab := ""
 var _shoot: Dictionary = {}
 var _held_toasts: Array[String] = []
 var _bleed := false
+var _veil: Control
+var _veil_tw: Tween
+var _chrome_shown := Vector2i(-1, -1)
 
 
 func _ready() -> void:
@@ -85,8 +102,42 @@ func _ready() -> void:
 	_refresh()
 	if _shoot.has("screen"):
 		_run_shoot()
+	elif get_tree().current_scene == self:
+		_boot()
 	else:
 		UI.go("home")
+
+
+## Launch: the boot screen covers the first frames while caches warm up and the lobby builds,
+## then fills its bar and lifts; the lobby's intro plays as it does. hold = stay up (shots).
+func _boot(hold: bool = false) -> void:
+	var boot := BootScreen.new()
+	add_child(boot)
+	var t0 := Time.get_ticks_msec()
+	UI.hold_intro = true
+	boot.set_progress(0.15)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	# Warm the art and glyphs the lobby and the chrome use first.
+	for id: Variant in Game.formation():
+		if str(id) != "":
+			Kit.art_crop(str(id), 1.0, 1.7)
+	boot.set_progress(0.45)
+	await get_tree().process_frame
+	if UI.current_name == "":
+		UI.go("home")
+	boot.set_progress(0.85)
+	await get_tree().process_frame
+	if hold:
+		return
+	# Long enough to read as a deliberate splash, never a flash.
+	var left := 1.25 - float(Time.get_ticks_msec() - t0) / 1000.0
+	if left > 0.0:
+		await get_tree().create_timer(left).timeout
+	if not is_instance_valid(boot):
+		UI.play_intro()
+		return
+	boot.finish(func() -> void: UI.play_intro())
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -128,14 +179,13 @@ func _build() -> void:
 	_build_top_bar()
 	_build_nav()
 
-	toast_box = VBoxContainer.new()
+	# A zero-width column at the centre line: UI.toast places (and restacks) toasts in it.
+	toast_box = Control.new()
 	toast_box.name = "Toasts"
 	toast_box.mouse_filter = MOUSE_FILTER_IGNORE
-	toast_box.add_theme_constant_override("separation", 10)
 	toast_box.anchor_left = 0.5
 	toast_box.anchor_right = 0.5
 	toast_box.grow_horizontal = GROW_DIRECTION_BOTH
-	toast_box.alignment = BoxContainer.ALIGNMENT_BEGIN
 	add_child(toast_box)
 
 	modal_layer = Control.new()
@@ -143,6 +193,12 @@ func _build() -> void:
 	modal_layer.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	modal_layer.mouse_filter = MOUSE_FILTER_IGNORE
 	add_child(modal_layer)
+
+	fx_layer = Control.new()
+	fx_layer.name = "Fx"
+	fx_layer.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	fx_layer.mouse_filter = MOUSE_FILTER_IGNORE
+	add_child(fx_layer)
 
 
 func _build_top_bar() -> void:
@@ -299,13 +355,24 @@ func _build_nav() -> void:
 	for t: Array in TABS:
 		var tab := NavTab.new()
 		var id: String = t[0]
+		tab.shared_ink = true
 		tab.setup(id, t[1], t[2], id == "home")
 		tab.pressed.connect(func() -> void:
 			if UI.current_name != id:
-				UI.sfx("tap")
+				UI.sfx("tab")
+				UI.haptic(10, 0.35)
 				UI.go(id))
 		row.add_child(tab)
 		_tabs[id] = tab
+	# One white bar above the active tab that slides from tab to tab (hidden on the Lobby hex).
+	_nav_ink = ColorRect.new()
+	_nav_ink.name = "Ink"
+	_nav_ink.color = Color.WHITE
+	_nav_ink.mouse_filter = MOUSE_FILTER_IGNORE
+	_nav_ink.size = Vector2(88, 4)
+	_nav_ink.position = Vector2(0, 8)
+	_nav_ink.modulate.a = 0.0
+	nav_bar.add_child(_nav_ink)
 
 
 # ------------------------------------------------------------------ layout
@@ -327,23 +394,198 @@ func _layout() -> void:
 		_bleed = bleed
 		_top_bg.add_theme_stylebox_override("panel", UITheme.style("topbar_clear" if bleed else "topbar"))
 		_nav_bg.add_theme_stylebox_override("panel", UITheme.style("navbar_clear" if bleed else "navbar"))
-	top_bar.visible = UI.chrome_top
+	_show_bar(top_bar, UI.chrome_top, 0)
 	top_bar.offset_top = 0
 	top_bar.offset_bottom = st + TOP_H
 	_top_margin.add_theme_constant_override("margin_top", int(st))
-	nav_bar.visible = UI.chrome_nav
+	_show_bar(nav_bar, UI.chrome_nav, 1)
 	nav_bar.offset_top = -(NAV_H + sb)
 	nav_bar.offset_bottom = 0
 	content.offset_top = (st + TOP_H) if UI.chrome_top and not bleed else 0.0
 	content.offset_bottom = -(NAV_H + sb) if UI.chrome_nav and not bleed else 0.0
 	# Below a sub-screen's header row (back button, title), so toasts never hide it.
 	toast_box.offset_top = (st + TOP_H if UI.chrome_top else st) + TOAST_GAP
+	_place_ink.call_deferred(false)
+
+
+## Shows or hides a chrome bar: hiding is instant (full-screen moments), coming back fades
+## it in. which: 0 top bar, 1 nav.
+func _show_bar(bar: Control, on: bool, which: int) -> void:
+	var was: int = _chrome_shown[which]
+	_chrome_shown[which] = 1 if on else 0
+	bar.visible = on
+	if on and was == 0 and Kit.motion_ok():
+		bar.modulate.a = 0.0
+		bar.create_tween().tween_property(bar, "modulate:a", 1.0, 0.28).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	elif on and was != 0:
+		bar.modulate.a = 1.0
+
+
+## Puts the nav's white bar over the active tab (sliding there when animate), or fades it
+## out on the Lobby hexagon.
+func _place_ink(animate: bool) -> void:
+	if _nav_ink == null or _tabs.is_empty():
+		return
+	var id := _ink_tab
+	var tab: Control = _tabs.get(id, null)
+	if tab == null or id == "home":
+		if animate and Kit.motion_ok():
+			var c: Control = _tabs.get("home", null)
+			var tw := _nav_ink.create_tween().set_parallel(true)
+			tw.tween_property(_nav_ink, "modulate:a", 0.0, 0.18)
+			if c:
+				tw.tween_property(_nav_ink, "position:x", _ink_x(c), 0.3).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+		else:
+			_nav_ink.modulate.a = 0.0
+		return
+	var x := _ink_x(tab)
+	Kit._kill_tween(_nav_ink, "_tw")
+	if animate and Kit.motion_ok() and _nav_ink.modulate.a > 0.01:
+		var tw2 := _nav_ink.create_tween().set_parallel(true)
+		tw2.tween_property(_nav_ink, "position:x", x, 0.34).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+		tw2.tween_property(_nav_ink, "modulate:a", 1.0, 0.15)
+		_nav_ink.set_meta("_tw", tw2)
+	elif animate and Kit.motion_ok():
+		# Coming off the Lobby: rise out of the hexagon's side.
+		var home: Control = _tabs.get("home", null)
+		_nav_ink.position.x = _ink_x(home) if home else x
+		var tw3 := _nav_ink.create_tween().set_parallel(true)
+		tw3.tween_property(_nav_ink, "position:x", x, 0.34).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+		tw3.tween_property(_nav_ink, "modulate:a", 1.0, 0.2)
+		_nav_ink.set_meta("_tw", tw3)
+	else:
+		_nav_ink.position.x = x
+		_nav_ink.modulate.a = 1.0
+
+
+func _ink_x(tab: Control) -> float:
+	return tab.global_position.x - nav_bar.global_position.x + tab.size.x * 0.5 - _nav_ink.size.x * 0.5
 
 
 # ------------------------------------------------------------------ refresh
 
+## Freezes (on) or releases (off) the wallet's amounts; on the last release it counts to the
+## real values. UI.show_reward holds it while a reward popup is open.
+func hold_currency(on: bool) -> void:
+	currency_hold = maxi(0, currency_hold + (1 if on else -1))
+	if currency_hold == 0:
+		_refresh()
+
+
+## Currency icons fly from screen points to their wallet entries. sources: [{id, from
+## (global px), amount}]. `landed` runs when the first one arrives (or at once when none can
+## fly); each landing pops the entry with a ting.
+func fly_currency(sources: Array[Dictionary], landed: Callable) -> void:
+	var map: Dictionary = _pill.get_meta("entries", {}) if _pill else {}
+	var flights: Array[Dictionary] = []
+	for s: Dictionary in sources:
+		var id := str(s.get("id", ""))
+		if map.has(id) and top_bar.visible:
+			flights.append(s)
+	if flights.is_empty():
+		landed.call()
+		return
+	var state := {"first": true, "n": 0}
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	var k := 0
+	for s: Dictionary in flights:
+		var id := str(s.id)
+		var cell := map[id] as Control
+		var icon_node := _cell_icon(cell)
+		var to: Vector2 = (icon_node.get_global_rect().get_center() if icon_node else cell.get_global_rect().get_center())
+		# The wallet may be rebuilt (another screen) before they land: hold it weakly.
+		var icon_ref: WeakRef = weakref(icon_node)
+		var from: Vector2 = s.from
+		var count := clampi(3 + int(log(maxf(float(s.get("amount", 1)), 1.0)) / log(10.0)), 3, 7)
+		for i in count:
+			var ic := Kit.icon(id, 46)
+			ic.size = Vector2(46, 46)
+			ic.pivot_offset = Vector2(23, 23)
+			ic.position = from - Vector2(23, 23)
+			ic.scale = Vector2(0.5, 0.5)
+			fx_layer.add_child(ic)
+			var burst := from + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(40.0, 90.0)
+			var delay := k * 0.05
+			var tw := ic.create_tween()
+			tw.tween_interval(delay)
+			tw.tween_property(ic, "position", burst - Vector2(23, 23), 0.2).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+			tw.parallel().tween_property(ic, "scale", Vector2(1.1, 1.1), 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tw.tween_property(ic, "position", to - Vector2(23, 23), 0.46).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+			tw.parallel().tween_property(ic, "scale", Vector2(0.62, 0.62), 0.46).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+			var pitch := 1.0 + 0.05 * k
+			tw.tween_callback(func() -> void:
+				if state.first:
+					state.first = false
+					landed.call()
+				state.n = int(state.n) + 1
+				UI.sfx("coin", pitch)
+				var target := icon_ref.get_ref() as Control if icon_ref else null
+				if target:
+					Kit.pulse(target, 1.3)
+				ic.queue_free())
+			k += 1
+
+
+## The currency glyph inside a wallet entry (its first TextureRect).
+func _cell_icon(cell: Control) -> Control:
+	for n in cell.find_children("*", "TextureRect", true, false):
+		return n as Control
+	return null
+
+
+## The full-screen loading veil (UI.busy / UI.idle): dim glass, a spinner and a caption.
+func show_veil(text: String) -> void:
+	if _veil == null:
+		_veil = Control.new()
+		_veil.name = "Veil"
+		_veil.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+		_veil.mouse_filter = MOUSE_FILTER_STOP
+		var shade := TextureRect.new()
+		shade.texture = Kit.vgradient(Color("0a1830e6"), Color("040812f5"))
+		shade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		shade.stretch_mode = TextureRect.STRETCH_SCALE
+		shade.mouse_filter = MOUSE_FILTER_IGNORE
+		shade.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+		_veil.add_child(shade)
+		var col := Kit.vbox(22)
+		col.alignment = BoxContainer.ALIGNMENT_CENTER
+		col.mouse_filter = MOUSE_FILTER_IGNORE
+		col.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+		var sp := Kit.spinner(92)
+		sp.size_flags_horizontal = SIZE_SHRINK_CENTER
+		col.add_child(sp)
+		var l := Kit.label("", 26, Color(0.85, 0.95, 1.0, 0.92), "cond_bold")
+		l.name = "Caption"
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		col.add_child(l)
+		_veil.add_child(col)
+		add_child(_veil)
+	move_child(_veil, get_child_count() - 1)
+	(_veil.find_child("Caption", true, false) as Label).text = text.to_upper()
+	_veil.mouse_filter = MOUSE_FILTER_STOP
+	_veil.visible = true
+	if _veil_tw and _veil_tw.is_valid():
+		_veil_tw.kill()
+	_veil.modulate.a = 0.0
+	_veil_tw = _veil.create_tween()
+	_veil_tw.tween_property(_veil, "modulate:a", 1.0, 0.14).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+
+func hide_veil() -> void:
+	if _veil == null or not _veil.visible:
+		return
+	_veil.mouse_filter = MOUSE_FILTER_IGNORE
+	if _veil_tw and _veil_tw.is_valid():
+		_veil_tw.kill()
+	_veil_tw = _veil.create_tween()
+	_veil_tw.tween_interval(0.08)
+	_veil_tw.tween_property(_veil, "modulate:a", 0.0, 0.32).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	_veil_tw.tween_callback(func() -> void: _veil.visible = false)
+
+
 func _refresh() -> void:
-	if _pill:
+	if _pill and currency_hold <= 0:
 		var map: Dictionary = _pill.get_meta("entries", {})
 		for id: Variant in map:
 			Kit.set_chip_amount(map[id], int(Game.currency(str(id))))
@@ -527,6 +769,9 @@ func _on_screen_changed(screen: String) -> void:
 	var active := UI.nav_tab_for(screen)
 	for id: String in _tabs:
 		(_tabs[id] as NavTab).set_active(id == active)
+	var moved := active != _ink_tab
+	_ink_tab = active
+	_place_ink(moved and nav_bar.is_visible_in_tree())
 	var cur: Variant = UI.TOP_CURRENCIES.get(screen, DEFAULT_CURRENCIES)
 	_rebuild_pill(cur as Array)
 	_refresh()
@@ -555,17 +800,43 @@ func _parse_args() -> void:
 			_shoot["frames"] = a.substr("--shoot-frames=".length()).to_int()
 		elif a.begins_with("--shoot-every="):
 			_shoot["every"] = a.substr("--shoot-every=".length()).to_float()
+		elif a.begins_with("--shoot-from="):
+			_shoot["from"] = a.substr("--shoot-from=".length())
+		elif a.begins_with("--shoot-do="):
+			_shoot["do"] = a.substr("--shoot-do=".length())
 		elif a == "--safe-area-sim":
 			UI.safe_override = Vector2(108, 62)
 
 
 func _run_shoot() -> void:
 	var screen: String = _shoot["screen"]
-	if UI.SCREENS.has(screen):
+	if screen == "boot":
+		_boot(true)
+	elif UI.SCREENS.has(screen):
+		var from := str(_shoot.get("from", ""))
+		if from != "" and UI.SCREENS.has(from):
+			UI.go(from)
+			await get_tree().create_timer(0.6).timeout
 		UI.go(screen, _shoot.get("params", {}))
 	else:
 		push_error("--shoot: unknown screen '%s'" % screen)
 		UI.go("home")
+	match str(_shoot.get("do", "")):
+		"toast":
+			UI.toast("Not enough gems", "bad")
+			UI.toast("Quest complete: Win 3 battles", "good")
+		"confirm":
+			UI.confirm("Spend 300 gems to collect 2 hours of Sanctum rewards now?", Callable(), Callable(), "Spend 300")
+		"reward":
+			UI.show_reward("Stage Cleared!", {"gems": 300, "gold": 12500, "hero_exp": 2400, "scrolls": 1})
+		"veil":
+			UI.busy("Preparing battle")
+		"shine":
+			# Every glint on screen sweeps at once (to see them in a still).
+			await get_tree().create_timer(0.8).timeout
+			for n in find_children("Shine", "", true, false):
+				if n.has_method("sweep_now"):
+					n.call("sweep_now")
 	await get_tree().create_timer(float(_shoot.get("wait", 1.0))).timeout
 	var out: String = _shoot.get("out", "user://shot.png")
 	DirAccess.make_dir_recursive_absolute(out.get_base_dir())

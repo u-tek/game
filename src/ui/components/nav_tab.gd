@@ -2,7 +2,9 @@ extends Button
 ## One bottom-nav tab (style v2), built by main.gd. A flat white glyph over an uppercase
 ## condensed label; inactive tabs are grey, the active one is white with a short white bar
 ## above it. The centre tab (center = true) is a raised hexagon plate that rises above the
-## nav bar; when active its rim turns cyan and glows.
+## nav bar; when active its rim turns cyan and glows. The glyph squashes on touch-down and
+## springs back on release; with shared_ink the nav (main.gd) draws one sliding bar instead
+## of each tab's own.
 
 const KitBox := preload("res://src/ui/components/kit_box.gd")
 
@@ -11,12 +13,18 @@ const DIM := Color("aeb3ba")
 
 var tab_id := ""
 var center := false
+## main.gd slides one shared bar between tabs; the tab's own bar stays hidden.
+var shared_ink := false
 var _bar: ColorRect
 var _icon: TextureRect
 var _label: Label
 var _hex: Control
 var _active := false
 var _tw: Tween
+var _press_tw: Tween
+var _hop_tw: Tween
+## The glyph's resting top offset (the hop returns here).
+var _icon_top := 0.0
 
 
 func setup(id: String, text: String, icon_name: String, is_center: bool = false) -> void:
@@ -65,6 +73,7 @@ func setup(id: String, text: String, icon_name: String, is_center: bool = false)
 	_icon.offset_right = isz * 0.5
 	_icon.offset_top = top
 	_icon.offset_bottom = top + isz
+	_icon_top = top
 	_icon.pivot_offset = Vector2(isz, isz) * 0.5
 	add_child(_icon)
 
@@ -75,7 +84,28 @@ func setup(id: String, text: String, icon_name: String, is_center: bool = false)
 	_label.offset_top = 78
 	_label.offset_bottom = 104
 	add_child(_label)
+	if _hex:
+		_hex.pivot_offset = Vector2(50, 50)
+	button_down.connect(func() -> void: _squash(true))
+	button_up.connect(func() -> void: _squash(false))
 	_apply(false)
+
+
+## Touch-down squash of the glyph (and the Lobby hexagon); release springs it back.
+func _squash(down: bool) -> void:
+	if _press_tw and _press_tw.is_valid():
+		_press_tw.kill()
+	_press_tw = create_tween().set_parallel(true)
+	var parts: Array[Control] = [_icon]
+	if _hex:
+		parts.append(_hex)
+	for p in parts:
+		if down:
+			_press_tw.tween_property(p, "scale", Vector2(0.86, 0.86), 0.07).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		else:
+			_press_tw.tween_property(p, "scale", Vector2.ONE, 0.34).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	var m := Color(1.2, 1.2, 1.2) if down else Color.WHITE
+	_press_tw.tween_property(_label, "modulate", m, 0.08 if down else 0.25)
 
 
 ## Highlights this tab.
@@ -98,17 +128,31 @@ func _apply(animate: bool) -> void:
 		_hex.queue_redraw()
 	if _tw and _tw.is_valid():
 		_tw.kill()
+	var bar_a := 1.0 if _active and not shared_ink else 0.0
 	if not animate:
 		_icon.modulate = col
 		if _bar:
-			_bar.modulate.a = 1.0 if _active else 0.0
+			_bar.modulate.a = bar_a
 		return
 	_tw = create_tween().set_parallel(true)
 	_tw.tween_property(_icon, "modulate", col, 0.15)
 	if _bar:
-		_tw.tween_property(_bar, "modulate:a", 1.0 if _active else 0.0, 0.18)
-	_icon.scale = Vector2(0.9, 0.9) if _active else Vector2.ONE
-	_tw.tween_property(_icon, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		_tw.tween_property(_bar, "modulate:a", bar_a, 0.18)
+	if _active:
+		# The new tab's glyph hops: up and back with a spring.
+		_icon.scale = Vector2(0.84, 0.84)
+		_tw.tween_property(_icon, "scale", Vector2.ONE, 0.42).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		if not Kit.motion_ok():
+			return
+		var y0 := _icon_top
+		var hop := func(v: float) -> void:
+			_icon.offset_top = y0 - v
+			_icon.offset_bottom = y0 - v + _icon.custom_minimum_size.y
+		if _hop_tw and _hop_tw.is_valid():
+			_hop_tw.kill()
+		_hop_tw = create_tween()
+		_hop_tw.tween_method(hop, 0.0, 7.0, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		_hop_tw.tween_method(hop, 7.0, 0.0, 0.3).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 
 
 func _draw_hex() -> void:

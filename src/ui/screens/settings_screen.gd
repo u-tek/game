@@ -1,8 +1,9 @@
 extends Control
 ## Screen "settings" (from the top-bar Menu), style v2: a dark header with Back and the
 ## SETTINGS tab, then white panels on a light page, each under a dark header bar: SOUND
-## (effects, music, vibration), BATTLE (default speed, auto ultimates), ADULT CONTENT (Toggle
-## nudity, with an 18+ confirm and a big "NUDITY MODE ENABLED / DISABLED" notice), SAVE DATA (Reset Save
+## (effects, music, vibration), DISPLAY (Reduce motion: no slides, sweeps or bounces; stored as
+## the "reduce_motion" setting, read by Kit.motion_ok), BATTLE (default speed, auto ultimates), ADULT CONTENT
+## (Toggle nudity, with an 18+ confirm and a big "NUDITY MODE ENABLED / DISABLED" notice), SAVE DATA (Reset Save
 ## asks first), DEV TOOLS (+3,000 gems, +100K gold, +50K hero EXP, skip 8 hours) and ABOUT
 ## (version and credits with the font licenses).
 
@@ -48,6 +49,9 @@ func setup(params: Dictionary) -> void:
 		_toggle_row("sound_on", "Sound effects", "Taps, rewards, battle hits", "sound", true),
 		_toggle_row("music", "Music", "The lobby theme", "music", true),
 		_toggle_row("vibrate", "Vibration", "Haptics on phones", "haptics", true),
+	]))
+	list.add_child(_section("Display", "eye_off", [
+		_toggle_row("refresh", "Reduce motion", "Calmer screens: no slides, sweeps or bounces.", "reduce_motion", false),
 	]))
 	list.add_child(_section("Battle", "sword", [
 		_speed_row(),
