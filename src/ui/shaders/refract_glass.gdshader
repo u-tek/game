@@ -4,6 +4,8 @@
 // highlight and crossed now and then by a slow light sweep. Casts a soft shadow. Drawn on a
 // ColorRect larger than the slab by `margin` (GlassBlock, src/ui/components/plate.gd).
 shader_type canvas_item;
+// 1 when the canvas is linear HDR (viewport hdr_2d), 0 when it is plain sRGB (main.gd sets it).
+global uniform float ui_linear;
 
 uniform sampler2D screen_tex : hint_screen_texture, filter_linear;
 uniform vec2 rect_size = vec2(100.0, 100.0);
@@ -41,7 +43,8 @@ vec3 blur_at(vec2 uv, vec2 px, float rad) {
 		float th = fi * 2.3999632;
 		vec2 o = vec2(cos(th), sin(th)) * r;
 		float w = 1.0 - r / (rad + 1.0) * 0.6;
-		acc += pow(max(texture(screen_tex, uv + o * px).rgb, vec3(0.0)), vec3(1.0 / 2.2)) * w;
+		vec3 sc = max(texture(screen_tex, uv + o * px).rgb, vec3(0.0));
+		acc += mix(sc, pow(sc, vec3(1.0 / 2.2)), ui_linear) * w;
 		wsum += w;
 	}
 	return acc / wsum;
@@ -99,5 +102,6 @@ void fragment() {
 	float a = clamp(0.5 - d, 0.0, 1.0);
 	vec4 res = mix(outside, vec4(col, 1.0), a);
 	// Back to the linear HDR canvas (the screen samples were taken to sRGB terms in blur_at).
-	COLOR = vec4(pow(max(res.rgb, vec3(0.0)), vec3(2.2)), 1.0 - pow(1.0 - res.a, 2.2));
+	vec4 lin = vec4(pow(max(res.rgb, vec3(0.0)), vec3(2.2)), 1.0 - pow(1.0 - res.a, 2.2));
+	COLOR = mix(vec4(max(res.rgb, vec3(0.0)), res.a), lin, ui_linear);
 }

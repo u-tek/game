@@ -108,6 +108,12 @@ func _capture() -> Image:
 
 
 func _setup_light() -> void:
+	# The v4 shaders work in sRGB numbers and convert to the canvas at the end: linear when HDR 2D is
+	# on, as is when it is off (an LDR build or a platform override). Without HDR there is no bloom.
+	var hdr := get_viewport().use_hdr_2d
+	RenderingServer.global_shader_parameter_set(&"ui_linear", 1.0 if hdr else 0.0)
+	if not hdr:
+		return
 	var env := Environment.new()
 	env.background_mode = Environment.BG_CANVAS
 	env.glow_enabled = true
@@ -919,6 +925,9 @@ func _parse_args() -> void:
 			_shoot["place"] = a.substr("--shoot-place=".length()).to_float()
 		elif a.begins_with("--shoot-place-file="):
 			_shoot["place_file"] = a.substr("--shoot-place-file=".length())
+		elif a == "--ldr":
+			# Render without HDR 2D (what an LDR platform shows; checks the shaders' sRGB path).
+			get_viewport().use_hdr_2d = false
 		elif a == "--safe-area-sim":
 			UI.safe_override = Vector2(108, 62)
 

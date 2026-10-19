@@ -18,7 +18,9 @@ Since 2026-10-17 the art work runs in a regular Claude Code chat on the owner's 
 
 A mobile idle/AFK gacha RPG close to *Idle Angels*: angels (Celestial), demons (Infernal) and the
 Fallen, 15 heroes, 5-hero auto battles with manual ultimates, idle rewards, summons with pity.
-Godot 4.5.1 (GDScript, Mobile renderer with HDR 2D since 2026-10-19, portrait 720x1280 base). It ships as an unsigned iOS IPA
+Godot 4.5.1 (GDScript, Mobile renderer with HDR 2D since 2026-10-19, portrait 720x1280 base; HDR 2D
+is off on iOS (`viewport/hdr_2d.ios=false`: it was blown out on the owner's iPhone), so canvas
+shaders convert by the `ui_linear` shader global and nothing may depend on bloom). It ships as an unsigned iOS IPA
 that the owner sideloads. The repo `u-tek/game` is public. The only code branch is
 `claude/game-planning`, which is also the default branch; there is no `main`.
 
@@ -225,6 +227,8 @@ Ask the owner for approval (plan mode or a permission rule they add) instead.
   Photoshop 2026 (COM: `New-Object -ComObject Photoshop.Application`) are installed; renders are
   scripted (`blender --background --factory-startup --python tools/blender/ui_objects.py -- <dir>
   <which>`, 4-10 s each).
+  GitHub CLI (portable, signed in as u-tek): `/c/Users/jenso/tools/gh/bin/gh.exe`; start an IPA with
+  `gh workflow run ios.yml -R u-tek/game --ref claude/game-planning` (about 4 minutes).
 - **Restarts:** background agents and workflows don't survive a container or worker restart, and
   the session may come back in plan mode; GitHub Actions runs keep going. After a restart, check
   `gh run list -R u-tek/game` and `git fetch origin art-gen-output` before relaunching anything.

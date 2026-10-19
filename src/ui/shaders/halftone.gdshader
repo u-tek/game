@@ -2,6 +2,8 @@
 // follows the image's brightness (or darkness), for poster bands, loading cards and big moments.
 // The grid is in screen pixels, so the dot pitch stays the same however the image is scaled.
 shader_type canvas_item;
+// 1 when the canvas is linear HDR (viewport hdr_2d), 0 when it is plain sRGB (main.gd sets it).
+global uniform float ui_linear;
 
 uniform float cell = 9.0;
 uniform float angle = 0.5236;
@@ -28,5 +30,5 @@ void fragment() {
 	float dist = length(g - cc);
 	float aa = max(fwidth(dist), 0.001);
 	float dotv = 1.0 - smoothstep(r - aa, r + aa, dist);
-	COLOR = vec4(pow(ink.rgb, vec3(2.2)), ink.a * dotv);
+	COLOR = vec4(mix(ink.rgb, pow(ink.rgb, vec3(2.2)), ui_linear), ink.a * dotv);
 }

@@ -8,6 +8,8 @@
 // soft shadow, and an animated glow. Drawn on a ColorRect larger than the shape by the margin
 // (Plate, src/ui/components/plate.gd, sets every uniform).
 shader_type canvas_item;
+// 1 when the canvas is linear HDR (viewport hdr_2d), 0 when it is plain sRGB (main.gd sets it).
+global uniform float ui_linear;
 
 global uniform vec2 ui_tilt;
 
@@ -57,7 +59,8 @@ const vec3 KEY_LIGHT = vec3(-0.45, -0.62, 0.64);
 // sRGB-authored colour to the linear HDR canvas (rendering/viewport/hdr_2d). Alpha is corrected
 // too, so a translucent dark (a shadow) darkens as much as it would in sRGB blending.
 vec4 to_canvas(vec4 c) {
-	return vec4(pow(max(c.rgb, vec3(0.0)), vec3(2.2)), 1.0 - pow(1.0 - clamp(c.a, 0.0, 1.0), 2.2));
+	vec4 lin = vec4(pow(max(c.rgb, vec3(0.0)), vec3(2.2)), 1.0 - pow(1.0 - clamp(c.a, 0.0, 1.0), 2.2));
+	return mix(vec4(max(c.rgb, vec3(0.0)), clamp(c.a, 0.0, 1.0)), lin, ui_linear);
 }
 
 float hash(vec2 p) {

@@ -58,7 +58,9 @@ func _ready() -> void:
 	viewport.own_world_3d = true
 	viewport.transparent_bg = true
 	viewport.msaa_3d = Viewport.MSAA_4X
-	viewport.use_hdr_2d = true
+	# Linear like the main canvas when that is HDR; plain sRGB where HDR 2D is off (iOS), so the
+	# texture composites in the same space as everything else.
+	viewport.use_hdr_2d = get_tree().root.use_hdr_2d
 	viewport.positional_shadow_atlas_size = 0
 	# Rendered on demand: a frame whenever the camera moves or the scene asks (request_render).
 	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE

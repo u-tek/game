@@ -2,6 +2,8 @@
 // a height texture (every 4th heavier) and the rivers as a signal-red line, on transparent paper.
 // Canvas shader: colours are sRGB numbers, converted to the linear HDR canvas at the end.
 shader_type canvas_item;
+// 1 when the canvas is linear HDR (viewport hdr_2d), 0 when it is plain sRGB (main.gd sets it).
+global uniform float ui_linear;
 
 uniform sampler2D height_tex : filter_linear, repeat_disable;
 uniform sampler2D river_tex : filter_linear, repeat_disable;
@@ -13,7 +15,8 @@ uniform float line_a = 0.8;
 uniform float river_w = 0.035;
 
 vec4 to_canvas(vec4 c) {
-	return vec4(pow(max(c.rgb, vec3(0.0)), vec3(2.2)), 1.0 - pow(1.0 - clamp(c.a, 0.0, 1.0), 2.2));
+	vec4 lin = vec4(pow(max(c.rgb, vec3(0.0)), vec3(2.2)), 1.0 - pow(1.0 - clamp(c.a, 0.0, 1.0), 2.2));
+	return mix(vec4(max(c.rgb, vec3(0.0)), clamp(c.a, 0.0, 1.0)), lin, ui_linear);
 }
 
 float hair(float d, float fw, float px) {

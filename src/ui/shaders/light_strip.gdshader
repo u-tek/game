@@ -2,6 +2,8 @@
 // and, now and then, flickers like a real tube. Drawn on a ColorRect with room for the halo
 // (LightStrip, src/ui/components/plate.gd).
 shader_type canvas_item;
+// 1 when the canvas is linear HDR (viewport hdr_2d), 0 when it is plain sRGB (main.gd sets it).
+global uniform float ui_linear;
 render_mode blend_add;
 
 uniform vec2 rect_size = vec2(40.0, 200.0);
@@ -40,5 +42,5 @@ void fragment() {
 	// HDR: the core runs well above 1.0 so the bloom pass catches it.
 	vec3 col = hot * core_a * k * 1.35 + color.rgb * glow * k * 0.55 * (1.0 - core_a);
 	// sRGB terms to the linear HDR canvas (the core stays far above 1.0 and blooms).
-	COLOR = vec4(pow(max(col, vec3(0.0)), vec3(2.2)), 1.0);
+	COLOR = vec4(mix(max(col, vec3(0.0)), pow(max(col, vec3(0.0)), vec3(2.2)), ui_linear), 1.0);
 }
