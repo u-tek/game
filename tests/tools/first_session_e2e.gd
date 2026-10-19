@@ -15,7 +15,9 @@ extends SceneTree
 ## level up -> quests -> more battles, clears the first three stages, and that every
 ## marked control can be tapped. Exit code 1 on failure.
 
-const MAX_TAPS := 120
+## Steps before giving up. The summon reveal takes a tap or two per hero (about 25 for the
+## free pull and the first 10-pull).
+const MAX_TAPS := 160
 
 var _game: Node
 var _ui: Node

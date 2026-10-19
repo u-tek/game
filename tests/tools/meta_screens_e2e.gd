@@ -3,8 +3,9 @@ extends SceneTree
 ##   tools/gd --headless --path . -s tests/tools/meta_screens_e2e.gd -- --fresh
 ## Heroes (filters, sort, open) -> hero detail (level tap / hold / max, star up with the dust
 ## confirm, gear picker, auto-equip, browse, unowned preview) -> formation (remove, place,
-## swap, empty team, auto-fill) -> summon (free pull, x10 on scrolls, tap-to-skip, gem pull
-## through the confirm, forced Legendary showcase, leaving mid-sequence) -> quests (claim,
+## swap, empty team, auto-fill) -> summon (free pull waits for a tap, x10 on scrolls tapped
+## through hero by hero, x10 through Skip, real taps then a real Skip, gem pull through the
+## confirm, forced Legendary showcase, leaving mid-sequence) -> quests (claim,
 ## claim all) -> shop (buy, limits) -> settings (toggles, speed, dev tools, reset save).
 ## Exit code 1 on any failed check. Watch the output for SCRIPT ERROR lines too.
 
@@ -310,22 +311,29 @@ func _real_input() -> void:
 		_press(cc, false)
 		await _frames(4)
 		_check(_ui.current_name == "hero_detail" and str(_ui.current_params.get("hero_id", "")) == want, "tapping a hero card opens their page")
-	# Real taps on the summon overlay.
+	# Real taps on the summon overlay: taps move the reveal along, then the Skip button.
 	var su := await _go("summon")
 	_game.dev_add("scrolls", 10)
 	su.call("_try_summon", 10)
 	await _frames(3)
 	var mid := root.get_visible_rect().size * 0.5
-	for i in 2:
+	for i in 4:
 		_press(mid, true)
 		await _frames(1)
 		_press(mid, false)
 		await _frames(3)
-	var t := 0.0
-	while t < 6.0 and str(su.get("_phase")) != "results":
-		await process_frame
-		t += 1.0 / 60.0
+	var seq: Node = su.get("_seq")
+	_check(str(su.get("_phase")) == "reveal" and seq != null and int(seq.get("index")) >= 0, "real taps open the portal and reveal heroes")
+	var skip := _find_button(su, "Skip")
+	_check(skip != null and skip.is_visible_in_tree(), "Skip shows during the reveal")
+	if skip:
+		var skc := skip.get_global_rect().get_center()
+		_press(skc, true)
+		await _frames(1)
+		_press(skc, false)
+		await _frames(3)
 	_check(str(su.get("_phase")) == "results", "real taps skip to the summon results")
+	_check((su.get("_cards") as Array).size() == 10, "Skip shows all 10 results")
 	su.call("_finish")
 	await _frames(2)
 
@@ -381,18 +389,33 @@ func _summon() -> void:
 	await _frames(2)
 	_check(str(s.get("_phase")) == "charge", "summon starts with the charge")
 	_check(not _ui.chrome_top and not _ui.chrome_nav, "chrome hidden during the summon")
-	await _wait_results(s, "free pull", false)
+	# Nothing advances without a tap: the hero waits for the player.
+	await _wait_real(4.0)
+	_check(str(s.get("_phase")) == "reveal", "the single hero waits for a tap (phase %s)" % str(s.get("_phase")))
+	await _wait_results(s, "free pull", true)
 	s.call("_finish")
 	await _frames(2)
 	_check(_ui.chrome_top and _ui.chrome_nav, "Done restores the chrome")
 	_check(not bool(_game.free_pull_available()), "free pull used")
-	# x10 on scrolls with taps to skip.
+	# x10 on scrolls, tapped through hero by hero.
 	var scrolls0 := int(_game.currency("scrolls"))
 	s.call("_try_summon", 10)
 	await _frames(2)
 	_check(int(_game.currency("scrolls")) == scrolls0 - 10, "x10 pays with scrolls first")
-	await _wait_results(s, "x10 tapped", true)
+	var seen := await _wait_results(s, "x10 tapped", true)
+	_check(seen.size() == 10, "tapping through shows every hero's reveal (saw %d)" % seen.size())
 	_check((s.get("_cards") as Array).size() == 10, "x10 shows 10 cards")
+	# x10 through the Skip button: straight to the results.
+	_game.dev_add("scrolls", 10)
+	s.call("_again", 10)
+	await _frames(3)
+	var skip := _find_button(s, "Skip")
+	_check(skip != null, "Skip button during the summon")
+	if skip:
+		skip.pressed.emit()
+	await _frames(2)
+	_check(str(s.get("_phase")) == "results", "Skip reaches the results")
+	_check((s.get("_cards") as Array).size() == 10, "Skip shows 10 cards")
 	# Again: no scrolls left, so gems through the confirm.
 	var gems0 := int(_game.currency("gems"))
 	s.call("_again", 1)
@@ -400,20 +423,23 @@ func _summon() -> void:
 	_check(_press_in_modal("Summon"), "gem summon asks first")
 	await _frames(2)
 	_check(int(_game.currency("gems")) == gems0 - int(_game.banner().cost_one), "x1 paid with gems")
-	await _wait_results(s, "again x1", false)
+	await _wait_results(s, "again x1", true)
 	s.call("_finish")
-	# Forced Legendary: the showcase opens and closes by itself.
+	# Forced Legendary: the big reveal (showcase) plays, taps move it on.
 	_game.model.state.summon.pity = int(_game.banner().pity_legendary) - 1
 	_game.dev_add("gems", 3000)
 	s.call("_do_summon", 1, false)
 	var saw_showcase := false
-	var t := 0.0
-	while t < 12.0 and str(s.get("_phase")) != "results":
+	var t0 := Time.get_ticks_msec()
+	var last_tap := t0
+	while Time.get_ticks_msec() - t0 < 20000 and str(s.get("_phase")) != "results":
 		await process_frame
-		t += 1.0 / 60.0
 		var sc: Variant = s.get("_showcase")
 		if sc is Control and is_instance_valid(sc):
 			saw_showcase = true
+		if Time.get_ticks_msec() - last_tap > 300:
+			last_tap = Time.get_ticks_msec()
+			_overlay_tap(s)
 	_check(saw_showcase, "Legendary showcase appears")
 	_check(str(s.get("_phase")) == "results", "Legendary sequence reaches the results")
 	var res: Array = s.get("_results")
@@ -441,19 +467,35 @@ func _summon() -> void:
 	_close_modals()
 
 
-func _wait_results(s: Control, what: String, tap: bool) -> void:
-	var t := 0.0
-	var tapped := 0
-	while t < 15.0 and str(s.get("_phase")) != "results":
+## Waits for the summon results, tapping the overlay every 0.15 s when `tap` is on (each tap
+## fast-forwards the current hero or brings the next one). Returns the hero indexes whose
+## reveal was seen.
+func _wait_results(s: Control, what: String, tap: bool) -> Dictionary:
+	var t0 := Time.get_ticks_msec()
+	var last_tap := t0
+	var seen := {}
+	while Time.get_ticks_msec() - t0 < 30000 and str(s.get("_phase")) != "results":
 		await process_frame
-		t += 1.0 / 60.0
-		if tap and tapped < 3 and int(t * 10) % 5 == 0:
-			var ev := InputEventMouseButton.new()
-			ev.button_index = MOUSE_BUTTON_LEFT
-			ev.pressed = false
-			s.call("_on_overlay_input", ev)
-			tapped += 1
+		var seq: Node = s.get("_seq")
+		if seq and str(s.get("_phase")) == "reveal" and int(seq.get("index")) >= 0:
+			seen[int(seq.get("index"))] = true
+		if tap and Time.get_ticks_msec() - last_tap > 150:
+			last_tap = Time.get_ticks_msec()
+			_overlay_tap(s)
 	_check(str(s.get("_phase")) == "results", "%s reaches the results (phase %s)" % [what, str(s.get("_phase"))])
+	return seen
+
+
+## A simulated tap (release) on the summon overlay.
+func _overlay_tap(s: Control) -> void:
+	var ev := InputEventMouseButton.new()
+	ev.button_index = MOUSE_BUTTON_LEFT
+	ev.pressed = false
+	s.call("_on_overlay_input", ev)
+
+
+func _wait_real(sec: float) -> void:
+	await create_timer(sec).timeout
 
 
 # ------------------------------------------------------------------ quests

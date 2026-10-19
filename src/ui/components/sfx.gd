@@ -2,11 +2,15 @@ extends RefCounted
 ## Procedural sound effects (no audio files). UI.sfx(name) plays these.
 ## Every sound is synthesized once into a 16-bit mono AudioStreamWAV.
 ## Names: tap, tab, pop, close, deny, toggle, coin, sparkle (UI feel), reward, summon,
-## legendary, hit, ult, victory, defeat.
+## legendary, hit, ult, victory, defeat; the summon sequence (src/ui/summon/) adds portal
+## (the 2.7 s charge), tell / tell_big (the portal's rarity color tells), burst (the portal
+## opening), reveal (a Rare hero), riser + beat (the held beat before a Legendary) and slam
+## (the rarity word landing).
 
 const RATE := 22050
 const NAMES: Array[String] = ["tap", "tab", "pop", "deny", "toggle", "coin", "sparkle", "close", "hit", "reward",
-	"ult", "summon", "victory", "defeat", "legendary"]
+	"ult", "summon", "victory", "defeat", "legendary",
+	"portal", "tell", "tell_big", "burst", "reveal", "riser", "beat", "slam"]
 
 
 ## Builds the stream for `sound_name` (null if unknown).
@@ -43,6 +47,22 @@ static func make(sound_name: String) -> AudioStreamWAV:
 			s = _victory()
 		"defeat":
 			s = _defeat()
+		"portal":
+			s = _portal()
+		"tell":
+			s = _tell(false)
+		"tell_big":
+			s = _tell(true)
+		"burst":
+			s = _burst()
+		"reveal":
+			s = _reveal()
+		"riser":
+			s = _riser()
+		"beat":
+			s = _beat()
+		"slam":
+			s = _slam()
 		_:
 			return null
 	return _to_wav(s)
@@ -337,4 +357,130 @@ static func _defeat() -> PackedFloat32Array:
 			var env := minf(1.0, t * 25.0) * exp(-t * 2.6)
 			var v := sin(phase) + sin(phase * 3.0) / 9.0 + sin(phase * 5.0) / 25.0
 			b[i0 + i] += v * env * 0.32
+	return b
+
+
+# ------------------------------------------------------------------ summon sequence
+
+## Adds one-pole low-passed white noise. The cutoff goes alpha0 -> alpha1 over the sound;
+## swell = fade in (pow(k, env_pow)), else fade out (pow(1 - k, env_pow)).
+static func _noise_into(b: PackedFloat32Array, start: float, dur: float, amp: float, seed_v: int, alpha0: float, alpha1: float, env_pow: float, swell: bool) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_v
+	var i0 := int(start * RATE)
+	var n := mini(int(dur * RATE), b.size() - i0)
+	var lp := 0.0
+	for i in n:
+		var k := float(i) / maxf(float(n), 1.0)
+		var env := pow(k, env_pow) if swell else pow(1.0 - k, env_pow)
+		lp += (rng.randf_range(-1.0, 1.0) - lp) * lerpf(alpha0, alpha1, k)
+		b[i0 + i] += lp * env * amp
+
+
+## The portal charging (2.7 s): a low drone that climbs, a whoosh that opens up and a
+## shimmer that grows; no hit at the end (the burst plays then).
+static func _portal() -> PackedFloat32Array:
+	var dur := 2.7
+	var b := _buf(dur)
+	var p1 := 0.0
+	var p2 := 0.0
+	var p3 := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		var k := t / dur
+		var f := 55.0 * pow(2.0, 1.4 * k * k)
+		p1 += TAU * f / RATE
+		p2 += TAU * f * 1.503 / RATE
+		p3 += TAU * (900.0 + 1700.0 * k * k) / RATE
+		var drone := (sin(p1) + 0.6 * sin(p2) + 0.25 * sin(p1 * 3.0)) * (0.25 + 0.55 * k)
+		var shimmer := sin(p3) * (0.5 + 0.5 * sin(TAU * (8.0 + 18.0 * k) * t)) * 0.12 * k * k
+		b[i] = (drone * 0.45 + shimmer) * minf(1.0, t * 6.0)
+	_noise_into(b, 0.0, dur, 0.75, 71, 0.015, 0.4, 1.8, true)
+	for k in 6:
+		_bell(b, 0.4 + 0.36 * k, 1046.5 * pow(2.0, float(k) / 6.0), 0.035 + 0.012 * k, 6.0, 0.5)
+	return b
+
+
+## The portal's rarity tell: a shimmering chord (Epic), or a brass swell with sparkle (big:
+## Legendary).
+static func _tell(big: bool) -> PackedFloat32Array:
+	var b := _buf(1.2 if big else 0.8)
+	_noise_into(b, 0.0, 0.18, 0.35, 83, 0.05, 0.5, 2.0, true)
+	if big:
+		_brass(b, 0.12, 392.0, 0.14, 0.95, 0.01)
+		_brass(b, 0.12, 587.33, 0.1, 0.95, 0.01)
+		_brass(b, 0.12, 783.99, 0.09, 0.95, 0.01)
+		var sparkle := [1568.0, 2093.0, 2637.0, 3136.0, 4186.0]
+		for k in sparkle.size():
+			_bell(b, 0.14 + 0.06 * k, sparkle[k], 0.09, 6.0, 0.6)
+	else:
+		var chord := [880.0, 1108.73, 1318.51, 1760.0]
+		for k in chord.size():
+			_bell(b, 0.12 + 0.045 * k, chord[k], 0.12, 5.0, 0.6)
+	return b
+
+
+## The portal opening: a deep boom, a blast of air and a bright ring.
+static func _burst() -> PackedFloat32Array:
+	var b := _buf(1.1)
+	var phase := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		phase += TAU * (38.0 + 110.0 * exp(-t * 14.0)) / RATE
+		b[i] += sin(phase) * exp(-t * 4.5) * 0.85
+	_noise_into(b, 0.0, 0.9, 0.9, 97, 0.6, 0.04, 2.2, false)
+	_bell(b, 0.02, 2637.0, 0.1, 5.0, 0.9)
+	_bell(b, 0.05, 3520.0, 0.07, 6.0, 0.8)
+	return b
+
+
+## A Rare hero landing: a quick whoosh and a two-note chime.
+static func _reveal() -> PackedFloat32Array:
+	var b := _buf(0.55)
+	_noise_into(b, 0.0, 0.16, 0.5, 103, 0.08, 0.6, 1.5, true)
+	_bell(b, 0.1, 1567.98, 0.2, 7.0, 0.45)
+	_bell(b, 0.16, 2349.32, 0.15, 8.0, 0.39)
+	return b
+
+
+## The held beat before a Legendary: a rising tone and swelling air, cut off at the top.
+static func _riser() -> PackedFloat32Array:
+	var dur := 1.35
+	var b := _buf(dur)
+	var phase := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		var k := t / dur
+		phase += TAU * (180.0 * pow(2.0, 2.8 * k)) / RATE
+		b[i] = (sin(phase) + 0.4 * sin(phase * 2.0) + 0.2 * sin(phase * 3.0)) * k * k * 0.22
+	_noise_into(b, 0.0, dur, 0.7, 109, 0.02, 0.5, 2.5, true)
+	return b
+
+
+## A heartbeat thump (two low beats).
+static func _beat() -> PackedFloat32Array:
+	var b := _buf(0.4)
+	for start: float in [0.0, 0.15]:
+		var i0 := int(start * RATE)
+		var phase := 0.0
+		var amp := 0.9 if start == 0.0 else 0.6
+		for i in mini(int(0.22 * RATE), b.size() - i0):
+			var t := float(i) / RATE
+			phase += TAU * (48.0 + 40.0 * exp(-t * 30.0)) / RATE
+			b[i0 + i] += sin(phase) * exp(-t * 16.0) * amp * minf(1.0, t * 300.0)
+	return b
+
+
+## The rarity word landing: a punchy low hit, a click and a short metallic ring.
+static func _slam() -> PackedFloat32Array:
+	var b := _buf(0.6)
+	var phase := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		phase += TAU * (46.0 + 70.0 * exp(-t * 25.0)) / RATE
+		b[i] += sin(phase) * exp(-t * 11.0) * 0.8
+	_noise_into(b, 0.0, 0.08, 0.6, 113, 0.7, 0.2, 2.0, false)
+	_bell(b, 0.0, 739.99, 0.1, 7.0, 0.55)
+	_bell(b, 0.0, 1108.73 * 1.004, 0.08, 8.0, 0.5)
+	_bell(b, 0.0, 1661.0, 0.05, 9.0, 0.45)
 	return b

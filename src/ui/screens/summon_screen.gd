@@ -7,22 +7,22 @@ extends Control
 ## x10 (orange). Prices use scrolls first, then gems; gem spending asks first; when the player
 ## can't pay, a strip explains it and links to the Shop.
 ##
-## Summoning plays a full-screen sequence with the chrome hidden: the portal charges (its
-## color hints at the best result), a flash, then card backs flip one by one into tall
-## portrait cards (tap to reveal all). Epic cards glow violet; a Legendary bursts in orange
-## rays with its own sound, a haptic and a full-body showcase. Results show "N" for new
-## heroes or "+N shards"; then Summon again or Done.
+## Summoning plays the full-screen sequence (src/ui/summon/summon_sequence.gd) with the chrome
+## hidden: the portal charges and tells the best rarity by its color, bursts, then every hero
+## gets their own splash that the player taps through (Epic and Legendary get a held beat and
+## a big reveal), then the results with Summon again or Done. "Skip" jumps to the results.
 ##
 ## Shot params: rates: true (open the odds), pull: 1|10 (summon right away), skip: true
-## (jump straight to the results).
+## (jump straight to the results). Without touching the save: demo: "ten" | "one" | "rare" |
+## "epic" | "legendary" plays made-up results (hero: an id for the single ones), card: k
+## starts at hero k's reveal, summary: true shows the results, hold: t freezes the clock at
+## t seconds (of the charge, or of hero k's reveal with card), autotap: s taps every s
+## seconds. frames: "<abs dir>" saves `count` (default 40) PNG frames `every` (default 0.1)
+## seconds apart, starting `after` seconds in, for checking motion.
 
 const Roster := preload("res://src/ui/screens/heroes_screen.gd")
+const Sequence := preload("res://src/ui/summon/summon_sequence.gd")
 
-const CHARGE_TIME := 1.9
-const REVEAL_GAP := 0.2
-const SHOWCASE_TIME := 2.4
-const RARITY_ORDER := {"rare": 0, "epic": 1, "legendary": 2}
-const CARD_RATIO := 1.62
 const TITLE_SIZE := 54
 const TITLE_W := 440.0
 
@@ -42,23 +42,21 @@ var _reason: Button
 var _free_timer_label: Label
 var _tick := 0.0
 
-# Summon sequence state.
-var _overlay: Control
-var _phase := ""
-var _count := 1
+# Summon sequence (the e2e scripts read _phase, _cards, _showcase and _results).
+var _seq: Sequence
 var _results: Array = []
-var _portal: PortalFx
-var _charge_t := 0.0
-var _flash: ColorRect
-var _cards: Array[Control] = []
-var _revealed := 0
-var _reveal_wait := 0.0
-var _showcase: Control
-var _showcase_left := 0.0
-var _skip_all := false
-var _grid_box: Control
-var _results_box: VBoxContainer
-var _hint_label: Label
+## "" (banner), "charge", "reveal" or "results".
+var _phase: String:
+	get:
+		return _seq.phase if _seq != null and is_instance_valid(_seq) else ""
+## The result cards once the sequence shows the results.
+var _cards: Array:
+	get:
+		return _seq.cards if _seq != null and is_instance_valid(_seq) else []
+## The Legendary being revealed (its big showcase), else null.
+var _showcase: Control:
+	get:
+		return _seq.showcase if _seq != null and is_instance_valid(_seq) else null
 
 
 func setup(params: Dictionary) -> void:
@@ -71,8 +69,12 @@ func setup(params: Dictionary) -> void:
 	_layout.call_deferred()
 	if bool(params.get("rates", false)):
 		_open_rates.call_deferred()
-	if params.has("pull"):
+	if params.has("demo"):
+		_shot_demo.call_deferred(params)
+	elif params.has("pull"):
 		_shot_pull.call_deferred(int(params["pull"]), bool(params.get("skip", false)))
+	if params.has("frames"):
+		_capture_frames.call_deferred(str(params["frames"]), float(params.get("every", 0.1)), int(params.get("count", 40)), float(params.get("after", 0.0)))
 
 
 func _exit_tree() -> void:
@@ -83,9 +85,65 @@ func _exit_tree() -> void:
 func _shot_pull(count: int, skip: bool) -> void:
 	await get_tree().process_frame
 	_do_summon(count, count == 1 and Game.free_pull_available())
-	if skip and _phase != "":
-		_start_reveal()
-		_reveal_everything()
+	if skip and _seq:
+		_seq.skip_all()
+
+
+## Screenshots without touching the save: plays made-up results (see the header).
+func _shot_demo(params: Dictionary) -> void:
+	await get_tree().process_frame
+	_results = _demo_results(str(params.get("demo", "ten")), str(params.get("hero", "")))
+	_start_sequence()
+	if bool(params.get("summary", false)):
+		_seq.skip_all()
+	elif params.has("card"):
+		_seq.start_at(int(params["card"]), float(params.get("hold", -1.0)))
+	elif params.has("hold"):
+		_seq.charge_hold = float(params["hold"])
+	if params.has("autotap"):
+		_autotap(float(params["autotap"]))
+
+
+## Screenshots: taps the sequence every `every` seconds until the results.
+func _autotap(every: float) -> void:
+	while _seq != null and is_instance_valid(_seq) and _phase in ["charge", "reveal"]:
+		await get_tree().create_timer(every).timeout
+		if _seq != null and is_instance_valid(_seq):
+			_seq.tap()
+
+
+static func _demo_results(kind: String, hero: String) -> Array:
+	var picks: Array = []
+	match kind:
+		"ten":
+			picks = [["uriela", true], ["kessa", false], ["cassiel", true], ["ashra", false], ["seraphiel", true],
+				["imra", false], ["vesper", false], ["nuriel", true], ["lucen", false], ["sable", false]]
+		"legendary":
+			picks = [[hero if hero != "" else "seraphiel", true]]
+		"epic":
+			picks = [[hero if hero != "" else "vesper", true]]
+		_:
+			picks = [[hero if hero != "" else "uriela", false]]
+	var out: Array = []
+	for p: Array in picks:
+		var id := str(p[0])
+		var rarity := str(Game.hero_def(id).get("rarity", "rare"))
+		var is_new := bool(p[1])
+		var shards := 0 if is_new else Progression.dupe_shards(rarity)
+		out.append({"hero_id": id, "rarity": rarity, "is_new": is_new, "shards": shards, "dust": 0, "pity": 0})
+	return out
+
+
+## Saves `count` PNG frames of the window, one every `every` seconds, starting `after`
+## seconds in (motion checks).
+func _capture_frames(dir: String, every: float, count: int, after: float) -> void:
+	DirAccess.make_dir_recursive_absolute(dir)
+	if after > 0.0:
+		await get_tree().create_timer(after).timeout
+	for i in count:
+		await get_tree().create_timer(every).timeout
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png("%s/f%03d.png" % [dir, i])
 
 
 # ------------------------------------------------------------------ build
@@ -455,7 +513,6 @@ func _process(delta: float) -> void:
 		_update_free_timer()
 		if _phase == "" and _free_timer_label != null and Game.free_pull_available():
 			_refresh()
-	_step_sequence(delta)
 
 
 # ------------------------------------------------------------------ rates
@@ -559,504 +616,29 @@ func _do_summon(count: int, free: bool) -> void:
 	for x: Variant in _results:
 		if x is Dictionary and bool((x as Dictionary).get("is_new", false)):
 			Roster.mark_new(str((x as Dictionary).get("hero_id", "")))
-	_count = _results.size()
 	_start_sequence()
-
-
-func _best_rarity() -> String:
-	var best := "rare"
-	for x: Variant in _results:
-		var rr := str((x as Dictionary).get("rarity", "rare"))
-		if int(RARITY_ORDER.get(rr, 0)) > int(RARITY_ORDER.get(best, 0)):
-			best = rr
-	return best
 
 
 func _start_sequence() -> void:
 	UI.set_chrome(false, false)
-	if _overlay and is_instance_valid(_overlay):
-		_overlay.queue_free()
-	_cards.clear()
-	_revealed = 0
-	_skip_all = false
-	_showcase = null
-	_overlay = Control.new()
-	_overlay.name = "SummonSequence"
-	_overlay.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	_overlay.mouse_filter = MOUSE_FILTER_STOP
-	_overlay.gui_input.connect(_on_overlay_input)
-	add_child(_overlay)
-	var bg := Kit.page_bg("dark")
-	_overlay.add_child(bg)
-	var dim := ColorRect.new()
-	dim.color = Color(0.02, 0.025, 0.035, 0.55)
-	dim.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	dim.mouse_filter = MOUSE_FILTER_IGNORE
-	_overlay.add_child(dim)
-	_overlay.modulate.a = 0.0
-	_overlay.create_tween().tween_property(_overlay, "modulate:a", 1.0, 0.22)
-
-	_portal = PortalFx.new()
-	_portal.target = Kit.rarity_color(_best_rarity())
-	_overlay.add_child(_portal)
-	_place_portal.call_deferred()
-
-	_hint_label = Kit.label("TAP TO SKIP", 22, Kit.INK_DIM, "cond_bold", 4)
-	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_hint_label.anchor_left = 0.0
-	_hint_label.anchor_right = 1.0
-	_hint_label.anchor_top = 1.0
-	_hint_label.anchor_bottom = 1.0
-	_hint_label.offset_top = -UI.safe_bottom() - 70.0
-	_hint_label.offset_bottom = -UI.safe_bottom() - 30.0
-	_overlay.add_child(_hint_label)
-
-	_flash = ColorRect.new()
-	_flash.color = Color(0.92, 0.97, 1.0, 0.0)
-	_flash.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	_flash.mouse_filter = MOUSE_FILTER_IGNORE
-	_overlay.add_child(_flash)
-
-	_main.visible = false
-	_phase = "charge"
-	_charge_t = 0.0
-	UI.sfx("summon")
-	UI.haptic(20)
-
-
-## Vertical centre of the sequence (portal, cards).
-func _focus_y() -> float:
-	var st := UI.safe_top()
-	return st + (_overlay.size.y - st - UI.safe_bottom()) * 0.44
-
-
-func _place_portal() -> void:
-	if _portal and is_instance_valid(_portal) and _overlay:
-		var s := _overlay.size
-		var fy := _focus_y()
-		_portal.size = Vector2(s.x, s.x)
-		_portal.position = Vector2(0, fy - s.x * 0.5)
-
-
-func _on_overlay_input(ev: InputEvent) -> void:
-	var mb := ev as InputEventMouseButton
-	if mb == null or mb.pressed or mb.button_index != MOUSE_BUTTON_LEFT:
-		return
-	match _phase:
-		"charge":
-			_start_reveal()
-		"reveal":
-			if _showcase and is_instance_valid(_showcase):
-				_close_showcase()
-			else:
-				_reveal_everything()
-
-
-func _step_sequence(delta: float) -> void:
-	match _phase:
-		"charge":
-			_charge_t += delta
-			if _portal and is_instance_valid(_portal):
-				_portal.charge = clampf(_charge_t / CHARGE_TIME, 0.0, 1.0)
-			if _charge_t >= CHARGE_TIME:
-				_start_reveal()
-		"reveal":
-			if _showcase and is_instance_valid(_showcase):
-				_showcase_left -= delta
-				if _showcase_left <= 0.0:
-					_close_showcase()
-				return
-			_reveal_wait -= delta
-			if _reveal_wait <= 0.0:
-				if _revealed < _cards.size():
-					_reveal_card(_revealed, false)
-					_revealed += 1
-				else:
-					_show_results()
-
-
-func _start_reveal() -> void:
-	if _phase != "charge":
-		return
-	_phase = "reveal"
-	_reveal_wait = 0.35
-	if _flash:
-		_flash.color.a = 1.0
-		_flash.create_tween().tween_property(_flash, "color:a", 0.0, 0.45).set_trans(Tween.TRANS_SINE)
-	if _portal and is_instance_valid(_portal):
-		var tw := _portal.create_tween()
-		tw.tween_property(_portal, "modulate:a", 0.0, 0.3)
-		tw.tween_callback(_portal.queue_free)
-	_portal = null
-	_hint_label.text = "TAP TO REVEAL ALL"
-	_build_card_backs()
-
-
-func _build_card_backs() -> void:
-	var st := UI.safe_top()
-	_grid_box = Control.new()
-	_grid_box.mouse_filter = MOUSE_FILTER_IGNORE
-	_grid_box.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	_grid_box.offset_top = st
-	_grid_box.offset_bottom = -UI.safe_bottom()
-	_overlay.add_child(_grid_box)
-	_overlay.move_child(_flash, -1)
-	var area := _overlay.size - Vector2(0, st + UI.safe_bottom())
-	var single := _results.size() == 1
-	var cols := 1 if single else 5
-	var cw := 250.0 if single else floorf(minf(128.0, (area.x - 40.0 - 4 * 10.0) / 5.0))
-	var ch := roundf(cw * CARD_RATIO)
-	var gap := Vector2(10, 52)
-	var rows := ceili(float(_results.size()) / cols)
-	var total_w := cols * cw + (cols - 1) * gap.x
-	var total_h := rows * ch + (rows - 1) * gap.y
-	var origin := Vector2((area.x - total_w) * 0.5, _focus_y() - st - total_h * 0.5 - (40.0 if single else 10.0))
-	for i in _results.size():
-		var cxy := Vector2(i % cols, i / cols)
-		var holder := Control.new()
-		holder.mouse_filter = MOUSE_FILTER_IGNORE
-		holder.position = origin + cxy * (Vector2(cw, ch) + gap)
-		holder.size = Vector2(cw, ch)
-		holder.set_meta("cw", cw)
-		_grid_box.add_child(holder)
-		var back := _card_back(Vector2(cw, ch))
-		holder.add_child(back)
-		holder.set_meta("back", back)
-		_cards.append(holder)
-		# Backs drop in quickly.
-		back.modulate.a = 0.0
-		back.position.y = -30.0
-		var tw := back.create_tween().set_parallel(true)
-		tw.tween_property(back, "modulate:a", 1.0, 0.18).set_delay(i * 0.03)
-		tw.tween_property(back, "position:y", 0.0, 0.25).set_delay(i * 0.03).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-
-
-## Back of an unrevealed card, from Kit parts: graphite plate with a cyan rim, hatching,
-## corner brackets, a barcode and the summon glyph in a hexagon.
-func _card_back(sz: Vector2) -> Control:
-	var p := Panel.new()
-	p.mouse_filter = MOUSE_FILTER_IGNORE
-	p.size = sz
-	p.pivot_offset = sz * 0.5
-	p.add_theme_stylebox_override("panel", Kit.box(Color("1c2c4a"), Color("0c1323"), Color(Kit.ACCENT, 0.85), 4.0, 2))
-	var hatch := Kit.deco("hatch", sz, Color(Kit.ACCENT, 0.08))
-	hatch.set("spacing", 12.0)
-	p.add_child(hatch)
-	var br := Kit.deco("brackets", sz - Vector2(14, 14), Color(1, 1, 1, 0.5))
-	br.position = Vector2(7, 7)
-	p.add_child(br)
-	var hs := sz.x * 0.46
-	var hx := Kit.hex_badge("summon", hs, Color("111c31"), Kit.ACCENT_HI)
-	hx.set("glow", Color(Kit.ACCENT, 0.5))
-	hx.set("glow_size", hs * 0.2)
-	hx.position = (sz - Vector2(hs, hs)) * 0.5
-	p.add_child(hx)
-	var bc := Kit.deco("barcode", Vector2(sz.x * 0.08, sz.y * 0.16), Color(1, 1, 1, 0.35))
-	bc.position = Vector2(sz.x * 0.86, sz.y * 0.06)
-	p.add_child(bc)
-	return p
-
-
-func _reveal_card(i: int, instant: bool) -> void:
-	var holder := _cards[i]
-	var res: Dictionary = _results[i]
-	var id := str(res.get("hero_id", ""))
-	var rarity := str(res.get("rarity", "rare"))
-	var cw: float = holder.get_meta("cw")
-	var ch := roundf(cw * CARD_RATIO)
-	var back: Variant = holder.get_meta("back") if holder.has_meta("back") else null
-	holder.remove_meta("back")
-	var rc := Kit.rarity_color(rarity)
-	var mid := Vector2(cw, ch) * 0.5
-	# Glow (and rays for Legendaries) behind the card.
-	if rarity != "rare":
-		var gl := Kit.glow(rc, cw * (2.6 if rarity == "legendary" else 2.0))
-		gl.size = gl.custom_minimum_size
-		gl.position = mid - gl.size * 0.5
-		gl.modulate.a = 0.9 if rarity == "legendary" else 0.7
-		holder.add_child(gl)
-		holder.move_child(gl, 0)
-		if rarity == "legendary":
-			var rays := Kit.rays(rc, cw * 3.2, 14)
-			rays.position = mid - rays.size * 0.5
-			rays.modulate.a = 0.55
-			holder.add_child(rays)
-			holder.move_child(rays, 0)
-	var is_new := bool(res.get("is_new", false))
-	var face := Kit.portrait_card(id, {"size": cw, "owned": true, "level": int(Game.hero(id).get("level", 1)), "new": is_new})
-	face.mouse_filter = MOUSE_FILTER_IGNORE
-	face.focus_mode = FOCUS_NONE
-	holder.add_child(face)
-	var note := ""
-	if not is_new:
-		note = "+%d SHARDS" % int(res.get("shards", 0))
-		if int(res.get("dust", 0)) > 0:
-			note = "+%d DUST" % int(res.get("dust", 0)) if int(res.get("shards", 0)) == int(res.get("dust", 0)) else note + "  +%d DUST" % int(res.get("dust", 0))
-	elif cw < 200.0:
-		note = "NEW HERO"
-	if note != "":
-		var nl := Kit.label(note, 18 if cw < 200 else 24, Kit.ORANGE_HI if is_new else Kit.ACCENT_HI, "cond_bold", 4)
-		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		nl.position = Vector2(-20, ch + 6)
-		nl.size = Vector2(cw + 40, 26)
-		holder.add_child(nl)
-	if cw >= 200.0:
-		# Single pull: rarity on top, the hero's title and badges under the card.
-		var badge := Kit.rarity_mark(rarity, 30)
-		holder.add_child(badge)
-		badge.position = Vector2(cw * 0.5 - badge.get_combined_minimum_size().x * 0.5, -54)
-		var d := Game.hero_def(id)
-		var info := Kit.vbox(8)
-		info.mouse_filter = MOUSE_FILTER_IGNORE
-		info.position = Vector2(cw * 0.5 - 300.0, ch + (40.0 if note != "" else 14.0))
-		info.size = Vector2(600, 100)
-		var tl := Kit.label(str(d.get("title", "")).to_upper(), 24, Kit.INK, "cond_bold", 4)
-		tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		info.add_child(tl)
-		var br := Kit.hbox(12)
-		br.alignment = BoxContainer.ALIGNMENT_CENTER
-		br.mouse_filter = MOUSE_FILTER_IGNORE
-		br.add_child(Kit.faction_badge(str(d.get("faction", "")), 34))
-		var rb := Kit.role_badge(str(d.get("role", "")), 30)
-		rb.size_flags_vertical = SIZE_SHRINK_CENTER
-		br.add_child(rb)
-		info.add_child(br)
-		holder.add_child(info)
-	if back is Control and is_instance_valid(back):
-		(back as Control).queue_free()
-	if instant:
-		return
-	# Flip in: squeeze from the side, overshoot a little.
-	face.pivot_offset = Vector2(cw, ch) * 0.5
-	face.scale = Vector2(0.05, 1.08)
-	var tw := face.create_tween()
-	tw.tween_property(face, "scale", Vector2(1.08, 1.08), 0.14).set_trans(Tween.TRANS_SINE)
-	tw.tween_property(face, "scale", Vector2.ONE, 0.14)
-	_reveal_wait = REVEAL_GAP if _results.size() > 1 else 0.6
-	match rarity:
-		"legendary":
-			UI.sfx("legendary")
-			UI.haptic(70)
-			_spark_burst(holder.global_position - _overlay.global_position + mid, rc, 1.4)
-			Kit.shake(_grid_box, 14)
-			_open_showcase(id)
-		"epic":
-			UI.sfx("reward")
-			UI.haptic(25)
-			_spark_burst(holder.global_position - _overlay.global_position + mid, rc, 0.8)
-			_reveal_wait += 0.15
-		_:
-			UI.sfx("tap")
-
-
-func _reveal_everything() -> void:
-	if _phase != "reveal":
-		return
-	_skip_all = true
-	if _showcase and is_instance_valid(_showcase):
-		_showcase.queue_free()
-	_showcase = null
-	while _revealed < _cards.size():
-		_reveal_card(_revealed, true)
-		_revealed += 1
-	if _best_rarity() == "legendary":
-		UI.sfx("legendary")
-		UI.haptic(60)
-	_show_results()
-
-
-## A Legendary's full-body showcase: orange rays, the art sliding in, a ribbon with the name.
-func _open_showcase(id: String) -> void:
-	if _skip_all:
-		return
-	var d := Game.hero_def(id)
-	_showcase = Control.new()
-	_showcase.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	_showcase.mouse_filter = MOUSE_FILTER_IGNORE
-	_overlay.add_child(_showcase)
-	_overlay.move_child(_flash, -1)
-	var shade := ColorRect.new()
-	shade.color = Color(0.02, 0.025, 0.035, 0.88)
-	shade.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	shade.mouse_filter = MOUSE_FILTER_IGNORE
-	_showcase.add_child(shade)
-	var s := _overlay.size
-	var c := Vector2(s.x * 0.5, s.y * 0.42)
-	var band := Kit.deco("hatch", Vector2(s.x, s.y * 0.5), Color(Kit.LEGENDARY, 0.1))
-	band.set("spacing", 30.0)
-	band.set("line_width", 12.0)
-	band.position = Vector2(0, s.y * 0.25)
-	_showcase.add_child(band)
-	var rays := Kit.rays(Kit.LEGENDARY, s.x * 1.7, 18)
-	rays.position = c - rays.size * 0.5
-	rays.modulate.a = 0.5
-	_showcase.add_child(rays)
-	var glow := Kit.glow(Kit.ORANGE, s.x * 1.1)
-	glow.size = glow.custom_minimum_size
-	glow.position = c - glow.size * 0.5
-	glow.modulate.a = 0.6
-	_showcase.add_child(glow)
-	var art := TextureRect.new()
-	art.texture = HeroArt.texture(id)
-	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
-	art.mouse_filter = MOUSE_FILTER_IGNORE
-	var ah := minf(s.y * 0.74, s.x * 1.9)
-	art.size = Vector2(ah * 0.5, ah)
-	art.position = Vector2(s.x * 0.5 - ah * 0.25, UI.safe_top() + 30.0)
-	_showcase.add_child(art)
-	var plate := Kit.vbox(6)
-	plate.mouse_filter = MOUSE_FILTER_IGNORE
-	plate.position = Vector2(0, art.position.y + ah - 150.0)
-	plate.size = Vector2(s.x, 220)
-	var mark := Kit.rarity_mark("legendary", 34)
-	mark.alignment = BoxContainer.ALIGNMENT_CENTER
-	plate.add_child(mark)
-	var rb := Kit.ribbon(str(d.get("name", id)).to_upper(), 520.0, Kit.LEGENDARY, Color.WHITE, 48)
-	rb.size_flags_horizontal = SIZE_SHRINK_CENTER
-	plate.add_child(rb)
-	var t := Kit.label(str(d.get("title", "")).to_upper(), 24, Kit.INK, "cond_bold", 4)
-	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	plate.add_child(t)
-	var row := Kit.hbox(12)
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.mouse_filter = MOUSE_FILTER_IGNORE
-	row.add_child(Kit.faction_badge(str(d.get("faction", "")), 34))
-	var rlb := Kit.role_badge(str(d.get("role", "")), 30)
-	rlb.size_flags_vertical = SIZE_SHRINK_CENTER
-	row.add_child(rlb)
-	plate.add_child(row)
-	_showcase.add_child(plate)
-	_spark_burst(c, Kit.LEGENDARY, 2.0)
-	# Slide in.
-	art.modulate.a = 0.0
-	var ax := art.position.x
-	art.position.x = ax + 120.0
-	var tw := art.create_tween().set_parallel(true)
-	tw.tween_property(art, "modulate:a", 1.0, 0.3)
-	tw.tween_property(art, "position:x", ax, 0.5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	Kit.pop_in(rb, 0.15, 0.4)
-	_showcase_left = SHOWCASE_TIME
-
-
-func _close_showcase() -> void:
-	if _showcase and is_instance_valid(_showcase):
-		var sc := _showcase
-		var tw := sc.create_tween()
-		tw.tween_property(sc, "modulate:a", 0.0, 0.2)
-		tw.tween_callback(sc.queue_free)
-	_showcase = null
-	_reveal_wait = 0.25
-
-
-func _show_results() -> void:
-	_phase = "results"
-	if _hint_label:
-		_hint_label.visible = false
-	var st := UI.safe_top()
-	var sb := UI.safe_bottom()
-	var title := "SUMMON RESULTS"
-	if _results.size() == 1:
-		title = "NEW HERO" if bool((_results[0] as Dictionary).get("is_new", false)) else "SUMMON RESULT"
-	var top := Kit.ribbon(title, 520.0, Kit.ACCENT, Color.WHITE, 40)
-	top.position = Vector2(_overlay.size.x * 0.5 - 260.0, st + 24.0)
-	top.size = Vector2(520, 84)
-	_overlay.add_child(top)
-	Kit.pop_in(top, 0.0, 0.3)
-	var summary := Kit.vbox(6)
-	summary.mouse_filter = MOUSE_FILTER_IGNORE
-	_overlay.add_child(summary)
-
-	_results_box = Kit.vbox(12)
-	_results_box.anchor_left = 0.0
-	_results_box.anchor_right = 1.0
-	_results_box.anchor_top = 1.0
-	_results_box.anchor_bottom = 1.0
-	_results_box.offset_left = 20
-	_results_box.offset_right = -20
-	_results_box.offset_bottom = -sb - 20.0
-	_results_box.offset_top = -sb - 20.0 - 250.0
-	_results_box.alignment = BoxContainer.ALIGNMENT_END
-	_overlay.add_child(_results_box)
-	var news := 0
-	var shards := 0
-	for x: Variant in _results:
-		var d := x as Dictionary
-		if bool(d.get("is_new", false)):
-			news += 1
-		shards += int(d.get("shards", 0))
-	var parts: Array[String] = []
-	if news > 0:
-		parts.append("%d NEW HERO%s" % [news, "" if news == 1 else "ES"])
-	if shards > 0:
-		parts.append("+%d SHARDS" % shards)
-	var srow := Kit.hbox(10)
-	srow.alignment = BoxContainer.ALIGNMENT_CENTER
-	srow.mouse_filter = MOUSE_FILTER_IGNORE
-	srow.add_child(Kit.deco("techline", Vector2(70, 8), Color(1, 1, 1, 0.4)))
-	srow.add_child(Kit.label("  ·  ".join(parts), 24, Color.WHITE, "cond_bold", 4))
-	var tl2 := Kit.deco("techline", Vector2(70, 8), Color(1, 1, 1, 0.4))
-	tl2.scale.x = -1
-	tl2.pivot_offset = Vector2(35, 4)
-	srow.add_child(tl2)
-	# A single pull already shows its shards under the card.
-	if _results.size() > 1 and not parts.is_empty():
-		summary.add_child(srow)
-	else:
-		srow.free()
+	var replacing := _seq != null and is_instance_valid(_seq)
+	if replacing:
+		_seq.queue_free()
+	_seq = Sequence.new()
+	_seq.name = "SummonSequence"
+	add_child(_seq)
 	var pity_max := int(_banner.get("pity_legendary", 60))
-	var pl := Kit.label("LEGENDARY GUARANTEED WITHIN %d PULLS" % maxi(1, pity_max - Game.pity_count()), 18, Kit.ACCENT_HI, "cond_bold")
-	pl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	summary.add_child(pl)
-	var row := Kit.hbox(12)
-	var again_n := 10 if _count >= 10 else 1
-	var p := _price(again_n)
-	var again := Kit.cost_button("Summon x%d Again" % again_n, str(p.currency), int(p.amount), func() -> void: _again(again_n), "secondary", bool(p.ok))
-	again.disabled = not bool(p.ok)
-	again.size_flags_horizontal = SIZE_EXPAND_FILL
-	row.add_child(again)
-	var done := Kit.primary_button("Done", _finish, "check")
-	done.name = "Done"
-	done.custom_minimum_size.y = 108
-	done.size_flags_horizontal = SIZE_EXPAND_FILL
-	row.add_child(done)
-	_results_box.add_child(row)
-	if not bool(p.ok):
-		var why := Kit.label("Not enough gems or scrolls for another x%d." % again_n, 20, Color("ff6a50"), "bold")
-		why.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		_results_box.add_child(why)
-	_results_box.modulate.a = 0.0
-	_results_box.create_tween().tween_property(_results_box, "modulate:a", 1.0, 0.25)
-	summary.modulate.a = 0.0
-	summary.create_tween().tween_property(summary, "modulate:a", 1.0, 0.25)
-	_stack_results(top, summary)
+	_seq.setup(_results, _price, pity_max - Game.pity_count())
+	_seq.done.connect(_finish)
+	_seq.again.connect(_again)
+	_main.visible = false
+	_seq.start(not replacing)
 
 
-## Ribbon, cards and the shard / pity summary as one block, centred in the space above the
-## buttons (the cards glide there from where they were revealed).
-func _stack_results(ribbon: Control, summary: Control) -> void:
-	if _cards.is_empty() or _grid_box == null:
-		return
-	var st := UI.safe_top()
-	var g_top := INF
-	var g_bot := -INF
-	for h in _cards:
-		g_top = minf(g_top, h.position.y)
-		g_bot = maxf(g_bot, h.position.y + h.size.y)
-	var single := _cards.size() == 1
-	var above := 64.0 if single else 0.0
-	var below := 160.0 if single else 40.0
-	var sum_h := summary.get_combined_minimum_size().y
-	var block := 84.0 + 22.0 + above + (g_bot - g_top) + below + sum_h
-	var region_top := st + 16.0
-	var region_bot := _overlay.size.y + _results_box.offset_bottom - _results_box.get_combined_minimum_size().y - 20.0
-	var want := region_top + maxf(0.0, (region_bot - region_top - block) * 0.5)
-	var dy := (want + 84.0 + 22.0 + above) - (st + g_top)
-	_grid_box.create_tween().tween_property(_grid_box, "position:y", _grid_box.position.y + dy, 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	ribbon.position.y = want
-	summary.position = Vector2(0, want + block - sum_h)
-	summary.size = Vector2(_overlay.size.x, sum_h)
+## Overlay taps (the e2e scripts call this with simulated releases too).
+func _on_overlay_input(ev: InputEvent) -> void:
+	if _seq != null and is_instance_valid(_seq):
+		_seq.handle_input(ev)
 
 
 func _again(count: int) -> void:
@@ -1074,105 +656,11 @@ func _again(count: int) -> void:
 
 
 func _finish() -> void:
-	_phase = ""
-	if _overlay and is_instance_valid(_overlay):
-		var o := _overlay
-		var tw := o.create_tween()
-		tw.tween_property(o, "modulate:a", 0.0, 0.2)
-		tw.tween_callback(o.queue_free)
-	_overlay = null
-	_cards.clear()
+	if _seq != null and is_instance_valid(_seq):
+		_seq.close()
+	_seq = null
 	_results.clear()
 	UI.set_chrome(true, true)
 	_main.visible = true
 	_refresh()
 	_layout.call_deferred()
-
-
-func _spark_burst(at: Vector2, color: Color, strength: float) -> void:
-	var b := Sparks.new()
-	b.color = color
-	b.strength = strength
-	b.position = at
-	_overlay.add_child(b)
-
-
-# ------------------------------------------------------------------ effects
-
-## The portal charging up: spinning segmented rings, a hexagon frame, a growing core and
-## motes spiralling inward. Its color drifts from cyan toward `target` (the best rarity of
-## the results) as `charge` goes 0 -> 1.
-class PortalFx extends Control:
-	var charge := 0.0
-	var target := Color("3b9cf2")
-	var _t := 0.0
-	var _motes: Array[Vector3] = []
-
-	func _ready() -> void:
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
-		for i in 70:
-			_motes.append(Vector3(randf() * TAU, randf(), randf_range(2.0, 5.0)))
-
-	func _process(delta: float) -> void:
-		_t += delta
-		queue_redraw()
-
-	func _draw() -> void:
-		var c := size * 0.5
-		var base := Kit.ACCENT
-		var col := base.lerp(target, clampf((charge - 0.35) / 0.5, 0.0, 1.0))
-		var r := size.x * 0.42
-		var spin := _t * (1.0 + charge * 6.0)
-		# Core glow.
-		for i in 8:
-			var rr := r * (0.15 + 0.12 * i) * (0.6 + charge * 0.7)
-			draw_circle(c, rr, Color(col.lightened(0.4), 0.05 + 0.05 * charge))
-		draw_circle(c, r * 0.12 * (0.5 + charge * 1.4), Color(1, 1, 1, 0.5 + 0.5 * charge))
-		# Hexagon frame, turning slowly.
-		var hex := PackedVector2Array()
-		for i in 7:
-			hex.append(c + Vector2.from_angle(-PI / 2.0 + spin * 0.15 + TAU * i / 6.0) * r * 0.98)
-		draw_polyline(hex, Color(col, 0.3 + 0.4 * charge), 2.0, true)
-		# Segmented rings.
-		for k in 3:
-			var rk := r * (0.5 + 0.2 * k)
-			var dir := 1.0 if k % 2 == 0 else -1.0
-			var seg := 6 + k * 3
-			for i in seg:
-				var a0 := spin * dir * (1.0 - k * 0.2) + TAU * i / seg
-				draw_arc(c, rk, a0, a0 + TAU / seg * 0.55, 16, Color(col, 0.35 + 0.5 * charge), 3.0 + 2.0 * charge, true)
-		# Motes spiralling in.
-		for m in _motes:
-			var life := fposmod(m.y + _t * (0.35 + charge * 0.9), 1.0)
-			var dist := r * 1.25 * (1.0 - life)
-			var ang := m.x + life * 3.0
-			var p := c + Vector2.from_angle(ang) * dist
-			draw_circle(p, m.z * (0.4 + life), Color(col.lightened(0.5), life * (0.5 + 0.5 * charge)))
-
-
-## Sparks flying out from a point (frees itself).
-class Sparks extends Control:
-	var color := Color.WHITE
-	var strength := 1.0
-	var _t := 0.0
-	var _dur := 1.0
-	var _s: Array[Vector3] = []
-
-	func _ready() -> void:
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
-		for i in int(14 + 16 * strength):
-			_s.append(Vector3(randf() * TAU, randf_range(120.0, 360.0) * strength, randf_range(3.0, 7.0)))
-
-	func _process(delta: float) -> void:
-		_t += delta
-		queue_redraw()
-		if _t >= _dur:
-			queue_free()
-
-	func _draw() -> void:
-		var k := clampf(_t / _dur, 0.0, 1.0)
-		var e := 1.0 - pow(1.0 - k, 3.0)
-		draw_arc(Vector2.ZERO, 20.0 + 200.0 * strength * e, 0, TAU, 64, Color(color, 0.8 * (1.0 - k)), 2.0 + 6.0 * (1.0 - k), true)
-		for sp in _s:
-			var dir := Vector2.from_angle(sp.x)
-			draw_line(dir * sp.y * maxf(0.0, e - 0.1), dir * sp.y * e, Color(color.lightened(0.35), 1.0 - k), sp.z * (1.0 - k * 0.6), true)
