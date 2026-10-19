@@ -73,6 +73,7 @@ So, for every screen:
 | Halftone | `src/ui/shaders/halftone.gdshader` | Any texture as rotated ink dots (light or dark dots) |
 | Grain | `src/ui/shaders/grain.gdshader` | Multiplied film grain |
 | SignalKit | `src/ui/components/signal_kit.gd` | Shared v4 pieces: `plate()`, `pass_button()` (the OG-pass call to action), `etch` / `etch_icon` (text cut into metal), `pill`, `stamp`, `matrix`, `barcode`, `coil`, `halftone_material`, `grain`, `relight` |
+| Screen kits | `src/ui/v4/` | Built in parallel by three agents, to be folded into SignalKit: `poster_kit.gd` (Summon, Shop, Gear), `hero_poster_kit.gd` + `poster_card.gd` (Hero page, Roster, Team), `survey/` (Campaign 3D survey map: `iso_view`, `terrain_gen`, `survey_map`, print shaders; Spire `plate_stack`; `poster.gd`) |
 | Rendered objects | `assets/art/ui/objects/`, `tools/blender/ui_objects.py` | Collage objects rendered in Cycles on the owner's GPU (4-10 s each): `coil_ink` (the poster's coil as black gloss), `coil_chrome`, `disc` (the machined coin under the Sanctum stamp). `finish_objects.py` crops them and bakes a soft paper shadow; each file's object size and padding are constants in `home_screen.gd` |
 | Old Kit/theme | `theme.gd`, `KitBox.signal_look` | Restyled to graphite, bone and signal with cut corners, so screens not yet rebuilt stay coherent |
 

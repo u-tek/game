@@ -1,92 +1,71 @@
 extends Control
-## Screen "campaign" (style v2, docs/dev/ui-style-v2.md section 6): one chapter at a time on
-## its full-bleed chapter art. A dark header strip holds Back, the chapter tabs (CH. 1-3,
-## locked ones show a lock) and the chapter progress. Below it, a scrolling tactical map:
-## the chapter title, a technical route and hexagon stage nodes (cleared cyan, current with
-## a glowing orange rim, bosses with a red roof and the boss's face). Tapping a node selects
-## it; the white stage panel pinned at the bottom shows the selected stage (id, name,
-## recommended power, enemy echoes and the counter faction, first-clear rewards) with Team
-## and Fight. The first visit to a newly opened chapter shows its story intro.
+## Screen "campaign" (style v4 "Signal", the approved poster look; docs/dev/ui-style-v4.md): one
+## chapter as a printed survey poster on the paper matte. A dark band down the left carries the
+## chapter boss as a red halftone print and the micro type (back, ©, sheet number, date); the
+## chapter name runs huge down the poster in compressed type, two-tone where it crosses the band.
+## The centrepiece is the chapter's exploded survey map (src/ui/v4/survey/survey_map.gd: a real 3D
+## terrain slab printed as halftone relief, with CONTOURS, HYDROGRAPHY and the STAGE sheet pulled
+## apart above it, leader lines and mono ids); tap a stage mark to select it, drag to turn the map.
+## Top right, the chapter's title block (sheet number, name, coordinates, host, counter, cleared);
+## down the right edge, the chapter index as vertical labels with ticks (STORY, CH 01-06, locked
+## ones dim). Under the map, the selected stage's cartouche (id, name, power check, enemy echoes,
+## first-clear rewards, BOSS / CLEARED stamps), the TEAM stamp and the Fight pass stuck on.
+## The first visit to a newly opened chapter shows its story intro.
 ## params: open_stage (int) selects that stage (and its chapter); intro (bool, default true).
 
+const Poster := preload("res://src/ui/v4/survey/poster.gd")
+const SurveyMap := preload("res://src/ui/v4/survey/survey_map.gd")
 const SceneBackdrop := preload("res://src/ui/battle/scene_backdrop.gd")
-const StageNode := preload("res://src/ui/battle/stage_node.gd")
-const CampaignPath := preload("res://src/ui/battle/campaign_path.gd")
 const StageInfo := preload("res://src/ui/battle/stage_info.gd")
 
-const ROW_H := 140.0
-const NODE := 100.0
-const BOSS_NODE := 128.0
-## Map space above the first node (chapter title) and below the last.
-const MAP_TOP := 320.0
-const MAP_BOTTOM := 90.0
-const GRID := 60.0
 ## Game setting holding the highest chapter index whose intro the player has seen.
 const INTRO_KEY := "chapter_intro_seen"
+const W := 720.0
+const BAND_W := 132.0
+## The index column on the right edge.
+const RULE_W := 48.0
+const INK := Color("101113")
+const PAPER := Color("e9e8e2")
+const SIG := Color("ff4b1f")
 
 var _params: Dictionary = {}
 var _chapter := -1
 var _selected := -1
-var _backdrop: Control
-var _col: VBoxContainer
-var _tabs_slot: HBoxContainer
-var _progress: Label
-var _scroll: ScrollContainer
-var _map: Control
-var _path: Control
-var _nodes: Dictionary = {}
-var _panel_body: VBoxContainer
+var _root: Control
+var _poster: Control
+var _pr := Rect2()
+var _map: SurveyMap
+var _sheet: Control
+var _pass_slot: Control
 var _fight_btn: Button
 var _popup: Control
+var _stage_y := 0.0
 
 
 func setup(params: Dictionary) -> void:
 	_params = params
 	UI.set_full_bleed(true)
-	_backdrop = Control.new()
-	_backdrop.name = "BackdropSlot"
-	_backdrop.mouse_filter = MOUSE_FILTER_IGNORE
-	_backdrop.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	add_child(_backdrop)
-
-	_col = Kit.vbox(0)
-	_col.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	add_child(_col)
-	_col.add_child(_build_header())
-	var map_holder := Control.new()
-	map_holder.size_flags_vertical = SIZE_EXPAND_FILL
-	map_holder.mouse_filter = MOUSE_FILTER_PASS
-	map_holder.clip_contents = true
-	_col.add_child(map_holder)
-	_scroll = Kit.scroll(Control.new())
-	_scroll.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	map_holder.add_child(_scroll)
-	# Soft scrim under the header strip: map nodes passing beneath fade out instead of
-	# being sliced by its edge.
-	var scrim := TextureRect.new()
-	scrim.name = "HeaderScrim"
-	scrim.mouse_filter = MOUSE_FILTER_IGNORE
-	scrim.texture = Kit.vgradient(Color("0e1628f5"), Color("0e162800"))
-	scrim.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	scrim.stretch_mode = TextureRect.STRETCH_SCALE
-	scrim.anchor_right = 1.0
-	scrim.offset_bottom = 46
-	map_holder.add_child(scrim)
-	var panel := Kit.info_panel(18)
-	panel.name = "StagePanel"
-	_panel_body = Kit.vbox(8)
-	panel.add_child(_panel_body)
-	var pm := Kit.margin(panel, 10, 8)
-	pm.add_theme_constant_override("margin_bottom", 8 + int(UI.pinned_bottom_inset()))
-	_col.add_child(pm)
-	_place_col()
-	resized.connect(_place_col)
-
+	Poster.matte(self)
+	_root = Control.new()
+	_root.name = "Sheet"
+	_root.mouse_filter = MOUSE_FILTER_IGNORE
+	_root.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	add_child(_root)
 	var open := int(params.get("open_stage", -1))
 	var focus := open if open >= 0 and Game.stage_status(open) != "locked" else _default_stage()
+	var preview := int(params.get("preview_chapter", -1))
+	if preview >= 0 and preview < Game.chapters().size() and OS.is_debug_build():
+		# Screenshots / design review (debug builds): print any chapter, locked or not.
+		focus = int(Game.chapters()[preview].get("first_stage", 0)) + int(Game.chapters()[preview].get("stage_count", 10)) - 1
 	_show_chapter(int(Game.stage(focus).get("chapter", 0)), focus)
 	Game.changed.connect(_refresh)
 	_after_layout.call_deferred()
+
+
+## The screen's own entrance (UI calls it instead of the generic stagger): the map's sheets lift
+## off the terrain by themselves.
+func intro() -> void:
+	pass
 
 
 func _exit_tree() -> void:
@@ -94,14 +73,9 @@ func _exit_tree() -> void:
 		Game.changed.disconnect(_refresh)
 
 
-func _place_col() -> void:
-	_col.offset_top = UI.content_top()
-	_col.offset_bottom = -UI.content_bottom()
-
-
 func _refresh() -> void:
 	if _selected >= 0 and is_inside_tree():
-		_build_panel(_selected)
+		_build_cartouche(_selected)
 
 
 ## The stage to show by default: the next one to clear (or the last stage).
@@ -115,265 +89,139 @@ func _frontier_chapter() -> int:
 	return clampi(int(Game.stage(_default_stage()).get("chapter", 0)), 0, chs.size() - 1)
 
 
-# ------------------------------------------------------------------ header
+# ------------------------------------------------------------------ the poster
 
-func _build_header() -> Control:
-	var bar := PanelContainer.new()
-	bar.name = "Header"
-	bar.mouse_filter = MOUSE_FILTER_PASS
-	bar.add_theme_stylebox_override("panel", Kit.box(Color("080c19e6"), Color("0e1628e6"), Color.TRANSPARENT, 0, 0, 0))
-	var row := Kit.hbox(8)
-	var back := Kit.icon_button("back", func() -> void: UI.back(), Kit.BUTTON_H, "round")
-	back.name = "Back"
-	row.add_child(back)
-	_tabs_slot = Kit.hbox(0)
-	row.add_child(_tabs_slot)
-	row.add_child(Kit.spacer(0, 0, true))
-	var pv := Kit.vbox(0)
-	pv.mouse_filter = MOUSE_FILTER_IGNORE
-	pv.alignment = BoxContainer.ALIGNMENT_CENTER
-	var cap := Kit.label("CLEARED", 16, Kit.INK_DIM, "cond_bold")
-	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	pv.add_child(cap)
-	_progress = Kit.label("", 34, Color.WHITE, "cond_bold")
-	_progress.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	pv.add_child(_progress)
-	row.add_child(pv)
-	bar.add_child(Kit.margin(row, 10, 4))
-	return bar
-
-
-func _rebuild_tabs() -> void:
-	for c in _tabs_slot.get_children():
-		c.queue_free()
-	var opts: Array = []
-	var chs := Game.chapters()
-	var compact := chs.size() > 3       # more chapters than "CH. n" tabs fit beside Back: numbers only
-	for ch: Dictionary in chs:
-		var unlocked := Game.stage_status(int(ch.get("first_stage", 0))) != "locked"
-		var num := int(ch.get("index", 0)) + 1
-		var o := {"text": ("%d" % num) if compact else ("CH. %d" % num)}
-		if not unlocked:
-			o["icon"] = "lock"
-			if compact:
-				o["text"] = ""
-		opts.append(o)
-	var tabs := Kit.tab_strip(opts, _chapter, _on_tab, 76.0 if compact else 140.0)
-	_tabs_slot.add_child(tabs)
-
-
-func _on_tab(ci: int) -> void:
-	var ch: Dictionary = Game.chapters()[ci]
-	var first := int(ch.get("first_stage", 0))
-	if Game.stage_status(first) == "locked":
-		UI.toast("Clear %s first" % str(Game.stage(first - 1).get("id", "the previous chapter")))
-		_rebuild_tabs.call_deferred()
-		return
-	var focus := _default_stage()
-	if int(Game.stage(focus).get("chapter", 0)) != ci:
-		focus = first + int(ch.get("stage_count", 10)) - 1
-	_show_chapter(ci, focus)
-	_after_layout.call_deferred(false)
-
-
-# ------------------------------------------------------------------ map
-
-## Shows chapter `ci` (backdrop, tabs, map) and selects stage `focus`.
+## Shows chapter `ci` (the whole poster is printed for it) and selects stage `focus`.
 func _show_chapter(ci: int, focus: int) -> void:
 	_chapter = ci
-	var ch: Dictionary = Game.chapters()[ci]
-	for c in _backdrop.get_children():
+	for c in _root.get_children():
+		_root.remove_child(c)
 		c.queue_free()
-	var bd := SceneBackdrop.new()
-	bd.kind = str(ch.get("background", "chapter-1"))
-	bd.horizon = 0.3
-	bd.dim = 0.3
-	bd.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	_backdrop.add_child(bd)
-	_rebuild_tabs()
-	var first := int(ch.get("first_stage", 0))
-	var count := int(ch.get("stage_count", 10))
-	var done := clampi(Game.cleared_count() - first, 0, count)
-	_progress.text = "%d / %d" % [done, count]
-	_progress.add_theme_color_override("font_color", Kit.ACCENT_HI if done >= count else Color.WHITE)
-	_build_map(ch)
+	_build_poster(Game.chapters()[ci])
 	_select(focus)
 
 
-func _build_map(ch: Dictionary) -> void:
-	if _map and is_instance_valid(_map):
-		_map.queue_free()
-	_nodes.clear()
+func _build_poster(ch: Dictionary) -> void:
+	var vh := get_viewport_rect().size.y
+	var top := UI.content_top()
+	var bottom := UI.content_bottom()
+	_pr = Rect2(18, top + 12, W - 36, vh - bottom - 58 - (top + 12))
+	_poster = Poster.poster(_root, _pr)
+	var p := _poster
+	var pw := _pr.size.x
+	var ph := _pr.size.y
+	var ci := int(ch.get("index", 0))
+	var faction := str(ch.get("faction", "celestial"))
 	var first := int(ch.get("first_stage", 0))
 	var count := int(ch.get("stage_count", 10))
-	_map = Control.new()
-	_map.name = "Map"
-	_map.mouse_filter = MOUSE_FILTER_PASS
-	_map.custom_minimum_size = Vector2(0, MAP_TOP + ROW_H * (count - 1) + BOSS_NODE * 0.5 + MAP_BOTTOM)
-	_map.draw.connect(_draw_grid)
-	var old := _scroll.get_child(0)
-	_scroll.remove_child(old)
-	old.queue_free()
-	_scroll.add_child(_map)
-	_map.size_flags_horizontal = SIZE_EXPAND_FILL
-	_map.add_child(_title_block(ch))
-	_path = CampaignPath.new()
-	_path.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	_map.add_child(_path)
-	var tint := HeroArt.faction_color(str(ch.get("faction", "celestial")))
+	var boss_id := _boss_of(Game.stage(first + count - 1))
+	var done := clampi(Game.cleared_count() - first, 0, count)
+	# The cartouche and the pass share the bottom; the map takes what is left above them.
+	_stage_y = ph - 352.0
+
+	# ---- The dark band: the chapter boss as a red halftone print, micro type.
+	var band_c := Poster.BAND if faction != "celestial" else Color("1d1f23")
+	Poster.rect(p, Rect2(0, 0, BAND_W, ph), band_c)
+	if boss_id != "":
+		var ink := Color(1.0, 0.36, 0.16, 0.95) if faction != "fallen" else Color(0.86, 0.84, 0.8, 0.85)
+		Poster.halftone_print(p, boss_id, Rect2(0, ph * 0.36, BAND_W, ph * 0.64), ink, 6.5)
+	var back_l := Poster.t("<  BACK", 13, PAPER)
+	Poster.at(p, back_l, Vector2(20, 22))
+	var back := Poster.hit(p, Rect2(0, 0, BAND_W, 88), func() -> void: UI.back(), "Back", "Back")
+	back.tooltip_text = "Back"
+	Poster.vlabel(p, "©2026 HH, SURVEY SHEET %02d. ALL RIGHTS RESERVED." % (ci + 1), Vector2(42, 96), 10, Color(PAPER, 0.8))
+	Poster.at(p, Poster.t("No.\n%03d" % (ci + 1), 12, Color(PAPER, 0.85)), Vector2(70, ph * 0.3))
+	Poster.at(p, Poster.t(Poster.date_short(), 12, Color(PAPER, 0.85)), Vector2(70, ph * 0.3 + 40))
+
+	# ---- The chapter name, huge, down the poster (two-tone across the band).
+	var name_txt := str(ch.get("name", ""))
+	Poster.giant_side(p, name_txt, 150, 150.0, 104.0, 0.0, BAND_W, faction == "infernal")
+
+	# ---- The survey map.
+	_map = SurveyMap.new()
+	_map.name = "SurveyMap"
+	_map.position = Vector2(0, 100)
+	_map.size = Vector2(pw - RULE_W - 4, _stage_y - 100 + 6)
+	_map.overscan = Vector2(120, 120)
+	_map.shift = Vector2(1.6, -0.25)
+	# Raised stage labels stay below the title block (view px; the view starts 120 px higher).
+	_map.label_floor = 132.0 + 120.0 - 100.0
+	p.add_child(_map)
+	var stages: Array = []
 	for j in count:
-		var i := first + j
-		var st := Game.stage(i)
-		if st.is_empty():
-			continue
-		var status := Game.stage_status(i)
-		var boss := bool(st.get("is_boss", false))
-		var n := StageNode.new()
-		n.name = "Stage_%s" % str(st.id)
-		n.setup(str(st.id), status, boss, tint, BOSS_NODE if boss else NODE, _boss_of(st) if boss else "")
-		var idx := i
-		Kit.make_tappable(n, func() -> void: _on_node(idx))
-		_map.add_child(n)
-		_nodes[i] = n
-		var lab := _node_label(st, status)
-		_map.add_child(lab)
-		n.set_meta("label", lab)
-		if status == "current":
-			var marker := Kit.tag("NEXT", Kit.ORANGE, Color.WHITE, 20)
-			_map.add_child(marker)
-			n.set_meta("marker", marker)
-	_map.set_meta("first", first)
-	_map.set_meta("count", count)
-	_map.resized.connect(_layout_map)
+		var st := Game.stage(first + j)
+		stages.append({"id": str(st.get("id", "")), "name": str(st.get("name", "")), "status": Game.stage_status(first + j),
+			"boss": bool(st.get("is_boss", false))})
+	_map.show_chapter(ci, faction, stages)
+	_map.stage_pressed.connect(func(j: int) -> void: _on_node(first + j))
 
+	# ---- The title block (top right).
+	var x0 := 252.0
+	var tb := Control.new()
+	tb.mouse_filter = MOUSE_FILTER_IGNORE
+	tb.position = Vector2(x0, 16)
+	p.add_child(tb)
+	var tw := pw - RULE_W - 12 - x0
+	Poster.at(tb, Poster.t("SURVEY No.%03d" % (ci + 1), 12, INK), Vector2(0, 0))
+	var dl := Poster.t("CH %02d / %02d" % [ci + 1, Game.chapters().size()], 12, INK)
+	dl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	dl.size = Vector2(tw, 16)
+	Poster.at(tb, dl, Vector2(0, 0))
+	Poster.hline(tb, 0, 20, tw, Color(INK, 0.7))
+	var nm := Poster.t(name_txt.to_upper(), 28, INK, "wide_black")
+	Kit.fit_label(nm, tw - 96, 28, 16)
+	Poster.at(tb, nm, Vector2(-2, 24))
+	Poster.at(tb, Poster.t(Poster.coords(7919 * (ci + 3)), 11, Color(INK, 0.75), "mono"), Vector2(0, 62))
+	var ctr := StageInfo.counter_of(faction)
+	var host := "%s HOST" % str(Kit.FACTION_NAMES.get(faction, faction)).to_upper()
+	var line := "%s   ·   COUNTER %s +20%%" % [host, str(Kit.FACTION_NAMES.get(ctr, ctr)).to_upper()] if ctr != "" else host
+	Poster.at(tb, Poster.t(line, 11, INK, "mono_bold"), Vector2(0, 80))
+	var cl := Poster.t("%02d/%02d" % [done, count], 22, SIG if done >= count else INK, "wide_black")
+	cl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	cl.size = Vector2(tw, 26)
+	Poster.at(tb, cl, Vector2(0, 30))
+	var cc := Poster.t("CLEARED", 9, Color(INK, 0.7), "mono_bold")
+	cc.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	cc.size = Vector2(tw, 12)
+	Poster.at(tb, cc, Vector2(0, 58))
 
-## Chapter title over the art at the top of the map: "CHAPTER 2" with a technical line and
-## the Story button, the chapter name, the enemy faction.
-func _title_block(ch: Dictionary) -> Control:
-	var v := Kit.vbox(0)
-	v.name = "ChapterTitle"
-	v.mouse_filter = MOUSE_FILTER_PASS
-	v.anchor_right = 1.0
-	v.offset_left = 24
-	v.offset_right = -18
-	v.offset_top = 22
-	var ci := int(ch.get("index", 0))
-	var top := Kit.hbox(10)
-	top.mouse_filter = MOUSE_FILTER_PASS
-	top.add_child(Kit.label("CHAPTER %d" % (ci + 1), 24, Kit.ACCENT_HI, "cond_bold"))
-	var tl := Kit.deco("techline", Vector2(60, 10), Color(1, 1, 1, 0.45))
-	tl.size_flags_horizontal = SIZE_EXPAND_FILL
-	tl.size_flags_vertical = SIZE_SHRINK_CENTER
-	top.add_child(tl)
-	var story := Kit.secondary_button("Story", func() -> void: _show_intro(ci, Callable()), "info")
-	story.custom_minimum_size = Vector2(150, Kit.BUTTON_H)
-	story.add_theme_font_size_override("font_size", 24)
-	top.add_child(story)
-	v.add_child(top)
-	var t := Kit.title(str(ch.get("name", "")).to_upper(), 62)
-	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	v.add_child(t)
-	var row := Kit.hbox(10)
-	row.mouse_filter = MOUSE_FILTER_IGNORE
-	var badge := Kit.faction_badge(str(ch.get("faction", "celestial")), 32)
-	badge.size_flags_vertical = SIZE_SHRINK_CENTER
-	row.add_child(badge)
-	row.add_child(Kit.label("ECHOES", 19, Color(1, 1, 1, 0.8), "cond_bold"))
-	v.add_child(row)
-	return v
+	# ---- The index down the right edge: STORY, then the six chapters.
+	var rx := pw - RULE_W
+	Poster.vline(p, rx, 0, ph, Color(INK, 0.55))
+	Poster.vlabel(p, "©2026 ·", Vector2(rx + 34, 12), 12, INK)
+	var items: Array = [{"text": "STORY", "name": "Story", "on_pressed": func() -> void: _show_intro(ci, Callable())}]
+	for chd: Dictionary in Game.chapters():
+		var k := int(chd.get("index", 0))
+		var unlocked := Game.stage_status(int(chd.get("first_stage", 0))) != "locked"
+		items.append({"text": "CH %02d" % (k + 1) if unlocked else "CH %02d  X" % (k + 1), "name": "Chapter_%d" % (k + 1),
+			"active": k == ci, "dim": not unlocked, "on_pressed": func() -> void: _on_tab(k)})
+	var step := clampf((_stage_y - 96.0) / items.size(), 88.0, 104.0)
+	Poster.side_menu(p, rx, 96.0, step, items)
 
+	# ---- The cartouche (rebuilt per selected stage) and the pass slot.
+	_sheet = Control.new()
+	_sheet.name = "StagePanel"
+	_sheet.mouse_filter = MOUSE_FILTER_IGNORE
+	_sheet.position = Vector2(BAND_W, _stage_y)
+	_sheet.size = Vector2(rx - BAND_W, ph - _stage_y)
+	p.add_child(_sheet)
+	_pass_slot = Control.new()
+	_pass_slot.name = "PassSlot"
+	_pass_slot.mouse_filter = MOUSE_FILTER_IGNORE
+	_pass_slot.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	_root.add_child(_pass_slot)
 
-## Faint technical grid with crosses over the map.
-func _draw_grid() -> void:
-	var w := _map.size.x
-	var h := _map.size.y
-	var col := Color(1, 1, 1, 0.045)
-	var x := fmod(w * 0.5, GRID)
-	while x < w:
-		_map.draw_line(Vector2(x, 0), Vector2(x, h), col, 1.0)
-		x += GRID
-	var y := 0.0
-	while y < h:
-		_map.draw_line(Vector2(0, y), Vector2(w, y), col, 1.0)
-		y += GRID
-	var k := 0
-	x = fmod(w * 0.5, GRID)
-	while x < w:
-		y = GRID * 2.0
-		while y < h:
-			if (k + int(y / GRID)) % 3 == 0:
-				_map.draw_line(Vector2(x - 6, y), Vector2(x + 6, y), Color(1, 1, 1, 0.22), 1.5)
-				_map.draw_line(Vector2(x, y - 6), Vector2(x, y + 6), Color(1, 1, 1, 0.22), 1.5)
-			y += GRID * 2.0
-		x += GRID * 2.0
-		k += 1
-
-
-func _node_label(st: Dictionary, status: String) -> Control:
-	var v := Kit.vbox(2)
-	v.mouse_filter = MOUSE_FILTER_IGNORE
-	var name_l := Kit.label(str(st.name), 25, Kit.INK if status != "locked" else Kit.INK_DIM, "extrabold", 5)
-	v.add_child(name_l)
-	var row := Kit.hbox(6)
-	row.mouse_filter = MOUSE_FILTER_IGNORE
-	if status == "cleared":
-		row.add_child(Kit.tag("CLEARED", Kit.ACCENT_DEEP, Color.WHITE, 17))
-	else:
-		var rec := int(st.get("recommended_power", 0))
-		row.add_child(Kit.icon("power", 24))
-		var c := StageInfo.power_color(int(Game.team_power()), rec) if status == "current" else Kit.INK_DIM
-		row.add_child(Kit.label(Kit.format_num(rec), 22, c, "cond_bold", 4))
-	v.add_child(row)
-	return v
-
-
-## Positions nodes on a sine route across the map width; labels go on the roomier side.
-func _layout_map() -> void:
-	if _map == null or not is_instance_valid(_map):
-		return
-	var first: int = _map.get_meta("first")
-	var count: int = _map.get_meta("count")
-	var w := _map.size.x
-	var pts := PackedVector2Array()
-	var reached := -1
-	for j in count:
-		var i := first + j
-		var c := Vector2(w * (0.5 + 0.24 * sin(j * 1.15 + 0.6)), MAP_TOP + j * ROW_H)
-		pts.append(c)
-		if Game.stage_status(i) != "locked":
-			reached = j
-		if not _nodes.has(i):
-			continue
-		var n: Control = _nodes[i]
-		n.position = c - n.size * 0.5
-		var lab: Control = n.get_meta("label")
-		var ls := lab.get_combined_minimum_size()
-		var r := n.size.x * 0.5 + 12.0
-		var left_side := c.x < w * 0.5
-		for ch in lab.get_children():
-			if ch is BoxContainer:
-				(ch as BoxContainer).alignment = BoxContainer.ALIGNMENT_BEGIN if left_side else BoxContainer.ALIGNMENT_END
-			elif ch is Label:
-				(ch as Label).horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT if left_side else HORIZONTAL_ALIGNMENT_RIGHT
-		lab.size = ls
-		lab.position = Vector2(c.x + r, c.y - ls.y * 0.5) if left_side else Vector2(c.x - r - ls.x, c.y - ls.y * 0.5)
-		if n.has_meta("marker"):
-			var mk: Control = n.get_meta("marker")
-			var ms := mk.get_combined_minimum_size()
-			mk.position = Vector2(c.x - ms.x * 0.5, c.y - n.size.y * 0.5 - ms.y - 2.0)
-			mk.set_meta("y0", mk.position.y)
-	_path.call("set_points", pts, reached)
-	_map.queue_redraw()
-
-
-func _process(_delta: float) -> void:
-	var t := Time.get_ticks_msec() / 1000.0
-	for i: int in _nodes:
-		var n: Control = _nodes[i]
-		if n.has_meta("marker"):
-			var mk: Control = n.get_meta("marker")
-			if mk.has_meta("y0"):
-				mk.position.y = float(mk.get_meta("y0")) + sin(t * 4.0) * 4.0
+	# ---- Under the poster: the date and the boss's signature.
+	var fy := _pr.end.y + 12.0
+	Poster.at(_root, Poster.t(Poster.date_long(), 22, INK, "regular"), Vector2(20, fy + 8))
+	var sig := Poster.t(str(Game.hero_def(boss_id).get("name", "")) if boss_id != "" else "", 40, INK, "serif_italic")
+	sig.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	sig.size = Vector2(300, 46)
+	Poster.at(_root, sig, Vector2(W - 24 - 300, fy - 6))
+	var swash := Poster.rect(_root, Rect2(W - 230, fy + 38, 200, 2), INK)
+	swash.rotation = -0.05
+	Poster.grain(_root)
+	SignalKit.relight(_root)
 
 
 ## The boss of a stage (or its first enemy).
@@ -388,15 +236,26 @@ func _boss_of(st: Dictionary) -> String:
 	return first
 
 
+func _on_tab(ci: int) -> void:
+	var ch: Dictionary = Game.chapters()[ci]
+	var first := int(ch.get("first_stage", 0))
+	if Game.stage_status(first) == "locked":
+		UI.toast("Clear %s first" % str(Game.stage(first - 1).get("id", "the previous chapter")))
+		return
+	if ci == _chapter:
+		return
+	var focus := _default_stage()
+	if int(Game.stage(focus).get("chapter", 0)) != ci:
+		focus = first + int(ch.get("stage_count", 10)) - 1
+	_show_chapter(ci, focus)
+
+
 # ------------------------------------------------------------------ flow
 
 func _after_layout(intro: bool = true) -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
-	if not is_inside_tree():
-		return
-	_scroll_to(_selected)
-	if not intro:
+	if not is_inside_tree() or not intro:
 		return
 	var frontier := _frontier_chapter()
 	var seen_v: Variant = Game.setting(INTRO_KEY)
@@ -406,44 +265,34 @@ func _after_layout(intro: bool = true) -> void:
 		_show_intro(frontier, Callable())
 
 
-func _scroll_to(stage_index: int) -> void:
-	if not _nodes.has(stage_index):
-		return
-	var n: Control = _nodes[stage_index]
-	var y := n.position.y + n.size.y * 0.5
-	var target := maxf(0.0, y - _scroll.size.y * 0.5)
-	# Never leave the chapter title half under the header: show it whole while the node still
-	# fits below it, otherwise scroll it fully away.
-	var title := _map.get_node_or_null("ChapterTitle") as Control if _map else null
-	if title:
-		var tb := title.position.y + title.get_combined_minimum_size().y + 6.0
-		if target > 0.0 and target < tb:
-			target = 0.0 if y + n.size.y * 0.5 + 56.0 <= _scroll.size.y else tb
-	_scroll.scroll_vertical = int(target)
-
-
 func _on_node(i: int) -> void:
 	if Game.stage_status(i) == "locked":
 		var prev := Game.stage(maxi(0, Game.cleared_count()))
 		UI.toast("Clear %s first" % str(prev.get("id", "the previous stage")))
-		if _nodes.has(i):
-			Kit.shake(_nodes[i], 8)
+		Kit.shake(_sheet, 6)
 		return
+	Kit.sfx("tap")
 	_select(i)
 
 
 func _select(i: int) -> void:
 	_selected = i
-	for k: int in _nodes:
-		(_nodes[k] as Control).set("selected", k == i)
-	_build_panel(i)
+	var first := int(Game.chapters()[_chapter].get("first_stage", 0))
+	if _map:
+		_map.select(i - first)
+	_build_cartouche(i)
 
 
-# ------------------------------------------------------------------ stage panel
+# ------------------------------------------------------------------ the cartouche
 
-func _build_panel(i: int) -> void:
-	for c in _panel_body.get_children():
-		_panel_body.remove_child(c)
+## The selected stage, printed: id and name, the power check, enemy echoes with the counter,
+## first-clear rewards, BOSS / CLEARED stamps; then the TEAM stamp and the Fight pass.
+func _build_cartouche(i: int) -> void:
+	for c in _sheet.get_children():
+		_sheet.remove_child(c)
+		c.queue_free()
+	for c in _pass_slot.get_children():
+		_pass_slot.remove_child(c)
 		c.queue_free()
 	_fight_btn = null
 	var st := Game.stage(i)
@@ -452,109 +301,80 @@ func _build_panel(i: int) -> void:
 	var status := Game.stage_status(i)
 	var team := int(Game.team_power())
 	var rec := int(st.get("recommended_power", 0))
-	var ch: Dictionary = Game.chapters()[int(st.get("chapter", 0))]
-	# Short screens (16:9 with insets) get a tighter panel so the map keeps some room.
-	var compact := get_viewport_rect().size.y - UI.content_top() - UI.content_bottom() < 1000.0
-	_panel_body.add_theme_constant_override("separation", 6 if compact else 8)
-
-	# Stage id, name and the power check.
-	var head := Kit.hbox(14)
-	head.mouse_filter = MOUSE_FILTER_IGNORE
-	var idv := Kit.vbox(0)
-	idv.mouse_filter = MOUSE_FILTER_IGNORE
-	idv.add_child(Kit.label("STAGE", 16, Kit.TEXT_DIM, "cond_bold"))
-	idv.add_child(Kit.label(str(st.id), 46, Kit.ACCENT_DEEP, "title"))
-	head.add_child(idv)
-	var nv := Kit.vbox(2)
-	nv.mouse_filter = MOUSE_FILTER_IGNORE
-	nv.size_flags_horizontal = SIZE_EXPAND_FILL
-	nv.alignment = BoxContainer.ALIGNMENT_CENTER
-	var nm := Kit.label(str(st.get("name", "")), 28, Kit.TEXT, "extrabold")
+	var boss := bool(st.get("is_boss", false))
+	var sw := _sheet.size.x
+	var s := _sheet
+	# A paper title block with a hairline frame (the map tucks behind it).
+	Poster.rect(s, Rect2(0, 0, sw, 178), PAPER)
+	Poster.hline(s, 0, 0, sw, INK, 1.5)
+	Poster.hline(s, 0, 74, sw, Color(INK, 0.4))
+	Poster.vline(s, sw * 0.62, 74, 104, Color(INK, 0.4))
+	Poster.hline(s, 0, 178, sw, Color(INK, 0.4))
+	# Row 1: STAGE id, name, power check.
+	Poster.at(s, Poster.t("STAGE", 10, Color(INK, 0.7)), Vector2(14, 8))
+	var idl := Poster.t(str(st.id), 40, SIG if status == "current" else INK, "wide_black")
+	Poster.at(s, idl, Vector2(12, 18))
+	var idw := idl.get_minimum_size().x
+	var nm := Poster.t(str(st.get("name", "")).to_upper(), 36, INK, "compressed")
+	var name_w := sw - idw - 40 - 162
+	Kit.fit_label(nm, name_w, 36, 15)
 	nm.clip_text = true
 	nm.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	nm.custom_minimum_size.x = 120
-	nv.add_child(nm)
-	var tags := Kit.hbox(6)
-	tags.mouse_filter = MOUSE_FILTER_IGNORE
-	tags.add_child(Kit.label(("CH. %d  ·  %s" % [int(st.get("chapter", 0)) + 1, str(ch.get("name", ""))]).to_upper(), 18, Kit.TEXT_DIM, "cond_bold"))
-	if bool(st.get("is_boss", false)):
-		tags.add_child(Kit.tag("BOSS", Kit.EMBER, Color.WHITE, 16))
+	nm.custom_minimum_size.x = minf(nm.get_minimum_size().x, name_w)
+	nm.size.x = name_w
+	Poster.at(s, nm, Vector2(idw + 28, 10))
+	var verdict := StageInfo.verdict_light(team, rec)
+	for row: Array in [["REC PWR %s" % Kit.format_full(rec), INK, "mono_bold", 10.0], ["TEAM %s" % Kit.format_num(team), Color(INK, 0.75), "mono", 30.0],
+			[str(verdict[0]).to_upper(), verdict[1], "mono_bold", 50.0]]:
+		var l := Poster.t(str(row[0]), 12, row[1], str(row[2]))
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		l.size = Vector2(150, 16)
+		Poster.at(s, l, Vector2(sw - 162, float(row[3])))
+	var ch: Dictionary = Game.chapters()[int(st.get("chapter", 0))]
+	Poster.at(s, Poster.t(("CH.%02d  ·  %s" % [int(st.get("chapter", 0)) + 1, str(ch.get("name", ""))]).to_upper(), 10, Color(INK, 0.7), "mono"), Vector2(idw + 30, 54))
+	# Rubber stamps on the cartouche's top rule: BOSS in signal, CLEARED in ink.
+	if boss:
+		Poster.rubber(s, "BOSS", Vector2(sw - 236, -12), SIG, 14, -0.08)
 	if status == "cleared":
-		tags.add_child(Kit.tag("CLEARED", Kit.ACCENT_DEEP, Color.WHITE, 16))
-	nv.add_child(tags)
-	head.add_child(nv)
-	var pv := StageInfo.verdict_light(team, rec)
-	var rv := Kit.vbox(0)
-	rv.mouse_filter = MOUSE_FILTER_IGNORE
-	rv.alignment = BoxContainer.ALIGNMENT_CENTER
-	var rl := Kit.label("REC. POWER", 16, Kit.TEXT_DIM, "cond_bold")
-	rl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	rv.add_child(rl)
-	var rrow := Kit.hbox(4)
-	rrow.mouse_filter = MOUSE_FILTER_IGNORE
-	rrow.alignment = BoxContainer.ALIGNMENT_END
-	rrow.add_child(Kit.icon("power", 26))
-	rrow.add_child(Kit.label(Kit.format_full(rec), 32, Kit.TEXT, "cond_bold"))
-	rv.add_child(rrow)
-	var vrow := Kit.hbox(6)
-	vrow.mouse_filter = MOUSE_FILTER_IGNORE
-	vrow.alignment = BoxContainer.ALIGNMENT_END
-	vrow.add_child(Kit.label("TEAM %s" % Kit.format_num(team), 17, pv[1], "cond_bold"))
-	vrow.add_child(Kit.tag(str(pv[0]).to_upper(), pv[1], Color.WHITE, 15))
-	rv.add_child(vrow)
-	head.add_child(rv)
-	_panel_body.add_child(head)
-
-	# Enemy echoes and the counter faction.
+		Poster.rubber(s, "CLEARED", Vector2(sw - 160, -13), Color(INK, 0.85), 14, 0.05)
+	# Row 2: enemy echoes and the counter | first-clear rewards.
 	var foe := StageInfo.main_faction(st)
 	var ctr := StageInfo.counter_of(foe)
-	var chip: Control = null
+	var eh := "ENEMY ECHOES"
 	if ctr != "":
-		var cr := Kit.hbox(6)
-		cr.mouse_filter = MOUSE_FILTER_IGNORE
-		cr.add_child(Kit.label("COUNTER", 18, Kit.INK_DIM, "cond_bold"))
-		cr.add_child(Kit.faction_icon(ctr, 26))
-		cr.add_child(Kit.label("+20%", 20, Kit.GOOD, "cond_bold"))
-		chip = cr
-	_panel_body.add_child(Kit.header_bar("Enemy echoes", chip))
-	_panel_body.add_child(StageInfo.lineup(StageInfo.enemy_slots(st), 62 if compact else 72, true, true))
+		eh += "  ·  COUNTER %s +20%%" % str(Kit.FACTION_NAMES.get(ctr, ctr)).to_upper()
+	Poster.at(s, Poster.t(eh, 10, INK), Vector2(14, 82))
+	var strip := Poster.echo_strip(StageInfo.enemy_slots(st), 46.0)
+	Poster.at(s, strip, Vector2(14, 100))
 	var weak := str(BattleSim.BEATS.get(foe, ""))
 	var n_weak := int(StageInfo.team_factions().get(weak, 0))
-	if weak != "" and n_weak > 0 and not compact:
-		var w := Kit.body("Careful: %s echoes deal +20%% damage to your %d %s hero%s." % [
-			str(Kit.FACTION_NAMES.get(foe, foe)), n_weak, str(Kit.FACTION_NAMES.get(weak, weak)), "" if n_weak == 1 else "es"], 19, Color("c2410c"))
-		w.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		_panel_body.add_child(w)
-
-	# First-clear rewards.
-	var rw := Kit.hbox(12)
-	rw.mouse_filter = MOUSE_FILTER_IGNORE
-	var rcap := Kit.label("FIRST\nCLEAR", 18, Kit.TEXT_DIM, "cond_bold")
-	rcap.add_theme_constant_override("line_spacing", -4)
-	rw.add_child(rcap)
+	if weak != "" and n_weak > 0:
+		var wl := Poster.t("CAREFUL: +20%% VS YOUR %d %s" % [n_weak, str(Kit.FACTION_NAMES.get(weak, weak)).to_upper()], 9, SIG, "mono_bold")
+		Poster.at(s, wl, Vector2(14, 164))
+	var rx := sw * 0.62 + 12
+	Poster.at(s, Poster.t("FIRST CLEAR", 10, INK), Vector2(rx, 82))
 	if status != "cleared":
-		var list := Kit.reward_list(st.get("first_clear_reward", {}), 60 if compact else 68, false, false, true)
-		list.size_flags_horizontal = SIZE_EXPAND_FILL
-		rw.add_child(list)
+		var rl := Poster.reward_lines(st.get("first_clear_reward", {}), sw - rx - 10, 11)
+		Poster.at(s, rl, Vector2(rx, 100))
 	else:
-		var c := Kit.body("Claimed. Replays are practice: no first-clear rewards.", 20, Kit.TEXT_DIM)
-		rw.add_child(c)
-	_panel_body.add_child(rw)
+		var cl := Poster.t("CLAIMED.\nREPLAYS ARE\nPRACTICE.", 11, Color(INK, 0.7), "mono")
+		Poster.at(s, cl, Vector2(rx, 100))
 
-	# Team and Fight.
-	var row := Kit.hbox(12)
-	var team_b := Kit.light_button("Team", func() -> void:
-		# Coming back from the team screen selects this stage again.
-		UI.current_params = {"open_stage": i, "intro": false}
-		UI.go("formation"), "team")
-	team_b.custom_minimum_size = Vector2(190, 88 if compact else 92)
-	row.add_child(team_b)
-	_fight_btn = Kit.orange_button("Fight", func() -> void: _fight(i), "sword")
-	_fight_btn.size_flags_horizontal = SIZE_EXPAND_FILL
-	_fight_btn.custom_minimum_size.y = 88 if compact else 92
-	row.add_child(_fight_btn)
-	_panel_body.add_child(row)
-	# First-session guidance: the next stage's Fight button.
+	# The TEAM stamp and the Fight pass, stuck on over the bottom of the poster.
+	var pp := _pr.position
+	var ph := _pr.size.y
+	Poster.stamp_disc(_pass_slot, "TEAM · FORMATION · POWER · ", Kit.format_num(team), pp + Vector2(BAND_W + 22, ph - 152), 112.0, -0.12,
+		func() -> void:
+			# Coming back from the team screen selects this stage again.
+			UI.current_params = {"open_stage": i, "intro": false}
+			UI.go("formation"), "Team", "Team")
+	var spec := {"width": 400.0, "kicker": "ENGAGE // CH.%02d" % (int(st.get("chapter", 0)) + 1), "title": "STAGE %s" % str(st.id),
+		"sub": str(st.get("name", "")).to_upper(), "action": "FIGHT  >>>", "icon": "sword",
+		"info": "REC PWR %s" % Kit.format_full(rec)}
+	var pass_root := Poster.pass_on(_pass_slot, spec, Vector2(pp.x + _pr.size.x - 412, pp.y + ph - 176), func() -> void: _fight(i), "Fight", "Fight")
+	_fight_btn = Poster.pass_hit(pass_root)
+	SignalKit.relight(_pass_slot)
+	# First-session guidance: the next stage's Fight.
 	Guide.mark(_fight_btn, status == "current" and Guide.step() == "battle", 0)
 
 
@@ -593,13 +413,9 @@ func _show_intro(ci: int, then: Callable) -> void:
 	fr.add_theme_stylebox_override("panel", Kit.box(Color.TRANSPARENT, Color.TRANSPARENT, Color(1, 1, 1, 0.5), 3, 1))
 	fr.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	art.add_child(fr)
-	var rib := Kit.ribbon("Chapter %d" % (ci + 1), 380, Kit.ACCENT, Color.WHITE, 36)
-	rib.set_anchors_preset(PRESET_CENTER_BOTTOM)
-	rib.offset_left = -190
-	rib.offset_right = 190
-	rib.offset_top = -86
-	rib.offset_bottom = -10
-	art.add_child(rib)
+	var cap := Kit.label("SURVEY No.%03d  ·  CHAPTER %02d" % [ci + 1, ci + 1], 13, PAPER, "mono_bold")
+	cap.position = Vector2(16, 14)
+	art.add_child(cap)
 	v.add_child(art)
 	var intro := Kit.body(str(ch.get("intro", "")), 26, Kit.TEXT)
 	intro.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -611,7 +427,7 @@ func _show_intro(ci: int, then: Callable) -> void:
 	hint.add_theme_stylebox_override("panel", Kit.style("light_inset", 12))
 	var hr := Kit.hbox(10)
 	hr.alignment = BoxContainer.ALIGNMENT_CENTER
-	hr.add_child(Kit.label("COUNTER", 20, Kit.ACCENT_DEEP, "cond_bold"))
+	hr.add_child(Kit.label("COUNTER", 20, Kit.ACCENT_DEEP, "mono_bold"))
 	hr.add_child(Kit.faction_badge(ctr, 34, true, true))
 	hr.add_child(Kit.label("heroes deal +20% here", 24, Color("1f9e63"), "extrabold"))
 	hint.add_child(hr)

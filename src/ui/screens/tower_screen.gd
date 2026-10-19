@@ -1,54 +1,51 @@
 extends Control
-## Screen "tower": the Spire (TowerData, data/tower.json). Full-bleed backdrop of the next
-## floor, a header (Back, title, best floor), a ladder of floors around the next one (cleared
-## below, locked above, boss floors marked) and a white panel for the next floor: power check,
-## enemy echoes, first-clear rewards, Team and Fight. Before the unlock it says which stage
-## opens it; after the top floor it says so.
+## Screen "tower": the Spire (TowerData, data/tower.json), style v4 "Signal" in the approved poster
+## look (docs/dev/ui-style-v4.md). A printed poster on the paper matte: the dark band down the left
+## carries the next floor's lead enemy as a red halftone print, the micro type and "THE SPIRE" set
+## huge down the poster; the centrepiece is the climb as an exploded stack of floor plates in
+## isometric line art (src/ui/v4/survey/plate_stack.gd: cleared floors in ink, the next floor in
+## signal red, sealed floors on paper, boss floors with a second rim), each with a leader to its
+## label. The title block (top right) holds the best floor; the right edge is an altitude ruler
+## (0 to the top floor) with the best floor and the next one marked. Under the stack, the next
+## floor's cartouche (power check, enemy echoes with the counter, first-clear rewards), the TEAM
+## stamp and the Fight pass. Before the unlock the stack prints grey under a SEALED stamp and the
+## pass goes to the campaign; after the top floor the cartouche says so.
 
-const SceneBackdrop := preload("res://src/ui/battle/scene_backdrop.gd")
+const Poster := preload("res://src/ui/v4/survey/poster.gd")
+const PlateStack := preload("res://src/ui/v4/survey/plate_stack.gd")
+const HUD := preload("res://src/ui/components/hud.gd")
 const StageInfo := preload("res://src/ui/battle/stage_info.gd")
-## Floors shown on the ladder: this many above the next one and below it.
-const ABOVE := 3
+## Floors shown on the stack: this many below the next one and above it.
 const BELOW := 1
+const ABOVE := 3
+const W := 720.0
+const BAND_W := 132.0
+const RULE_W := 48.0
+const INK := Color("101113")
+const PAPER := Color("e9e8e2")
+const SIG := Color("ff4b1f")
 
-var _backdrop: Control
-var _col: VBoxContainer
-var _best_label: Label
-var _ladder: VBoxContainer
-var _panel_body: VBoxContainer
+var _root: Control
+var _pr := Rect2()
 var _fight_btn: Button
+var _sig := ""
 
 
 func setup(_params: Dictionary) -> void:
 	UI.set_full_bleed(true)
-	_backdrop = Control.new()
-	_backdrop.name = "BackdropSlot"
-	_backdrop.mouse_filter = MOUSE_FILTER_IGNORE
-	_backdrop.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	add_child(_backdrop)
-	_col = Kit.vbox(0)
-	_col.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	add_child(_col)
-	_col.add_child(_build_header())
-	var mid := CenterContainer.new()
-	mid.size_flags_vertical = SIZE_EXPAND_FILL
-	mid.mouse_filter = MOUSE_FILTER_IGNORE
-	_ladder = Kit.vbox(10)
-	_ladder.name = "Ladder"
-	_ladder.mouse_filter = MOUSE_FILTER_IGNORE
-	mid.add_child(_ladder)
-	_col.add_child(mid)
-	var panel := Kit.info_panel(18)
-	panel.name = "FloorPanel"
-	_panel_body = Kit.vbox(8)
-	panel.add_child(_panel_body)
-	var pm := Kit.margin(panel, 10, 8)
-	pm.add_theme_constant_override("margin_bottom", 8 + int(UI.pinned_bottom_inset()))
-	_col.add_child(pm)
-	_place_col()
-	resized.connect(_place_col)
+	Poster.matte(self)
+	_root = Control.new()
+	_root.name = "Sheet"
+	_root.mouse_filter = MOUSE_FILTER_IGNORE
+	_root.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	add_child(_root)
 	Game.changed.connect(_refresh)
 	_refresh()
+
+
+## The screen's own entrance (UI calls it instead of the generic stagger).
+func intro() -> void:
+	pass
 
 
 func _exit_tree() -> void:
@@ -56,214 +53,232 @@ func _exit_tree() -> void:
 		Game.changed.disconnect(_refresh)
 
 
-func _place_col() -> void:
-	_col.offset_top = UI.content_top()
-	_col.offset_bottom = -UI.content_bottom()
-
-
 func _refresh() -> void:
 	if not is_inside_tree():
 		return
-	var nxt := mini(Game.tower_next(), Game.tower_floors())
-	_show_backdrop(str(Game.tower_floor(nxt).get("background", "chapter-4")))
-	_best_label.text = "%d / %d" % [Game.tower_best(), Game.tower_floors()]
-	_build_ladder()
-	_build_panel()
-
-
-func _show_backdrop(kind: String) -> void:
-	for c in _backdrop.get_children():
-		if str(c.get("kind")) == kind:
-			return
-		_backdrop.remove_child(c)
+	# Reprint only when something on the poster changed.
+	var sig := "%d|%d|%s|%d" % [Game.tower_next(), Game.tower_best(), str(Game.tower_unlocked()), Game.team_power()]
+	if sig == _sig:
+		return
+	_sig = sig
+	for c in _root.get_children():
+		_root.remove_child(c)
 		c.queue_free()
-	var bd := SceneBackdrop.new()
-	bd.kind = kind
-	bd.dim = 0.2
-	bd.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	_backdrop.add_child(bd)
+	_build()
 
 
-# ------------------------------------------------------------------ header
-
-func _build_header() -> Control:
-	var bar := PanelContainer.new()
-	bar.name = "Header"
-	bar.mouse_filter = MOUSE_FILTER_PASS
-	bar.add_theme_stylebox_override("panel", Kit.box(Color("080c19e6"), Color("0e1628e6"), Color.TRANSPARENT, 0, 0, 0))
-	var row := Kit.hbox(12)
-	var back := Kit.icon_button("back", func() -> void: UI.back(), Kit.BUTTON_H, "round")
-	back.name = "Back"
-	row.add_child(back)
-	var tv := Kit.vbox(0)
-	tv.mouse_filter = MOUSE_FILTER_IGNORE
-	tv.alignment = BoxContainer.ALIGNMENT_CENTER
-	tv.add_child(Kit.label(TowerData.NAME.to_upper(), 34, Color.WHITE, "title"))
-	tv.add_child(Kit.label("CLIMB AS HIGH AS YOU CAN", 15, Kit.INK_DIM, "cond_bold"))
-	row.add_child(tv)
-	row.add_child(Kit.spacer(0, 0, true))
-	var pv := Kit.vbox(0)
-	pv.mouse_filter = MOUSE_FILTER_IGNORE
-	pv.alignment = BoxContainer.ALIGNMENT_CENTER
-	var cap := Kit.label("BEST FLOOR", 16, Kit.INK_DIM, "cond_bold")
-	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	pv.add_child(cap)
-	_best_label = Kit.label("", 34, Color.WHITE, "cond_bold")
-	_best_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	pv.add_child(_best_label)
-	row.add_child(pv)
-	bar.add_child(Kit.margin(row, 10, 4))
-	return bar
-
-
-# ------------------------------------------------------------------ ladder
-
-func _build_ladder() -> void:
-	for c in _ladder.get_children():
-		_ladder.remove_child(c)
-		c.queue_free()
+func _build() -> void:
+	var vh := get_viewport_rect().size.y
+	var top := UI.content_top()
+	var bottom := UI.content_bottom()
+	_pr = Rect2(18, top + 12, W - 36, vh - bottom - 58 - (top + 12))
+	var p := Poster.poster(_root, _pr)
+	var pw := _pr.size.x
+	var ph := _pr.size.y
+	var unlocked := Game.tower_unlocked()
+	var total := Game.tower_floors()
 	var nxt := Game.tower_next()
-	var top := mini(nxt + ABOVE, Game.tower_floors())
-	var bottom := maxi(1, nxt - BELOW)
-	for f in range(top, bottom - 1, -1):
-		_ladder.add_child(_floor_plate(f, nxt))
+	var best := Game.tower_best()
+	var summit := nxt > total
+	var shown := mini(nxt, total)
+	var fl := Game.tower_floor(shown)
+	var lead := _lead_of(fl)
+	var stage_y := ph - 352.0
 
+	# ---- The dark band: the next floor's lead enemy as a red halftone print, micro type.
+	Poster.rect(p, Rect2(0, 0, BAND_W, ph), Poster.BAND)
+	if lead != "":
+		Poster.halftone_print(p, lead, Rect2(0, ph * 0.36, BAND_W, ph * 0.64), Color(1.0, 0.36, 0.16, 0.95), 6.5)
+	Poster.at(p, Poster.t("<  BACK", 13, PAPER), Vector2(20, 22))
+	Poster.hit(p, Rect2(0, 0, BAND_W, 88), func() -> void: UI.back(), "Back", "Back")
+	Poster.vlabel(p, "©2026 HH, TOWER SURVEY. ALL RIGHTS RESERVED.", Vector2(42, 96), 10, Color(PAPER, 0.8))
+	Poster.at(p, Poster.t("No.\n%03d" % shown, 12, Color(PAPER, 0.85)), Vector2(70, ph * 0.3))
+	Poster.at(p, Poster.t(Poster.date_short(), 12, Color(PAPER, 0.85)), Vector2(70, ph * 0.3 + 40))
+	Poster.giant_side(p, TowerData.NAME, 150, 150.0, 104.0, 0.0, BAND_W, true)
 
-## One floor on the ladder: number, boss tag, and its state (cleared / next / locked).
-func _floor_plate(f: int, nxt: int) -> Control:
-	var fl := Game.tower_floor(f)
-	var is_next := f == nxt
-	var cleared := f < nxt
-	var w := 460.0 if is_next else 380.0
-	var fill := Color("18c3e8f0") if is_next else (Color("0d1824d0") if cleared else Color("0d1824a0"))
-	var edge := Color("ffffff") if is_next else Color("ffffff40")
-	var p := PanelContainer.new()
-	p.name = "Floor_%d" % f
-	p.mouse_filter = MOUSE_FILTER_IGNORE
-	p.custom_minimum_size = Vector2(w, 74.0 if is_next else 58.0)
-	p.size_flags_horizontal = SIZE_SHRINK_CENTER
-	p.add_theme_stylebox_override("panel", Kit.box(fill, fill.darkened(0.25), edge, 18.0, 2, 0))
-	var row := Kit.hbox(10)
-	row.mouse_filter = MOUSE_FILTER_IGNORE
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	if cleared:
-		row.add_child(Kit.icon("check", 26, Kit.GOOD))
-	elif not is_next:
-		row.add_child(Kit.icon("lock", 24, Kit.INK_DIM))
-	var txt := Kit.label("FLOOR %d" % f, 34 if is_next else 26, Color.WHITE if is_next or cleared else Kit.INK_DIM, "cond_bold")
-	row.add_child(txt)
-	if bool(fl.get("is_boss", false)):
-		row.add_child(Kit.tag("BOSS", Kit.EMBER, Color.WHITE, 16))
-	elif f % 5 == 0:
-		row.add_child(Kit.icon("gems", 26))
-	p.add_child(Kit.margin(row, 14, 6))
-	return p
+	# ---- The stack of floors.
+	var stack := PlateStack.new()
+	stack.name = "Stack"
+	stack.position = Vector2(BAND_W, 104)
+	stack.size = Vector2(pw - RULE_W - BAND_W - 4, stage_y - 104)
+	var lo := maxi(1, shown - BELOW)
+	var hi := mini(total, maxi(shown + ABOVE, lo + BELOW + ABOVE))
+	lo = maxi(1, mini(lo, hi - BELOW - ABOVE))
+	var list: Array = []
+	for f in range(lo, hi + 1):
+		var tf := Game.tower_floor(f)
+		var state := "cleared" if f <= best else ("next" if f == nxt and unlocked else "locked")
+		var boss := bool(tf.get("is_boss", false))
+		var label := "F.%03d  %s" % [f, "NEXT" if state == "next" else ("CLEARED" if state == "cleared" else "SEALED")]
+		var sub := ""
+		if state == "next":
+			sub = "REC PWR %s" % Kit.format_full(int(tf.get("recommended_power", 0)))
+		if boss:
+			sub = ("BOSS  ·  " + sub) if sub != "" else "BOSS FLOOR"
+		elif f % 5 == 0 and state != "cleared":
+			sub = sub if sub != "" else "GEM FLOOR"
+		list.append({"floor": f, "state": state, "boss": boss, "label": label, "sub": sub})
+	stack.floors = list
+	stack.muted = not unlocked
+	stack.fit(stack.size)
+	p.add_child(stack)
+	if not unlocked:
+		Poster.rubber(p, "SEALED", Vector2(BAND_W + stack.size.x * 0.22, 104 + stack.size.y * 0.42), SIG, 30, -0.14)
 
+	# ---- The title block (top right).
+	var x0 := 252.0
+	var tw := pw - RULE_W - 12 - x0
+	var tb := Control.new()
+	tb.mouse_filter = MOUSE_FILTER_IGNORE
+	tb.position = Vector2(x0, 16)
+	p.add_child(tb)
+	Poster.at(tb, Poster.t("TOWER SURVEY", 12, INK), Vector2(0, 0))
+	var dl := Poster.t("%03d FLOORS" % total, 12, INK)
+	dl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	dl.size = Vector2(tw, 16)
+	Poster.at(tb, dl, Vector2(0, 0))
+	Poster.hline(tb, 0, 20, tw, Color(INK, 0.7))
+	Poster.at(tb, Poster.t(TowerData.NAME.to_upper(), 28, INK, "wide_black"), Vector2(-2, 24))
+	Poster.at(tb, Poster.t("CLIMB AS HIGH AS YOU CAN", 11, Color(INK, 0.75), "mono"), Vector2(0, 62))
+	Poster.at(tb, Poster.t("EVERY 10TH FLOOR: A BOSS  ·  EVERY 5TH: GEMS", 11, INK, "mono_bold"), Vector2(0, 80))
+	var bl := Poster.t("%03d/%03d" % [best, total], 22, INK, "wide_black")
+	bl.name = "BestFloor"
+	bl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	bl.size = Vector2(tw, 26)
+	Poster.at(tb, bl, Vector2(0, 30))
+	var bc := Poster.t("BEST FLOOR", 9, Color(INK, 0.7), "mono_bold")
+	bc.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	bc.size = Vector2(tw, 12)
+	Poster.at(tb, bc, Vector2(0, 58))
 
-# ------------------------------------------------------------------ next-floor panel
+	# ---- The altitude ruler down the right edge.
+	var rx := pw - RULE_W
+	Poster.vline(p, rx, 0, ph, Color(INK, 0.55))
+	Poster.vlabel(p, "©2026 ·", Vector2(rx + 34, 12), 12, INK)
+	Poster.vlabel(p, "ALTITUDE / FLOORS", Vector2(rx + 34, 96), 12, INK)
+	var r0 := 300.0
+	var r1 := ph - 200.0
+	for k in 13:
+		var fk := int(round(total * (12 - k) / 12.0))
+		var yk := lerpf(r0, r1, k / 12.0)
+		Poster.rect(p, Rect2(rx - (8 if k % 3 == 0 else 4), yk, 8 if k % 3 == 0 else 4, 1), INK)
+		if k % 3 == 0:
+			Poster.at(p, Poster.t("%03d" % fk, 9, Color(INK, 0.7), "mono"), Vector2(rx + 6, yk - 7))
+	var by := lerpf(r1, r0, float(best) / maxf(total, 1))
+	var bm := Poster.t("BEST %03d >" % best, 9, INK, "mono_bold")
+	bm.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	bm.size = Vector2(90, 12)
+	Poster.at(p, bm, Vector2(rx - 96, by - 6))
+	if unlocked and not summit:
+		var ny := lerpf(r1, r0, float(nxt) / maxf(total, 1))
+		Poster.rect(p, Rect2(rx - 12, ny, 12, 2), SIG)
+		var led := HUD.Led.new()
+		led.size = Vector2(16, 16)
+		led.position = Vector2(rx + 16, ny - 8 - 16)
+		led.mode = "breathe"
+		p.add_child(led)
 
-func _build_panel() -> void:
-	for c in _panel_body.get_children():
-		_panel_body.remove_child(c)
-		c.queue_free()
+	# ---- The cartouche for the next floor, then the TEAM stamp and the Fight pass.
+	var s := Control.new()
+	s.name = "FloorPanel"
+	s.mouse_filter = MOUSE_FILTER_IGNORE
+	s.position = Vector2(BAND_W, stage_y)
+	s.size = Vector2(rx - BAND_W, ph - stage_y)
+	p.add_child(s)
+	var sw := s.size.x
+	Poster.rect(s, Rect2(0, 0, sw, 178), PAPER)
+	Poster.hline(s, 0, 0, sw, INK, 1.5)
+	Poster.hline(s, 0, 178, sw, Color(INK, 0.4))
+	var slot := Control.new()
+	slot.mouse_filter = MOUSE_FILTER_IGNORE
+	slot.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	_root.add_child(slot)
 	_fight_btn = null
-	if not Game.tower_unlocked():
+	if not unlocked:
 		var need := TowerData.UNLOCK_CLEARED
 		var st := Game.stage(need - 1)
-		_panel_body.add_child(Kit.header_bar("Locked"))
-		var msg := Kit.body("Clear stage %s in the campaign to open %s." % [str(st.get("id", need)), TowerData.NAME], 24, Kit.TEXT)
-		msg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		_panel_body.add_child(msg)
-		var go := Kit.orange_button("Campaign", func() -> void: UI.go("campaign"), "campaign")
-		go.custom_minimum_size.y = 92
-		_panel_body.add_child(go)
+		Poster.at(s, Poster.t("LOCKED", 10, Color(INK, 0.7)), Vector2(14, 8))
+		Poster.at(s, Poster.t("SEALED", 40, SIG, "wide_black"), Vector2(12, 18))
+		var msg := Poster.t("Clear stage %s in the campaign\nto open %s." % [str(st.get("id", need)), TowerData.NAME], 20, INK, "regular")
+		Poster.at(s, msg, Vector2(14, 84))
+		var spec := {"width": 400.0, "kicker": "CAMPAIGN // OPENS THE SPIRE", "title": "STAGE %s" % str(st.get("id", need)),
+			"sub": "CLEAR IT TO BREAK THE SEAL", "action": "CAMPAIGN  >>>", "icon": "campaign", "info": "%d / %d CLEARED" % [Game.cleared_count(), need]}
+		Poster.pass_on(slot, spec, _pr.position + Vector2(pw - 412, ph - 176), func() -> void: UI.go("campaign"), "Campaign", "Campaign")
+		_tail(lead)
 		return
-	var f := Game.tower_next()
-	if f > Game.tower_floors():
-		_panel_body.add_child(Kit.header_bar("Summit"))
-		var top := Kit.body("You cleared every floor of %s. More floors are coming." % TowerData.NAME, 24, Kit.TEXT)
-		top.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		_panel_body.add_child(top)
+	if summit:
+		Poster.at(s, Poster.t("SUMMIT", 10, Color(INK, 0.7)), Vector2(14, 8))
+		Poster.at(s, Poster.t("%03d" % total, 40, SIG, "wide_black"), Vector2(12, 18))
+		var top_msg := Poster.t("You cleared every floor of %s.\nMore floors are coming." % TowerData.NAME, 20, INK, "regular")
+		Poster.at(s, top_msg, Vector2(14, 84))
+		Poster.rubber(s, "SUMMIT", Vector2(sw - 200, 30), SIG, 22, -0.1)
+		_tail(lead)
 		return
-	var fl := Game.tower_floor(f)
 	var team := int(Game.team_power())
 	var rec := int(fl.get("recommended_power", 0))
-	var compact := get_viewport_rect().size.y - UI.content_top() - UI.content_bottom() < 1000.0
-
-	var head := Kit.hbox(14)
-	head.mouse_filter = MOUSE_FILTER_IGNORE
-	var idv := Kit.vbox(0)
-	idv.mouse_filter = MOUSE_FILTER_IGNORE
-	idv.add_child(Kit.label("FLOOR", 16, Kit.TEXT_DIM, "cond_bold"))
-	idv.add_child(Kit.label(str(f), 46, Kit.ACCENT_DEEP, "title"))
-	head.add_child(idv)
-	var nv := Kit.vbox(2)
-	nv.mouse_filter = MOUSE_FILTER_IGNORE
-	nv.size_flags_horizontal = SIZE_EXPAND_FILL
-	nv.alignment = BoxContainer.ALIGNMENT_CENTER
-	nv.add_child(Kit.label(TowerData.NAME, 28, Kit.TEXT, "extrabold"))
-	var tags := Kit.hbox(6)
-	tags.mouse_filter = MOUSE_FILTER_IGNORE
-	tags.add_child(Kit.label(("Best %d" % Game.tower_best()).to_upper(), 18, Kit.TEXT_DIM, "cond_bold"))
-	if bool(fl.get("is_boss", false)):
-		tags.add_child(Kit.tag("BOSS", Kit.EMBER, Color.WHITE, 16))
-	nv.add_child(tags)
-	head.add_child(nv)
-	var pv := StageInfo.verdict_light(team, rec)
-	var rv := Kit.vbox(0)
-	rv.mouse_filter = MOUSE_FILTER_IGNORE
-	rv.alignment = BoxContainer.ALIGNMENT_CENTER
-	var rl := Kit.label("REC. POWER", 16, Kit.TEXT_DIM, "cond_bold")
-	rl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	rv.add_child(rl)
-	var rrow := Kit.hbox(4)
-	rrow.mouse_filter = MOUSE_FILTER_IGNORE
-	rrow.alignment = BoxContainer.ALIGNMENT_END
-	rrow.add_child(Kit.icon("power", 26))
-	rrow.add_child(Kit.label(Kit.format_full(rec), 32, Kit.TEXT, "cond_bold"))
-	rv.add_child(rrow)
-	var vrow := Kit.hbox(6)
-	vrow.mouse_filter = MOUSE_FILTER_IGNORE
-	vrow.alignment = BoxContainer.ALIGNMENT_END
-	vrow.add_child(Kit.label("TEAM %s" % Kit.format_num(team), 17, pv[1], "cond_bold"))
-	vrow.add_child(Kit.tag(str(pv[0]).to_upper(), pv[1], Color.WHITE, 15))
-	rv.add_child(vrow)
-	head.add_child(rv)
-	_panel_body.add_child(head)
-
+	var boss := bool(fl.get("is_boss", false))
+	Poster.hline(s, 0, 74, sw, Color(INK, 0.4))
+	Poster.vline(s, sw * 0.62, 74, 104, Color(INK, 0.4))
+	Poster.at(s, Poster.t("FLOOR", 10, Color(INK, 0.7)), Vector2(14, 8))
+	var idl := Poster.t("%03d" % nxt, 40, SIG, "wide_black")
+	Poster.at(s, idl, Vector2(12, 18))
+	var idw := idl.get_minimum_size().x
+	Poster.at(s, Poster.t(TowerData.NAME.to_upper(), 36, INK, "compressed"), Vector2(idw + 28, 10))
+	Poster.at(s, Poster.t("BEST %03d  ·  NEXT %03d / %03d" % [best, nxt, total], 10, Color(INK, 0.7), "mono"), Vector2(idw + 30, 54))
+	var verdict := StageInfo.verdict_light(team, rec)
+	for row: Array in [["REC PWR %s" % Kit.format_full(rec), INK, "mono_bold", 10.0], ["TEAM %s" % Kit.format_num(team), Color(INK, 0.75), "mono", 30.0],
+			[str(verdict[0]).to_upper(), verdict[1], "mono_bold", 50.0]]:
+		var l := Poster.t(str(row[0]), 12, row[1], str(row[2]))
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		l.size = Vector2(150, 16)
+		Poster.at(s, l, Vector2(sw - 162, float(row[3])))
+	if boss:
+		Poster.rubber(s, "BOSS", Vector2(sw - 236, -12), SIG, 14, -0.08)
 	var foe := StageInfo.main_faction(fl)
 	var ctr := StageInfo.counter_of(foe)
-	var chip: Control = null
+	var eh := "ENEMY ECHOES"
 	if ctr != "":
-		var cr := Kit.hbox(6)
-		cr.mouse_filter = MOUSE_FILTER_IGNORE
-		cr.add_child(Kit.label("COUNTER", 18, Kit.INK_DIM, "cond_bold"))
-		cr.add_child(Kit.faction_icon(ctr, 26))
-		cr.add_child(Kit.label("+20%", 20, Kit.GOOD, "cond_bold"))
-		chip = cr
-	_panel_body.add_child(Kit.header_bar("Enemy echoes", chip))
-	_panel_body.add_child(StageInfo.lineup(StageInfo.enemy_slots(fl), 62 if compact else 72, true, true))
+		eh += "  ·  COUNTER %s +20%%" % str(Kit.FACTION_NAMES.get(ctr, ctr)).to_upper()
+	Poster.at(s, Poster.t(eh, 10, INK), Vector2(14, 82))
+	Poster.at(s, Poster.echo_strip(StageInfo.enemy_slots(fl), 46.0), Vector2(14, 100))
+	var rx2 := sw * 0.62 + 12
+	Poster.at(s, Poster.t("FIRST CLEAR", 10, INK), Vector2(rx2, 82))
+	Poster.at(s, Poster.reward_lines(fl.get("first_clear_reward", {}), sw - rx2 - 10, 11), Vector2(rx2, 100))
+	var pp := _pr.position
+	Poster.stamp_disc(slot, "TEAM · FORMATION · POWER · ", Kit.format_num(team), pp + Vector2(BAND_W + 22, ph - 152), 112.0, -0.12,
+		func() -> void: UI.go("formation"), "Team", "Team")
+	var spec := {"width": 400.0, "kicker": "ENGAGE // THE SPIRE", "title": "FLOOR %03d" % nxt, "sub": ("BOSS FLOOR" if boss else "BEST %03d" % best),
+		"action": "FIGHT  >>>", "icon": "sword", "info": "REC PWR %s" % Kit.format_full(rec)}
+	var pass_root := Poster.pass_on(slot, spec, pp + Vector2(pw - 412, ph - 176), func() -> void: _fight(nxt), "Fight", "FightFloor")
+	_fight_btn = Poster.pass_hit(pass_root)
+	_tail(lead)
 
-	var rw := Kit.hbox(12)
-	rw.mouse_filter = MOUSE_FILTER_IGNORE
-	var rcap := Kit.label("FIRST\nCLEAR", 18, Kit.TEXT_DIM, "cond_bold")
-	rcap.add_theme_constant_override("line_spacing", -4)
-	rw.add_child(rcap)
-	var list := Kit.reward_list(fl.get("first_clear_reward", {}), 60 if compact else 68, false, false, true)
-	list.size_flags_horizontal = SIZE_EXPAND_FILL
-	rw.add_child(list)
-	_panel_body.add_child(rw)
 
-	var row := Kit.hbox(12)
-	var team_b := Kit.light_button("Team", func() -> void: UI.go("formation"), "team")
-	team_b.custom_minimum_size = Vector2(190, 88 if compact else 92)
-	row.add_child(team_b)
-	_fight_btn = Kit.orange_button("Fight", func() -> void: _fight(f), "sword")
-	_fight_btn.name = "FightFloor"
-	_fight_btn.size_flags_horizontal = SIZE_EXPAND_FILL
-	_fight_btn.custom_minimum_size.y = 88 if compact else 92
-	row.add_child(_fight_btn)
-	_panel_body.add_child(row)
+## Under the poster: the date and a signature; grain over everything; light the plates.
+func _tail(lead: String) -> void:
+	var fy := _pr.end.y + 12.0
+	Poster.at(_root, Poster.t(Poster.date_long(), 22, INK, "regular"), Vector2(20, fy + 8))
+	var who := str(Game.hero_def(lead).get("name", "")) if lead != "" else TowerData.NAME
+	var sig := Poster.t(who, 40, INK, "serif_italic")
+	sig.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	sig.size = Vector2(300, 46)
+	Poster.at(_root, sig, Vector2(W - 24 - 300, fy - 6))
+	var swash := Poster.rect(_root, Rect2(W - 230, fy + 38, 200, 2), INK)
+	swash.rotation = -0.05
+	Poster.grain(_root)
+	SignalKit.relight(_root)
+
+
+## The boss of a floor (or its first enemy).
+func _lead_of(fl: Dictionary) -> String:
+	var first := ""
+	for e: Variant in fl.get("enemies", []):
+		if e is Dictionary:
+			if first == "":
+				first = str((e as Dictionary).get("hero_id", ""))
+			if bool((e as Dictionary).get("is_boss", false)):
+				return str((e as Dictionary).get("hero_id", ""))
+	return first
 
 
 func _fight(f: int) -> void:

@@ -37,10 +37,13 @@ this file says where things stand. Older logs are under "History" at the bottom.
   then: the shell's masthead and footer strip printed on paper ("01 HEROES / 02 TEAM ..." with a
   signal underline), the real Lobby rebuilt as the poster (`home_screen.gd`, every old function
   kept; the guided first session passes through it), and the first Blender renders (coil, stamp
-  disc; `tools/blender/`). Three background agents are rebuilding Heroes/Team, Campaign/Spire/Quests
-  and Summon/Shop/Gear in the poster style (their diffs are merged by the lead). Next: screenshots
-  of the real Lobby (waiting on the owner, who was gaming), merge the agents' screens, then battle,
-  settings, dialogs and loading screens.
+  disc; `tools/blender/`). Also in the poster look (three background agents, merged and shot):
+  Summon, Shop, Gear (`src/ui/v4/poster_kit.gd`), Hero page, Roster, Team
+  (`src/ui/v4/hero_poster_kit.gd`, `poster_card.gd`), and Campaign (a real exploded 3D survey map
+  per chapter in a SubViewport), Spire and Quests (`src/ui/v4/survey/`; smoke test
+  `tests/tools/v4_survey_smoke.gd`). The three kits overlap and should fold into `SignalKit`. Next:
+  battle HUD and results, settings, popups and dialogs (Sanctum sheet, confirms, gear picker,
+  chapter intro still use the old frame), loading screens, then an IPA.
 - **Game:** v1 plays end to end (`docs/dev/architecture.md`). On the PC `tools/check e2e` passes:
   103 unit tests, boot, 3 e2e scripts; `check_port.py` 49 checks, 0 differ (2026-10-18). Added
   2026-10-18 (owner: "yeah go on" to base art, backdrops, more content):
