@@ -22,6 +22,8 @@ var _grid_vid := {}                         ## Vector2i -> vertex index
 var dir := ""
 var texel := 1.0
 var canvas := Vector2(1024, 2048)        ## source canvas / image size (portrait_rect units)
+## Where her soles stand on the canvas (rig space is canvas px from this point).
+var origin := Vector2(512, 1990)
 var look_px := Vector2(14, 8)
 var meta := {}
 var bounds := Rect2(-512, -1240, 1024, 1280)
@@ -115,6 +117,8 @@ func _load(d: Dictionary, hero_id: String, art_folder: String = "") -> void:
 	texel = float(d.get("texel_scale", 1.0))
 	var cv: Array = d.get("canvas", [1024, 2048])
 	canvas = Vector2(cv[0], cv[1])
+	var og: Array = d.get("origin", [canvas.x * 0.5, canvas.y - 58.0])
+	origin = Vector2(og[0], og[1])
 	var lp: Array = d.get("look_px", [24, 14])
 	look_px = Vector2(lp[0], lp[1])
 	meta = d.get("meta", {})

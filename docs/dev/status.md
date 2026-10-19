@@ -47,9 +47,16 @@ this file says where things stand. Older logs are under "History" at the bottom.
   `src/ui/components/print_bits.gd`). Gear shows Blender renders of all 65 pieces. HDR 2D is off on
   iOS (blown out on the iPhone). The shell's bars, toasts, popups and effects sit above screen
   content by z_index (60/90/100/110; boot 200). The kits overlap and should fold into `SignalKit`.
-  Owner's next list (2026-10-19): nav bar on every screen but battle, bigger Back, animated battle
-  map, Team page that scrolls as a page, a richer hero tap reaction, more summon modes, Claim filled
-  in signal, avatar opens a player profile, and distinct button designs instead of one pass.
+  Owner's list (2026-10-19), all done: nav on every screen but battle and the summon reveal; the
+  big shared Back (SignalKit.back_button); the Campaign map animates; Team scrolls as one page;
+  HeroReact tap reactions; five summon banners (Standard, Featured rate-up with a 50/50 guarantee,
+  Faction focus rotating daily, Wish with a chosen Legendary, gold Envoy's Draw), each with its own
+  pity, and ticket pull buttons; quest Claim inked solid; the avatar opens the player profile
+  (ProfileScreen); a button family (pass for battle, ink stamps for claims, price tags in the shop,
+  label tape for equip, an arcade press for Level Up, tickets for summons). Hero framing: views fit
+  each art's real outline (HeroArt.used_rect / fit_sprite, HeroSprite.figure_rect), so wide poses
+  and skins are never cut (most arts were fitted to the canvas by width). Touch-scroll audit in
+  tools/check e2e. Banner prices and the Wish's 30-a-week cap are Claude's numbers (owner to confirm).
 - **Game:** v1 plays end to end (`docs/dev/architecture.md`). On the PC `tools/check e2e` passes:
   103 unit tests, boot, 3 e2e scripts; `check_port.py` 49 checks, 0 differ (2026-10-18). Added
   2026-10-18 (owner: "yeah go on" to base art, backdrops, more content):

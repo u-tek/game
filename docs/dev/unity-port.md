@@ -183,16 +183,23 @@ Built stage (what `Game.stage(i)` returns): `id = "<chapter#>-<stage#>"` (1-base
 
 ### 3.4 banner.json
 
-`{version, banners: [Banner]}`; the game uses `banners[0]`.
+`{version, epoch_day, banners: [Banner]}`. Five banners, in this order: `standard` (the default,
+`banners[0]`), `featured`, `faction`, `wish`, `envoy`. `epoch_day` (a day index, days since
+1970-01-01 in local time; 20745 = Monday 2026-10-19) starts every rotation and weekly limit.
 
 | Field | Type | Meaning |
 |---|---|---|
-| `id`, `name` | string | |
-| `cost_one`, `cost_ten` | `{gems, scrolls}` | Scrolls are used first when enough. |
+| `id`, `name`, `short` | string | `short` is the index label ("Featured"). |
+| `kind` | `"standard"` \| `"featured"` \| `"faction"` \| `"wish"` \| `"envoy"` | Which rules apply (section 8.1). |
+| `cost_one`, `cost_ten` | `{gems, scrolls}` or `{gold}` | Scrolls are used first when the banner takes them and the player has enough. |
 | `rates` | `{legendary, epic, rare}` bp | Sum 10000. |
-| `pity_legendary` | int | A Legendary is forced when pity >= this - 1. |
+| `pity_legendary` | int | A Legendary is forced when pity >= this - 1. 0 = no pity (the pity counter stays 0). |
 | `ten_pull_guarantee` | rarity | The 10th pull of a 10-pull is upgraded to this if all ten would be Rare. |
 | `pool` | [hero id] | Pool; grouped by the heroes' rarity **in this order**. |
+| `free_daily` | bool | The banner with the free daily pull (standard). |
+| `featured_rotation`, `rotation_days`, `featured_bp` | [hero id], int, bp | featured: the rate-up Legendary rotates every `rotation_days`; a Legendary is her with `featured_bp`. |
+| `faction_rotation`, `rotation_days` | [faction], int | faction: the pool is cut to that faction, rotating every `rotation_days`. |
+| `limit` | `{period: "day" \| "week", pulls}` | Pulls allowed per local day (envoy) or per week from `epoch_day` (wish). |
 
 ### 3.5 quests.json
 
@@ -532,20 +539,37 @@ passive type and all 15 ultimates occur at least once).
 ### 8.1 Summon (`summon_rules.gd`)
 
 ```
-pool = banner.pool grouped by hero rarity (pool order)
-rng = SeededRng(Mix(summon.seed, total_pulls))
+pool = banner.pool grouped by hero rarity (pool order); on a faction banner only heroes of opts.faction
+rng = SeededRng(Mix(summon.seed, total_pulls))       total_pulls counts every pull on every banner
 for i in 0 .. count-1:
-  rarity = pity >= pity_legendary - 1 ? "legendary"                      (no draw)
+  rarity = pity_legendary > 0 and pity >= pity_legendary - 1 ? "legendary"            (no draw)
          : RarityForRoll(rng.RangeInt(0, 9999))    r < legendary -> legendary; r < legendary + epic -> epic; else rare
   if count == 10 and i == 9 and no epic/legendary so far and rarity == "rare": rarity = ten_pull_guarantee
-  pity = rarity == "legendary" ? 0 : pity + 1;  total_pulls += 1
-  hero = rng.Pick(pool[rarity])
+  if pity_legendary > 0: pity = rarity == "legendary" ? 0 : pity + 1      (else pity stays as it is)
+  total_pulls += 1
+  hero = featured banner, legendary: lost or rng.ChanceBp(featured_bp) ? featured
+                                     : others.Count == 0 ? featured : rng.Pick(others)
+                                     (others = pool.legendary without featured); lost = hero != featured
+         wish banner, legendary:     opts.target                                       (no draw)
+         else:                       rng.Pick(pool[rarity])
 ```
 
-Paying (GameModel.summon): free pull (count 1, once per local day) or scrolls if
-`scrolls >= cost.scrolls`, else gems if enough, else error. Each result goes through
-`receive_hero` in order (new hero, or duplicate -> `dupe_shards[rarity]` shards, excess -> dust).
-Fixture: `summon.json`.
+A featured banner's results also carry `featured` (bool) and the summon returns `lost`. Rotations
+(`period_index(day) = floor((day - epoch_day) / days)`, floor also before the epoch): the featured
+hero is `featured_rotation[posmod(period_index(day, epoch_day, rotation_days), count)]`, the faction
+likewise; `next_change_day = epoch_day + (period_index + 1) * days`. A limit's period is the day
+itself ("day") or `period_index(day, epoch_day, 7)` ("week"); it resets on `day + 1` or the next
+week's first day.
+
+Paying (GameModel.summon(count, use_free, banner_id)): the free pull (count 1, once per local day,
+only on the `free_daily` banner) or scrolls if the banner takes them and `scrolls >= cost.scrolls`,
+else the other currency (gems, or gold) if enough, else error ("Not enough gems" / "Not enough
+gold"). Checks before paying: a wish needs a target from the banner's Legendaries ("Choose your wish
+first"); a limited banner refuses a summon bigger than what is left ("No pulls left today",
+"Only 7 pulls left this week"). Each banner but the standard one keeps `summon.banners[id]` = {pity,
+pulls, lost (featured), target (wish), period, period_pulls (limit)}; the standard pity stays in
+`summon.pity`. Each result goes through `receive_hero` in order (new hero, or duplicate ->
+`dupe_shards[rarity]` shards, excess -> dust). Fixture: `summon.json`.
 
 ### 8.2 Idle (`idle_rules.gd`)
 
@@ -631,7 +655,8 @@ currencies {gold, hero_exp, gems, scrolls, dust}
 heroes {id: {id, level, stars, shards, gear {slot: gear uid}}}
 formation [5 hero ids or ""]          campaign {cleared}          tower {best}
 idle {last_claim_at, quick_claims_used, quick_claim_day, carry {currency: remainder}, gear_ms, full_notified}
-summon {pity, total_pulls, last_free_pull_day, seed}
+summon {pity (standard banner), total_pulls (all banners), last_free_pull_day, seed,
+        banners {featured|faction|wish|envoy: {pity, pulls, lost, target, period, period_pulls}}}
 gear [{uid, slot, tier, name, stats {..}, equipped_by}]
 quests {day, progress {quest id: n}, claimed [quest id]}
 shop {purchases {offer id: n}, daily {offer id: n}, day, monthly_until_day, monthly_last_day}
@@ -691,7 +716,7 @@ Each file: `{version, about, regenerate, ...}`. Inputs and expected outputs sit 
 | `idle.json` | `per_hour[]` by cleared; `elapsed[]`; `accrue[]` (elapsed_ms, cleared, carry, gear_ms -> {reward, carry, gear_ms}); `quick_claim[]` (used -> cost, left); `quick_reward[]`. |
 | `gear.json` | `tier_for[]`; `random_slot[]` (rng_seed, gear_seq); `make_item[]` (slot, tier, rng_seed, seq -> item); `salvage[]`. |
 | `stats.json` | `hero_stats[]` (hero, level, stars, gear items -> stats, power); `gear_score[]`; `stages[]`: every built stage's enemies with echo stats, enemy_power, recommended_power, first_clear_reward. |
-| `summon.json` | `rarity_for_roll[]` (rate boundaries); `cases[]`: seed, total_pulls, pity, counts -> one `{results [{hero_id, rarity, pity}], pity, total_pulls}` per summon, chained. |
+| `summon.json` | `rarity_for_roll[]` (rate boundaries); `cases[]` (standard banner): seed, total_pulls, pity, counts -> one `{results [{hero_id, rarity, pity}], pity, total_pulls}` per summon, chained; `banner_cases[]`: the same on `banner` with `opts` (featured + lost, faction, target; on the featured banner `opts.lost` chains from each `out.lost`); `rotation[]`: day -> featured, faction, their next change days, the wish and envoy limit periods and reset days (`epoch_day` stored). |
 | `battles.json` | `battles[]`: setup (+ `auto_ultimates`, `manual_ultimates [{tick, uid, accepted}]`) -> `steps`, every event of every step in order, `outcome`, `final_units`, `skip_outcome` (run_to_end on a fresh sim). Manual requests are made before step number `tick` (1 = the first step). |
 | `session.json` | GameModel: `start_ms`, `tz_bias_ms`, `steps [{advance_ms, call, args}]` -> `results [{value, notify}]`, `final_state`. Each step advances the clock, then calls the method; `"battle"` = `stage_battle_setup(i)` + `run_to_end` + `complete_stage(i, outcome)`, value `{seed, victory, duration_ms, complete}`. |
 | `save.json` | `cases []`: `now_ms`, `input` (a save) -> `out` (`migrate(input)`). |

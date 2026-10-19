@@ -538,16 +538,44 @@ func salvage_gear(gear_uid: String) -> Dictionary:
 
 # ---------------------------------------------------------------- summon
 
-## BannerDef {id, name, cost_one, cost_ten, rates: {rare, epic, legendary} (basis points),
-## pity_legendary, pool: [...]}
-## cost_one / cost_ten are gem prices; scroll_cost_one / scroll_cost_ten the scroll prices.
-func banner() -> Dictionary:
-	return model.banner()
+## BannerDef for banner_id (default the standard banner) as it stands today: {id, kind
+## ("standard" | "featured" | "faction" | "wish" | "envoy"), name, short, cost_one, cost_ten
+## (prices in `currency`: "gems", or "gold" on the envoy banner), scroll_cost_one,
+## scroll_cost_ten (0 = scrolls not taken), rates: {rare, epic, legendary} (basis points),
+## pity_legendary (0 = none), ten_pull_guarantee, pool, pool_by_rarity, free_daily, pity, and per
+## kind: featured, featured_bp, lost / faction / target, choices; rotation_days, next_change_day,
+## ms_until_change; limit_period, limit_max, limit_left (-1 = none), ms_until_limit_reset}.
+## See GameModel.banner.
+func banner(banner_id: String = "standard") -> Dictionary:
+	return model.banner(banner_id)
 
 
-## Pulls since the last Legendary (Legendary guaranteed when this reaches pity_legendary - 1).
-func pity_count() -> int:
-	return model.pity_count()
+## Every banner's BannerDef in banner.json order (the standard one first).
+func banners() -> Array[Dictionary]:
+	return model.banners()
+
+
+## Pulls since the banner's last Legendary (Legendary guaranteed when this reaches
+## pity_legendary - 1).
+func pity_count(banner_id: String = "standard") -> int:
+	return model.pity_count(banner_id)
+
+
+## Pulls left in the banner's limit period (envoy: today, wish: this week); -1 = no limit.
+func summon_left(banner_id: String) -> int:
+	return model.summon_left(banner_id)
+
+
+## The wish banner's chosen Legendary ("" until picked).
+func wish_target(banner_id: String = "wish") -> String:
+	return model.wish_target(banner_id)
+
+
+## Result {ok, value: hero id, error}.
+func set_wish_target(hero_id: String, banner_id: String = "wish") -> Dictionary:
+	var r := model.set_wish_target(hero_id, banner_id)
+	_flush()
+	return r
 
 
 func free_pull_available() -> bool:
@@ -556,10 +584,11 @@ func free_pull_available() -> bool:
 	return r
 
 
-## count = 1 or 10. use_free only valid with count 1. Pays with scrolls first, then gems.
-## Result {ok, value: Array of {hero_id, rarity, is_new, shards, dust, pity}, error}.
-func summon(count: int, use_free: bool = false) -> Dictionary:
-	var r := model.summon(count, use_free)
+## count = 1 or 10 on banner_id (standard by default). use_free: the standard banner's free
+## daily pull, count 1 only. Pays with scrolls first, then gems (gold on the envoy banner).
+## Result {ok, value: Array of {hero_id, rarity, is_new, shards, dust, pity (+ featured)}, error}.
+func summon(count: int, use_free: bool = false, banner_id: String = "standard") -> Dictionary:
+	var r := model.summon(count, use_free, banner_id)
 	_flush()
 	return r
 

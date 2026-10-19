@@ -87,7 +87,7 @@ func default_state() -> Dictionary:
 		"idle": {"last_claim_at": now, "quick_claims_used": 0, "quick_claim_day": day,
 			"carry": {}, "gear_ms": 0, "full_notified": false},
 		"summon": {"pity": 0, "total_pulls": 0, "last_free_pull_day": -1,
-			"seed": SeededRng.mix(now & 0x7FFFFFFF, 7919)},
+			"seed": SeededRng.mix(now & 0x7FFFFFFF, 7919), "banners": _banner_states_default()},
 		"gear": [],
 		"gear_seq": 0,
 		"quests": {"day": day, "progress": {}, "claimed": []},
@@ -180,6 +180,7 @@ func migrate(loaded: Dictionary) -> Dictionary:
 	loaded.skins.equipped = equipped
 	if not BATTLE_SPEEDS.has(int(loaded.settings.battle_speed)):
 		loaded.settings.battle_speed = 1
+	_migrate_summon(loaded.summon)
 	loaded.campaign.cleared = clampi(int(loaded.campaign.cleared), 0, StageData.count())
 	loaded.tower.best = clampi(int(loaded.tower.best), 0, TowerData.FLOORS)
 	loaded.version = SAVE_VERSION
@@ -1051,32 +1052,130 @@ func _trim_gear_bag() -> void:
 
 
 # ---------------------------------------------------------------- summon
+#
+# Five banners (data/banner.json): standard, featured, faction, wish, envoy. Each has its own
+# pity. state.summon keeps {seed, total_pulls (every pull on every banner: the random stream),
+# last_free_pull_day, pity (the standard banner's: the original key, so old saves carry it over),
+# banners {id: {pity, pulls, lost, target, period, period_pulls}} for the other banners}.
 
-## BannerDef {id, name, cost_one, cost_ten, scroll_cost_one, scroll_cost_ten, rates: {rare,
-## epic, legendary} (basis points), pity_legendary, ten_pull_guarantee, pool, pool_by_rarity}.
-func banner() -> Dictionary:
-	var b: Dictionary = EconomyData.BANNER
+## BannerDef for banner_id ("standard" by default) as it stands today: {id, kind, name, short,
+## cost_one, cost_ten (price in `currency`), scroll_cost_one, scroll_cost_ten (0 = no scrolls),
+## currency ("gems" | "gold"), rates: {rare, epic, legendary} (basis points), pity_legendary
+## (0 = no pity), ten_pull_guarantee, pool (today's pool), pool_by_rarity, free_daily, pity (the
+## banner's counter now), featured (hero id) + featured_bp + lost (featured banner), faction
+## (faction banner), target + choices (wish banner), rotation_days, next_change_day,
+## ms_until_change (featured / faction), limit_period ("day" | "week" | ""), limit_max,
+## limit_left (-1 = no limit), ms_until_limit_reset}. {} if unknown.
+func banner(banner_id: String = "standard") -> Dictionary:
+	var b := EconomyData.banner_def(banner_id)
+	if b.is_empty():
+		return {}
+	var day := today()
+	var epoch := EconomyData.BANNER_EPOCH_DAY
+	var kind := str(b.get("kind", "standard"))
+	var faction := SummonRules.faction_for(b, day, epoch)
 	var pool: Array = []
 	for id in b.pool:
-		pool.append(str(id))
-	return {
+		if faction == "" or str(hero_def(str(id)).get("faction", "")) == faction:
+			pool.append(str(id))
+	var c1: Dictionary = b.cost_one
+	var c10: Dictionary = b.cost_ten
+	var cur := "gold" if c1.has("gold") else "gems"
+	var out := {
 		"id": b.id,
+		"kind": kind,
 		"name": b.name,
-		"cost_one": int(b.cost_one.gems),
-		"cost_ten": int(b.cost_ten.gems),
-		"scroll_cost_one": int(b.cost_one.scrolls),
-		"scroll_cost_ten": int(b.cost_ten.scrolls),
+		"short": str(b.get("short", b.name)),
+		"cost_one": int(c1.get(cur, 0)),
+		"cost_ten": int(c10.get(cur, 0)),
+		"scroll_cost_one": int(c1.get("scrolls", 0)),
+		"scroll_cost_ten": int(c10.get("scrolls", 0)),
+		"currency": cur,
 		"rates": b.rates.duplicate(),
-		"pity_legendary": int(b.pity_legendary),
+		"pity_legendary": int(b.get("pity_legendary", 0)),
 		"ten_pull_guarantee": b.ten_pull_guarantee,
 		"pool": pool,
-		"pool_by_rarity": SummonRules.pool_by_rarity(b),
+		"pool_by_rarity": SummonRules.pool_by_rarity(b, faction),
+		"free_daily": bool(b.get("free_daily", false)),
+		"pity": pity_count(banner_id),
 	}
+	if kind == "featured":
+		out["featured"] = SummonRules.featured_for(b, day, epoch)
+		out["featured_bp"] = int(b.get("featured_bp", 5000))
+		out["lost"] = bool(_bstate(banner_id).lost) if not state.is_empty() else false
+	if kind == "faction":
+		out["faction"] = faction
+	if kind == "wish":
+		out["choices"] = SummonRules.wish_choices(b)
+		out["target"] = wish_target(banner_id)
+	if kind == "featured" or kind == "faction":
+		var days := int(b.get("rotation_days", 7 if kind == "featured" else 1))
+		var next := SummonRules.next_change_day(day, epoch, days)
+		out["rotation_days"] = days
+		out["next_change_day"] = next
+		out["ms_until_change"] = _ms_until_day(next)
+	var lim: Dictionary = b.get("limit", {})
+	out["limit_period"] = str(lim.get("period", ""))
+	out["limit_max"] = int(lim.get("pulls", 0))
+	out["limit_left"] = summon_left(banner_id)
+	var reset := SummonRules.limit_resets_day(b, day, epoch)
+	out["ms_until_limit_reset"] = _ms_until_day(reset) if reset >= 0 else -1
+	return out
 
 
-## Pulls since the last Legendary (Legendary guaranteed when this reaches pity_legendary - 1).
-func pity_count() -> int:
-	return int(state.get("summon", {}).get("pity", 0))
+## Every banner's BannerDef, in banner.json order (the standard one first).
+func banners() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for b in EconomyData.BANNERS:
+		out.append(banner(str(b.id)))
+	return out
+
+
+## Pulls on this banner since its last Legendary (a Legendary is guaranteed when this reaches
+## pity_legendary - 1). Always 0 on a banner without pity.
+func pity_count(banner_id: String = "standard") -> int:
+	if state.is_empty():
+		return 0
+	if banner_id == "standard":
+		return int(state.get("summon", {}).get("pity", 0))
+	if EconomyData.banner_def(banner_id).is_empty():
+		return 0
+	return int(_bstate(banner_id).pity)
+
+
+## Pulls left in the banner's current limit period (envoy: today, wish: this week), -1 when the
+## banner has no limit.
+func summon_left(banner_id: String) -> int:
+	var b := EconomyData.banner_def(banner_id)
+	var lim: Dictionary = b.get("limit", {})
+	if b.is_empty() or int(lim.get("pulls", 0)) <= 0:
+		return -1
+	if state.is_empty():
+		return int(lim.pulls)
+	var bs := _bstate(banner_id)
+	var period := SummonRules.limit_period(b, today(), EconomyData.BANNER_EPOCH_DAY)
+	var used := int(bs.period_pulls) if int(bs.period) == period else 0
+	return maxi(0, int(lim.pulls) - used)
+
+
+## The wish banner's chosen Legendary ("" until the player picks one).
+func wish_target(banner_id: String = "wish") -> String:
+	if state.is_empty() or EconomyData.banner_def(banner_id).is_empty():
+		return ""
+	return str(_bstate(banner_id).target)
+
+
+## Picks the Legendary every Legendary from the wish banner will be. It can change at any time;
+## the pity carries over. Result {ok, value: hero id, error}.
+func set_wish_target(hero_id: String, banner_id: String = "wish") -> Dictionary:
+	var b := EconomyData.banner_def(banner_id)
+	if b.is_empty() or str(b.get("kind", "")) != "wish":
+		return _err("Not a wish banner")
+	if not SummonRules.wish_choices(b).has(hero_id):
+		return _err("That hero can't be wished for")
+	_bstate(banner_id).target = hero_id
+	_changed()
+	return _ok(hero_id)
 
 
 func free_pull_available() -> bool:
@@ -1086,14 +1185,39 @@ func free_pull_available() -> bool:
 	return int(state.summon.last_free_pull_day) != today()
 
 
-## count = 1 or 10. use_free only valid with count 1. Pays with scrolls first, then gems.
-## Result {ok, value: Array of {hero_id, rarity, is_new, shards, dust, pity}, error}.
-func summon(count: int, use_free: bool = false) -> Dictionary:
+## count = 1 or 10 on banner_id (standard by default). use_free: the standard banner's daily
+## free pull (count 1). Pays with scrolls first when the banner takes them, then gems (gold on
+## the envoy banner). A wish needs a target; envoy and wish have pull limits.
+## Result {ok, value: Array of {hero_id, rarity, is_new, shards, dust, pity (+ featured on the
+## featured banner)}, error}.
+func summon(count: int, use_free: bool = false, banner_id: String = "standard") -> Dictionary:
 	refresh_daily()
 	if count != 1 and count != 10:
 		return _err("Summon 1 or 10")
-	var b: Dictionary = EconomyData.BANNER
+	var b := EconomyData.banner_def(banner_id)
+	if b.is_empty():
+		return _err("Unknown banner")
+	var kind := str(b.get("kind", "standard"))
+	var day := today()
+	var epoch := EconomyData.BANNER_EPOCH_DAY
+	var opts := {}
+	match kind:
+		"featured":
+			opts = {"featured": SummonRules.featured_for(b, day, epoch), "lost": bool(_bstate(banner_id).lost)}
+		"faction":
+			opts = {"faction": SummonRules.faction_for(b, day, epoch)}
+		"wish":
+			var tgt := wish_target(banner_id)
+			if tgt == "" or not SummonRules.wish_choices(b).has(tgt):
+				return _err("Choose your wish first")
+			opts = {"target": tgt}
+	var left := summon_left(banner_id)
+	if left >= 0 and count > left:
+		var per := "today" if str(b.limit.period) == "day" else "this week"
+		return _err("No pulls left %s" % per if left == 0 else "Only %d pull%s left %s" % [left, "" if left == 1 else "s", per])
 	if use_free:
+		if not bool(b.get("free_daily", false)):
+			return _err("No free summon on this banner")
 		if count != 1:
 			return _err("The free summon is a single pull")
 		if not free_pull_available():
@@ -1101,23 +1225,90 @@ func summon(count: int, use_free: bool = false) -> Dictionary:
 		state.summon.last_free_pull_day = today()
 	else:
 		var cost: Dictionary = b.cost_one if count == 1 else b.cost_ten
-		if currency("scrolls") >= int(cost.scrolls):
-			_add_currency("scrolls", -int(cost.scrolls))
-		elif currency("gems") >= int(cost.gems):
-			_add_currency("gems", -int(cost.gems))
+		var sc := int(cost.get("scrolls", 0))
+		var cur := "gold" if cost.has("gold") else "gems"
+		if sc > 0 and currency("scrolls") >= sc:
+			_add_currency("scrolls", -sc)
+		elif currency(cur) >= int(cost.get(cur, 0)):
+			_add_currency(cur, -int(cost.get(cur, 0)))
 		else:
-			return _err("Not enough gems")
-	var roll := SummonRules.pull(b, int(state.summon.seed), int(state.summon.total_pulls), pity_count(), count)
-	state.summon.pity = int(roll.pity)
+			return _err("Not enough %s" % cur)
+	var roll := SummonRules.pull(b, int(state.summon.seed), int(state.summon.total_pulls), pity_count(banner_id), count, opts)
 	state.summon.total_pulls = int(roll.total_pulls)
+	if banner_id == "standard":
+		state.summon.pity = int(roll.pity)
+	else:
+		var bs := _bstate(banner_id)
+		bs.pity = int(roll.pity)
+		bs.pulls = int(bs.pulls) + count
+		if roll.has("lost"):
+			bs.lost = bool(roll.lost)
+		if left >= 0:
+			var period := SummonRules.limit_period(b, day, epoch)
+			if int(bs.period) != period:
+				bs.period = period
+				bs.period_pulls = 0
+			bs.period_pulls = int(bs.period_pulls) + count
 	var results: Array = []
 	for p in roll.results:
 		var r := receive_hero(str(p.hero_id))
 		r["pity"] = int(p.pity)
+		if p.has("featured"):
+			r["featured"] = bool(p.featured)
 		results.append(r)
 	_bump("summons", count)
 	_changed()
 	return _ok(results)
+
+
+## A banner's saved state (not the standard one's), created when missing.
+func _bstate(banner_id: String) -> Dictionary:
+	var s: Dictionary = state.summon
+	if not (s.get("banners") is Dictionary):
+		s["banners"] = {}
+	var all: Dictionary = s.banners
+	if not (all.get(banner_id) is Dictionary):
+		all[banner_id] = _banner_state_default()
+	return all[banner_id]
+
+
+static func _banner_state_default() -> Dictionary:
+	return {"pity": 0, "pulls": 0, "lost": false, "target": "", "period": -1, "period_pulls": 0}
+
+
+## {banner id: state} for every banner but the standard one (its pity is summon.pity).
+static func _banner_states_default() -> Dictionary:
+	var out := {}
+	for b in EconomyData.BANNERS:
+		if str(b.id) != "standard":
+			out[str(b.id)] = _banner_state_default()
+	return out
+
+
+## Save repair for the summon block (after the defaults merge): pity inside 0..pity_legendary - 1
+## (0 without pity), counts >= 0, a wish target that is still a choice, known banners only.
+func _migrate_summon(s: Dictionary) -> void:
+	s.pity = clampi(int(s.pity), 0, maxi(0, int(EconomyData.BANNER.get("pity_legendary", 0)) - 1))
+	s.total_pulls = maxi(0, int(s.total_pulls))
+	var clean := {}
+	for b in EconomyData.BANNERS:
+		var id := str(b.id)
+		if id == "standard":
+			continue
+		var bs: Dictionary = s.banners.get(id) if s.banners.get(id) is Dictionary else _banner_state_default()
+		_merge_defaults(bs, _banner_state_default())
+		bs.pity = clampi(int(bs.pity), 0, maxi(0, int(b.get("pity_legendary", 0)) - 1))
+		bs.pulls = maxi(0, int(bs.pulls))
+		bs.period_pulls = maxi(0, int(bs.period_pulls))
+		if bs.target != "" and (str(b.get("kind", "")) != "wish" or not SummonRules.wish_choices(b).has(bs.target)):
+			bs.target = ""
+		clean[id] = bs
+	s.banners = clean
+
+
+## ms from now until the local midnight that starts `day`.
+func _ms_until_day(day: int) -> int:
+	return maxi(0, day * DAY_MS - tz_bias_ms - now_ms())
 
 
 # ---------------------------------------------------------------- quests & shop
@@ -1350,6 +1541,15 @@ func make_rich_state() -> void:
 	state.idle.last_claim_at = now - 5 * HOUR_MS
 	state.summon.pity = 37
 	state.summon.total_pulls = 120
+	# The other banners mid-way too: a lost 50/50 (the next Legendary is the featured one), a wish
+	# picked with 10 of the week's pulls used, 3 envoy draws today.
+	var fb := _bstate("featured")
+	fb.merge({"pity": 41, "pulls": 40, "lost": true}, true)
+	_bstate("faction").merge({"pity": 12, "pulls": 12}, true)
+	var wb := _bstate("wish")
+	wb.merge({"pity": 18, "pulls": 18, "target": "noctaire", "period_pulls": 10,
+		"period": SummonRules.limit_period(EconomyData.banner_def("wish"), today(), EconomyData.BANNER_EPOCH_DAY)}, true)
+	_bstate("envoy").merge({"pulls": 10, "period": today(), "period_pulls": 3}, true)
 	state.counters = {"battles_won": 14, "summons": 120, "stages_cleared": 12, "level_ups": 500}
 	_changed()
 

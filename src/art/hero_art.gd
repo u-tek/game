@@ -86,6 +86,51 @@ static func texture(hero_id: String, skin_id: String = "") -> Texture2D:
 	return _fallback_tex(hero_id, "still")
 
 
+## The figure's outline in texture(hero_id, skin_id) pixels: the art's alpha bounds (weapon, hair
+## and all). A wide pose (bent over, a weapon held out) is far wider than a standing one, so views
+## frame by this instead of assuming a slim figure in the middle of the canvas. Cached per look.
+static func figure_bounds(hero_id: String, skin_id: String = "") -> Rect2:
+	return used_rect(texture(hero_id, skin_id))
+
+
+static var _used_rects: Dictionary = {}
+
+
+## Alpha bounds of a texture (cached by resource path; a full read happens once per art).
+static func used_rect(tex: Texture2D) -> Rect2:
+	if tex == null:
+		return Rect2(0, 0, 1, 1)
+	var key: Variant = tex.resource_path if tex.resource_path != "" else tex.get_instance_id()
+	if _used_rects.has(key):
+		return _used_rects[key]
+	var r := Rect2(Vector2.ZERO, Vector2(tex.get_size()))
+	var img := tex.get_image()
+	if img:
+		if img.is_compressed():
+			img.decompress()
+		var u := img.get_used_rect()
+		if u.size.x > 0 and u.size.y > 0:
+			r = Rect2(u)
+	_used_rects[key] = r
+	return r
+
+
+## Frames a HeroSprite inside `box` (in the anchor's parent space): as tall as the box allows,
+## smaller if her outline is wider than the box, centred on her outline (on prefer_x when that
+## keeps her inside the box), feet on the box's bottom edge. Returns the scale used.
+static func fit_sprite(sprite: Node2D, anchor: Node2D, box: Rect2, prefer_x: float = NAN) -> float:
+	if sprite == null or anchor == null:
+		return 1.0
+	sprite.scale = Vector2.ONE
+	var fr: Rect2 = sprite.call("figure_rect") if sprite.has_method("figure_rect") else Rect2(-130, -400, 260, 400)
+	var k := minf(box.size.y / maxf(-fr.position.y, 1.0), box.size.x / maxf(fr.size.x, 1.0))
+	sprite.scale = Vector2(k, k)
+	var half := fr.size.x * k * 0.5
+	var cx := box.get_center().x if is_nan(prefer_x) else clampf(prefer_x, box.position.x + half, box.end.x - half)
+	anchor.position = Vector2(cx - fr.get_center().x * k, box.end.y)
+	return k
+
+
 ## Region of texture(hero_id, skin_id) that frames the head and shoulders, for portraits.
 static func portrait_region(hero_id: String, skin_id: String = "") -> Rect2:
 	var art := _built_art(hero_id, skin_id)

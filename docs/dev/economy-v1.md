@@ -252,6 +252,21 @@ Results come from an RNG seeded by the save (`summon.seed + total_pulls`), so re
 does not reroll a summon. New heroes join a formation that still has empty slots (the team is
 re-arranged so a new guardian takes the front row); a full formation is never changed.
 
+The table above is the **standard** banner ("Choir of the Fallen Sky"). Four more banners
+(2026-10-19, `data/banner.json`), each with its own pity counter (`total_pulls` stays one stream):
+
+| Banner | Price (x1 / x10) | Rates L / E / R | Pity | Special |
+|---|---|---|---|---|
+| Featured ("Rate Up") | 1 scroll or 300 gems / 10 or 2,700 | 2 / 18 / 80% | 60 | A Legendary is the week's featured hero 50% of the time; after a miss the next Legendary is her. Rotates Mordessa, Noctaire, Seraphiel every 7 days from epoch day 20745 (Mon 2026-10-19). |
+| Faction Focus | 1 scroll or 300 gems / 10 or 2,700 | 1.2 / 24 / 74.8% | 80 | Only today's faction (Fallen, Celestial, Infernal, daily): 5 heroes, more Epics of one faction. |
+| The Wish | 2 scrolls or 450 gems / 15 or 4,050 | 2 / 18 / 80% | 60 | Every Legendary is the Legendary the player picked; 30 pulls a week. |
+| Envoy's Draw | 5,000 gold / 45,000 gold | 0 / 15 / 85% | none | Rare and Epic only, 10 draws a day; a gold sink for shards. |
+
+Cost of one specific Legendary on average: standard ~30k gems (one of three), featured ~16k
+(the 50/50 with the guarantee, plus a bonus Legendary on a miss), faction ~15.5k (1.2% with pity
+80 on a 5-hero pool, only on her faction's day), wish ~16k (any day, capped at 30 pulls a week).
+The free daily pull is the standard banner's. Every banner's pulls count for "Summon a hero".
+
 ## 8. Daily quests (reset at local midnight)
 
 | Quest | Goal | Reward |

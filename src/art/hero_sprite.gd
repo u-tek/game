@@ -273,6 +273,23 @@ func get_point(which: String) -> Vector2:
 
 
 ## Approximate on-screen height in px at the current scale.
+## Her outline (the art's alpha bounds) in this node's local units, feet at the origin, at the
+## current scale: what a view must fit to show her whole (HeroArt.fit_sprite).
+func figure_rect() -> Rect2:
+	var unit := absf(_body.scale.y) * absf(scale.y)
+	if rig == null or rig.rig == null or rig.rig.image == null:
+		var h := get_height()
+		return Rect2(-h * 0.16, -h, h * 0.32, h)
+	var rd := rig.rig
+	var u := HeroArt.used_rect(rd.image)
+	var sx := rd.canvas.x / maxf(float(rd.image.get_width()), 1.0)
+	var sy := rd.canvas.y / maxf(float(rd.image.get_height()), 1.0)
+	var r := Rect2(u.position.x * sx - rd.origin.x, u.position.y * sy - rd.origin.y, u.size.x * sx, u.size.y * sy)
+	if facing < 0:
+		r.position.x = -r.end.x
+	return Rect2(r.position * unit, r.size * unit)
+
+
 func get_height() -> float:
 	var h := 1900.0
 	if rig and rig.rig:

@@ -3102,7 +3102,13 @@ static func art_crop(hero_id: String, aspect: float, zoom: float = 1.0, skin_id:
 	if w > tw:
 		w = tw
 		h = w / aspect
-	var cx := pr.get_center().x
+	# Centred between her face and her body, so a wide pose (bent over, a weapon held out) keeps
+	# more of her in frame; the face always stays inside the crop.
+	var fb := HeroArt.used_rect(tex)
+	var cx := lerpf(pr.get_center().x, fb.get_center().x * tw / maxf(float(tex.get_width()), 1.0), 0.55)
+	var lo := pr.end.x + 10.0 - w * 0.5
+	var hi := pr.position.x - 10.0 + w * 0.5
+	cx = clampf(cx, lo, hi) if lo <= hi else pr.get_center().x
 	var top := pr.position.y - pr.size.y * 0.16 * zoom
 	var r := Rect2(clampf(cx - w * 0.5, 0.0, maxf(tw - w, 0.0)), clampf(top, 0.0, maxf(th - h, 0.0)), w, h)
 	var at := AtlasTexture.new()

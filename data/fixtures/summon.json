@@ -332,5 +332,1329 @@
 				}
 			]
 		}
+	],
+	"about_banners": "banner_cases: SummonRules.pull on the banner with this id (data/banner.json) and opts (featured + lost on the featured banner, faction on the faction banner, target on the wish banner); like cases they chain, and on the featured banner opts.lost chains from each summon's out.lost. rotation: for each day index, featured_for / faction_for, the next rotation day of both, and each limited banner's limit_period and limit_resets_day (epoch_day from banner.json).",
+	"epoch_day": 20745,
+	"banner_cases": [
+		{
+			"name": "featured_long_chain",
+			"banner": "featured",
+			"seed": 31337,
+			"total_pulls": 0,
+			"pity": 0,
+			"opts": {"featured": "mordessa", "lost": false},
+			"counts": [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
+			"out": [
+				{
+					"results": [
+						{"hero_id": "seraphiel", "rarity": "legendary", "pity": 0, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 1, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 2, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 3, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 4, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 5, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 6, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 7, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 8, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 9, "featured": false}
+					],
+					"pity": 9,
+					"total_pulls": 10,
+					"lost": true
+				},
+				{
+					"results": [
+						{"hero_id": "kessa", "rarity": "rare", "pity": 10, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 11, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 12, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 13, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 14, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 15, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 16, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 17, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 18, "featured": false},
+						{"hero_id": "brakka", "rarity": "epic", "pity": 19, "featured": false}
+					],
+					"pity": 19,
+					"total_pulls": 20,
+					"lost": true
+				},
+				{
+					"results": [
+						{"hero_id": "kessa", "rarity": "rare", "pity": 20, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 21, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 22, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 23, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 24, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 25, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 26, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 27, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 28, "featured": false},
+						{"hero_id": "sable", "rarity": "epic", "pity": 29, "featured": false}
+					],
+					"pity": 29,
+					"total_pulls": 30,
+					"lost": true
+				},
+				{
+					"results": [
+						{"hero_id": "ashra", "rarity": "rare", "pity": 30, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 31, "featured": false},
+						{"hero_id": "liora", "rarity": "epic", "pity": 32, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 33, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 34, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 35, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 36, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 37, "featured": false},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 38, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 39, "featured": false}
+					],
+					"pity": 39,
+					"total_pulls": 40,
+					"lost": true
+				},
+				{
+					"results": [
+						{"hero_id": "lucen", "rarity": "rare", "pity": 40, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 41, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 42, "featured": false},
+						{"hero_id": "sable", "rarity": "epic", "pity": 43, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 44, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 45, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 46, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 47, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 48, "featured": false},
+						{"hero_id": "brakka", "rarity": "epic", "pity": 49, "featured": false}
+					],
+					"pity": 49,
+					"total_pulls": 50,
+					"lost": true
+				},
+				{
+					"results": [
+						{"hero_id": "sable", "rarity": "epic", "pity": 50, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 51, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 52, "featured": false},
+						{"hero_id": "mordessa", "rarity": "legendary", "pity": 0, "featured": true},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 1, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 2, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 3, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 4, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 5, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 6, "featured": false}
+					],
+					"pity": 6,
+					"total_pulls": 60,
+					"lost": false
+				},
+				{
+					"results": [
+						{"hero_id": "vesper", "rarity": "epic", "pity": 7, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 8, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 9, "featured": false},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 10, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 11, "featured": false},
+						{"hero_id": "vesper", "rarity": "epic", "pity": 12, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 13, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 14, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 15, "featured": false},
+						{"hero_id": "liora", "rarity": "epic", "pity": 16, "featured": false}
+					],
+					"pity": 16,
+					"total_pulls": 70,
+					"lost": false
+				},
+				{
+					"results": [
+						{"hero_id": "imra", "rarity": "rare", "pity": 17, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 18, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 19, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 20, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 21, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 22, "featured": false},
+						{"hero_id": "liora", "rarity": "epic", "pity": 23, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 24, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 25, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 26, "featured": false}
+					],
+					"pity": 26,
+					"total_pulls": 80,
+					"lost": false
+				},
+				{
+					"results": [
+						{"hero_id": "liora", "rarity": "epic", "pity": 27, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 28, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 29, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 30, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 31, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 32, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 33, "featured": false},
+						{"hero_id": "sable", "rarity": "epic", "pity": 34, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 35, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 36, "featured": false}
+					],
+					"pity": 36,
+					"total_pulls": 90,
+					"lost": false
+				},
+				{
+					"results": [
+						{"hero_id": "lucen", "rarity": "rare", "pity": 37, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 38, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 39, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 40, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 41, "featured": false},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 42, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 43, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 44, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 45, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 46, "featured": false}
+					],
+					"pity": 46,
+					"total_pulls": 100,
+					"lost": false
+				},
+				{
+					"results": [
+						{"hero_id": "kessa", "rarity": "rare", "pity": 47, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 48, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 49, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 50, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 51, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 52, "featured": false},
+						{"hero_id": "brakka", "rarity": "epic", "pity": 53, "featured": false},
+						{"hero_id": "vesper", "rarity": "epic", "pity": 54, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 55, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 56, "featured": false}
+					],
+					"pity": 56,
+					"total_pulls": 110,
+					"lost": false
+				},
+				{
+					"results": [
+						{"hero_id": "orrin", "rarity": "epic", "pity": 57, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 58, "featured": false},
+						{"hero_id": "noctaire", "rarity": "legendary", "pity": 0, "featured": false},
+						{"hero_id": "sable", "rarity": "epic", "pity": 1, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 2, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 3, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 4, "featured": false},
+						{"hero_id": "vesper", "rarity": "epic", "pity": 5, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 6, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 7, "featured": false}
+					],
+					"pity": 7,
+					"total_pulls": 120,
+					"lost": true
+				},
+				{
+					"results": [
+						{"hero_id": "ashra", "rarity": "rare", "pity": 8, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 9, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 10, "featured": false},
+						{"hero_id": "liora", "rarity": "epic", "pity": 11, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 12, "featured": false},
+						{"hero_id": "mordessa", "rarity": "legendary", "pity": 0, "featured": true},
+						{"hero_id": "noctaire", "rarity": "legendary", "pity": 0, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 1, "featured": false},
+						{"hero_id": "sable", "rarity": "epic", "pity": 2, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 3, "featured": false}
+					],
+					"pity": 3,
+					"total_pulls": 130,
+					"lost": true
+				},
+				{
+					"results": [
+						{"hero_id": "ashra", "rarity": "rare", "pity": 4, "featured": false},
+						{"hero_id": "mordessa", "rarity": "legendary", "pity": 0, "featured": true},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 1, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 2, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 3, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 4, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 5, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 6, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 7, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 8, "featured": false}
+					],
+					"pity": 8,
+					"total_pulls": 140,
+					"lost": false
+				},
+				{
+					"results": [
+						{"hero_id": "imra", "rarity": "rare", "pity": 9, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 10, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 11, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 12, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 13, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 14, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 15, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 16, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 17, "featured": false},
+						{"hero_id": "sable", "rarity": "epic", "pity": 18, "featured": false}
+					],
+					"pity": 18,
+					"total_pulls": 150,
+					"lost": false
+				},
+				{
+					"results": [
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 19, "featured": false},
+						{"hero_id": "vesper", "rarity": "epic", "pity": 20, "featured": false},
+						{"hero_id": "liora", "rarity": "epic", "pity": 21, "featured": false},
+						{"hero_id": "brakka", "rarity": "epic", "pity": 22, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 23, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 24, "featured": false},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 25, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 26, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 27, "featured": false},
+						{"hero_id": "mordessa", "rarity": "legendary", "pity": 0, "featured": true}
+					],
+					"pity": 0,
+					"total_pulls": 160,
+					"lost": false
+				},
+				{
+					"results": [
+						{"hero_id": "uriela", "rarity": "rare", "pity": 1, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 2, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 3, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 4, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 5, "featured": false},
+						{"hero_id": "noctaire", "rarity": "legendary", "pity": 0, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 1, "featured": false},
+						{"hero_id": "brakka", "rarity": "epic", "pity": 2, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 3, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 4, "featured": false}
+					],
+					"pity": 4,
+					"total_pulls": 170,
+					"lost": true
+				},
+				{
+					"results": [
+						{"hero_id": "ashra", "rarity": "rare", "pity": 5, "featured": false},
+						{"hero_id": "liora", "rarity": "epic", "pity": 6, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 7, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 8, "featured": false},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 9, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 10, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 11, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 12, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 13, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 14, "featured": false}
+					],
+					"pity": 14,
+					"total_pulls": 180,
+					"lost": true
+				},
+				{
+					"results": [
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 15, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 16, "featured": false},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 17, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 18, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 19, "featured": false},
+						{"hero_id": "vesper", "rarity": "epic", "pity": 20, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 21, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 22, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 23, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 24, "featured": false}
+					],
+					"pity": 24,
+					"total_pulls": 190,
+					"lost": true
+				},
+				{
+					"results": [
+						{"hero_id": "uriela", "rarity": "rare", "pity": 25, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 26, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 27, "featured": false},
+						{"hero_id": "vesper", "rarity": "epic", "pity": 28, "featured": false},
+						{"hero_id": "brakka", "rarity": "epic", "pity": 29, "featured": false},
+						{"hero_id": "sable", "rarity": "epic", "pity": 30, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 31, "featured": false},
+						{"hero_id": "vesper", "rarity": "epic", "pity": 32, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 33, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 34, "featured": false}
+					],
+					"pity": 34,
+					"total_pulls": 200,
+					"lost": true
+				},
+				{
+					"results": [
+						{"hero_id": "uriela", "rarity": "rare", "pity": 35, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 36, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 37, "featured": false},
+						{"hero_id": "sable", "rarity": "epic", "pity": 38, "featured": false},
+						{"hero_id": "sable", "rarity": "epic", "pity": 39, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 40, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 41, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 42, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 43, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 44, "featured": false}
+					],
+					"pity": 44,
+					"total_pulls": 210,
+					"lost": true
+				},
+				{
+					"results": [
+						{"hero_id": "ashra", "rarity": "rare", "pity": 45, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 46, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 47, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 48, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 49, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 50, "featured": false},
+						{"hero_id": "brakka", "rarity": "epic", "pity": 51, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 52, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 53, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 54, "featured": false}
+					],
+					"pity": 54,
+					"total_pulls": 220,
+					"lost": true
+				},
+				{
+					"results": [
+						{"hero_id": "lucen", "rarity": "rare", "pity": 55, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 56, "featured": false},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 57, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 58, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 59, "featured": false},
+						{"hero_id": "mordessa", "rarity": "legendary", "pity": 0, "featured": true},
+						{"hero_id": "imra", "rarity": "rare", "pity": 1, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 2, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 3, "featured": false},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 4, "featured": false}
+					],
+					"pity": 4,
+					"total_pulls": 230,
+					"lost": false
+				},
+				{
+					"results": [
+						{"hero_id": "uriela", "rarity": "rare", "pity": 5, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 6, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 7, "featured": false},
+						{"hero_id": "vesper", "rarity": "epic", "pity": 8, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 9, "featured": false},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 10, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 11, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 12, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 13, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 14, "featured": false}
+					],
+					"pity": 14,
+					"total_pulls": 240,
+					"lost": false
+				},
+				{
+					"results": [
+						{"hero_id": "liora", "rarity": "epic", "pity": 15, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 16, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 17, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 18, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 19, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 20, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 21, "featured": false},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 22, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 23, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 24, "featured": false}
+					],
+					"pity": 24,
+					"total_pulls": 250,
+					"lost": false
+				},
+				{
+					"results": [
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 25, "featured": false},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 26, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 27, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 28, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 29, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 30, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 31, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 32, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 33, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 34, "featured": false}
+					],
+					"pity": 34,
+					"total_pulls": 260,
+					"lost": false
+				},
+				{
+					"results": [
+						{"hero_id": "imra", "rarity": "rare", "pity": 35, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 36, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 37, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 38, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 39, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 40, "featured": false},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 41, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 42, "featured": false},
+						{"hero_id": "brakka", "rarity": "epic", "pity": 43, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 44, "featured": false}
+					],
+					"pity": 44,
+					"total_pulls": 270,
+					"lost": false
+				},
+				{
+					"results": [
+						{"hero_id": "ashra", "rarity": "rare", "pity": 45, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 46, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 47, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 48, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 49, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 50, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 51, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 52, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 53, "featured": false},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 54, "featured": false}
+					],
+					"pity": 54,
+					"total_pulls": 280,
+					"lost": false
+				},
+				{
+					"results": [
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 55, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 56, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 57, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 58, "featured": false},
+						{"hero_id": "brakka", "rarity": "epic", "pity": 59, "featured": false},
+						{"hero_id": "mordessa", "rarity": "legendary", "pity": 0, "featured": true},
+						{"hero_id": "sable", "rarity": "epic", "pity": 1, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 2, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 3, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 4, "featured": false}
+					],
+					"pity": 4,
+					"total_pulls": 290,
+					"lost": false
+				},
+				{
+					"results": [
+						{"hero_id": "lucen", "rarity": "rare", "pity": 5, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 6, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 7, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 8, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 9, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 10, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 11, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 12, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 13, "featured": false},
+						{"hero_id": "brakka", "rarity": "epic", "pity": 14, "featured": false}
+					],
+					"pity": 14,
+					"total_pulls": 300,
+					"lost": false
+				}
+			]
+		},
+		{
+			"name": "featured_lost_forces_featured",
+			"banner": "featured",
+			"seed": 5,
+			"total_pulls": 70,
+			"pity": 59,
+			"opts": {"featured": "noctaire", "lost": true},
+			"counts": [1, 10],
+			"out": [
+				{
+					"results": [{"hero_id": "noctaire", "rarity": "legendary", "pity": 0, "featured": true}],
+					"pity": 0,
+					"total_pulls": 71,
+					"lost": false
+				},
+				{
+					"results": [
+						{"hero_id": "sable", "rarity": "epic", "pity": 1, "featured": false},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 2, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 3, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 4, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 5, "featured": false},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 6, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 7, "featured": false},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 8, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 9, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 10, "featured": false}
+					],
+					"pity": 10,
+					"total_pulls": 81,
+					"lost": false
+				}
+			]
+		},
+		{
+			"name": "featured_pity_rolls_the_5050",
+			"banner": "featured",
+			"seed": 8080,
+			"total_pulls": 12,
+			"pity": 59,
+			"opts": {"featured": "seraphiel", "lost": false},
+			"counts": [1, 1, 10],
+			"out": [
+				{
+					"results": [{"hero_id": "mordessa", "rarity": "legendary", "pity": 0, "featured": false}],
+					"pity": 0,
+					"total_pulls": 13,
+					"lost": true
+				},
+				{
+					"results": [{"hero_id": "uriela", "rarity": "rare", "pity": 1, "featured": false}],
+					"pity": 1,
+					"total_pulls": 14,
+					"lost": true
+				},
+				{
+					"results": [
+						{"hero_id": "lucen", "rarity": "rare", "pity": 2, "featured": false},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 3, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 4, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 5, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 6, "featured": false},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 7, "featured": false},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 8, "featured": false},
+						{"hero_id": "sable", "rarity": "epic", "pity": 9, "featured": false},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 10, "featured": false},
+						{"hero_id": "imra", "rarity": "rare", "pity": 11, "featured": false}
+					],
+					"pity": 11,
+					"total_pulls": 24,
+					"lost": true
+				}
+			]
+		},
+		{
+			"name": "faction_celestial_chain",
+			"banner": "faction",
+			"seed": 2024,
+			"total_pulls": 0,
+			"pity": 0,
+			"opts": {"faction": "celestial"},
+			"counts": [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
+			"out": [
+				{
+					"results": [
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 1},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 2},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 3},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 4},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 5},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 6},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 7},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 8},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 9},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 10}
+					],
+					"pity": 10,
+					"total_pulls": 10
+				},
+				{
+					"results": [
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 11},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 12},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 13},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 14},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 15},
+						{"hero_id": "liora", "rarity": "epic", "pity": 16},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 17},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 18},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 19},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 20}
+					],
+					"pity": 20,
+					"total_pulls": 20
+				},
+				{
+					"results": [
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 21},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 22},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 23},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 24},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 25},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 26},
+						{"hero_id": "liora", "rarity": "epic", "pity": 27},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 28},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 29},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 30}
+					],
+					"pity": 30,
+					"total_pulls": 30
+				},
+				{
+					"results": [
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 31},
+						{"hero_id": "liora", "rarity": "epic", "pity": 32},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 33},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 34},
+						{"hero_id": "liora", "rarity": "epic", "pity": 35},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 36},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 37},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 38},
+						{"hero_id": "liora", "rarity": "epic", "pity": 39},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 40}
+					],
+					"pity": 40,
+					"total_pulls": 40
+				},
+				{
+					"results": [
+						{"hero_id": "uriela", "rarity": "rare", "pity": 41},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 42},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 43},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 44},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 45},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 46},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 47},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 48},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 49},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 50}
+					],
+					"pity": 50,
+					"total_pulls": 50
+				},
+				{
+					"results": [
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 51},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 52},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 53},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 54},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 55},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 56},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 57},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 58},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 59},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 60}
+					],
+					"pity": 60,
+					"total_pulls": 60
+				},
+				{
+					"results": [
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 61},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 62},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 63},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 64},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 65},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 66},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 67},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 68},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 69},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 70}
+					],
+					"pity": 70,
+					"total_pulls": 70
+				},
+				{
+					"results": [
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 71},
+						{"hero_id": "liora", "rarity": "epic", "pity": 72},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 73},
+						{"hero_id": "liora", "rarity": "epic", "pity": 74},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 75},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 76},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 77},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 78},
+						{"hero_id": "liora", "rarity": "epic", "pity": 79},
+						{"hero_id": "seraphiel", "rarity": "legendary", "pity": 0}
+					],
+					"pity": 0,
+					"total_pulls": 80
+				},
+				{
+					"results": [
+						{"hero_id": "uriela", "rarity": "rare", "pity": 1},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 2},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 3},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 4},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 5},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 6},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 7},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 8},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 9},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 10}
+					],
+					"pity": 10,
+					"total_pulls": 90
+				},
+				{
+					"results": [
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 11},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 12},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 13},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 14},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 15},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 16},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 17},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 18},
+						{"hero_id": "liora", "rarity": "epic", "pity": 19},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 20}
+					],
+					"pity": 20,
+					"total_pulls": 100
+				},
+				{
+					"results": [
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 21},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 22},
+						{"hero_id": "liora", "rarity": "epic", "pity": 23},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 24},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 25},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 26},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 27},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 28},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 29},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 30}
+					],
+					"pity": 30,
+					"total_pulls": 110
+				},
+				{
+					"results": [
+						{"hero_id": "uriela", "rarity": "rare", "pity": 31},
+						{"hero_id": "liora", "rarity": "epic", "pity": 32},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 33},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 34},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 35},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 36},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 37},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 38},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 39},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 40}
+					],
+					"pity": 40,
+					"total_pulls": 120
+				}
+			]
+		},
+		{
+			"name": "faction_infernal_pity",
+			"banner": "faction",
+			"seed": 9,
+			"total_pulls": 300,
+			"pity": 75,
+			"opts": {"faction": "infernal"},
+			"counts": [10, 1],
+			"out": [
+				{
+					"results": [
+						{"hero_id": "kessa", "rarity": "rare", "pity": 76},
+						{"hero_id": "vesper", "rarity": "epic", "pity": 77},
+						{"hero_id": "imra", "rarity": "rare", "pity": 78},
+						{"hero_id": "imra", "rarity": "rare", "pity": 79},
+						{"hero_id": "mordessa", "rarity": "legendary", "pity": 0},
+						{"hero_id": "imra", "rarity": "rare", "pity": 1},
+						{"hero_id": "mordessa", "rarity": "legendary", "pity": 0},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 1},
+						{"hero_id": "vesper", "rarity": "epic", "pity": 2},
+						{"hero_id": "imra", "rarity": "rare", "pity": 3}
+					],
+					"pity": 3,
+					"total_pulls": 310
+				},
+				{"results": [{"hero_id": "imra", "rarity": "rare", "pity": 4}], "pity": 4, "total_pulls": 311}
+			]
+		},
+		{
+			"name": "faction_fallen",
+			"banner": "faction",
+			"seed": 4711,
+			"total_pulls": 3,
+			"pity": 0,
+			"opts": {"faction": "fallen"},
+			"counts": [10, 10, 10],
+			"out": [
+				{
+					"results": [
+						{"hero_id": "ashra", "rarity": "rare", "pity": 1},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 2},
+						{"hero_id": "sable", "rarity": "epic", "pity": 3},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 4},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 5},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 6},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 7},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 8},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 9},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 10}
+					],
+					"pity": 10,
+					"total_pulls": 13
+				},
+				{
+					"results": [
+						{"hero_id": "ashra", "rarity": "rare", "pity": 11},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 12},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 13},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 14},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 15},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 16},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 17},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 18},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 19},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 20}
+					],
+					"pity": 20,
+					"total_pulls": 23
+				},
+				{
+					"results": [
+						{"hero_id": "sable", "rarity": "epic", "pity": 21},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 22},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 23},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 24},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 25},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 26},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 27},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 28},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 29},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 30}
+					],
+					"pity": 30,
+					"total_pulls": 33
+				}
+			]
+		},
+		{
+			"name": "wish_target_chain",
+			"banner": "wish",
+			"seed": 606,
+			"total_pulls": 0,
+			"pity": 0,
+			"opts": {"target": "noctaire"},
+			"counts": [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
+			"out": [
+				{
+					"results": [
+						{"hero_id": "lucen", "rarity": "rare", "pity": 1},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 2},
+						{"hero_id": "sable", "rarity": "epic", "pity": 3},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 4},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 5},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 6},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 7},
+						{"hero_id": "imra", "rarity": "rare", "pity": 8},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 9},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 10}
+					],
+					"pity": 10,
+					"total_pulls": 10
+				},
+				{
+					"results": [
+						{"hero_id": "ashra", "rarity": "rare", "pity": 11},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 12},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 13},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 14},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 15},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 16},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 17},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 18},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 19},
+						{"hero_id": "imra", "rarity": "rare", "pity": 20}
+					],
+					"pity": 20,
+					"total_pulls": 20
+				},
+				{
+					"results": [
+						{"hero_id": "imra", "rarity": "rare", "pity": 21},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 22},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 23},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 24},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 25},
+						{"hero_id": "brakka", "rarity": "epic", "pity": 26},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 27},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 28},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 29},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 30}
+					],
+					"pity": 30,
+					"total_pulls": 30
+				},
+				{
+					"results": [
+						{"hero_id": "brakka", "rarity": "epic", "pity": 31},
+						{"hero_id": "imra", "rarity": "rare", "pity": 32},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 33},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 34},
+						{"hero_id": "imra", "rarity": "rare", "pity": 35},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 36},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 37},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 38},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 39},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 40}
+					],
+					"pity": 40,
+					"total_pulls": 40
+				},
+				{
+					"results": [
+						{"hero_id": "sable", "rarity": "epic", "pity": 41},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 42},
+						{"hero_id": "sable", "rarity": "epic", "pity": 43},
+						{"hero_id": "imra", "rarity": "rare", "pity": 44},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 45},
+						{"hero_id": "imra", "rarity": "rare", "pity": 46},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 47},
+						{"hero_id": "sable", "rarity": "epic", "pity": 48},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 49},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 50}
+					],
+					"pity": 50,
+					"total_pulls": 50
+				},
+				{
+					"results": [
+						{"hero_id": "ashra", "rarity": "rare", "pity": 51},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 52},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 53},
+						{"hero_id": "liora", "rarity": "epic", "pity": 54},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 55},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 56},
+						{"hero_id": "liora", "rarity": "epic", "pity": 57},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 58},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 59},
+						{"hero_id": "noctaire", "rarity": "legendary", "pity": 0}
+					],
+					"pity": 0,
+					"total_pulls": 60
+				},
+				{
+					"results": [
+						{"hero_id": "orrin", "rarity": "epic", "pity": 1},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 2},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 3},
+						{"hero_id": "imra", "rarity": "rare", "pity": 4},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 5},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 6},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 7},
+						{"hero_id": "brakka", "rarity": "epic", "pity": 8},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 9},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 10}
+					],
+					"pity": 10,
+					"total_pulls": 70
+				},
+				{
+					"results": [
+						{"hero_id": "imra", "rarity": "rare", "pity": 11},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 12},
+						{"hero_id": "sable", "rarity": "epic", "pity": 13},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 14},
+						{"hero_id": "brakka", "rarity": "epic", "pity": 15},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 16},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 17},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 18},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 19},
+						{"hero_id": "imra", "rarity": "rare", "pity": 20}
+					],
+					"pity": 20,
+					"total_pulls": 80
+				},
+				{
+					"results": [
+						{"hero_id": "imra", "rarity": "rare", "pity": 21},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 22},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 23},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 24},
+						{"hero_id": "imra", "rarity": "rare", "pity": 25},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 26},
+						{"hero_id": "imra", "rarity": "rare", "pity": 27},
+						{"hero_id": "imra", "rarity": "rare", "pity": 28},
+						{"hero_id": "imra", "rarity": "rare", "pity": 29},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 30}
+					],
+					"pity": 30,
+					"total_pulls": 90
+				},
+				{
+					"results": [
+						{"hero_id": "kessa", "rarity": "rare", "pity": 31},
+						{"hero_id": "imra", "rarity": "rare", "pity": 32},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 33},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 34},
+						{"hero_id": "noctaire", "rarity": "legendary", "pity": 0},
+						{"hero_id": "imra", "rarity": "rare", "pity": 1},
+						{"hero_id": "vesper", "rarity": "epic", "pity": 2},
+						{"hero_id": "noctaire", "rarity": "legendary", "pity": 0},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 1},
+						{"hero_id": "vesper", "rarity": "epic", "pity": 2}
+					],
+					"pity": 2,
+					"total_pulls": 100
+				},
+				{
+					"results": [
+						{"hero_id": "vesper", "rarity": "epic", "pity": 3},
+						{"hero_id": "imra", "rarity": "rare", "pity": 4},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 5},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 6},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 7},
+						{"hero_id": "vesper", "rarity": "epic", "pity": 8},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 9},
+						{"hero_id": "imra", "rarity": "rare", "pity": 10},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 11},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 12}
+					],
+					"pity": 12,
+					"total_pulls": 110
+				},
+				{
+					"results": [
+						{"hero_id": "noctaire", "rarity": "legendary", "pity": 0},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 1},
+						{"hero_id": "imra", "rarity": "rare", "pity": 2},
+						{"hero_id": "imra", "rarity": "rare", "pity": 3},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 4},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 5},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 6},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 7},
+						{"hero_id": "vesper", "rarity": "epic", "pity": 8},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 9}
+					],
+					"pity": 9,
+					"total_pulls": 120
+				},
+				{
+					"results": [
+						{"hero_id": "imra", "rarity": "rare", "pity": 10},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 11},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 12},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 13},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 14},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 15},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 16},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 17},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 18},
+						{"hero_id": "liora", "rarity": "epic", "pity": 19}
+					],
+					"pity": 19,
+					"total_pulls": 130
+				},
+				{
+					"results": [
+						{"hero_id": "lucen", "rarity": "rare", "pity": 20},
+						{"hero_id": "imra", "rarity": "rare", "pity": 21},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 22},
+						{"hero_id": "brakka", "rarity": "epic", "pity": 23},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 24},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 25},
+						{"hero_id": "sable", "rarity": "epic", "pity": 26},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 27},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 28},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 29}
+					],
+					"pity": 29,
+					"total_pulls": 140
+				},
+				{
+					"results": [
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 30},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 31},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 32},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 33},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 34},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 35},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 36},
+						{"hero_id": "lucen", "rarity": "rare", "pity": 37},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 38},
+						{"hero_id": "liora", "rarity": "epic", "pity": 39}
+					],
+					"pity": 39,
+					"total_pulls": 150
+				}
+			]
+		},
+		{
+			"name": "wish_pity_gives_target",
+			"banner": "wish",
+			"seed": 17,
+			"total_pulls": 44,
+			"pity": 59,
+			"opts": {"target": "seraphiel"},
+			"counts": [1, 10],
+			"out": [
+				{
+					"results": [{"hero_id": "seraphiel", "rarity": "legendary", "pity": 0}],
+					"pity": 0,
+					"total_pulls": 45
+				},
+				{
+					"results": [
+						{"hero_id": "kessa", "rarity": "rare", "pity": 1},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 2},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 3},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 4},
+						{"hero_id": "brakka", "rarity": "epic", "pity": 5},
+						{"hero_id": "imra", "rarity": "rare", "pity": 6},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 7},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 8},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 9},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 10}
+					],
+					"pity": 10,
+					"total_pulls": 55
+				}
+			]
+		},
+		{
+			"name": "envoy_no_legendary",
+			"banner": "envoy",
+			"seed": 1234,
+			"total_pulls": 0,
+			"pity": 0,
+			"opts": {},
+			"counts": [10, 10, 10, 10, 1, 1, 1],
+			"out": [
+				{
+					"results": [
+						{"hero_id": "imra", "rarity": "rare", "pity": 0},
+						{"hero_id": "imra", "rarity": "rare", "pity": 0},
+						{"hero_id": "imra", "rarity": "rare", "pity": 0},
+						{"hero_id": "imra", "rarity": "rare", "pity": 0},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 0},
+						{"hero_id": "imra", "rarity": "rare", "pity": 0},
+						{"hero_id": "imra", "rarity": "rare", "pity": 0},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 0},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 0},
+						{"hero_id": "orrin", "rarity": "epic", "pity": 0}
+					],
+					"pity": 0,
+					"total_pulls": 10
+				},
+				{
+					"results": [
+						{"hero_id": "imra", "rarity": "rare", "pity": 0},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 0},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 0},
+						{"hero_id": "imra", "rarity": "rare", "pity": 0},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 0},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 0},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 0},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 0},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 0},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 0}
+					],
+					"pity": 0,
+					"total_pulls": 20
+				},
+				{
+					"results": [
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 0},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 0},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 0},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 0},
+						{"hero_id": "uriela", "rarity": "rare", "pity": 0},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 0},
+						{"hero_id": "brakka", "rarity": "epic", "pity": 0},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 0},
+						{"hero_id": "imra", "rarity": "rare", "pity": 0},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 0}
+					],
+					"pity": 0,
+					"total_pulls": 30
+				},
+				{
+					"results": [
+						{"hero_id": "lucen", "rarity": "rare", "pity": 0},
+						{"hero_id": "ashra", "rarity": "rare", "pity": 0},
+						{"hero_id": "nuriel", "rarity": "rare", "pity": 0},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 0},
+						{"hero_id": "imra", "rarity": "rare", "pity": 0},
+						{"hero_id": "cassiel", "rarity": "epic", "pity": 0},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 0},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 0},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 0},
+						{"hero_id": "kessa", "rarity": "rare", "pity": 0}
+					],
+					"pity": 0,
+					"total_pulls": 40
+				},
+				{"results": [{"hero_id": "imra", "rarity": "rare", "pity": 0}], "pity": 0, "total_pulls": 41},
+				{
+					"results": [{"hero_id": "uriela", "rarity": "rare", "pity": 0}],
+					"pity": 0,
+					"total_pulls": 42
+				},
+				{
+					"results": [{"hero_id": "uriela", "rarity": "rare", "pity": 0}],
+					"pity": 0,
+					"total_pulls": 43
+				}
+			]
+		}
+	],
+	"rotation": [
+		{
+			"day": 20730,
+			"out": {"featured": "mordessa", "featured_next_change": 20731, "faction": "fallen", "faction_next_change": 20731, "wish_period": -3, "wish_resets": 20731, "envoy_period": 20730, "envoy_resets": 20731}
+		},
+		{
+			"day": 20737,
+			"out": {"featured": "noctaire", "featured_next_change": 20738, "faction": "celestial", "faction_next_change": 20738, "wish_period": -2, "wish_resets": 20738, "envoy_period": 20737, "envoy_resets": 20738}
+		},
+		{
+			"day": 20744,
+			"out": {"featured": "seraphiel", "featured_next_change": 20745, "faction": "infernal", "faction_next_change": 20745, "wish_period": -1, "wish_resets": 20745, "envoy_period": 20744, "envoy_resets": 20745}
+		},
+		{
+			"day": 20745,
+			"out": {"featured": "mordessa", "featured_next_change": 20752, "faction": "fallen", "faction_next_change": 20746, "wish_period": 0, "wish_resets": 20752, "envoy_period": 20745, "envoy_resets": 20746}
+		},
+		{
+			"day": 20746,
+			"out": {"featured": "mordessa", "featured_next_change": 20752, "faction": "celestial", "faction_next_change": 20747, "wish_period": 0, "wish_resets": 20752, "envoy_period": 20746, "envoy_resets": 20747}
+		},
+		{
+			"day": 20747,
+			"out": {"featured": "mordessa", "featured_next_change": 20752, "faction": "infernal", "faction_next_change": 20748, "wish_period": 0, "wish_resets": 20752, "envoy_period": 20747, "envoy_resets": 20748}
+		},
+		{
+			"day": 20748,
+			"out": {"featured": "mordessa", "featured_next_change": 20752, "faction": "fallen", "faction_next_change": 20749, "wish_period": 0, "wish_resets": 20752, "envoy_period": 20748, "envoy_resets": 20749}
+		},
+		{
+			"day": 20751,
+			"out": {"featured": "mordessa", "featured_next_change": 20752, "faction": "fallen", "faction_next_change": 20752, "wish_period": 0, "wish_resets": 20752, "envoy_period": 20751, "envoy_resets": 20752}
+		},
+		{
+			"day": 20752,
+			"out": {"featured": "noctaire", "featured_next_change": 20759, "faction": "celestial", "faction_next_change": 20753, "wish_period": 1, "wish_resets": 20759, "envoy_period": 20752, "envoy_resets": 20753}
+		},
+		{
+			"day": 20758,
+			"out": {"featured": "noctaire", "featured_next_change": 20759, "faction": "celestial", "faction_next_change": 20759, "wish_period": 1, "wish_resets": 20759, "envoy_period": 20758, "envoy_resets": 20759}
+		},
+		{
+			"day": 20759,
+			"out": {"featured": "seraphiel", "featured_next_change": 20766, "faction": "infernal", "faction_next_change": 20760, "wish_period": 2, "wish_resets": 20766, "envoy_period": 20759, "envoy_resets": 20760}
+		},
+		{
+			"day": 20765,
+			"out": {"featured": "seraphiel", "featured_next_change": 20766, "faction": "infernal", "faction_next_change": 20766, "wish_period": 2, "wish_resets": 20766, "envoy_period": 20765, "envoy_resets": 20766}
+		},
+		{
+			"day": 20766,
+			"out": {"featured": "mordessa", "featured_next_change": 20773, "faction": "fallen", "faction_next_change": 20767, "wish_period": 3, "wish_resets": 20773, "envoy_period": 20766, "envoy_resets": 20767}
+		},
+		{
+			"day": 20767,
+			"out": {"featured": "mordessa", "featured_next_change": 20773, "faction": "celestial", "faction_next_change": 20768, "wish_period": 3, "wish_resets": 20773, "envoy_period": 20767, "envoy_resets": 20768}
+		},
+		{
+			"day": 20845,
+			"out": {"featured": "seraphiel", "featured_next_change": 20850, "faction": "celestial", "faction_next_change": 20846, "wish_period": 14, "wish_resets": 20850, "envoy_period": 20845, "envoy_resets": 20846}
+		},
+		{
+			"day": 21110,
+			"out": {"featured": "noctaire", "featured_next_change": 21116, "faction": "infernal", "faction_next_change": 21111, "wish_period": 52, "wish_resets": 21116, "envoy_period": 21110, "envoy_resets": 21111}
+		}
 	]
 }

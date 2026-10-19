@@ -26,7 +26,18 @@
 				"campaign": {"cleared": 4},
 				"idle": {"last_claim_at": 1702080000000, "quick_claims_used": 0, "quick_claim_day": 19700, "carry": {}, "gear_ms": 0, "full_notified": false},
 				"tower": {"best": 0},
-				"summon": {"pity": 0, "total_pulls": 0, "last_free_pull_day": -1, "seed": 1865841547},
+				"summon": {
+					"pity": 0,
+					"total_pulls": 0,
+					"last_free_pull_day": -1,
+					"seed": 1865841547,
+					"banners": {
+						"featured": {"pity": 0, "pulls": 0, "lost": false, "target": "", "period": -1, "period_pulls": 0},
+						"faction": {"pity": 0, "pulls": 0, "lost": false, "target": "", "period": -1, "period_pulls": 0},
+						"wish": {"pity": 0, "pulls": 0, "lost": false, "target": "", "period": -1, "period_pulls": 0},
+						"envoy": {"pity": 0, "pulls": 0, "lost": false, "target": "", "period": -1, "period_pulls": 0}
+					}
+				},
 				"gear": [],
 				"gear_seq": 0,
 				"quests": {"day": 19700, "progress": {}, "claimed": []},
@@ -78,10 +89,115 @@
 				"currencies": {"gold": 4000, "hero_exp": 2400, "gems": 1800, "scrolls": 10, "dust": 0},
 				"tower": {"best": 0},
 				"idle": {"last_claim_at": 1702083600000, "quick_claims_used": 0, "quick_claim_day": 19700, "carry": {}, "gear_ms": 0, "full_notified": false},
-				"summon": {"pity": 0, "total_pulls": 0, "last_free_pull_day": -1, "seed": 1725470481},
+				"summon": {
+					"pity": 0,
+					"total_pulls": 0,
+					"last_free_pull_day": -1,
+					"seed": 1725470481,
+					"banners": {
+						"featured": {"pity": 0, "pulls": 0, "lost": false, "target": "", "period": -1, "period_pulls": 0},
+						"faction": {"pity": 0, "pulls": 0, "lost": false, "target": "", "period": -1, "period_pulls": 0},
+						"wish": {"pity": 0, "pulls": 0, "lost": false, "target": "", "period": -1, "period_pulls": 0},
+						"envoy": {"pity": 0, "pulls": 0, "lost": false, "target": "", "period": -1, "period_pulls": 0}
+					}
+				},
 				"gear_seq": 0,
 				"quests": {"day": 19700, "progress": {}, "claimed": []},
 				"shop": {"purchases": {}, "daily": {}, "day": 19700, "monthly_until_day": -1, "monthly_last_day": -1},
+				"skins": {"owned": [], "equipped": {}},
+				"counters": {},
+				"dev_time_offset": 0,
+				"rng_seed": 5422372
+			}
+		},
+		{
+			"name": "old_save_keeps_summon_counters",
+			"now_ms": 1702087200000,
+			"input": {
+				"version": 1,
+				"created_at": 1702083600000,
+				"heroes": {"uriela": {"id": "uriela", "level": 3, "stars": 1}},
+				"summon": {"pity": 37, "total_pulls": 120, "last_free_pull_day": 19699, "seed": 4242}
+			},
+			"out": {
+				"version": 1,
+				"created_at": 1702083600000,
+				"heroes": {"uriela": {"id": "uriela", "level": 3, "stars": 1, "shards": 0, "gear": {}}},
+				"summon": {
+					"pity": 37,
+					"total_pulls": 120,
+					"last_free_pull_day": 19699,
+					"seed": 4242,
+					"banners": {
+						"featured": {"pity": 0, "pulls": 0, "lost": false, "target": "", "period": -1, "period_pulls": 0},
+						"faction": {"pity": 0, "pulls": 0, "lost": false, "target": "", "period": -1, "period_pulls": 0},
+						"wish": {"pity": 0, "pulls": 0, "lost": false, "target": "", "period": -1, "period_pulls": 0},
+						"envoy": {"pity": 0, "pulls": 0, "lost": false, "target": "", "period": -1, "period_pulls": 0}
+					}
+				},
+				"player_name": "Envoy",
+				"currencies": {"gold": 4000, "hero_exp": 2400, "gems": 1800, "scrolls": 10, "dust": 0},
+				"formation": ["uriela", "", "", "", ""],
+				"campaign": {"cleared": 0},
+				"tower": {"best": 0},
+				"idle": {"last_claim_at": 1702087200000, "quick_claims_used": 0, "quick_claim_day": 19700, "carry": {}, "gear_ms": 0, "full_notified": false},
+				"gear": [],
+				"gear_seq": 0,
+				"quests": {"day": 19700, "progress": {}, "claimed": []},
+				"shop": {"purchases": {}, "daily": {}, "day": 19700, "monthly_until_day": -1, "monthly_last_day": -1},
+				"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 1, "auto_ultimates": true, "nudity": false},
+				"skins": {"owned": [], "equipped": {}},
+				"counters": {},
+				"dev_time_offset": 0,
+				"rng_seed": 1055219407
+			}
+		},
+		{
+			"name": "damaged_banner_states",
+			"now_ms": 1702083600000,
+			"input": {
+				"version": 1,
+				"heroes": {"kessa": {"id": "kessa"}},
+				"summon": {
+					"pity": 75,
+					"total_pulls": -4,
+					"seed": 1,
+					"banners": {
+						"featured": {"pity": 90, "lost": "yes", "pulls": 12},
+						"wish": {"target": "uriela", "pity": 3},
+						"envoy": {"pity": 7, "period": 5, "period_pulls": -2},
+						"bogus": {"pity": 1},
+						"faction": "junk"
+					}
+				}
+			},
+			"out": {
+				"version": 1,
+				"heroes": {"kessa": {"id": "kessa", "level": 1, "stars": 1, "shards": 0, "gear": {}}},
+				"summon": {
+					"pity": 59,
+					"total_pulls": 0,
+					"seed": 1,
+					"banners": {
+						"featured": {"pity": 59, "lost": false, "pulls": 12, "target": "", "period": -1, "period_pulls": 0},
+						"faction": {"pity": 0, "pulls": 0, "lost": false, "target": "", "period": -1, "period_pulls": 0},
+						"wish": {"target": "", "pity": 3, "pulls": 0, "lost": false, "period": -1, "period_pulls": 0},
+						"envoy": {"pity": 0, "period": 5, "period_pulls": 0, "pulls": 0, "lost": false, "target": ""}
+					},
+					"last_free_pull_day": -1
+				},
+				"created_at": 1702083600000,
+				"player_name": "Envoy",
+				"currencies": {"gold": 4000, "hero_exp": 2400, "gems": 1800, "scrolls": 10, "dust": 0},
+				"formation": ["kessa", "", "", "", ""],
+				"campaign": {"cleared": 0},
+				"tower": {"best": 0},
+				"idle": {"last_claim_at": 1702083600000, "quick_claims_used": 0, "quick_claim_day": 19700, "carry": {}, "gear_ms": 0, "full_notified": false},
+				"gear": [],
+				"gear_seq": 0,
+				"quests": {"day": 19700, "progress": {}, "claimed": []},
+				"shop": {"purchases": {}, "daily": {}, "day": 19700, "monthly_until_day": -1, "monthly_last_day": -1},
+				"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 1, "auto_ultimates": true, "nudity": false},
 				"skins": {"owned": [], "equipped": {}},
 				"counters": {},
 				"dev_time_offset": 0,
@@ -95,9 +211,9 @@
 				"version": 1,
 				"created_at": 1702083600000,
 				"player_name": "Envoy",
-				"currencies": {"gold": 6400, "hero_exp": 4000, "gems": 1812, "scrolls": 0, "dust": 12},
+				"currencies": {"gold": 6400, "hero_exp": 4000, "gems": 1512, "scrolls": 0, "dust": 12},
 				"heroes": {
-					"uriela": {"id": "uriela", "level": 1, "stars": 1, "shards": 10, "gear": {"weapon": "g1"}},
+					"uriela": {"id": "uriela", "level": 1, "stars": 1, "shards": 20, "gear": {"weapon": "g1"}},
 					"lucen": {"id": "lucen", "level": 1, "stars": 1, "shards": 10, "gear": {}},
 					"kessa": {"id": "kessa", "level": 1, "stars": 1, "shards": 10, "gear": {}},
 					"nuriel": {"id": "nuriel", "level": 1, "stars": 1, "shards": 20, "gear": {}},
@@ -117,7 +233,18 @@
 					"gear_ms": 3600000,
 					"full_notified": false
 				},
-				"summon": {"pity": 10, "total_pulls": 10, "last_free_pull_day": -1, "seed": 1725470481},
+				"summon": {
+					"pity": 10,
+					"total_pulls": 11,
+					"last_free_pull_day": -1,
+					"seed": 1725470481,
+					"banners": {
+						"featured": {"pity": 1, "pulls": 1, "lost": false, "target": "", "period": -1, "period_pulls": 0},
+						"faction": {"pity": 0, "pulls": 0, "lost": false, "target": "", "period": -1, "period_pulls": 0},
+						"wish": {"pity": 0, "pulls": 0, "lost": false, "target": "seraphiel", "period": -1, "period_pulls": 0},
+						"envoy": {"pity": 0, "pulls": 0, "lost": false, "target": "", "period": -1, "period_pulls": 0}
+					}
+				},
 				"gear": [
 					{
 						"uid": "g1",
@@ -129,11 +256,11 @@
 					}
 				],
 				"gear_seq": 1,
-				"quests": {"day": 19700, "progress": {"dq_summon": 10, "dq_idle": 1}, "claimed": []},
+				"quests": {"day": 19700, "progress": {"dq_summon": 11, "dq_idle": 1}, "claimed": []},
 				"shop": {"purchases": {}, "daily": {}, "day": 19700, "monthly_until_day": -1, "monthly_last_day": -1},
 				"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 1, "auto_ultimates": true, "nudity": false},
 				"skins": {"owned": [], "equipped": {}},
-				"counters": {"summons": 10, "idle_claims": 1},
+				"counters": {"summons": 11, "idle_claims": 1},
 				"dev_time_offset": 0,
 				"rng_seed": 5422372
 			},
@@ -141,9 +268,9 @@
 				"version": 1,
 				"created_at": 1702083600000,
 				"player_name": "Envoy",
-				"currencies": {"gold": 6400, "hero_exp": 4000, "gems": 1812, "scrolls": 0, "dust": 12},
+				"currencies": {"gold": 6400, "hero_exp": 4000, "gems": 1512, "scrolls": 0, "dust": 12},
 				"heroes": {
-					"uriela": {"id": "uriela", "level": 1, "stars": 1, "shards": 10, "gear": {"weapon": "g1"}},
+					"uriela": {"id": "uriela", "level": 1, "stars": 1, "shards": 20, "gear": {"weapon": "g1"}},
 					"lucen": {"id": "lucen", "level": 1, "stars": 1, "shards": 10, "gear": {}},
 					"kessa": {"id": "kessa", "level": 1, "stars": 1, "shards": 10, "gear": {}},
 					"nuriel": {"id": "nuriel", "level": 1, "stars": 1, "shards": 20, "gear": {}},
@@ -163,7 +290,18 @@
 					"gear_ms": 3600000,
 					"full_notified": false
 				},
-				"summon": {"pity": 10, "total_pulls": 10, "last_free_pull_day": -1, "seed": 1725470481},
+				"summon": {
+					"pity": 10,
+					"total_pulls": 11,
+					"last_free_pull_day": -1,
+					"seed": 1725470481,
+					"banners": {
+						"featured": {"pity": 1, "pulls": 1, "lost": false, "target": "", "period": -1, "period_pulls": 0},
+						"faction": {"pity": 0, "pulls": 0, "lost": false, "target": "", "period": -1, "period_pulls": 0},
+						"wish": {"pity": 0, "pulls": 0, "lost": false, "target": "seraphiel", "period": -1, "period_pulls": 0},
+						"envoy": {"pity": 0, "pulls": 0, "lost": false, "target": "", "period": -1, "period_pulls": 0}
+					}
+				},
 				"gear": [
 					{
 						"uid": "g1",
@@ -175,11 +313,11 @@
 					}
 				],
 				"gear_seq": 1,
-				"quests": {"day": 19700, "progress": {"dq_summon": 10, "dq_idle": 1}, "claimed": []},
+				"quests": {"day": 19700, "progress": {"dq_summon": 11, "dq_idle": 1}, "claimed": []},
 				"shop": {"purchases": {}, "daily": {}, "day": 19700, "monthly_until_day": -1, "monthly_last_day": -1},
 				"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 1, "auto_ultimates": true, "nudity": false},
 				"skins": {"owned": [], "equipped": {}},
-				"counters": {"summons": 10, "idle_claims": 1},
+				"counters": {"summons": 11, "idle_claims": 1},
 				"dev_time_offset": 0,
 				"rng_seed": 5422372
 			}

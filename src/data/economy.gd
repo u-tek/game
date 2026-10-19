@@ -48,6 +48,19 @@ static var IDLE_MIN_QUEST_CLAIM_MS: int = int(_eco.idle.min_claim_for_quest_ms)
 # ---------------------------------------------------------------- summon
 ## The standard banner (first entry of banner.json).
 static var BANNER: Dictionary = GameData.banner().banners[0]
+## Every banner in banner.json order (standard, featured, faction, wish, envoy). Each has a
+## `kind`; SummonRules reads the kind-specific fields (featured_rotation, faction_rotation, ...).
+static var BANNERS: Array[Dictionary] = GameData.dicts(GameData.banner().banners)
+## Day index (days since 1970-01-01, local) where every banner rotation and weekly limit starts.
+static var BANNER_EPOCH_DAY: int = int(GameData.banner().get("epoch_day", 0))
+
+
+## The banner with this id ({} if unknown).
+static func banner_def(banner_id: String) -> Dictionary:
+	for b in BANNERS:
+		if str(b.id) == banner_id:
+			return b
+	return {}
 
 # ---------------------------------------------------------------- gear
 static var GEAR_SLOTS: Array[String] = GameData.strings(_eco.gear.slots)

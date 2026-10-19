@@ -634,10 +634,10 @@ func _jump(section: String, animate: bool = true) -> void:
 func _fit_sprite() -> void:
 	if _sprite == null or not is_instance_valid(_sprite):
 		return
-	_sprite.scale = Vector2.ONE
-	var hgt: float = _sprite.call("get_height")
-	var k := _fig_h / maxf(hgt, 1.0)
-	_sprite.scale = Vector2(k, k)
+	# Framed by her real outline (HeroArt.fit_sprite): _fig_h tall, smaller when a wide pose would
+	# run past the band or the right-hand rule; feet where the poster puts them.
+	var feet_y := _box.size.y + 10.0
+	HeroArt.fit_sprite(_sprite, _anchor, Rect2(BAND - 60.0, feet_y - _fig_h, _box.size.x - (BAND - 60.0) - 6.0, _fig_h), BAND + 262.0)
 	if not _owned:
 		_sprite.modulate = Color(0.5, 0.5, 0.52, 0.9)
 

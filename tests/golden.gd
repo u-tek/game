@@ -175,6 +175,30 @@ static func inputs(name: String) -> Dictionary:
 					{"name": "long_chain", "seed": 99, "total_pulls": 0, "pity": 0,
 						"counts": [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 1, 1, 1, 1, 1]},
 				],
+				"about_banners": "banner_cases: SummonRules.pull on the banner with this id (data/banner.json) and opts (featured + lost on the featured banner, faction on the faction banner, target on the wish banner); like cases they chain, and on the featured banner opts.lost chains from each summon's out.lost. rotation: for each day index, featured_for / faction_for, the next rotation day of both, and each limited banner's limit_period and limit_resets_day (epoch_day from banner.json).",
+				"epoch_day": EconomyData.BANNER_EPOCH_DAY,
+				"banner_cases": [
+					{"name": "featured_long_chain", "banner": "featured", "seed": 31337, "total_pulls": 0, "pity": 0,
+						"opts": {"featured": "mordessa", "lost": false}, "counts": _tens(30)},
+					{"name": "featured_lost_forces_featured", "banner": "featured", "seed": 5, "total_pulls": 70, "pity": 59,
+						"opts": {"featured": "noctaire", "lost": true}, "counts": [1, 10]},
+					{"name": "featured_pity_rolls_the_5050", "banner": "featured", "seed": 8080, "total_pulls": 12, "pity": 59,
+						"opts": {"featured": "seraphiel", "lost": false}, "counts": [1, 1, 10]},
+					{"name": "faction_celestial_chain", "banner": "faction", "seed": 2024, "total_pulls": 0, "pity": 0,
+						"opts": {"faction": "celestial"}, "counts": _tens(12)},
+					{"name": "faction_infernal_pity", "banner": "faction", "seed": 9, "total_pulls": 300, "pity": 75,
+						"opts": {"faction": "infernal"}, "counts": [10, 1]},
+					{"name": "faction_fallen", "banner": "faction", "seed": 4711, "total_pulls": 3, "pity": 0,
+						"opts": {"faction": "fallen"}, "counts": [10, 10, 10]},
+					{"name": "wish_target_chain", "banner": "wish", "seed": 606, "total_pulls": 0, "pity": 0,
+						"opts": {"target": "noctaire"}, "counts": _tens(15)},
+					{"name": "wish_pity_gives_target", "banner": "wish", "seed": 17, "total_pulls": 44, "pity": 59,
+						"opts": {"target": "seraphiel"}, "counts": [1, 10]},
+					{"name": "envoy_no_legendary", "banner": "envoy", "seed": 1234, "total_pulls": 0, "pity": 0,
+						"opts": {}, "counts": [10, 10, 10, 10, 1, 1, 1]},
+				],
+				"rotation": [-15, -8, -1, 0, 1, 2, 3, 6, 7, 13, 14, 20, 21, 22, 100, 365].map(func(k: int) -> Dictionary:
+					return {"day": EconomyData.BANNER_EPOCH_DAY + k}),
 			}
 		"battles":
 			return {
@@ -349,7 +373,51 @@ static func _summon(f: Dictionary) -> Dictionary:
 	var rolls: Array = []
 	for c in f.rarity_for_roll:
 		rolls.append({"roll": c.roll, "out": SummonRules.rarity_for_roll(int(c.roll), EconomyData.BANNER)})
-	return {"banner": f.banner, "rarity_for_roll": rolls, "cases": cases}
+	var bcases: Array = []
+	for c in f.get("banner_cases", []):
+		var b := EconomyData.banner_def(str(c.banner))
+		var opts: Dictionary = (c.opts as Dictionary).duplicate(true)
+		var total := int(c.total_pulls)
+		var pity := int(c.pity)
+		var outs: Array = []
+		for n in c.counts:
+			var r := SummonRules.pull(b, int(c.seed), total, pity, int(n), opts)
+			outs.append(r)
+			total = int(r.total_pulls)
+			pity = int(r.pity)
+			if r.has("lost"):
+				opts["lost"] = bool(r.lost)
+		bcases.append({"name": c.name, "banner": c.banner, "seed": c.seed, "total_pulls": c.total_pulls, "pity": c.pity,
+			"opts": c.opts, "counts": c.counts, "out": outs})
+	var epoch := int(f.get("epoch_day", 0))
+	var rot: Array = []
+	var fb := EconomyData.banner_def("featured")
+	var cb := EconomyData.banner_def("faction")
+	var wb := EconomyData.banner_def("wish")
+	var eb := EconomyData.banner_def("envoy")
+	for c in f.get("rotation", []):
+		var d := int(c.day)
+		rot.append({"day": c.day, "out": {
+			"featured": SummonRules.featured_for(fb, d, epoch),
+			"featured_next_change": SummonRules.next_change_day(d, epoch, int(fb.rotation_days)),
+			"faction": SummonRules.faction_for(cb, d, epoch),
+			"faction_next_change": SummonRules.next_change_day(d, epoch, int(cb.rotation_days)),
+			"wish_period": SummonRules.limit_period(wb, d, epoch),
+			"wish_resets": SummonRules.limit_resets_day(wb, d, epoch),
+			"envoy_period": SummonRules.limit_period(eb, d, epoch),
+			"envoy_resets": SummonRules.limit_resets_day(eb, d, epoch),
+		}})
+	var out := {"banner": f.banner, "rarity_for_roll": rolls, "cases": cases}
+	if f.has("banner_cases"):
+		out.merge({"about_banners": f.about_banners, "epoch_day": f.epoch_day, "banner_cases": bcases, "rotation": rot})
+	return out
+
+
+static func _tens(n: int) -> Array:
+	var a: Array = []
+	for i in n:
+		a.append(10)
+	return a
 
 
 ## A seed whose first 10-pull (total_pulls 0, pity 0) has nine Rares and rolls a tenth Rare,
@@ -550,6 +618,22 @@ static func _session_steps() -> Array:
 	add.call("hero_stats", ["kessa"])
 	add.call("monthly_card_days_left", [], DAY)
 	add.call("offers")
+	# The other banners: payment, the wish target, limits, per-banner pity, rotation views.
+	add.call("dev_add", ["gems", 20000])
+	add.call("summon", [1, false, "wish"])
+	add.call("set_wish_target", ["mordessa"])
+	add.call("summon", [10, false, "wish"])
+	add.call("summon", [10, false, "featured"])
+	add.call("summon", [10, false, "faction"])
+	add.call("summon", [1, true, "featured"])
+	add.call("dev_add", ["gold", 60000])
+	add.call("summon", [10, false, "envoy"])
+	add.call("summon", [1, false, "envoy"])
+	add.call("summon_left", ["envoy"])
+	add.call("pity_count", ["featured"])
+	add.call("banners", [], DAY)
+	add.call("summon", [1, false, "envoy"])
+	add.call("banners", [], 7 * DAY)
 	return s
 
 
@@ -581,6 +665,8 @@ static func _save_cases() -> Array:
 	var full := _new_model(BASE_MS)
 	full.new_game()
 	full.summon(10)
+	full.summon(1, false, "featured")
+	full.set_wish_target("seraphiel")
 	_advance(full, 4 * HOUR)
 	full.claim_idle()
 	return [
@@ -598,6 +684,18 @@ static func _save_cases() -> Array:
 			"settings": {"battle_speed": 3, "sound": "yes"},
 			"campaign": {"cleared": 999},
 			"formation": "uriela"}},
+		{"name": "old_save_keeps_summon_counters", "now_ms": BASE_MS + HOUR, "input": {
+			"version": 1, "created_at": BASE_MS,
+			"heroes": {"uriela": {"id": "uriela", "level": 3, "stars": 1}},
+			"summon": {"pity": 37, "total_pulls": 120, "last_free_pull_day": 19699, "seed": 4242}}},
+		{"name": "damaged_banner_states", "now_ms": BASE_MS, "input": {
+			"version": 1, "heroes": {"kessa": {"id": "kessa"}},
+			"summon": {"pity": 75, "total_pulls": -4, "seed": 1, "banners": {
+				"featured": {"pity": 90, "lost": "yes", "pulls": 12},
+				"wish": {"target": "uriela", "pity": 3},
+				"envoy": {"pity": 7, "period": 5, "period_pulls": -2},
+				"bogus": {"pity": 1},
+				"faction": "junk"}}}},
 		{"name": "current_save_unchanged", "now_ms": BASE_MS + 5 * HOUR, "input": normalize(full.state)},
 	]
 

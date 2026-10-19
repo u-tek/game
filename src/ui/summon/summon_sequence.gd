@@ -15,15 +15,18 @@ extends Control
 ##            fast-forwards the current hero, the next tap brings the next one. A row of printed
 ##            squares at the top counts the sheets and marks the rarities seen so far.
 ##   results  The contact sheet: every hero as a small poster on one sheet (5 x 2, or one big
-##            poster), NEW / shards, the totals as a bracketed table, the pity, "Summon xN
-##            Again" (a pass) and "Done".
+##            poster), NEW / shards, the totals as a bracketed table, the pity, "Again" (the
+##            screen's summon ticket, make_ticket) and "Done". The screen shows the top bar and
+##            the nav again for the results (results_shown); the sheet fits between them.
 ##
 ## "Skip" (top-right) jumps to the results from anywhere. A tap during the charge jumps to the
-## burst. Signals: done (Done pressed), again(count) (Summon again pressed).
+## burst. Signals: done (Done pressed), again(count) (Summon again pressed), results_shown (just
+## before the contact sheet is built).
 ## Phase names ("charge", "reveal", "results") are what the e2e scripts wait for.
 
 signal done
 signal again(count: int)
+signal results_shown
 
 const Fx := preload("res://src/ui/summon/summon_fx.gd")
 const Backdrop := preload("res://src/ui/summon/summon_backdrop.gd")
@@ -53,6 +56,13 @@ var index := -1
 var price_of: Callable
 ## Pulls left to the Legendary guarantee, for the results line.
 var pity_left := 0
+## The results table's last row [key, value] (the banner's pity or its pulls left); empty = the
+## Legendary guarantee from pity_left.
+var pity_row: Array = []
+## (count, on_pressed) -> Button: the screen's summon ticket for "Again" (else an OG pass).
+var make_ticket: Callable
+## A small label on a featured result's print ("RATE UP"); "" = none.
+var featured_note := "RATE UP"
 
 var _best := "rare"
 var _cam: Control
@@ -538,6 +548,8 @@ func _show_summary(skipped: bool) -> void:
 	_backdrop.target_amount = 0.0
 	_backdrop.target_darken = 0.0
 	_grain_k = maxf(_grain_k, 0.12)
+	# The chrome comes back for the results (the screen listens); the sheet fits under it.
+	results_shown.emit()
 	if skipped and _best == "legendary":
 		UI.sfx("legendary")
 		UI.haptic(60)
@@ -547,8 +559,8 @@ func _show_summary(skipped: bool) -> void:
 
 
 func _build_sheet() -> void:
-	var st := UI.safe_top()
-	var sb := UI.safe_bottom()
+	var ct := UI.content_top()
+	var cb := UI.content_bottom()
 	var w := size.x if size.x > 0.0 else get_viewport_rect().size.x
 	var h := size.y if size.y > 0.0 else get_viewport_rect().size.y
 	var single := results.size() == 1
@@ -559,8 +571,8 @@ func _build_sheet() -> void:
 		if bool(d.get("is_new", false)):
 			news += 1
 		shards += int(d.get("shards", 0))
-	# The sheet, leaving the bottom for the pass and Done.
-	var sr := Rect2(18, st + 22, w - 36, h - sb - 222 - (st + 22))
+	# The sheet between the top bar and the nav, leaving the bottom for the ticket and Done.
+	var sr := Rect2(18, ct + 16, w - 36, maxf(420.0, h - cb - 196 - (ct + 16)))
 	var sheet := PK.poster(_summary, sr)
 	sheet.name = "Sheet"
 	var pw := sr.size.x
@@ -568,7 +580,7 @@ func _build_sheet() -> void:
 	PK.at(sheet, PK.t("CONTACT SHEET  ·  PRESS RUN Nº 0047  ·  %d PRINT%s  ·  19.10.26" % [results.size(), "" if single else "S"], 11, PK.INK, "mono_bold"), Vector2(20, 16))
 	var word := ("NEW HERO" if news > 0 else "RESULT") if single else "RESULTS"
 	var tf := Kit.font("compressed")
-	var tsz := 150
+	var tsz := clampi(int(ph * 0.15), 80, 150)
 	while tsz > 70 and tf.get_string_size(word, HORIZONTAL_ALIGNMENT_LEFT, -1, tsz).x > pw - 190:
 		tsz -= 4
 	var g := PK.giant(sheet, word, tsz, [[0.0, pw, PK.INK]], Vector2(14, 22), Vector2(pw + 200, tsz * 1.2), 0.0)
@@ -592,7 +604,10 @@ func _build_sheet() -> void:
 		rows_t.append(["NEW HERO%s" % ("" if news == 1 else "ES"), "%d" % news])
 	if shards > 0:
 		rows_t.append(["SHARDS", "+%d" % shards])
-	rows_t.append(["LEGENDARY GUARANTEED WITHIN", "%d PULL%s" % [maxi(1, pity_left), "" if pity_left == 1 else "S"], true])
+	if pity_row.size() >= 2:
+		rows_t.append([str(pity_row[0]), str(pity_row[1]), true])
+	else:
+		rows_t.append(["LEGENDARY GUARANTEED WITHIN", "%d PULL%s" % [maxi(1, pity_left), "" if pity_left == 1 else "S"], true])
 	var tb := PK.data_table(rows_t, pw - 40, {"size": 14, "row_h": 28.0, "bar": Color(1, 1, 1, 0.7)})
 	tb.position = Vector2(20, ph - 16 - tb.size.y)
 	# The prints, on strips of film with sprocket holes and frame numbers.
@@ -643,21 +658,26 @@ func _build_buttons(sr: Rect2) -> void:
 	box.name = "Buttons"
 	box.mouse_filter = MOUSE_FILTER_IGNORE
 	box.position = Vector2(0, sr.end.y + 14)
-	box.size = Vector2(size.x, 200)
+	box.size = Vector2(size.x, 180)
 	_summary.add_child(box)
-	var again_b := PK.pass_button({"width": 420.0, "kicker": "SUMMON // PRESS AGAIN", "title": "AGAIN ×%d" % again_n,
-		"sub": "SAME RATES · SAME PITY", "action": "PULL ×%d  >>>" % again_n, "info": cost, "icon": "summon",
-		"disabled": not bool(p.ok), "title_size": 26}, func() -> void: again.emit(again_n))
+	var again_b: Button
+	if make_ticket.is_valid():
+		again_b = make_ticket.call(again_n, func() -> void: again.emit(again_n))
+		again_b.position = Vector2(14, 6)
+	else:
+		again_b = PK.pass_button({"width": 420.0, "kicker": "SUMMON // PRESS AGAIN", "title": "AGAIN ×%d" % again_n,
+			"sub": "SAME RATES · SAME PITY", "action": "PULL ×%d  >>>" % again_n, "info": cost, "icon": "summon",
+			"disabled": not bool(p.ok), "title_size": 26}, func() -> void: again.emit(again_n))
+		again_b.position = Vector2(14, 0)
 	again_b.name = "Again"
-	again_b.position = Vector2(14, 0)
 	again_b.rotation = -0.02
 	box.add_child(again_b)
 	var done_b := PK.plate_button("Done", func() -> void: done.emit(), {"size": Vector2(236, 112), "kicker": "CLOSE THE RUN",
 		"icon": "check", "text_size": 30, "screws": true, "cuts": [14, 0, 14, 0]})
 	done_b.name = "Done"
-	done_b.position = Vector2(size.x - 236 - 18, 34)
+	done_b.position = Vector2(size.x - 236 - 18, 26)
 	box.add_child(done_b)
-	if not bool(p.ok):
+	if not bool(p.ok) and not make_ticket.is_valid():
 		var why := PK.t("NOT ENOUGH GEMS OR SCROLLS FOR ANOTHER x%d" % again_n, 12, PK.SIGNAL, "mono_bold")
 		why.position = Vector2(24, 172)
 		box.add_child(why)
@@ -704,6 +724,17 @@ func _mini_poster(i: int, holder: Control, cw: float, ch: float, delay: float, s
 	il.position = Vector2(strip + 6, ch - (58 if big else 34))
 	p.add_child(il)
 	var is_new := bool(res.get("is_new", false))
+	if bool(res.get("featured", false)) and featured_note != "":
+		# Printed tag in the corner of a featured hero's print.
+		var fn := PK.t(featured_note, 13 if big else 9, PK.PAPER if not legend else PK.SIGNAL, "mono_bold")
+		var fbg := ColorRect.new()
+		fbg.mouse_filter = MOUSE_FILTER_IGNORE
+		fbg.color = PK.INK if legend else PK.SIGNAL
+		fbg.position = Vector2(strip + 4, 4)
+		fbg.size = fn.get_minimum_size() + Vector2(10, 2)
+		p.add_child(fbg)
+		fn.position = fbg.position + Vector2(5, 1)
+		p.add_child(fn)
 	var note := "NEW HERO" if is_new else "+%d SHARDS" % int(res.get("shards", 0))
 	if not is_new and int(res.get("dust", 0)) > 0:
 		note = "+%d DUST" % int(res.get("dust", 0)) if int(res.get("shards", 0)) == int(res.get("dust", 0)) else note + " +%d DUST" % int(res.get("dust", 0))

@@ -50,6 +50,9 @@ var _line := 0
 var _cheer_left := 0.0
 ## Taps in a row on her (HeroReact) and when the last one landed (seconds of _t).
 var _tap_n := 0
+## Debug shots: a forced hero and look ("base" = no skin).
+var _force_hero := ""
+var _force_skin := ""
 var _tap_at := -10.0
 
 var _built := Vector2.ZERO
@@ -92,8 +95,12 @@ var _t := 0.0
 var _tick := 0.0
 
 
-## params: sheet (bool) opens the Sanctum sheet (screenshots).
+## params: sheet (bool) opens the Sanctum sheet (screenshots); debug builds: hero / skin show a
+## given hero and look (framing checks).
 func setup(params: Dictionary) -> void:
+	if OS.is_debug_build():
+		_force_hero = str(params.get("hero", ""))
+		_force_skin = str(params.get("skin", ""))
 	_build()
 	Game.changed.connect(_refresh)
 	resized.connect(_on_resized)
@@ -588,6 +595,8 @@ func _refresh_objective() -> void:
 ## The hero shown in the lobby: the player's pick if still owned, else the strongest team
 ## hero (heroes with painted art first).
 func _pick_hero() -> String:
+	if _force_hero != "":
+		return _force_hero
 	var want: Variant = Game.setting(HERO_KEY)
 	if want is String and want != "" and Game.owns(want):
 		return want
@@ -631,6 +640,8 @@ func _refresh_hero() -> void:
 	_index_label.text = "%03d" % (order.find(id) + 1)
 	_total_label.text = "/ %03d" % order.size()
 	var skin := Game.equipped_skin(id) if id != "" else ""
+	if _force_skin != "":
+		skin = "" if _force_skin == "base" else _force_skin
 	var key := HeroArt.art_key(id, skin) if id != "" else ""
 	if id == _hero_id and key == _hero_key:
 		return
@@ -649,9 +660,9 @@ func _refresh_hero() -> void:
 	_build_print(id, skin, key)
 	_sprite = HeroArt.make_sprite(id, skin)
 	_anchor.add_child(_sprite)
-	var base_h: float = _sprite.call("get_height")
-	var k := _ph * 0.98 / maxf(base_h, 1.0)
-	_sprite.scale = Vector2(k, k)
+	# Framed by her real outline: as tall as the poster, smaller when a wide pose (a weapon held
+	# out, bent over) would run past the band or the right-hand rule.
+	HeroArt.fit_sprite(_sprite, _anchor, Rect2(BAND - 70.0, _ph * 0.02, _pw - 54.0 - (BAND - 70.0), _ph * 0.98), BAND + 250.0)
 	var lines := LobbyLines.lines(id)
 	_line = int(Time.get_unix_time_from_system() / 60.0) % lines.size()
 	_typeset(lines[_line], false)

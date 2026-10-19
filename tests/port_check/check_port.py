@@ -19,7 +19,10 @@ HEROES = load("heroes")["heroes"]
 HERO = {h["id"]: h for h in HEROES}
 STAGES = load("stages")
 ECO = load("economy")
-BANNER = load("banner")["banners"][0]
+BANNER_FILE = load("banner")
+BANNER = BANNER_FILE["banners"][0]
+BANNERS = {b["id"]: b for b in BANNER_FILE["banners"]}
+EPOCH = BANNER_FILE.get("epoch_day", 0)
 BATTLE = load("battle")
 TOWER = load("tower")
 
@@ -231,9 +234,10 @@ def make_item(slot, tier, seed, seq):
     noun = r.pick(G["item_names"][s])
     return {"uid": "g%d" % seq, "slot": s, "tier": t, "name": "%s %s" % (G["tier_names"][t], noun), "stats": st, "equipped_by": ""}
 
-def pool_by_rarity(b):
+def pool_by_rarity(b, faction=""):
     out = {"rare": [], "epic": [], "legendary": []}
     for i in b["pool"]:
+        if faction and HERO[i]["faction"] != faction: continue
         out[HERO[i]["rarity"]].append(i)
     return out
 def rarity_for_roll(r, b):
@@ -241,19 +245,57 @@ def rarity_for_roll(r, b):
     if r < R["legendary"]: return "legendary"
     if r < R["legendary"] + R["epic"]: return "epic"
     return "rare"
-def pull(b, seed, total, pity, count):
-    pool = pool_by_rarity(b)
+def pull(b, seed, total, pity, count, opts=None):
+    """Every banner kind: standard, featured (rate-up 50/50 + guarantee), faction (one faction's
+    pool), wish (Legendary = target), envoy (no pity: pity_legendary 0)."""
+    opts = opts or {}
+    kind = b.get("kind", "standard")
+    pool = pool_by_rarity(b, opts.get("faction", "") if kind == "faction" else "")
+    feat = opts.get("featured", "") if kind == "featured" else ""
+    lost = opts.get("lost", False)
+    target = opts.get("target", "") if kind == "wish" else ""
+    others = [i for i in pool["legendary"] if i != feat]
+    pmax = b.get("pity_legendary", 0)
     rng = Rng(mix(seed, total))
     res, got = [], False
     for i in range(count):
-        rar = "legendary" if pity >= b["pity_legendary"] - 1 else rarity_for_roll(rng.range_int(0, 9999), b)
+        rar = "legendary" if pmax > 0 and pity >= pmax - 1 else rarity_for_roll(rng.range_int(0, 9999), b)
         if count == 10 and i == 9 and not got and rar == "rare":
             rar = b["ten_pull_guarantee"]
         if rar != "rare": got = True
-        pity = 0 if rar == "legendary" else pity + 1
+        if pmax > 0: pity = 0 if rar == "legendary" else pity + 1
         total += 1
-        res.append({"hero_id": rng.pick(pool[rar]), "rarity": rar, "pity": pity})
-    return {"results": res, "pity": pity, "total_pulls": total}
+        if rar == "legendary" and feat:
+            if lost or rng.chance_bp(b.get("featured_bp", 5000)): hid = feat
+            elif not others: hid = feat
+            else: hid = rng.pick(others)
+            lost = hid != feat
+        elif rar == "legendary" and target:
+            hid = target
+        else:
+            hid = rng.pick(pool[rar])
+        r = {"hero_id": hid, "rarity": rar, "pity": pity}
+        if kind == "featured": r["featured"] = hid == feat
+        res.append(r)
+    out = {"results": res, "pity": pity, "total_pulls": total}
+    if kind == "featured": out["lost"] = lost
+    return out
+def period_index(day, epoch, days):
+    return (day - epoch) // max(1, days)      # Python // floors, like the rules
+def next_change_day(day, epoch, days):
+    return epoch + (period_index(day, epoch, days) + 1) * max(1, days)
+def rotation_pick(lst, day, epoch, days):
+    return lst[period_index(day, epoch, days) % len(lst)] if lst else ""
+def featured_for(b, day, epoch):
+    return rotation_pick(b.get("featured_rotation", []), day, epoch, b.get("rotation_days", 7)) if b.get("kind") == "featured" else ""
+def faction_for(b, day, epoch):
+    return rotation_pick(b.get("faction_rotation", []), day, epoch, b.get("rotation_days", 1)) if b.get("kind") == "faction" else ""
+def limit_period(b, day, epoch):
+    p = b.get("limit", {}).get("period", "")
+    return day if p == "day" else (period_index(day, epoch, 7) if p == "week" else -1)
+def limit_resets_day(b, day, epoch):
+    p = b.get("limit", {}).get("period", "")
+    return day + 1 if p == "day" else (next_change_day(day, epoch, 7) if p == "week" else -1)
 
 # ------------------------------------------------------------------ section 7 battle
 B = BATTLE
@@ -754,6 +796,20 @@ for c in f["cases"]:
     for n in c["counts"]:
         r = pull(BANNER, c["seed"], tot, pity, n); outs.append(r); tot, pity = r["total_pulls"], r["pity"]
     check("summon." + c["name"], c["out"], outs)
+for c in f.get("banner_cases", []):
+    outs, tot, pity, opts = [], c["total_pulls"], c["pity"], dict(c["opts"])
+    for n in c["counts"]:
+        r = pull(BANNERS[c["banner"]], c["seed"], tot, pity, n, opts); outs.append(r); tot, pity = r["total_pulls"], r["pity"]
+        if "lost" in r: opts["lost"] = r["lost"]
+    check("summon." + c["name"], c["out"], outs)
+if "rotation" in f:
+    e, fb, cb, wb, eb = f["epoch_day"], BANNERS["featured"], BANNERS["faction"], BANNERS["wish"], BANNERS["envoy"]
+    check("summon.epoch_day", f["epoch_day"], EPOCH)
+    check("summon.rotation", [c["out"] for c in f["rotation"]], [{
+        "featured": featured_for(fb, d, e), "featured_next_change": next_change_day(d, e, fb["rotation_days"]),
+        "faction": faction_for(cb, d, e), "faction_next_change": next_change_day(d, e, cb["rotation_days"]),
+        "wish_period": limit_period(wb, d, e), "wish_resets": limit_resets_day(wb, d, e),
+        "envoy_period": limit_period(eb, d, e), "envoy_resets": limit_resets_day(eb, d, e)} for d in [c["day"] for c in f["rotation"]]])
 
 f = fx("battles")
 for b in f["battles"]:

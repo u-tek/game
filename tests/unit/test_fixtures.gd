@@ -63,6 +63,42 @@ func test_fixture_summon(t: TestCtx) -> void:
 	var forced: Dictionary = names.get("ten_pull_guarantee_upgrades_tenth", {})
 	t.ok(not forced.is_empty() and forced.out[0].results[9].rarity == "epic", "guarantee case ends in an Epic")
 	t.eq(names.pity_59_forces_legendary.out[0].results[0].rarity, "legendary")
+	# The banner cases must cover what a port has to get right: a won and a lost 50/50, the
+	# guarantee after a loss, a faction-only pool, the wish target and an envoy without Legendaries.
+	var bn := {}
+	for c in f.get("banner_cases", []):
+		bn[c.name] = c
+	t.eq(bn.size(), 9, "nine banner cases")
+	var won := false
+	var lost_then_featured := false
+	var lost_any := false
+	var prev_lost := false
+	for o in bn.featured_long_chain.out:
+		for r in o.results:
+			if r.rarity == "legendary":
+				if r.featured and not prev_lost:
+					won = true
+				if r.featured and prev_lost:
+					lost_then_featured = true
+				if not r.featured:
+					lost_any = true
+				prev_lost = not r.featured
+	t.ok(won and lost_any and lost_then_featured, "featured chain has a won 50/50, a lost one and the guarantee")
+	t.eq(bn.featured_lost_forces_featured.out[0].results[0].hero_id, "noctaire")
+	for o in bn.faction_celestial_chain.out:
+		for r in o.results:
+			t.eq(str(HeroData.get_def(r.hero_id).faction), "celestial")
+	var wished := 0
+	for o in bn.wish_target_chain.out:
+		for r in o.results:
+			if r.rarity == "legendary":
+				wished += 1
+				t.eq(r.hero_id, "noctaire")
+	t.ok(wished > 0, "the wish chain has a Legendary")
+	for o in bn.envoy_no_legendary.out:
+		for r in o.results:
+			t.ok(r.rarity != "legendary")
+	t.eq(f.rotation.size(), 16)
 
 
 func test_fixture_battles(t: TestCtx) -> void:
