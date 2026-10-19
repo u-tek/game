@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for cirella ring_toss, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s153001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "ring_toss.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [526, 934, 340],
+  "look_px": [8, 5],
+  "meta": {"weapon": "chakram", "fx_color": "#ffe9a8", "art": "comfy s153001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [557, 1325]},
+    {"name": "torso", "parent": "hips", "pivot": [525, 1235]},
+    {"name": "chest", "parent": "torso", "pivot": [556, 1126]},
+    {"name": "neck", "parent": "chest", "pivot": [532, 1027]},
+    {"name": "head", "parent": "neck", "pivot": [520, 1000]},
+    {"name": "face", "parent": "head", "pivot": [526, 928]},
+    {"name": "hair_front", "parent": "head", "pivot": [526, 853]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [526, 941], "radius": [66, 55], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [526, 874], "radius": [78, 38], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [526, 916], "radius": [126, 119], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[452, 1017], [612, 1017], [701, 1066], [694, 1215], [626, 1245], [424, 1245], [418, 1215], [411, 1066]], "feather": 40}}
+  ],
+  "overlays": []
+}

@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for zecchina jackpot_night, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s224000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "jackpot_night.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [554, 388, 508],
+  "look_px": [8, 5],
+  "meta": {"weapon": "cards", "fx_color": "#ff8a3d", "art": "comfy s224000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [448, 980]},
+    {"name": "torso", "parent": "hips", "pivot": [510, 844]},
+    {"name": "chest", "parent": "torso", "pivot": [446, 678]},
+    {"name": "neck", "parent": "chest", "pivot": [559, 527]},
+    {"name": "head", "parent": "neck", "pivot": [545, 486]},
+    {"name": "face", "parent": "head", "pivot": [554, 379]},
+    {"name": "hair_front", "parent": "head", "pivot": [554, 267]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [554, 398], "radius": [98, 82], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [554, 299], "radius": [117, 56], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [554, 360], "radius": [188, 178], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[440, 517], [678, 517], [662, 618], [651, 824], [661, 854], [359, 854], [241, 824], [230, 618]], "feather": 40}}
+  ],
+  "overlays": []
+}

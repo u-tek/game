@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for verdelle garden_party, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s174000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "garden_party.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [575, 778, 394],
+  "look_px": [8, 5],
+  "meta": {"weapon": "watering_can", "attack": "attack_ranged", "fx_color": "#ffe9a8", "art": "comfy s174000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [532, 1226]},
+    {"name": "torso", "parent": "hips", "pivot": [575, 1123]},
+    {"name": "chest", "parent": "torso", "pivot": [575, 997]},
+    {"name": "neck", "parent": "chest", "pivot": [580, 883]},
+    {"name": "head", "parent": "neck", "pivot": [568, 852]},
+    {"name": "face", "parent": "head", "pivot": [575, 770]},
+    {"name": "hair_front", "parent": "head", "pivot": [575, 685]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [575, 785], "radius": [76, 63], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [575, 709], "radius": [91, 43], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [575, 756], "radius": [146, 136], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[488, 873], [672, 873], [743, 937], [735, 1103], [693, 1133], [457, 1133], [415, 1103], [407, 937]], "feather": 40}}
+  ],
+  "overlays": []
+}

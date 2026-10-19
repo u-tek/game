@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for ferrael forge_bunny, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s163001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "forge_bunny.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [487, 923, 373],
+  "look_px": [8, 5],
+  "meta": {"weapon": "hammer", "fx_color": "#ffe9a8", "art": "comfy s163001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [481, 1321]},
+    {"name": "torso", "parent": "hips", "pivot": [490, 1231]},
+    {"name": "chest", "parent": "torso", "pivot": [477, 1121]},
+    {"name": "neck", "parent": "chest", "pivot": [507, 1021]},
+    {"name": "head", "parent": "neck", "pivot": [480, 994]},
+    {"name": "face", "parent": "head", "pivot": [487, 916]},
+    {"name": "hair_front", "parent": "head", "pivot": [487, 835]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [487, 930], "radius": [72, 60], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [487, 858], "radius": [86, 41], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [487, 903], "radius": [138, 129], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[420, 1011], [594, 1011], [636, 1061], [628, 1211], [601, 1241], [379, 1241], [326, 1211], [318, 1061]], "feather": 40}}
+  ],
+  "overlays": []
+}
