@@ -1688,12 +1688,14 @@ static func dialog(title_text: String, content: Control, width: float = 640.0, l
 	panel_c.theme_type_variation = &"DialogPanel" if light else &"ModalPanel"
 	panel_c.add_theme_stylebox_override("panel", UITheme.style("dialog" if light else "dialog_dark"))
 	panel_c.custom_minimum_size.x = width
-	# The print under everything (clipped to the sheet).
+	# The print under everything (clipped to the sheet), on real paper (light sheets).
 	var prints := Control.new()
 	prints.name = "Print"
 	prints.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	prints.clip_contents = true
 	panel_c.add_child(prints)
+	if light:
+		PhysicalKit.paper_fill(prints, UITheme.PRINT_PAPER)
 	if not light:
 		var ramp := halftone_ramp(Vector2(300, 134), PRINT_RED, 7.0, "right")
 		ramp.anchor_left = 1.0
@@ -1732,6 +1734,11 @@ static func dialog(title_text: String, content: Control, width: float = 640.0, l
 	var serial := label("SHEET No.%02d  ·  HALO & HORN" % no, 12, ink, "mono_bold")
 	serial.position = Vector2(sx, 20)
 	head.add_child(serial)
+	# A real status light at the end of the serial line (orange: a sheet waiting on you).
+	var led := PhysicalKit.Led.new("orange", "steady", 15.0)
+	led.name = "SheetLed"
+	led.position = Vector2(sx + serial.get_minimum_size().x + 12.0, 21)
+	head.add_child(led)
 	var t := label(title_text.to_upper(), 76, ink, "compressed")
 	t.name = "Title"
 	t.position = Vector2(25, 34)
@@ -1742,7 +1749,8 @@ static func dialog(title_text: String, content: Control, width: float = 640.0, l
 		t.clip_text = true
 		t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		t.size = Vector2(avail, 83)
-	head.add_child(t)
+	# The title pressed into the sheet.
+	PhysicalKit.deboss(head, 3.0).add_child(t)
 	var rule := tick_rule(0.0, Color(ink, 0.55), {"lead": ACCENT})
 	rule.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	rule.offset_left = 28

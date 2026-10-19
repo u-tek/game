@@ -146,8 +146,9 @@ func show_victory(data: Dictionary) -> void:
 		ht.position = Vector2(0, ph * 0.5)
 		ht.size = Vector2(BAND_W, ph * 0.5)
 		p.add_child(ht)
-	BP.at(p, BP.t("HH", 30, BP.PAPER, "wide_black"), Vector2(18, 14))
-	BP.at(p, BP.t("™", 12, BP.PAPER, "mono"), Vector2(76, 16))
+	# The maker's mark at the band's foot (chrome thorns crawl over its head).
+	BP.at(p, BP.t("HH", 30, BP.PAPER, "wide_black"), Vector2(18, ph - 58))
+	BP.at(p, BP.t("™", 12, BP.PAPER, "mono"), Vector2(76, ph - 56))
 	var rights := BP.t("BATTLE REPORT  ·  ©2026 HH, ALL RIGHTS RESERVED.", 10, Color(BP.PAPER, 0.8), "mono_bold")
 	rights.rotation = PI * 0.5
 	rights.position = Vector2(30, 70)
@@ -164,7 +165,7 @@ func show_victory(data: Dictionary) -> void:
 	var pos := Vector2(feet_x + cap.y, 26.0)
 	var block := Vector2(room + 80.0, fs * 1.3)
 	var paper_r := Rect2(BAND_W, 0, pw - BAND_W, ph)
-	_giant = BP.giant(p, word, fs, pos + Vector2(6, 5), block, [[paper_r, Color(BP.INK, 0.92)]])
+	_giant = BP.giant(p, word, fs, pos + Vector2(6, 5), block, [[paper_r, Color(BP.INK, 0.92)]], PI * 0.5, "compressed", -14, false)
 	_giant.append_array(BP.giant(p, word, fs, pos, block, [[Rect2(0, 0, BAND_W, ph), BP.PAPER], [paper_r, BP.SIG]]))
 	var x0 := feet_x + cap_h + 16.0
 	var cw_all := x_end - x0
@@ -201,6 +202,9 @@ func show_victory(data: Dictionary) -> void:
 	HPK.rule(p, box.position + Vector2(box.size.x - 1, 0), Vector2(1, box.size.y))
 	var fig := BP.t("FIG. 01  ·  MVP", 10, Color(BP.INK, 0.75), "mono_bold")
 	BP.at(p, fig, box.position + Vector2(8, 6))
+
+	# Physical: chrome thorns crawl over the band's top corner (over the poster, under the pass).
+	PhysicalKit.growth("celestial", "tl", _page, _pr.position + Vector2(16, 16), 76.0)
 
 	# Down the right-hand rule.
 	_rule_labels(p, pw - RULE, 0.0, ph, ["©2026 ·", "VICTORY", "CLEARED %s" % _clock(int(out.get("duration_ms", 0))),
@@ -346,7 +350,7 @@ func show_defeat(data: Dictionary) -> void:
 		fade.position = pr_rect.position - Vector2(2, 0)
 		fade.size = Vector2(150, band_h)
 		p.add_child(fade)
-	_title_block(p, data, 24.0, 18.0, pw - 48.0, BP.PAPER)
+	_title_block(p, data, 24.0, 18.0, pw - 150.0, BP.PAPER)
 
 	# DEFEAT, turned and cut by the left edge: paper on the band, ink on the paper, over a signal
 	# plate out of register.
@@ -362,8 +366,12 @@ func show_defeat(data: Dictionary) -> void:
 	var block := Vector2(length + 60.0, fs * 1.3)
 	var band_r := Rect2(0, 0, pw, band_h)
 	var paper_r := Rect2(0, band_h, pw, ph - band_h)
-	_giant = BP.giant(p, word, fs, pos + Vector2(7, 6), block, [[band_r, BP.SIG], [paper_r, BP.SIG]])
+	_giant = BP.giant(p, word, fs, pos + Vector2(7, 6), block, [[band_r, BP.SIG], [paper_r, BP.SIG]], PI * 0.5, "compressed", -14, false)
 	_giant.append_array(BP.giant(p, word, fs, pos, block, [[band_r, BP.PAPER], [paper_r, BP.INK]]))
+
+	# Physical: a frame of jelly and moss over the band's top-right and the poster's bottom-left corners.
+	PhysicalKit.growth("infernal", "tr", _page, _pr.position + Vector2(pw - 12, 12), 62.0)
+	PhysicalKit.growth("infernal", "bl", _page, _pr.position + Vector2(12, ph - 12), 62.0)
 
 	var dx := feet_x + cap_h + 30.0
 	var dx_end := pw - RULE - 10.0

@@ -49,24 +49,7 @@ static func matte(parent: Node) -> ColorRect:
 ## A printed poster at `rect` (paper, soft drop shadow on the matte). Returns the clipped poster
 ## Control to build in, in its own coordinates.
 static func poster(parent: Node, rect: Rect2, shadow: int = 22, paper: Color = PAPER) -> Control:
-	var sh := Panel.new()
-	sh.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var ss := StyleBoxFlat.new()
-	ss.bg_color = paper
-	ss.shadow_color = Color(0, 0, 0, 0.28)
-	ss.shadow_size = shadow
-	ss.shadow_offset = Vector2(0, roundf(shadow * 0.36))
-	sh.add_theme_stylebox_override("panel", ss)
-	sh.position = rect.position
-	sh.size = rect.size
-	parent.add_child(sh)
-	var p := Control.new()
-	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	p.clip_contents = true
-	p.position = rect.position
-	p.size = rect.size
-	parent.add_child(p)
-	return p
+	return PhysicalKit.sheet(parent, rect, paper, 0.28, {"shadow_r": float(shadow)})
 
 
 static func rect(parent: Node, r: Rect2, color: Color) -> ColorRect:
@@ -141,7 +124,8 @@ static func echo(hero_id: String, skin: String, height: float, alpha: float = 0.
 ## size before turning (width = its length down the poster). turned false: set level, pos = its
 ## top-left corner.
 static func giant(parent: Control, bb: String, font_size: int, pos: Vector2, block: Vector2, regions: Array,
-		line_sep: int = -14, weight: String = "compressed", turned: bool = true) -> void:
+		line_sep: int = -14, weight: String = "compressed", turned: bool = true, deboss: bool = true) -> void:
+	var host: Node = PhysicalKit.deboss(parent, clampf(font_size * 0.03, 2.5, 6.0)) if deboss else parent
 	for r: Array in regions:
 		var rr: Rect2 = r[0]
 		var clip := Control.new()
@@ -149,7 +133,7 @@ static func giant(parent: Control, bb: String, font_size: int, pos: Vector2, blo
 		clip.clip_contents = true
 		clip.position = rr.position
 		clip.size = rr.size
-		parent.add_child(clip)
+		host.add_child(clip)
 		var rt := RichTextLabel.new()
 		rt.bbcode_enabled = true
 		rt.text = bb

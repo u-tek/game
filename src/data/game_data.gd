@@ -87,6 +87,11 @@ static func tower() -> Dictionary:
 	return file("tower")
 
 
+## The campaign worlds' presentation (planet codes and flavour readouts; no rules).
+static func worlds() -> Dictionary:
+	return file("worlds")
+
+
 ## JSON numbers parse as floats: turn whole numbers back into ints, recursively.
 static func intify(v: Variant) -> Variant:
 	if v is float:

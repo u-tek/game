@@ -3,20 +3,32 @@ extends Control
 ## chapter as a printed survey poster on the paper matte. A dark band down the left carries the
 ## chapter boss as a red halftone print and the micro type (back, ©, sheet number, date); the
 ## chapter name runs huge down the poster in compressed type, two-tone where it crosses the band.
-## The centrepiece is the chapter's exploded survey map (src/ui/v4/survey/survey_map.gd: a real 3D
-## terrain slab printed as halftone relief, with CONTOURS, HYDROGRAPHY and the STAGE sheet pulled
-## apart above it, leader lines and mono ids); tap a stage mark to select it, drag to turn the map.
-## The map is alive but calm (floating sheets, flowing rivers, a contour scan, drifting clouds, a
-## slow orbit; still with Reduce motion); BACK (SignalKit.back_button) sits at the top of the band.
+## The centrepiece is the chapter's survey map (src/ui/v4/survey/survey_map.gd, built like the
+## owner's isometric-terrain reference): a physical relief model of the chapter's world lying on the
+## poster, its stage route a molten river, valleys lit warm, clouds drifting over it with their
+## shadows, each stage a mark on the river with an id tag on a thin leader; tap a mark to select it,
+## drag to turn the model. Printed with it: the survey data slip (area, relief, river, surface
+## temperature in two units), the scale bar with a north arrow, and under the model the route profile
+## (a sine wave through the stage circles; tap a circle to select that stage). The map is alive but
+## calm (still with Reduce motion); BACK (SignalKit.back_button) sits at the top of the band.
 ## Top right, the chapter's title block (sheet number, name, coordinates, host, counter, cleared);
-## down the right edge, the chapter index as vertical labels with ticks (STORY, CH 01-06, locked
-## ones dim). Under the map, the selected stage's cartouche (id, name, power check, enemy echoes,
-## first-clear rewards, BOSS / CLEARED stamps), the TEAM stamp and the Fight pass stuck on.
-## The first visit to a newly opened chapter shows its story intro.
-## params: open_stage (int) selects that stage (and its chapter); intro (bool, default true).
+## down the right edge, the index (STORY, WORLDS, the chapter's place among the six). Under the map,
+## the selected stage's cartouche (id, name, power check, enemy echoes, first-clear rewards, BOSS /
+## CLEARED stamps), the TEAM stamp and the Fight pass stuck on.
+## Chapters are worlds: WORLDS on the index zooms out to the chapter dossier (WorldDossier, built
+## like the owner's planet-dossier reference: the chapter's planet turning in a printed instrument,
+## the name between ‹ › arrows, a mono data list, the ENTER pass); tapping the world or ENTER dives
+## into its survey map. The first visit to a newly opened chapter opens on its world, and entering
+## it shows the chapter's story intro.
+## params: open_stage (int) selects that stage (and its chapter); intro (bool, default true: false
+## skips the first-visit world and the story); debug builds: preview_chapter (int) prints that
+## chapter's map, dossier (int) that chapter's world, locked or not (look_open: printed as open).
 
 const Poster := preload("res://src/ui/v4/survey/poster.gd")
 const SurveyMap := preload("res://src/ui/v4/survey/survey_map.gd")
+const SurveyLegend := preload("res://src/ui/v4/survey/survey_legend.gd")
+const TerrainGen := preload("res://src/ui/v4/survey/terrain_gen.gd")
+const WorldDossier := preload("res://src/ui/v4/survey/world_dossier.gd")
 const SceneBackdrop := preload("res://src/ui/battle/scene_backdrop.gd")
 const StageInfo := preload("res://src/ui/battle/stage_info.gd")
 
@@ -26,6 +38,8 @@ const W := 720.0
 const BAND_W := 132.0
 ## The index column on the right edge.
 const RULE_W := 48.0
+## The route profile's strip under the map.
+const PROFILE_H := 92.0
 const INK := Color("101113")
 const PAPER := Color("e9e8e2")
 const SIG := Color("ff4b1f")
@@ -37,11 +51,15 @@ var _root: Control
 var _poster: Control
 var _pr := Rect2()
 var _map: SurveyMap
+var _profile: Control
 var _sheet: Control
 var _pass_slot: Control
 var _fight_btn: Button
 var _popup: Control
 var _stage_y := 0.0
+## The chapter dossier while it shows (null on the map), and true while it dives into a map.
+var _dossier: WorldDossier
+var _diving := false
 
 
 func setup(params: Dictionary) -> void:
@@ -53,19 +71,37 @@ func setup(params: Dictionary) -> void:
 	_root.mouse_filter = MOUSE_FILTER_IGNORE
 	_root.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	add_child(_root)
+	Game.changed.connect(_refresh)
 	var open := int(params.get("open_stage", -1))
 	var focus := open if open >= 0 and Game.stage_status(open) != "locked" else _default_stage()
 	var preview := int(params.get("preview_chapter", -1))
+	var dossier := int(params.get("dossier", -1))
+	if dossier >= 0 and dossier < Game.chapters().size() and OS.is_debug_build():
+		# Screenshots / design review (debug builds): any chapter's world, locked or not;
+		# auto_enter (s) dives into it after that long, auto_out (s) comes back out.
+		_show_dossier(dossier)
+		if params.has("auto_enter"):
+			get_tree().create_timer(float(params["auto_enter"])).timeout.connect(func() -> void:
+				if is_inside_tree():
+					_enter_world(dossier)
+					if params.has("auto_out"):
+						get_tree().create_timer(float(params["auto_out"])).timeout.connect(func() -> void:
+							if is_inside_tree():
+								_show_worlds()))
+		return
 	if preview >= 0 and preview < Game.chapters().size() and OS.is_debug_build():
 		# Screenshots / design review (debug builds): print any chapter, locked or not.
 		focus = int(Game.chapters()[preview].get("first_stage", 0)) + int(Game.chapters()[preview].get("stage_count", 10)) - 1
+	elif bool(params.get("intro", true)) and _intro_due():
+		# A newly opened chapter (from the Lobby, or the battle's Next into a new chapter): its world
+		# comes first; entering it shows the story.
+		_show_dossier(_frontier_chapter())
+		return
 	_show_chapter(int(Game.stage(focus).get("chapter", 0)), focus)
-	Game.changed.connect(_refresh)
-	_after_layout.call_deferred()
 
 
-## The screen's own entrance (UI calls it instead of the generic stagger): the map's sheets lift
-## off the terrain by themselves.
+## The screen's own entrance (UI calls it instead of the generic stagger): the map's model settles
+## onto the poster, the world's instrument draws on, by themselves.
 func intro() -> void:
 	pass
 
@@ -76,7 +112,7 @@ func _exit_tree() -> void:
 
 
 func _refresh() -> void:
-	if _selected >= 0 and is_inside_tree():
+	if _selected >= 0 and is_inside_tree() and _dossier == null and _sheet != null and is_instance_valid(_sheet):
 		_build_cartouche(_selected)
 
 
@@ -96,18 +132,145 @@ func _frontier_chapter() -> int:
 ## Shows chapter `ci` (the whole poster is printed for it) and selects stage `focus`.
 func _show_chapter(ci: int, focus: int) -> void:
 	_chapter = ci
-	for c in _root.get_children():
-		_root.remove_child(c)
-		c.queue_free()
+	_dossier = null
+	_diving = false
+	_clear()
 	_build_poster(Game.chapters()[ci])
 	_select(focus)
 
 
-func _build_poster(ch: Dictionary) -> void:
+func _clear() -> void:
+	for c in _root.get_children():
+		_root.remove_child(c)
+		c.queue_free()
+	_map = null
+	_profile = null
+	_sheet = null
+	_fight_btn = null
+
+
+## The poster rect (inside the matte, between the masthead and the date line).
+func _poster_rect() -> Rect2:
 	var vh := get_viewport_rect().size.y
 	var top := UI.content_top()
 	var bottom := UI.content_bottom()
-	_pr = Rect2(18, top + 12, W - 36, vh - bottom - 58 - (top + 12))
+	return Rect2(18, top + 12, W - 36, vh - bottom - 58 - (top + 12))
+
+
+# ------------------------------------------------------------------ the worlds (chapter select)
+
+## True when the frontier chapter is open and its story has not been shown yet.
+func _intro_due() -> bool:
+	var frontier := _frontier_chapter()
+	var seen_v: Variant = Game.setting(INTRO_KEY)
+	var seen: int = int(seen_v) if (seen_v is int or seen_v is float) else -1
+	return seen < frontier and Game.stage_status(int(Game.chapters()[frontier].first_stage)) != "locked"
+
+
+## Prints chapter `ci` as a world on its dossier. arriving: the planet zooms out to its place (coming
+## back from a map).
+func _show_dossier(ci: int, arriving: bool = false) -> void:
+	_chapter = ci
+	_selected = -1
+	_diving = false
+	_clear()
+	_pr = _poster_rect()
+	_poster = Poster.poster(_root, _pr)
+	_dossier = WorldDossier.new()
+	_dossier.name = "WorldDossier"
+	_dossier.size = _pr.size
+	_dossier.look_open = OS.is_debug_build() and bool(_params.get("look_open", false))
+	_poster.add_child(_dossier)
+	_dossier.build(ci)
+	_dossier.enter_pressed.connect(func() -> void: _enter_world(ci))
+	_dossier.switch_pressed.connect(func(k: int) -> void:
+		if k >= 0 and k < Game.chapters().size() and not _diving:
+			Kit.sfx("tap")
+			_show_dossier(k))
+	var back := SignalKit.back_button(func() -> void: UI.back(), true)
+	back.position = Vector2(0, 2)
+	_poster.add_child(back)
+	# Under the poster: the date and the world's code as a signature.
+	var fy := _pr.end.y + 12.0
+	Poster.at(_root, Poster.t(Poster.date_long(), 22, INK, "regular"), Vector2(20, fy + 8))
+	var wd := WorldDossier.world_of(ci)
+	var sig := Poster.t("World %s" % str(wd.get("code", "")), 40, INK, "serif_italic")
+	sig.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	sig.size = Vector2(300, 46)
+	Poster.at(_root, sig, Vector2(W - 24 - 300, fy - 6))
+	Poster.rect(_root, Rect2(W - 230, fy + 38, 200, 2), INK).rotation = -0.05
+	Poster.grain(_root)
+	SignalKit.relight(_root)
+	# First-session guidance: into the frontier world.
+	if _dossier.enter_button:
+		Guide.mark(_dossier.enter_button, ci == _frontier_chapter() and Guide.step() == "battle", -1)
+	if arriving:
+		_dossier.arrive()
+
+
+## Into chapter `ci`'s survey map: the dossier dives into the planet, then the map prints; a chapter
+## seen for the first time shows its story.
+func _enter_world(ci: int) -> void:
+	if _diving:
+		return
+	var first := int(Game.chapters()[ci].get("first_stage", 0))
+	if Game.stage_status(first) == "locked" and not (OS.is_debug_build() and _params.has("dossier")):
+		UI.toast("Clear %s first" % str(Game.stage(first - 1).get("id", "the previous chapter")))
+		if _dossier and _dossier.world_view:
+			Kit.shake(_dossier.world_view, 6)
+		return
+	_diving = true
+	Kit.sfx("tap")
+	if _dossier and _dossier.enter_button:
+		Guide.mark(_dossier.enter_button, false)
+	var focus := _default_stage()
+	var open := int(_params.get("open_stage", -1))
+	if open >= 0 and int(Game.stage(open).get("chapter", -1)) == ci and Game.stage_status(open) != "locked":
+		focus = open
+	elif int(Game.stage(focus).get("chapter", 0)) != ci:
+		focus = first + int(Game.chapters()[ci].get("stage_count", 10)) - 1
+	var go := func() -> void:
+		if not is_inside_tree():
+			return
+		_show_chapter(ci, focus)
+		_flash()
+		_maybe_intro(ci)
+	if _dossier:
+		_dossier.dive(go)
+	else:
+		go.call()
+
+
+## Out of the map to the dossier (WORLDS): the planet zooms out to its place.
+func _show_worlds() -> void:
+	_show_dossier(_chapter, true)
+
+
+## A paper flash over the poster as the map prints in after the dive.
+func _flash() -> void:
+	if not Kit.motion_ok():
+		return
+	var f := ColorRect.new()
+	f.color = PAPER
+	f.mouse_filter = MOUSE_FILTER_IGNORE
+	f.position = _pr.position
+	f.size = _pr.size
+	_root.add_child(f)
+	var tw := f.create_tween()
+	tw.tween_property(f, "modulate:a", 0.0, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_callback(f.queue_free)
+
+
+## The story of chapter `ci` the first time its map opens.
+func _maybe_intro(ci: int) -> void:
+	if ci != _frontier_chapter() or not _intro_due():
+		return
+	Game.set_setting(INTRO_KEY, ci)
+	_show_intro(ci, Callable())
+
+
+func _build_poster(ch: Dictionary) -> void:
+	_pr = _poster_rect()
 	_poster = Poster.poster(_root, _pr)
 	var p := _poster
 	var pw := _pr.size.x
@@ -135,15 +298,21 @@ func _build_poster(ch: Dictionary) -> void:
 	var name_txt := str(ch.get("name", ""))
 	Poster.giant_side(p, name_txt, 150, 150.0, 104.0, 0.0, BAND_W, faction == "infernal")
 
-	# ---- The survey map.
+	# ---- The survey map: the terrain model over the middle, the route profile under it.
+	var rx := pw - RULE_W
+	var map_bottom := _stage_y - PROFILE_H - 4.0
 	_map = SurveyMap.new()
 	_map.name = "SurveyMap"
 	_map.position = Vector2(0, 100)
-	_map.size = Vector2(pw - RULE_W - 4, _stage_y - 100 + 6)
-	_map.overscan = Vector2(120, 120)
-	_map.shift = Vector2(1.6, -0.25)
+	_map.size = Vector2(rx - 4, map_bottom - 100)
+	_map.overscan = Vector2(120, 40)
+	_map.yaw = -24.0
+	_map.pitch = -40.0
+	_map.ortho_width = 16.0
+	_map.target_y = 0.55
+	_map.shift = Vector2(1.3, -1.35)
 	# Raised stage labels stay below the title block (view px; the view starts 120 px higher).
-	_map.label_floor = 132.0 + 120.0 - 100.0
+	_map.label_floor = 129.0 + 120.0 - 100.0
 	p.add_child(_map)
 	var stages: Array = []
 	for j in count:
@@ -152,6 +321,43 @@ func _build_poster(ch: Dictionary) -> void:
 			"boss": bool(st.get("is_boss", false))})
 	_map.show_chapter(ci, faction, stages)
 	_map.stage_pressed.connect(func(j: int) -> void: _on_node(first + j))
+	# The legend: the route profile (tap a circle to pick a stage), the survey data table, the scale.
+	_profile = SurveyLegend.RouteProfile.new()
+	_profile.name = "RouteProfile"
+	_profile.stages = stages
+	_profile.title = "THE ROUTE  ·  MOLTEN RIVER"
+	_profile.length_km = _map.route_lengths().x * 0.85
+	_profile.position = Vector2(BAND_W + 10, map_bottom + 2)
+	_profile.size = Vector2(rx - BAND_W - 18, PROFILE_H)
+	_profile.pressed.connect(func(j: int) -> void: _on_node(first + j))
+	p.add_child(_profile)
+	# Survey data in two units, from the model (1 world unit = 0.85 km, relief drawn 2x).
+	var tg := _map.terrain
+	var km := 0.85
+	var area := TerrainGen.W * TerrainGen.D * km * km
+	var relief := int(round((tg.h_max - tg.h_min) * km * 1000.0 * 0.5))
+	var river := _map.route_lengths().x * km
+	var temp := "--"
+	var temp_f := ""
+	for ro: Variant in WorldDossier.world_of(ci).get("readouts", []):
+		if ro is Array and str(ro[0]).to_lower().begins_with("surface"):
+			temp = str(ro[1])
+			temp_f = "%d °F" % int(round(temp.to_int() * 9.0 / 5.0 + 32.0))
+	var tbl := SurveyLegend.DataTable.new()
+	tbl.name = "SurveyData"
+	tbl.rows = [["Area", "%.1f km²" % area, "%.1f sq mi" % (area * 0.3861)], ["Relief", "%s m" % Kit.format_full(relief), "%s ft" % Kit.format_full(int(relief * 3.281))],
+		["River", "%.1f km" % river, "%.1f mi" % (river * 0.6214)], ["Surface", temp, temp_f]]
+	tbl.position = Vector2(BAND_W + 16, 112)
+	tbl.size = Vector2(202, 84)
+	p.add_child(tbl)
+	var sb := SurveyLegend.ScaleBar.new()
+	sb.position = Vector2(rx - 166, map_bottom - 68)
+	sb.size = Vector2(150, 66)
+	p.add_child(sb)
+	# Stage tags and labels keep clear of both (view px: the view starts 120 px above the map).
+	var vo := Vector2(0, 120.0 - 100.0)
+	_map.avoid = [Rect2(tbl.position + vo - Vector2(12, 10), tbl.size + Vector2(18, 10)), Rect2(sb.position + vo - Vector2(6, 4), sb.size + Vector2(8, 6)),
+		Rect2(-40, 0, BAND_W + 46, 2000)]
 
 	# ---- The title block (top right).
 	var x0 := 252.0
@@ -183,18 +389,19 @@ func _build_poster(ch: Dictionary) -> void:
 	cc.size = Vector2(tw, 12)
 	Poster.at(tb, cc, Vector2(0, 58))
 
-	# ---- The index down the right edge: STORY, then the six chapters.
-	var rx := pw - RULE_W
+	# ---- The index down the right edge: STORY, WORLDS (the chapter select: out to the dossier), and
+	# the chapter's place among the worlds.
 	Poster.vline(p, rx, 0, ph, Color(INK, 0.55))
 	Poster.vlabel(p, "©2026 ·", Vector2(rx + 34, 12), 12, INK)
-	var items: Array = [{"text": "STORY", "name": "Story", "on_pressed": func() -> void: _show_intro(ci, Callable())}]
-	for chd: Dictionary in Game.chapters():
-		var k := int(chd.get("index", 0))
-		var unlocked := Game.stage_status(int(chd.get("first_stage", 0))) != "locked"
-		items.append({"text": "CH %02d" % (k + 1) if unlocked else "CH %02d  X" % (k + 1), "name": "Chapter_%d" % (k + 1),
-			"active": k == ci, "dim": not unlocked, "on_pressed": func() -> void: _on_tab(k)})
-	var step := clampf((_stage_y - 96.0) / items.size(), 88.0, 104.0)
-	Poster.side_menu(p, rx, 96.0, step, items)
+	var items: Array = [{"text": "STORY", "name": "Story", "on_pressed": func() -> void: _show_intro(ci, Callable())},
+		{"text": "WORLDS", "name": "Worlds", "active": true, "on_pressed": _show_worlds}]
+	Poster.side_menu(p, rx, 96.0, 112.0, items)
+	var iy := 96.0 + 112.0 * 2.0 + 10.0
+	Poster.vlabel(p, "CH %02d / %02d" % [ci + 1, Game.chapters().size()], Vector2(rx + 32, iy), 14, INK)
+	for k in Game.chapters().size():
+		var on := k == ci
+		var open_k := Game.stage_status(int(Game.chapters()[k].get("first_stage", 0))) != "locked"
+		Poster.rect(p, Rect2(rx + 12, iy + 110 + k * 16, 10 if on else 6, 2 if not on else 3), SIG if on else Color(INK, 0.75 if open_k else 0.3))
 
 	# BACK at the top of the dark band (it overhangs onto the paper), over the map's picture.
 	var back := SignalKit.back_button(func() -> void: UI.back(), false)
@@ -255,19 +462,6 @@ func _on_tab(ci: int) -> void:
 
 # ------------------------------------------------------------------ flow
 
-func _after_layout(intro: bool = true) -> void:
-	await get_tree().process_frame
-	await get_tree().process_frame
-	if not is_inside_tree() or not intro:
-		return
-	var frontier := _frontier_chapter()
-	var seen_v: Variant = Game.setting(INTRO_KEY)
-	var seen: int = int(seen_v) if (seen_v is int or seen_v is float) else -1
-	if bool(_params.get("intro", true)) and seen < frontier and Game.stage_status(int(Game.chapters()[frontier].first_stage)) != "locked":
-		Game.set_setting(INTRO_KEY, frontier)
-		_show_intro(frontier, Callable())
-
-
 func _on_node(i: int) -> void:
 	if Game.stage_status(i) == "locked":
 		var prev := Game.stage(maxi(0, Game.cleared_count()))
@@ -283,6 +477,9 @@ func _select(i: int) -> void:
 	var first := int(Game.chapters()[_chapter].get("first_stage", 0))
 	if _map:
 		_map.select(i - first)
+	if _profile and is_instance_valid(_profile):
+		_profile.set("selected", i - first)
+		_profile.queue_redraw()
 	_build_cartouche(i)
 
 

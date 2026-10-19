@@ -29,24 +29,7 @@ static func matte(parent: Control) -> ColorRect:
 
 ## A printed poster on the matte: a soft shadow and a clipped paper panel (returned).
 static func poster(parent: Control, r: Rect2) -> Control:
-	var shadow := Panel.new()
-	shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var ss := StyleBoxFlat.new()
-	ss.bg_color = PAPER
-	ss.shadow_color = Color(0, 0, 0, 0.28)
-	ss.shadow_size = 22
-	ss.shadow_offset = Vector2(0, 8)
-	shadow.add_theme_stylebox_override("panel", ss)
-	shadow.position = r.position
-	shadow.size = r.size
-	parent.add_child(shadow)
-	var p := Control.new()
-	p.position = r.position
-	p.size = r.size
-	p.clip_contents = true
-	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	parent.add_child(p)
-	return p
+	return PhysicalKit.sheet(parent, r, PAPER)
 
 
 static func rect(parent: Control, r: Rect2, color: Color) -> ColorRect:
@@ -61,6 +44,30 @@ static func rect(parent: Control, r: Rect2, color: Color) -> ColorRect:
 
 static func t(text: String, size: int, color: Color = INK, weight: String = "mono_bold") -> Label:
 	return Kit.label(text, size, color, weight)
+
+
+static var _vfonts: Dictionary = {}
+
+
+## Archivo at an exact weight (100-900) and width (62-125). Godot 4.5 only applies variable-font
+## axes keyed by their integer OpenType tags (Kit.font keys them by name, so its weights all print
+## the font's default instance); this one sets the tags, so compressed is really compressed.
+static func vfont(wght: float, wdth: float) -> Font:
+	var key := "%d:%d" % [int(wght), int(wdth)]
+	if not _vfonts.has(key):
+		var ts := TextServerManager.get_primary_interface()
+		var fv := FontVariation.new()
+		fv.base_font = load("res://assets/fonts/Archivo-Variable.ttf")
+		fv.variation_opentype = {ts.name_to_tag("wght"): wght, ts.name_to_tag("wdth"): wdth}
+		_vfonts[key] = fv
+	return _vfonts[key]
+
+
+## A label in Archivo at an exact weight and width (vfont).
+static func tv(text: String, size: int, color: Color, wght: float, wdth: float) -> Label:
+	var l := Kit.label(text, size, color)
+	l.add_theme_font_override("font", vfont(wght, wdth))
+	return l
 
 
 static func at(parent: Node, c: Control, pos: Vector2) -> Control:

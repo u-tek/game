@@ -1,7 +1,9 @@
 extends SceneTree
 ## Headless smoke run of the poster-look Campaign, Spire and Quests screens (style v4): opens each
 ## through the real main scene, prints every chapter's survey map, switches tabs, selects stages,
-## taps a stage mark, checks the Fight / Claim controls carry their words, and claims quests.
+## taps a stage mark and the route profile, prints every chapter's world dossier, zooms out to the
+## worlds and dives back into a map, checks a new chapter opens on its world and shows its story,
+## checks the Fight / Claim / Enter controls carry their words, and claims quests.
 ##   tools/gd --headless --path . -s tests/tools/v4_survey_smoke.gd -- --rich
 ## Exit code 1 on failure (scan the output for SCRIPT ERROR as well).
 
@@ -91,10 +93,28 @@ func _run() -> void:
 	await _frames(4)
 	_game = root.get_node("Game")
 	_ui = root.get_node("UI")
+	# A newly opened chapter (its story not seen yet) opens on its world; entering it shows the
+	# story. (Runs first: the "seen" mark only ever goes up.)
+	var seen_v: Variant = _game.setting("chapter_intro_seen")
+	var seen: int = int(seen_v) if (seen_v is int or seen_v is float) else -1
+	_ui.go("campaign")
+	await _frames(4)
+	var s: Control = _ui.current
+	if seen < int(s.call("_frontier_chapter")):
+		_check(s.find_child("WorldDossier", true, false) != null, "a new chapter opens on its world")
+		s.call("_enter_world", int(s.get("_chapter")))
+		await create_timer(1.2).timeout
+		_check(s.find_child("SurveyMap", true, false) != null, "entering the world prints its map")
+		_check(_ui.has_modal(), "entering a new world shows its story")
+		while _ui.has_modal():
+			_ui.handle_back()
+			await _frames(1)
+	else:
+		print("SMOKE note: the story of the frontier chapter was already seen; first-visit check skipped")
 	# Campaign: the frontier chapter, then every chapter as a preview.
 	_ui.go("campaign", {"intro": false})
 	await _frames(6)
-	var s: Control = _ui.current
+	s = _ui.current
 	_check(_ui.current_name == "campaign", "campaign opens")
 	_check(_find_button(s, "Fight") != null, "campaign has a Fight button")
 	_check(_find_button(s, "Team") != null, "campaign has a Team stamp")
@@ -130,8 +150,51 @@ func _run() -> void:
 			root.push_input(ev, true)
 			await _frames(2)
 		print("tap stage: selected %d -> %d" % [before, int(s.get("_selected"))])
+	# A tap on the route profile's circles selects that stage too.
+	var prof: Control = s.find_child("RouteProfile", true, false)
+	_check(prof != null, "campaign prints the route profile")
+	_check(s.find_child("SurveyData", true, false) != null, "campaign prints the survey data")
+	if prof:
+		var pst: Array = prof.get("stages")
+		var cw := prof.size.x / maxf(float(pst.size()), 1.0)
+		var ev2 := InputEventMouseButton.new()
+		ev2.button_index = MOUSE_BUTTON_LEFT
+		ev2.pressed = false
+		ev2.position = Vector2(cw * 0.5 + 8.0, 50.0)
+		prof.call("_gui_input", ev2)
+		await _frames(2)
+		_check(int(s.get("_selected")) == int(_game.chapters()[int(s.get("_chapter"))].get("first_stage", 0)), "profile tap selects the first stage")
 	s.call("_show_intro", 0, Callable())
 	await _frames(3)
+	while _ui.has_modal():
+		_ui.handle_back()
+		await _frames(1)
+	# The worlds: every chapter's dossier (planet, data list, ENTER or the locked key).
+	for ci in _game.chapters().size():
+		_ui.go("campaign", {"dossier": ci})
+		await _frames(4)
+		var d: Control = (_ui.current as Node).find_child("WorldDossier", true, false)
+		_check(d != null, "dossier %d prints" % (ci + 1))
+		_check((_ui.current as Node).find_child("World", true, false) != null, "dossier %d has its planet" % (ci + 1))
+		var open: bool = _game.stage_status(int(_game.chapters()[ci].get("first_stage", 0))) != "locked"
+		var eb := _find_button(_ui.current, "Enter")
+		_check(not open or eb != null, "dossier %d has the ENTER pass" % (ci + 1))
+		_lint("dossier ch%d" % (ci + 1))
+	# WORLDS on the map zooms out to the dossier; ‹ › switch; ENTER dives back into a map.
+	_ui.go("campaign", {"intro": false})
+	await _frames(3)
+	s = _ui.current
+	s.call("_show_worlds")
+	await create_timer(0.8).timeout
+	_check(s.find_child("WorldDossier", true, false) != null, "WORLDS opens the dossier")
+	var front: int = int(s.get("_chapter"))
+	s.call("_show_dossier", maxi(front - 1, 0))
+	await _frames(3)
+	s.call("_show_dossier", front)
+	await _frames(3)
+	s.call("_enter_world", front)
+	await create_timer(1.2).timeout
+	_check(s.find_child("SurveyMap", true, false) != null, "ENTER dives into the survey map")
 	while _ui.has_modal():
 		_ui.handle_back()
 		await _frames(1)

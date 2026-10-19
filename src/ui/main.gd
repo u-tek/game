@@ -84,6 +84,7 @@ var _chrome_shown := Vector2i(-1, -1)
 ## On a phone the tilt follows how the device moves (a high-passed gravity vector); elsewhere it
 ## drifts slowly so reflections stay alive.
 var _tilt := Vector2.ZERO
+var _ui_px := -1.0
 var _grav_base := Vector3.ZERO
 var _tilt_t := 0.0
 
@@ -144,6 +145,12 @@ func _process(delta: float) -> void:
 		want = Vector2(sin(_tilt_t * 0.31), cos(_tilt_t * 0.23)) * 0.12
 	_tilt = _tilt.lerp(want.limit_length(0.6), clampf(delta * 6.0, 0.0, 1.0))
 	RenderingServer.global_shader_parameter_set(&"ui_tilt", _tilt)
+	# Device pixels per UI pixel (the canvas_items stretch), for shaders that read the screen at
+	# offsets measured in UI pixels (deboss, acrylic frost).
+	var px := get_viewport().get_final_transform().get_scale().x
+	if absf(px - _ui_px) > 0.001:
+		_ui_px = px
+		RenderingServer.global_shader_parameter_set(&"ui_px", px)
 
 
 func _ready() -> void:

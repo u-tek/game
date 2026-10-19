@@ -1,13 +1,18 @@
 extends RefCounted
-## Procedural chapter terrain for the v4 campaign survey map (src/ui/v4/map/survey_map.gd). A
-## heightmap slab per chapter from a fixed seed, shaped by the chapter's faction, with a meandering
-## main river and tributaries carved into it, and the ten stage positions laid out as a serpentine
-## route over it. Pure data plus mesh building; nothing here touches Game.
+## Procedural chapter terrain for the v4 campaign survey map (src/ui/v4/survey/survey_map.gd), and the
+## quests sheet's contours. A heightmap slab per chapter from a fixed seed, shaped like the chapter's
+## world (its planet on the dossier: highland terraces, canyon mesas, crater fields, an ice shelf
+## with cracks, volcanic ridges, crystal spikes), with the ten stage positions laid out as a
+## serpentine route over it. The route IS the main river: it rises beyond the front edge, runs
+## through every stage in order (meandering between them) and leaves past the boss over the back
+## edge; tributaries join it from the sides and the valleys are carved along them. Pure data plus
+## mesh building; nothing here touches Game.
 ##
 ##   var t := TerrainGen.new(chapter_index, "infernal")
 ##   t.mesh()            # ArrayMesh: the lit top surface and the cut sides of the slab
 ##   t.height_at(x, z)   # world height
 ##   t.stages            # PackedVector2Array of world (x, z), stage order
+##   t.rivers[0]         # the main river (world (x, z)), stage_s[j]: stage j's distance along it
 ##
 ## World units: the slab spans x in [-W/2, W/2], z in [-D/2, D/2] (+z is the front edge, nearest
 ## the camera); heights run from 0 to about 1.5 above the slab's base at BASE.
@@ -17,9 +22,14 @@ const D := 7.0
 ## Grid cell size (world units).
 const CELL := 0.1
 const BASE := -0.9
+## The six terrain kinds, one per chapter (they match the worlds in data/worlds.json).
+const KINDS := ["highland", "canyons", "craters", "ice", "lava", "crystal"]
+## Samples of the river curve per stage-to-stage span.
+const STEPS := 14
 
 var chapter := 0
 var faction := "celestial"
+var kind := "highland"
 var seed_value := 0
 var nx := 0
 var nz := 0
@@ -27,12 +37,15 @@ var nz := 0
 var heights := PackedFloat32Array()
 ## Distance to the nearest river (world units, capped at RIVER_REACH).
 var river_d := PackedFloat32Array()
-## Rivers as world (x, z) polylines; the main river first.
+## Rivers as world (x, z) polylines; the main river (the route) first.
 var rivers: Array[PackedVector2Array] = []
 ## Stage positions, world (x, z), in stage order.
 var stages := PackedVector2Array()
-## The route through the stages (a smooth polyline, world (x, z)).
+## The route through the stages: the main river from stage 1 to the last stage.
 var route := PackedVector2Array()
+## Each stage's distance along rivers[0] (world units), and the main river's length.
+var stage_s := PackedFloat32Array()
+var river_len := 0.0
 var h_min := 0.0
 var h_max := 1.0
 
@@ -42,6 +55,7 @@ const RIVER_REACH := 1.2
 func _init(chapter_index: int = 0, faction_name: String = "celestial", stage_count: int = 10) -> void:
 	chapter = chapter_index
 	faction = faction_name
+	kind = KINDS[posmod(chapter_index, KINDS.size())]
 	seed_value = 7919 * (chapter_index + 3) + 101
 	nx = int(round(W / CELL)) + 1
 	nz = int(round(D / CELL)) + 1
@@ -82,7 +96,6 @@ func _layout_stages(count: int) -> void:
 		stages.append(_to_world(uv[i]))
 	while stages.size() < count:
 		stages.append(_to_world(Vector2(rng.randf_range(0.1, 0.9), rng.randf_range(0.1, 0.9))))
-	route = catmull(stages, 10)
 
 
 static func _to_world(uv: Vector2) -> Vector2:
@@ -120,37 +133,55 @@ func _make_rivers() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value + 17
 	rivers.clear()
-	# Main river: from beyond the back edge to beyond the front edge, meandering across.
+	# The main river is the route: from beyond the front edge, through every stage, out over the
+	# back edge; between stages it meanders (a sideways bow that is zero at each stage).
+	var n := stages.size()
+	var pts := PackedVector2Array()
+	var s0 := stages[0]
+	var s_last := stages[n - 1]
+	pts.append(Vector2(clampf(s0.x + (s0.x - stages[mini(1, n - 1)].x) * 0.18, -W * 0.45, W * 0.45), D * 0.5 + 0.9))
+	pts.append_array(stages)
+	pts.append(Vector2(clampf(s_last.x + (s_last.x - stages[maxi(n - 2, 0)].x) * 0.18, -W * 0.45, W * 0.45), -D * 0.5 - 0.9))
+	var curve := catmull(pts, STEPS)
 	var main := PackedVector2Array()
-	var ph1 := rng.randf() * TAU
-	var ph2 := rng.randf() * TAU
-	var amp := rng.randf_range(0.26, 0.34)
-	var side := rng.randf_range(-0.08, 0.08)
-	var n := 90
-	for i in n + 1:
-		var v := lerpf(1.06, -0.06, float(i) / n)
-		var u := 0.5 + side + amp * sin(v * 5.4 + ph1) + 0.07 * sin(v * 14.0 + ph2)
-		main.append(_to_world(Vector2(u, v)))
+	for i in curve.size():
+		var span := i / STEPS
+		var t := float(i % STEPS) / STEPS
+		var a := curve[maxi(i - 1, 0)]
+		var b := curve[mini(i + 1, curve.size() - 1)]
+		var dir := (b - a).normalized()
+		var bow := sin(PI * t) * (0.22 + 0.12 * sin(float(span) * 2.3 + float(seed_value % 7))) * (1.0 if span % 2 == 0 else -1.0)
+		bow += sin(TAU * t) * 0.07
+		main.append(curve[i] + Vector2(-dir.y, dir.x) * bow)
 	rivers.append(main)
+	stage_s = PackedFloat32Array()
+	var acc := 0.0
+	for i in main.size():
+		if i > 0:
+			acc += main[i - 1].distance_to(main[i])
+		if i % STEPS == 0 and i / STEPS >= 1 and i / STEPS <= n:
+			stage_s.append(acc)
+	river_len = acc
+	route = main.slice(STEPS, STEPS * n + 1)
 	# Tributaries: from points near the side edges, bending into the main river.
 	for k in 4:
-		var join_i := int(n * rng.randf_range(0.18, 0.86))
+		var join_i := int(main.size() * rng.randf_range(0.2, 0.85))
 		var join := main[join_i]
 		var from_left := k % 2 == 0
 		var start := _to_world(Vector2(-0.04 if from_left else 1.04, rng.randf_range(0.08, 0.95)))
-		var mid := (start + join) * 0.5 + Vector2(rng.randf_range(-1.2, 1.2), rng.randf_range(-1.2, 1.2))
-		var t := PackedVector2Array()
+		var mid := (start + join) * 0.5 + Vector2(rng.randf_range(-1.0, 1.0), rng.randf_range(-1.0, 1.0))
+		var trib := PackedVector2Array()
 		var m := 36
 		for j in m + 1:
 			var s := float(j) / m
-			var a := start.lerp(mid, s)
-			var b := mid.lerp(join, s)
-			var p := a.lerp(b, s)
+			var pa := start.lerp(mid, s)
+			var pb := mid.lerp(join, s)
+			var p := pa.lerp(pb, s)
 			# A little wobble so it reads as a stream, not a curve.
 			var w := sin(s * 17.0 + k * 2.1) * 0.12 * (1.0 - s)
-			var dir := (b - a).normalized()
-			t.append(p + Vector2(-dir.y, dir.x) * w)
-		rivers.append(t)
+			var d2 := (pb - pa).normalized()
+			trib.append(p + Vector2(-d2.y, d2.x) * w)
+		rivers.append(trib)
 
 
 ## Distance to the nearest river per grid point, by stamping discs along the rivers.
@@ -169,6 +200,8 @@ func _river_field() -> void:
 				var p := a.lerp(b, float(s) / steps)
 				var gx := int(round((p.x + W * 0.5) / CELL))
 				var gz := int(round((p.y + D * 0.5) / CELL))
+				if gx < -r_cells or gx > nx + r_cells or gz < -r_cells or gz > nz + r_cells:
+					continue
 				for z in range(maxi(gz - r_cells, 0), mini(gz + r_cells + 1, nz)):
 					var wz := z * CELL - D * 0.5
 					var dz := wz - p.y
@@ -195,12 +228,27 @@ func _make_heights() -> void:
 	ridge.fractal_type = FastNoiseLite.FRACTAL_RIDGED
 	ridge.fractal_octaves = 4
 	ridge.frequency = 0.13
+	var fine := FastNoiseLite.new()
+	fine.seed = seed_value + 9
+	fine.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	fine.fractal_type = FastNoiseLite.FRACTAL_FBM
+	fine.fractal_octaves = 3
+	fine.frequency = 0.9
+	var cell := FastNoiseLite.new()
+	cell.seed = seed_value + 21
+	cell.noise_type = FastNoiseLite.TYPE_CELLULAR
+	cell.cellular_distance_function = FastNoiseLite.DISTANCE_EUCLIDEAN
+	cell.cellular_return_type = FastNoiseLite.RETURN_DISTANCE
+	cell.frequency = 1.1
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value + 29
-	# A few peaks (volcanoes for the Infernal, spires of rock for the others).
+	# A few peaks (volcanoes for the lava world, spires of rock for the others) and craters.
 	var peaks: Array[Vector3] = []
 	for k in 3:
 		peaks.append(Vector3(rng.randf_range(-W * 0.4, W * 0.4), rng.randf_range(-D * 0.45, D * 0.1), rng.randf_range(0.7, 1.3)))
+	var craters: Array[Vector3] = []
+	for k in 9:
+		craters.append(Vector3(rng.randf_range(-W * 0.48, W * 0.48), rng.randf_range(-D * 0.48, D * 0.48), rng.randf_range(0.28, 0.95)))
 	heights = PackedFloat32Array()
 	heights.resize(nx * nz)
 	h_min = 1e9
@@ -213,10 +261,27 @@ func _make_heights() -> void:
 			var wx := x * CELL - W * 0.5
 			var i := z * nx + x
 			var base := fn.get_noise_2d(wx, wz) * 0.5 + 0.5
+			var r := ridge.get_noise_2d(wx, wz) * 0.5 + 0.5
 			var h := 0.0
-			match faction:
-				"infernal":
-					var r := ridge.get_noise_2d(wx, wz) * 0.5 + 0.5
+			match kind:
+				"canyons":
+					# Mesas in strata: flat tops, stepped walls.
+					var m := smoothstep(0.4, 0.6, base * 0.85 + back * 0.25)
+					h = 0.22 + m * 0.8 + r * 0.12
+					var s := h * 9.0
+					h = lerpf(h, (floorf(s) + smoothstep(0.65, 0.95, s - floorf(s))) / 9.0, 0.6)
+				"craters":
+					h = 0.32 + base * 0.45 + back * 0.22 + r * 0.08
+					for c in craters:
+						var d := Vector2(wx - c.x, wz - c.y).length() / c.z
+						if d < 1.6:
+							h += ((d * d - 1.0) * 0.42 if d < 1.0 else 0.0) * c.z + exp(-pow((d - 1.0) / 0.26, 2.0)) * 0.24 * c.z
+				"ice":
+					# A smooth shelf split by cracks with pressure ridges along them.
+					h = 0.3 + base * 0.32 + back * 0.28
+					var crest := smoothstep(0.86, 0.97, r)
+					h += smoothstep(0.7, 0.86, r) * 0.06 - crest * 0.1
+				"lava":
 					h = 0.25 + base * 0.35 + pow(r, 2.2) * 0.75 * (0.45 + back * 0.7)
 					for p in peaks:
 						var d := Vector2(wx - p.x, wz - p.y).length()
@@ -224,27 +289,31 @@ func _make_heights() -> void:
 						h += pow(cone, 1.6) * 0.9 * p.z
 						# The crater.
 						h -= maxf(0.0, 1.0 - d / (0.32 * p.z)) * 0.35 * p.z
-				"fallen":
-					var r := ridge.get_noise_2d(wx, wz) * 0.5 + 0.5
-					h = 0.55 + base * 0.45 + r * 0.22 + back * 0.25
+				"crystal":
+					# Dust plains broken by fields of crystal spikes.
+					h = 0.3 + base * 0.3 + back * 0.22
+					var field := smoothstep(0.44, 0.58, base + back * 0.1)
+					var cd := clampf(cell.get_noise_2d(wx, wz) * 0.5 + 0.5, 0.0, 1.0)
+					h += pow(clampf(1.0 - cd * 1.5, 0.0, 1.0), 1.2) * 0.85 * field
 				_:
-					# Celestial: broken terraces (a shattered sanctum of plateaus).
+					# Highland: broken terraces (a shattered sanctum of plateaus).
 					var t := (base * 0.9 + back * 0.45) * 5.0
 					var step := floorf(t)
 					var f := t - step
-					h = (step + smoothstep(0.62, 0.92, f)) / 5.0 * 1.2 + 0.08
-			# Carve the river valley.
+					h = (step + smoothstep(0.62, 0.92, f)) / 5.0 * 1.2 + 0.08 + r * 0.06
+			# Fine relief everywhere (the model's grain), calmer in the valleys.
+			h += (fine.get_noise_2d(wx, wz)) * 0.035
+			# Carve the river valleys (the main river's widest).
 			var rd := river_d[i]
-			var valley := smoothstep(0.0, 1.0 if faction != "fallen" else 0.75, rd)
-			var floor_h := 0.06 if faction != "fallen" else -0.25
-			h = lerpf(floor_h, h, 0.35 + 0.65 * valley) if rd < 1.0 else h
-			# Soften the outer rim so the slab edge reads cleanly.
+			var valley := smoothstep(0.0, 1.0, rd)
+			var floor_h := 0.06
+			h = lerpf(floor_h, h, 0.32 + 0.68 * valley) if rd < 1.0 else h
 			heights[i] = h
 			h_min = minf(h_min, h)
 			h_max = maxf(h_max, h)
 	# The river bed itself, a touch lower and flat.
 	for i in heights.size():
-		if river_d[i] < 0.14:
+		if river_d[i] < 0.16:
 			heights[i] = minf(heights[i], h_min + 0.02)
 
 
@@ -259,6 +328,21 @@ func height_at(wx: float, wz: float) -> float:
 	var b := heights[z0 * nx + x0 + 1]
 	var c := heights[(z0 + 1) * nx + x0]
 	var d := heights[(z0 + 1) * nx + x0 + 1]
+	return lerpf(lerpf(a, b, fx), lerpf(c, d, fx), fz)
+
+
+## River distance at a world point (bilinear over the grid).
+func river_at(wx: float, wz: float) -> float:
+	var gx := clampf((wx + W * 0.5) / CELL, 0.0, nx - 1.001)
+	var gz := clampf((wz + D * 0.5) / CELL, 0.0, nz - 1.001)
+	var x0 := int(gx)
+	var z0 := int(gz)
+	var fx := gx - x0
+	var fz := gz - z0
+	var a := river_d[z0 * nx + x0]
+	var b := river_d[z0 * nx + x0 + 1]
+	var c := river_d[(z0 + 1) * nx + x0]
+	var d := river_d[(z0 + 1) * nx + x0 + 1]
 	return lerpf(lerpf(a, b, fx), lerpf(c, d, fx), fz)
 
 
@@ -290,7 +374,8 @@ func river_texture() -> ImageTexture:
 # ------------------------------------------------------------------ mesh
 
 ## The slab: the lit top surface (UV = map 0..1, UV2 = (height 0..1, river distance 0..1), COLOR.r =
-## cavity) and the four cut sides down to BASE (UV2.y = -1 marks them).
+## cavity) and the four cut sides down to BASE (UV2.y = -1 marks them; their UV2.x is the river
+## distance at that edge, so a river leaving the slab can pour down its side).
 func mesh() -> ArrayMesh:
 	var verts := PackedVector3Array()
 	var norms := PackedVector3Array()
@@ -341,7 +426,8 @@ func mesh() -> ArrayMesh:
 		var start := verts.size()
 		var cnt := 0
 		for k: int in ks:
-			var top: Vector3 = verts[at.call(k)]
+			var vi: int = at.call(k)
+			var top: Vector3 = verts[vi]
 			verts.append(top)
 			verts.append(Vector3(top.x, BASE, top.z))
 			for _j in 2:
@@ -349,8 +435,9 @@ func mesh() -> ArrayMesh:
 				cols.append(Color(0.5, 0, 0, 1))
 			uvs.append(Vector2(float(cnt), top.y))
 			uvs.append(Vector2(float(cnt), BASE))
-			uv2s.append(Vector2(0.0, -1.0))
-			uv2s.append(Vector2(0.0, -1.0))
+			var rd := river_d[vi] / RIVER_REACH
+			uv2s.append(Vector2(rd, -1.0))
+			uv2s.append(Vector2(rd, -1.0))
 			cnt += 1
 		for j in cnt - 1:
 			var t0 := start + j * 2

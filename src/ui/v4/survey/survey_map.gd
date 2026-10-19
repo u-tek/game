@@ -1,11 +1,15 @@
 extends Control
-## The campaign's printed survey map (style v4 "Signal", poster look; docs/dev/ui-style-v4.md): one
-## chapter as an exploded isometric map, the owner's layered-map reference drawn as print on paper.
-## A real 3D slab (TerrainGen heightmap) printed as halftone relief with ink contours and signal-red
-## rivers, and above it three vellum sheets pulled apart: CONTOURS (ink), HYDROGRAPHY (signal veins
-## and rivers) and the STAGE layer (survey grid). On top, in 2D: the route on the stage layer, the
-## printed stage marks (cleared ink, current signal, locked hollow, bosses as diamonds), leader lines down
-## to each stage's place on the terrain, stage ids, and the layer names along each sheet's edge.
+## The campaign's survey map (style v4 "Signal", poster look; docs/dev/ui-style-v4.md), built like the
+## owner's isometric-terrain reference: one chapter as a physical relief model lying on the poster.
+## A real 3D slab (TerrainGen, shaped like the chapter's world) in matte dark rock lit from the upper
+## left, its valleys lit warm by the stage route, which runs as a molten river (model_terrain and
+## molten_river shaders: painted emissive gradients, no bloom): hot and flowing up to the furthest
+## open stage, cooled to a dark crust beyond it, pouring off the slab's edge as a glowing fall.
+## Blender-rendered cumulus clouds drift slowly over the model, their shadows passing over the
+## relief; the model casts a soft shadow on the paper. In 2D on top: each stage as a printed mark on
+## the river (cleared ink, current signal with ring waves, locked hollow, bosses as diamonds) with a
+## thin leader up to its id tag, like the reference's district labels; the selected stage and the
+## boss get tall leaders to name labels above the model.
 ##
 ##   var m := SurveyMap.new(); m.size = ...; add_child(m)
 ##   m.show_chapter(ci, faction, stages)   # stages: [{id, name, status, boss}] in order
@@ -13,37 +17,45 @@ extends Control
 ##
 ## A drag turns the map (IsoView); a tap picks the nearest stage mark (within TAP_R px).
 ##
-## Alive but calm (all of it off with Reduce motion, which prints the map still): the view renders
-## at 30 fps (IsoView) with a slow auto-orbit and a little tilt parallax; the sheets lift off the
-## terrain on open, then float apart and back out of phase; the rivers run as signal dashes along
-## their ribbons; a scan band sweeps the CONTOURS sheet while its iso-lines shimmer uphill; cloud
-## shadows and valley mist drift over the slab (the halftone dots grow under the clouds); the route
-## draws on to the current stage, then a signal pulse runs along it now and then; the current mark
-## sends out ring waves; a selected stage's leader lines draw on and its label follows.
+## Alive but calm (all of it still with Reduce motion): the view renders at 30 fps (IsoView) with a
+## slow auto-orbit and a little tilt parallax; the model settles onto the poster on open; the melt
+## flows and a bright pulse runs down the open route now and then; the clouds drift and their
+## shadows move; the current mark sends out ring waves; a selected stage's leader draws on.
 
 signal stage_pressed(index: int)
 
 const IsoView := preload("res://src/ui/v4/survey/iso_view.gd")
 const TerrainGen := preload("res://src/ui/v4/survey/terrain_gen.gd")
-const TERRAIN_SHADER := preload("res://src/ui/v4/survey/print_terrain.gdshader")
-const LAYER_SHADER := preload("res://src/ui/v4/survey/print_layer.gdshader")
-const RIVER_SHADER := preload("res://src/ui/v4/survey/print_river.gdshader")
-## The sheets' float: amplitude (world units, contours / hydrography / stages) and period (s).
-const FLOAT_AMP := [0.09, 0.13, 0.17]
-const FLOAT_PERIOD := 7.5
-## Seconds for the route to draw on (after the sheets have lifted), and the pulse's cycle.
-const ROUTE_DRAW := 1.2
-const PULSE_EVERY := 5.0
-const PULSE_RUN := 1.6
+const TERRAIN_SHADER := preload("res://src/ui/v4/survey/model_terrain.gdshader")
+const RIVER_SHADER := preload("res://src/ui/v4/survey/molten_river.gdshader")
+const CLOUD_SHADER := preload("res://src/ui/v4/survey/cloud_sprite.gdshader")
+const SHADOW_SHADER := preload("res://src/ui/v4/survey/contact_shadow.gdshader")
+const CLOUDS_PATH := "res://assets/art/worlds/clouds.png"
+const CLOUD_SHADOW_PATH := "res://assets/art/worlds/clouds_shadow.png"
 
 const INK := Color("101113")
 const PAPER := Color("e9e8e2")
 const SIGNAL := Color("ff4b1f")
 const TAP_R := 74.0
-## Sheet heights above the terrain's base level (world units).
-const Y_CONTOURS := 2.6
-const Y_HYDRO := 4.4
-const Y_STAGES := 6.2
+## Seconds for the model to settle onto the poster when a chapter opens.
+const SETTLE := 0.8
+const PULSE_EVERY := 5.0
+const PULSE_RUN := 1.6
+## How many clouds drift over the model.
+const CLOUD_COUNT := 5
+## The model's relief is drawn this many times as tall as TerrainGen's heights.
+const RELIEF := 1.4
+
+## The model's colours per terrain kind (rock in shadow, rock lit, the warm valley light, the hot
+## melt, the cut sides), sRGB.
+const PALETTE := {
+	"highland": {"lo": Color("1d1a20"), "hi": Color("7a7380"), "warm": Color("ff5a22"), "hot": Color("ffb862"), "side": Color("17151a")},
+	"canyons": {"lo": Color("21160f"), "hi": Color("8a6655"), "warm": Color("ff5520"), "hot": Color("ffb25a"), "side": Color("1a120e")},
+	"craters": {"lo": Color("18151f"), "hi": Color("6f6880"), "warm": Color("ff4f22"), "hot": Color("ffa95a"), "side": Color("141219")},
+	"ice": {"lo": Color("3b4452"), "hi": Color("d6dde5"), "warm": Color("ff6a2c"), "hot": Color("ffc178"), "side": Color("262c36")},
+	"lava": {"lo": Color("0e0c0e"), "hi": Color("4a4042"), "warm": Color("ff4b1f"), "hot": Color("ffa04a"), "side": Color("0e0c0d")},
+	"crystal": {"lo": Color("1a1824"), "hi": Color("7c7894"), "warm": Color("ff5126"), "hot": Color("ffb06a"), "side": Color("16141d")},
+}
 
 ## Layout knobs (set before show_chapter).
 var yaw := 22.0
@@ -52,18 +64,20 @@ var ortho_width := 15.0
 var shift := Vector2(0.0, 0.0)
 ## Raised labels never go above this y (view px): clear of the title block.
 var label_floor := 0.0
-## The world height the camera centres on (the middle of the stack).
-var target_y := 2.65
+## Rects (view px) the tags and labels keep clear of (the legend printed over the map).
+var avoid: Array = []
+## The world height the camera centres on.
+var target_y := 0.7
 ## The picture reaches this far above and below the map's tap area (x: top, y: bottom px).
 var overscan := Vector2.ZERO
 
 ## Generated chapters, kept for the session so switching back is instant ("ci:faction:count" ->
-## TerrainGen), with their slab mesh and the sheets' textures (height, river field, veins).
+## TerrainGen), with their slab and river meshes.
 static var _terrains: Dictionary = {}
 static var _meshes: Dictionary = {}
-static var _textures: Dictionary = {}
-## Seamless noise for the drifting clouds and mist (shared by every chapter).
-static var _cloud_tex: Texture2D
+static var _river_meshes: Dictionary = {}
+static var _detail_tex: NoiseTexture2D
+static var _flow_tex: NoiseTexture2D
 
 var view: IsoView
 var terrain: TerrainGen
@@ -71,16 +85,17 @@ var faction := "celestial"
 var stages: Array = []
 var selected := -1
 var _overlay: Control
-var _layers: Array[MeshInstance3D] = []
-var _layer_y: Array[float] = []
-var _explode := 1.0
+var _model: Node3D
+var _slab: MeshInstance3D
+var _slab_mat: ShaderMaterial
+var _river_mat: ShaderMaterial
+var _clouds: Array[MeshInstance3D] = []
+var _cloud_data: Array[Dictionary] = []
+var _settle := 1.0
 var _t := 0.0
-## Route draw-on progress (0..1) and seconds since the last selection (leaders draw on).
-var _route_k := 1.0
+## Seconds since the last selection (its leaders draw on).
 var _sel_t := 99.0
 var _pts := PackedVector2Array()
-var _ground := PackedVector2Array()
-var _route2d := PackedVector2Array()
 var _reached := -1
 var _mesh_key := ""
 
@@ -128,20 +143,27 @@ func show_chapter(ci: int, faction_name: String, stage_list: Array) -> void:
 			_reached = j
 	var key := "%d:%s:%d" % [ci, faction, stages.size()]
 	if not _terrains.has(key):
-		_terrains[key] = TerrainGen.new(ci, faction, stages.size())
-		_meshes[key] = (_terrains[key] as TerrainGen).mesh()
+		var tg := TerrainGen.new(ci, faction, stages.size())
+		_terrains[key] = tg
+		_meshes[key] = tg.mesh()
+		_river_meshes[key] = _river_mesh(tg)
 	terrain = _terrains[key]
 	_mesh_key = key
 	for c in view.world.get_children():
 		c.queue_free()
-	_layers.clear()
-	_layer_y.clear()
+	_clouds.clear()
+	_cloud_data.clear()
+	# The model (slab and rivers) with its relief drawn RELIEF times as tall.
+	_model = Node3D.new()
+	_model.name = "ModelRoot"
+	_model.scale = Vector3(1.0, RELIEF, 1.0)
+	view.world.add_child(_model)
+	_build_shadow()
 	_build_slab()
-	_build_layers()
-	var anim := Kit.motion_ok()
-	_explode = 0.0 if anim else 1.0
-	_route_k = 0.0 if anim else 1.0
-	_place_sheets()
+	_build_rivers()
+	_build_clouds(ci)
+	_settle = 0.0 if Kit.motion_ok() else 1.0
+	_place_model()
 	view.request_render()
 	_reproject()
 
@@ -158,203 +180,308 @@ func stage_point(j: int) -> Vector2:
 	return view.position + _pts[j] if j >= 0 and j < _pts.size() else Vector2.ZERO
 
 
+## Total and open lengths of the route (world units, stage 1 to the last / furthest open stage).
+func route_lengths() -> Vector2:
+	if terrain == null or terrain.stage_s.is_empty():
+		return Vector2.ZERO
+	var s0 := terrain.stage_s[0]
+	var total := terrain.stage_s[terrain.stage_s.size() - 1] - s0
+	var open := terrain.stage_s[clampi(_reached, 0, terrain.stage_s.size() - 1)] - s0 if _reached >= 0 else 0.0
+	return Vector2(total, open)
+
+
 # ------------------------------------------------------------------ 3D
 
 func _palette() -> Dictionary:
-	match faction:
-		"infernal":
-			# Two-colour print: the relief in signal red, the cut sides in ink.
-			return {"dot": SIGNAL, "bias": -0.02, "ambient": 0.2, "contour": 0.12, "side": Color("141517"), "river_w": 0.07}
-		"fallen":
-			return {"dot": INK, "bias": -0.14, "ambient": 0.16, "contour": 0.14, "side": Color("0c0c0e"), "river_w": 0.05}
-		_:
-			return {"dot": Color("2a2c31"), "bias": 0.1, "ambient": 0.3, "contour": 0.1, "side": Color("1d1f23"), "river_w": 0.045}
+	return PALETTE.get(terrain.kind, PALETTE["highland"])
+
+
+## A seamless noise normal map for the model's fine relief (shared).
+static func _detail() -> NoiseTexture2D:
+	if _detail_tex == null:
+		var n := FastNoiseLite.new()
+		n.seed = 811
+		n.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+		n.fractal_type = FastNoiseLite.FRACTAL_FBM
+		n.fractal_octaves = 4
+		n.frequency = 0.03
+		_detail_tex = NoiseTexture2D.new()
+		_detail_tex.width = 256
+		_detail_tex.height = 256
+		_detail_tex.seamless = true
+		_detail_tex.as_normal_map = true
+		_detail_tex.bump_strength = 5.0
+		_detail_tex.generate_mipmaps = true
+		_detail_tex.noise = n
+	return _detail_tex
+
+
+## Seamless noise for the melt's streaks (shared).
+static func _flow_noise() -> NoiseTexture2D:
+	if _flow_tex == null:
+		var n := FastNoiseLite.new()
+		n.seed = 233
+		n.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+		n.fractal_type = FastNoiseLite.FRACTAL_FBM
+		n.fractal_octaves = 3
+		n.frequency = 0.02
+		_flow_tex = NoiseTexture2D.new()
+		_flow_tex.width = 256
+		_flow_tex.height = 128
+		_flow_tex.seamless = true
+		_flow_tex.noise = n
+	return _flow_tex
+
+
+func _build_shadow() -> void:
+	var mi := MeshInstance3D.new()
+	var pm := PlaneMesh.new()
+	var ps := Vector2(TerrainGen.W + 3.0, TerrainGen.D + 3.0)
+	pm.size = ps
+	mi.mesh = pm
+	var m := ShaderMaterial.new()
+	m.shader = SHADOW_SHADER
+	m.set_shader_parameter("plane_size", ps)
+	m.set_shader_parameter("slab", Vector2(TerrainGen.W, TerrainGen.D))
+	m.set_shader_parameter("soft", 1.1)
+	m.set_shader_parameter("strength", 0.5)
+	mi.material_override = m
+	mi.position = Vector3(0.35, TerrainGen.BASE * RELIEF - 0.02, 0.3)
+	mi.name = "Shadow"
+	view.world.add_child(mi)
 
 
 func _build_slab() -> void:
 	var pal := _palette()
-	var mi := MeshInstance3D.new()
-	mi.mesh = _meshes[_mesh_key] if _meshes.has(_mesh_key) else terrain.mesh()
+	_slab = MeshInstance3D.new()
+	_slab.mesh = _meshes[_mesh_key] if _meshes.has(_mesh_key) else terrain.mesh()
 	var m := ShaderMaterial.new()
 	m.shader = TERRAIN_SHADER
-	m.set_shader_parameter("paper", PAPER)
-	m.set_shader_parameter("ink", INK)
-	m.set_shader_parameter("dot_ink", pal["dot"])
-	m.set_shader_parameter("river", SIGNAL)
+	m.set_shader_parameter("rock_lo", pal["lo"])
+	m.set_shader_parameter("rock_hi", pal["hi"])
+	m.set_shader_parameter("warm", pal["warm"])
+	m.set_shader_parameter("hot", pal["hot"])
 	m.set_shader_parameter("side_ink", pal["side"])
-	m.set_shader_parameter("bias", pal["bias"])
-	m.set_shader_parameter("ambient", pal["ambient"])
-	m.set_shader_parameter("contour_a", pal["contour"])
-	m.set_shader_parameter("river_w", pal["river_w"])
-	m.set_shader_parameter("cell", 4.6 * view.render_scale())
-	m.set_shader_parameter("base_y", TerrainGen.BASE)
-	# Cloud shadows and valley mist drifting over the relief (still with Reduce motion).
-	m.set_shader_parameter("cloud_tex", _clouds())
-	m.set_shader_parameter("clouds", 1.0)
-	m.set_shader_parameter("mist", 1.0 if faction != "infernal" else 0.6)
+	m.set_shader_parameter("paper", PAPER)
+	m.set_shader_parameter("base_y", TerrainGen.BASE * RELIEF)
+	m.set_shader_parameter("detail_tex", _detail())
+	# A world not reached yet: the melt has cooled and the valleys are only faintly warm.
+	m.set_shader_parameter("warm_k", (1.0 if terrain.kind != "ice" else 0.75) * (1.0 if _reached >= 0 else 0.4))
+	m.set_shader_parameter("melt", 1.0 if _reached >= 0 else 0.0)
+	if ResourceLoader.exists(CLOUD_SHADOW_PATH):
+		m.set_shader_parameter("cloud_shadow_tex", load(CLOUD_SHADOW_PATH))
 	m.set_shader_parameter("flow", 1.0 if Kit.motion_ok() else 0.0)
-	mi.material_override = m
-	view.world.add_child(mi)
+	_slab.material_override = m
+	_slab_mat = m
+	_slab.name = "Model"
+	_model.add_child(_slab)
 
 
-## The shared seamless noise the clouds and the mist are cut from.
-static func _clouds() -> Texture2D:
-	if _cloud_tex == null:
-		var n := FastNoiseLite.new()
-		n.seed = 4127
-		n.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
-		n.fractal_type = FastNoiseLite.FRACTAL_FBM
-		n.fractal_octaves = 4
-		n.frequency = 0.011
-		_cloud_tex = ImageTexture.create_from_image(n.get_seamless_image(256, 256))
-	return _cloud_tex
-
-
-func _build_layers() -> void:
-	var size2 := Vector2(TerrainGen.W, TerrainGen.D)
-	if not _textures.has(_mesh_key):
-		var vn := FastNoiseLite.new()
-		vn.seed = terrain.seed_value + 5
-		vn.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
-		vn.fractal_type = FastNoiseLite.FRACTAL_FBM
-		vn.fractal_octaves = 3
-		vn.frequency = 0.012
-		_textures[_mesh_key] = [terrain.height_texture(), terrain.river_texture(), ImageTexture.create_from_image(vn.get_seamless_image(256, 256))]
-	var texs: Array = _textures[_mesh_key]
-	var htex: Texture2D = texs[0]
-	var rtex: Texture2D = texs[1]
-	var vtex: Texture2D = texs[2]
-	var specs := [[Y_CONTOURS, 1], [Y_HYDRO, 2], [Y_STAGES, 0]]
-	for s: Array in specs:
-		var mi := MeshInstance3D.new()
-		var pm := PlaneMesh.new()
-		pm.size = size2
-		mi.mesh = pm
-		var m := ShaderMaterial.new()
-		m.shader = LAYER_SHADER
-		m.set_shader_parameter("mode", int(s[1]))
-		m.set_shader_parameter("height_tex", htex)
-		m.set_shader_parameter("river_tex", rtex)
-		m.set_shader_parameter("vein_tex", vtex)
-		m.set_shader_parameter("paper", PAPER)
-		m.set_shader_parameter("ink", INK)
-		m.set_shader_parameter("accent", SIGNAL)
-		m.set_shader_parameter("plane_size", size2)
-		m.set_shader_parameter("vellum", 0.14 if int(s[1]) != 0 else 0.3)
-		m.set_shader_parameter("line_a", 1.0)
-		# The contours sheet: a slow scan band and shimmering iso-lines (none with Reduce motion).
-		m.set_shader_parameter("scan", 1.0 if int(s[1]) == 1 and Kit.motion_ok() else 0.0)
-		m.set_shader_parameter("flow", 1.0 if Kit.motion_ok() else 0.0)
-		mi.material_override = m
-		mi.position.y = float(s[0])
-		view.world.add_child(mi)
-		_layers.append(mi)
-		_layer_y.append(float(s[0]))
-		if int(s[1]) == 2:
-			_add_rivers(mi)
-
-
-## The rivers on the hydrography sheet: flat signal ribbons just above it. UV.x runs along each
-## river (world units from its source, so the dashes flow downstream at one speed), UV.y across.
-func _add_rivers(sheet: MeshInstance3D) -> void:
-	var verts := PackedVector3Array()
-	var uvs := PackedVector2Array()
-	var rivers: Array = terrain.rivers
-	for k in rivers.size():
-		var poly: PackedVector2Array = rivers[k]
-		var w := 0.034 if k == 0 else 0.02
-		# Each river starts at its own phase so the dashes don't march in step.
-		var s := float(k) * 0.37
+## The rivers as ribbons draped over their beds: the main river (the route) wide, the tributaries
+## narrow. UV.x runs along each river from its source (world units; the main river's matches
+## TerrainGen.stage_s), UV.y across. Parts beyond the slab are cut off at its edge.
+static func _river_mesh(tg: TerrainGen) -> ArrayMesh:
+	var am := ArrayMesh.new()
+	for k in tg.rivers.size():
+		var poly: PackedVector2Array = tg.rivers[k]
+		var w := 0.12 if k == 0 else 0.045
+		var verts := PackedVector3Array()
+		var uvs := PackedVector2Array()
+		var s := 0.0
+		var hw := TerrainGen.W * 0.5 - 0.02
+		var hd := TerrainGen.D * 0.5 - 0.02
 		for i in poly.size() - 1:
-			var a := _clip_xz(poly[i])
-			var b := _clip_xz(poly[i + 1])
+			var a := poly[i]
+			var b := poly[i + 1]
 			var seg := a.distance_to(b)
+			var s1 := s + seg
 			if seg < 0.0001:
 				continue
-			var d := (b - a) / seg
+			# Cut the segment to the slab (a river leaves over the edge).
+			var t0 := 0.0
+			var t1 := 1.0
+			for axis in 2:
+				var lo := -hw if axis == 0 else -hd
+				var hi := hw if axis == 0 else hd
+				var pa := a[axis]
+				var pb := b[axis]
+				if absf(pb - pa) < 1e-6:
+					if pa < lo or pa > hi:
+						t0 = 2.0
+					continue
+				var ta := (lo - pa) / (pb - pa)
+				var tb := (hi - pa) / (pb - pa)
+				t0 = maxf(t0, minf(ta, tb))
+				t1 = minf(t1, maxf(ta, tb))
+			if t0 >= t1:
+				s = s1
+				continue
+			var p0 := a.lerp(b, t0)
+			var p1 := a.lerp(b, t1)
+			var d := (p1 - p0).normalized()
 			var n := Vector2(-d.y, d.x) * w
-			var a0 := Vector3(a.x + n.x, 0.004, a.y + n.y)
-			var a1 := Vector3(a.x - n.x, 0.004, a.y - n.y)
-			var b0 := Vector3(b.x + n.x, 0.004, b.y + n.y)
-			var b1 := Vector3(b.x - n.x, 0.004, b.y - n.y)
+			var u0 := s + seg * t0
+			var u1 := s + seg * t1
+			var y0 := _bed(tg, p0, n) + 0.014
+			var y1 := _bed(tg, p1, n) + 0.014
+			var a0 := Vector3(p0.x + n.x, y0, p0.y + n.y)
+			var a1 := Vector3(p0.x - n.x, y0, p0.y - n.y)
+			var b0 := Vector3(p1.x + n.x, y1, p1.y + n.y)
+			var b1 := Vector3(p1.x - n.x, y1, p1.y - n.y)
 			verts.append_array([a0, b0, a1, b0, b1, a1])
-			var s1 := s + seg
-			uvs.append_array([Vector2(s, 0), Vector2(s1, 0), Vector2(s, 1), Vector2(s1, 0), Vector2(s1, 1), Vector2(s, 1)])
+			uvs.append_array([Vector2(u0, 0), Vector2(u1, 0), Vector2(u0, 1), Vector2(u1, 0), Vector2(u1, 1), Vector2(u0, 1)])
 			s = s1
-	if verts.is_empty():
-		return
-	var arr := []
-	arr.resize(Mesh.ARRAY_MAX)
-	arr[Mesh.ARRAY_VERTEX] = verts
-	arr[Mesh.ARRAY_TEX_UV] = uvs
-	var am := ArrayMesh.new()
-	am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+		if verts.is_empty():
+			continue
+		var arr := []
+		arr.resize(Mesh.ARRAY_MAX)
+		arr[Mesh.ARRAY_VERTEX] = verts
+		arr[Mesh.ARRAY_TEX_UV] = uvs
+		am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+	return am
+
+
+## The river bed's height at p: the highest of the centre and both banks (so the ribbon is never
+## buried in a bank).
+static func _bed(tg: TerrainGen, p: Vector2, n: Vector2) -> float:
+	return maxf(tg.height_at(p.x, p.y), maxf(tg.height_at(p.x + n.x, p.y + n.y), tg.height_at(p.x - n.x, p.y - n.y)))
+
+
+func _build_rivers() -> void:
+	var pal := _palette()
 	var mi := MeshInstance3D.new()
 	mi.name = "Rivers"
-	mi.mesh = am
-	var mat := ShaderMaterial.new()
-	mat.shader = RIVER_SHADER
-	mat.set_shader_parameter("river", SIGNAL)
-	mat.set_shader_parameter("paper", PAPER)
-	mat.set_shader_parameter("flow", 1.0 if Kit.motion_ok() else 0.0)
-	mi.material_override = mat
-	sheet.add_child(mi)
+	mi.mesh = _river_meshes[_mesh_key]
+	var reach := 1e5
+	var from := 0.0
+	if not terrain.stage_s.is_empty():
+		from = terrain.stage_s[0]
+		reach = terrain.stage_s[clampi(_reached, 0, terrain.stage_s.size() - 1)] if _reached >= 0 else from - 1.0
+		# The melt runs on past the last cleared stage only up to the current one; a finished
+		# chapter flows all the way.
+		if _reached >= terrain.stage_s.size() - 1 and _all_cleared():
+			reach = 1e5
+	for k in (mi.mesh as ArrayMesh).get_surface_count():
+		var m := ShaderMaterial.new()
+		m.shader = RIVER_SHADER
+		m.set_shader_parameter("warm", pal["warm"])
+		m.set_shader_parameter("hot", pal["hot"])
+		m.set_shader_parameter("noise_tex", _flow_noise())
+		m.set_shader_parameter("reach", reach if k == 0 else (1e5 if _reached >= 0 else -1.0))
+		m.set_shader_parameter("pulse_from", from if k == 0 else 1e5)
+		m.set_shader_parameter("pulse_every", PULSE_EVERY)
+		m.set_shader_parameter("pulse_run", PULSE_RUN)
+		m.set_shader_parameter("flow", 1.0 if Kit.motion_ok() else 0.0)
+		mi.set_surface_override_material(k, m)
+		if k == 0:
+			_river_mat = m
+	_model.add_child(mi)
 
 
-static func _clip_xz(p: Vector2) -> Vector2:
-	return Vector2(clampf(p.x, -TerrainGen.W * 0.5, TerrainGen.W * 0.5), clampf(p.y, -TerrainGen.D * 0.5, TerrainGen.D * 0.5))
+func _all_cleared() -> bool:
+	for s: Dictionary in stages:
+		if str(s.get("status", "")) != "cleared":
+			return false
+	return not stages.is_empty()
 
 
-## A render tick of the view (IsoView.frame, 30 fps while animating): the sheets lift, then float;
-## the route draws on; the selection's leaders draw on; then the overlay is placed again.
+## Clouds: seeded per chapter, each a billboard sprite from the atlas drifting along +x, wrapping
+## round past the slab's ends (fading out and in).
+func _build_clouds(ci: int) -> void:
+	if not ResourceLoader.exists(CLOUDS_PATH):
+		return
+	var atlas: Texture2D = load(CLOUDS_PATH)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 5011 + ci * 131
+	var cells := [0, 1, 2, 3, 4, 5]
+	for k in CLOUD_COUNT:
+		var cell: int = cells[(k + ci) % cells.size()]
+		var sz := rng.randf_range(1.7, 2.7)
+		var d := {
+			"cell": cell, "size": sz,
+			"x": lerpf(-TerrainGen.W * 0.5, TerrainGen.W * 0.5, (k + rng.randf_range(0.1, 0.9)) / CLOUD_COUNT),
+			"z": rng.randf_range(-TerrainGen.D * 0.3, TerrainGen.D * 0.45),
+			"y": rng.randf_range(1.7, 2.3),
+			"speed": rng.randf_range(0.07, 0.13),
+		}
+		var mi := MeshInstance3D.new()
+		var qm := QuadMesh.new()
+		qm.size = Vector2(sz, sz)
+		mi.mesh = qm
+		var m := ShaderMaterial.new()
+		m.shader = CLOUD_SHADER
+		m.set_shader_parameter("atlas", atlas)
+		m.set_shader_parameter("cell", float(cell))
+		mi.material_override = m
+		mi.name = "Cloud%d" % k
+		view.world.add_child(mi)
+		_clouds.append(mi)
+		_cloud_data.append(d)
+	_place_clouds()
+
+
+## Places the clouds (and their shadows on the model) for the current time.
+func _place_clouds() -> void:
+	var span := TerrainGen.W + 4.0
+	var arr: Array[Vector4] = []
+	for k in _clouds.size():
+		var d: Dictionary = _cloud_data[k]
+		var x := float(d["x"])
+		if Kit.motion_ok():
+			x = fposmod(x + _t * float(d["speed"]) + span * 0.5, span) - span * 0.5
+		var edge := clampf((span * 0.5 - absf(x)) / 1.4, 0.0, 1.0)
+		var mi := _clouds[k]
+		mi.position = Vector3(x, float(d["y"]) - (1.0 - _settle_e()) * 0.6, float(d["z"]))
+		var fade := edge * _settle_e()
+		(mi.material_override as ShaderMaterial).set_shader_parameter("fade", fade)
+		arr.append(Vector4(x, float(d["z"]), float(d["size"]) * 0.42, float(int(d["cell"]))))
+	if _slab_mat:
+		var packed: Array[Vector4] = arr.duplicate()
+		while packed.size() < 6:
+			packed.append(Vector4(1e4, 1e4, 0.1, 0.0))
+		_slab_mat.set_shader_parameter("clouds", PackedVector4Array(packed))
+		_slab_mat.set_shader_parameter("cloud_count", arr.size())
+		_slab_mat.set_shader_parameter("cloud_k", 0.55 * _settle_e())
+
+
+func _settle_e() -> float:
+	return 1.0 - pow(1.0 - clampf(_settle, 0.0, 1.0), 3.0)
+
+
+## A render tick of the view (IsoView.frame, 30 fps while animating): the model settles, the clouds
+## drift, the selection's leaders draw on; then the overlay is placed again.
 func _on_frame(dt: float) -> void:
 	_t += dt
-	if _explode < 1.0:
-		_explode = minf(_explode + dt / 0.9, 1.0)
-	else:
-		_route_k = minf(_route_k + dt / ROUTE_DRAW, 1.0)
-		_sel_t += dt
-	_place_sheets()
+	if _settle < 1.0:
+		_settle = minf(_settle + dt / SETTLE, 1.0)
+		_place_model()
+	_sel_t += dt
+	_place_clouds()
 	_reproject()
 
 
-## Each sheet's height: lifted off the terrain in turn on open (the top one travels furthest), then
-## floating apart and back, out of phase with the others.
-func _place_sheets() -> void:
-	var base := 1.6
-	var anim := Kit.motion_ok()
-	for i in _layers.size():
-		var k := clampf(_explode * 1.35 - i * 0.12, 0.0, 1.0)
-		var e := 1.0 - pow(1.0 - k, 3.0)
-		var y := lerpf(base, _layer_y[i], e)
-		if anim:
-			y += sin(_t * TAU / FLOAT_PERIOD + i * 1.3) * float(FLOAT_AMP[mini(i, FLOAT_AMP.size() - 1)]) * e
-		_layers[i].position.y = y
-
-
-## World y of the stage sheet right now (it rises while the map opens).
-func _stage_y() -> float:
-	return _layers[_layers.size() - 1].position.y if not _layers.is_empty() else Y_STAGES
+## The model drops the last few centimetres onto the poster as the chapter opens.
+func _place_model() -> void:
+	var e := _settle_e()
+	if _model:
+		_model.position.y = (1.0 - e) * 0.9
+	var sh := view.world.get_node_or_null("Shadow") as MeshInstance3D
+	if sh:
+		(sh.material_override as ShaderMaterial).set_shader_parameter("strength", 0.5 * e)
 
 
 func _reproject() -> void:
 	if terrain == null or view == null or view.camera == null:
 		return
-	var sy := _stage_y()
+	var lift := (1.0 - _settle_e()) * 0.9
 	_pts.resize(0)
-	_ground.resize(0)
-	var sp: PackedVector2Array = terrain.stages
-	for p in sp:
-		_pts.append(view.project(Vector3(p.x, sy, p.y)))
-		_ground.append(view.project(Vector3(p.x, terrain.height_at(p.x, p.y), p.y)))
-	_route2d.resize(0)
-	for p: Vector2 in terrain.route:
-		_route2d.append(view.project(Vector3(p.x, sy, p.y)))
+	for p in terrain.stages:
+		_pts.append(view.project(Vector3(p.x, terrain.height_at(p.x, p.y) * RELIEF + 0.05 + lift, p.y)))
 	_overlay.queue_redraw()
 
 
-## The four corners of a sheet at height y (front-left first, clockwise as seen from above).
-func sheet_corners(y: float) -> PackedVector2Array:
+## The slab's top corners at height y (front-left first, clockwise as seen from above).
+func slab_corners(y: float) -> PackedVector2Array:
 	var hw := TerrainGen.W * 0.5
 	var hd := TerrainGen.D * 0.5
 	return PackedVector2Array([view.project(Vector3(-hw, y, hd)), view.project(Vector3(-hw, y, -hd)),
@@ -385,7 +512,70 @@ func nearest(p: Vector2) -> int:
 	return best
 
 
-## Draws the printed overlay: route, leader lines, marks, ids and the sheet names.
+## The order name labels try their spots in, as [dy, slide] (view px): straight above first, then
+## slid along the row a step at a time, then below. Built once.
+static var _label_order: Array[Vector2] = []
+
+
+static func _label_spots() -> Array[Vector2]:
+	if _label_order.is_empty():
+		var spots: Array[Vector3] = []
+		for dy: float in [-100.0, -76.0, -124.0, -148.0, -56.0, -40.0, 52.0, 76.0, 100.0, -172.0]:
+			for k in range(0, 15):
+				for sd: float in ([1.0] if k == 0 else [1.0, -1.0]):
+					var cost := absf(dy + 96.0) * 0.6 + k * 30.0 + (40.0 if dy > 0.0 else 0.0)
+					spots.append(Vector3(dy, k * 30.0 * sd, cost))
+		spots.sort_custom(func(a: Vector3, b: Vector3) -> bool: return a.z < b.z)
+		for q in spots:
+			_label_order.append(Vector2(q.x, q.y))
+	return _label_order
+
+
+## A spot for a name label of text size lsz over the stage mark at p: the first in the label order
+## (right of the leader, or left of it) that keeps off every rect given and inside the view. An
+## empty Rect2 if none does.
+func _find_label(p: Vector2, lsz: Vector2, selected_label: bool, avoid: Array, marks: Array[Rect2], placed: Array[Rect2], tags: Array[Rect2], area: Vector2) -> Rect2:
+	var blocks: Array[Rect2] = []
+	for q: Rect2 in avoid:
+		blocks.append(q)
+	blocks.append_array(marks)
+	blocks.append_array(tags)
+	for q in placed:
+		blocks.append(q.grow(3.0))
+	for spot: Vector2 in _label_spots():
+		if not selected_label and spot.x > 90.0:
+			continue
+		var ly := maxf(p.y + spot.x, label_floor + (lsz.y - 30.0) * 0.5)
+		for side in 2:
+			var x := (p.x + 6.0 + spot.y) if side == 0 else (p.x - 6.0 - lsz.x + spot.y)
+			if x < 4.0 or x + lsz.x > area.x - 8.0:
+				continue
+			var r := Rect2(x - 4.0, ly - lsz.y * 0.5, lsz.x + 8.0, lsz.y)
+			if r.end.y > area.y - 4.0:
+				continue
+			var hit := false
+			for q in blocks:
+				if q.intersects(r):
+					hit = true
+					break
+			if hit:
+				continue
+			# The leader (up or down from the mark, then along the label's row when slid) keeps off
+			# the printed legend too, or it would vanish under it.
+			var ey := ly if (p.x < r.position.x or p.x > r.end.x) else (r.end.y if ly < p.y else r.position.y)
+			var lead := Rect2(p.x - 1.0, minf(p.y, ey), 2.0, absf(p.y - ey))
+			var run := Rect2(minf(p.x, r.position.x), ey - 1.0, absf(clampf(p.x, r.position.x, r.end.x) - p.x), 2.0)
+			for q: Rect2 in avoid:
+				if q.intersects(lead) or (run.size.x > 0.0 and q.intersects(run)):
+					hit = true
+					break
+			if not hit:
+				return r
+	return Rect2()
+
+
+## Draws the printed overlay: the stage marks on the river, their leaders and id tags, the raised
+## name labels of the selected stage and the boss.
 class _Overlay:
 	extends Control
 	var map
@@ -397,121 +587,58 @@ class _Overlay:
 		if map == null or map.terrain == null:
 			return
 		var pts: PackedVector2Array = map._pts
-		var ground: PackedVector2Array = map._ground
-		var route: PackedVector2Array = map._route2d
 		var st: Array = map.stages
-		var reached: int = map._reached
 		var t: float = map._t
 		var anim := Kit.motion_ok()
-		# The selection's leaders draw on (0..1, eased).
+		var settle: float = map._settle_e()
+		if settle <= 0.02:
+			return
 		var sel_k := 1.0 - pow(1.0 - clampf(float(map._sel_t) / 0.4, 0.0, 1.0), 3.0)
 		var f := Kit.font("mono_bold")
 		var fm := Kit.font("mono")
-		_sheet_labels(fm, f)
-		# Leader lines: from each stage mark down to its place on the terrain.
-		for j in pts.size():
-			var cur := j < st.size() and str(st[j].get("status", "")) == "current"
-			var c := Color(SIGNAL, 0.9) if cur else Color(INK, 0.35)
-			var k := sel_k if j == map.selected else 1.0
-			_dashed(pts[j], pts[j].lerp(ground[j], k), c, 1.0, 4.0, 3.0)
-			if k >= 1.0:
-				draw_line(ground[j] - Vector2(4, 0), ground[j] + Vector2(4, 0), Color(c, 0.9), 1.0, true)
-				draw_line(ground[j] - Vector2(0, 4), ground[j] + Vector2(0, 4), Color(c, 0.9), 1.0, true)
-		# The route on the stage sheet: solid ink to the furthest open stage (drawn on as the map
-		# opens, then a signal pulse runs along it now and then), dashed beyond.
-		if route.size() > 1:
-			var per := (route.size() - 1) / maxf(float(pts.size() - 1), 1.0)
-			var cut := int(round(reached * per))
-			if cut > 0:
-				var solid := route.slice(0, cut + 1)
-				var total := _poly_len(solid)
-				var rk: float = map._route_k
-				if rk >= 1.0:
-					draw_polyline(solid, INK, 2.2, true)
-					var pk := fmod(t, PULSE_EVERY) / PULSE_RUN
-					if anim and pk < 1.0:
-						# A short signal run with a fading tail, from the first stage to the current one.
-						var head := total * (1.0 - pow(1.0 - pk, 2.0))
-						var tail := 46.0
-						for q in 4:
-							var a0 := head - tail * (q + 1) / 4.0
-							var a1 := head - tail * q / 4.0
-							var seg := _poly_cut(solid, maxf(a0, 0.0), maxf(a1, 0.0))
-							if seg.size() > 1:
-								draw_polyline(seg, Color(SIGNAL, 0.95 - q * 0.22), 3.0, true)
-				else:
-					var e := 1.0 - pow(1.0 - rk, 2.0)
-					var drawn := _poly_cut(solid, 0.0, total * e)
-					if drawn.size() > 1:
-						draw_polyline(drawn, INK, 2.2, true)
-						draw_circle(drawn[drawn.size() - 1], 3.5, SIGNAL * 1.4)
-			if cut < route.size() - 1:
-				_dashed_poly(route.slice(cut), Color(INK, 0.6), 1.3, 6.0, 5.0)
-		# Marks.
+		# Id tags on short leaders (alternating heights so neighbours never touch); a tag that would
+		# land on the printed legend hangs below its mark instead.
+		var avoid: Array = map.avoid
+		var tags: Array[Rect2] = []
+		var tag_draws: Array[Callable] = []
+		# Tags a name label covers (it repeats their id): not drawn.
+		var hidden := {}
+		var label_draws: Array[Callable] = []
 		for j in pts.size():
 			if j >= st.size():
 				break
 			var s: Dictionary = st[j]
 			var p := pts[j]
 			var status := str(s.get("status", "locked"))
-			var boss := bool(s.get("boss", false))
-			var r := 9.0 if not boss else 12.0
-			if status == "current":
-				var k := 0.5 + 0.5 * sin(t * 3.2)
-				draw_circle(p, r + 9.0 + 4.0 * k, Color(SIGNAL, 0.14 * (1.0 - k) + 0.04))
-				draw_arc(p, r + 6.0 + 3.0 * k, 0.0, TAU, 40, Color(SIGNAL, 0.7 - 0.4 * k), 1.2, true)
-				if anim:
-					# Ring waves going out from the mark, two at a time.
-					for wv in 2:
-						var ph := fmod(t / 2.2 + wv * 0.5, 1.0)
-						var fade := (1.0 - ph) * (1.0 - ph)
-						draw_arc(p, r + 6.0 + 34.0 * ph, 0.0, TAU, 48, Color(SIGNAL, 0.8 * fade), 1.8 - ph, true)
-			if boss:
-				var q := PackedVector2Array([p + Vector2(0, -r * 1.25), p + Vector2(r * 1.25, 0), p + Vector2(0, r * 1.25), p + Vector2(-r * 1.25, 0)])
-				var fill := INK if status == "cleared" else (SIGNAL * 1.5 if status == "current" else PAPER)
-				draw_colored_polygon(q, fill)
-				q.append(q[0])
-				draw_polyline(q, INK if status != "current" else SIGNAL, 1.6, true)
-				var q2 := PackedVector2Array()
-				for v in q:
-					q2.append(p + (v - p) * 1.45)
-				draw_polyline(q2, Color(INK, 0.8 if status != "locked" else 0.45), 1.0, true)
-			elif status == "cleared":
-				draw_circle(p, r, INK)
-				draw_line(p + Vector2(-4, 0), p + Vector2(-1, 3), PAPER, 1.6, true)
-				draw_line(p + Vector2(-1, 3), p + Vector2(4, -3), PAPER, 1.6, true)
-			elif status == "current":
-				draw_circle(p, r, SIGNAL * 1.6)
-				draw_circle(p, r * 0.38, PAPER)
-			else:
-				draw_circle(p, r, PAPER)
-				draw_arc(p, r, 0.0, TAU, 32, Color(INK, 0.6), 1.3, true)
-			# The stage id beside the mark.
+			var lh := 30.0 if j % 2 == 0 else 46.0
 			var id := str(s.get("id", ""))
-			var col := SIGNAL if status == "current" else (INK if status != "locked" else Color(INK, 0.5))
-			draw_string(f, p + Vector2(r + 6.0, -r * 0.2), id, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, col)
-			if boss:
-				draw_string(fm, p + Vector2(r + 6.0, 11.0), "BOSS", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, col)
-			if j == map.selected:
-				# The corner brackets close in on the mark as it is selected.
-				var b := r + 9.0 + 12.0 * (1.0 - sel_k)
-				for sx: float in [-1.0, 1.0]:
-					for sy: float in [-1.0, 1.0]:
-						var c0 := p + Vector2(sx * b, sy * b)
-						draw_line(c0, c0 - Vector2(sx * 7.0, 0), INK, 1.6, true)
-						draw_line(c0, c0 - Vector2(0, sy * 7.0), INK, 1.6, true)
-		# Tall leaders rising from the selected stage and the boss to labels above the stack.
-		var top_c: PackedVector2Array = map.sheet_corners(map._stage_y())
-		var top_y := INF
-		for c in top_c:
-			top_y = minf(top_y, c.y)
+			var tw := f.get_string_size(id, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
+			var top := p - Vector2(0, lh * settle)
+			var tag := Rect2(top.x - tw * 0.5 - 5.0, top.y - 18.0, tw + 10.0, 17.0)
+			if avoid.any(func(q: Rect2) -> bool: return q.intersects(tag)):
+				top = p + Vector2(0, (lh - 8.0) * settle)
+				tag = Rect2(top.x - tw * 0.5 - 5.0, top.y + 1.0, tw + 10.0, 17.0)
+			tags.append(tag)
+			# Drawn after the name labels' leaders, so a leader never crosses a tag's id.
+			tag_draws.append(func() -> void:
+				if hidden.has(j):
+					return
+				var lc := Color(PAPER, 0.85) if status != "current" else SIGNAL * 1.3
+				draw_line(p + Vector2(0, -8 if top.y < p.y else 8), top, Color(lc, 0.9 * settle), 1.0, true)
+				var fill := SIGNAL if status == "current" else (INK if status == "cleared" else Color(INK, 0.55))
+				draw_rect(tag, Color(fill, settle))
+				if status == "locked":
+					draw_rect(tag, Color(PAPER, 0.6 * settle), false, 1.0)
+				draw_string(f, Vector2(tag.position.x + 5.0, tag.end.y - 4.5), id, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(PAPER, settle)))
+		# Leaders from the selected stage and the boss to name labels (above the mark, or below it
+		# when the legend or a tag is in the way).
 		var raised: Array[int] = []
 		if map.selected >= 0:
 			raised.append(map.selected)
-		for j in st.size():
-			if bool(st[j].get("boss", false)) and j == st.size() - 1 and not raised.has(j):
-				raised.append(j)
+		if st.size() > 0 and bool(st[st.size() - 1].get("boss", false)) and not raised.has(st.size() - 1):
+			raised.append(st.size() - 1)
 		var placed: Array[Rect2] = []
+		var no_tags: Array[Rect2] = []
 		for n in raised.size():
 			var j: int = raised[n]
 			if j >= pts.size():
@@ -519,108 +646,127 @@ class _Overlay:
 			var p := pts[j]
 			var s: Dictionary = st[j]
 			var cur := str(s.get("status", "")) == "current"
-			var lc := SIGNAL if cur else INK
-			var title := "%s  %s" % [str(s.get("id", "")), str(s.get("name", "")).to_upper()]
 			var sub := "BOSS STAGE" if bool(s.get("boss", false)) else ("NEXT" if cur else str(s.get("status", "")).to_upper())
-			var tw := f.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
-			var x := p.x + 6.0
-			if x + tw > size.x - 8.0:
-				x = p.x - 6.0 - tw
-			# The selected stage rises above the whole stack; the boss gets a short leader. Labels
-			# never overlap: a clash moves the later one up.
-			var ly := maxf(top_y - 34.0, map.label_floor) if n == 0 else p.y - 52.0
-			var r := Rect2(x - 3.0, ly - 15.0, tw + 6.0, 30.0)
-			if placed.any(func(q: Rect2) -> bool: return q.grow(3.0).intersects(r)) or (n > 0 and ly - 15.0 < map.label_floor):
-				# No room for a second callout here: the mark's own id says enough.
-				continue
+			# The id and name; a long name breaks onto a second line (at the space nearest its middle).
+			var lines: Array[String] = ["%s  %s" % [str(s.get("id", "")), str(s.get("name", "")).to_upper()]]
+			if f.get_string_size(lines[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x > 190.0:
+				var words := lines[0].split(" ")
+				var best := -1
+				var best_d := 1e9
+				var acc := 0
+				for wi in words.size() - 1:
+					acc += words[wi].length() + 1
+					var dd := absf(acc - lines[0].length() * 0.5)
+					if words[wi] != "" and dd < best_d:
+						best_d = dd
+						best = acc
+				if best > 0:
+					lines = [lines[0].substr(0, best - 1), "      " + lines[0].substr(best)]
+			var tw := 0.0
+			for ln in lines:
+				tw = maxf(tw, f.get_string_size(ln, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x)
+			var lsz := Vector2(tw, 16.0 + 14.0 * lines.size())
+			# A name label never covers another stage's mark; it may cover its own id tag (it
+			# repeats the id).
+			var marks: Array[Rect2] = []
+			var others: Array[Rect2] = []
+			for m in mini(pts.size(), st.size()):
+				if m != j:
+					marks.append(Rect2(pts[m] - Vector2(12, 12), Vector2(24, 24)))
+					if m < tags.size():
+						others.append(tags[m])
+			# The first clear spot in the label order (_label_order: above the mark first, then slid
+			# along the row, then below; an elbow on the leader reaches a slid label). Clear means off
+			# the legend, the stage marks, the other label and the id tags; failing that it may cover
+			# an id tag, then a mark; the selected stage's label always prints.
+			var r := Rect2()
+			var found := false
+			for pass_i in 3:
+				r = map._find_label(p, lsz, n == 0, avoid, marks if pass_i < 2 else no_tags, placed, others if pass_i == 0 else no_tags, size)
+				if r.size.x > 0.0:
+					found = true
+					break
+			if not found:
+				if n > 0:
+					continue
+				var fx := p.x + 6.0 if p.x + 6.0 + tw <= size.x - 8.0 else p.x - 6.0 - tw
+				r = Rect2(fx - 4.0, maxf(p.y - 100.0, map.label_floor + (lsz.y - 30.0) * 0.5) - lsz.y * 0.5, tw + 8.0, lsz.y)
+			var x := r.position.x + 4.0
+			var ly := r.get_center().y
 			placed.append(r)
-			# The selected stage's leader grows up from its mark, then its label prints in.
+			if j < tags.size() and tags[j].intersects(r):
+				hidden[j] = true
 			var k := sel_k if n == 0 else 1.0
 			var la := clampf((float(map._sel_t) - 0.3) / 0.2, 0.0, 1.0) if n == 0 else 1.0
-			var y_top := lerpf(p.y - 14.0, ly, k)
-			draw_line(p - Vector2(0, 14), Vector2(p.x, y_top), Color(lc, 0.85), 1.0, true)
+			la *= settle
+			var below := ly > p.y
+			var y0 := p.y + (12.0 if below else -12.0)
+			var y_edge: float = r.position.y if below else r.end.y
+			var y_top := lerpf(y0, y_edge, k)
+			var lc := SIGNAL if cur else INK
+			# A label slid along its row: the leader turns at the label's middle and enters its side.
+			var ex := clampf(p.x, r.position.x, r.end.x)
+			var slid := absf(ex - p.x) > 1.0
+			if slid:
+				y_edge = ly
+				y_top = lerpf(y0, y_edge, k)
+			draw_line(Vector2(p.x, y0), Vector2(p.x, y_top), Color(PAPER if not cur else SIGNAL, 0.9 * settle), 1.0, true)
 			if la <= 0.0:
 				continue
-			draw_line(Vector2(p.x - 4, ly), Vector2(p.x + 4, ly), Color(lc, la), 1.0, true)
-			draw_rect(r, Color(PAPER, 0.92 * la))
-			draw_string(f, Vector2(x, ly - 2.0), title, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(lc, la))
-			draw_string(fm, Vector2(x, ly + 11.0), sub, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(lc, 0.8 * la))
-
-	## Each sheet's name on a paper tag along its left edge (front-left corner towards the back).
-	func _sheet_labels(fm: Font, f: Font) -> void:
-		var names := ["CONTOURS", "HYDROGRAPHY", "STAGES / ROUTE"]
-		var layers: Array = map._layers
-		for i in layers.size():
-			var y: float = (layers[i] as Node3D).position.y
-			var c: PackedVector2Array = map.sheet_corners(y)
-			_edge_label("%02d  %s" % [i + 2, names[i]], c[0], c[1], f, 10)
-		var g: PackedVector2Array = map.sheet_corners(0.0)
-		_edge_label("01  TERRAIN  1:25 000", g[0], g[1], fm, 10)
-
-	func _edge_label(text: String, a: Vector2, b: Vector2, f: Font, fs: int) -> void:
-		var d := b - a
-		var tw := f.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-		draw_set_transform(a + d.normalized() * 10.0, d.angle(), Vector2.ONE)
-		# A paper tag just outside the edge, ink type on it.
-		draw_rect(Rect2(-3.0, -fs - 9.0, tw + 6.0, fs + 5.0), PAPER)
-		draw_string(f, Vector2(0.0, -7.0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, INK)
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-
-	## A dashed polyline (dashes follow the curve's length).
-	func _dashed_poly(pts: PackedVector2Array, c: Color, w: float, on: float, off: float) -> void:
-		var draw_on := true
-		var left := on
-		for k in range(1, pts.size()):
-			var a := pts[k - 1]
-			var b := pts[k]
-			var seg := a.distance_to(b)
-			var t := 0.0
-			while t < seg:
-				var step := minf(left, seg - t)
-				if draw_on:
-					draw_line(a.lerp(b, t / seg), a.lerp(b, (t + step) / seg), c, w, true)
-				t += step
-				left -= step
-				if left <= 0.0:
-					draw_on = not draw_on
-					left = on if draw_on else off
-
-	static func _poly_len(pts: PackedVector2Array) -> float:
-		var l := 0.0
-		for k in range(1, pts.size()):
-			l += pts[k - 1].distance_to(pts[k])
-		return l
-
-	## The part of a polyline between two lengths along it (px from its start).
-	static func _poly_cut(pts: PackedVector2Array, from_len: float, to_len: float) -> PackedVector2Array:
-		var out := PackedVector2Array()
-		if to_len <= from_len or pts.size() < 2:
-			return out
-		var acc := 0.0
-		for k in range(1, pts.size()):
-			var a := pts[k - 1]
-			var b := pts[k]
-			var seg := a.distance_to(b)
-			var s0 := acc
-			var s1 := acc + seg
-			acc = s1
-			if s1 < from_len or seg <= 0.0:
-				continue
-			if s0 > to_len:
+			if slid:
+				draw_line(Vector2(p.x, y_edge), Vector2(ex, y_edge), Color(lc, la), 1.0, true)
+				draw_circle(Vector2(p.x, y_edge), 2.0, Color(lc, la))
+			else:
+				draw_line(Vector2(p.x - 4, y_edge), Vector2(p.x + 4, y_edge), Color(lc, la), 1.0, true)
+			label_draws.append(func() -> void:
+				draw_rect(r, Color(PAPER, 0.94 * la))
+				draw_rect(Rect2(r.position, Vector2(3.0, r.size.y)), Color(lc, la))
+				for li in lines.size():
+					draw_string(f, Vector2(x + 2.0, r.position.y + 14.0 + 14.0 * li), lines[li], HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(lc, la))
+				draw_string(fm, Vector2(x + 2.0, r.end.y - 4.0), sub, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(lc, 0.8 * la)))
+		for d: Callable in tag_draws:
+			d.call()
+		# Marks on the river.
+		for j in pts.size():
+			if j >= st.size():
 				break
-			if out.is_empty():
-				out.append(a.lerp(b, clampf((from_len - s0) / seg, 0.0, 1.0)))
-			out.append(a.lerp(b, clampf((to_len - s0) / seg, 0.0, 1.0)))
-			if s1 >= to_len:
-				break
-		return out
-
-	func _dashed(a: Vector2, b: Vector2, c: Color, w: float, on: float, off: float) -> void:
-		var len := a.distance_to(b)
-		if len < 0.5:
-			return
-		var d := (b - a) / len
-		var s := 0.0
-		while s < len:
-			draw_line(a + d * s, a + d * minf(s + on, len), c, w, true)
-			s += on + off
+			var s: Dictionary = st[j]
+			var p := pts[j]
+			var status := str(s.get("status", "locked"))
+			var boss := bool(s.get("boss", false))
+			var r := 7.0 if not boss else 10.0
+			if status == "current":
+				var k := 0.5 + 0.5 * sin(t * 3.2)
+				draw_arc(p, r + 6.0 + 3.0 * k, 0.0, TAU, 40, Color(SIGNAL, 0.8 - 0.4 * k), 1.4, true)
+				if anim:
+					for wv in 2:
+						var ph := fmod(t / 2.2 + wv * 0.5, 1.0)
+						var fade := (1.0 - ph) * (1.0 - ph)
+						draw_arc(p, r + 6.0 + 30.0 * ph, 0.0, TAU, 48, Color(PAPER, 0.85 * fade), 1.6 - ph, true)
+			if boss:
+				var q := PackedVector2Array([p + Vector2(0, -r * 1.25), p + Vector2(r * 1.25, 0), p + Vector2(0, r * 1.25), p + Vector2(-r * 1.25, 0)])
+				var bf := INK if status == "cleared" else (SIGNAL * 1.4 if status == "current" else PAPER)
+				draw_colored_polygon(q, bf)
+				q.append(q[0])
+				draw_polyline(q, PAPER if status != "locked" else INK, 1.6, true)
+			elif status == "cleared":
+				draw_circle(p, r + 1.5, PAPER)
+				draw_circle(p, r, INK)
+				draw_line(p + Vector2(-3.5, 0), p + Vector2(-1, 2.6), PAPER, 1.5, true)
+				draw_line(p + Vector2(-1, 2.6), p + Vector2(3.5, -2.6), PAPER, 1.5, true)
+			elif status == "current":
+				draw_circle(p, r + 1.5, PAPER)
+				draw_circle(p, r, SIGNAL * 1.5)
+				draw_circle(p, r * 0.38, PAPER)
+			else:
+				draw_circle(p, r, Color(INK, 0.85))
+				draw_arc(p, r, 0.0, TAU, 32, PAPER, 1.4, true)
+			if j == map.selected:
+				var b := r + 8.0 + 12.0 * (1.0 - sel_k)
+				for sx: float in [-1.0, 1.0]:
+					for sy: float in [-1.0, 1.0]:
+						var c0 := p + Vector2(sx * b, sy * b)
+						draw_line(c0, c0 - Vector2(sx * 7.0, 0), PAPER, 2.0, true)
+						draw_line(c0, c0 - Vector2(0, sy * 7.0), PAPER, 2.0, true)
+		for d: Callable in label_draws:
+			d.call()

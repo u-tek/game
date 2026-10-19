@@ -13,6 +13,12 @@ extends Control
 ##   (next stage, recommended power).
 ## Under the poster: the date and her signature (tap: her hero page). View hides the stuck-on
 ## pieces and the chrome. Refreshes on Game.changed and once a second.
+## Physical (PhysicalKit, the owner's references 23 / 24): the poster is real paper (grain lit by the
+## tilting light, her line pressed into it), a growth by her faction crawls over two corners (chrome
+## thorns with blue crystal: Celestial; jelly and moss: Infernal; black thorns with red jelly:
+## Fallen), clear of her face and of every touch target (the second one comes out from under the
+## pass); the menu's status lights are real LEDs; the bulletin's index is a clear frosted acrylic tab
+## clipped over the band's edge (tap it: the next bulletin).
 
 const HUD := preload("res://src/ui/components/hud.gd")
 const LobbyLines := preload("res://src/ui/battle/lobby_lines.gd")
@@ -68,6 +74,10 @@ var _hero_box: Control
 var _hero_hit: Button
 var _over: Control
 var _bull_slot: Control
+var _bull_tab: Button
+var _bull_tab_text: Label
+var _growth_layer: Control
+var _growth_for := "-"
 var _bull_page := 0
 var _bull_t := 0.0
 var _index_label: Label
@@ -126,6 +136,10 @@ func intro() -> void:
 		_anchor.create_tween().tween_property(_anchor, "modulate:a", 1.0, 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	_typeset_in(0.05)
 	Kit.offset_in(_bull_slot, Vector2(0, -24), 0.1, 0.45)
+	Kit.offset_in(_bull_tab, Vector2(-30, 0), 0.16, 0.45)
+	if _growth_layer:
+		_growth_layer.modulate.a = 0.0
+		_growth_layer.create_tween().tween_property(_growth_layer, "modulate:a", 1.0, 0.6).set_delay(0.2)
 	var i := 0
 	for m: Array in MENU:
 		var b := _labels.get(m[0]) as Control
@@ -165,24 +179,8 @@ func _build() -> void:
 	var pr := Rect2(16, 14, w - 32, maxf(h - 14 - 92, 520))
 	_pw = pr.size.x
 	_ph = pr.size.y
-	var shadow := Panel.new()
-	shadow.mouse_filter = MOUSE_FILTER_IGNORE
-	var ss := StyleBoxFlat.new()
-	ss.bg_color = PAPER
-	ss.shadow_color = Color(0, 0, 0, 0.28)
-	ss.shadow_size = 22
-	ss.shadow_offset = Vector2(0, 8)
-	shadow.add_theme_stylebox_override("panel", ss)
-	shadow.position = pr.position
-	shadow.size = pr.size
-	_page.add_child(shadow)
-	_poster = Control.new()
-	_poster.name = "Poster"
-	_poster.mouse_filter = MOUSE_FILTER_IGNORE
-	_poster.position = pr.position
-	_poster.size = pr.size
-	_poster.clip_contents = true
-	_page.add_child(_poster)
+	# Real paper: the relief overlay goes in by hand below (under her, over her line).
+	_poster = PhysicalKit.sheet(_page, pr, PAPER, 0.28, {"manual_relief": true})
 
 	var band := ColorRect.new()
 	band.color = BAND_C
@@ -190,17 +188,15 @@ func _build() -> void:
 	band.size = Vector2(BAND, _ph)
 	_poster.add_child(band)
 	_print_layer = _layer(_poster, "Print")
-	var mark := Kit.label("HH", 34, PAPER, "wide_black")
-	mark.position = Vector2(20, 18)
-	_poster.add_child(mark)
-	var tm := Kit.label("™", 12, PAPER, "mono")
-	tm.position = Vector2(84, 20)
-	_poster.add_child(tm)
+	# (The maker's mark "HH" gave its corner to the growth; the rights line below still carries it.)
 	var rights := Kit.label("©2026 HH, ALL RIGHTS RESERVED.", 11, Color(PAPER, 0.8), "mono_bold")
 	rights.rotation = PI * 0.5
 	rights.position = Vector2(46, 90)
 	_poster.add_child(rights)
 
+	# The paper's grain re-lights the print under it (the coil and her line sit on top: the coil is
+	# stuck on, the line is pressed in).
+	PhysicalKit.relief(_poster)
 	# The coil, rendered (top right of the paper, cut by the poster's top edge).
 	var coil_tex := load(COIL_TEX) as Texture2D
 	if coil_tex:
@@ -246,6 +242,15 @@ func _build() -> void:
 	top_mark.position = Vector2(_pw - 38, 14)
 	_poster.add_child(top_mark)
 
+	# ---- Growths crawling over two of the poster's corners (by her faction; _refresh_hero).
+	_growth_layer = Control.new()
+	_growth_layer.name = "Growth"
+	_growth_layer.mouse_filter = MOUSE_FILTER_IGNORE
+	_growth_layer.position = pr.position
+	_growth_layer.size = pr.size
+	_page.add_child(_growth_layer)
+	_growth_for = "-"
+
 	# ---- Everything stuck on or printed as a control (hidden by View), over the poster, unclipped.
 	_over = Control.new()
 	_over.name = "LobbyUI"
@@ -260,6 +265,7 @@ func _build() -> void:
 	_bull_slot.size = Vector2(196, 176)
 	_over.add_child(_bull_slot)
 	_show_bulletin(0, false)
+	_build_bulletin_tab()
 	_build_index()
 	_build_menu()
 	_build_tape()
@@ -364,6 +370,54 @@ func _chevron(dir: int) -> Button:
 	return b
 
 
+## The bulletin's index: a clear frosted acrylic tab clipped over the band's left edge beside the
+## bulletin, "BULLETIN" and the page printed on it in paper white; tap it for the next bulletin.
+func _build_bulletin_tab() -> void:
+	_bull_tab = Button.new()
+	_bull_tab.name = "BulletinTab"
+	_bull_tab.theme_type_variation = &"BareButton"
+	_bull_tab.focus_mode = FOCUS_NONE
+	_bull_tab.position = Vector2(-14, 52)
+	_bull_tab.size = Vector2(88, 196)
+	_bull_tab.pressed.connect(func() -> void:
+		Kit.sfx("tap")
+		Kit.haptic(10)
+		_show_bulletin(_bull_page + 1))
+	var tab := PhysicalKit.Acrylic.new("tab", 64.0)
+	tab.name = "Acrylic"
+	tab.position = Vector2(4, 6)
+	tab.rotation = -0.025
+	_bull_tab.add_child(tab)
+	var word := Kit.label("BULLETIN", 10, Color(PAPER, 0.95), "mono_bold")
+	word.mouse_filter = MOUSE_FILTER_IGNORE
+	word.rotation = PI * 0.5
+	word.position = Vector2(42, 8)
+	tab.add_child(word)
+	_bull_tab_text = Kit.label("%02d/03" % (_bull_page + 1), 11, Color(SIG, 0.98), "mono_bold")
+	_bull_tab_text.mouse_filter = MOUSE_FILTER_IGNORE
+	_bull_tab_text.rotation = PI * 0.5
+	_bull_tab_text.position = Vector2(43, 66)
+	tab.add_child(_bull_tab_text)
+	_over.add_child(_bull_tab)
+
+
+## The growths for her faction, over the band's two left corners: the top one clear of the bulletin
+## (its acrylic tab sits on it), the bottom one under the objective label.
+func _build_growth(faction: String) -> void:
+	if faction == _growth_for or _growth_layer == null:
+		return
+	_growth_for = faction
+	for c in _growth_layer.get_children():
+		c.queue_free()
+	if faction == "":
+		return
+	# Under the stuck-on pieces (bulletin, its tab, the label): it runs beneath them, never over.
+	var ppu := clampf(_pw / 9.4, 50.0, 76.0)
+	var inset := ppu * 0.4
+	PhysicalKit.growth(faction, "tl", _growth_layer, Vector2(inset, inset), ppu)
+	PhysicalKit.growth(faction, "bl", _growth_layer, Vector2(inset * 0.6, _ph - inset), ppu)
+
+
 ## The side menu: small vertical labels with ticks down the right-hand rule, each an 88 px target
 ## with a status light.
 func _build_menu() -> void:
@@ -391,10 +445,8 @@ func _build_menu() -> void:
 		tick.position = Vector2(36, 24)
 		tick.size = Vector2(9, 1)
 		b.add_child(tick)
-		var led := HUD.Led.new()
-		led.size = Vector2(16, 16)
-		led.position = Vector2(57, 2)
-		led.mode = "breathe"
+		var led := PhysicalKit.Led.new("red", "breathe", 17.0)
+		led.position = Vector2(56, 2)
 		led.visible = false
 		b.add_child(led)
 		_over.add_child(b)
@@ -647,6 +699,7 @@ func _refresh_hero() -> void:
 		return
 	_hero_id = id
 	_hero_key = key
+	_build_growth(str(Game.hero_def(id).get("faction", "celestial")) if id != "" else "")
 	if _sprite and is_instance_valid(_sprite):
 		_sprite.queue_free()
 	_sprite = null
@@ -723,13 +776,15 @@ func _typeset(line: String, animate: bool) -> void:
 	var bb := " ".join(words.slice(0, words.size() - 1)) + " [color=#%s]%s[/color]" % [SIG.to_html(false), key]
 	var length := _ph * 0.94
 	var fs := _fit_size(text, length, 420.0)
+	# Pressed into the paper (both halves in one group: the cut runs across the band's edge).
+	var cut := PhysicalKit.deboss(_type_layer, clampf(fs * 0.032, 2.5, 4.5))
 	for side: Array in [[0.0, BAND, PAPER], [BAND, _pw - BAND, INK]]:
 		var clip := Control.new()
 		clip.clip_contents = true
 		clip.mouse_filter = MOUSE_FILTER_IGNORE
 		clip.position = Vector2(side[0], 0)
 		clip.size = Vector2(side[1], _ph)
-		_type_layer.add_child(clip)
+		cut.add_child(clip)
 		var rt := RichTextLabel.new()
 		rt.bbcode_enabled = true
 		rt.text = bb
@@ -834,6 +889,7 @@ func _hide_ui() -> void:
 	_page_anchor = _page.global_position
 	_over.visible = false
 	_pass_slot.visible = false
+	_growth_layer.visible = false
 	_type_layer.create_tween().tween_property(_type_layer, "modulate:a", 0.12, 0.3)
 	UI.set_chrome(false, false)
 	_restore = Button.new()
@@ -848,6 +904,7 @@ func _hide_ui() -> void:
 		_viewing = false
 		_over.visible = true
 		_pass_slot.visible = true
+		_growth_layer.visible = true
 		_type_layer.create_tween().tween_property(_type_layer, "modulate:a", 1.0, 0.3)
 		UI.set_chrome(true, true))
 
@@ -866,6 +923,8 @@ func _show_bulletin(page: int, animate: bool = true) -> void:
 	_bull_page = posmod(page, 3)
 	_bull_t = 0.0
 	var old: Array[Node] = _bull_slot.get_children()
+	if _bull_tab_text and is_instance_valid(_bull_tab_text):
+		_bull_tab_text.text = "%02d/03" % (_bull_page + 1)
 	var b := _make_bulletin(_bull_page)
 	_bull_slot.add_child(b)
 	for o in old:
@@ -938,10 +997,8 @@ func _make_bulletin(page: int) -> Button:
 	kick.position = Vector2(pad, 10)
 	b.add_child(kick)
 	if lit:
-		var led := HUD.Led.new()
-		led.size = Vector2(14, 14)
-		led.position = Vector2(b.size.x - pad - 14, 11)
-		led.mode = "breathe"
+		var led := PhysicalKit.Led.new("red", "breathe", 15.0)
+		led.position = Vector2(b.size.x - pad - 15, 9)
 		b.add_child(led)
 	var tw := b.size.x - pad * 2
 	var text := title.to_upper()
@@ -1024,10 +1081,8 @@ func _refresh_campaign() -> void:
 	_pass_root = SignalKit.pass_button(spec, _on_campaign)
 	_pass_root.name = "Campaign"
 	_pass_slot.add_child(_pass_root)
-	_pass_led = HUD.Led.new()
-	_pass_led.size = Vector2(22, 22)
-	_pass_led.position = Vector2(386, -9)
-	_pass_led.mode = "breathe"
+	_pass_led = PhysicalKit.Led.new("green", "breathe", 22.0)
+	_pass_led.position = Vector2(384, -11)
 	_pass_led.visible = ready
 	_pass_slot.add_child(_pass_led)
 	_pass_led.z_index = 2
@@ -1176,10 +1231,12 @@ func _refresh_sheet(st: Dictionary) -> void:
 		var cs := _sheet_refs.claim_slot as HBoxContainer
 		for c in cs.get_children():
 			c.queue_free()
-		var claim := SignalKit.stamp_button({"width": 580.0, "height": 120.0, "word": "CLAIM REWARDS" if n > 0 else "FILLING",
+		var claim := SignalKit.stamp_button({"width": 456.0, "height": 120.0, "word": "CLAIM REWARDS" if n > 0 else "FILLING",
 			"kicker": "SANCTUM  //  COLLECT", "disabled": n == 0, "button_text": "Claim"}, _claim)
 		claim.name = "Claim"
 		cs.add_child(claim)
+		cs.add_theme_constant_override("separation", 12)
+		cs.add_child(_claim_cap(n > 0, claim))
 		_sheet_refs["claim"] = claim
 	var cl: Variant = _sheet_refs.get("claim", null)
 	if cl is Button and is_instance_valid(cl):
@@ -1197,6 +1254,35 @@ func _refresh_sheet(st: Dictionary) -> void:
 		slot.add_child(q)
 		_sheet_refs["quick"] = q
 		Guide.mark(q, Guide.step() == "claim", 0)
+
+
+## The Sanctum's big red push button beside the claim stamp: a red cap in a knurled silver bezel
+## (rendered), with a green light when there is something to collect. It claims too; pressing either
+## sinks the cap.
+func _claim_cap(has_any: bool, stamp: Button) -> Button:
+	var b := Button.new()
+	b.name = "ClaimCap"
+	b.theme_type_variation = &"BareButton"
+	b.focus_mode = FOCUS_NONE
+	b.custom_minimum_size = Vector2(112, 120)
+	var cap := PhysicalKit.PushCap.new("bezel", 100.0)
+	cap.position = Vector2(6, 10)
+	b.add_child(cap)
+	var led := PhysicalKit.Led.new("green" if has_any else "red", "breathe" if has_any else "off", 16.0)
+	led.position = Vector2(92, 2)
+	b.add_child(led)
+	var down := func() -> void:
+		cap.set_pressed(true)
+		Kit.haptic(16)
+	var up := func() -> void: cap.set_pressed(false)
+	b.button_down.connect(down)
+	b.button_up.connect(up)
+	stamp.button_down.connect(down)
+	stamp.button_up.connect(up)
+	b.pressed.connect(func() -> void:
+		Kit.sfx("tap")
+		_claim())
+	return b
 
 
 ## Quick Claim as a printed outline button: the name in heavy condensed type over a mono line (free,

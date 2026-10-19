@@ -32,6 +32,12 @@ extends Control
 ## pay, a signal sticker explains it and links to the Shop. Under the poster: the date and a
 ## signature. The bottom nav stays up on the banner and on the results; only the reveal hides it.
 ##
+## Physical (PhysicalKit, the owner's references 23 / 24): every banner's paper is real, its giant
+## type pressed in; a growth matching the banner crawls over one corner (thorns or jelly and moss by
+## the banner hero's faction; the Envoy's flyer gets a small clump); the pity readout is an orange
+## acrylic card stuck on the poster (what is behind it shows through frosted; "Pity"); the x10
+## ticket carries a glossy red dome as its press cap (it goes down with the ticket).
+##
 ## Summoning plays the full-screen sequence (src/ui/summon/summon_sequence.gd) with the chrome
 ## hidden: a press run, every hero's own poster to tap through, then the results as a contact sheet
 ## (with the top bar and nav back) with Again (a ticket) or Done. "Skip" jumps to the results.
@@ -294,6 +300,7 @@ func _compose() -> void:
 			_compose_envoy(pr)
 		_:
 			_compose_standard(pr)
+	_growth_for_banner(pr)
 	# The dynamic layer (tickets, pity, reason), then the line under the poster and the grain.
 	_dyn = Control.new()
 	_dyn.name = "Live"
@@ -422,6 +429,59 @@ func _framed_print(parent: Control, id: String, pos: Vector2, s: float, caption:
 	return fr
 
 
+## The banner's growth over one of its poster's corners, clear of its touch targets: by the
+## banner hero's faction (the faction banner: today's faction), a small clump on the Envoy's flyer.
+func _growth_for_banner(pr: Rect2) -> void:
+	var fac := str(Game.hero_def(_feature).get("faction", "celestial"))
+	var corner := "tr"
+	match _kind():
+		"featured":
+			corner = "tl"
+		"faction":
+			fac = str(_banner.get("faction", fac))
+			corner = "tl"
+		"wish":
+			if str(_banner.get("target", "")) == "":
+				fac = "celestial"
+		"envoy":
+			PhysicalKit.growth("celestial", "clump_b", _stage, pr.position + Vector2(34, 30), 60.0, -0.3)
+			return
+	var ppu := 66.0
+	var inset := ppu * 0.2
+	var at := pr.position + Vector2(inset, inset)
+	if corner == "tr":
+		at = pr.position + Vector2(pr.size.x - inset, inset)
+	PhysicalKit.growth(fac, corner, _stage, at, ppu)
+
+
+## The pity readout on an orange acrylic card stuck on the poster: a kicker, the pulls left huge, the
+## unit and a mono line, printed in paper white (clear of the card's punched hole, top right). Named
+## "Pity". `at` is in stage px.
+func _pity_card(at: Vector2, width: float, rot: float, kicker: String, big: String, unit: String, sub: String) -> Control:
+	var card := PhysicalKit.Acrylic.new("card", width)
+	card.name = "Pity"
+	card.position = at
+	card.rotation = rot
+	_dyn.add_child(card)
+	var h := width * 0.483
+	var ink := Color(1.0, 0.97, 0.92, 0.96)
+	var k := PK.t(kicker, 10, Color(ink, 0.9), "mono_bold")
+	k.position = Vector2(width * 0.06, h * 0.1)
+	card.add_child(k)
+	var n := PK.t(big, int(h * 0.56), ink, "compressed")
+	var cp := PK.caps(Kit.font("compressed"), int(h * 0.56))
+	n.position = Vector2(width * 0.055, h * 0.27 - cp.x)
+	card.add_child(n)
+	var nw := Kit.font("compressed").get_string_size(big, HORIZONTAL_ALIGNMENT_LEFT, -1, int(h * 0.56)).x
+	var u := PK.t(unit, 13, ink, "mono_bold")
+	u.position = Vector2(width * 0.06 + nw + 8, h * 0.27 + (cp.y - cp.x) - 16)
+	card.add_child(u)
+	var s := PK.t(sub, 10, Color(ink, 0.9), "mono_bold")
+	s.position = Vector2(width * 0.06, h * 0.8)
+	card.add_child(s)
+	return card
+
+
 # ------------------------------------------------------------------ 01 standard
 
 func _compose_standard(pr: Rect2) -> void:
@@ -482,10 +542,8 @@ func _live_standard(pr: Rect2) -> void:
 	tk.position = pr.position + Vector2(40, ph * 0.3)
 	_dyn.add_child(tk)
 	PK.vt(_dyn, "PITY %02d / %d" % [pity, pity_max], 12, INK, pr.position + Vector2(38, ph * 0.3 - 112))
-	PK.at(_dyn, PK.t("LEGENDARY GUARANTEED\nWITHIN %d PULL%s" % [left, "" if left == 1 else "S"], 10, INK, "mono_bold"), pr.position + Vector2(64, 186))
-	PK.rule(_dyn, Rect2(pr.position + Vector2(64, 180), Vector2(130, 1)), Color(INK, 0.5))
-	var st := PK.stamp_disc(_dyn, pr.position + Vector2(64, ph - 316), 112, "LEGENDARY · WITHIN · PULLS · ", "%02d" % left)
-	st.name = "Pity"
+	_pity_card(pr.position + Vector2(pr.size.x - BAND_W - 14, ph * 0.36), 236.0, -0.035, "LEGENDARY GUARANTEED WITHIN",
+		"%02d" % left, "PULL" if left == 1 else "PULLS", "PITY %02d / %d" % [pity, pity_max])
 	if bool(Game.free_pull_available()):
 		PK.led(_dyn, pr.position + Vector2(24, ph * 0.3 - 136), "blink")
 
@@ -565,9 +623,8 @@ func _live_featured(pr: Rect2) -> void:
 	var tb := PK.data_table(rows, 232.0, {"size": 12, "row_h": 26.0, "bar": Color(SIG, 0.18)})
 	tb.position = Vector2(3, 6)
 	slip.add_child(tb)
-	var st := PK.stamp_disc(_dyn, pr.position + Vector2(58, ph * 0.42 - 140), 118,
-		("NEXT ONE · IS HERS · " if lost else "FEATURED · LEGENDARY · "), "100%" if lost else _pct(float(fbp)), -0.1)
-	st.name = "Pity"
+	_pity_card(pr.position + Vector2(4, ph * 0.42 - 150), 238.0, -0.03, "NEXT ONE IS HERS" if lost else "FEATURED LEGENDARY",
+		"100%" if lost else _pct(float(fbp)), "CHANCE", "GUARANTEED IN %d PULL%s" % [left, "" if left == 1 else "S"])
 	# Pity: a printed tick ruler down the poster's right edge.
 	var tk := PK.ticks(pity_max, pity, Vector2(ph * 0.42, 16), INK, SIG)
 	tk.rotation = PI * 0.5
@@ -673,8 +730,8 @@ func _live_faction(pr: Rect2) -> void:
 	tk.position = pr.position + Vector2(222, ph * 0.36)
 	_dyn.add_child(tk)
 	PK.vt(_dyn, "PITY %02d / %d" % [pity, pity_max], 11, INK, pr.position + Vector2(220, ph * 0.36 - 104))
-	var st := PK.stamp_disc(_dyn, pr.position + Vector2(44, ph * 0.38), 112, "%s · LEGENDARY · WITHIN · " % fac.to_upper(), "%02d" % left, 0.1)
-	st.name = "Pity"
+	_pity_card(pr.position + Vector2(6, ph * 0.38), 232.0, 0.03, "%s LEGENDARY WITHIN" % fac.to_upper(), "%02d" % left,
+		"PULL" if left == 1 else "PULLS", "PITY %02d / %d" % [pity, pity_max])
 
 
 # ------------------------------------------------------------------ 04 wish
@@ -747,8 +804,8 @@ func _live_wish(pr: Rect2) -> void:
 	tk.position = pr.position + Vector2(40, ph * 0.34)
 	_dyn.add_child(tk)
 	PK.vt(_dyn, "PITY %02d / %d" % [pity, pity_max], 12, INK, pr.position + Vector2(38, ph * 0.34 - 112))
-	var st := PK.stamp_disc(_dyn, pr.position + Vector2(64, ph - 300), 104, "WISH · GRANTED · WITHIN · ", "%02d" % left)
-	st.name = "Pity"
+	_pity_card(pr.position + Vector2(pr.size.x - BAND_W - 18, ph - 292), 232.0, -0.03, "WISH GRANTED WITHIN", "%02d" % left,
+		"PULL" if left == 1 else "PULLS", "PITY %02d / %d" % [pity, pity_max])
 	# The week's wishes as a punch card: used ones punched out.
 	var lim := int(_banner.get("limit_max", 30))
 	var lleft := int(_banner.get("limit_left", lim))
@@ -1172,12 +1229,20 @@ func _ticket(spec: Dictionary, on_pressed: Callable) -> Button:
 	var cp := PK.caps(Kit.font("compressed"), big.get_theme_font_size("font_size"))
 	big.position = Vector2(17, 41.0 - cp.x)
 	body.add_child(big)
-	var seal := _Seal.new()
-	seal.ink = ink
-	seal.text = "Nº%s" % _no()
-	seal.position = Vector2(bw - 66, 44)
-	seal.size = Vector2(42, 42)
-	body.add_child(seal)
+	var dome: Control = null
+	if count == 10:
+		# The x10 ticket's press cap: a glossy red dome where the seal would be.
+		dome = PhysicalKit.PushCap.new("dome", 66.0)
+		dome.name = "Dome"
+		dome.position = Vector2(bw - 84, 28)
+		body.add_child(dome)
+	else:
+		var seal := _Seal.new()
+		seal.ink = ink
+		seal.text = "Nº%s" % _no()
+		seal.position = Vector2(bw - 66, 44)
+		seal.size = Vector2(42, 42)
+		body.add_child(seal)
 	PK.rule(body, Rect2(20, 99, bw - 40, 1), Color(ink, 0.55))
 	var price := PK.t(str(spec.get("price", "")), 17, ink, "wide_black")
 	Kit.fit_label(price, bw - 40, 17, 11)
@@ -1213,8 +1278,14 @@ func _ticket(spec: Dictionary, on_pressed: Callable) -> Button:
 	b.disabled = off
 	PK.wire(b, [], on_pressed)
 	var stub_x := w - sw
-	b.button_down.connect(func() -> void: _tear(body, stub, shadow, stub_x, true))
-	b.button_up.connect(func() -> void: _tear(body, stub, shadow, stub_x, false))
+	b.button_down.connect(func() -> void:
+		_tear(body, stub, shadow, stub_x, true)
+		if dome and is_instance_valid(dome):
+			(dome as PhysicalKit.PushCap).set_pressed(true))
+	b.button_up.connect(func() -> void:
+		_tear(body, stub, shadow, stub_x, false)
+		if dome and is_instance_valid(dome):
+			(dome as PhysicalKit.PushCap).set_pressed(false))
 	return b
 
 

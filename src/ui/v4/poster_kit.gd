@@ -8,7 +8,7 @@ extends RefCounted
 ## No class_name (screens preload it: const PK := preload("res://src/ui/v4/poster_kit.gd")).
 ##
 ##   PosterKit.matte(parent)                       full-rect paper matte (#f5f4f0)
-##   PosterKit.poster(parent, rect, fill)          shadowed, clipped poster panel; returns the panel
+##   PosterKit.poster(parent, rect, fill)          a sheet of real paper (PhysicalKit.sheet), clipped
 ##   PosterKit.band(parent, rect, hero, skin, opts) dark band with the hero's red halftone print
 ##   PosterKit.halftone_hero(hero, skin, opts)     a halftone TextureRect of the hero (face crop)
 ##   PosterKit.giant(parent, bbcode, size, spans, pos, box, rot)  two-tone giant type (clip trick)
@@ -93,30 +93,12 @@ static func matte(parent: Node) -> ColorRect:
 	return m
 
 
-## A printed poster panel: a soft drop shadow on the matte and the paper, clipped. Content goes in
-## the returned control (local coordinates). fill: the paper colour.
+## A printed poster panel: a sheet of real paper (PhysicalKit.sheet: felt or parchment grain lit by
+## the tilting key light, a hair of thickness, contact and soft shadows on the matte; big sheets get
+## the relief overlay), clipped. Content goes in the returned control (local coordinates). fill: the
+## paper colour.
 static func poster(parent: Node, rect: Rect2, fill: Color = PAPER, shadow: float = 0.28) -> Control:
-	var sh := Panel.new()
-	sh.name = "PosterShadow"
-	sh.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var ss := StyleBoxFlat.new()
-	ss.bg_color = fill
-	ss.shadow_color = Color(0, 0, 0, shadow)
-	ss.shadow_size = 22
-	ss.shadow_offset = Vector2(0, 8)
-	sh.add_theme_stylebox_override("panel", ss)
-	sh.position = rect.position
-	sh.size = rect.size
-	parent.add_child(sh)
-	var p := Control.new()
-	p.name = "Poster"
-	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	p.clip_contents = true
-	p.position = rect.position
-	p.size = rect.size
-	parent.add_child(p)
-	p.set_meta("shadow", sh)
-	return p
+	return PhysicalKit.sheet(parent, rect, fill, shadow)
 
 
 ## A halftone print of the hero (head to waist, cover-cropped): a TextureRect with the halftone
@@ -178,18 +160,20 @@ static func band(parent: Node, rect: Rect2, hero_id: String, skin: String, opts:
 ## Giant display type, two-tone where it crosses bands (the Lobby poster's clip trick): one
 ## RichTextLabel per span, each clipped to its span. spans: [[x0, width, colour], ...] in parent
 ## coordinates (full parent height); pos / box: the text block's position and size in the parent;
-## rot: its rotation (PI / 2 = turned clockwise). bbcode may colour one keyword. Returns the labels
-## (animate them together: they share position, scale and alpha).
+## rot: its rotation (PI / 2 = turned clockwise). bbcode may colour one keyword. deboss: pressed into
+## the paper (PhysicalKit.deboss). Returns the labels (animate them together: they share position,
+## scale and alpha).
 static func giant(parent: Control, bbcode: String, font_size: int, spans: Array, pos: Vector2, box: Vector2,
-		rot: float = PI * 0.5, weight: String = "compressed", line_sep: int = -14) -> Array[RichTextLabel]:
+		rot: float = PI * 0.5, weight: String = "compressed", line_sep: int = -14, deboss: bool = true) -> Array[RichTextLabel]:
 	var out: Array[RichTextLabel] = []
+	var host: Node = PhysicalKit.deboss(parent, clampf(font_size * 0.03, 2.5, 6.0)) if deboss else parent
 	for sp: Array in spans:
 		var clip := Control.new()
 		clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		clip.clip_contents = true
 		clip.position = Vector2(float(sp[0]), 0)
 		clip.size = Vector2(float(sp[1]), parent.size.y)
-		parent.add_child(clip)
+		host.add_child(clip)
 		var rt := RichTextLabel.new()
 		rt.bbcode_enabled = true
 		rt.text = bbcode

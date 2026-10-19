@@ -131,8 +131,9 @@ static func halftone(hero_id: String, skin: String, opts: Dictionary = {}) -> Te
 ## `pos` is the top-right corner of the turned block and `block` its size before turning (x = its
 ## length down the page). Returns the labels (pose() moves them together).
 static func giant(parent: Control, bb: String, fs: int, pos: Vector2, block: Vector2, regions: Array,
-		rot: float = PI * 0.5, weight: String = "compressed", line_sep: int = -14) -> Array[RichTextLabel]:
+		rot: float = PI * 0.5, weight: String = "compressed", line_sep: int = -14, deboss: bool = true) -> Array[RichTextLabel]:
 	var out: Array[RichTextLabel] = []
+	var host: Node = PhysicalKit.deboss(parent, clampf(fs * 0.03, 2.5, 6.0)) if deboss else parent
 	for r: Array in regions:
 		var rr: Rect2 = r[0]
 		if rr.size.x <= 0.0 or rr.size.y <= 0.0:
@@ -142,7 +143,7 @@ static func giant(parent: Control, bb: String, fs: int, pos: Vector2, block: Vec
 		clip.clip_contents = true
 		clip.position = rr.position
 		clip.size = rr.size
-		parent.add_child(clip)
+		host.add_child(clip)
 		var rt := RichTextLabel.new()
 		rt.bbcode_enabled = true
 		rt.text = bb

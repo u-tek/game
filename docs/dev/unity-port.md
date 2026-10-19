@@ -20,6 +20,7 @@ data/                         ENGINE-NEUTRAL CONTENT (single source of truth)
   quests.json                 daily quests
   offers.json                 shop offers and the monthly card
   battle.json                 battle tuning (energy, damage, bosses, factions, timings)
+  worlds.json                 the campaign worlds' presentation (no rules; section 3.6d)
   fixtures/*.json             golden fixtures: rule inputs -> exact outputs (section 10)
 src/data/                     THIN LOADERS (GDScript; C#: Data/*.cs)
   game_data.gd   GameData     reads and caches data/*.json, turns JSON numbers back into ints
@@ -229,6 +230,17 @@ strength_bp, level_per_floor_past, stars_every_past, rec_bp, rec_past_bp, boss_e
 ids], backgrounds [kinds], floors_per_background, rewards {gold_base, gold_per_floor, hero_exp_bp,
 dust_base, dust_every, gems_every, gems, boss_gems, boss_scrolls, gear_slots, gear_tier_every}}`.
 Floors are not stored: section 9b builds them.
+
+### 3.6d worlds.json (presentation only)
+
+The Campaign's worlds: one record per chapter, in chapter order. `{version, about, worlds: [World]}`.
+World: `{chapter (the chapter id), world (1-6: the planet art assets/art/worlds/w<world>_albedo.jpg,
+_normal.jpg, _height.png), code (the catalogue mark, "S1"), class (terrain, "Terraced highland"),
+mass (the MASS tag), readouts [[label, value], ...]}`. No rules read it: the chapter dossier prints
+it (`src/ui/v4/survey/world_dossier.gd`) and the survey map takes its surface temperature. A port
+only needs it to draw the same dossier. The planet maps are equirectangular in Godot's SphereMesh
+layout (u = longitude from +Z towards +X, v = 0 at the north pole); the normal map stores the
+normal in the sphere's own frame (R east, G north; B rebuilt), see `planet.gdshader`.
 
 ### 3.7 battle.json
 

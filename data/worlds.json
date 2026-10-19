@@ -1,0 +1,54 @@
+{
+	"version": 1,
+	"about": "Campaign worlds (presentation only, no rules): one per chapter, in chapter order. The Campaign's chapter dossier (src/ui/v4/survey/world_dossier.gd) prints the planet (art: assets/art/worlds/w<world>_*, made by tools/blender/planets.py) with these readouts under the chapter's own numbers. code: the catalogue mark printed large; class: the terrain; mass: the MASS tag; readouts: [label, value] rows, flavour only.",
+	"worlds": [
+		{
+			"chapter": "ch1",
+			"world": 1,
+			"code": "S1",
+			"class": "Terraced highland",
+			"mass": "4.81 × 10²⁴ KG",
+			"readouts": [["Gravity", "0.92 G"], ["Atmosphere", "Halo dust · 2.1 KG/M³"], ["Surface temp", "-14 °C"], ["Day length", "26.40 H"], ["Orbital period", "381 D"]]
+		},
+		{
+			"chapter": "ch2",
+			"world": 2,
+			"code": "E2",
+			"class": "Canyon badlands",
+			"mass": "6.42 × 10²⁴ KG",
+			"readouts": [["Gravity", "1.08 G"], ["Atmosphere", "Sulphur · 9.4 KG/M³"], ["Surface temp", "61 °C"], ["Day length", "19.75 H"], ["Orbital period", "212 D"]]
+		},
+		{
+			"chapter": "ch3",
+			"world": 3,
+			"code": "T3",
+			"class": "Crater maria",
+			"mass": "9.12 × 10²² KG",
+			"readouts": [["Gravity", "0.38 G"], ["Atmosphere", "None"], ["Surface temp", "-118 °C"], ["Day length", "655.7 H"], ["Orbital period", "27.3 D"]]
+		},
+		{
+			"chapter": "ch4",
+			"world": 4,
+			"code": "H4",
+			"class": "Ice shell",
+			"mass": "2.20 × 10²³ KG",
+			"readouts": [["Gravity", "0.61 G"], ["Atmosphere", "Oxygen trace · 0.1 KG/M³"], ["Surface temp", "-171 °C"], ["Day length", "84.20 H"], ["Orbital period", "3.55 D"]]
+		},
+		{
+			"chapter": "ch5",
+			"world": 5,
+			"code": "N5",
+			"class": "Lava fields",
+			"mass": "4.87 × 10²⁴ KG",
+			"readouts": [["Gravity", "1.21 G"], ["Atmosphere", "CO2 · 64 KG/M³"], ["Surface temp", "463 °C"], ["Day length", "42.50 H"], ["Orbital period", "168 D"]]
+		},
+		{
+			"chapter": "ch6",
+			"world": 6,
+			"code": "R6",
+			"class": "Crystal fields",
+			"mass": "2.93 × 10²⁴ KG",
+			"readouts": [["Gravity", "0.77 G"], ["Atmosphere", "Argon · 1.3 KG/M³"], ["Surface temp", "-62 °C"], ["Day length", "31.20 H"], ["Orbital period", "1,042 D"]]
+		}
+	]
+}
