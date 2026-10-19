@@ -1,4 +1,4 @@
 extends RefCounted
 
-func test_roster_has_15_heroes(t: TestCtx) -> void:
-	t.eq(HeroData.all().size(), 15)
+func test_roster_has_40_heroes(t: TestCtx) -> void:
+	t.eq(HeroData.all().size(), 40)

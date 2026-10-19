@@ -16,7 +16,7 @@ func _game() -> Node:
 func test_hero_defs_are_complete(t: TestCtx) -> void:
 	var g := _game()
 	var defs: Array = g.all_hero_defs()
-	t.eq(defs.size(), 15)
+	t.eq(defs.size(), 40)
 	var ult_names := {}
 	for d in defs:
 		var ident := HeroData.get_def(d.id)
@@ -32,7 +32,7 @@ func test_hero_defs_are_complete(t: TestCtx) -> void:
 		t.eq(int(d.passives[1].unlock_stars), 5)
 		for p in d.passives:
 			t.ok(p.name != "" and p.description != "" and not p.effects.is_empty(), "%s passive %s" % [d.id, p.get("id", "")])
-	t.eq(ult_names.size(), 15, "ultimate names are unique")
+	t.eq(ult_names.size(), 40, "ultimate names are unique")
 	t.eq(g.hero_def("nobody"), {})
 	g.free()
 

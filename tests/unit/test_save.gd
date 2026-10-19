@@ -153,7 +153,7 @@ func test_reset_save(t: TestCtx) -> void:
 func test_rich_state(t: TestCtx) -> void:
 	var g := _game()
 	g.make_rich_state()
-	t.eq(g.owned_heroes().size(), 15)
+	t.eq(g.owned_heroes().size(), 40, "--rich owns every hero")
 	t.eq(g.currency("gems"), 50000)
 	t.eq(g.currency("gold"), 500000)
 	t.eq(g.currency("hero_exp"), 300000)

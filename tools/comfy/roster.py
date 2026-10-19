@@ -8,9 +8,12 @@
         run_hero.py for each hero in roster order (starters, legendaries, epics, rares). Existing
         seeds are skipped, so re-running only fills gaps; one hero failing does not stop the rest.
         --seed-offset N starts each hero at its seed_base + N, for a new round beside the old seeds.
+        With --adult, heroes without an 'adult' block in the bible (the 25 added 2026-10-19) are
+        skipped; one named in --heroes counts as failed.
 
 Roster order: uriela, kessa, lucen (starters), seraphiel, mordessa, noctaire (legendaries), cassiel,
-liora, brakka, vesper, orrin, sable (epics), nuriel, imra, ashra (rares).
+liora, brakka, vesper, orrin, sable (epics), nuriel, imra, ashra (rares), then every other hero in
+bible order (the 25 added 2026-10-19).
 """
 import argparse
 import json
@@ -79,14 +82,21 @@ def cmd_candidates(a, rest):
     import run_hero
     bible = prompts.load_bible()
     heroes = [x.strip() for x in a.heroes.split(",")] if a.heroes else roster(bible)
-    failed = []
+    adult = "--adult" in rest
+    failed, skipped = [], []
     for hid in heroes:
+        if adult and hid in bible["heroes"] and not isinstance(bible["heroes"][hid].get("adult"), dict):
+            print("== %s: no 'adult' block in the bible, skipped" % hid, flush=True)
+            (failed if a.heroes else skipped).append(hid)
+            continue
         print("== %s" % hid, flush=True)
         argv = [hid, "--count", str(a.count)] + (["--dry-run"] if a.dry_run else []) + rest
         if a.seed_offset is not None:
             argv += ["--seed", str(int(bible["heroes"][hid]["seed_base"]) + a.seed_offset)]
         if run_hero.main(argv) != 0:
             failed.append(hid)
+    if skipped:
+        print("skipped (no adult block): %s" % ", ".join(skipped))
     if failed:
         print("FAILED: %s" % ", ".join(failed), file=sys.stderr)
         return 1

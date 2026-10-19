@@ -164,6 +164,294 @@
 			"power": 9721
 		},
 		{
+			"hero_id": "argentiel",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 3800, "atk": 126, "def": 104, "spd": 108, "crit": 2500},
+			"power": 858
+		},
+		{
+			"hero_id": "argentiel",
+			"level": 20,
+			"stars": 3,
+			"gear": [],
+			"out": {"hp": 6067, "atk": 330, "def": 161, "spd": 102, "crit": 1700},
+			"power": 1469
+		},
+		{
+			"hero_id": "argentiel",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 16444, "atk": 899, "def": 439, "spd": 104, "crit": 1700},
+			"power": 4072
+		},
+		{
+			"hero_id": "argentiel",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 37752, "atk": 1986, "def": 1008, "spd": 113, "crit": 2500},
+			"power": 10376
+		},
+		{
+			"hero_id": "sanariel",
+			"level": 1,
+			"stars": 1,
+			"gear": [],
+			"out": {"hp": 2000, "atk": 88, "def": 54, "spd": 102, "crit": 600},
+			"power": 426
+		},
+		{
+			"hero_id": "sanariel",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 6905, "atk": 284, "def": 170, "spd": 104, "crit": 600},
+			"power": 1444
+		},
+		{
+			"hero_id": "sanariel",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 18572, "atk": 689, "def": 457, "spd": 114, "crit": 1400},
+			"power": 4278
+		},
+		{
+			"hero_id": "sanariel",
+			"level": 140,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 37769, "atk": 1510, "def": 926, "spd": 107, "crit": 600},
+			"power": 8049
+		},
+		{
+			"hero_id": "rimelle",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 2030, "atk": 134, "def": 53, "spd": 99, "crit": 1100},
+			"power": 502
+		},
+		{
+			"hero_id": "rimelle",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 6119, "atk": 360, "def": 157, "spd": 117, "crit": 1900},
+			"power": 1762
+		},
+		{
+			"hero_id": "rimelle",
+			"level": 60,
+			"stars": 5,
+			"gear": [],
+			"out": {"hp": 11615, "atk": 882, "def": 287, "spd": 111, "crit": 1100},
+			"power": 3415
+		},
+		{
+			"hero_id": "rimelle",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 26765, "atk": 2031, "def": 666, "spd": 112, "crit": 1100},
+			"power": 7946
+		},
+		{
+			"hero_id": "avienne",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 4480, "atk": 84, "def": 128, "spd": 100, "crit": 1300},
+			"power": 783
+		},
+		{
+			"hero_id": "avienne",
+			"level": 20,
+			"stars": 3,
+			"gear": [],
+			"out": {"hp": 8994, "atk": 178, "def": 230, "spd": 94, "crit": 500},
+			"power": 1406
+		},
+		{
+			"hero_id": "avienne",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 24198, "atk": 500, "def": 621, "spd": 96, "crit": 500},
+			"power": 3901
+		},
+		{
+			"hero_id": "avienne",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 55357, "atk": 1086, "def": 1420, "spd": 105, "crit": 1300},
+			"power": 10038
+		},
+		{
+			"hero_id": "cirella",
+			"level": 1,
+			"stars": 1,
+			"gear": [],
+			"out": {"hp": 1580, "atk": 98, "def": 40, "spd": 126, "crit": 2400},
+			"power": 511
+		},
+		{
+			"hero_id": "cirella",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 5064, "atk": 312, "def": 130, "spd": 138, "crit": 3900},
+			"power": 1915
+		},
+		{
+			"hero_id": "cirella",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 13695, "atk": 764, "def": 351, "spd": 149, "crit": 4700},
+			"power": 5544
+		},
+		{
+			"hero_id": "cirella",
+			"level": 140,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 27124, "atk": 1681, "def": 686, "spd": 141, "crit": 3900},
+			"power": 10488
+		},
+		{
+			"hero_id": "ferrael",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 2320, "atk": 123, "def": 65, "spd": 100, "crit": 1450},
+			"power": 543
+		},
+		{
+			"hero_id": "ferrael",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 6957, "atk": 317, "def": 213, "spd": 110, "crit": 2250},
+			"power": 1784
+		},
+		{
+			"hero_id": "ferrael",
+			"level": 60,
+			"stars": 5,
+			"gear": [],
+			"out": {"hp": 13817, "atk": 775, "def": 423, "spd": 104, "crit": 1450},
+			"power": 3490
+		},
+		{
+			"hero_id": "ferrael",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 31744, "atk": 1787, "def": 976, "spd": 105, "crit": 1450},
+			"power": 8113
+		},
+		{
+			"hero_id": "verdelle",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 3350, "atk": 88, "def": 93, "spd": 110, "crit": 1300},
+			"power": 687
+		},
+		{
+			"hero_id": "verdelle",
+			"level": 20,
+			"stars": 3,
+			"gear": [],
+			"out": {"hp": 4766, "atk": 189, "def": 128, "spd": 104, "crit": 500},
+			"power": 994
+		},
+		{
+			"hero_id": "verdelle",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 13026, "atk": 530, "def": 355, "spd": 106, "crit": 500},
+			"power": 2799
+		},
+		{
+			"hero_id": "verdelle",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 30026, "atk": 1154, "def": 819, "spd": 115, "crit": 1300},
+			"power": 7142
+		},
+		{
+			"hero_id": "isobel",
+			"level": 1,
+			"stars": 1,
+			"gear": [],
+			"out": {"hp": 1540, "atk": 104, "def": 38, "spd": 99, "crit": 1050},
+			"power": 381
+		},
+		{
+			"hero_id": "isobel",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 4949, "atk": 379, "def": 124, "spd": 101, "crit": 1050},
+			"power": 1328
+		},
+		{
+			"hero_id": "isobel",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 13392, "atk": 931, "def": 335, "spd": 111, "crit": 3050},
+			"power": 4132
+		},
+		{
+			"hero_id": "isobel",
+			"level": 140,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 26438, "atk": 2051, "def": 651, "spd": 104, "crit": 2250},
+			"power": 7759
+		},
+		{
+			"hero_id": "halcia",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 2030, "atk": 125, "def": 54, "spd": 119, "crit": 2100},
+			"power": 615
+		},
+		{
+			"hero_id": "halcia",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 6119, "atk": 296, "def": 159, "spd": 129, "crit": 2900},
+			"power": 1884
+		},
+		{
+			"hero_id": "halcia",
+			"level": 60,
+			"stars": 5,
+			"gear": [],
+			"out": {"hp": 11615, "atk": 720, "def": 296, "spd": 135, "crit": 2100},
+			"power": 3980
+		},
+		{
+			"hero_id": "halcia",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 26765, "atk": 1660, "def": 683, "spd": 136, "crit": 2100},
+			"power": 9245
+		},
+		{
 			"hero_id": "mordessa",
 			"level": 1,
 			"stars": 1,
@@ -324,164 +612,676 @@
 			"power": 8154
 		},
 		{
-			"hero_id": "noctaire",
+			"hero_id": "drezza",
 			"level": 1,
 			"stars": 1,
 			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
-			"out": {"hp": 2250, "atk": 138, "def": 59, "spd": 124, "crit": 2500},
-			"power": 720
+			"out": {"hp": 2400, "atk": 118, "def": 67, "spd": 108, "crit": 600},
+			"power": 566
+		},
+		{
+			"hero_id": "drezza",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 7189, "atk": 276, "def": 198, "spd": 118, "crit": 1400},
+			"power": 1765
+		},
+		{
+			"hero_id": "drezza",
+			"level": 60,
+			"stars": 5,
+			"gear": [],
+			"out": {"hp": 14425, "atk": 667, "def": 393, "spd": 112, "crit": 600},
+			"power": 3438
+		},
+		{
+			"hero_id": "drezza",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 33119, "atk": 1540, "def": 906, "spd": 113, "crit": 600},
+			"power": 7987
+		},
+		{
+			"hero_id": "zecchina",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 3490, "atk": 132, "def": 92, "spd": 126, "crit": 3200},
+			"power": 979
+		},
+		{
+			"hero_id": "zecchina",
+			"level": 20,
+			"stars": 3,
+			"gear": [],
+			"out": {"hp": 5170, "atk": 317, "def": 126, "spd": 120, "crit": 3400},
+			"power": 1650
+		},
+		{
+			"hero_id": "zecchina",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 14089, "atk": 864, "def": 348, "spd": 122, "crit": 3400},
+			"power": 4580
+		},
+		{
+			"hero_id": "zecchina",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 32429, "atk": 1910, "def": 803, "spd": 131, "crit": 4200},
+			"power": 11511
+		},
+		{
+			"hero_id": "torqua",
+			"level": 1,
+			"stars": 1,
+			"gear": [],
+			"out": {"hp": 2900, "atk": 61, "def": 80, "spd": 88, "crit": 500},
+			"power": 436
+		},
+		{
+			"hero_id": "torqua",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 9765, "atk": 206, "def": 245, "spd": 90, "crit": 500},
+			"power": 1476
+		},
+		{
+			"hero_id": "torqua",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 26088, "atk": 483, "def": 654, "spd": 100, "crit": 1300},
+			"power": 4437
+		},
+		{
+			"hero_id": "torqua",
+			"level": 140,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 54765, "atk": 1046, "def": 1372, "spd": 93, "crit": 500},
+			"power": 8385
+		},
+		{
+			"hero_id": "sigilla",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 2100, "atk": 134, "def": 55, "spd": 93, "crit": 1100},
+			"power": 481
+		},
+		{
+			"hero_id": "sigilla",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 6322, "atk": 322, "def": 163, "spd": 103, "crit": 1900},
+			"power": 1514
+		},
+		{
+			"hero_id": "sigilla",
+			"level": 60,
+			"stars": 5,
+			"gear": [],
+			"out": {"hp": 12147, "atk": 914, "def": 303, "spd": 97, "crit": 2100},
+			"power": 3258
+		},
+		{
+			"hero_id": "sigilla",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 27968, "atk": 2104, "def": 701, "spd": 98, "crit": 2100},
+			"power": 7584
+		},
+		{
+			"hero_id": "carmesa",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 3300, "atk": 124, "def": 88, "spd": 126, "crit": 3200},
+			"power": 926
+		},
+		{
+			"hero_id": "carmesa",
+			"level": 20,
+			"stars": 3,
+			"gear": [],
+			"out": {"hp": 4622, "atk": 293, "def": 115, "spd": 134, "crit": 3400},
+			"power": 1675
+		},
+		{
+			"hero_id": "carmesa",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 12647, "atk": 804, "def": 318, "spd": 136, "crit": 3400},
+			"power": 4666
+		},
+		{
+			"hero_id": "carmesa",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 29168, "atk": 1772, "def": 734, "spd": 146, "crit": 4200},
+			"power": 11717
+		},
+		{
+			"hero_id": "thrasha",
+			"level": 1,
+			"stars": 1,
+			"gear": [],
+			"out": {"hp": 1680, "atk": 96, "def": 45, "spd": 110, "crit": 1600},
+			"power": 446
+		},
+		{
+			"hero_id": "thrasha",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 5781, "atk": 342, "def": 143, "spd": 112, "crit": 1600},
+			"power": 1568
+		},
+		{
+			"hero_id": "thrasha",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 15610, "atk": 840, "def": 388, "spd": 122, "crit": 2400},
+			"power": 4605
+		},
+		{
+			"hero_id": "thrasha",
+			"level": 140,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 31148, "atk": 1845, "def": 771, "spd": 115, "crit": 1600},
+			"power": 8684
+		},
+		{
+			"hero_id": "kindra",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 3240, "atk": 90, "def": 89, "spd": 88, "crit": 500},
+			"power": 518
+		},
+		{
+			"hero_id": "kindra",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 9616, "atk": 194, "def": 287, "spd": 98, "crit": 1300},
+			"power": 1686
+		},
+		{
+			"hero_id": "kindra",
+			"level": 60,
+			"stars": 5,
+			"gear": [],
+			"out": {"hp": 23922, "atk": 454, "def": 616, "spd": 92, "crit": 500},
+			"power": 3637
+		},
+		{
+			"hero_id": "kindra",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 54671, "atk": 1058, "def": 1413, "spd": 93, "crit": 500},
+			"power": 8441
+		},
+		{
+			"hero_id": "cordia",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 3340, "atk": 92, "def": 92, "spd": 111, "crit": 1300},
+			"power": 699
+		},
+		{
+			"hero_id": "cordia",
+			"level": 20,
+			"stars": 3,
+			"gear": [],
+			"out": {"hp": 4738, "atk": 218, "def": 126, "spd": 105, "crit": 500},
+			"power": 1047
+		},
+		{
+			"hero_id": "cordia",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 12951, "atk": 605, "def": 348, "spd": 107, "crit": 500},
+			"power": 2939
+		},
+		{
+			"hero_id": "cordia",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 29855, "atk": 1320, "def": 803, "spd": 116, "crit": 1300},
+			"power": 7487
+		},
+		{
+			"hero_id": "noctaire",
+			"level": 1,
+			"stars": 1,
+			"gear": [],
+			"out": {"hp": 1750, "atk": 108, "def": 44, "spd": 124, "crit": 2500},
+			"power": 558
 		},
 		{
 			"hero_id": "noctaire",
 			"level": 20,
 			"stars": 3,
-			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
-			"out": {"hp": 6755, "atk": 333, "def": 174, "spd": 147, "crit": 4800},
-			"power": 2582
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 5555, "atk": 341, "def": 141, "spd": 138, "crit": 4000},
+			"power": 2103
 		},
 		{
 			"hero_id": "noctaire",
 			"level": 60,
 			"stars": 5,
-			"gear": [],
-			"out": {"hp": 13285, "atk": 819, "def": 333, "spd": 140, "crit": 4000},
-			"power": 5104
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 14985, "atk": 841, "def": 381, "spd": 149, "crit": 4800},
+			"power": 6099
 		},
 		{
 			"hero_id": "noctaire",
 			"level": 140,
 			"stars": 6,
-			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
-			"out": {"hp": 30543, "atk": 1882, "def": 770, "spd": 141, "crit": 4000},
-			"power": 11826
+			"gear": [],
+			"out": {"hp": 30043, "atk": 1852, "def": 755, "spd": 141, "crit": 4000},
+			"power": 11629
 		},
 		{
 			"hero_id": "orrin",
 			"level": 1,
 			"stars": 1,
-			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
-			"out": {"hp": 4600, "atk": 90, "def": 132, "spd": 98, "crit": 1300},
-			"power": 795
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 3400, "atk": 98, "def": 99, "spd": 90, "crit": 500},
+			"power": 567
 		},
 		{
 			"hero_id": "orrin",
 			"level": 20,
 			"stars": 3,
-			"gear": [],
-			"out": {"hp": 8378, "atk": 195, "def": 241, "spd": 92, "crit": 500},
-			"power": 1356
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 10078, "atk": 217, "def": 289, "spd": 100, "crit": 1300},
+			"power": 1812
 		},
 		{
 			"hero_id": "orrin",
 			"level": 60,
 			"stars": 5,
-			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
-			"out": {"hp": 25894, "atk": 545, "def": 781, "spd": 94, "crit": 500},
-			"power": 4237
+			"gear": [],
+			"out": {"hp": 25319, "atk": 515, "def": 763, "spd": 94, "crit": 500},
+			"power": 4115
 		},
 		{
 			"hero_id": "orrin",
 			"level": 140,
 			"stars": 6,
-			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
-			"out": {"hp": 59210, "atk": 1188, "def": 1786, "spd": 103, "crit": 1300},
-			"power": 10930
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 57830, "atk": 1196, "def": 1747, "spd": 95, "crit": 500},
+			"power": 9535
 		},
 		{
 			"hero_id": "sable",
 			"level": 1,
 			"stars": 1,
-			"gear": [],
-			"out": {"hp": 1820, "atk": 80, "def": 50, "spd": 100, "crit": 500},
-			"power": 379
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 3520, "atk": 102, "def": 98, "spd": 108, "crit": 1300},
+			"power": 727
 		},
 		{
 			"hero_id": "sable",
 			"level": 20,
 			"stars": 3,
-			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
-			"out": {"hp": 5757, "atk": 260, "def": 158, "spd": 102, "crit": 500},
-			"power": 1234
+			"gear": [],
+			"out": {"hp": 5257, "atk": 230, "def": 143, "spd": 102, "crit": 500},
+			"power": 1113
 		},
 		{
 			"hero_id": "sable",
 			"level": 60,
 			"stars": 5,
-			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
-			"out": {"hp": 15517, "atk": 628, "def": 426, "spd": 112, "crit": 1300},
-			"power": 3658
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 14317, "atk": 636, "def": 393, "spd": 104, "crit": 500},
+			"power": 3113
 		},
 		{
 			"hero_id": "sable",
 			"level": 140,
 			"stars": 6,
-			"gear": [],
-			"out": {"hp": 31244, "atk": 1372, "def": 857, "spd": 105, "crit": 500},
-			"power": 6832
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 32944, "atk": 1394, "def": 905, "spd": 113, "crit": 1300},
+			"power": 7955
 		},
 		{
 			"hero_id": "lucen",
 			"level": 1,
 			"stars": 1,
-			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
-			"out": {"hp": 2210, "atk": 124, "def": 61, "spd": 108, "crit": 1600},
-			"power": 574
+			"gear": [],
+			"out": {"hp": 1710, "atk": 94, "def": 46, "spd": 108, "crit": 1600},
+			"power": 439
 		},
 		{
 			"hero_id": "lucen",
 			"level": 20,
 			"stars": 3,
-			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
-			"out": {"hp": 7304, "atk": 322, "def": 180, "spd": 118, "crit": 2400},
-			"power": 1931
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 5984, "atk": 331, "def": 147, "spd": 110, "crit": 1600},
+			"power": 1549
 		},
 		{
 			"hero_id": "lucen",
 			"level": 60,
 			"stars": 5,
-			"gear": [],
-			"out": {"hp": 14280, "atk": 784, "def": 347, "spd": 112, "crit": 1600},
-			"power": 3748
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 16150, "atk": 808, "def": 395, "spd": 120, "crit": 2400},
+			"power": 4544
 		},
 		{
 			"hero_id": "lucen",
 			"level": 140,
 			"stars": 6,
-			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
-			"out": {"hp": 32841, "atk": 1806, "def": 803, "spd": 113, "crit": 1600},
-			"power": 8710
+			"gear": [],
+			"out": {"hp": 32291, "atk": 1773, "def": 788, "spd": 113, "crit": 1600},
+			"power": 8556
 		},
 		{
 			"hero_id": "ashra",
 			"level": 1,
 			"stars": 1,
-			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
-			"out": {"hp": 3260, "atk": 128, "def": 86, "spd": 104, "crit": 1800},
-			"power": 718
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 2060, "atk": 136, "def": 53, "spd": 96, "crit": 1000},
+			"power": 490
 		},
 		{
 			"hero_id": "ashra",
 			"level": 20,
 			"stars": 3,
-			"gear": [],
-			"out": {"hp": 4506, "atk": 350, "def": 109, "spd": 98, "crit": 1000},
-			"power": 1174
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 6206, "atk": 376, "def": 157, "spd": 106, "crit": 1800},
+			"power": 1629
 		},
 		{
 			"hero_id": "ashra",
 			"level": 60,
 			"stars": 5,
-			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
-			"out": {"hp": 12342, "atk": 957, "def": 302, "spd": 100, "crit": 1000},
-			"power": 3284
+			"gear": [],
+			"out": {"hp": 11842, "atk": 923, "def": 287, "spd": 100, "crit": 1000},
+			"power": 3155
 		},
 		{
 			"hero_id": "ashra",
 			"level": 140,
 			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 27280, "atk": 2126, "def": 666, "spd": 101, "crit": 1000},
+			"power": 7347
+		},
+		{
+			"hero_id": "nadira",
+			"level": 1,
+			"stars": 1,
 			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
-			"out": {"hp": 28480, "atk": 2117, "def": 699, "spd": 109, "crit": 1800},
-			"power": 8404
+			"out": {"hp": 3460, "atk": 136, "def": 90, "spd": 100, "crit": 2000},
+			"power": 738
+		},
+		{
+			"hero_id": "nadira",
+			"level": 20,
+			"stars": 3,
+			"gear": [],
+			"out": {"hp": 5084, "atk": 387, "def": 120, "spd": 94, "crit": 1200},
+			"power": 1266
+		},
+		{
+			"hero_id": "nadira",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 13861, "atk": 1054, "def": 333, "spd": 96, "crit": 1200},
+			"power": 3532
+		},
+		{
+			"hero_id": "nadira",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 31914, "atk": 2334, "def": 768, "spd": 105, "crit": 2000},
+			"power": 9063
+		},
+		{
+			"hero_id": "gantra",
+			"level": 1,
+			"stars": 1,
+			"gear": [],
+			"out": {"hp": 3200, "atk": 66, "def": 92, "spd": 90, "crit": 600},
+			"power": 496
+		},
+		{
+			"hero_id": "gantra",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 9745, "atk": 219, "def": 280, "spd": 92, "crit": 600},
+			"power": 1573
+		},
+		{
+			"hero_id": "gantra",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 25995, "atk": 522, "def": 745, "spd": 102, "crit": 1400},
+			"power": 4724
+		},
+		{
+			"hero_id": "gantra",
+			"level": 140,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 54937, "atk": 1132, "def": 1579, "spd": 95, "crit": 600},
+			"power": 9001
+		},
+		{
+			"hero_id": "severine",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 2340, "atk": 131, "def": 64, "spd": 106, "crit": 1700},
+			"power": 598
+		},
+		{
+			"hero_id": "severine",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 7015, "atk": 359, "def": 189, "spd": 116, "crit": 2500},
+			"power": 1960
+		},
+		{
+			"hero_id": "severine",
+			"level": 60,
+			"stars": 5,
+			"gear": [],
+			"out": {"hp": 13969, "atk": 880, "def": 371, "spd": 110, "crit": 3200},
+			"power": 4147
+		},
+		{
+			"hero_id": "severine",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 32088, "atk": 2026, "def": 855, "spd": 111, "crit": 3200},
+			"power": 9626
+		},
+		{
+			"hero_id": "benthe",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 4700, "atk": 86, "def": 130, "spd": 92, "crit": 1300},
+			"power": 748
+		},
+		{
+			"hero_id": "benthe",
+			"level": 20,
+			"stars": 3,
+			"gear": [],
+			"out": {"hp": 10400, "atk": 184, "def": 236, "spd": 86, "crit": 500},
+			"power": 1425
+		},
+		{
+			"hero_id": "benthe",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 27932, "atk": 515, "def": 731, "spd": 88, "crit": 500},
+			"power": 4053
+		},
+		{
+			"hero_id": "benthe",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 63844, "atk": 1119, "def": 1672, "spd": 97, "crit": 1300},
+			"power": 10517
+		},
+		{
+			"hero_id": "seyra",
+			"level": 1,
+			"stars": 1,
+			"gear": [],
+			"out": {"hp": 1790, "atk": 78, "def": 49, "spd": 101, "crit": 500},
+			"power": 375
+		},
+		{
+			"hero_id": "seyra",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 6520, "atk": 254, "def": 156, "spd": 103, "crit": 500},
+			"power": 1314
+		},
+		{
+			"hero_id": "seyra",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 17582, "atk": 614, "def": 419, "spd": 113, "crit": 1300},
+			"power": 3903
+		},
+		{
+			"hero_id": "seyra",
+			"level": 140,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 35338, "atk": 1337, "def": 840, "spd": 106, "crit": 500},
+			"power": 7258
+		},
+		{
+			"hero_id": "rivette",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 2260, "atk": 122, "def": 62, "spd": 106, "crit": 1500},
+			"power": 564
+		},
+		{
+			"hero_id": "rivette",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 6784, "atk": 309, "def": 183, "spd": 129, "crit": 2300},
+			"power": 2002
+		},
+		{
+			"hero_id": "rivette",
+			"level": 60,
+			"stars": 5,
+			"gear": [],
+			"out": {"hp": 13361, "atk": 752, "def": 356, "spd": 123, "crit": 1500},
+			"power": 3922
+		},
+		{
+			"hero_id": "rivette",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 30714, "atk": 1737, "def": 821, "spd": 124, "crit": 1500},
+			"power": 9111
+		},
+		{
+			"hero_id": "vandra",
+			"level": 1,
+			"stars": 1,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 3280, "atk": 127, "def": 86, "spd": 106, "crit": 1800},
+			"power": 732
+		},
+		{
+			"hero_id": "vandra",
+			"level": 20,
+			"stars": 3,
+			"gear": [],
+			"out": {"hp": 4564, "atk": 347, "def": 109, "spd": 100, "crit": 1000},
+			"power": 1199
+		},
+		{
+			"hero_id": "vandra",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 12495, "atk": 949, "def": 302, "spd": 102, "crit": 1000},
+			"power": 3352
+		},
+		{
+			"hero_id": "vandra",
+			"level": 140,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 28824, "atk": 2096, "def": 699, "spd": 111, "crit": 1800},
+			"power": 8559
+		},
+		{
+			"hero_id": "ombre",
+			"level": 1,
+			"stars": 1,
+			"gear": [],
+			"out": {"hp": 1480, "atk": 99, "def": 37, "spd": 114, "crit": 2200},
+			"power": 443
+		},
+		{
+			"hero_id": "ombre",
+			"level": 20,
+			"stars": 3,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 4775, "atk": 315, "def": 121, "spd": 116, "crit": 4200},
+			"power": 1581
+		},
+		{
+			"hero_id": "ombre",
+			"level": 60,
+			"stars": 5,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 12936, "atk": 849, "def": 327, "spd": 126, "crit": 5000},
+			"power": 4794
+		},
+		{
+			"hero_id": "ombre",
+			"level": 140,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 25408, "atk": 1868, "def": 635, "spd": 119, "crit": 4200},
+			"power": 9059
 		}
 	],
 	"gear_score": [
@@ -3735,54 +4535,54 @@
 			"id": "F1",
 			"enemies": [
 				{
-					"hero_id": "cassiel",
+					"hero_id": "vesper",
 					"level": 1,
 					"stars": 2,
 					"slot": 0,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 2950, "atk": 62, "def": 85, "spd": 91, "crit": 500}
+					"stats": {"hp": 1637, "atk": 110, "def": 39, "spd": 96, "crit": 1100}
 				},
 				{
-					"hero_id": "lucen",
+					"hero_id": "sable",
 					"level": 1,
-					"stars": 1,
+					"stars": 2,
 					"slot": 1,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 1603, "atk": 88, "def": 43, "spd": 108, "crit": 1600}
+					"stats": {"hp": 1910, "atk": 83, "def": 52, "spd": 101, "crit": 500}
 				},
 				{
-					"hero_id": "mordessa",
+					"hero_id": "imra",
 					"level": 1,
-					"stars": 3,
+					"stars": 1,
 					"slot": 2,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 2383, "atk": 140, "def": 61, "spd": 106, "crit": 2800}
+					"stats": {"hp": 1500, "atk": 63, "def": 41, "spd": 106, "crit": 500}
 				},
 				{
-					"hero_id": "seraphiel",
+					"hero_id": "halcia",
 					"level": 1,
-					"stars": 3,
+					"stars": 1,
 					"slot": 3,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 1987, "atk": 129, "def": 48, "spd": 98, "crit": 1200}
+					"stats": {"hp": 1434, "atk": 89, "def": 36, "spd": 119, "crit": 2100}
 				},
 				{
-					"hero_id": "nuriel",
+					"hero_id": "noctaire",
 					"level": 1,
-					"stars": 1,
+					"stars": 3,
 					"slot": 4,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 1406, "atk": 86, "def": 35, "spd": 122, "crit": 2200}
+					"stats": {"hp": 2034, "atk": 124, "def": 50, "spd": 138, "crit": 4000}
 				}
 			],
 			"is_boss": false,
 			"background": "chapter-4",
-			"enemy_power": 2552,
+			"enemy_power": 2311,
 			"recommended_power": 1454,
 			"first_clear_reward": {"gold": 460, "hero_exp": 276, "dust": 10}
 		},
@@ -3791,40 +4591,40 @@
 			"id": "F2",
 			"enemies": [
 				{
-					"hero_id": "brakka",
+					"hero_id": "cassiel",
 					"level": 2,
 					"stars": 2,
 					"slot": 0,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 3325, "atk": 68, "def": 84, "spd": 87, "crit": 500}
+					"stats": {"hp": 3155, "atk": 66, "def": 90, "spd": 91, "crit": 500}
 				},
 				{
-					"hero_id": "uriela",
+					"hero_id": "severine",
 					"level": 2,
-					"stars": 1,
+					"stars": 2,
 					"slot": 1,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 1795, "atk": 91, "def": 47, "spd": 104, "crit": 1500}
+					"stats": {"hp": 2066, "atk": 112, "def": 54, "spd": 107, "crit": 1700}
 				},
 				{
-					"hero_id": "sable",
+					"hero_id": "seraphiel",
 					"level": 2,
-					"stars": 2,
+					"stars": 3,
 					"slot": 2,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 2043, "atk": 89, "def": 55, "spd": 101, "crit": 500}
+					"stats": {"hp": 2125, "atk": 137, "def": 50, "spd": 98, "crit": 1200}
 				},
 				{
-					"hero_id": "liora",
+					"hero_id": "sigilla",
 					"level": 2,
 					"stars": 2,
 					"slot": 3,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 1965, "atk": 84, "def": 53, "spd": 103, "crit": 500}
+					"stats": {"hp": 1797, "atk": 116, "def": 44, "spd": 94, "crit": 1100}
 				},
 				{
 					"hero_id": "noctaire",
@@ -3838,7 +4638,7 @@
 			],
 			"is_boss": false,
 			"background": "chapter-4",
-			"enemy_power": 2571,
+			"enemy_power": 2758,
 			"recommended_power": 1454,
 			"first_clear_reward": {"gold": 520, "hero_exp": 312, "dust": 10}
 		},
@@ -3847,54 +4647,54 @@
 			"id": "F5",
 			"enemies": [
 				{
-					"hero_id": "brakka",
+					"hero_id": "avienne",
 					"level": 8,
 					"stars": 2,
 					"slot": 0,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 4630, "atk": 96, "def": 118, "spd": 87, "crit": 500}
+					"stats": {"hp": 4349, "atk": 96, "def": 124, "spd": 93, "crit": 500}
 				},
 				{
-					"hero_id": "lucen",
+					"hero_id": "ferrael",
 					"level": 8,
 					"stars": 1,
 					"slot": 1,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 2387, "atk": 131, "def": 63, "spd": 108, "crit": 1600}
+					"stats": {"hp": 2541, "atk": 129, "def": 69, "spd": 100, "crit": 1450}
 				},
 				{
-					"hero_id": "seraphiel",
+					"hero_id": "mordessa",
 					"level": 8,
 					"stars": 3,
 					"slot": 2,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 2960, "atk": 192, "def": 71, "spd": 98, "crit": 1200}
+					"stats": {"hp": 3549, "atk": 209, "def": 92, "spd": 106, "crit": 2800}
 				},
 				{
-					"hero_id": "ashra",
+					"hero_id": "severine",
 					"level": 8,
-					"stars": 1,
+					"stars": 2,
 					"slot": 3,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 2178, "atk": 147, "def": 52, "spd": 96, "crit": 1000}
+					"stats": {"hp": 2877, "atk": 157, "def": 75, "spd": 107, "crit": 1700}
 				},
 				{
-					"hero_id": "nuriel",
+					"hero_id": "sanariel",
 					"level": 8,
-					"stars": 1,
+					"stars": 3,
 					"slot": 4,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 2095, "atk": 128, "def": 52, "spd": 122, "crit": 2200}
+					"stats": {"hp": 3810, "atk": 151, "def": 92, "spd": 104, "crit": 600}
 				}
 			],
 			"is_boss": false,
 			"background": "chapter-4",
-			"enemy_power": 3165,
+			"enemy_power": 3951,
 			"recommended_power": 4220,
 			"first_clear_reward": {"gold": 700, "hero_exp": 420, "dust": 11, "gems": 50}
 		},
@@ -3903,54 +4703,54 @@
 			"id": "F7",
 			"enemies": [
 				{
-					"hero_id": "brakka",
+					"hero_id": "cassiel",
 					"level": 16,
 					"stars": 2,
 					"slot": 0,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 6371, "atk": 133, "def": 162, "spd": 87, "crit": 500}
+					"stats": {"hp": 6047, "atk": 128, "def": 176, "spd": 91, "crit": 500}
 				},
 				{
-					"hero_id": "uriela",
+					"hero_id": "rivette",
 					"level": 16,
 					"stars": 2,
 					"slot": 1,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 3852, "atk": 196, "def": 102, "spd": 105, "crit": 1500}
+					"stats": {"hp": 3787, "atk": 196, "def": 100, "spd": 107, "crit": 1500}
 				},
 				{
-					"hero_id": "vesper",
+					"hero_id": "argentiel",
 					"level": 16,
-					"stars": 2,
+					"stars": 3,
 					"slot": 2,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 3357, "atk": 227, "def": 80, "spd": 96, "crit": 1100}
+					"stats": {"hp": 5004, "atk": 271, "def": 132, "spd": 102, "crit": 1700}
 				},
 				{
-					"hero_id": "liora",
+					"hero_id": "noctaire",
 					"level": 16,
-					"stars": 2,
+					"stars": 3,
 					"slot": 3,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 3765, "atk": 162, "def": 102, "spd": 103, "crit": 500}
+					"stats": {"hp": 4169, "atk": 256, "def": 104, "spd": 138, "crit": 4000}
 				},
 				{
-					"hero_id": "ashra",
+					"hero_id": "halcia",
 					"level": 16,
 					"stars": 2,
 					"slot": 4,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 3357, "atk": 227, "def": 80, "spd": 97, "crit": 1000}
+					"stats": {"hp": 3292, "atk": 203, "def": 82, "spd": 120, "crit": 2100}
 				}
 			],
 			"is_boss": false,
 			"background": "chapter-4",
-			"enemy_power": 4270,
+			"enemy_power": 5951,
 			"recommended_power": 5923,
 			"first_clear_reward": {"gold": 820, "hero_exp": 492, "dust": 11}
 		},
@@ -3959,22 +4759,22 @@
 			"id": "F10",
 			"enemies": [
 				{
-					"hero_id": "brakka",
+					"hero_id": "gantra",
 					"level": 20,
-					"stars": 2,
+					"stars": 3,
 					"slot": 0,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 7240, "atk": 150, "def": 185, "spd": 87, "crit": 500}
+					"stats": {"hp": 8667, "atk": 177, "def": 248, "spd": 92, "crit": 600}
 				},
 				{
-					"hero_id": "cassiel",
+					"hero_id": "vandra",
 					"level": 20,
 					"stars": 2,
 					"slot": 1,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 6873, "atk": 145, "def": 199, "spd": 91, "crit": 500}
+					"stats": {"hp": 3864, "atk": 255, "def": 91, "spd": 99, "crit": 1000}
 				},
 				{
 					"hero_id": "seraphiel",
@@ -3986,27 +4786,27 @@
 					"stats": {"hp": 4631, "atk": 301, "def": 112, "spd": 98, "crit": 1200}
 				},
 				{
-					"hero_id": "imra",
+					"hero_id": "ashra",
 					"level": 20,
 					"stars": 2,
 					"slot": 3,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 3914, "atk": 165, "def": 106, "spd": 107, "crit": 500}
+					"stats": {"hp": 3815, "atk": 257, "def": 91, "spd": 97, "crit": 1000}
 				},
 				{
-					"hero_id": "ashra",
+					"hero_id": "sanariel",
 					"level": 20,
-					"stars": 2,
+					"stars": 3,
 					"slot": 4,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 3815, "atk": 257, "def": 91, "spd": 97, "crit": 1000}
+					"stats": {"hp": 5957, "atk": 238, "def": 145, "spd": 104, "crit": 600}
 				}
 			],
 			"is_boss": true,
 			"background": "chapter-4",
-			"enemy_power": 5842,
+			"enemy_power": 6719,
 			"recommended_power": 7664,
 			"first_clear_reward": {
 				"gold": 1000,
@@ -4022,54 +4822,54 @@
 			"id": "F11",
 			"enemies": [
 				{
-					"hero_id": "cassiel",
+					"hero_id": "argentiel",
 					"level": 24,
-					"stars": 2,
+					"stars": 3,
 					"slot": 0,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 7700, "atk": 163, "def": 224, "spd": 91, "crit": 500}
+					"stats": {"hp": 6371, "atk": 345, "def": 169, "spd": 102, "crit": 1700}
 				},
 				{
-					"hero_id": "liora",
+					"hero_id": "mordessa",
 					"level": 24,
-					"stars": 2,
+					"stars": 3,
 					"slot": 1,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 4795, "atk": 207, "def": 131, "spd": 103, "crit": 500}
+					"stats": {"hp": 6219, "atk": 368, "def": 162, "spd": 106, "crit": 2800}
 				},
 				{
-					"hero_id": "seraphiel",
+					"hero_id": "sigilla",
 					"level": 24,
-					"stars": 3,
+					"stars": 2,
 					"slot": 2,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 5188, "atk": 339, "def": 126, "spd": 98, "crit": 1200}
+					"stats": {"hp": 4384, "atk": 284, "def": 108, "spd": 94, "crit": 1100}
 				},
 				{
-					"hero_id": "sable",
+					"hero_id": "vandra",
 					"level": 24,
 					"stars": 2,
 					"slot": 3,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 4987, "atk": 217, "def": 135, "spd": 101, "crit": 500}
+					"stats": {"hp": 4328, "atk": 286, "def": 103, "spd": 99, "crit": 1000}
 				},
 				{
-					"hero_id": "imra",
+					"hero_id": "kessa",
 					"level": 24,
 					"stars": 2,
 					"slot": 4,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 4384, "atk": 185, "def": 119, "spd": 107, "crit": 500}
+					"stats": {"hp": 4165, "atk": 262, "def": 103, "spd": 119, "crit": 2000}
 				}
 			],
 			"is_boss": false,
 			"background": "chapter-5",
-			"enemy_power": 5769,
+			"enemy_power": 6896,
 			"recommended_power": 9220,
 			"first_clear_reward": {"gold": 1060, "hero_exp": 636, "dust": 12}
 		},
@@ -4087,13 +4887,13 @@
 					"stats": {"hp": 12810, "atk": 299, "def": 370, "spd": 92, "crit": 500}
 				},
 				{
-					"hero_id": "brakka",
+					"hero_id": "drezza",
 					"level": 41,
 					"stars": 3,
 					"slot": 1,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 13075, "atk": 272, "def": 334, "spd": 88, "crit": 500}
+					"stats": {"hp": 8392, "atk": 388, "def": 228, "spd": 110, "crit": 600}
 				},
 				{
 					"hero_id": "mordessa",
@@ -4105,27 +4905,27 @@
 					"stats": {"hp": 9055, "atk": 536, "def": 238, "spd": 106, "crit": 2800}
 				},
 				{
-					"hero_id": "imra",
+					"hero_id": "liora",
 					"level": 41,
 					"stars": 3,
 					"slot": 3,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 7067, "atk": 299, "def": 194, "spd": 108, "crit": 500}
+					"stats": {"hp": 7730, "atk": 334, "def": 210, "spd": 104, "crit": 500}
 				},
 				{
-					"hero_id": "kessa",
+					"hero_id": "noctaire",
 					"level": 41,
 					"stars": 3,
 					"slot": 4,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 6714, "atk": 422, "def": 166, "spd": 120, "crit": 2000}
+					"stats": {"hp": 7730, "atk": 476, "def": 194, "spd": 138, "crit": 4000}
 				}
 			],
 			"is_boss": true,
 			"background": "chapter-5",
-			"enemy_power": 12943,
+			"enemy_power": 12933,
 			"recommended_power": 16130,
 			"first_clear_reward": {
 				"gold": 1600,
@@ -4150,13 +4950,13 @@
 					"stats": {"hp": 22289, "atk": 412, "def": 620, "spd": 93, "crit": 500}
 				},
 				{
-					"hero_id": "lucen",
+					"hero_id": "avienne",
 					"level": 64,
 					"stars": 4,
 					"slot": 1,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 12974, "atk": 711, "def": 315, "spd": 111, "crit": 1600}
+					"stats": {"hp": 21475, "atk": 426, "def": 550, "spd": 95, "crit": 500}
 				},
 				{
 					"hero_id": "noctaire",
@@ -4168,27 +4968,27 @@
 					"stats": {"hp": 12070, "atk": 744, "def": 302, "spd": 139, "crit": 4000}
 				},
 				{
-					"hero_id": "seraphiel",
+					"hero_id": "argentiel",
 					"level": 64,
 					"stars": 4,
 					"slot": 3,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 11794, "atk": 770, "def": 288, "spd": 99, "crit": 1200}
+					"stats": {"hp": 14484, "atk": 787, "def": 384, "spd": 103, "crit": 1700}
 				},
 				{
-					"hero_id": "vesper",
+					"hero_id": "isobel",
 					"level": 64,
 					"stars": 4,
 					"slot": 4,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 10759, "atk": 730, "def": 260, "spd": 98, "crit": 1100}
+					"stats": {"hp": 10621, "atk": 823, "def": 260, "spd": 102, "crit": 1050}
 				}
 			],
 			"is_boss": true,
 			"background": "chapter-6",
-			"enemy_power": 20348,
+			"enemy_power": 23100,
 			"recommended_power": 29165,
 			"first_clear_reward": {
 				"gold": 2200,
@@ -4204,54 +5004,54 @@
 			"id": "F59",
 			"enemies": [
 				{
-					"hero_id": "cassiel",
+					"hero_id": "orrin",
 					"level": 113,
 					"stars": 6,
 					"slot": 0,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 42848, "atk": 795, "def": 1193, "spd": 95, "crit": 500}
+					"stats": {"hp": 44220, "atk": 900, "def": 1335, "spd": 95, "crit": 500}
 				},
 				{
-					"hero_id": "lucen",
+					"hero_id": "benthe",
 					"level": 113,
 					"stars": 6,
 					"slot": 1,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 24940, "atk": 1368, "def": 608, "spd": 113, "crit": 1600}
+					"stats": {"hp": 47735, "atk": 847, "def": 1247, "spd": 89, "crit": 500}
 				},
 				{
-					"hero_id": "imra",
+					"hero_id": "uriela",
 					"level": 113,
 					"stars": 6,
 					"slot": 2,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 21215, "atk": 900, "def": 581, "spd": 111, "crit": 500}
+					"stats": {"hp": 23733, "atk": 1365, "def": 635, "spd": 109, "crit": 3000}
 				},
 				{
-					"hero_id": "vesper",
+					"hero_id": "mordessa",
 					"level": 113,
 					"stars": 6,
 					"slot": 3,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 20685, "atk": 1657, "def": 502, "spd": 100, "crit": 1100}
+					"stats": {"hp": 27182, "atk": 1615, "def": 715, "spd": 109, "crit": 2800}
 				},
 				{
-					"hero_id": "nuriel",
+					"hero_id": "rimelle",
 					"level": 113,
 					"stars": 6,
 					"slot": 4,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 19890, "atk": 1218, "def": 502, "spd": 146, "crit": 2200}
+					"stats": {"hp": 20287, "atk": 1543, "def": 502, "spd": 112, "crit": 1100}
 				}
 			],
 			"is_boss": false,
 			"background": "chapter-6",
-			"enemy_power": 31225,
+			"enemy_power": 34569,
 			"recommended_power": 54037,
 			"first_clear_reward": {"gold": 3940, "hero_exp": 2364, "dust": 24}
 		},
@@ -4260,22 +5060,22 @@
 			"id": "F60",
 			"enemies": [
 				{
-					"hero_id": "uriela",
+					"hero_id": "seraphiel",
 					"level": 115,
 					"stars": 6,
 					"slot": 0,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 24110, "atk": 1386, "def": 645, "spd": 109, "crit": 3000}
+					"stats": {"hp": 25335, "atk": 1808, "def": 565, "spd": 101, "crit": 1200}
 				},
 				{
-					"hero_id": "imra",
+					"hero_id": "isobel",
 					"level": 115,
 					"stars": 6,
 					"slot": 1,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 21551, "atk": 915, "def": 592, "spd": 111, "crit": 500}
+					"stats": {"hp": 20743, "atk": 1607, "def": 510, "spd": 104, "crit": 2250}
 				},
 				{
 					"hero_id": "noctaire",
@@ -4287,27 +5087,27 @@
 					"stats": {"hp": 23572, "atk": 1453, "def": 592, "spd": 141, "crit": 4000}
 				},
 				{
-					"hero_id": "vesper",
+					"hero_id": "verdelle",
 					"level": 115,
 					"stars": 6,
 					"slot": 3,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 21011, "atk": 1681, "def": 510, "spd": 100, "crit": 1100}
+					"stats": {"hp": 22225, "atk": 887, "def": 605, "spd": 107, "crit": 500}
 				},
 				{
-					"hero_id": "seraphiel",
+					"hero_id": "imra",
 					"level": 115,
 					"stars": 6,
 					"slot": 4,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 25335, "atk": 1808, "def": 565, "spd": 101, "crit": 1200}
+					"stats": {"hp": 21551, "atk": 915, "def": 592, "spd": 111, "crit": 500}
 				}
 			],
 			"is_boss": true,
 			"background": "chapter-6",
-			"enemy_power": 39744,
+			"enemy_power": 40171,
 			"recommended_power": 55611,
 			"first_clear_reward": {
 				"gold": 4000,
@@ -4323,13 +5123,13 @@
 			"id": "F61",
 			"enemies": [
 				{
-					"hero_id": "lucen",
+					"hero_id": "thrasha",
 					"level": 116,
 					"stars": 6,
 					"slot": 0,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 25533, "atk": 1402, "def": 623, "spd": 113, "crit": 1600}
+					"stats": {"hp": 24630, "atk": 1456, "def": 610, "spd": 115, "crit": 1600}
 				},
 				{
 					"hero_id": "mordessa",
@@ -4341,36 +5141,36 @@
 					"stats": {"hp": 27827, "atk": 1653, "def": 731, "spd": 109, "crit": 2800}
 				},
 				{
-					"hero_id": "imra",
+					"hero_id": "kessa",
 					"level": 116,
 					"stars": 6,
 					"slot": 2,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 21720, "atk": 922, "def": 596, "spd": 111, "crit": 500}
+					"stats": {"hp": 20633, "atk": 1301, "def": 513, "spd": 123, "crit": 2000}
 				},
 				{
-					"hero_id": "sable",
+					"hero_id": "cirella",
 					"level": 116,
 					"stars": 6,
 					"slot": 3,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 24705, "atk": 1085, "def": 677, "spd": 105, "crit": 500}
+					"stats": {"hp": 21448, "atk": 1328, "def": 542, "spd": 141, "crit": 3900}
 				},
 				{
-					"hero_id": "vesper",
+					"hero_id": "nuriel",
 					"level": 116,
 					"stars": 6,
 					"slot": 4,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 21176, "atk": 1696, "def": 513, "spd": 100, "crit": 1100}
+					"stats": {"hp": 20362, "atk": 1247, "def": 513, "spd": 146, "crit": 2200}
 				}
 			],
 			"is_boss": false,
 			"background": "chapter-4",
-			"enemy_power": 32287,
+			"enemy_power": 38871,
 			"recommended_power": 57835,
 			"first_clear_reward": {"gold": 4060, "hero_exp": 2436, "dust": 25}
 		},
@@ -4379,54 +5179,54 @@
 			"id": "F65",
 			"enemies": [
 				{
-					"hero_id": "uriela",
+					"hero_id": "avienne",
 					"level": 120,
 					"stars": 6,
 					"slot": 0,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 25050, "atk": 1440, "def": 670, "spd": 109, "crit": 3000}
+					"stats": {"hp": 43573, "atk": 866, "def": 1118, "spd": 97, "crit": 500}
 				},
 				{
-					"hero_id": "mordessa",
+					"hero_id": "gantra",
 					"level": 120,
 					"stars": 6,
 					"slot": 1,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 28688, "atk": 1703, "def": 753, "spd": 109, "crit": 2800}
+					"stats": {"hp": 44783, "atk": 922, "def": 1286, "spd": 95, "crit": 600}
 				},
 				{
-					"hero_id": "vesper",
+					"hero_id": "ferrael",
 					"level": 120,
 					"stars": 6,
 					"slot": 2,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 21830, "atk": 1747, "def": 530, "spd": 100, "crit": 1100}
+					"stats": {"hp": 25470, "atk": 1429, "def": 781, "spd": 105, "crit": 1450}
 				},
 				{
-					"hero_id": "ashra",
+					"hero_id": "lucen",
 					"level": 120,
 					"stars": 6,
 					"slot": 3,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 21830, "atk": 1703, "def": 530, "spd": 101, "crit": 1000}
+					"stats": {"hp": 26323, "atk": 1446, "def": 643, "spd": 113, "crit": 1600}
 				},
 				{
-					"hero_id": "kessa",
+					"hero_id": "ombre",
 					"level": 120,
 					"stars": 6,
 					"slot": 4,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 21270, "atk": 1342, "def": 530, "spd": 123, "crit": 2000}
+					"stats": {"hp": 20711, "atk": 1521, "def": 517, "spd": 119, "crit": 4200}
 				}
 			],
 			"is_boss": false,
 			"background": "chapter-4",
-			"enemy_power": 35300,
+			"enemy_power": 36996,
 			"recommended_power": 66733,
 			"first_clear_reward": {"gold": 4300, "hero_exp": 2580, "dust": 26, "gems": 50}
 		},
@@ -4435,22 +5235,22 @@
 			"id": "F80",
 			"enemies": [
 				{
-					"hero_id": "cassiel",
+					"hero_id": "gantra",
 					"level": 135,
 					"stars": 6,
 					"slot": 0,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 50312, "atk": 932, "def": 1403, "spd": 95, "crit": 500}
+					"stats": {"hp": 49823, "atk": 1027, "def": 1430, "spd": 95, "crit": 600}
 				},
 				{
-					"hero_id": "lucen",
+					"hero_id": "rivette",
 					"level": 135,
 					"stars": 6,
 					"slot": 1,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 29284, "atk": 1608, "def": 715, "spd": 113, "crit": 1600}
+					"stats": {"hp": 27401, "atk": 1545, "def": 730, "spd": 124, "crit": 1500}
 				},
 				{
 					"hero_id": "mordessa",
@@ -4462,27 +5262,27 @@
 					"stats": {"hp": 31918, "atk": 1897, "def": 840, "spd": 109, "crit": 2800}
 				},
 				{
-					"hero_id": "imra",
+					"hero_id": "ombre",
 					"level": 135,
 					"stars": 6,
 					"slot": 3,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 24911, "atk": 1057, "def": 683, "spd": 111, "crit": 500}
+					"stats": {"hp": 23042, "atk": 1694, "def": 575, "spd": 119, "crit": 4200}
 				},
 				{
-					"hero_id": "liora",
+					"hero_id": "kessa",
 					"level": 135,
 					"stars": 6,
 					"slot": 4,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 27247, "atk": 1181, "def": 746, "spd": 107, "crit": 500}
+					"stats": {"hp": 23665, "atk": 1493, "def": 590, "spd": 123, "crit": 2000}
 				}
 			],
 			"is_boss": true,
 			"background": "chapter-5",
-			"enemy_power": 43111,
+			"enemy_power": 49983,
 			"recommended_power": 100099,
 			"first_clear_reward": {
 				"gold": 5200,
@@ -4498,22 +5298,22 @@
 			"id": "F100",
 			"enemies": [
 				{
-					"hero_id": "orrin",
+					"hero_id": "torqua",
 					"level": 155,
 					"stars": 6,
 					"slot": 0,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 58928, "atk": 1200, "def": 1779, "spd": 95, "crit": 500}
+					"stats": {"hp": 56366, "atk": 1076, "def": 1412, "spd": 93, "crit": 500}
 				},
 				{
-					"hero_id": "brakka",
+					"hero_id": "orrin",
 					"level": 155,
 					"stars": 6,
 					"slot": 1,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 65376, "atk": 1095, "def": 1342, "spd": 91, "crit": 500}
+					"stats": {"hp": 58928, "atk": 1200, "def": 1779, "spd": 95, "crit": 500}
 				},
 				{
 					"hero_id": "seraphiel",
@@ -4525,27 +5325,27 @@
 					"stats": {"hp": 33234, "atk": 2373, "def": 740, "spd": 101, "crit": 1200}
 				},
 				{
-					"hero_id": "sable",
+					"hero_id": "rivette",
 					"level": 155,
 					"stars": 6,
 					"slot": 3,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 32158, "atk": 1412, "def": 883, "spd": 105, "crit": 500}
+					"stats": {"hp": 31097, "atk": 1753, "def": 828, "spd": 124, "crit": 1500}
 				},
 				{
-					"hero_id": "nuriel",
+					"hero_id": "sanariel",
 					"level": 155,
 					"stars": 6,
 					"slot": 4,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 26505, "atk": 1623, "def": 670, "spd": 146, "crit": 2200}
+					"stats": {"hp": 38873, "atk": 1553, "def": 953, "spd": 107, "crit": 600}
 				}
 			],
 			"is_boss": true,
 			"background": "chapter-4",
-			"enemy_power": 50371,
+			"enemy_power": 50418,
 			"recommended_power": 144588,
 			"first_clear_reward": {
 				"gold": 6400,
@@ -4561,54 +5361,54 @@
 			"id": "F119",
 			"enemies": [
 				{
-					"hero_id": "brakka",
+					"hero_id": "severine",
 					"level": 174,
 					"stars": 6,
 					"slot": 0,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 72759, "atk": 1217, "def": 1493, "spd": 91, "crit": 500}
+					"stats": {"hp": 36182, "atk": 2282, "def": 962, "spd": 111, "crit": 3200}
 				},
 				{
-					"hero_id": "lucen",
+					"hero_id": "sable",
 					"level": 174,
 					"stars": 6,
 					"slot": 1,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 36988, "atk": 2032, "def": 903, "spd": 113, "crit": 1600}
-				},
-				{
-					"hero_id": "imra",
-					"level": 174,
-					"stars": 6,
-					"slot": 2,
-					"is_boss": false,
-					"echo_bp": 9375,
-					"stats": {"hp": 31463, "atk": 1335, "def": 863, "spd": 111, "crit": 500}
-				},
-				{
-					"hero_id": "kessa",
-					"level": 174,
-					"stars": 6,
-					"slot": 3,
-					"is_boss": false,
-					"echo_bp": 9375,
-					"stats": {"hp": 29890, "atk": 1886, "def": 746, "spd": 123, "crit": 2000}
+					"stats": {"hp": 35790, "atk": 1571, "def": 982, "spd": 105, "crit": 500}
 				},
 				{
 					"hero_id": "nuriel",
 					"level": 174,
 					"stars": 6,
-					"slot": 4,
+					"slot": 2,
 					"is_boss": false,
 					"echo_bp": 9375,
 					"stats": {"hp": 29497, "atk": 1808, "def": 746, "spd": 146, "crit": 2200}
+				},
+				{
+					"hero_id": "noctaire",
+					"level": 174,
+					"stars": 6,
+					"slot": 3,
+					"is_boss": false,
+					"echo_bp": 9375,
+					"stats": {"hp": 34412, "atk": 2122, "def": 863, "spd": 141, "crit": 4000}
+				},
+				{
+					"hero_id": "carmesa",
+					"level": 174,
+					"stars": 6,
+					"slot": 4,
+					"is_boss": false,
+					"echo_bp": 9375,
+					"stats": {"hp": 31463, "atk": 2005, "def": 785, "spd": 137, "crit": 3400}
 				}
 			],
 			"is_boss": false,
 			"background": "chapter-6",
-			"enemy_power": 49957,
+			"enemy_power": 57426,
 			"recommended_power": 186852,
 			"first_clear_reward": {"gold": 7540, "hero_exp": 4524, "dust": 39}
 		},
@@ -4617,22 +5417,22 @@
 			"id": "F120",
 			"enemies": [
 				{
-					"hero_id": "brakka",
+					"hero_id": "uriela",
 					"level": 175,
 					"stars": 6,
 					"slot": 0,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 73146, "atk": 1225, "def": 1500, "spd": 91, "crit": 500}
+					"stats": {"hp": 35387, "atk": 2035, "def": 947, "spd": 109, "crit": 3000}
 				},
 				{
-					"hero_id": "uriela",
+					"hero_id": "imra",
 					"level": 175,
 					"stars": 6,
 					"slot": 1,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 35387, "atk": 2035, "def": 947, "spd": 109, "crit": 3000}
+					"stats": {"hp": 31631, "atk": 1343, "def": 868, "spd": 111, "crit": 500}
 				},
 				{
 					"hero_id": "noctaire",
@@ -4644,27 +5444,27 @@
 					"stats": {"hp": 34597, "atk": 2133, "def": 868, "spd": 141, "crit": 4000}
 				},
 				{
-					"hero_id": "ashra",
+					"hero_id": "rimelle",
 					"level": 175,
 					"stars": 6,
 					"slot": 3,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 30840, "atk": 2409, "def": 750, "spd": 101, "crit": 1000}
+					"stats": {"hp": 30247, "atk": 2301, "def": 750, "spd": 112, "crit": 1100}
 				},
 				{
-					"hero_id": "imra",
+					"hero_id": "isobel",
 					"level": 175,
 					"stars": 6,
 					"slot": 4,
 					"is_boss": false,
 					"echo_bp": 9375,
-					"stats": {"hp": 31631, "atk": 1343, "def": 868, "spd": 111, "crit": 500}
+					"stats": {"hp": 30445, "atk": 2362, "def": 750, "spd": 104, "crit": 2250}
 				}
 			],
 			"is_boss": true,
 			"background": "chapter-6",
-			"enemy_power": 59019,
+			"enemy_power": 61397,
 			"recommended_power": 189077,
 			"first_clear_reward": {
 				"gold": 7600,

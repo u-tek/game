@@ -27,7 +27,7 @@ bikinis and whatever." This is the design. Nothing is built yet (see "Game work"
 | **Pop Idol** | Y2K stage and race-queen outfits: metallic crop tops, micro shorts, headset mics, holographic boots | Rotating |
 | **Events** | Valentine (red latex), Halloween (angels dressed as demons and the reverse), Winter (fur-trimmed red micro bikini), Summer (more Aqua Resort) | Limited time |
 
-## Packs (v2, 2026-10-17: 60 skins, four packs x all 15 heroes)
+## Packs (v2, 2026-10-17; since 2026-10-19: 160 skins, four packs x all 40 heroes)
 
 The owner: "come up with different skin packs for all the characters that's consistent ... a bikini one, like a
 pool one for all of them. And then make another one that's even more, like, erotic." Every pack covers every
@@ -44,6 +44,12 @@ prompts are the `skins` block of `data/art_prompts.json` (Aqua Resort and After 
 After Dark is for the sideloaded build (Apple guideline 1.1.4 makes it an App Store rejection risk). There is no
 nude set: Claude declined it (2026-10-17). Every skin follows the hard lines in `docs/dev/character-briefs.md`.
 
+The 40-hero roster (owner, 2026-10-19: "i want 40 characters on launch, each with their own skins") added 25
+heroes with all four packs each: 100 more skins in `data/skins.json` and the bible, same tiers (Legendaries'
+skins and every After Dark skin Deluxe, the rest Standard), seeds at the hero's `seed_base` + 1000 (Aqua
+Resort), + 2000 (After Dark), + 3000 (Bunny Lounge), + 4000 (Club Chrome). None has art yet, so the game lists
+them as coming soon.
+
 ## Adult set (EroLabs, 2026-10-18)
 
 The owner asked for a fully nude version of the skins for an EroLabs build ("a version of this game
@@ -55,8 +61,10 @@ explicitly stated"). It is an opt-in mode of the ComfyUI pipeline, not a guardra
   childlike term stay forbidden and required-negative. Adult cues relaxed on the owner's word
   (2026-10-18, "the adult cues are making them all look 30+ and slightly fat"): the subject line is
   `1girl, solo, adult`, the gendered `mature female` cue is gone, the family rating tag is `nsfw`.
-- All 60 skins have an `adult` block: nude outfit + the pack's kept items (bunny ears, cuffs,
-  collars, gloves, veils, belts, footwear; hero identity, pose and props unchanged).
+- The 60 skins of the first 15 heroes have an `adult` block: nude outfit + the pack's kept items
+  (bunny ears, cuffs, collars, gloves, veils, belts, footwear; hero identity, pose and props
+  unchanged). The 25 heroes added 2026-10-19 and their 100 skins have none; `--adult` skips a hero
+  or skin without one.
 - Same flow as tame art, same settings: `run_hero.py --skin <id> --adult` (work in
   `art_src/<id>/skins/<art>/adult/`, seeds +5000), then `finalize.py --adult`, `variants.py --adult`,
   `fix.py --adult`, `install.py --adult` (into `assets/art/heroes/<id>/skins/<art>/adult/`).
@@ -89,7 +97,7 @@ explicitly stated"). It is an opt-in mode of the ComfyUI pipeline, not a guardra
   - Settings: turning nudity on (after "I'm 18+") or off shows a big notice over everything, "NUDITY
     MODE ENABLED" / "NUDITY MODE DISABLED", and the row shows the state and how much nude art the
     build has (skins with adult art, base looks with adult art).
-- Installed 2026-10-19: all 60. OpenCode's finals run (`art_src/_review/adult_finals.log`, picks
+- Installed 2026-10-19: all 60 of the first 15 heroes. OpenCode's finals run (`art_src/_review/adult_finals.log`, picks
   by framing flags in `art_src/_review/adult_picks.json`) finished 44 with the face pass and tiled
   2x; ComfyUI went down for the last 14, which Claude cut out quick (no face pass or 2x). Two
   cropped picks were swapped for full-body seeds: seraphiel_diva_night s110001, kessa_cat_nap
@@ -169,7 +177,8 @@ and a hand-made rig.
   skins). The Lobby sprite, the hero page and the player's units in battle wear the equipped
   skin; enemies (campaign echoes) keep the base look.
 - Tests: `tests/unit/test_skins.gd` (data, buy, equip, save round trip, migrate, art fallback).
-- Installed art (2026-10-18): all 60, quick install (above). Wardrobe rows and the hero Skins tab show
-  each skin's portrait; the hero page has "Try on" (`params.preview` opens it trying one on).
+- Installed art (2026-10-18): all 60 of the first 15 heroes, quick install (above). Wardrobe rows and
+  the hero Skins tab show each skin's portrait; the hero page has "Try on" (`params.preview` opens it
+  trying one on). The 100 skins of the 25 new heroes (2026-10-19) have no art yet: coming soon.
 - Not yet: the upscale pass and face variants, the equipped skin on portrait cards and the summon
   reveal, and skin bundles for real money.

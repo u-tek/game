@@ -295,9 +295,13 @@ class TestPlan(unittest.TestCase):
                                                    "flip": "0", "source_run": ""}])
 
     def test_all_heroes_and_split(self):
-        p = plan.build(self.env(ART_HEROES="all", ART_COUNT="4", ART_PER_JOB="2"), BIBLE)
-        self.assertEqual(p["jobs"], 30)
-        self.assertEqual(len({e["key"] for e in p["matrix"]["include"]}), 30)
+        p = plan.build(self.env(ART_HEROES="all", ART_COUNT="4", ART_PER_JOB="4"), BIBLE)
+        self.assertEqual(p["jobs"], 40)
+        self.assertEqual(len({e["key"] for e in p["matrix"]["include"]}), 40)
+        p = plan.build(self.env(ART_HEROES="seraphiel,kessa,ombre", ART_COUNT="4", ART_PER_JOB="2"), BIBLE)
+        self.assertEqual(p["jobs"], 6)
+        with self.assertRaises(plan.PlanError):                       # 40 heroes x 2 jobs is over the job limit
+            plan.build(self.env(ART_HEROES="all", ART_COUNT="4", ART_PER_JOB="2"), BIBLE)
 
     def test_rejects_bad_input(self):
         for kw in ({"ART_HEROES": "seraphiel; rm -rf /"}, {"ART_HEROES": "nobody"}, {"ART_COUNT": "99"},
@@ -370,7 +374,7 @@ class TestPrompts(unittest.TestCase):
     def test_bible_prompts_pass_enforce(self):
         for hid in BIBLE["heroes"]:
             pr = prompts.full_body(BIBLE, hid, C.FAMILY)
-            gen.checked(BIBLE, hid, pr["positive"], pr["negative"])     # enforce() passes for all 15
+            gen.checked(BIBLE, hid, pr["positive"], pr["negative"])     # enforce() passes for every hero
 
     def test_farm_style_all_heroes(self):
         fam = prompts.family_block(BIBLE, C.FAMILY)

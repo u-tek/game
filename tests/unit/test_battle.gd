@@ -241,7 +241,7 @@ func test_every_ultimate_is_implemented(t: TestCtx) -> void:
 			if want == "status":
 				want = "status:" + str(eff.status)
 			t.ok(types.has(want), "%s ultimate produced %s (got %s)" % [h.id, want, types.keys()])
-	t.eq(ult_ids.size(), 15, "15 distinct ultimates")
+	t.eq(ult_ids.size(), 40, "40 distinct ultimates")
 
 
 func test_stun_burn_and_expiry(t: TestCtx) -> void:

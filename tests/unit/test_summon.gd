@@ -22,7 +22,7 @@ func test_banner_shape(t: TestCtx) -> void:
 	t.eq(b.cost_ten, 2700)
 	t.eq(b.pity_legendary, 60)
 	t.eq(int(b.rates.legendary) + int(b.rates.epic) + int(b.rates.rare), 10000, "rates add up to 100%")
-	t.eq(b.pool.size(), 15)
+	t.eq(b.pool.size(), 40)
 	g.free()
 
 

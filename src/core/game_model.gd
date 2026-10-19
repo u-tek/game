@@ -1520,6 +1520,13 @@ func make_rich_state() -> void:
 		"brakka": [36, 3, 18], "vesper": [35, 3, 0], "imra": [28, 3, 14],
 		"kessa": [40, 4, 40], "noctaire": [48, 5, 60], "orrin": [34, 3, 22],
 		"sable": [36, 4, 8], "lucen": [42, 4, 30], "ashra": [25, 2, 6],
+		"argentiel": [38, 4, 16], "sanariel": [34, 4, 9], "rimelle": [30, 3, 12], "avienne": [32, 3, 20],
+		"cirella": [28, 3, 7], "ferrael": [36, 4, 24], "verdelle": [22, 2, 11], "isobel": [26, 3, 15],
+		"halcia": [30, 3, 4], "drezza": [36, 4, 6], "zecchina": [32, 3, 14], "torqua": [30, 3, 18],
+		"sigilla": [28, 3, 10], "carmesa": [34, 4, 5], "thrasha": [24, 2, 26], "kindra": [20, 2, 12],
+		"cordia": [27, 3, 8], "nadira": [40, 4, 12], "gantra": [33, 3, 3], "severine": [35, 4, 20],
+		"benthe": [29, 3, 9], "seyra": [31, 3, 16], "rivette": [26, 2, 22], "vandra": [23, 2, 7],
+		"ombre": [37, 4, 28],
 	}
 	for id in roster:
 		add_hero(id)

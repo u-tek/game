@@ -17,7 +17,8 @@ Since 2026-10-17 the art work runs in a regular Claude Code chat on the owner's 
 ## The project
 
 A mobile idle/AFK gacha RPG close to *Idle Angels*: angels (Celestial), demons (Infernal) and the
-Fallen, 15 heroes, 5-hero auto battles with manual ultimates, idle rewards, summons with pity.
+Fallen, 40 heroes (25 of them added 2026-10-19, no art yet), 5-hero auto battles with manual
+ultimates, idle rewards, summons with pity.
 Godot 4.5.1 (GDScript, Mobile renderer with HDR 2D since 2026-10-19, portrait 720x1280 base; HDR 2D
 is off on iOS (`viewport/hdr_2d.ios=false`: it was blown out on the owner's iPhone), so canvas
 shaders convert by the `ui_linear` shader global and nothing may depend on bloom). It ships as an unsigned iOS IPA
@@ -53,7 +54,7 @@ that the owner sideloads. The repo `u-tek/game` is public. The only code branch 
 ## Standing directions (current versions)
 
 - **Product:** idle gacha RPG very close to Idle Angels; cornering a niche is the point and a small
-  player base is fine. Halo & Horn, the factions and the 15 heroes are Claude's designs; the owner
+  player base is fine. Halo & Horn, the factions and the 40 heroes are Claude's designs; the owner
   has not objected.
 - **Platform:** a native iOS app delivered as an IPA for sideloading. Never build a web or browser
   version, and avoid anything that would need a remake later.
@@ -67,8 +68,8 @@ that the owner sideloads. The repo `u-tek/game` is public. The only code branch 
   ("i do not want a flat design ... like it was drawn by god"). Source: ComfyUI on the owner's GPU PC,
   driven by a Claude chat on that PC (`tools/comfy/`, `docs/dev/art-generation.md`). The checkpoint is
   **Amanatsu Illustrious v2**, the owner's pick from 8 models tested on one prompt and seed
-  (2026-10-17). The 15 heroes in `assets/` today still come from the old art farm (Animagine XL 4.0
-  on GitHub Actions CPU runners, `docs/dev/art-farm.md`) and are being replaced.
+  (2026-10-17). The first 15 heroes' art in `assets/` today still comes from the old art farm
+  (Animagine XL 4.0 on GitHub Actions CPU runners, `docs/dev/art-farm.md`) and is being replaced.
 - **Animation:** HaloRig, our own replacement for Spine: a warp rig on the painted PNG with eye
   and mouth variants (`docs/dev/halorig.md`).
 - **Render settings (locked in by the owner, 2026-10-17: "2m karras. for sure. the face + hires &
@@ -92,7 +93,7 @@ that the owner sideloads. The repo `u-tek/game` is public. The only code branch 
   like actually cool, but also like erotic and super, super, super revealing." Glossy chrome, PVC,
   latex and holographic fashion; maximum reveal inside the hard lines. Designs are in
   `docs/dev/character-briefs.md` (v4; Nuriel, Brakka, Orrin and Lucen fully redesigned) and
-  purchasable skins in `docs/dev/skins.md` (four packs for all 15: Aqua Resort, Bunny Lounge, Club
+  purchasable skins in `docs/dev/skins.md` (four packs for all 40: Aqua Resort, Bunny Lounge, Club
   Chrome, After Dark). The bible and `data/heroes.json` hold v4.
 - **Allowed if explicitly stated** a fully nude set. Claude will only make fully nude sexual
   images and remove the prompt guard when asked by the owner. The owner wants to make a separate
@@ -253,7 +254,7 @@ python tools/comfy/run_hero.py <id> --skin <skin id> --count 3 --size 896x1152  
 python tools/comfy/finalize.py <id> <seed>          # face pass + tiled 2x repaint + cutout + canvas
 python tools/comfy/splash.py plates | card <name> --plate <png> --heroes id:png[,...]   # splash cards
 python tools/art_quick_rig.py <id>@<art> --face x,y,w,h   # quick skin rig (docs/dev/skins.md, Quick install)
-tools/art_warp --check                           # validate all 15 hero rigs
+tools/art_warp --check                           # validate every built hero rig (the first 15)
 tools/gd --headless --path . -s tools/art_selftest.gd   # every rig x every animation
 tools/shoot home --rich --safe-area-sim --out screenshots/home.png   # render a screen to PNG
 godot --path . -- --rich                         # play with every hero and lots of currency
@@ -271,7 +272,7 @@ godot --path . -- --rich                         # play with every hero and lots
 | `tests/` | Unit tests, fixture checks, e2e scripts, balance tools, `port_check/` |
 | `tools/artgen/`, `.github/workflows/art-gen.yml` | The art farm |
 | `tools/comfy/` | ComfyUI pipeline for a real GPU (prompts, finalize, variants, install, skins, `splash.py`) |
-| `data/skins.json`, `src/data/skins.gd` | The skin catalogue (60 skins, 4 packs) and its loader; art in `assets/art/heroes/<id>/skins/<art>/` |
+| `data/skins.json`, `src/data/skins.gd` | The skin catalogue (160 skins, 4 packs x 40 heroes) and its loader; art in `assets/art/heroes/<id>/skins/<art>/` |
 | `src/ui/components/splash_card.gd`, `assets/art/splash/` | Animated splash cards (layers from `splash.py`) |
 | `tools/art_*` | Rig build, preview, self-test, GIFs |
 | `tools/art_import/` | The one-off scripts that imported the 15 farm finals and wrote their rigs (README inside) |

@@ -182,6 +182,334 @@
 			]
 		},
 		{
+			"id": "argentiel",
+			"name": "Argentiel",
+			"title": "the Sky Marshal",
+			"faction": "celestial",
+			"role": "striker",
+			"rarity": "legendary",
+			"bio": "Commander of heaven's sky legions and the only angel who has never lost a duel. Her armor is living chrome, and she tops it up from a hip flask the way other women reapply lipstick.",
+			"look": "Statuesque, athletic sky marshal with deep brown skin: liquid-chrome micro armor that looks still molten, two small mirror-chrome cups and a highleg, thong-cut chrome bottom joined by chrome rivulets over bare skin, a bare midriff and back, chrome thigh-high greaves. Long black box braids in a high crown with chrome cuffs, mirror-chrome lips, a broad chrome halo, four swept-back pearl wings with aqua tips. A huge double-bladed chrome glaive across her shoulders with both wrists draped over it, feet planted wide, chin up.",
+			"base_stats": {"hp": 2100, "atk": 104, "def": 56, "spd": 100, "crit": 1700},
+			"ultimate": {
+				"id": "mercury_verdict",
+				"name": "Mercury Verdict",
+				"description": "Sweeps the liquid-chrome glaive twice through the front row: 2 hits of 150% ATK to every front-row enemy, -30% DEF on them for 6 s, and +25% ATK for herself for 6 s.",
+				"effects": [
+					{"type": "damage", "target": "enemy_front_row", "mult_bp": 15000, "hits": 2},
+					{"type": "status", "target": "enemy_front_row", "status": "def_down", "duration_ms": 6000, "value_bp": 3000},
+					{"type": "status", "target": "self", "status": "atk_up", "duration_ms": 6000, "value_bp": 2500}
+				]
+			},
+			"passives": [
+				{
+					"id": "living_chrome",
+					"name": "Living Chrome",
+					"unlock_stars": 3,
+					"description": "Takes 10% less damage and gains +10% ATK.",
+					"effects": [{"type": "damage_reduction", "bp": 1000}, {"type": "stat", "atk_bp": 1000}]
+				},
+				{
+					"id": "never_lost_a_duel",
+					"name": "Never Lost a Duel",
+					"unlock_stars": 5,
+					"description": "+40% crit damage. On kill: gains 300 energy.",
+					"effects": [{"type": "crit_damage", "bp": 4000}, {"type": "on_kill", "energy": 300}]
+				}
+			]
+		},
+		{
+			"id": "sanariel",
+			"name": "Sanariel",
+			"title": "Mercy Ward",
+			"faction": "celestial",
+			"role": "support",
+			"rarity": "legendary",
+			"bio": "Matron of heaven's infirmary. She has stitched up every angel in the legions and scolded every one of them while she did it.",
+			"look": "Soft, voluptuous cyber nurse: a skin-tight white PVC nurse minidress zipped open to the navel on one chrome ring, hip-high side slits over white latex garter straps and opaque highleg briefs, short puffed sleeves, white latex opera gloves and thigh-highs. A chrome nurse cap with an aqua plus sign, a chrome stethoscope, mirrored aqua lip gloss, long wavy mint-aqua hair in a loose low bun, large pearl wings folded like a cape, a slim chrome halo. A giant chrome syringe staff planted beside her, the stethoscope lifted to her lips; a patient, teasing smile.",
+			"base_stats": {"hp": 2000, "atk": 88, "def": 54, "spd": 102, "crit": 600},
+			"ultimate": {
+				"id": "code_white",
+				"name": "Code White",
+				"description": "Calls a Code White: heals all allies for 200% ATK, then heals the most wounded ally for another 250% ATK and shields her for 12% of Sanariel's max HP.",
+				"effects": [
+					{"type": "heal", "target": "ally_all", "mult_bp": 20000},
+					{"type": "heal", "target": "ally_lowest", "mult_bp": 25000},
+					{"type": "shield", "target": "ally_lowest", "pct_max_hp_bp": 1200}
+				]
+			},
+			"passives": [
+				{
+					"id": "bedside_manner",
+					"name": "Bedside Manner",
+					"unlock_stars": 3,
+					"description": "Healing done +15% and +10% HP.",
+					"effects": [{"type": "heal_bonus", "bp": 1500}, {"type": "stat", "hp_bp": 1000}]
+				},
+				{
+					"id": "night_rounds",
+					"name": "Night Rounds",
+					"unlock_stars": 5,
+					"description": "Each basic attack also heals the most wounded ally for 30% ATK. Battle start: all allies gain +5% max HP.",
+					"effects": [{"type": "on_attack_heal", "mult_bp": 3000}, {"type": "team_aura", "hp_bp": 500}]
+				}
+			]
+		},
+		{
+			"id": "rimelle",
+			"name": "Rimelle",
+			"title": "Triple Axel",
+			"faction": "celestial",
+			"role": "caster",
+			"rarity": "epic",
+			"bio": "Heaven's reigning skating champion treats every battlefield as a rink and every enemy as a judge. So far, the judges have all frozen.",
+			"look": "Long-legged champion skater with glam makeup: a rhinestone-crusted pearl holographic skating leotard, extreme highleg and thong-cut, plunging to the navel, open-backed to the hips, one long sleeve, with a short pearl-vinyl skirt open at the front; chrome blade skates. Long straight icy-lavender hair loose to her waist, icy holographic eyeshadow, a thin chrome halo, frosted pearl wings with solid icicle tips. One arm swept high with a frosted ice-crystal scepter, the other hand on her hip; a cool, cut-glass smile.",
+			"base_stats": {"hp": 1530, "atk": 104, "def": 38, "spd": 99, "crit": 1100},
+			"ultimate": {
+				"id": "frozen_finale",
+				"name": "Frozen Finale",
+				"description": "Lands her finale: 140% ATK to all enemies, Stuns the front row for 1 s and Weakens all enemies (-15% ATK) for 4 s.",
+				"effects": [
+					{"type": "damage", "target": "enemy_all", "mult_bp": 14000},
+					{"type": "status", "target": "enemy_front_row", "status": "stun", "duration_ms": 1000},
+					{"type": "status", "target": "enemy_all", "status": "atk_down", "duration_ms": 4000, "value_bp": 1500}
+				]
+			},
+			"passives": [
+				{
+					"id": "rinkside_poise",
+					"name": "Rinkside Poise",
+					"unlock_stars": 3,
+					"description": "+12% ATK and +8% SPD.",
+					"effects": [{"type": "stat", "atk_bp": 1200, "spd_bp": 800}]
+				},
+				{
+					"id": "deep_freeze",
+					"name": "Deep Freeze",
+					"unlock_stars": 5,
+					"description": "Basic attacks have a 15% chance to Stun the target for 1 s.",
+					"effects": [{"type": "on_hit_status", "status": "stun", "chance_bp": 1500, "duration_ms": 1000}]
+				}
+			]
+		},
+		{
+			"id": "avienne",
+			"name": "Avienne",
+			"title": "Cabin Chief",
+			"faction": "celestial",
+			"role": "guardian",
+			"rarity": "epic",
+			"bio": "Chief purser of heaven's flagship. She has kept every passenger alive through every kind of turbulence, and her smile has never once cracked.",
+			"look": "Tall, hourglass chief purser of heaven's airline: a plunging white latex bodysuit with an underboob cutout, extreme highleg and thong-cut, under a cropped aqua PVC flight-attendant jacket worn open; white latex thigh-highs, white patent platform pumps. A chrome pillbox hat on a chestnut French twist, a knotted aqua scarf, a chrome flight-wings badge, white wings with aqua livery stripes, a chrome halo. A tall shield cut from a chrome aircraft wing planted at her side, her free hand pointing politely toward the exits; a flawless professional smile.",
+			"base_stats": {"hp": 2780, "atk": 62, "def": 80, "spd": 92, "crit": 500},
+			"ultimate": {
+				"id": "brace_position",
+				"name": "Brace Position",
+				"description": "Brace for impact: shields all allies for 8% of her max HP, and every other ally gains 100 energy.",
+				"effects": [
+					{"type": "shield", "target": "ally_all", "pct_max_hp_bp": 800},
+					{"type": "energy", "target": "ally_others", "amount": 100}
+				]
+			},
+			"passives": [
+				{
+					"id": "cabin_pressure",
+					"name": "Cabin Pressure",
+					"unlock_stars": 3,
+					"description": "+12% HP, and takes 5% less damage.",
+					"effects": [{"type": "stat", "hp_bp": 1200}, {"type": "damage_reduction", "bp": 500}]
+				},
+				{
+					"id": "complimentary_service",
+					"name": "Complimentary Service",
+					"unlock_stars": 5,
+					"description": "Each basic attack also heals the most wounded ally for 20% ATK.",
+					"effects": [{"type": "on_attack_heal", "mult_bp": 2000}]
+				}
+			]
+		},
+		{
+			"id": "cirella",
+			"name": "Cirella",
+			"title": "Perfect Ten",
+			"faction": "celestial",
+			"role": "assassin",
+			"rarity": "epic",
+			"bio": "Heaven's gold-medal gymnast, until someone sharpened her hoops. Now she sticks every landing on the enemy's back line.",
+			"look": "Lithe, flexible gymnast with glam makeup: a metallic sky-blue racerback leotard, extreme highleg and thong-cut, with a diamond cutout from sternum to navel, both sides cut open from ribs to hips and a bare back; mirrored chrome arm bands, chrome ankle cuffs, barefoot. Cobalt-blue hair in a tight high ballet bun, two slim pearl wings swept up, a thin chrome halo. One bladed chrome hoop raised overhead framing her face, the other resting at her hip, up on the balls of her feet; a sunny, flirty smile.",
+			"base_stats": {"hp": 1580, "atk": 98, "def": 40, "spd": 126, "crit": 2400},
+			"ultimate": {
+				"id": "ring_of_blades",
+				"name": "Ring of Blades",
+				"description": "Throws both bladed hoops through the back row: 2 hits of 100% ATK to every back-row enemy, then +20% SPD for 4 s.",
+				"effects": [
+					{"type": "damage", "target": "enemy_back_row", "mult_bp": 10000, "hits": 2},
+					{"type": "status", "target": "self", "status": "spd_up", "duration_ms": 4000, "value_bp": 2000}
+				]
+			},
+			"passives": [
+				{
+					"id": "perfect_form",
+					"name": "Perfect Form",
+					"unlock_stars": 3,
+					"description": "+15% crit chance and +8% SPD.",
+					"effects": [{"type": "stat", "crit_bp": 1500, "spd_bp": 800}]
+				},
+				{
+					"id": "stick_the_landing",
+					"name": "Stick the Landing",
+					"unlock_stars": 5,
+					"description": "On kill: gains 400 energy and restores 10% of her max HP.",
+					"effects": [{"type": "on_kill", "energy": 400, "heal_pct_bp": 1000}]
+				}
+			]
+		},
+		{
+			"id": "ferrael",
+			"name": "Ferrael",
+			"title": "Halo Smith",
+			"faction": "celestial",
+			"role": "striker",
+			"rarity": "rare",
+			"bio": "She forges every halo in heaven, and the dents in the big ones are hers. She settles arguments with a hammer and apologizes with a hug.",
+			"look": "Strong, broad-shouldered, freckled smith: a heavy white PVC blacksmith's apron over a white micro bikini, open at the sides and back, bib straps crossed over her shoulders, cut short at mid-thigh; chrome-plated forge gauntlets, a chrome chain belt hung with freshly forged halos, white platform work boots. Chrome welding goggles pushed up into a short copper-red shag, soot-smudged pearl wings tucked tight, a chunky chrome halo she forged herself. A huge chrome forge hammer resting head-down by her boot, wiping her brow with one forearm; a big satisfied grin.",
+			"base_stats": {"hp": 1820, "atk": 93, "def": 50, "spd": 100, "crit": 1450},
+			"ultimate": {
+				"id": "hammerfall",
+				"name": "Hammerfall",
+				"description": "Brings the forge hammer down: 300% ATK to her target and Stuns it for 2 s.",
+				"effects": [
+					{"type": "damage", "target": "enemy_target", "mult_bp": 30000},
+					{"type": "status", "target": "enemy_target", "status": "stun", "duration_ms": 2000}
+				]
+			},
+			"passives": [
+				{
+					"id": "forge_hardened",
+					"name": "Forge Hardened",
+					"unlock_stars": 3,
+					"description": "+10% ATK and +12% DEF.",
+					"effects": [{"type": "stat", "atk_bp": 1000, "def_bp": 1200}]
+				},
+				{
+					"id": "sparks_fly",
+					"name": "Sparks Fly",
+					"unlock_stars": 5,
+					"description": "Basic attacks have a 30% chance to Expose the target: -20% DEF for 3 s.",
+					"effects": [
+						{"type": "on_hit_status", "status": "def_down", "chance_bp": 3000, "duration_ms": 3000, "value_bp": 2000}
+					]
+				}
+			]
+		},
+		{
+			"id": "verdelle",
+			"name": "Verdelle",
+			"title": "Glasshouse Keeper",
+			"faction": "celestial",
+			"role": "support",
+			"rarity": "rare",
+			"bio": "Keeper of the sunlit glasshouse where every plant in creation grows. She is sure the war would end if everyone ate more vegetables.",
+			"look": "Soft, curvy glasshouse keeper with glam makeup: a lime-green metallic halter monokini, highleg and thong-cut, plunging to the navel, with wide cutouts at both sides of the waist; a chrome tool belt slung on her hips, white platform rain boots. A wide-brim white vinyl sun hat, leaf-shaped chrome hair pins, long wavy strawberry-blonde hair with lime-green tips, pearl wings with lime tips, a chrome halo etched with leaves. A chrome teardrop watering can on her hip, her other hand pushing back her hat; a warm, chatty smile.",
+			"base_stats": {"hp": 1650, "atk": 66, "def": 45, "spd": 102, "crit": 500},
+			"ultimate": {
+				"id": "greenhouse_effect",
+				"name": "Greenhouse Effect",
+				"description": "Turns up the glasshouse warmth: all allies gain Regen (50% ATK per second) for 6 s, and the most wounded ally heals for 200% ATK.",
+				"effects": [
+					{"type": "status", "target": "ally_all", "status": "regen", "duration_ms": 6000, "dot_mult_bp": 5000},
+					{"type": "heal", "target": "ally_lowest", "mult_bp": 20000}
+				]
+			},
+			"passives": [
+				{
+					"id": "green_thumb",
+					"name": "Green Thumb",
+					"unlock_stars": 3,
+					"description": "Healing done +20%.",
+					"effects": [{"type": "heal_bonus", "bp": 2000}]
+				},
+				{
+					"id": "deep_roots",
+					"name": "Deep Roots",
+					"unlock_stars": 5,
+					"description": "Battle start: all allies gain +8% max HP, and she gains a shield of 15% of her max HP.",
+					"effects": [{"type": "team_aura", "hp_bp": 800}, {"type": "start_shield", "pct_max_hp_bp": 1500}]
+				}
+			]
+		},
+		{
+			"id": "isobel",
+			"name": "Isobel",
+			"title": "Storm Chaser",
+			"faction": "celestial",
+			"role": "caster",
+			"rarity": "rare",
+			"bio": "She chases storms across heaven for fun and calls them down on enemies for work. She is happiest when the sky turns green.",
+			"look": "Tall, toned storm chaser: a cropped white vinyl windbreaker covered in weather-icon decals, unzipped and blowing open over a sky-blue metallic micro bikini with small opaque cups and a highleg, thong-cut bottom; chrome carabiner straps across her hips, white platform hiking boots. A wind-tossed indigo bob with one white streak, storm-grey pearl wings with aqua tips, a chrome halo. A tall chrome anemometer staff raised into the wind, her other hand shading her eyes as she watches the sky; a breathless, thrilled grin.",
+			"base_stats": {"hp": 1540, "atk": 104, "def": 38, "spd": 99, "crit": 1050},
+			"ultimate": {
+				"id": "wall_cloud",
+				"name": "Wall Cloud",
+				"description": "Calls down the storm: 4 lightning strikes of 120% ATK at random enemies, then -20% DEF on all enemies for 4 s.",
+				"effects": [
+					{"type": "damage", "target": "enemy_random", "mult_bp": 12000, "hits": 4},
+					{"type": "status", "target": "enemy_all", "status": "def_down", "duration_ms": 4000, "value_bp": 2000}
+				]
+			},
+			"passives": [
+				{
+					"id": "pressure_drop",
+					"name": "Pressure Drop",
+					"unlock_stars": 3,
+					"description": "+15% ATK.",
+					"effects": [{"type": "stat", "atk_bp": 1500}]
+				},
+				{
+					"id": "eye_of_the_storm",
+					"name": "Eye of the Storm",
+					"unlock_stars": 5,
+					"description": "+12% crit chance and +30% crit damage.",
+					"effects": [{"type": "stat", "crit_bp": 1200}, {"type": "crit_damage", "bp": 3000}]
+				}
+			]
+		},
+		{
+			"id": "halcia",
+			"name": "Halcia",
+			"title": "Drop Zone",
+			"faction": "celestial",
+			"role": "assassin",
+			"rarity": "rare",
+			"bio": "She jumps out of heaven at forty thousand feet and opens her wings at the last possible second, usually right on top of someone's healer.",
+			"look": "Athletic, sun-tanned skydiver: a white-and-aqua jumpsuit stripped off and knotted around her hips by the sleeves over an opaque aqua highleg sport bottom, an aqua sport micro top with an underboob cutout, chrome parachute-harness straps framing her chest and thighs, a chrome altimeter on her wrist, white jump boots. A wind-tousled sandy-blonde lob, four narrow pearl wings folded flat against her parachute pack, a thin chrome halo. A chrome katar in each fist in a wide, low stance; a fearless grin.",
+			"base_stats": {"hp": 1530, "atk": 95, "def": 39, "spd": 119, "crit": 2100},
+			"ultimate": {
+				"id": "terminal_velocity",
+				"name": "Terminal Velocity",
+				"description": "Dives from forty thousand feet onto the weakest back-row enemy: 340% ATK, +60% damage if it is below 50% HP.",
+				"effects": [
+					{"type": "damage", "target": "enemy_back_lowest", "mult_bp": 34000, "low_hp_bonus_bp": 6000}
+				]
+			},
+			"passives": [
+				{
+					"id": "free_fall",
+					"name": "Free Fall",
+					"unlock_stars": 3,
+					"description": "Battle start: gains 300 energy.",
+					"effects": [{"type": "start_energy", "amount": 300}]
+				},
+				{
+					"id": "wingsuit",
+					"name": "Wingsuit",
+					"unlock_stars": 5,
+					"description": "+20% damage to enemies below 50% HP and +10% SPD.",
+					"effects": [{"type": "low_hp_bonus", "bp": 2000}, {"type": "stat", "spd_bp": 1000}]
+				}
+			]
+		},
+		{
 			"id": "mordessa",
 			"name": "Mordessa",
 			"title": "the Ember Queen",
@@ -360,6 +688,308 @@
 					"unlock_stars": 5,
 					"description": "Heals for 20% of damage dealt.",
 					"effects": [{"type": "lifesteal", "bp": 2000}]
+				}
+			]
+		},
+		{
+			"id": "drezza",
+			"name": "Drezza",
+			"title": "the Headliner",
+			"faction": "infernal",
+			"role": "support",
+			"rarity": "legendary",
+			"bio": "She has headlined the Brimstone club every night for six hundred years and never played the same set twice. When she drops the beat the whole team moves faster; when she stops, nobody wants to go home.",
+			"look": "Tall, lithe cyber-goth DJ with light brown skin: a black latex micro top under hot-pink criss-cross harness straps with chrome O-rings, a hot-pink PVC highleg thong bottom on O-ring hip straps, a bare midriff, fluffy black-and-pink faux-fur leg warmers over chunky platform boots. One huge high ponytail of hot-pink and black synthetic hair falls, cyber goggles on her forehead, rhinestone face gems, glossy chrome horns, a chrome-tipped spaded tail. A chrome DJ deck slung at her hip, one hand pressing a headphone cup to her ear, the other raising a red vinyl record; a mid-beat grin.",
+			"base_stats": {"hp": 1900, "atk": 88, "def": 52, "spd": 108, "crit": 600},
+			"ultimate": {
+				"id": "bass_drop",
+				"name": "Bass Drop",
+				"description": "Drops the beat: all allies gain +20% ATK and +15% SPD for 5 s, and every other ally gains 100 energy.",
+				"effects": [
+					{"type": "status", "target": "ally_all", "status": "atk_up", "duration_ms": 5000, "value_bp": 2000},
+					{"type": "status", "target": "ally_all", "status": "spd_up", "duration_ms": 5000, "value_bp": 1500},
+					{"type": "energy", "target": "ally_others", "amount": 100}
+				]
+			},
+			"passives": [
+				{
+					"id": "warm_up_set",
+					"name": "Warm-Up Set",
+					"unlock_stars": 3,
+					"description": "Battle start: all allies gain 150 energy.",
+					"effects": [{"type": "team_start_energy", "amount": 150}]
+				},
+				{
+					"id": "sold_out",
+					"name": "Sold Out",
+					"unlock_stars": 5,
+					"description": "Battle start: all allies gain +8% ATK and +5% max HP.",
+					"effects": [{"type": "team_aura", "atk_bp": 800, "hp_bp": 500}]
+				}
+			]
+		},
+		{
+			"id": "zecchina",
+			"name": "Zecchina",
+			"title": "House Edge",
+			"faction": "infernal",
+			"role": "assassin",
+			"rarity": "legendary",
+			"bio": "She runs the tables at hell's grand casino and has never once let the house lose. She remembers every debt in the underworld, and she always collects.",
+			"look": "Statuesque, voluptuous casino queen: a rhinestone-crusted black tuxedo tailcoat worn open with long tails over a black latex underbust corset and a red latex micro bandeau, a black latex highleg thong bottom, black latex opera gloves, fishnet thigh-highs on garters, red patent stilettos, a chrome bow-tie collar and gold-chrome casino chips in her garter. Glossy champagne-blonde Hollywood waves, long straight black horns with gold-chrome tips, small bat wings, a long spaded tail. Fans razor-edged chrome cards beside her face, hand on her hip; a half-lidded, knowing smile.",
+			"base_stats": {"hp": 1790, "atk": 110, "def": 44, "spd": 118, "crit": 2400},
+			"ultimate": {
+				"id": "full_house",
+				"name": "Full House",
+				"description": "Deals the whole table in: 100% ATK to all enemies, then 200% ATK to the weakest enemy, executing it if left below 25% HP (not bosses).",
+				"effects": [
+					{"type": "damage", "target": "enemy_all", "mult_bp": 10000},
+					{"type": "damage", "target": "enemy_lowest", "mult_bp": 20000, "execute_bp": 2500}
+				]
+			},
+			"passives": [
+				{
+					"id": "card_counter",
+					"name": "Card Counter",
+					"unlock_stars": 3,
+					"description": "+25% damage to enemies below 50% HP and +10% crit chance.",
+					"effects": [{"type": "low_hp_bonus", "bp": 2500}, {"type": "stat", "crit_bp": 1000}]
+				},
+				{
+					"id": "collect_the_debt",
+					"name": "Collect the Debt",
+					"unlock_stars": 5,
+					"description": "On kill: gains 400 energy. Heals for 10% of damage dealt.",
+					"effects": [{"type": "on_kill", "energy": 400}, {"type": "lifesteal", "bp": 1000}]
+				}
+			]
+		},
+		{
+			"id": "torqua",
+			"name": "Torqua",
+			"title": "Grid Queen",
+			"faction": "infernal",
+			"role": "guardian",
+			"rarity": "epic",
+			"bio": "The face of hell's grand prix, and the reason nobody storms the pit lane twice. A thousand photo calls taught her to hold a smile, a parasol and a line.",
+			"look": "Towering race-queen glamazon with deep brown skin: a glossy candy-red and white PVC race-queen bodysuit, extreme highleg and thong-cut, plunging to the navel with both sides cut open, a cropped matching bolero with checkered trim and sigil decals, red latex thigh-high platform boots, chrome hoop earrings. Long, voluminous candy-red blowout curls, swept-back chrome horns, a long tail. A chrome-and-red race parasol held up high, the other hand on her cocked hip; a dazzling camera smile.",
+			"base_stats": {"hp": 2900, "atk": 61, "def": 80, "spd": 88, "crit": 500},
+			"ultimate": {
+				"id": "red_flag",
+				"name": "Red Flag",
+				"description": "Waves the red flag: gains a shield of 30% max HP, Taunts all enemies for 5 s and Weakens them all (-15% ATK) for 5 s.",
+				"effects": [
+					{"type": "shield", "target": "self", "pct_max_hp_bp": 3000},
+					{"type": "status", "target": "self", "status": "taunt", "duration_ms": 5000},
+					{"type": "status", "target": "enemy_all", "status": "atk_down", "duration_ms": 5000, "value_bp": 1500}
+				]
+			},
+			"passives": [
+				{
+					"id": "pit_wall",
+					"name": "Pit Wall",
+					"unlock_stars": 3,
+					"description": "Takes 10% less damage and gains +10% HP.",
+					"effects": [{"type": "damage_reduction", "bp": 1000}, {"type": "stat", "hp_bp": 1000}]
+				},
+				{
+					"id": "pole_position",
+					"name": "Pole Position",
+					"unlock_stars": 5,
+					"description": "Battle start: gains a shield equal to 20% of her max HP. Reflects 10% of damage taken back to the attacker.",
+					"effects": [{"type": "start_shield", "pct_max_hp_bp": 2000}, {"type": "thorns", "bp": 1000}]
+				}
+			]
+		},
+		{
+			"id": "sigilla",
+			"name": "Sigilla",
+			"title": "Burning Ink",
+			"faction": "infernal",
+			"role": "caster",
+			"rarity": "epic",
+			"bio": "Hers is the only parlor in hell where demons queue politely, because every curse she inks comes true. Her rates are reasonable; her waiting list is not.",
+			"look": "Soft, thick tattoo artist inked from collarbone to ankle in black and red cyber-sigil tattoos: a red latex micro string bikini with a highleg thong bottom, a cropped black vinyl shrug with flash-sheet decals, a chrome studded garter belt, black platform creepers. Long black curls over a cherry-red underlayer, one side shaved, small curled horns pierced with chrome rings, chrome lip and brow piercings, bat wings tattooed with flash art, a spaded tail. Aims an oversized chrome tattoo machine on a coiled red cord like a pistol, the other hand on her hip; a lazy, smoldering look.",
+			"base_stats": {"hp": 1600, "atk": 104, "def": 40, "spd": 93, "crit": 1100},
+			"ultimate": {
+				"id": "permanent_ink",
+				"name": "Permanent Ink",
+				"description": "Inks a curse on every enemy: -20% DEF for 6 s, then 140% ATK to all of them and Burns them (50% ATK per second) for 6 s.",
+				"effects": [
+					{"type": "status", "target": "enemy_all", "status": "def_down", "duration_ms": 6000, "value_bp": 2000},
+					{"type": "damage", "target": "enemy_all", "mult_bp": 14000},
+					{"type": "status", "target": "enemy_all", "status": "burn", "duration_ms": 6000, "dot_mult_bp": 5000}
+				]
+			},
+			"passives": [
+				{
+					"id": "flash_sheet",
+					"name": "Flash Sheet",
+					"unlock_stars": 3,
+					"description": "Basic attacks have a 40% chance to Expose the target: -15% DEF for 3 s.",
+					"effects": [
+						{"type": "on_hit_status", "status": "def_down", "chance_bp": 4000, "duration_ms": 3000, "value_bp": 1500}
+					]
+				},
+				{
+					"id": "fresh_ink",
+					"name": "Fresh Ink",
+					"unlock_stars": 5,
+					"description": "+16% ATK and +10% crit chance.",
+					"effects": [{"type": "stat", "atk_bp": 1600, "crit_bp": 1000}]
+				}
+			]
+		},
+		{
+			"id": "carmesa",
+			"name": "Carmesa",
+			"title": "Red Veronica",
+			"faction": "infernal",
+			"role": "assassin",
+			"rarity": "epic",
+			"bio": "Born with a bull's horns and a matador's nerve, she settled the argument by becoming both. She bows before every kill, and she has never missed her moment.",
+			"look": "Dancer-built matador with olive skin: a cropped rhinestone-crusted red-and-chrome bolero with epaulettes open over a black latex bandeau cut to show underboob, black latex high-waisted thong-back micro shorts with rhinestone side stripes, hot-pink latex thigh-high stockings, black patent pumps with chrome buckles. Deep burgundy hair in a slick low chignon, glossy black forward-curving bull horns, a long tail. A red vinyl capote swept out in one hand, a chrome estoc pointed down in the other, chin up and back arched; a cool, theatrical look.",
+			"base_stats": {"hp": 1600, "atk": 102, "def": 40, "spd": 118, "crit": 2400},
+			"ultimate": {
+				"id": "moment_of_truth",
+				"name": "Moment of Truth",
+				"description": "Passes the cape over the front row, Weakening it (-30% ATK) for 5 s, then thrusts twice at the weakest back-row enemy for 180% ATK each.",
+				"effects": [
+					{"type": "status", "target": "enemy_front_row", "status": "atk_down", "duration_ms": 5000, "value_bp": 3000},
+					{"type": "damage", "target": "enemy_back_lowest", "mult_bp": 18000, "hits": 2}
+				]
+			},
+			"passives": [
+				{
+					"id": "cape_work",
+					"name": "Cape Work",
+					"unlock_stars": 3,
+					"description": "+12% SPD and +10% crit chance.",
+					"effects": [{"type": "stat", "spd_bp": 1200, "crit_bp": 1000}]
+				},
+				{
+					"id": "final_bow",
+					"name": "Final Bow",
+					"unlock_stars": 5,
+					"description": "On kill: restores 15% of her max HP and gains 300 energy.",
+					"effects": [{"type": "on_kill", "heal_pct_bp": 1500, "energy": 300}]
+				}
+			]
+		},
+		{
+			"id": "thrasha",
+			"name": "Thrasha",
+			"title": "Power Chord",
+			"faction": "infernal",
+			"role": "striker",
+			"rarity": "rare",
+			"bio": "Her band is banned from every venue in hell, so now she plays the battlefield. Loud, reckless and secretly sentimental: she still answers all her fan mail.",
+			"look": "Lean, wiry nu-metal rocker: a black vinyl micro bikini top held together with chrome safety pins and chains, a black PVC highleg thong bottom, torn black fishnet thigh-highs, a cropped studded black vinyl biker jacket slipping off her shoulders, chrome wallet chains, a spiked choker, black platform combat boots. A choppy hot-pink wolf cut, smudged black eyeliner and black lipstick, one horn broken off and capped in chrome, tattered bat wings. A chrome flying-V guitar-axe held by the neck over her shoulder, the other hand throwing the horns; a snarling grin.",
+			"base_stats": {"hp": 1680, "atk": 96, "def": 45, "spd": 110, "crit": 1600},
+			"ultimate": {
+				"id": "encore_smash",
+				"name": "Encore Smash",
+				"description": "Swings the guitar-axe three times at her target for 130% ATK each, then gains +25% ATK for 5 s.",
+				"effects": [
+					{"type": "damage", "target": "enemy_target", "mult_bp": 13000, "hits": 3},
+					{"type": "status", "target": "self", "status": "atk_up", "duration_ms": 5000, "value_bp": 2500}
+				]
+			},
+			"passives": [
+				{
+					"id": "mosh_pit",
+					"name": "Mosh Pit",
+					"unlock_stars": 3,
+					"description": "+12% ATK and +8% HP.",
+					"effects": [{"type": "stat", "atk_bp": 1200, "hp_bp": 800}]
+				},
+				{
+					"id": "feedback",
+					"name": "Feedback",
+					"unlock_stars": 5,
+					"description": "+20% crit damage. Heals for 15% of damage dealt.",
+					"effects": [{"type": "crit_damage", "bp": 2000}, {"type": "lifesteal", "bp": 1500}]
+				}
+			]
+		},
+		{
+			"id": "kindra",
+			"name": "Kindra",
+			"title": "Fire Marshal",
+			"faction": "infernal",
+			"role": "guardian",
+			"rarity": "rare",
+			"bio": "Hell's fire marshal: her job is keeping every fire burning exactly where it should. She has carried more demons out of collapsing clubs than anyone, and has a terrible pun for each of them.",
+			"look": "Muscular, tan fire marshal with soot smudges: a red latex micro bandeau under red suspenders, a black highleg thong-cut bottom with chrome reflective stripes, black thigh-high turnout boots, a cropped turnout jacket over her shoulders, a glossy red-and-chrome fire helmet with her stubby charred horns through it. Short ash-blonde hair shaved at the sides, a thick tail. A chrome fire axe held low, her thumb hooked in a suspender and pulling it out, chest out; a big confident wink.",
+			"base_stats": {"hp": 2740, "atk": 60, "def": 74, "spd": 88, "crit": 500},
+			"ultimate": {
+				"id": "backdraft",
+				"name": "Backdraft",
+				"description": "Kicks the door in: 120% ATK to front-row enemies and Burns them (40% ATK per second) for 5 s, then gains a shield of 20% max HP and Taunts all enemies for 4 s.",
+				"effects": [
+					{"type": "damage", "target": "enemy_front_row", "mult_bp": 12000},
+					{"type": "status", "target": "enemy_front_row", "status": "burn", "duration_ms": 5000, "dot_mult_bp": 4000},
+					{"type": "shield", "target": "self", "pct_max_hp_bp": 2000},
+					{"type": "status", "target": "self", "status": "taunt", "duration_ms": 4000}
+				]
+			},
+			"passives": [
+				{
+					"id": "fireproof",
+					"name": "Fireproof",
+					"unlock_stars": 3,
+					"description": "Takes 10% less damage and gains +10% DEF.",
+					"effects": [{"type": "damage_reduction", "bp": 1000}, {"type": "stat", "def_bp": 1000}]
+				},
+				{
+					"id": "hot_zone",
+					"name": "Hot Zone",
+					"unlock_stars": 5,
+					"description": "Reflects 15% of damage taken back to the attacker and gains +15% HP.",
+					"effects": [{"type": "thorns", "bp": 1500}, {"type": "stat", "hp_bp": 1500}]
+				}
+			]
+		},
+		{
+			"id": "cordia",
+			"name": "Cordia",
+			"title": "Last Call",
+			"faction": "infernal",
+			"role": "support",
+			"rarity": "rare",
+			"bio": "She tended bar at the Brimstone club before the club was built. She knows what you need before you ask, and she never repeats what you told her.",
+			"look": "Hourglass bartender: a black latex waistcoat with nothing under it, buttoned once at the waist and plunging to the navel, a red latex bow-tie collar on bare skin, red latex cuffs, a black latex pencil micro skirt slit to the hip, black patent platform heels, a garter holster of tiny chrome flasks. Voluminous auburn curls swept to one side, elegant ram horns banded in chrome, small bat wings, a spaded tail. Shakes a chrome cocktail shaker up by her shoulder, the other hand on her hip; a warm, knowing smirk.",
+			"base_stats": {"hp": 1640, "atk": 70, "def": 44, "spd": 103, "crit": 500},
+			"ultimate": {
+				"id": "one_for_the_road",
+				"name": "One for the Road",
+				"description": "Pours a round for the team: heals all allies for 180% ATK and grants them +15% ATK for 5 s.",
+				"effects": [
+					{"type": "heal", "target": "ally_all", "mult_bp": 18000},
+					{"type": "status", "target": "ally_all", "status": "atk_up", "duration_ms": 5000, "value_bp": 1500}
+				]
+			},
+			"passives": [
+				{
+					"id": "strong_pour",
+					"name": "Strong Pour",
+					"unlock_stars": 3,
+					"description": "Healing done +20% and +8% ATK.",
+					"effects": [{"type": "heal_bonus", "bp": 2000}, {"type": "stat", "atk_bp": 800}]
+				},
+				{
+					"id": "liquid_courage",
+					"name": "Liquid Courage",
+					"unlock_stars": 5,
+					"description": "Her ultimate also gives every other ally 100 energy.",
+					"effects": [
+						{
+							"type": "ult_bonus",
+							"effects": [
+								{"type": "energy", "target": "ally_others", "amount": 100}
+							]
+						}
+					]
 				}
 			]
 		},
@@ -544,6 +1174,310 @@
 							]
 						}
 					]
+				}
+			]
+		},
+		{
+			"id": "nadira",
+			"name": "Nadira",
+			"title": "Lost Signal",
+			"faction": "fallen",
+			"role": "caster",
+			"rarity": "legendary",
+			"bio": "Heaven's satellite keeper until the signal died and she fell with it, still strapped in. She can still call the dead ones down, and they always answer.",
+			"look": "Tall, long-limbed satellite keeper with dark umber skin: a glossy black-and-violet space suit cut into a highleg bodysuit zipped open to the navel and open at both sides, oil-slick holographic panels, chrome mission patches with a broken loading-ring logo, chunky white-and-chrome platform moon boots. A mirrored chrome space helmet tucked under one arm on her hip; the other hand raises a staff topped with a small broken chrome satellite. Long silver-white locs tied loosely back, black wings with chrome solar-panel feathers spread wide, a cracked chrome halo tilted like a planet's ring; a calm, distant look.",
+			"base_stats": {"hp": 1760, "atk": 114, "def": 42, "spd": 92, "crit": 1200},
+			"ultimate": {
+				"id": "deorbit",
+				"name": "Deorbit",
+				"description": "Calls down a dead satellite: 220% ATK to all enemies and Stuns the back row for 1.5 s.",
+				"effects": [
+					{"type": "damage", "target": "enemy_all", "mult_bp": 22000},
+					{"type": "status", "target": "enemy_back_row", "status": "stun", "duration_ms": 1500}
+				]
+			},
+			"passives": [
+				{
+					"id": "dead_air",
+					"name": "Dead Air",
+					"unlock_stars": 3,
+					"description": "+18% ATK.",
+					"effects": [{"type": "stat", "atk_bp": 1800}]
+				},
+				{
+					"id": "lost_transmission",
+					"name": "Lost Transmission",
+					"unlock_stars": 5,
+					"description": "Basic attacks have a 30% chance to Weaken the target: -20% ATK for 3 s. Battle start: gains 300 energy.",
+					"effects": [
+						{"type": "on_hit_status", "status": "atk_down", "chance_bp": 3000, "duration_ms": 3000, "value_bp": 2000},
+						{"type": "start_energy", "amount": 300}
+					]
+				}
+			]
+		},
+		{
+			"id": "gantra",
+			"name": "Gantra",
+			"title": "Last Pilot",
+			"faction": "fallen",
+			"role": "guardian",
+			"rarity": "legendary",
+			"bio": "She piloted the last mech of heaven's crashed fleet and walked out of the wreck carrying its arm. She still talks to it; it is the better listener.",
+			"look": "Tall, athletic, curvy mech pilot: a glossy black-and-teal pilot bodysuit unzipped from the collar to the navel over opaque cups, cut highleg with open sides, a chrome pilot collar, chrome interface nodes on her hips and spine, teal painted seams, black platform pilot boots. Her mech's giant torn-off chrome forearm is strapped over her left arm and raised like a tower shield, huge fingers spread, a cracked chrome halo bolted to its shoulder; her free hand rests on her hip. Short choppy teal hair over a shaved undercut, a cracked pilot headset, no wings; a tired, cocky half-smile.",
+			"base_stats": {"hp": 3200, "atk": 66, "def": 92, "spd": 90, "crit": 600},
+			"ultimate": {
+				"id": "final_sortie",
+				"name": "Final Sortie",
+				"description": "One last launch: shields all allies for 12% of her max HP, slams front-row enemies for 120% ATK and Stuns them for 1.5 s.",
+				"effects": [
+					{"type": "shield", "target": "ally_all", "pct_max_hp_bp": 1200},
+					{"type": "damage", "target": "enemy_front_row", "mult_bp": 12000},
+					{"type": "status", "target": "enemy_front_row", "status": "stun", "duration_ms": 1500}
+				]
+			},
+			"passives": [
+				{
+					"id": "armored_frame",
+					"name": "Armored Frame",
+					"unlock_stars": 3,
+					"description": "Takes 15% less damage.",
+					"effects": [{"type": "damage_reduction", "bp": 1500}]
+				},
+				{
+					"id": "full_sync",
+					"name": "Full Sync",
+					"unlock_stars": 5,
+					"description": "Reflects 20% of damage taken back to the attacker. Her ultimate also Taunts all enemies for 4 s.",
+					"effects": [{"type": "thorns", "bp": 2000}, {"type": "ult_bonus", "effects": [{"type": "status", "target": "self", "status": "taunt", "duration_ms": 4000}]}]
+				}
+			]
+		},
+		{
+			"id": "severine",
+			"name": "Severine",
+			"title": "Masterless Blade",
+			"faction": "fallen",
+			"role": "striker",
+			"rarity": "epic",
+			"bio": "Sworn to an archangel who fell first, she has served no one since. She is quietest when she is amused, and that is when you should run.",
+			"look": "Athletic cyber-ronin: a black latex chest wrap under a short black latex kimono jacket worn off both shoulders, pixel-glitch patterns on its sleeves, a wide oil-slick holographic obi corset belt, a highleg black latex bottom under long black vinyl panels split to the hip on both sides, black latex thigh-highs and black platform sandals. She draws a long chrome odachi with a violet painted edge from the black scabbard at her hip, low and ready. Very long straight black hair in a high ponytail bound by a chrome ring, long tattered black wings, a cracked chrome halo with a piece missing; a faint, dangerous smile.",
+			"base_stats": {"hp": 1840, "atk": 101, "def": 49, "spd": 106, "crit": 1700},
+			"ultimate": {
+				"id": "masterless_cut",
+				"name": "Masterless Cut",
+				"description": "One draw through the front line: 240% ATK to every front-row enemy, +50% damage to enemies below 50% HP.",
+				"effects": [{"type": "damage", "target": "enemy_front_row", "mult_bp": 24000, "low_hp_bonus_bp": 5000}]
+			},
+			"passives": [
+				{
+					"id": "no_master",
+					"name": "No Master",
+					"unlock_stars": 3,
+					"description": "+15% ATK.",
+					"effects": [{"type": "stat", "atk_bp": 1500}]
+				},
+				{
+					"id": "clean_cut",
+					"name": "Clean Cut",
+					"unlock_stars": 5,
+					"description": "+15% crit chance. On kill: gains 300 energy.",
+					"effects": [{"type": "stat", "crit_bp": 1500}, {"type": "on_kill", "energy": 300}]
+				}
+			]
+		},
+		{
+			"id": "benthe",
+			"name": "Benthe",
+			"title": "Crush Depth",
+			"faction": "fallen",
+			"role": "guardian",
+			"rarity": "epic",
+			"bio": "She fell into the sea, kept falling to the bottom, and decided she liked it there. She surfaces only when her friends need a wall, and she is a very good wall.",
+			"look": "Towering, powerful deep-sea guardian with pale blue-grey skin: a black latex high-neck swimsuit with a huge keyhole cutout from the collar to the navel and an open back, highleg, under a bolted chrome diving corselet that yokes only her shoulders; oil-slick barnacle rivets, a chrome weight belt across her hips, chunky chrome diving boots. A huge chrome anchor stands upright beside her like a tower shield, one hand on its fluke, the heavy chain looped over her shoulder. Long deep-teal wet-look waves, heavy black wings with chrome rivet tips folded tight, a cracked chrome halo; a slow, sleepy smile.",
+			"base_stats": {"hp": 3000, "atk": 64, "def": 82, "spd": 84, "crit": 500},
+			"ultimate": {
+				"id": "anchor_drop",
+				"name": "Anchor Drop",
+				"description": "Drops anchor on her target: 150% ATK and Stuns it for 3 s, then all allies gain +25% DEF for 5 s and a shield of 8% of her max HP.",
+				"effects": [
+					{"type": "damage", "target": "enemy_target", "mult_bp": 15000},
+					{"type": "status", "target": "enemy_target", "status": "stun", "duration_ms": 3000},
+					{"type": "status", "target": "ally_all", "status": "def_up", "duration_ms": 5000, "value_bp": 2500},
+					{"type": "shield", "target": "ally_all", "pct_max_hp_bp": 800}
+				]
+			},
+			"passives": [
+				{
+					"id": "ballast",
+					"name": "Ballast",
+					"unlock_stars": 3,
+					"description": "+20% HP.",
+					"effects": [{"type": "stat", "hp_bp": 2000}]
+				},
+				{
+					"id": "abyssal_calm",
+					"name": "Abyssal Calm",
+					"unlock_stars": 5,
+					"description": "Takes 10% less damage and gains +15% DEF.",
+					"effects": [{"type": "damage_reduction", "bp": 1000}, {"type": "stat", "def_bp": 1500}]
+				}
+			]
+		},
+		{
+			"id": "seyra",
+			"name": "Seyra",
+			"title": "Static Oracle",
+			"faction": "fallen",
+			"role": "support",
+			"rarity": "epic",
+			"bio": "She reads the future in dead television static and has never been wrong, except about her own fall. She already knows what you are about to say.",
+			"look": "Soft, curvy oracle: a black latex halter bodysuit split by a narrow plunge from the collar to below the navel over opaque cups, highleg, with a bare back, under a long violet vinyl priestess drape with CRT scan-line patterns that hangs from a chrome collar, open at the front and sides; black platform sandals. She cradles a cracked chrome-framed crystal ball full of TV static beneath her chest, head tilted as if listening. Long straight periwinkle hair with blunt bangs, a chrome third-eye diadem with a teal gem, grey wings with oil-slick eye spots spread low, a cracked chrome halo with a pixel gap; a dreamy smile.",
+			"base_stats": {"hp": 1790, "atk": 78, "def": 49, "spd": 101, "crit": 500},
+			"ultimate": {
+				"id": "foreseen",
+				"name": "Foreseen",
+				"description": "She saw this coming: heals all allies for 160% ATK, shields them for 10% of her max HP, and Weakens all enemies (-20% ATK) for 4 s.",
+				"effects": [
+					{"type": "heal", "target": "ally_all", "mult_bp": 16000},
+					{"type": "shield", "target": "ally_all", "pct_max_hp_bp": 1000},
+					{"type": "status", "target": "enemy_all", "status": "atk_down", "duration_ms": 4000, "value_bp": 2000}
+				]
+			},
+			"passives": [
+				{
+					"id": "second_sight",
+					"name": "Second Sight",
+					"unlock_stars": 3,
+					"description": "+15% HP and healing done +15%.",
+					"effects": [{"type": "stat", "hp_bp": 1500}, {"type": "heal_bonus", "bp": 1500}]
+				},
+				{
+					"id": "static_hymn",
+					"name": "Static Hymn",
+					"unlock_stars": 5,
+					"description": "Her ultimate also grants all allies +20% DEF for 5 s.",
+					"effects": [
+						{
+							"type": "ult_bonus",
+							"effects": [
+								{"type": "status", "target": "ally_all", "status": "def_up", "duration_ms": 5000, "value_bp": 2000}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"id": "rivette",
+			"name": "Rivette",
+			"title": "Hard Stop",
+			"faction": "fallen",
+			"role": "striker",
+			"rarity": "rare",
+			"bio": "She skates the broken highways of the Fallen wastes, and everything on them stops for her. First to the finish line, first to buy the rounds.",
+			"look": "Athletic, powerful roller-derby jammer: a black-and-violet vinyl underboob crop top laced up the front, violet PVC highleg micro briefs, black latex thigh-highs with chrome garter rings, chrome knee and elbow pads, platform roller skates with violet wheels. A bent chrome stop sign welded onto a pole as a poleaxe, planted beside her with one arm hooked over it, hip cocked. A platinum buzz cut with violet tips, clipped black wings with chrome tips, a cracked chrome halo tilted on her head; a cocky grin.",
+			"base_stats": {"hp": 1760, "atk": 92, "def": 47, "spd": 106, "crit": 1500},
+			"ultimate": {
+				"id": "red_light",
+				"name": "Red Light",
+				"description": "Everything stops: 260% ATK to her target and Stuns it for 1.5 s, then she gains +20% SPD for 5 s.",
+				"effects": [
+					{"type": "damage", "target": "enemy_target", "mult_bp": 26000},
+					{"type": "status", "target": "enemy_target", "status": "stun", "duration_ms": 1500},
+					{"type": "status", "target": "self", "status": "spd_up", "duration_ms": 5000, "value_bp": 2000}
+				]
+			},
+			"passives": [
+				{
+					"id": "lead_jammer",
+					"name": "Lead Jammer",
+					"unlock_stars": 3,
+					"description": "+12% SPD and +8% ATK.",
+					"effects": [{"type": "stat", "spd_bp": 1200, "atk_bp": 800}]
+				},
+				{
+					"id": "power_jam",
+					"name": "Power Jam",
+					"unlock_stars": 5,
+					"description": "Basic attacks have a 25% chance to strike twice. +20% crit damage.",
+					"effects": [{"type": "double_strike", "chance_bp": 2500}, {"type": "crit_damage", "bp": 2000}]
+				}
+			]
+		},
+		{
+			"id": "vandra",
+			"name": "Vandra",
+			"title": "Wet Paint",
+			"faction": "fallen",
+			"role": "caster",
+			"rarity": "rare",
+			"bio": "She tags the ruins of fallen heaven with spells instead of signatures, and whatever she paints starts to burn. Authority is just a wall she hasn't got to yet.",
+			"look": "Lithe, curvy street artist: an oversized black vinyl hoodie cropped just under the breasts, hood down and covered in wildstyle tags, a teal latex highleg micro bikini bottom with paint-splattered straps, paint-flecked teal latex thigh-highs, chunky platform sneakers, a paint-flecked respirator pulled down around her neck. One oil-slick chrome spray can raised at shoulder height as if tagging the air, the other at her hip. A messy teal-and-violet shag flecked with paint, black wings tagged in teal and violet graffiti, a cracked chrome halo with a painted drip; a mischievous smile.",
+			"base_stats": {"hp": 1580, "atk": 105, "def": 38, "spd": 98, "crit": 1000},
+			"ultimate": {
+				"id": "wildstyle",
+				"name": "Wildstyle",
+				"description": "Tags the whole enemy line: 120% ATK to all enemies and Exposes them (-25% DEF) for 5 s.",
+				"effects": [
+					{"type": "damage", "target": "enemy_all", "mult_bp": 12000},
+					{"type": "status", "target": "enemy_all", "status": "def_down", "duration_ms": 5000, "value_bp": 2500}
+				]
+			},
+			"passives": [
+				{
+					"id": "fresh_coat",
+					"name": "Fresh Coat",
+					"unlock_stars": 3,
+					"description": "+15% ATK.",
+					"effects": [{"type": "stat", "atk_bp": 1500}]
+				},
+				{
+					"id": "drip",
+					"name": "Drip",
+					"unlock_stars": 5,
+					"description": "Her ultimate also Burns all enemies (40% ATK per second) for 4 s.",
+					"effects": [
+						{
+							"type": "ult_bonus",
+							"effects": [
+								{"type": "status", "target": "enemy_all", "status": "burn", "duration_ms": 4000, "dot_mult_bp": 4000}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"id": "ombre",
+			"name": "Ombre",
+			"title": "Dead Pixel",
+			"faction": "fallen",
+			"role": "assassin",
+			"rarity": "rare",
+			"bio": "One shot per battle, and she has never needed a second. She reads novels between targets and always finishes the chapter.",
+			"look": "Long, lean cyber-noir sniper: a black latex micro bandeau and highleg briefs under a chrome-buckled tactical chest harness, thigh holsters and black latex arm sleeves, a long black-to-silver ombre vinyl trench coat worn open off her shoulders, knee-high platform combat boots. A long chrome sniper rifle with a pixel-crosshair scope held diagonally at low ready; her free hand lowers tiny oval chrome sunglasses so she can look over them. Very long black hair fading to silver in a low ponytail, long black wings fading to silver at the tips, a cracked chrome halo shaped like a scope reticle; a cool, deadpan stare.",
+			"base_stats": {"hp": 1480, "atk": 99, "def": 37, "spd": 114, "crit": 2200},
+			"ultimate": {
+				"id": "one_shot",
+				"name": "One Shot",
+				"description": "One round, one name: 380% ATK to the weakest back-row enemy, executing it if left below 25% HP (not bosses).",
+				"effects": [{"type": "damage", "target": "enemy_back_lowest", "mult_bp": 38000, "execute_bp": 2500}]
+			},
+			"passives": [
+				{
+					"id": "steady_aim",
+					"name": "Steady Aim",
+					"unlock_stars": 3,
+					"description": "+20% crit chance.",
+					"effects": [{"type": "stat", "crit_bp": 2000}]
+				},
+				{
+					"id": "overwatch",
+					"name": "Overwatch",
+					"unlock_stars": 5,
+					"description": "+35% crit damage and +10% ATK.",
+					"effects": [{"type": "crit_damage", "bp": 3500}, {"type": "stat", "atk_bp": 1000}]
 				}
 			]
 		}

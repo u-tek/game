@@ -103,25 +103,28 @@
 			"value": {
 				"ok": true,
 				"value": [
-					{"hero_id": "nuriel", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 1},
-					{"hero_id": "ashra", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 2},
-					{"hero_id": "cassiel", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 3},
-					{"hero_id": "vesper", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 4},
-					{"hero_id": "kessa", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 5},
-					{"hero_id": "lucen", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 6},
-					{"hero_id": "uriela", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 7},
-					{"hero_id": "sable", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 8},
-					{"hero_id": "nuriel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 9},
-					{"hero_id": "nuriel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 10}
+					{"hero_id": "verdelle", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 1},
+					{"hero_id": "kindra", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 2},
+					{"hero_id": "avienne", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 3},
+					{"hero_id": "severine", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 4},
+					{"hero_id": "nuriel", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 5},
+					{"hero_id": "ferrael", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 6},
+					{"hero_id": "imra", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 7},
+					{"hero_id": "brakka", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 8},
+					{"hero_id": "verdelle", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 9},
+					{"hero_id": "kessa", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 10}
 				],
 				"error": ""
 			},
 			"notify": [
+				{"type": "new_hero", "hero_id": "verdelle", "rarity": "rare"},
+				{"type": "new_hero", "hero_id": "kindra", "rarity": "rare"},
+				{"type": "new_hero", "hero_id": "avienne", "rarity": "epic"},
+				{"type": "new_hero", "hero_id": "severine", "rarity": "epic"},
 				{"type": "new_hero", "hero_id": "nuriel", "rarity": "rare"},
-				{"type": "new_hero", "hero_id": "ashra", "rarity": "rare"},
-				{"type": "new_hero", "hero_id": "cassiel", "rarity": "epic"},
-				{"type": "new_hero", "hero_id": "vesper", "rarity": "epic"},
-				{"type": "new_hero", "hero_id": "sable", "rarity": "epic"},
+				{"type": "new_hero", "hero_id": "ferrael", "rarity": "rare"},
+				{"type": "new_hero", "hero_id": "imra", "rarity": "rare"},
+				{"type": "new_hero", "hero_id": "brakka", "rarity": "epic"},
 				{"type": "quest_ready", "id": "dq_summon", "title": "Summon a hero"}
 			]
 		},
@@ -129,12 +132,10 @@
 			"call": "summon",
 			"value": {
 				"ok": true,
-				"value": [
-					{"hero_id": "uriela", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 11}
-				],
+				"value": [{"hero_id": "isobel", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 11}],
 				"error": ""
 			},
-			"notify": []
+			"notify": [{"type": "new_hero", "hero_id": "isobel", "rarity": "rare"}]
 		},
 		{"call": "summon", "value": {"ok": false, "value": null, "error": "Not enough gems"}, "notify": []},
 		{
@@ -142,7 +143,7 @@
 			"value": {
 				"ok": true,
 				"value": [
-					{"hero_id": "vesper", "rarity": "epic", "is_new": false, "shards": 20, "dust": 0, "pity": 12}
+					{"hero_id": "severine", "rarity": "epic", "is_new": false, "shards": 20, "dust": 0, "pity": 12}
 				],
 				"error": ""
 			},
@@ -152,16 +153,18 @@
 			"call": "summon",
 			"value": {
 				"ok": true,
-				"value": [{"hero_id": "imra", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 13}],
+				"value": [{"hero_id": "vandra", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 13}],
 				"error": ""
 			},
-			"notify": [{"type": "new_hero", "hero_id": "imra", "rarity": "rare"}]
+			"notify": [{"type": "new_hero", "hero_id": "vandra", "rarity": "rare"}]
 		},
 		{
 			"call": "summon",
 			"value": {
 				"ok": true,
-				"value": [{"hero_id": "ashra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 14}],
+				"value": [
+					{"hero_id": "kindra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 14}
+				],
 				"error": ""
 			},
 			"notify": []
@@ -171,7 +174,7 @@
 			"value": {
 				"ok": true,
 				"value": [
-					{"hero_id": "uriela", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 15}
+					{"hero_id": "isobel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 15}
 				],
 				"error": ""
 			},
@@ -181,7 +184,9 @@
 			"call": "summon",
 			"value": {
 				"ok": true,
-				"value": [{"hero_id": "kessa", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 16}],
+				"value": [
+					{"hero_id": "nuriel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 16}
+				],
 				"error": ""
 			},
 			"notify": []
@@ -190,10 +195,10 @@
 			"call": "summon",
 			"value": {
 				"ok": true,
-				"value": [{"hero_id": "kessa", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 17}],
+				"value": [{"hero_id": "rivette", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 17}],
 				"error": ""
 			},
-			"notify": []
+			"notify": [{"type": "new_hero", "hero_id": "rivette", "rarity": "rare"}]
 		},
 		{
 			"call": "buy_offer",
@@ -201,8 +206,8 @@
 			"notify": []
 		},
 		{"call": "auto_formation", "value": null, "notify": []},
-		{"call": "formation", "value": ["cassiel", "uriela", "lucen", "kessa", "nuriel"], "notify": []},
-		{"call": "team_power", "value": 2281, "notify": []},
+		{"call": "formation", "value": ["brakka", "avienne", "severine", "kessa", "nuriel"], "notify": []},
+		{"call": "team_power", "value": 2430, "notify": []},
 		{
 			"call": "battle",
 			"value": {
@@ -222,7 +227,7 @@
 			"value": {
 				"seed": 379261924,
 				"victory": true,
-				"duration_ms": 9400,
+				"duration_ms": 11100,
 				"complete": {
 					"ok": true,
 					"value": {
@@ -240,7 +245,7 @@
 			"value": {
 				"seed": 1793609759,
 				"victory": true,
-				"duration_ms": 10100,
+				"duration_ms": 12200,
 				"complete": {
 					"ok": true,
 					"value": {
@@ -258,7 +263,7 @@
 			"value": {
 				"seed": 1281961496,
 				"victory": false,
-				"duration_ms": 16700,
+				"duration_ms": 20000,
 				"complete": {"ok": true, "value": {"reward": {}, "first_clear": false, "victory": false}, "error": ""}
 			},
 			"notify": []
@@ -268,7 +273,7 @@
 			"value": {
 				"seed": 1026838193,
 				"victory": false,
-				"duration_ms": 35800,
+				"duration_ms": 43900,
 				"complete": {"ok": false, "value": null, "error": "Stage locked"}
 			},
 			"notify": []
@@ -276,15 +281,20 @@
 		{
 			"call": "owned_heroes",
 			"value": [
-				{"id": "cassiel", "level": 1, "stars": 2, "shards": 0, "gear": {"weapon": "g1"}},
-				{"id": "nuriel", "level": 1, "stars": 1, "shards": 20, "gear": {}},
-				{"id": "kessa", "level": 1, "stars": 1, "shards": 30, "gear": {}},
-				{"id": "lucen", "level": 1, "stars": 1, "shards": 10, "gear": {}},
-				{"id": "uriela", "level": 1, "stars": 1, "shards": 30, "gear": {}},
-				{"id": "sable", "level": 1, "stars": 2, "shards": 0, "gear": {}},
-				{"id": "vesper", "level": 1, "stars": 2, "shards": 20, "gear": {}},
-				{"id": "ashra", "level": 1, "stars": 1, "shards": 10, "gear": {}},
-				{"id": "imra", "level": 1, "stars": 1, "shards": 0, "gear": {}}
+				{"id": "severine", "level": 1, "stars": 2, "shards": 20, "gear": {}},
+				{"id": "brakka", "level": 1, "stars": 2, "shards": 0, "gear": {"weapon": "g1"}},
+				{"id": "avienne", "level": 1, "stars": 2, "shards": 0, "gear": {}},
+				{"id": "nuriel", "level": 1, "stars": 1, "shards": 10, "gear": {}},
+				{"id": "kessa", "level": 1, "stars": 1, "shards": 10, "gear": {}},
+				{"id": "lucen", "level": 1, "stars": 1, "shards": 0, "gear": {}},
+				{"id": "rivette", "level": 1, "stars": 1, "shards": 0, "gear": {}},
+				{"id": "uriela", "level": 1, "stars": 1, "shards": 0, "gear": {}},
+				{"id": "ferrael", "level": 1, "stars": 1, "shards": 0, "gear": {}},
+				{"id": "kindra", "level": 1, "stars": 1, "shards": 10, "gear": {}},
+				{"id": "vandra", "level": 1, "stars": 1, "shards": 0, "gear": {}},
+				{"id": "isobel", "level": 1, "stars": 1, "shards": 10, "gear": {}},
+				{"id": "imra", "level": 1, "stars": 1, "shards": 0, "gear": {}},
+				{"id": "verdelle", "level": 1, "stars": 1, "shards": 10, "gear": {}}
 			],
 			"notify": []
 		},
@@ -306,7 +316,7 @@
 			"value": {
 				"seed": 1554948203,
 				"victory": false,
-				"duration_ms": 17700,
+				"duration_ms": 18300,
 				"complete": {"ok": true, "value": {"reward": {}, "first_clear": false, "victory": false}, "error": ""}
 			},
 			"notify": []
@@ -437,7 +447,7 @@
 					"tier": 1,
 					"name": "Worn Glaive",
 					"stats": {"atk": 14},
-					"equipped_by": "lucen"
+					"equipped_by": "severine"
 				},
 				{
 					"uid": "g2",
@@ -445,7 +455,7 @@
 					"tier": 1,
 					"name": "Worn Sceptre",
 					"stats": {"atk": 16},
-					"equipped_by": "uriela"
+					"equipped_by": "avienne"
 				},
 				{
 					"uid": "g3",
@@ -453,21 +463,17 @@
 					"tier": 1,
 					"name": "Worn Blade",
 					"stats": {"atk": 17},
-					"equipped_by": "cassiel"
+					"equipped_by": "brakka"
 				}
 			],
 			"notify": []
 		},
 		{
 			"call": "star_up_cost",
-			"value": {"shards": 10, "dust": 0, "shards_have": 30, "shards_used": 10, "dust_per_shard": 10},
+			"value": {"shards": 10, "dust": 100, "shards_have": 0, "shards_used": 0, "dust_per_shard": 10},
 			"notify": []
 		},
-		{
-			"call": "star_up",
-			"value": {"ok": true, "value": {"stars": 2, "level_cap": 60}, "error": ""},
-			"notify": [{"type": "star_up", "hero_id": "uriela", "stars": 2}]
-		},
+		{"call": "star_up", "value": {"ok": false, "value": null, "error": "Not enough shards"}, "notify": []},
 		{
 			"call": "set_formation",
 			"value": {"ok": true, "value": ["kessa", "uriela", "lucen", "", ""], "error": ""},
@@ -481,7 +487,7 @@
 			"value": {
 				"seed": 1356677282,
 				"victory": false,
-				"duration_ms": 17500,
+				"duration_ms": 22300,
 				"complete": {"ok": true, "value": {"reward": {}, "first_clear": false, "victory": false}, "error": ""}
 			},
 			"notify": []
@@ -491,7 +497,7 @@
 			"value": {
 				"seed": 1373125563,
 				"victory": false,
-				"duration_ms": 51100,
+				"duration_ms": 54400,
 				"complete": {"ok": false, "value": null, "error": "Stage locked"}
 			},
 			"notify": []
@@ -501,7 +507,7 @@
 			"value": {
 				"seed": 1519969653,
 				"victory": false,
-				"duration_ms": 12600,
+				"duration_ms": 15800,
 				"complete": {"ok": false, "value": null, "error": "Stage locked"}
 			},
 			"notify": []
@@ -511,7 +517,7 @@
 			"value": {
 				"seed": 206671260,
 				"victory": false,
-				"duration_ms": 13800,
+				"duration_ms": 17000,
 				"complete": {"ok": false, "value": null, "error": "Stage locked"}
 			},
 			"notify": []
@@ -598,7 +604,9 @@
 			"call": "summon",
 			"value": {
 				"ok": true,
-				"value": [{"hero_id": "kessa", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 18}],
+				"value": [
+					{"hero_id": "verdelle", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 18}
+				],
 				"error": ""
 			},
 			"notify": [{"type": "quest_ready", "id": "dq_summon", "title": "Summon a hero"}]
@@ -716,7 +724,7 @@
 		{"call": "upgrade_ready", "value": true, "notify": []},
 		{
 			"call": "hero_stats",
-			"value": {"hp": 1520, "atk": 112, "def": 38, "spd": 118, "crit": 2000},
+			"value": {"hp": 1520, "atk": 96, "def": 38, "spd": 118, "crit": 2000},
 			"notify": []
 		},
 		{"call": "monthly_card_days_left", "value": 28, "notify": []},
@@ -831,20 +839,22 @@
 				"ok": true,
 				"value": [
 					{"hero_id": "kessa", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 1},
-					{"hero_id": "ashra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 2},
-					{"hero_id": "nuriel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 3},
-					{"hero_id": "brakka", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 4},
-					{"hero_id": "cassiel", "rarity": "epic", "is_new": false, "shards": 20, "dust": 0, "pity": 5},
-					{"hero_id": "imra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 6},
-					{"hero_id": "kessa", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 7},
-					{"hero_id": "imra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 8},
-					{"hero_id": "nuriel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 9},
+					{"hero_id": "rivette", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 2},
+					{"hero_id": "halcia", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 3},
+					{"hero_id": "brakka", "rarity": "epic", "is_new": false, "shards": 20, "dust": 0, "pity": 4},
+					{"hero_id": "cassiel", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 5},
+					{"hero_id": "ferrael", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 6},
+					{"hero_id": "verdelle", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 7},
+					{"hero_id": "cordia", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 8},
+					{"hero_id": "rivette", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 9},
 					{"hero_id": "uriela", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 10}
 				],
 				"error": ""
 			},
 			"notify": [
-				{"type": "new_hero", "hero_id": "brakka", "rarity": "epic"},
+				{"type": "new_hero", "hero_id": "halcia", "rarity": "rare"},
+				{"type": "new_hero", "hero_id": "cassiel", "rarity": "epic"},
+				{"type": "new_hero", "hero_id": "cordia", "rarity": "rare"},
 				{"type": "quest_ready", "id": "dq_summon", "title": "Summon a hero"}
 			]
 		},
@@ -854,19 +864,23 @@
 				"ok": true,
 				"value": [
 					{"hero_id": "nuriel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 1, "featured": false},
-					{"hero_id": "ashra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 2, "featured": false},
-					{"hero_id": "kessa", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 3, "featured": false},
-					{"hero_id": "imra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 4, "featured": false},
-					{"hero_id": "nuriel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 5, "featured": false},
-					{"hero_id": "cassiel", "rarity": "epic", "is_new": false, "shards": 20, "dust": 0, "pity": 6, "featured": false},
+					{"hero_id": "lucen", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 2, "featured": false},
+					{"hero_id": "rivette", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 3, "featured": false},
+					{"hero_id": "isobel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 4, "featured": false},
+					{"hero_id": "kindra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 5, "featured": false},
+					{"hero_id": "vesper", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 6, "featured": false},
 					{"hero_id": "imra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 7, "featured": false},
-					{"hero_id": "brakka", "rarity": "epic", "is_new": false, "shards": 20, "dust": 0, "pity": 8, "featured": false},
-					{"hero_id": "lucen", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 9, "featured": false},
-					{"hero_id": "lucen", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 10, "featured": false}
+					{"hero_id": "seyra", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 8, "featured": false},
+					{"hero_id": "thrasha", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 9, "featured": false},
+					{"hero_id": "vandra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 10, "featured": false}
 				],
 				"error": ""
 			},
-			"notify": []
+			"notify": [
+				{"type": "new_hero", "hero_id": "vesper", "rarity": "epic"},
+				{"type": "new_hero", "hero_id": "seyra", "rarity": "epic"},
+				{"type": "new_hero", "hero_id": "thrasha", "rarity": "rare"}
+			]
 		},
 		{
 			"call": "summon",
@@ -874,19 +888,23 @@
 				"ok": true,
 				"value": [
 					{"hero_id": "uriela", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 1},
+					{"hero_id": "halcia", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 2},
+					{"hero_id": "ferrael", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 3},
+					{"hero_id": "ferrael", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 4},
+					{"hero_id": "ferrael", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 5},
+					{"hero_id": "verdelle", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 6},
+					{"hero_id": "argentiel", "rarity": "legendary", "is_new": true, "shards": 0, "dust": 0, "pity": 0},
+					{"hero_id": "rimelle", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 1},
 					{"hero_id": "nuriel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 2},
-					{"hero_id": "uriela", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 3},
-					{"hero_id": "uriela", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 4},
-					{"hero_id": "uriela", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 5},
-					{"hero_id": "nuriel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 6},
-					{"hero_id": "seraphiel", "rarity": "legendary", "is_new": true, "shards": 0, "dust": 0, "pity": 0},
-					{"hero_id": "cassiel", "rarity": "epic", "is_new": false, "shards": 20, "dust": 0, "pity": 1},
-					{"hero_id": "nuriel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 2},
-					{"hero_id": "cassiel", "rarity": "epic", "is_new": false, "shards": 20, "dust": 0, "pity": 3}
+					{"hero_id": "cirella", "rarity": "epic", "is_new": true, "shards": 0, "dust": 0, "pity": 3}
 				],
 				"error": ""
 			},
-			"notify": [{"type": "new_hero", "hero_id": "seraphiel", "rarity": "legendary"}]
+			"notify": [
+				{"type": "new_hero", "hero_id": "argentiel", "rarity": "legendary"},
+				{"type": "new_hero", "hero_id": "rimelle", "rarity": "epic"},
+				{"type": "new_hero", "hero_id": "cirella", "rarity": "epic"}
+			]
 		},
 		{
 			"call": "summon",
@@ -899,20 +917,23 @@
 			"value": {
 				"ok": true,
 				"value": [
+					{"hero_id": "verdelle", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0},
+					{"hero_id": "ashra", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 0},
 					{"hero_id": "kessa", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0},
+					{"hero_id": "ombre", "rarity": "rare", "is_new": true, "shards": 0, "dust": 0, "pity": 0},
+					{"hero_id": "kindra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0},
+					{"hero_id": "isobel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0},
+					{"hero_id": "ashra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0},
 					{"hero_id": "imra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0},
-					{"hero_id": "ashra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0},
-					{"hero_id": "ashra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0},
-					{"hero_id": "ashra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0},
-					{"hero_id": "lucen", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0},
-					{"hero_id": "uriela", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0},
-					{"hero_id": "uriela", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0},
-					{"hero_id": "vesper", "rarity": "epic", "is_new": false, "shards": 20, "dust": 0, "pity": 0},
+					{"hero_id": "avienne", "rarity": "epic", "is_new": false, "shards": 20, "dust": 0, "pity": 0},
 					{"hero_id": "nuriel", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0}
 				],
 				"error": ""
 			},
-			"notify": []
+			"notify": [
+				{"type": "new_hero", "hero_id": "ashra", "rarity": "rare"},
+				{"type": "new_hero", "hero_id": "ombre", "rarity": "rare"}
+			]
 		},
 		{
 			"call": "summon",
@@ -937,11 +958,11 @@
 					"rates": {"legendary": 200, "epic": 1800, "rare": 8000},
 					"pity_legendary": 60,
 					"ten_pull_guarantee": "epic",
-					"pool": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "mordessa", "brakka", "vesper", "imra", "kessa", "noctaire", "orrin", "sable", "lucen", "ashra"],
+					"pool": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "argentiel", "sanariel", "rimelle", "avienne", "cirella", "ferrael", "verdelle", "isobel", "halcia", "mordessa", "brakka", "vesper", "imra", "kessa", "drezza", "zecchina", "torqua", "sigilla", "carmesa", "thrasha", "kindra", "cordia", "noctaire", "orrin", "sable", "lucen", "ashra", "nadira", "gantra", "severine", "benthe", "seyra", "rivette", "vandra", "ombre"],
 					"pool_by_rarity": {
-						"rare": ["uriela", "nuriel", "imra", "kessa", "lucen", "ashra"],
-						"epic": ["cassiel", "liora", "brakka", "vesper", "orrin", "sable"],
-						"legendary": ["seraphiel", "mordessa", "noctaire"]
+						"rare": ["uriela", "nuriel", "ferrael", "verdelle", "isobel", "halcia", "imra", "kessa", "thrasha", "kindra", "cordia", "lucen", "ashra", "rivette", "vandra", "ombre"],
+						"epic": ["cassiel", "liora", "rimelle", "avienne", "cirella", "brakka", "vesper", "torqua", "sigilla", "carmesa", "orrin", "sable", "severine", "benthe", "seyra"],
+						"legendary": ["seraphiel", "argentiel", "sanariel", "mordessa", "drezza", "zecchina", "noctaire", "nadira", "gantra"]
 					},
 					"free_daily": true,
 					"pity": 18,
@@ -963,15 +984,15 @@
 					"rates": {"legendary": 200, "epic": 1800, "rare": 8000},
 					"pity_legendary": 60,
 					"ten_pull_guarantee": "epic",
-					"pool": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "mordessa", "brakka", "vesper", "imra", "kessa", "noctaire", "orrin", "sable", "lucen", "ashra"],
+					"pool": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "argentiel", "sanariel", "rimelle", "avienne", "cirella", "ferrael", "verdelle", "isobel", "halcia", "mordessa", "brakka", "vesper", "imra", "kessa", "drezza", "zecchina", "torqua", "sigilla", "carmesa", "thrasha", "kindra", "cordia", "noctaire", "orrin", "sable", "lucen", "ashra", "nadira", "gantra", "severine", "benthe", "seyra", "rivette", "vandra", "ombre"],
 					"pool_by_rarity": {
-						"rare": ["uriela", "nuriel", "imra", "kessa", "lucen", "ashra"],
-						"epic": ["cassiel", "liora", "brakka", "vesper", "orrin", "sable"],
-						"legendary": ["seraphiel", "mordessa", "noctaire"]
+						"rare": ["uriela", "nuriel", "ferrael", "verdelle", "isobel", "halcia", "imra", "kessa", "thrasha", "kindra", "cordia", "lucen", "ashra", "rivette", "vandra", "ombre"],
+						"epic": ["cassiel", "liora", "rimelle", "avienne", "cirella", "brakka", "vesper", "torqua", "sigilla", "carmesa", "orrin", "sable", "severine", "benthe", "seyra"],
+						"legendary": ["seraphiel", "argentiel", "sanariel", "mordessa", "drezza", "zecchina", "noctaire", "nadira", "gantra"]
 					},
 					"free_daily": false,
 					"pity": 10,
-					"featured": "noctaire",
+					"featured": "nadira",
 					"featured_bp": 5000,
 					"lost": false,
 					"rotation_days": 7,
@@ -995,8 +1016,12 @@
 					"rates": {"legendary": 120, "epic": 2400, "rare": 7480},
 					"pity_legendary": 80,
 					"ten_pull_guarantee": "epic",
-					"pool": ["mordessa", "brakka", "vesper", "imra", "kessa"],
-					"pool_by_rarity": {"rare": ["imra", "kessa"], "epic": ["brakka", "vesper"], "legendary": ["mordessa"]},
+					"pool": ["mordessa", "brakka", "vesper", "imra", "kessa", "drezza", "zecchina", "torqua", "sigilla", "carmesa", "thrasha", "kindra", "cordia"],
+					"pool_by_rarity": {
+						"rare": ["imra", "kessa", "thrasha", "kindra", "cordia"],
+						"epic": ["brakka", "vesper", "torqua", "sigilla", "carmesa"],
+						"legendary": ["mordessa", "drezza", "zecchina"]
+					},
 					"free_daily": false,
 					"pity": 3,
 					"faction": "infernal",
@@ -1021,15 +1046,15 @@
 					"rates": {"legendary": 200, "epic": 1800, "rare": 8000},
 					"pity_legendary": 60,
 					"ten_pull_guarantee": "epic",
-					"pool": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "mordessa", "brakka", "vesper", "imra", "kessa", "noctaire", "orrin", "sable", "lucen", "ashra"],
+					"pool": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "argentiel", "sanariel", "rimelle", "avienne", "cirella", "ferrael", "verdelle", "isobel", "halcia", "mordessa", "brakka", "vesper", "imra", "kessa", "drezza", "zecchina", "torqua", "sigilla", "carmesa", "thrasha", "kindra", "cordia", "noctaire", "orrin", "sable", "lucen", "ashra", "nadira", "gantra", "severine", "benthe", "seyra", "rivette", "vandra", "ombre"],
 					"pool_by_rarity": {
-						"rare": ["uriela", "nuriel", "imra", "kessa", "lucen", "ashra"],
-						"epic": ["cassiel", "liora", "brakka", "vesper", "orrin", "sable"],
-						"legendary": ["seraphiel", "mordessa", "noctaire"]
+						"rare": ["uriela", "nuriel", "ferrael", "verdelle", "isobel", "halcia", "imra", "kessa", "thrasha", "kindra", "cordia", "lucen", "ashra", "rivette", "vandra", "ombre"],
+						"epic": ["cassiel", "liora", "rimelle", "avienne", "cirella", "brakka", "vesper", "torqua", "sigilla", "carmesa", "orrin", "sable", "severine", "benthe", "seyra"],
+						"legendary": ["seraphiel", "argentiel", "sanariel", "mordessa", "drezza", "zecchina", "noctaire", "nadira", "gantra"]
 					},
 					"free_daily": false,
 					"pity": 10,
-					"choices": ["seraphiel", "mordessa", "noctaire"],
+					"choices": ["seraphiel", "argentiel", "sanariel", "mordessa", "drezza", "zecchina", "noctaire", "nadira", "gantra"],
 					"target": "mordessa",
 					"limit_period": "week",
 					"limit_max": 30,
@@ -1049,10 +1074,10 @@
 					"rates": {"legendary": 0, "epic": 1500, "rare": 8500},
 					"pity_legendary": 0,
 					"ten_pull_guarantee": "epic",
-					"pool": ["cassiel", "liora", "uriela", "nuriel", "brakka", "vesper", "imra", "kessa", "orrin", "sable", "lucen", "ashra"],
+					"pool": ["cassiel", "liora", "uriela", "nuriel", "rimelle", "avienne", "cirella", "ferrael", "verdelle", "isobel", "halcia", "brakka", "vesper", "imra", "kessa", "torqua", "sigilla", "carmesa", "thrasha", "kindra", "cordia", "orrin", "sable", "lucen", "ashra", "severine", "benthe", "seyra", "rivette", "vandra", "ombre"],
 					"pool_by_rarity": {
-						"rare": ["uriela", "nuriel", "imra", "kessa", "lucen", "ashra"],
-						"epic": ["cassiel", "liora", "brakka", "vesper", "orrin", "sable"],
+						"rare": ["uriela", "nuriel", "ferrael", "verdelle", "isobel", "halcia", "imra", "kessa", "thrasha", "kindra", "cordia", "lucen", "ashra", "rivette", "vandra", "ombre"],
+						"epic": ["cassiel", "liora", "rimelle", "avienne", "cirella", "brakka", "vesper", "torqua", "sigilla", "carmesa", "orrin", "sable", "severine", "benthe", "seyra"],
 						"legendary": []
 					},
 					"free_daily": false,
@@ -1069,7 +1094,7 @@
 			"call": "summon",
 			"value": {
 				"ok": true,
-				"value": [{"hero_id": "lucen", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0}],
+				"value": [{"hero_id": "imra", "rarity": "rare", "is_new": false, "shards": 10, "dust": 0, "pity": 0}],
 				"error": ""
 			},
 			"notify": [
@@ -1093,11 +1118,11 @@
 					"rates": {"legendary": 200, "epic": 1800, "rare": 8000},
 					"pity_legendary": 60,
 					"ten_pull_guarantee": "epic",
-					"pool": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "mordessa", "brakka", "vesper", "imra", "kessa", "noctaire", "orrin", "sable", "lucen", "ashra"],
+					"pool": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "argentiel", "sanariel", "rimelle", "avienne", "cirella", "ferrael", "verdelle", "isobel", "halcia", "mordessa", "brakka", "vesper", "imra", "kessa", "drezza", "zecchina", "torqua", "sigilla", "carmesa", "thrasha", "kindra", "cordia", "noctaire", "orrin", "sable", "lucen", "ashra", "nadira", "gantra", "severine", "benthe", "seyra", "rivette", "vandra", "ombre"],
 					"pool_by_rarity": {
-						"rare": ["uriela", "nuriel", "imra", "kessa", "lucen", "ashra"],
-						"epic": ["cassiel", "liora", "brakka", "vesper", "orrin", "sable"],
-						"legendary": ["seraphiel", "mordessa", "noctaire"]
+						"rare": ["uriela", "nuriel", "ferrael", "verdelle", "isobel", "halcia", "imra", "kessa", "thrasha", "kindra", "cordia", "lucen", "ashra", "rivette", "vandra", "ombre"],
+						"epic": ["cassiel", "liora", "rimelle", "avienne", "cirella", "brakka", "vesper", "torqua", "sigilla", "carmesa", "orrin", "sable", "severine", "benthe", "seyra"],
+						"legendary": ["seraphiel", "argentiel", "sanariel", "mordessa", "drezza", "zecchina", "noctaire", "nadira", "gantra"]
 					},
 					"free_daily": true,
 					"pity": 18,
@@ -1119,15 +1144,15 @@
 					"rates": {"legendary": 200, "epic": 1800, "rare": 8000},
 					"pity_legendary": 60,
 					"ten_pull_guarantee": "epic",
-					"pool": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "mordessa", "brakka", "vesper", "imra", "kessa", "noctaire", "orrin", "sable", "lucen", "ashra"],
+					"pool": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "argentiel", "sanariel", "rimelle", "avienne", "cirella", "ferrael", "verdelle", "isobel", "halcia", "mordessa", "brakka", "vesper", "imra", "kessa", "drezza", "zecchina", "torqua", "sigilla", "carmesa", "thrasha", "kindra", "cordia", "noctaire", "orrin", "sable", "lucen", "ashra", "nadira", "gantra", "severine", "benthe", "seyra", "rivette", "vandra", "ombre"],
 					"pool_by_rarity": {
-						"rare": ["uriela", "nuriel", "imra", "kessa", "lucen", "ashra"],
-						"epic": ["cassiel", "liora", "brakka", "vesper", "orrin", "sable"],
-						"legendary": ["seraphiel", "mordessa", "noctaire"]
+						"rare": ["uriela", "nuriel", "ferrael", "verdelle", "isobel", "halcia", "imra", "kessa", "thrasha", "kindra", "cordia", "lucen", "ashra", "rivette", "vandra", "ombre"],
+						"epic": ["cassiel", "liora", "rimelle", "avienne", "cirella", "brakka", "vesper", "torqua", "sigilla", "carmesa", "orrin", "sable", "severine", "benthe", "seyra"],
+						"legendary": ["seraphiel", "argentiel", "sanariel", "mordessa", "drezza", "zecchina", "noctaire", "nadira", "gantra"]
 					},
 					"free_daily": false,
 					"pity": 10,
-					"featured": "seraphiel",
+					"featured": "argentiel",
 					"featured_bp": 5000,
 					"lost": false,
 					"rotation_days": 7,
@@ -1151,8 +1176,12 @@
 					"rates": {"legendary": 120, "epic": 2400, "rare": 7480},
 					"pity_legendary": 80,
 					"ten_pull_guarantee": "epic",
-					"pool": ["noctaire", "orrin", "sable", "lucen", "ashra"],
-					"pool_by_rarity": {"rare": ["lucen", "ashra"], "epic": ["orrin", "sable"], "legendary": ["noctaire"]},
+					"pool": ["noctaire", "orrin", "sable", "lucen", "ashra", "nadira", "gantra", "severine", "benthe", "seyra", "rivette", "vandra", "ombre"],
+					"pool_by_rarity": {
+						"rare": ["lucen", "ashra", "rivette", "vandra", "ombre"],
+						"epic": ["orrin", "sable", "severine", "benthe", "seyra"],
+						"legendary": ["noctaire", "nadira", "gantra"]
+					},
 					"free_daily": false,
 					"pity": 3,
 					"faction": "fallen",
@@ -1177,15 +1206,15 @@
 					"rates": {"legendary": 200, "epic": 1800, "rare": 8000},
 					"pity_legendary": 60,
 					"ten_pull_guarantee": "epic",
-					"pool": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "mordessa", "brakka", "vesper", "imra", "kessa", "noctaire", "orrin", "sable", "lucen", "ashra"],
+					"pool": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "argentiel", "sanariel", "rimelle", "avienne", "cirella", "ferrael", "verdelle", "isobel", "halcia", "mordessa", "brakka", "vesper", "imra", "kessa", "drezza", "zecchina", "torqua", "sigilla", "carmesa", "thrasha", "kindra", "cordia", "noctaire", "orrin", "sable", "lucen", "ashra", "nadira", "gantra", "severine", "benthe", "seyra", "rivette", "vandra", "ombre"],
 					"pool_by_rarity": {
-						"rare": ["uriela", "nuriel", "imra", "kessa", "lucen", "ashra"],
-						"epic": ["cassiel", "liora", "brakka", "vesper", "orrin", "sable"],
-						"legendary": ["seraphiel", "mordessa", "noctaire"]
+						"rare": ["uriela", "nuriel", "ferrael", "verdelle", "isobel", "halcia", "imra", "kessa", "thrasha", "kindra", "cordia", "lucen", "ashra", "rivette", "vandra", "ombre"],
+						"epic": ["cassiel", "liora", "rimelle", "avienne", "cirella", "brakka", "vesper", "torqua", "sigilla", "carmesa", "orrin", "sable", "severine", "benthe", "seyra"],
+						"legendary": ["seraphiel", "argentiel", "sanariel", "mordessa", "drezza", "zecchina", "noctaire", "nadira", "gantra"]
 					},
 					"free_daily": false,
 					"pity": 10,
-					"choices": ["seraphiel", "mordessa", "noctaire"],
+					"choices": ["seraphiel", "argentiel", "sanariel", "mordessa", "drezza", "zecchina", "noctaire", "nadira", "gantra"],
 					"target": "mordessa",
 					"limit_period": "week",
 					"limit_max": 30,
@@ -1205,10 +1234,10 @@
 					"rates": {"legendary": 0, "epic": 1500, "rare": 8500},
 					"pity_legendary": 0,
 					"ten_pull_guarantee": "epic",
-					"pool": ["cassiel", "liora", "uriela", "nuriel", "brakka", "vesper", "imra", "kessa", "orrin", "sable", "lucen", "ashra"],
+					"pool": ["cassiel", "liora", "uriela", "nuriel", "rimelle", "avienne", "cirella", "ferrael", "verdelle", "isobel", "halcia", "brakka", "vesper", "imra", "kessa", "torqua", "sigilla", "carmesa", "thrasha", "kindra", "cordia", "orrin", "sable", "lucen", "ashra", "severine", "benthe", "seyra", "rivette", "vandra", "ombre"],
 					"pool_by_rarity": {
-						"rare": ["uriela", "nuriel", "imra", "kessa", "lucen", "ashra"],
-						"epic": ["cassiel", "liora", "brakka", "vesper", "orrin", "sable"],
+						"rare": ["uriela", "nuriel", "ferrael", "verdelle", "isobel", "halcia", "imra", "kessa", "thrasha", "kindra", "cordia", "lucen", "ashra", "rivette", "vandra", "ombre"],
+						"epic": ["cassiel", "liora", "rimelle", "avienne", "cirella", "brakka", "vesper", "torqua", "sigilla", "carmesa", "orrin", "sable", "severine", "benthe", "seyra"],
 						"legendary": []
 					},
 					"free_daily": false,
@@ -1228,25 +1257,39 @@
 		"player_name": "Envoy",
 		"currencies": {"gold": 46411, "hero_exp": 22909, "gems": 11358, "scrolls": 0, "dust": 604},
 		"heroes": {
-			"uriela": {"id": "uriela", "level": 7, "stars": 2, "shards": 90, "gear": {"weapon": "g2"}},
-			"lucen": {"id": "lucen", "level": 1, "stars": 1, "shards": 50, "gear": {"weapon": "g6"}},
-			"kessa": {"id": "kessa", "level": 1, "stars": 1, "shards": 80, "gear": {"weapon": "g7"}},
-			"nuriel": {"id": "nuriel", "level": 1, "stars": 1, "shards": 100, "gear": {"weapon": "g1"}},
-			"ashra": {"id": "ashra", "level": 1, "stars": 1, "shards": 60, "gear": {}},
-			"cassiel": {
-				"id": "cassiel",
+			"uriela": {"id": "uriela", "level": 7, "stars": 1, "shards": 20, "gear": {"weapon": "g6"}},
+			"lucen": {"id": "lucen", "level": 1, "stars": 1, "shards": 10, "gear": {}},
+			"kessa": {"id": "kessa", "level": 1, "stars": 1, "shards": 30, "gear": {}},
+			"verdelle": {"id": "verdelle", "level": 1, "stars": 1, "shards": 50, "gear": {}},
+			"kindra": {"id": "kindra", "level": 1, "stars": 1, "shards": 30, "gear": {}},
+			"avienne": {"id": "avienne", "level": 1, "stars": 2, "shards": 20, "gear": {"weapon": "g2"}},
+			"severine": {"id": "severine", "level": 1, "stars": 2, "shards": 20, "gear": {"weapon": "g7"}},
+			"nuriel": {"id": "nuriel", "level": 1, "stars": 1, "shards": 40, "gear": {"weapon": "g1"}},
+			"ferrael": {"id": "ferrael", "level": 1, "stars": 1, "shards": 40, "gear": {}},
+			"imra": {"id": "imra", "level": 1, "stars": 1, "shards": 30, "gear": {}},
+			"brakka": {
+				"id": "brakka",
 				"level": 1,
 				"stars": 2,
-				"shards": 80,
+				"shards": 20,
 				"gear": {"weapon": "g3", "armor": "g4", "helm": "g5", "charm": "g9"}
 			},
-			"vesper": {"id": "vesper", "level": 1, "stars": 2, "shards": 40, "gear": {}},
-			"sable": {"id": "sable", "level": 1, "stars": 2, "shards": 0, "gear": {}},
-			"imra": {"id": "imra", "level": 1, "stars": 1, "shards": 50, "gear": {}},
-			"brakka": {"id": "brakka", "level": 1, "stars": 2, "shards": 20, "gear": {}},
-			"seraphiel": {"id": "seraphiel", "level": 1, "stars": 3, "shards": 0, "gear": {}}
+			"isobel": {"id": "isobel", "level": 1, "stars": 1, "shards": 30, "gear": {}},
+			"vandra": {"id": "vandra", "level": 1, "stars": 1, "shards": 10, "gear": {}},
+			"rivette": {"id": "rivette", "level": 1, "stars": 1, "shards": 30, "gear": {}},
+			"halcia": {"id": "halcia", "level": 1, "stars": 1, "shards": 10, "gear": {}},
+			"cassiel": {"id": "cassiel", "level": 1, "stars": 2, "shards": 0, "gear": {}},
+			"cordia": {"id": "cordia", "level": 1, "stars": 1, "shards": 0, "gear": {}},
+			"vesper": {"id": "vesper", "level": 1, "stars": 2, "shards": 0, "gear": {}},
+			"seyra": {"id": "seyra", "level": 1, "stars": 2, "shards": 0, "gear": {}},
+			"thrasha": {"id": "thrasha", "level": 1, "stars": 1, "shards": 0, "gear": {}},
+			"argentiel": {"id": "argentiel", "level": 1, "stars": 3, "shards": 0, "gear": {}},
+			"rimelle": {"id": "rimelle", "level": 1, "stars": 2, "shards": 0, "gear": {}},
+			"cirella": {"id": "cirella", "level": 1, "stars": 2, "shards": 0, "gear": {}},
+			"ashra": {"id": "ashra", "level": 1, "stars": 1, "shards": 10, "gear": {}},
+			"ombre": {"id": "ombre", "level": 1, "stars": 1, "shards": 0, "gear": {}}
 		},
-		"formation": ["cassiel", "uriela", "lucen", "kessa", "nuriel"],
+		"formation": ["brakka", "avienne", "uriela", "severine", "nuriel"],
 		"campaign": {"cleared": 3},
 		"tower": {"best": 0},
 		"idle": {
@@ -1284,7 +1327,7 @@
 				"tier": 1,
 				"name": "Worn Sceptre",
 				"stats": {"atk": 16},
-				"equipped_by": "uriela"
+				"equipped_by": "avienne"
 			},
 			{
 				"uid": "g3",
@@ -1292,7 +1335,7 @@
 				"tier": 1,
 				"name": "Worn Blade",
 				"stats": {"atk": 17},
-				"equipped_by": "cassiel"
+				"equipped_by": "brakka"
 			},
 			{
 				"uid": "g4",
@@ -1300,7 +1343,7 @@
 				"tier": 1,
 				"name": "Worn Mail",
 				"stats": {"hp": 261, "def": 8},
-				"equipped_by": "cassiel"
+				"equipped_by": "brakka"
 			},
 			{
 				"uid": "g5",
@@ -1308,7 +1351,7 @@
 				"tier": 1,
 				"name": "Worn Helm",
 				"stats": {"hp": 214, "def": 5},
-				"equipped_by": "cassiel"
+				"equipped_by": "brakka"
 			},
 			{
 				"uid": "g6",
@@ -1316,7 +1359,7 @@
 				"tier": 1,
 				"name": "Worn Glaive",
 				"stats": {"atk": 16},
-				"equipped_by": "lucen"
+				"equipped_by": "uriela"
 			},
 			{
 				"uid": "g7",
@@ -1324,7 +1367,7 @@
 				"tier": 1,
 				"name": "Worn Sceptre",
 				"stats": {"atk": 16},
-				"equipped_by": "kessa"
+				"equipped_by": "severine"
 			},
 			{
 				"uid": "g8",
@@ -1340,7 +1383,7 @@
 				"tier": 1,
 				"name": "Worn Rosary",
 				"stats": {"crit": 273, "spd": 3, "atk": 6},
-				"equipped_by": "cassiel"
+				"equipped_by": "brakka"
 			}
 		],
 		"gear_seq": 9,
@@ -1354,7 +1397,7 @@
 		},
 		"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 4, "auto_ultimates": true, "nudity": false},
 		"skins": {"owned": [], "equipped": {}},
-		"counters": {"summons": 59, "battles_started": 10, "battles_won": 3, "stages_cleared": 3, "battles_lost": 3, "level_ups": 6, "idle_claims": 3, "quick_claims": 3, "daily_quests_done": 4, "star_ups": 1},
+		"counters": {"summons": 59, "battles_started": 10, "battles_won": 3, "stages_cleared": 3, "battles_lost": 3, "level_ups": 6, "idle_claims": 3, "quick_claims": 3, "daily_quests_done": 4},
 		"dev_time_offset": 0,
 		"rng_seed": 5422372
 	}

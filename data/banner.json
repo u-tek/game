@@ -13,7 +13,7 @@
 			"rates": {"legendary": 200, "epic": 1800, "rare": 8000},
 			"pity_legendary": 60,
 			"ten_pull_guarantee": "epic",
-			"pool": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "mordessa", "brakka", "vesper", "imra", "kessa", "noctaire", "orrin", "sable", "lucen", "ashra"]
+			"pool": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "argentiel", "sanariel", "rimelle", "avienne", "cirella", "ferrael", "verdelle", "isobel", "halcia", "mordessa", "brakka", "vesper", "imra", "kessa", "drezza", "zecchina", "torqua", "sigilla", "carmesa", "thrasha", "kindra", "cordia", "noctaire", "orrin", "sable", "lucen", "ashra", "nadira", "gantra", "severine", "benthe", "seyra", "rivette", "vandra", "ombre"]
 		},
 		{
 			"id": "featured",
@@ -27,8 +27,8 @@
 			"ten_pull_guarantee": "epic",
 			"featured_bp": 5000,
 			"rotation_days": 7,
-			"featured_rotation": ["mordessa", "noctaire", "seraphiel"],
-			"pool": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "mordessa", "brakka", "vesper", "imra", "kessa", "noctaire", "orrin", "sable", "lucen", "ashra"]
+			"featured_rotation": ["mordessa", "noctaire", "seraphiel", "drezza", "nadira", "argentiel", "zecchina", "gantra", "sanariel"],
+			"pool": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "argentiel", "sanariel", "rimelle", "avienne", "cirella", "ferrael", "verdelle", "isobel", "halcia", "mordessa", "brakka", "vesper", "imra", "kessa", "drezza", "zecchina", "torqua", "sigilla", "carmesa", "thrasha", "kindra", "cordia", "noctaire", "orrin", "sable", "lucen", "ashra", "nadira", "gantra", "severine", "benthe", "seyra", "rivette", "vandra", "ombre"]
 		},
 		{
 			"id": "faction",
@@ -42,7 +42,7 @@
 			"ten_pull_guarantee": "epic",
 			"rotation_days": 1,
 			"faction_rotation": ["fallen", "celestial", "infernal"],
-			"pool": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "mordessa", "brakka", "vesper", "imra", "kessa", "noctaire", "orrin", "sable", "lucen", "ashra"]
+			"pool": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "argentiel", "sanariel", "rimelle", "avienne", "cirella", "ferrael", "verdelle", "isobel", "halcia", "mordessa", "brakka", "vesper", "imra", "kessa", "drezza", "zecchina", "torqua", "sigilla", "carmesa", "thrasha", "kindra", "cordia", "noctaire", "orrin", "sable", "lucen", "ashra", "nadira", "gantra", "severine", "benthe", "seyra", "rivette", "vandra", "ombre"]
 		},
 		{
 			"id": "wish",
@@ -55,7 +55,7 @@
 			"pity_legendary": 60,
 			"ten_pull_guarantee": "epic",
 			"limit": {"period": "week", "pulls": 30},
-			"pool": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "mordessa", "brakka", "vesper", "imra", "kessa", "noctaire", "orrin", "sable", "lucen", "ashra"]
+			"pool": ["seraphiel", "cassiel", "liora", "uriela", "nuriel", "argentiel", "sanariel", "rimelle", "avienne", "cirella", "ferrael", "verdelle", "isobel", "halcia", "mordessa", "brakka", "vesper", "imra", "kessa", "drezza", "zecchina", "torqua", "sigilla", "carmesa", "thrasha", "kindra", "cordia", "noctaire", "orrin", "sable", "lucen", "ashra", "nadira", "gantra", "severine", "benthe", "seyra", "rivette", "vandra", "ombre"]
 		},
 		{
 			"id": "envoy",
@@ -68,7 +68,7 @@
 			"pity_legendary": 0,
 			"ten_pull_guarantee": "epic",
 			"limit": {"period": "day", "pulls": 10},
-			"pool": ["cassiel", "liora", "uriela", "nuriel", "brakka", "vesper", "imra", "kessa", "orrin", "sable", "lucen", "ashra"]
+			"pool": ["cassiel", "liora", "uriela", "nuriel", "rimelle", "avienne", "cirella", "ferrael", "verdelle", "isobel", "halcia", "brakka", "vesper", "imra", "kessa", "torqua", "sigilla", "carmesa", "thrasha", "kindra", "cordia", "orrin", "sable", "lucen", "ashra", "severine", "benthe", "seyra", "rivette", "vandra", "ombre"]
 		}
 	]
 }

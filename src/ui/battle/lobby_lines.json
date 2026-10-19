@@ -31,6 +31,51 @@
 			"Dawn is my hour. Spend it with me.",
 			"I don't talk much. Stay anyway."
 		],
+		"argentiel": [
+			"Undefeated, envoy. Care to be my first loss?",
+			"Look all you like. Chrome doesn't blush. I might.",
+			"Stand at my side. It's the safest place in heaven."
+		],
+		"sanariel": [
+			"Hold still, envoy. This won't hurt... much.",
+			"Your pulse just jumped. Was that me?",
+			"Doctor's orders: stay close and let me fuss over you."
+		],
+		"rimelle": [
+			"The judges give me tens. What do you give me?",
+			"Careful on the ice, envoy. I might not let go.",
+			"Cold? Come closer. For you, I'll make an exception."
+		],
+		"avienne": [
+			"Eyes forward, please. Or don't. I won't tell.",
+			"Welcome aboard, envoy. Anything I can bring you?",
+			"Turbulence ahead. Hold on to me, not the armrest."
+		],
+		"cirella": [
+			"Stuck the landing! Your turn to impress me.",
+			"Front-row seat for my floor routine? Just for you.",
+			"Stretch with me, envoy. I'll go easy on you."
+		],
+		"ferrael": [
+			"Forged you a halo. Kidding! Unless you want one?",
+			"Mind the sparks! ...Or stay. I like the company.",
+			"The hammer's heavy, hugs are free. Pick one."
+		],
+		"verdelle": [
+			"You're wilting, envoy. Come sit in the sun with me.",
+			"Plants grow faster when you talk to them. So do I.",
+			"Did you eat your greens? I'll check, you know."
+		],
+		"isobel": [
+			"Feel that? The air's charged. Or is that just you?",
+			"I chase storms, envoy. You're the best one yet.",
+			"Hold my hand. The sky's about to get exciting."
+		],
+		"halcia": [
+			"Jump with me. I'll open my wings... eventually.",
+			"My heart's racing. That usually takes forty thousand feet.",
+			"Ever fallen for someone at terminal velocity?"
+		],
 		"mordessa": [
 			"Kneel if you like, darling. I do enjoy the view.",
 			"I lost a war. I have no intention of losing you.",
@@ -56,6 +101,46 @@
 			"Relax, envoy. I only purr for people I like.",
 			"Got a contract for me? Or did you just want to look?"
 		],
+		"drezza": [
+			"This next track is for you. Stay on the floor with me.",
+			"Feel that bass? That's my heart. Okay, it's the subwoofer.",
+			"I never stop the music. Give me a reason to slow it down."
+		],
+		"zecchina": [
+			"The house always wins, darling. Tonight the house wants you.",
+			"Every debt in hell is in my ledger. Yours, I might forgive.",
+			"Cut the deck, envoy. Let's see what you're willing to lose."
+		],
+		"torqua": [
+			"Smile for the cameras, envoy. Then smile just for me.",
+			"The pit lane is closed. My parasol is big enough for two.",
+			"A thousand photo calls, and you're the first to make me blush."
+		],
+		"sigilla": [
+			"Hold still. I'm deciding where my name goes on you.",
+			"Every curse I ink comes true. Want to see the one about you?",
+			"No appointment? For you, I'll stay open late."
+		],
+		"carmesa": [
+			"Charge at me all you like, envoy. I never miss my moment.",
+			"I bow before every kill. For you, I'd bow just to be watched.",
+			"The cape is red so you watch it. You're watching something else."
+		],
+		"thrasha": [
+			"Front row, envoy. Always. That's an order.",
+			"I wrote a song about you. It's loud and it's mostly screaming.",
+			"Banned from every venue in hell. Not from your room, right?"
+		],
+		"kindra": [
+			"I keep every fire where it belongs. You're running a little hot.",
+			"Stop, drop and look at me. Fire safety, envoy.",
+			"I've carried a hundred demons out of fires. You, I'd carry slowly."
+		],
+		"cordia": [
+			"Your usual, envoy? I started pouring when you walked in.",
+			"Pull up a stool. Nobody in hell listens better than me.",
+			"Last call is whenever I say it is. Stay."
+		],
 		"noctaire": [
 			"I cut my wings over one refusal. Don't make me regret the rest.",
 			"Stand close. My blade knows whom to spare.",
@@ -80,6 +165,46 @@
 			"Stand back a little. Or don't. I'm careful now. Mostly.",
 			"I burned one heaven by accident. You, I'd warm on purpose.",
 			"Fire is just attention you can see."
+		],
+		"nadira": [
+			"I lost the whole sky's signal. Yours still comes through clear.",
+			"Stay on the line, envoy. The static gets lonely.",
+			"Say it again, slower. I want to hear you without the delay."
+		],
+		"gantra": [
+			"The arm says you're cute. The arm has terrible taste. Usually.",
+			"Get behind me, envoy. Closer. Closer than that.",
+			"Last pilot of the fleet, and the cockpit seats two. Interested?"
+		],
+		"severine": [
+			"They call me masterless. Care to apply for the job?",
+			"You're staring at the blade. Most people see the smile first.",
+			"Hold still, envoy. I only cut what I mean to."
+		],
+		"benthe": [
+			"Mm... it's quiet down deep. You'd like it there. Stay.",
+			"I don't move for anyone. I'll scoot over for you.",
+			"Lean on me, envoy. I'm heavier than the whole sea."
+		],
+		"seyra": [
+			"The static showed me your face again. It keeps doing that.",
+			"I've seen how tonight ends. You'll want to stay for it.",
+			"Shh... I'm listening to your future. It runs very warm."
+		],
+		"rivette": [
+			"Everything stops for me, envoy. See? You stopped too.",
+			"Win this round and the drinks are on me. Lose? Still me.",
+			"Race you to the bar. Loser buys, winner gets a kiss."
+		],
+		"vandra": [
+			"Hold still. I want to tag you somewhere nobody else sees.",
+			"Rules are just walls nobody has painted yet.",
+			"You look like trouble, envoy. Finally, my type."
+		],
+		"ombre": [
+			"One shot, envoy. I'm still deciding where to spend it.",
+			"I always read the ending first. We turn out fine.",
+			"Don't mind me. I'm only watching you. Very closely."
 		]
 	}
 }

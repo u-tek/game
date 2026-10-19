@@ -50,7 +50,7 @@ func test_banner_data_is_valid(t: TestCtx) -> void:
 	t.eq(int(envoy.rates.legendary), 0, "envoy has no Legendary rate")
 	t.eq(int(envoy.pity_legendary), 0, "envoy has no pity")
 	t.eq((SummonRules.pool_by_rarity(envoy).legendary as Array).size(), 0, "envoy pool has no Legendary")
-	t.eq(SummonRules.wish_choices(EconomyData.banner_def("wish")).size(), 3, "three Legendaries to wish for")
+	t.eq(SummonRules.wish_choices(EconomyData.banner_def("wish")).size(), 9, "nine Legendaries to wish for")
 
 
 func test_banner_views(t: TestCtx) -> void:
@@ -66,7 +66,8 @@ func test_banner_views(t: TestCtx) -> void:
 	t.eq(int(fb.ms_until_change), 7 * DAY - HOUR, "featured changes in 6 days 23 hours")
 	var cb: Dictionary = g.banner("faction")
 	t.eq(str(cb.faction), "fallen")
-	t.eq(cb.pool, ["noctaire", "orrin", "sable", "lucen", "ashra"], "today's pool is the faction's, in pool order")
+	t.eq(cb.pool, ["noctaire", "orrin", "sable", "lucen", "ashra", "nadira", "gantra", "severine", "benthe", "seyra",
+		"rivette", "vandra", "ombre"], "today's pool is the faction's, in pool order")
 	t.eq(int(cb.ms_until_change), DAY - HOUR)
 	var eb: Dictionary = g.banner("envoy")
 	t.eq(str(eb.currency), "gold")
@@ -85,7 +86,8 @@ func test_rotations(t: TestCtx) -> void:
 	var fb := EconomyData.banner_def("featured")
 	var cb := EconomyData.banner_def("faction")
 	var e := EconomyData.BANNER_EPOCH_DAY
-	var want_f := {0: "mordessa", 6: "mordessa", 7: "noctaire", 13: "noctaire", 14: "seraphiel", 21: "mordessa", -1: "seraphiel", -7: "seraphiel", -8: "noctaire"}
+	var want_f := {0: "mordessa", 6: "mordessa", 7: "noctaire", 13: "noctaire", 14: "seraphiel", 21: "drezza", 56: "sanariel",
+		63: "mordessa", -1: "sanariel", -7: "sanariel", -8: "gantra"}
 	for k: int in want_f:
 		t.eq(SummonRules.featured_for(fb, e + k, e), want_f[k], "featured on day %d" % k)
 	var want_c := {0: "fallen", 1: "celestial", 2: "infernal", 3: "fallen", -1: "infernal", -3: "fallen"}
@@ -119,7 +121,7 @@ func test_featured_5050_and_guarantee(t: TestCtx) -> void:
 			t.eq(r.lost, false)
 			t.eq(p.featured, true)
 		else:
-			t.ok(["seraphiel", "mordessa"].has(p.hero_id), "a lost 50/50 gives another Legendary")
+			t.ok(p.hero_id != "noctaire" and str(HeroData.get_def(str(p.hero_id)).rarity) == "legendary", "a lost 50/50 gives another Legendary")
 			t.eq(r.lost, true, "a lost 50/50 sets the guarantee")
 			t.eq(p.featured, false)
 	t.near(float(wins) / n, 0.5, 0.04, "featured wins about half of the 50/50s")
@@ -171,7 +173,7 @@ func test_faction_pool_and_pity(t: TestCtx) -> void:
 			counts[p.rarity] += 1
 			gap += 1
 			if p.rarity == "legendary":
-				t.eq(p.hero_id, "seraphiel")
+				t.ok(SummonRules.pool_by_rarity(EconomyData.banner_def("faction"), "celestial").legendary.has(p.hero_id), "a celestial Legendary")
 				max_gap = maxi(max_gap, gap)
 				gap = 0
 	t.ok(max_gap <= 80, "faction pity is 80 (max gap %d)" % max_gap)

@@ -25,7 +25,7 @@ func _cleanup() -> void:
 
 func test_skin_data_is_consistent(t: TestCtx) -> void:
 	var all := SkinData.all()
-	t.eq(all.size(), 60, "four packs x 15 heroes")
+	t.eq(all.size(), 160, "four packs x 40 heroes")
 	var ids := {}
 	var lines := SkinData.lines()
 	for s in all:
@@ -43,7 +43,7 @@ func test_skin_data_is_consistent(t: TestCtx) -> void:
 		for s in all:
 			if s.line == line:
 				n += 1
-		t.eq(n, 15, "pack covers all 15: " + line)
+		t.eq(n, 40, "pack covers all 40: " + line)
 	t.eq(SkinData.get_def("nope"), {}, "unknown id")
 	t.eq(SkinData.get_def("seraphiel_tidal_diva").price_gems, 1480, "deluxe price")
 	t.eq(SkinData.get_def("cassiel_lifeguard_unit").price_gems, 980, "standard price")

@@ -6,7 +6,7 @@
 Covers: every workflow graph (links point to existing nodes and valid outputs of the right type,
 required inputs present, widget types and combo values valid), schema-driven custom nodes against a
 fake /object_info, discovery parsing, the HTTP client in dry-run and with a fake server, the prompt
-bible (15 heroes, content-rule terms in every negative, adult cue in every positive), post.py on
+bible (40 heroes, content-rule terms in every negative, adult cue in every positive), post.py on
 synthetic images, and a full --dry-run (candidates -> finalize -> variants) in a temp folder.
 """
 import email.parser
@@ -568,9 +568,9 @@ def all_prompts(fam="illustrious"):
 
 
 class TestBible(unittest.TestCase):
-    def test_all_15_heroes_match_the_game_data(self):
+    def test_all_40_heroes_match_the_game_data(self):
         game = json.load(open(os.path.join(ROOT, "data", "heroes.json")))["heroes"]
-        self.assertEqual(len(BIBLE["heroes"]), 15)
+        self.assertEqual(len(BIBLE["heroes"]), 40)
         self.assertEqual(list(BIBLE["heroes"]), [h["id"] for h in game])
         for h in game:
             b = BIBLE["heroes"][h["id"]]
@@ -599,13 +599,40 @@ class TestBible(unittest.TestCase):
             if h.get("size"):
                 self.assertEqual([v % 8 for v in h["size"]], [0, 0], hid)
 
+    def test_roster_adult_round_skips_heroes_without_an_adult_block(self):
+        import roster
+        import run_hero
+        calls = []
+        keep = run_hero.main
+        run_hero.main = lambda argv: calls.append(argv[0]) or 0
+        try:
+            with redirect_stdout(io.StringIO()) as out:
+                self.assertEqual(roster.main(["candidates", "--count", "1", "--dry-run", "--adult"]), 0)
+            have = [h for h in roster.roster(BIBLE) if isinstance(BIBLE["heroes"][h].get("adult"), dict)]
+            self.assertEqual(calls, have)
+            self.assertGreaterEqual(len(have), 15)
+            self.assertIn("argentiel", out.getvalue())
+            self.assertNotIn("argentiel", calls)
+            calls.clear()
+            with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):     # named explicitly: a failure
+                self.assertEqual(roster.main(["candidates", "--heroes", "kessa,argentiel", "--dry-run", "--adult"]), 1)
+            self.assertEqual(calls, ["kessa"])
+            calls.clear()
+            with redirect_stdout(io.StringIO()):                                    # tame rounds take every hero
+                self.assertEqual(roster.main(["candidates", "--count", "1", "--dry-run"]), 0)
+            self.assertEqual(calls, roster.roster(BIBLE))
+            self.assertEqual(len(calls), 40)
+        finally:
+            run_hero.main = keep
+
     def test_young_end_heroes_get_adult_styling(self):
-        for hid in ("liora", "uriela", "imra"):
+        # skaters, gymnasts, derby and street-art looks skew young in anime models: adult makeup and youth negatives
+        for hid in ("liora", "uriela", "imra", "rimelle", "cirella", "rivette", "vandra"):
             h = BIBLE["heroes"][hid]
             for t in ("lipstick", "eyeliner", "makeup", "long eyelashes"):
                 self.assertIn(t, prompts.tag_weights(h["adult_face"]), (hid, t))
             self.assertNotIn("petite", prompts.tag_weights(prompts.full_body(BIBLE, hid, "illustrious")["positive"]))
-        for hid in ("liora", "uriela"):
+        for hid in ("liora", "uriela", "rimelle", "cirella", "rivette", "vandra"):
             neg = prompts.tag_weights(prompts.full_body(BIBLE, hid, "illustrious")["negative"])
             self.assertIn("petite", neg)
             self.assertGreater(neg["loli"], 1.0, "the weighted hero extra must win the de-duplication")
@@ -695,7 +722,14 @@ class TestBible(unittest.TestCase):
             prompts.check_text({"content_rules": tame}, "1girl, nude", "", gender="female", adult=True)
 
     def test_adult_skin_prompts_compose_pass_and_stay_nude(self):
+        # only skins with an 'adult' block have a nude set (the first 15 heroes' 60); the rest have none
+        nude = {sid: s for sid, s in BIBLE["skins"].items() if "adult" in s}
+        self.assertGreaterEqual(len(nude), 60)
         for sid, s in BIBLE["skins"].items():
+            if sid not in nude:
+                with self.assertRaises(KeyError):
+                    prompts.full_body(BIBLE, s["hero"], "illustrious", skin=sid, adult=True)
+        for sid, s in nude.items():
             for fam in BIBLE["families"]:
                 pr = prompts.full_body(BIBLE, s["hero"], fam, skin=sid, adult=True)
                 self.assertEqual(prompts.check(BIBLE, s["hero"], pr["positive"], pr["negative"], adult=True),
@@ -1373,7 +1407,7 @@ class TestDryRunEndToEnd(unittest.TestCase):
             self.assertTrue(os.path.exists(os.path.join(live, "history", backups[0], self.hero + ".png")))
             out = self.run_main(roster, ["status"])
             self.assertIn("imra", out)
-            self.assertIn("1/15 heroes handed", out)
+            self.assertIn("1/40 heroes handed", out)
         finally:
             os.environ.pop("HALO_ASSETS_HEROES", None)
 

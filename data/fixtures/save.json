@@ -213,16 +213,20 @@
 				"player_name": "Envoy",
 				"currencies": {"gold": 6400, "hero_exp": 4000, "gems": 1512, "scrolls": 0, "dust": 12},
 				"heroes": {
-					"uriela": {"id": "uriela", "level": 1, "stars": 1, "shards": 20, "gear": {"weapon": "g1"}},
-					"lucen": {"id": "lucen", "level": 1, "stars": 1, "shards": 10, "gear": {}},
+					"uriela": {"id": "uriela", "level": 1, "stars": 1, "shards": 0, "gear": {}},
+					"lucen": {"id": "lucen", "level": 1, "stars": 1, "shards": 0, "gear": {}},
 					"kessa": {"id": "kessa", "level": 1, "stars": 1, "shards": 10, "gear": {}},
-					"nuriel": {"id": "nuriel", "level": 1, "stars": 1, "shards": 20, "gear": {}},
-					"ashra": {"id": "ashra", "level": 1, "stars": 1, "shards": 0, "gear": {}},
-					"cassiel": {"id": "cassiel", "level": 1, "stars": 2, "shards": 0, "gear": {}},
-					"vesper": {"id": "vesper", "level": 1, "stars": 2, "shards": 0, "gear": {}},
-					"sable": {"id": "sable", "level": 1, "stars": 2, "shards": 0, "gear": {}}
+					"verdelle": {"id": "verdelle", "level": 1, "stars": 1, "shards": 10, "gear": {}},
+					"kindra": {"id": "kindra", "level": 1, "stars": 1, "shards": 0, "gear": {"weapon": "g1"}},
+					"avienne": {"id": "avienne", "level": 1, "stars": 2, "shards": 0, "gear": {}},
+					"severine": {"id": "severine", "level": 1, "stars": 2, "shards": 0, "gear": {}},
+					"nuriel": {"id": "nuriel", "level": 1, "stars": 1, "shards": 0, "gear": {}},
+					"ferrael": {"id": "ferrael", "level": 1, "stars": 1, "shards": 0, "gear": {}},
+					"imra": {"id": "imra", "level": 1, "stars": 1, "shards": 0, "gear": {}},
+					"brakka": {"id": "brakka", "level": 1, "stars": 2, "shards": 0, "gear": {}},
+					"isobel": {"id": "isobel", "level": 1, "stars": 1, "shards": 0, "gear": {}}
 				},
-				"formation": ["uriela", "lucen", "ashra", "kessa", "nuriel"],
+				"formation": ["kindra", "uriela", "lucen", "verdelle", "kessa"],
 				"campaign": {"cleared": 0},
 				"tower": {"best": 0},
 				"idle": {
@@ -252,7 +256,7 @@
 						"tier": 1,
 						"name": "Worn Glaive",
 						"stats": {"atk": 14},
-						"equipped_by": "uriela"
+						"equipped_by": "kindra"
 					}
 				],
 				"gear_seq": 1,
@@ -270,16 +274,20 @@
 				"player_name": "Envoy",
 				"currencies": {"gold": 6400, "hero_exp": 4000, "gems": 1512, "scrolls": 0, "dust": 12},
 				"heroes": {
-					"uriela": {"id": "uriela", "level": 1, "stars": 1, "shards": 20, "gear": {"weapon": "g1"}},
-					"lucen": {"id": "lucen", "level": 1, "stars": 1, "shards": 10, "gear": {}},
+					"uriela": {"id": "uriela", "level": 1, "stars": 1, "shards": 0, "gear": {}},
+					"lucen": {"id": "lucen", "level": 1, "stars": 1, "shards": 0, "gear": {}},
 					"kessa": {"id": "kessa", "level": 1, "stars": 1, "shards": 10, "gear": {}},
-					"nuriel": {"id": "nuriel", "level": 1, "stars": 1, "shards": 20, "gear": {}},
-					"ashra": {"id": "ashra", "level": 1, "stars": 1, "shards": 0, "gear": {}},
-					"cassiel": {"id": "cassiel", "level": 1, "stars": 2, "shards": 0, "gear": {}},
-					"vesper": {"id": "vesper", "level": 1, "stars": 2, "shards": 0, "gear": {}},
-					"sable": {"id": "sable", "level": 1, "stars": 2, "shards": 0, "gear": {}}
+					"verdelle": {"id": "verdelle", "level": 1, "stars": 1, "shards": 10, "gear": {}},
+					"kindra": {"id": "kindra", "level": 1, "stars": 1, "shards": 0, "gear": {"weapon": "g1"}},
+					"avienne": {"id": "avienne", "level": 1, "stars": 2, "shards": 0, "gear": {}},
+					"severine": {"id": "severine", "level": 1, "stars": 2, "shards": 0, "gear": {}},
+					"nuriel": {"id": "nuriel", "level": 1, "stars": 1, "shards": 0, "gear": {}},
+					"ferrael": {"id": "ferrael", "level": 1, "stars": 1, "shards": 0, "gear": {}},
+					"imra": {"id": "imra", "level": 1, "stars": 1, "shards": 0, "gear": {}},
+					"brakka": {"id": "brakka", "level": 1, "stars": 2, "shards": 0, "gear": {}},
+					"isobel": {"id": "isobel", "level": 1, "stars": 1, "shards": 0, "gear": {}}
 				},
-				"formation": ["uriela", "lucen", "ashra", "kessa", "nuriel"],
+				"formation": ["kindra", "uriela", "lucen", "verdelle", "kessa"],
 				"campaign": {"cleared": 0},
 				"tower": {"best": 0},
 				"idle": {
@@ -309,7 +317,7 @@
 						"tier": 1,
 						"name": "Worn Glaive",
 						"stats": {"atk": 14},
-						"equipped_by": "uriela"
+						"equipped_by": "kindra"
 					}
 				],
 				"gear_seq": 1,
