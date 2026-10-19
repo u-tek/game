@@ -41,8 +41,9 @@ this file says where things stand. Older logs are under "History" at the bottom.
     bots yet: floor f is at least as hard as stage f, so it trails the campaign.
   - **Painted backdrops** (`assets/art/backgrounds/`, JPEG): Lobby and chapters 1-6 from the
     splash-card plates (`SceneBackdrop` draws them; code-drawn scenes remain the fallback).
-  - **Latest IPA: run 39097803986** (2026-10-18 04:41 UTC, 2m49s, artifact `HaloAndHorn-ipa` 146 MB,
-    expires 2026-11-01): everything above. Previous: 38946000040 (old farm art).
+  - **Latest IPA: run 39198494464** (2026-10-19 04:18 UTC, artifact `HaloAndHorn-ipa` 224 MB,
+    expires 2026-11-02): everything above plus the nudity toggle and the 60 adult skins.
+    Previous: 39097803986 (2026-10-18), 38946000040 (old farm art).
 - **Designs:** briefs v4 "Aero Y2K" (`docs/dev/character-briefs.md`): Y2K / Frutiger Aero
   fashion, maximum allure without nudity, female only; Nuriel, Brakka, Orrin and Lucen redesigned.
   `data/heroes.json` look, titles and bios match v4. Every hero has a seductive standing pose in
