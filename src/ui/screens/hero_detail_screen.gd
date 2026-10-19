@@ -973,10 +973,28 @@ func _gear_slot(slot: String, item: Dictionary, side: float, better: bool, cb: C
 	var fr := PK.Frame.new()
 	fr.size = Vector2(side, side)
 	face.add_child(fr)
-	var ic := Kit.icon("gear_" + slot, side * 0.46, Color(INK, 0.22 if empty else 0.92))
-	ic.position = Vector2(side * 0.27, side * 0.27)
-	ic.size = Vector2(side * 0.46, side * 0.46)
-	face.add_child(ic)
+	# A worn piece shows its own render (tools/blender/gear_objects.py); an empty slot its faint glyph.
+	var art: Texture2D = null
+	if not empty:
+		var nm0 := str(item.get("name", ""))
+		var path := "res://assets/art/ui/gear/%s_%d.png" % [nm0.get_slice(" ", nm0.get_slice_count(" ") - 1).to_lower(),
+			clampi(int(item.get("tier", 1)), 1, 5)]
+		if ResourceLoader.exists(path):
+			art = load(path) as Texture2D
+	if art:
+		var tr := TextureRect.new()
+		tr.texture = art
+		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tr.mouse_filter = MOUSE_FILTER_IGNORE
+		tr.position = Vector2(side * 0.1, side * 0.14)
+		tr.size = Vector2(side * 0.8, side * 0.72)
+		face.add_child(tr)
+	else:
+		var ic := Kit.icon("gear_" + slot, side * 0.46, Color(INK, 0.22 if empty else 0.92))
+		ic.position = Vector2(side * 0.27, side * 0.27)
+		ic.size = Vector2(side * 0.46, side * 0.46)
+		face.add_child(ic)
 	PK.at(face, PK.t(str(Kit.GEAR_SLOT_NAMES.get(slot, slot)).to_upper(), 10, Color(INK, 0.6), "mono_bold"), Vector2(8, 6))
 	if empty:
 		PK.at(face, PK.t("+ EMPTY", 11, Color(INK, 0.55), "mono_bold"), Vector2(8, side - 22))

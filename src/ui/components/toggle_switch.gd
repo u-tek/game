@@ -1,17 +1,14 @@
 extends CheckButton
-## Animated on/off switch (Kit.toggle), Aero look: a glossy pill track (aqua when on, pale
-## frosted grey when off) and a white knob that slides over with a small spring and
-## stretches while held, like a native phone switch. It stays a CheckButton, so
-## button_pressed, toggled and set_pressed_no_signal work as usual (the knob follows any of
-## them).
+## Animated on/off switch (Kit.toggle), style v4 print (the poster house style): a box ruled in ink
+## on sticker paper with "ON" and "OFF" printed in its halves, and a solid ink knob that slides over
+## the word that is not true with a small spring (and stretches while held); a signal status light
+## glows on the knob when on. It stays a CheckButton, so button_pressed, toggled and
+## set_pressed_no_signal work as usual (the knob follows any of them).
 
-const KitBox := preload("res://src/ui/components/kit_box.gd")
-
-const TRACK := Vector2(98, 54)
-const ON_TOP := Color("3fdcf7")
-const ON_BOT := Color("0b97e0")
-const OFF_TOP := Color("c3ceda")
-const OFF_BOT := Color("dbe3ea")
+const TRACK := Vector2(112, 50)
+const PAPER := Color("f4f3ef")
+const INK := Color("101113")
+const LED := Color("ff3b1f")
 
 ## Drawn knob position, 0 = off, 1 = on (springs past the ends a little).
 var _k := 0.0
@@ -78,32 +75,36 @@ func _draw() -> void:
 	if button_pressed != _shown_on:
 		# set_pressed_no_signal (or a toggle before entering the tree): follow it.
 		_sync.call_deferred()
-	var ci := get_canvas_item()
 	var x0 := size.x - TRACK.x - 6.0
 	var y0 := (size.y - TRACK.y) * 0.5
 	var track := Rect2(x0, y0, TRACK.x, TRACK.y)
 	var kc := clampf(_k, 0.0, 1.0)
-	var pill := KitBox.shape_points(track, TRACK.y * 0.5, 0.0, 0, 0.0, 10)
-	var dim := 0.5 if disabled else 1.0
-	KitBox.fill_poly(ci, pill, Color(OFF_TOP.lerp(ON_TOP, kc), dim), Color(OFF_BOT.lerp(ON_BOT, kc), dim))
-	# Glass gloss on the upper half, stronger when lit.
-	var gl := Rect2(track.position + Vector2(6, 3), Vector2(track.size.x - 12, track.size.y * 0.42))
-	var gp := KitBox.shape_points(gl, gl.size.y * 0.5, 0.0, 0, 0.0, 6)
-	var ga := (0.18 + 0.3 * kc) * dim
-	var gcols := PackedColorArray()
-	for p in gp:
-		gcols.append(Color(1, 1, 1, ga * (1.0 - clampf((p.y - gl.position.y) / gl.size.y, 0.0, 1.0))))
-	KitBox._fan(ci, gp, gcols, gl.get_center(), Color(1, 1, 1, ga * 0.5))
-	KitBox.stroke_poly(ci, KitBox.offset_poly(pill, -0.75), Color(Color("a7b4c2").lerp(Color("8fe6ff"), kc), dim), 1.5)
-	# Knob: a white bead that stretches toward the middle while held.
-	var r := TRACK.y * 0.5 - 4.0
-	var stretch := 9.0 * _hold
-	var left := x0 + 4.0 + r
-	var right := x0 + TRACK.x - 4.0 - r
-	var cx := lerpf(left, right, _k)
-	var kr := Rect2(cx - r - stretch * (1.0 - kc), y0 + 4.0, r * 2.0 + stretch, r * 2.0)
-	kr.position.x = clampf(kr.position.x, x0 + 3.0, x0 + TRACK.x - 3.0 - kr.size.x)
-	var knob := KitBox.shape_points(kr, r, 0.0, 0, 0.0, 8)
-	KitBox.soft_shadow(ci, knob, Color(0, 0.08, 0.18, 0.35 * dim), 4.0, Vector2(0, 2))
-	KitBox.fill_poly(ci, knob, Color(1, 1, 1, dim), Color(Color("e4ebf1"), dim))
-	KitBox.stroke_poly(ci, KitBox.offset_poly(knob, -0.5), Color(1, 1, 1, 0.9 * dim), 1.0)
+	var dim := 0.45 if disabled else 1.0
+	# The printed box: sticker paper ruled in ink, the two words printed in its halves.
+	draw_rect(Rect2(track.position + Vector2(0, 2), track.size), Color(0, 0, 0, 0.1 * dim))
+	draw_rect(track, Color(PAPER, dim))
+	var f := Kit.font("mono_bold")
+	var half := track.size.x * 0.5
+	for side in 2:
+		var word := "ON" if side == 0 else "OFF"
+		var tw := f.get_string_size(word, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
+		var cx := track.position.x + half * (side + 0.5)
+		draw_string(f, Vector2(cx - tw * 0.5, track.position.y + track.size.y * 0.5 + 5.0), word, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(INK, 0.55 * dim))
+	# The knob: a solid ink block over the word that is not true (it slides with a small spring and
+	# stretches while held); a signal status light on it when on.
+	var stretch := 8.0 * _hold
+	var kw := half - 4.0
+	var kx := lerpf(track.position.x + 3.0, track.end.x - 3.0 - kw, _k) - stretch * (1.0 - kc)
+	var kr := Rect2(kx, track.position.y + 3.0, kw + stretch, track.size.y - 6.0)
+	kr.position.x = clampf(kr.position.x, track.position.x + 3.0, track.end.x - 3.0 - kr.size.x)
+	draw_rect(kr, Color(INK, dim))
+	draw_rect(Rect2(kr.position + Vector2(3, 3), kr.size - Vector2(6, 6)), Color(1, 1, 1, 0.16 * dim), false, 1.0)
+	var lc := kr.get_center()
+	if kc > 0.5:
+		var k := (kc - 0.5) * 2.0
+		for i in 4:
+			draw_circle(lc, 5.0 + i * 2.5, Color(LED, 0.1 * k * dim * (1.0 - i / 4.0)), true, -1.0, true)
+		draw_circle(lc, 4.5, Color(LED.lightened(0.25), k * dim), true, -1.0, true)
+	else:
+		draw_circle(lc, 3.0, Color(1, 1, 1, 0.3 * dim), false, 1.0, true)
+	draw_rect(track, Color(INK, dim), false, 2.0)

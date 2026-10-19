@@ -1,13 +1,19 @@
 extends Button
-## Battle bottom-rail card for one ally (style v2): a Kit hero card with an HP bar and a cyan
-## energy bar under it. A full energy bar gives the card a cyan glow ring and a pulsing "ULT"
-## tag ("READY" once the tap queued the ultimate). A fallen hero turns grey with a dark veil.
-## The battle screen calls set_hp / set_energy / set_dead / mark_queued and reads energy,
-## dead, queued; manual = manual-ultimate mode.
+## Battle bottom-strip card for one ally (style v4 poster look): a framed print card on the paper
+## strip. Her head and shoulders in full colour inside a hairline frame (slot number, faction glyph,
+## a small tab on the corner), a signal fill rising behind her as her energy charges (the frame is
+## full when the ultimate is ready), a READY light over the frame, her name and level in mono, an
+## ink HP readout with a tick ruler and a mono status line (ULT %, READY / TAP TO CAST, QUEUED).
+## A fallen hero turns grey under an ink veil with a DOWN stamp. The battle screen calls set_hp /
+## set_energy / set_dead / mark_queued and reads energy, dead, queued; manual = manual-ultimate mode.
 
-const BAR_GAP := 6.0
-const HP_H := 10.0
-const EN_H := 7.0
+const BP := preload("res://src/ui/v4/battle/battle_print.gd")
+const HUD := preload("res://src/ui/components/hud.gd")
+
+## Frame top (the slot row is above it) and height.
+const TOP := 16.0
+const FRAME_H := 104.0
+const HEIGHT := 172.0
 
 var uid := ""
 var hero_id := ""
@@ -15,14 +21,20 @@ var max_hp := 1
 var hp := 1
 var energy := 0
 var dead := false
-var manual := false
+var manual := false:
+	set(v):
+		manual = v
+		_refresh_status()
 var queued := false
-var _card: Control
+var _w := 120.0
+var _art: TextureRect
 var _over: Control
+var _hp_bar: Control
+var _status: Label
+var _led: Control
 var _t := 0.0
 var _flash := 0.0
-var _font: Font
-var _w := 120.0
+var _shown_status := ""
 
 
 func setup(u: Dictionary, w: float) -> void:
@@ -35,29 +47,75 @@ func setup(u: Dictionary, w: float) -> void:
 	theme_type_variation = &"BareButton"
 	focus_mode = FOCUS_NONE
 	mouse_filter = MOUSE_FILTER_STOP
-	custom_minimum_size = Vector2(w, w + BAR_GAP + HP_H + 4.0 + EN_H + 6.0)
-	_font = Kit.font("cond_black")
-	var opts := {"size": w, "owned": true, "show_faction": true}
-	if u.has("level"):
-		opts["level"] = int(u.level)
-	if u.has("stars"):
-		opts["stars"] = int(u.stars)
-	_card = Kit.hero_card(hero_id, opts)
-	_card.mouse_filter = MOUSE_FILTER_IGNORE
-	_card.position = Vector2.ZERO
-	_card.size = Vector2(w, w)
-	add_child(_card)
+	custom_minimum_size = Vector2(w, HEIGHT)
+	var def := Game.hero_def(hero_id)
+	# The portrait, full colour, clipped to the frame (the energy fill shows behind her cut-out).
+	var clip := Control.new()
+	clip.mouse_filter = MOUSE_FILTER_IGNORE
+	clip.clip_contents = true
+	clip.position = Vector2(1, TOP + 1)
+	clip.size = Vector2(w - 2, FRAME_H - 2)
+	add_child(clip)
+	_art = TextureRect.new()
+	_art.mouse_filter = MOUSE_FILTER_IGNORE
+	_art.texture = Kit.art_crop(hero_id, w / FRAME_H, 1.05, Game.equipped_skin(hero_id))
+	_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	_art.position = Vector2(-1, 2)
+	_art.size = Vector2(w, FRAME_H)
+	clip.add_child(_art)
 	_over = Control.new()
 	_over.mouse_filter = MOUSE_FILTER_IGNORE
 	_over.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	_over.draw.connect(_draw_over)
 	add_child(_over)
+	# Slot row: number and faction glyph; the READY light at the right.
+	var no := BP.t("%02d" % (int(u.get("slot", 0)) + 1), 11, BP.INK, "mono_bold")
+	no.position = Vector2(0, -1)
+	add_child(no)
+	var fg := Kit.icon("faction_" + str(def.get("faction", "celestial")), 13, BP.INK)
+	fg.mouse_filter = MOUSE_FILTER_IGNORE
+	fg.position = Vector2(22, 1)
+	add_child(fg)
+	var led := HUD.Led.new()
+	led.mode = "breathe"
+	led.size = Vector2(18, 18)
+	led.position = Vector2(w - 18, -2)
+	led.visible = false
+	add_child(led)
+	_led = led
+	# Name and level, the HP readout, the status line.
+	var y := TOP + FRAME_H + 4.0
+	var nm := BP.t(str(def.get("name", hero_id)).to_upper(), 11, BP.INK, "mono_bold")
+	nm.clip_text = true
+	nm.position = Vector2(0, y)
+	nm.size = Vector2(w - 34, 16)
+	add_child(nm)
+	var lv := BP.t("LV%d" % int(u.get("level", 1)) if u.has("level") else "", 10, Color(BP.INK, 0.7), "mono")
+	lv.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	lv.position = Vector2(w - 40, y + 1)
+	lv.size = Vector2(40, 16)
+	add_child(lv)
+	_hp_bar = BP.Readout.new()
+	_hp_bar.position = Vector2(0, y + 19)
+	_hp_bar.size = Vector2(w, 12)
+	_hp_bar.set("bar_h", 7.0)
+	_hp_bar.set("tick_h", 4.0)
+	add_child(_hp_bar)
+	_hp_bar.call("set_value", float(hp) / float(max_hp), true)
+	_status = BP.t("", 10, Color(BP.INK, 0.75), "mono_bold")
+	_status.position = Vector2(0, y + 33)
+	_status.size = Vector2(w, 16)
+	add_child(_status)
+	_refresh_status()
 	Kit.add_press_fx(self)
 
 
 func set_hp(v: int) -> void:
 	hp = clampi(v, 0, max_hp)
-	queue_redraw()
+	if _hp_bar:
+		_hp_bar.call("set_value", float(hp) / float(max_hp))
 
 
 func set_energy(v: int) -> void:
@@ -67,7 +125,8 @@ func set_energy(v: int) -> void:
 		queued = false
 	if energy >= 1000 and not was_full:
 		_flash = 1.0
-		Kit.pulse(self, 1.08)
+		Kit.pulse(self, 1.06)
+	_refresh_status()
 	queue_redraw()
 	_over.queue_redraw()
 
@@ -77,9 +136,10 @@ func set_dead() -> void:
 	hp = 0
 	energy = 0
 	queued = false
-	_card.material = Kit.grayscale_material()
-	for c in _card.find_children("*", "CanvasItem", true, false):
-		(c as CanvasItem).use_parent_material = true
+	_art.material = Kit.grayscale_material()
+	if _hp_bar:
+		_hp_bar.call("set_value", 0.0, true)
+	_refresh_status()
 	queue_redraw()
 	_over.queue_redraw()
 
@@ -88,7 +148,8 @@ func set_dead() -> void:
 func mark_queued() -> void:
 	queued = true
 	_flash = 1.0
-	Kit.pulse(self, 1.1)
+	Kit.pulse(self, 1.08)
+	_refresh_status()
 	_over.queue_redraw()
 
 
@@ -101,53 +162,73 @@ func _process(delta: float) -> void:
 		_over.queue_redraw()
 
 
-## Behind the card: the ready glow. Under it: HP and energy bars.
-func _draw() -> void:
-	var ready := energy >= 1000 and not dead
-	var pulse := 0.5 + 0.5 * sin(_t * 6.0)
-	var cr := Rect2(Vector2.ZERO, Vector2(_w, _w))
-	if ready:
-		for i in 4:
-			var g := 4.0 + i * 4.0
-			draw_rect(cr.grow(g), Color(Kit.ACCENT_HI, (0.16 - i * 0.035) * (0.6 + 0.4 * pulse)), true)
-	var y := _w + BAR_GAP
-	var hr := Rect2(2, y, _w - 4, HP_H)
-	draw_rect(hr.grow(2.0), Color(0.03, 0.035, 0.04, 0.92))
-	draw_rect(hr, Color(0.17, 0.18, 0.2))
-	var hf := float(hp) / float(max_hp)
-	draw_rect(Rect2(hr.position, Vector2(hr.size.x * hf, hr.size.y)), Kit.GOOD if hf >= 0.3 else Kit.ORANGE)
-	draw_rect(Rect2(hr.position, Vector2(hr.size.x * hf, 2.0)), Color(1, 1, 1, 0.4))
-	var er := Rect2(2, y + HP_H + 4.0, _w - 4, EN_H)
-	draw_rect(er.grow(2.0), Color(0.03, 0.035, 0.04, 0.92))
-	var ef := float(energy) / 1000.0 if not dead else 0.0
-	var ec := Kit.ACCENT if ef < 1.0 else Kit.ACCENT_HI.lerp(Color.WHITE, 0.5 * pulse)
-	draw_rect(Rect2(er.position, Vector2(er.size.x * ef, er.size.y)), ec)
-
-
-## Over the card: the ready ring and ULT / READY tag, or the fallen veil.
-func _draw_over() -> void:
-	var cr := Rect2(Vector2.ZERO, Vector2(_w, _w))
-	if dead:
-		_over.draw_rect(cr, Color(0.02, 0.02, 0.03, 0.5))
-		_tag(Vector2(_w * 0.5, _w * 0.5), "DOWN", Color(0.12, 0.13, 0.15, 0.95), Color(1, 1, 1, 0.7))
+func _refresh_status() -> void:
+	if _status == null:
 		return
-	var ready := energy >= 1000
+	var ready := energy >= 1000 and not dead
+	var text := "ULT %d%%" % (energy / 10)
+	var col := Color(BP.INK, 0.75)
+	if dead:
+		text = "DOWN"
+		col = Color(BP.INK, 0.5)
+	elif queued and ready:
+		text = "QUEUED"
+		col = BP.SIG
+	elif ready:
+		text = "TAP TO CAST" if manual else "READY"
+		col = BP.SIG
+	if text != _shown_status:
+		_shown_status = text
+		_status.text = text
+		_status.add_theme_color_override("font_color", col)
+	if _led:
+		_led.visible = ready
+		_led.set("mode", "steady" if queued else "breathe")
+
+
+## Inside the frame, behind her: the paper and the energy fill rising in signal.
+func _draw() -> void:
+	var fr := Rect2(0, TOP, _w, FRAME_H)
+	draw_rect(fr, BP.PAPER_DIM)
+	if dead:
+		return
+	var ef := float(energy) / 1000.0
+	var ready := ef >= 1.0
+	var pulse := 0.5 + 0.5 * sin(_t * 6.0)
+	var col := BP.SIG if not ready else BP.SIG.lerp(BP.SIG_HI, 0.45 * pulse)
+	var fh := FRAME_H * ef
+	draw_rect(Rect2(0, TOP + FRAME_H - fh, _w, fh), col)
+	if manual and not ready:
+		# Manual mode: the charge scale reads like an instrument (a tick every 25%).
+		for q in range(1, 4):
+			var y := TOP + FRAME_H * (1.0 - q / 4.0)
+			draw_line(Vector2(0, y), Vector2(7, y), Color(BP.INK, 0.45), 1.0)
+
+
+## Over her: the frame and its tab, scale ticks, and the fallen veil and stamp.
+func _draw_over() -> void:
+	var fr := Rect2(0, TOP, _w, FRAME_H)
+	var ready := energy >= 1000 and not dead
+	if dead:
+		_over.draw_rect(fr, Color(0.06, 0.065, 0.075, 0.42))
+		var f := Kit.font("wide_black")
+		var c := fr.get_center()
+		_over.draw_set_transform(c, -0.14, Vector2.ONE)
+		var tw := f.get_string_size("DOWN", HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x
+		_over.draw_rect(Rect2(-tw * 0.5 - 8, -16, tw + 16, 30), Color(BP.PAPER, 0.92), false, 2.0)
+		_over.draw_string(f, Vector2(-tw * 0.5, 8), "DOWN", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, BP.PAPER)
+		_over.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var frame_col := BP.INK
+	var width := 1.5
 	if ready:
 		var pulse := 0.5 + 0.5 * sin(_t * 6.0)
-		_over.draw_rect(cr.grow(1.0), Color(Kit.ACCENT_HI, 0.75 + 0.25 * pulse), false, 3.0)
-		if queued:
-			_tag(Vector2(_w * 0.5, 4.0), "READY", Color.WHITE, Kit.ACCENT_DEEP)
-		else:
-			var bg := Kit.ACCENT.lerp(Kit.ACCENT_HI, pulse * 0.6)
-			_tag(Vector2(_w * 0.5, 4.0), "ULT" if not manual else "TAP ULT", bg, Color.WHITE)
+		width = 2.0 + pulse
+	_over.draw_rect(fr, frame_col, false, width)
+	# The corner tab (the dossier's pixel squares).
+	_over.draw_rect(Rect2(_w - 5, TOP - 3, 7, 7), BP.SIG if ready else BP.INK)
+	# Energy scale ticks down the frame's right edge.
+	for q in range(1, 4):
+		var y := TOP + FRAME_H * (1.0 - q / 4.0)
+		_over.draw_line(Vector2(_w - 6, y), Vector2(_w, y), Color(BP.INK, 0.7), 1.0)
 	if _flash > 0.0:
-		_over.draw_rect(cr.grow(4.0 + (1.0 - _flash) * 10.0), Color(1, 1, 1, _flash * 0.8), false, 3.0)
-
-
-func _tag(at: Vector2, text: String, bg: Color, fg: Color) -> void:
-	var fs := 19
-	var tw := _font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-	var rect := Rect2(at.x - tw * 0.5 - 10, at.y - 13, tw + 20, 26)
-	_over.draw_rect(rect.grow(1.5), Color(0, 0, 0, 0.5))
-	_over.draw_rect(rect, bg)
-	_over.draw_string(_font, Vector2(rect.position.x + 10, rect.position.y + 20), text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, fg)
+		_over.draw_rect(fr.grow(3.0 + (1.0 - _flash) * 9.0), Color(BP.SIG, _flash * 0.9), false, 2.0)

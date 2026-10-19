@@ -24,6 +24,11 @@ extends RefCounted
 ##   Panels     panel ("glass" | "card" | "inset" | "plain" dark; "white" | "paper" |
 ##              "light_inset" | "row" light), card, info_panel, header_bar, dialog, style, box,
 ##              page_bg
+##   Print (v4 poster sheets, 2026-10-19)  dialog (the printed sheet every popup uses),
+##              tick_rule, fill_dial/set_dial, sheet_pass (the compact OG pass), reward_receipt,
+##              halftone_ramp, loading_veil, print_label; the light-family widgets (buttons,
+##              chips, segments, tabs, rows, header_bar, section_header, empty_state, divider,
+##              reward tiles, light progress bars) are drawn in the poster style too
 ##   Widgets    progress_bar/set_progress, star_row, currency_icon, currency_chip/
 ##              set_chip_amount, cost_row, reward_list, reward_tile, faction_badge, role_badge,
 ##              rarity_badge, rarity_mark, tag, hero_card, portrait_card, name_plate,
@@ -68,6 +73,8 @@ const Shine := preload("res://src/ui/components/shine.gd")
 const Spinner := preload("res://src/ui/components/spinner.gd")
 const Sparkle := preload("res://src/ui/components/sparkle.gd")
 const ToggleSwitch := preload("res://src/ui/components/toggle_switch.gd")
+const PrintBits := preload("res://src/ui/components/print_bits.gd")
+const PlateScript := preload("res://src/ui/components/plate.gd")
 
 # ------------------------------------------------------------------ design tokens
 # Style v4 "Signal" (owner, 2026-10-19: industrial glass, one signal red-orange, clean with grit
@@ -114,6 +121,15 @@ const METAL_TOP := Color("d6d9d3")
 const METAL_BOTTOM := Color("b4bab4")
 ## Smoked glass fill (Kit.panel glass kinds blur what is behind them; glass.gdshader).
 const GLASS := Color("15181dad")
+
+# The poster house style (docs/dev/ui-style-v4.md section 0): the paper matte, printed poster
+# paper, sticker white, the dark band and the print ink (TEXT is the same ink).
+const MATTE := Color("f5f4f0")
+const SHEET := Color("e9e8e2")
+const SHEET_WHITE := Color("f4f3ef")
+const BAND := Color("141517")
+## The red halftone print ink (bands, ramps).
+const PRINT_RED := Color(1.0, 0.36, 0.16, 0.95)
 
 # Semantic colors.
 const GOLD := Color("f2c45a")
@@ -422,7 +438,7 @@ static func icon_button(icon_name: String, on_pressed: Callable = Callable(), si
 		disc.add_theme_stylebox_override("panel", UITheme.style(kind))
 		_center_child(b, disc, Vector2(disc_size, disc_size))
 		if look == "light":
-			tint = Color("1b2b48")
+			tint = TEXT
 	var ic := icon(icon_name, disc_size * (0.6 if look != "bare" else 0.82), tint)
 	ic.name = "Glyph"
 	_center_child(b, ic, ic.custom_minimum_size)
@@ -519,12 +535,11 @@ static func costs_button(text: String, costs: Dictionary, on_pressed: Callable =
 	return b
 
 
-## Idle life for a call-to-action button: a glint now and then (primary, orange) and a
-## breathing glow behind orange ones. Added last so the glint passes over the label.
+## Idle life for a call-to-action button: the hot orange "go now" plate catches a glint now and
+## then and breathes a glow. The signal plate (primary) is flat print: no gloss (style v4).
 static func _dress_button(b: Button, look: String) -> void:
-	if look == "primary" or look == "orange":
-		add_shine(b)
 	if look == "orange":
+		add_shine(b)
 		add_glow_pulse(b, ORANGE)
 
 
@@ -572,11 +587,11 @@ static func _price_pill(look: String) -> PanelContainer:
 	var bx := KitBox.new()
 	bx.radius = 999
 	if look == "primary" or look == "orange":
-		bx.top_color = Color(1, 1, 1, 0.94)
-		bx.bottom_color = Color(0.94, 0.95, 0.97, 0.94)
+		bx.top_color = SHEET_WHITE
+		bx.bottom_color = SHEET_WHITE
 	elif look == "light":
-		bx.top_color = Color("e4e8ec")
-		bx.bottom_color = Color("e4e8ec")
+		bx.top_color = Color(TEXT, 0.08)
+		bx.bottom_color = Color(TEXT, 0.08)
 	else:
 		bx.top_color = Color(0, 0, 0, 0.4)
 		bx.bottom_color = Color(0, 0, 0, 0.4)
@@ -1548,22 +1563,12 @@ static func add(parent: Node, children: Array) -> Node:
 	return parent
 
 
-## Thin technical hairline (fades out at both ends). light = for light pages.
+## A printed hairline rule with ticks (style v4). light = ink for paper, else paper-white.
 static func divider(width: float = 0.0, light: bool = false) -> Control:
-	var row := hbox(0)
-	row.custom_minimum_size = Vector2(width, 12)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var l := Filigree.new()
-	l.direction = -1
-	l.ornament = false
-	var r := Filigree.new()
-	r.direction = 1
-	r.ornament = false
-	if light:
-		l.color = Color(0, 0, 0, 0.22)
-		r.color = Color(0, 0, 0, 0.22)
-	add(row, [l, r])
-	return row
+	var r := tick_rule(width, Color(TEXT, 0.4) if light else Color(1, 1, 1, 0.35))
+	if width <= 0.0:
+		r.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return r
 
 
 # ------------------------------------------------------------------ panels
@@ -1608,23 +1613,31 @@ static func info_panel(pad: int = -1) -> PanelContainer:
 	return panel("white", pad)
 
 
-## Dark header bar for a light panel section ("STATUS", "EQUIP"): graphite plate, uppercase
-## condensed white text, hatching at the right end. right = optional control at the end.
+## Header band for a sheet section ("READY TO COLLECT", "FIRST CLEAR REWARDS"), style v4 print: an
+## ink band across the paper with a signal tick at its start, the title in paper-white mono and a
+## small barcode at the end. right = optional control at the end (replaces the barcode).
 static func header_bar(text: String, right: Control = null, icon_name: String = "") -> PanelContainer:
 	var p := PanelContainer.new()
 	p.name = "HeaderBar"
 	p.mouse_filter = Control.MOUSE_FILTER_PASS
 	p.add_theme_stylebox_override("panel", UITheme.style("header_bar"))
-	var row := hbox(10)
+	p.custom_minimum_size.y = 44
+	var row := hbox(12)
 	row.mouse_filter = Control.MOUSE_FILTER_PASS
 	if icon_name != "":
-		row.add_child(icon(icon_name, 26))
-	var l := label(text.to_upper(), 24, Color.WHITE, "cond_bold")
+		var ic := icon(icon_name, 22, MATTE)
+		ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(ic)
+	var l := label(text.to_upper(), 16, MATTE, "mono_bold")
 	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(l)
 	if right:
 		right.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(right)
+	else:
+		var bc := SignalKit.barcode(Vector2(64, 14), Color(MATTE, 0.55), 40 + text.length())
+		bc.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(bc)
 	p.add_child(row)
 	return p
 
@@ -1658,49 +1671,516 @@ static func box(top: Color, bottom: Color, border: Color = Color.TRANSPARENT, ra
 	return b.commit()
 
 
-## Standard dialog: a light panel with a blue header (title, optional glyph, white close X)
-## and `content` in the body. light = false gives a graphite body for content built with
-## light text (INK). Returns the dialog panel; its close Button is get_meta("close_button")
-## (UI.popup wires it). width in px.
+## Standard dialog, style v4 print (the poster house style): a printed sheet lying on the matte.
+## At the top a mono serial line ("SHEET No.27 · HALO & HORN", after the optional glyph) and a
+## printed "× CLOSE" (an 88 px target); the title set big in compressed type over a hairline rule
+## with ticks (a signal lead at its start); `content` in the body; a footer strip (sheet code, date,
+## barcode). Behind it all: crop marks and the title again as a faint giant word turned on its side
+## and cut by the sheet edge; still grain on top. light = false prints a dark band sheet (paper-white
+## type, a red halftone ramp behind the close) for content built with light text (INK). Returns
+## the dialog panel; its close Button is get_meta("close_button") (UI.popup wires it), the title
+## Label get_meta("title_label"). width in px.
 static func dialog(title_text: String, content: Control, width: float = 640.0, light: bool = true, icon_name: String = "") -> PanelContainer:
+	var ink := TEXT if light else MATTE
+	var no := _sheet_no(title_text)
 	var panel_c := PanelContainer.new()
 	panel_c.name = "Dialog"
 	panel_c.theme_type_variation = &"DialogPanel" if light else &"ModalPanel"
 	panel_c.add_theme_stylebox_override("panel", UITheme.style("dialog" if light else "dialog_dark"))
 	panel_c.custom_minimum_size.x = width
+	# The print under everything (clipped to the sheet).
+	var prints := Control.new()
+	prints.name = "Print"
+	prints.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	prints.clip_contents = true
+	panel_c.add_child(prints)
+	if not light:
+		var ramp := halftone_ramp(Vector2(300, 134), PRINT_RED, 7.0, "right")
+		ramp.anchor_left = 1.0
+		ramp.anchor_right = 1.0
+		ramp.offset_left = -300
+		ramp.offset_right = 0
+		ramp.offset_top = 0
+		ramp.offset_bottom = 134
+		prints.add_child(ramp)
+	var ghost := label(title_text.to_upper(), 236, Color(ink, 0.055), "compressed")
+	ghost.name = "Ghost"
+	ghost.rotation = PI * 0.5
+	prints.add_child(ghost)
+	var marks := PrintBits.CropMarks.new()
+	marks.color = Color(ink, 0.4)
+	marks.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	prints.add_child(marks)
+	# Turned clockwise, the word's top sits at x: push it past the right edge so the sheet cuts it.
+	prints.resized.connect(func() -> void: ghost.position = Vector2(prints.size.x + 116.0, 128.0))
+
 	var col := vbox(0)
+	col.name = "Sheet"
 	panel_c.add_child(col)
-	var head := PanelContainer.new()
+	var head := Control.new()
 	head.name = "Header"
-	head.add_theme_stylebox_override("panel", UITheme.style("dialog_header"))
-	head.custom_minimum_size.y = 84
-	var hrow := hbox(10)
-	hrow.alignment = BoxContainer.ALIGNMENT_CENTER
-	hrow.add_child(spacer(64))
-	var mid := hbox(10)
-	mid.alignment = BoxContainer.ALIGNMENT_CENTER
-	mid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	mid.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if icon_name != "":
-		mid.add_child(icon(icon_name, 34))
-	var t := label(title_text, 30, Color.WHITE, "extrabold")
-	t.name = "Title"
-	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	fit_label(t, width - 170.0 - (44.0 if icon_name != "" else 0.0), 30, 20)
-	mid.add_child(t)
-	hrow.add_child(mid)
-	var close := icon_button("close", Callable(), BUTTON_H, "bare")
-	close.name = "Close"
-	close.custom_minimum_size = Vector2(64, 84)
-	hrow.add_child(close)
-	head.add_child(hrow)
+	head.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	head.custom_minimum_size = Vector2(0, 134)
 	col.add_child(head)
-	var body_m := margin(content, 26, 24)
+	var sx := 28.0
+	if icon_name != "":
+		var ic := icon(icon_name, 22, ink)
+		ic.position = Vector2(sx, 19)
+		ic.size = Vector2(22, 22)
+		head.add_child(ic)
+		sx += 32.0
+	var serial := label("SHEET No.%02d  ·  HALO & HORN" % no, 12, ink, "mono_bold")
+	serial.position = Vector2(sx, 20)
+	head.add_child(serial)
+	var t := label(title_text.to_upper(), 76, ink, "compressed")
+	t.name = "Title"
+	t.position = Vector2(25, 34)
+	var avail := width - 28.0 - 150.0
+	fit_label(t, avail, 76, 40)
+	if t.get_theme_font("font").get_string_size(t.text, HORIZONTAL_ALIGNMENT_LEFT, -1, t.get_theme_font_size("font_size")).x > avail:
+		# Still too long at the smallest size: cut it with an ellipsis before the close.
+		t.clip_text = true
+		t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		t.size = Vector2(avail, 83)
+	head.add_child(t)
+	var rule := tick_rule(0.0, Color(ink, 0.55), {"lead": ACCENT})
+	rule.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	rule.offset_left = 28
+	rule.offset_right = -28
+	rule.offset_top = 116
+	rule.offset_bottom = 130
+	head.add_child(rule)
+	var close := _print_close(ink)
+	close.anchor_left = 1.0
+	close.anchor_right = 1.0
+	close.offset_left = -150
+	close.offset_right = -6
+	close.offset_top = 0
+	close.offset_bottom = BUTTON_H
+	head.add_child(close)
+
+	var body_m := margin(content, 28, 0)
 	body_m.name = "Body"
+	body_m.add_theme_constant_override("margin_top", 18)
+	body_m.add_theme_constant_override("margin_bottom", 22)
 	col.add_child(body_m)
+
+	var foot := Control.new()
+	foot.name = "Foot"
+	foot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	foot.custom_minimum_size = Vector2(0, 46)
+	var fr := ColorRect.new()
+	fr.color = Color(ink, 0.22)
+	fr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fr.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	fr.offset_left = 28
+	fr.offset_right = -28
+	fr.offset_bottom = 1
+	foot.add_child(fr)
+	var code := label("HH-%04d  ·  %s  ·  PRINTED SHEET" % [no * 37 % 10000, _print_date()], 10, Color(ink, 0.6), "mono")
+	code.position = Vector2(28, 14)
+	foot.add_child(code)
+	var bc := SignalKit.barcode(Vector2(112, 16), Color(ink, 0.7), no)
+	bc.anchor_left = 1.0
+	bc.anchor_right = 1.0
+	bc.offset_left = -140
+	bc.offset_right = -28
+	bc.offset_top = 15
+	bc.offset_bottom = 31
+	foot.add_child(bc)
+	col.add_child(foot)
+	panel_c.add_child(SignalKit.grain(0.045, true))
 	panel_c.set_meta("close_button", close)
 	panel_c.set_meta("title_label", t)
 	return panel_c
+
+
+## A stable two-digit sheet number for a title (SHEET No.27).
+static func _sheet_no(s: String) -> int:
+	return 10 + absi(hash(s)) % 89
+
+
+## Today as printed on sheets: "2026.10.19".
+static func _print_date() -> String:
+	var d := Time.get_date_dict_from_system()
+	return "%d.%02d.%02d" % [int(d.year), int(d.month), int(d.day)]
+
+
+## The printed "× CLOSE" at a sheet's top-right corner (a bare Button, 150 x 88 target; the
+## label dims while held). Its pressed signal is wired by the caller (UI.popup).
+static func _print_close(ink: Color) -> Button:
+	var b := Button.new()
+	b.name = "Close"
+	b.theme_type_variation = &"BareButton"
+	b.focus_mode = Control.FOCUS_NONE
+	b.mouse_filter = Control.MOUSE_FILTER_PASS
+	b.custom_minimum_size = Vector2(144, BUTTON_H)
+	var txt := "×  CLOSE"
+	var l := label(txt, 14, ink, "mono_bold")
+	l.name = "Text"
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	l.anchor_left = 0.0
+	l.anchor_right = 1.0
+	l.offset_right = -22
+	l.offset_top = 12
+	l.offset_bottom = 40
+	b.add_child(l)
+	var tw := font("mono_bold").get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
+	var u := ColorRect.new()
+	u.color = Color(ink, 0.8)
+	u.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	u.anchor_left = 1.0
+	u.anchor_right = 1.0
+	u.offset_left = -22 - tw
+	u.offset_right = -22
+	u.offset_top = 39
+	u.offset_bottom = 40
+	b.add_child(u)
+	b.button_down.connect(func() -> void: b.modulate.a = 0.5)
+	b.button_up.connect(func() -> void: b.modulate.a = 1.0)
+	return b
+
+
+# ------------------------------------------------------------------ print (v4 poster sheets)
+
+## Mono micro type (labels, serials, dates), uppercase. weight "mono" | "mono_bold".
+static func print_label(text: String, size: int = 12, color: Color = TEXT, weight: String = "mono_bold") -> Label:
+	return label(text.to_upper(), size, color, weight)
+
+
+## A printed hairline with ticks (14 px tall; the rule runs through the middle). width 0 = set
+## by the layout. opts: step (12), major (5), tick (4), lead (a signal bar over the start; Color),
+## filled (0..1: a meter, the ticks up to there tall and in signal; set later with set_filled).
+static func tick_rule(width: float, color: Color = Color(0.067, 0.071, 0.078, 0.55), opts: Dictionary = {}) -> Control:
+	var r := PrintBits.TickRule.new()
+	r.color = color
+	r.step = float(opts.get("step", 12.0))
+	r.major = int(opts.get("major", 5))
+	r.tick = float(opts.get("tick", 4.0))
+	if opts.has("lead"):
+		r.lead = opts["lead"]
+	if opts.has("filled"):
+		r.filled = float(opts["filled"])
+	if opts.has("fill_color"):
+		r.fill_color = opts["fill_color"]
+	r.custom_minimum_size = Vector2(width, 14)
+	r.size = r.custom_minimum_size
+	return r
+
+
+## A halftone ramp: printed dots growing toward `toward` ("right" | "left" | "down" | "up") in
+## `ink` (the red print by default). A TextureRect of `sz`; place or anchor it.
+static func halftone_ramp(sz: Vector2, ink: Color = PRINT_RED, cell: float = 7.0, toward: String = "right") -> TextureRect:
+	var g := Gradient.new()
+	g.set_color(0, Color.BLACK)
+	g.set_color(1, Color.WHITE)
+	var gt := GradientTexture2D.new()
+	gt.gradient = g
+	gt.width = 64
+	gt.height = 64
+	match toward:
+		"left":
+			gt.fill_from = Vector2(1, 0.5)
+			gt.fill_to = Vector2(0, 0.5)
+		"down":
+			gt.fill_from = Vector2(0.5, 0)
+			gt.fill_to = Vector2(0.5, 1)
+		"up":
+			gt.fill_from = Vector2(0.5, 1)
+			gt.fill_to = Vector2(0.5, 0)
+		_:
+			gt.fill_from = Vector2(0, 0.5)
+			gt.fill_to = Vector2(1, 0.5)
+	var t := TextureRect.new()
+	t.texture = gt
+	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	t.stretch_mode = TextureRect.STRETCH_SCALE
+	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	t.custom_minimum_size = sz
+	t.size = sz
+	t.material = SignalKit.halftone_material(cell, ink, true)
+	return t
+
+
+## A printed fill dial (the Sanctum's gauge): a ring of 60 ticks with the filled ones in signal and
+## a signal arc, the value in compressed type in the middle (meta "value_label"), a mono caption
+## above it ("caption_label") and a mono line under it ("sub_label"). Update with set_dial.
+static func fill_dial(sz: float, caption_text: String = "FILL", sub_text: String = "") -> Control:
+	var d := PrintBits.Dial.new()
+	d.custom_minimum_size = Vector2(sz, sz)
+	d.size = d.custom_minimum_size
+	var v := label("0%", int(sz * 0.27), TEXT, "compressed")
+	v.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	v.offset_top = -sz * 0.03
+	v.offset_bottom = -sz * 0.03
+	d.add_child(v)
+	var cap := label(caption_text.to_upper(), 11, Color(TEXT, 0.65), "mono_bold")
+	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cap.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	cap.offset_top = sz * 0.27
+	cap.offset_bottom = sz * 0.27 + 16
+	d.add_child(cap)
+	var sub := label(sub_text.to_upper(), 11, Color(TEXT, 0.65), "mono_bold")
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	sub.offset_top = sz * 0.64
+	sub.offset_bottom = sz * 0.64 + 16
+	d.add_child(sub)
+	d.set_meta("value_label", v)
+	d.set_meta("caption_label", cap)
+	d.set_meta("sub_label", sub)
+	return d
+
+
+## Sets a fill_dial's fill (0..1) and, when given, its value and under-line text.
+static func set_dial(d: Control, frac: float, value_text: String = "", sub_text: String = "") -> void:
+	if d == null or not is_instance_valid(d):
+		return
+	if d.has_method("set_frac"):
+		d.call("set_frac", frac)
+	if value_text != "" and d.has_meta("value_label"):
+		(d.get_meta("value_label") as Label).text = value_text
+	if sub_text != "" and d.has_meta("sub_label"):
+		(d.get_meta("sub_label") as Label).text = sub_text.to_upper()
+
+
+## The compact pass (the poster's OG-pass call to action, 124 px tall) as one Button, for a sheet's
+## main action: a brushed silver plate (an etched kicker and title, a knob with the icon) over a
+## glowing signal plate (an outlined action pill and a mono info line). spec: width (540), kicker,
+## title, action ("COLLECT  >>>"), info, icon, disabled (graphite plate, dim print), text (the
+## Button's own words, drawn invisible, for tests and screen readers). The info Label is
+## get_meta("info_label"). Press: both plates sink, the tap sound plays, then on_pressed.
+static func sheet_pass(spec: Dictionary, on_pressed: Callable = Callable()) -> Button:
+	var w: float = spec.get("width", 540.0)
+	var off := bool(spec.get("disabled", false))
+	var b := Button.new()
+	b.theme_type_variation = &"BareButton"
+	b.focus_mode = Control.FOCUS_NONE
+	b.mouse_filter = Control.MOUSE_FILTER_PASS
+	b.custom_minimum_size = Vector2(w, 124)
+	b.size = b.custom_minimum_size
+	if spec.has("text"):
+		b.text = str(spec["text"])
+		for k: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_disabled_color", "font_hover_pressed_color"]:
+			b.add_theme_color_override(k, Color(0, 0, 0, 0))
+	var sig := SignalKit.plate("graphite" if off else "signal", Vector2(6, 56), Vector2(w - 10, 66), {"cuts": [0, 10, 14, 0],
+		"glow": 0.0 if off else 0.35, "glow_radius": 12.0, "pulse": 0.0 if off else 0.4, "topo": 0.5}, b)
+	var top_sz := Vector2(w, 66)
+	var silver := SignalKit.plate("silver", Vector2.ZERO, top_sz, {"shape": PlateScript.tab_bottom(top_sz, 12, w * 0.36, w * 0.66, 12),
+		"topo": 0.5, "screws": [Vector2(11, 11), Vector2(w - 11, 11)]}, b)
+	silver.z_index = 1
+	var kick := SignalKit.etch(str(spec.get("kicker", "")), 10, "mono_bold")
+	kick.position = Vector2(26, 8)
+	silver.add_child(kick)
+	var title_txt := str(spec.get("title", ""))
+	var ts := 24
+	var avail := w - 26.0 - (78.0 if spec.has("icon") else 24.0)
+	var tf := font("wide_black")
+	while ts > 14 and tf.get_string_size(title_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, ts).x > avail:
+		ts -= 1
+	var title := SignalKit.etch(title_txt, ts, "wide_black")
+	title.position = Vector2(24, 21 + (24 - ts) * 0.5)
+	silver.add_child(title)
+	if spec.has("icon"):
+		var knob := SignalKit.plate("dial", Vector2(w - 62, 7), Vector2(42, 42), {"circle": true, "shadow": 0.5}, silver)
+		var ic := icon(str(spec["icon"]), 20, Color(1, 1, 1, 0.95))
+		ic.position = Vector2(11, 11)
+		ic.size = Vector2(20, 20)
+		knob.add_child(ic)
+	var act := SignalKit.pill(str(spec.get("action", "COLLECT  >>>")), 18, Color(1, 1, 1, 0.45) if off else Color.WHITE)
+	act.position = Vector2(16, 20)
+	sig.add_child(act)
+	var info := label(str(spec.get("info", "")), 10, Color(1, 1, 1, 0.5 if off else 0.92), "mono")
+	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	info.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	info.position = Vector2(maxf(w * 0.56, 40.0 + act.get_combined_minimum_size().x), 18)
+	info.size = Vector2(w - 26.0 - info.position.x, 40)
+	sig.add_child(info)
+	b.set_meta("info_label", info)
+	b.disabled = off
+	b.button_down.connect(func() -> void:
+		b.set_meta("_down_at", b.get_global_mouse_position())
+		silver.call("set_pressed_look", true)
+		sig.call("set_pressed_look", true)
+		haptic(12))
+	b.button_up.connect(func() -> void:
+		silver.call("set_pressed_look", false)
+		sig.call("set_pressed_look", false))
+	b.gui_input.connect(func(ev: InputEvent) -> void:
+		if not b.disabled:
+			return
+		var mb := ev as InputEventMouseButton
+		if mb and mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+			deny(b))
+	if on_pressed.is_valid():
+		_connect_pressed(b, on_pressed)
+	return b
+
+
+## Rewards as a printed receipt (UI.show_reward, the Sanctum sheet): one row per entry in
+## reward_entries order: a small icon (a framed portrait for heroes and shards), the name in mono, a
+## dotted leader and the amount in compressed type. opts: compact (smaller rows), ink (type
+## colour), rules (a hairline under each row, default true). Returns a VBox; meta "icons" holds
+## each row's icon in entry order and "rows" the rows (UI.show_reward animates them and flies the
+## currencies from the icons).
+static func reward_receipt(reward: Dictionary, width: float, opts: Dictionary = {}) -> VBoxContainer:
+	var compact := bool(opts.get("compact", false))
+	var ink: Color = opts.get("ink", TEXT)
+	var rules := bool(opts.get("rules", true))
+	var rh := 40.0 if compact else 50.0
+	var v := vbox(0)
+	v.name = "Receipt"
+	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.custom_minimum_size.x = width
+	var icons: Array[Control] = []
+	var rows: Array[Control] = []
+	var name_size := 15 if compact else 17
+	var nf := font("mono_bold")
+	for e: Dictionary in reward_entries(reward):
+		var row := hbox(12)
+		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.custom_minimum_size = Vector2(width, rh)
+		var ic := _receipt_icon(e, rh - 14.0, ink)
+		ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(ic)
+		icons.append(ic)
+		var nm_text := _receipt_name(e)
+		var nm := label(nm_text, name_size, ink, "mono_bold")
+		nm.clip_text = true
+		nm.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		nm.custom_minimum_size.x = minf(nf.get_string_size(nm_text, HORIZONTAL_ALIGNMENT_LEFT, -1, name_size).x + 2.0, width * 0.56)
+		row.add_child(nm)
+		var lead := PrintBits.Leader.new()
+		lead.color = Color(ink, 0.4)
+		lead.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(lead)
+		var amt := label(_receipt_amount(e), 30 if compact else 38, ink, "compressed")
+		amt.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		row.add_child(amt)
+		v.add_child(row)
+		rows.append(row)
+		if rules:
+			var hr := ColorRect.new()
+			hr.color = Color(ink, 0.14)
+			hr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			hr.custom_minimum_size = Vector2(width, 1)
+			v.add_child(hr)
+	v.set_meta("icons", icons)
+	v.set_meta("rows", rows)
+	return v
+
+
+static func _receipt_icon(e: Dictionary, s: float, ink: Color) -> Control:
+	var kind := str(e.get("kind", ""))
+	var id := str(e.get("id", ""))
+	match kind:
+		"currency":
+			return icon(id, s)
+		"hero", "shard":
+			var fr := Panel.new()
+			fr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			fr.custom_minimum_size = Vector2(s, s)
+			fr.clip_contents = true
+			var sb := StyleBoxFlat.new()
+			sb.bg_color = SHEET
+			sb.border_color = Color(ink, 0.7)
+			sb.set_border_width_all(1)
+			fr.add_theme_stylebox_override("panel", sb)
+			var art := TextureRect.new()
+			art.texture = art_crop(id, 1.0, 1.7, hero_look(id))
+			art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+			art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			art.offset_left = 1
+			art.offset_top = 1
+			art.offset_right = -1
+			art.offset_bottom = -1
+			fr.add_child(art)
+			return fr
+		"gear":
+			return icon("gear_" + str(_gear_item(id).get("slot", "weapon")), s, ink)
+		"gear_drop":
+			var slot := id.split(":")[0] if id.contains(":") else ""
+			return icon("gear_" + (slot if slot != "" else "weapon"), s, ink)
+	return icon("chest", s, ink)
+
+
+static func _receipt_name(e: Dictionary) -> String:
+	var kind := str(e.get("kind", ""))
+	var id := str(e.get("id", ""))
+	match kind:
+		"currency":
+			return str(CURRENCY_SHORT.get(id, id.capitalize())).to_upper()
+		"hero":
+			return "%s  ·  NEW HERO" % str(_def(id).get("name", id)).to_upper()
+		"shard":
+			return "%s SHARDS" % str(_def(id).get("name", id)).to_upper()
+		"gear":
+			var item := _gear_item(id)
+			var slot := str(item.get("slot", "weapon"))
+			return "%s  ·  T%s" % [str(item.get("name", GEAR_SLOT_NAMES.get(slot, "Gear"))).to_upper(), roman(int(item.get("tier", 1)))]
+		"gear_drop":
+			var parts := id.split(":")
+			var slot := parts[0] if parts.size() > 0 else ""
+			var tier := int(parts[1]) if parts.size() > 1 else 0
+			var nm := str(GEAR_SLOT_NAMES.get(slot, "Gear")).to_upper() if slot != "" else "GEAR"
+			return nm + ("  ·  T%s" % roman(tier) if tier > 0 else "")
+	return id.to_upper()
+
+
+static func _receipt_amount(e: Dictionary) -> String:
+	if str(e.get("kind", "")) == "currency":
+		return "+" + format_full(int(e.get("amount", 0)))
+	return "x%d" % int(e.get("amount", 1))
+
+
+## The full-screen loading veil (UI.busy, main.gd show_veil): a dark printed band over everything
+## with a red halftone ramp rising from the foot, a mono stand-by line, the caption set big in
+## compressed paper-white type (the Label named "Caption") and a printed rule whose signal run
+## slides back and forth; still grain on top. It blocks taps (MOUSE_FILTER_STOP).
+static func loading_veil() -> Control:
+	var v := Control.new()
+	v.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	v.mouse_filter = Control.MOUSE_FILTER_STOP
+	var shade := ColorRect.new()
+	shade.color = Color(BAND, 0.96)
+	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	v.add_child(shade)
+	var ramp := halftone_ramp(Vector2(720, 560), Color(1.0, 0.36, 0.16, 0.8), 8.0, "down")
+	ramp.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	ramp.offset_top = -560
+	ramp.offset_bottom = 0
+	ramp.offset_left = 0
+	ramp.offset_right = 0
+	v.add_child(ramp)
+	var col := vbox(18)
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var kick := label("STAND BY  ·  SHEET No.%02d  ·  %s" % [_sheet_no("veil"), _print_date()], 13, Color(MATTE, 0.7), "mono_bold")
+	kick.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(kick)
+	var l := label("", 96, MATTE, "compressed")
+	l.name = "Caption"
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.custom_minimum_size.x = 640
+	l.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	l.add_theme_constant_override("line_spacing", -18)
+	col.add_child(l)
+	var sw := PrintBits.Sweep.new()
+	sw.custom_minimum_size = Vector2(440, 22)
+	sw.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	col.add_child(sw)
+	var foot := label("HALO & HORN  ·  ©2026 HH", 11, Color(MATTE, 0.5), "mono")
+	foot.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(foot)
+	v.add_child(col)
+	v.add_child(SignalKit.grain(0.06, true))
+	return v
 
 
 # ------------------------------------------------------------------ progress & stars
@@ -1718,27 +2198,34 @@ static func progress_bar(value: float, max_value: float, color: Color = GOOD, he
 	bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var r := minf(3.0, height * 0.2)
-	var bg := KitBox.new()
-	bg.radius = r
 	if light:
-		bg.top_color = Color("d3d8de")
-		bg.bottom_color = Color("dfe3e8")
+		# Style v4 print: an ink-ruled track on the paper, a flat printed fill.
+		var pbg := StyleBoxFlat.new()
+		pbg.bg_color = Color(TEXT, 0.06)
+		pbg.border_color = Color(TEXT, 0.5)
+		pbg.set_border_width_all(1)
+		bar.add_theme_stylebox_override("background", pbg)
+		var pfg := StyleBoxFlat.new()
+		pfg.bg_color = color
+		bar.add_theme_stylebox_override("fill", pfg)
 	else:
+		var bg := KitBox.new()
+		bg.radius = r
 		bg.top_color = Color(0, 0, 0, 0.55)
 		bg.bottom_color = Color(0.05, 0.05, 0.06, 0.55)
 		bg.border_width = 1
 		bg.border_color = Color(1, 1, 1, 0.1)
-	bar.add_theme_stylebox_override("background", bg.commit())
-	var fg := KitBox.new()
-	fg.radius = r
-	fg.top_color = color.lightened(0.12)
-	fg.bottom_color = color.darkened(0.08)
-	fg.top_line_color = Color(color.lightened(0.6), 0.9)
-	if height >= 16.0:
-		fg.hatch_color = Color(1, 1, 1, 0.12)
-		fg.hatch_spacing = 8.0
-	bar.add_theme_stylebox_override("fill", fg.commit())
-	var l := label(text, int(clampf(height * 0.8, 16, 26)), Color.WHITE, "cond_bold", 3)
+		bar.add_theme_stylebox_override("background", bg.commit())
+		var fg := KitBox.new()
+		fg.radius = r
+		fg.top_color = color.lightened(0.12)
+		fg.bottom_color = color.darkened(0.08)
+		fg.top_line_color = Color(color.lightened(0.6), 0.9)
+		if height >= 16.0:
+			fg.hatch_color = Color(1, 1, 1, 0.12)
+			fg.hatch_spacing = 8.0
+		bar.add_theme_stylebox_override("fill", fg.commit())
+	var l := label(text, int(clampf(height * 0.8, 16, 26)), TEXT if light else Color.WHITE, "mono_bold" if light else "cond_bold", 0 if light else 3)
 	l.name = "Text"
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -1921,19 +2408,16 @@ static func reward_tile(kind: String, id: String, amount: int, tile: float = 112
 			name_text = str(_def(id).get("name", id))
 		"shard":
 			face = hero_card(id, {"size": tile, "show_level": false, "show_stars": false, "shard": true, "owned": true})
-			var amt := label("x%s" % format_num(amount), int(tile * 0.2), Color.WHITE, "black", 5)
-			_corner(face, amt, Vector2(1, 1), Vector2(-8, -6))
+			_corner(face, _amount_tag("x%s" % format_num(amount), tile), Vector2(1, 1), Vector2(-4, -4))
 			name_text = str(_def(id).get("name", id))
 		"gear":
 			var item := _gear_item(id)
 			var slot := str(item.get("slot", "weapon"))
 			var tier := int(item.get("tier", 1))
 			face = _tile_box(tile, tier_color(tier))
-			var gi := icon("gear_" + slot, tile * 0.56, Color("1c2d4b"))
+			var gi := icon("gear_" + slot, tile * 0.54, TEXT)
 			_center_child(face, gi, gi.custom_minimum_size)
-			var hx := hex_badge("", tile * 0.3, Color("1b2a47"), Color.WHITE, roman(tier))
-			hx.position = Vector2(4, 4)
-			face.add_child(hx)
+			_corner(face, _amount_tag(roman(tier), tile, false), Vector2(0, 0), Vector2(4, 4))
 			name_text = str(item.get("name", GEAR_SLOT_NAMES.get(slot, "Gear")))
 		"gear_drop":
 			var parts := id.split(":")
@@ -1941,27 +2425,23 @@ static func reward_tile(kind: String, id: String, amount: int, tile: float = 112
 			var tier := int(parts[1]) if parts.size() > 1 else 0
 			var accent := tier_color(tier) if tier > 0 else SKY
 			face = _tile_box(tile, accent)
-			var gi := icon("gear_" + (slot if slot != "" else "weapon"), tile * 0.56, Color("1c2d4b"))
+			var gi := icon("gear_" + (slot if slot != "" else "weapon"), tile * 0.54, TEXT)
 			_center_child(face, gi, gi.custom_minimum_size)
 			if tier > 0:
-				var hx := hex_badge("", tile * 0.3, Color("1b2a47"), Color.WHITE, roman(tier))
-				hx.position = Vector2(4, 4)
-				face.add_child(hx)
+				_corner(face, _amount_tag(roman(tier), tile, false), Vector2(0, 0), Vector2(4, 4))
 			if amount > 1 or slot == "":
-				var amt := label("x%d" % amount, int(tile * 0.22), Color.WHITE, "black", 5)
-				_corner(face, amt, Vector2(1, 1), Vector2(-8, -6))
+				_corner(face, _amount_tag("x%d" % amount, tile), Vector2(1, 1), Vector2(-4, -8))
 			name_text = str(GEAR_SLOT_NAMES.get(slot, "Gear")) if slot != "" else "Gear"
 		_:
 			var accent := {"gold": GOLD, "gems": ACCENT, "scrolls": VIOLET, "hero_exp": GOOD, "dust": EPIC}
 			face = _tile_box(tile, accent.get(id, GOLD))
-			var ci := icon(id, tile * 0.62)
+			var ci := icon(id, tile * 0.58)
 			_center_child(face, ci, ci.custom_minimum_size)
-			var amt := label(format_num(amount), int(tile * 0.22), Color.WHITE, "black", 5)
-			_corner(face, amt, Vector2(1, 1), Vector2(-8, -6))
+			_corner(face, _amount_tag(format_num(amount), tile), Vector2(1, 1), Vector2(-4, -8))
 			name_text = str(CURRENCY_SHORT.get(id, id.capitalize()))
 	col.add_child(face)
 	if show_name:
-		var n := caption(name_text, 18, TEXT_DIM if light else INK_DIM)
+		var n := label(name_text.to_upper(), 13, TEXT_DIM if light else INK_DIM, "mono_bold")
 		n.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		n.custom_minimum_size.x = tile
 		n.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -1971,24 +2451,26 @@ static func reward_tile(kind: String, id: String, amount: int, tile: float = 112
 	return col
 
 
-## Pale item tile with a colored base strip (rewards, gear).
+## An item tile, style v4 print (rewards, gear): sticker paper ruled in ink with crop marks inside
+## and a coloured base strip (tier / currency colour).
 static func _tile_box(tile: float, accent: Color) -> Control:
 	var p := Panel.new()
 	p.custom_minimum_size = Vector2(tile, tile)
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var b := KitBox.new()
-	b.radius = 4
-	b.top_color = Color("f4f6f8")
-	b.bottom_color = Color("d4d9df")
-	b.border_width = 1
-	b.border_color = Color(0, 0, 0, 0.18)
-	b.hatch_color = Color(0, 0, 0, 0.045)
-	b.hatch_spacing = 7
-	b.hatch_from = 0.5
+	var b := StyleBoxFlat.new()
+	b.bg_color = SHEET_WHITE
+	b.border_color = Color(TEXT, 0.45)
+	b.set_border_width_all(1)
+	b.shadow_color = Color(0, 0, 0, 0.18)
 	b.shadow_size = 4
-	b.shadow_color = Color(0, 0, 0, 0.3)
 	b.shadow_offset = Vector2(0, 2)
-	p.add_theme_stylebox_override("panel", b.commit())
+	p.add_theme_stylebox_override("panel", b)
+	var marks := PrintBits.CropMarks.new()
+	marks.color = Color(TEXT, 0.3)
+	marks.arm = maxf(5.0, tile * 0.07)
+	marks.inset = maxf(4.0, tile * 0.05)
+	marks.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	p.add_child(marks)
 	var strip := ColorRect.new()
 	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	strip.color = accent
@@ -2000,6 +2482,24 @@ static func _tile_box(tile: float, accent: Color) -> Control:
 	strip.offset_top = -maxf(4.0, tile * 0.055)
 	strip.offset_bottom = -1
 	p.add_child(strip)
+	return p
+
+
+## A small printed tag for a tile corner: an amount (ink block, paper mono type) or, solid = false,
+## a tier numeral (ink outline on the sticker).
+static func _amount_tag(text: String, tile: float, solid: bool = true) -> PanelContainer:
+	var p := PanelContainer.new()
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = TEXT if solid else Color(SHEET_WHITE, 0.9)
+	sb.border_color = TEXT
+	sb.set_border_width_all(0 if solid else 1)
+	sb.content_margin_left = 6
+	sb.content_margin_right = 6
+	sb.content_margin_top = 0
+	sb.content_margin_bottom = 1
+	p.add_theme_stylebox_override("panel", sb)
+	p.add_child(label(text, int(clampf(tile * 0.16, 12.0, 20.0)), MATTE if solid else TEXT, "mono_bold"))
 	return p
 
 
@@ -2378,8 +2878,24 @@ static func equip_slot(slot: String, item: Dictionary = {}, size: float = 132.0,
 	face.name = "Face"
 	face.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	b.add_child(face)
-	var gi := icon("gear_" + slot, size * 0.54, Color(0.16, 0.18, 0.21, 0.28 if empty else 1.0))
-	_center_child(face, gi, gi.custom_minimum_size)
+	# A filled slot shows the piece's own render (tools/blender/gear_objects.py), else the slot glyph.
+	var noun := str(item.get("name", "")).get_slice(" ", str(item.get("name", "")).get_slice_count(" ") - 1).to_lower()
+	var art_path := "res://assets/art/ui/gear/%s_%d.png" % [noun, clampi(tier, 1, 5)]
+	if not empty and noun != "" and ResourceLoader.exists(art_path):
+		var tr := TextureRect.new()
+		tr.texture = load(art_path) as Texture2D
+		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		tr.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		tr.offset_left = size * 0.08
+		tr.offset_top = size * 0.08
+		tr.offset_right = -size * 0.08
+		tr.offset_bottom = -size * 0.08
+		face.add_child(tr)
+	else:
+		var gi := icon("gear_" + slot, size * 0.54, Color(0.16, 0.18, 0.21, 0.28 if empty else 1.0))
+		_center_child(face, gi, gi.custom_minimum_size)
 	if empty:
 		var pl := icon("plus", size * 0.22, Color(0.16, 0.18, 0.21, 0.55))
 		_corner(face, pl, Vector2(1, 1), Vector2(-8, -8))
@@ -2424,24 +2940,18 @@ static func set_dot(target: Control, show: bool, size: float = 22.0, inset: Vect
 
 # ------------------------------------------------------------------ headers & rows
 
-## Section title: a small cyan block, the uppercase condensed title, then a technical
-## hairline with end ticks to the right edge. light = dark text/lines for light pages.
+## Section title, style v4 print: the uppercase title in compressed type, then a hairline with
+## ticks to the right edge. light = ink type and rule for paper (else paper-white on dark).
 static func section_header(text: String, size: int = 30, color: Color = INK, light: bool = false) -> HBoxContainer:
-	var row := hbox(12)
+	var row := hbox(14)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.custom_minimum_size.y = size + 14
-	var mark := ColorRect.new()
-	mark.color = ACCENT
-	mark.custom_minimum_size = Vector2(6, size * 0.8)
-	mark.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(mark)
 	var tc := TEXT if light and color == INK else color
-	var t := label(text.to_upper(), size, tc, "title")
+	var t := label(text.to_upper(), int(size * 1.2), tc, "compressed")
 	row.add_child(t)
-	var r := Filigree.new()
-	r.direction = 1
-	r.color = Color(0, 0, 0, 0.3) if light else Color(1, 1, 1, 0.35)
+	var r := tick_rule(40.0, Color(tc, 0.5))
+	r.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	r.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(r)
 	return row
 
@@ -2497,18 +3007,26 @@ static func stat_row(stat: String, value: Variant, delta: Variant = null, label_
 	return row
 
 
-## Friendly empty-list message with an optional icon. light = for light pages.
+## Empty-list message, style v4 print: an optional faint glyph, the line in the slanted serif and a
+## mono "NOTHING ON FILE" under it. light = for paper (ink), else paper-white on dark.
 static func empty_state(text: String, icon_name: String = "", light: bool = false) -> VBoxContainer:
-	var v := vbox(12)
+	var v := vbox(8)
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var ink := TEXT if light else INK
 	if icon_name != "":
-		var ic := icon(icon_name, 96, Color(0, 0, 0, 0.25) if light else Color(1, 1, 1, 0.4))
+		var ic := icon(icon_name, 64, Color(ink, 0.25))
 		ic.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		v.add_child(ic)
-	var l := body(text, SIZE_BODY, TEXT_DIM if light else INK_DIM)
+	var l := label(text, 30, Color(ink, 0.72), "serif_italic")
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	l.custom_minimum_size.x = 40
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(l)
+	var tag := label("—  NOTHING ON FILE  —", 11, Color(ink, 0.5), "mono_bold")
+	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(tag)
 	return v
 
 

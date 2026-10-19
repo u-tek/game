@@ -1019,60 +1019,69 @@ func _refresh_idle() -> void:
 	_refresh_sheet(st)
 
 
-## The Sanctum sheet: fill meter, rate, pending rewards, Quick Claim and Claim.
+## The Sanctum sheet (style v4 print: a printed instrument sheet). The fill dial (ticks filling in
+## signal, the % in the middle, the level under it) beside a mono table of the yield per hour and
+## the fill time; the pending rewards as a printed receipt under an ink band; a line in the serif;
+## then Quick Claim (a printed outline, named "QuickClaim") and the Claim pass ("Claim").
 func _open_sanctum() -> void:
 	if _sheet and is_instance_valid(_sheet):
 		return
 	var st: Dictionary = Game.idle_status()
-	var col := Kit.vbox(18)
+	var col := Kit.vbox(12)
 	col.custom_minimum_size.x = 580
-	var head := Kit.hbox(16)
+	var head := Kit.hbox(26)
 	head.mouse_filter = MOUSE_FILTER_IGNORE
-	var hx := Kit.hex_badge("sanctum", 84, Kit.ACCENT_DEEP, Color.WHITE)
-	hx.size_flags_vertical = SIZE_SHRINK_CENTER
-	head.add_child(hx)
-	var mid := Kit.vbox(0)
-	mid.mouse_filter = MOUSE_FILTER_IGNORE
-	mid.size_flags_horizontal = SIZE_EXPAND_FILL
-	mid.alignment = BoxContainer.ALIGNMENT_CENTER
-	mid.add_child(Kit.label("SANCTUM FILL", 22, Kit.TEXT_DIM, "cond_bold"))
-	var pct_l := Kit.label("0%", 56, Kit.ACCENT_DEEP, "title")
-	mid.add_child(pct_l)
-	head.add_child(mid)
+	var dial := Kit.fill_dial(204.0, "Sanctum fill", "LV %d" % maxi(1, Game.cleared_count()))
+	dial.size_flags_vertical = SIZE_SHRINK_CENTER
+	head.add_child(dial)
 	var right := Kit.vbox(2)
 	right.mouse_filter = MOUSE_FILTER_IGNORE
+	right.size_flags_horizontal = SIZE_EXPAND_FILL
 	right.alignment = BoxContainer.ALIGNMENT_CENTER
-	var time_l := Kit.label("", 26, Kit.TEXT, "cond_bold")
-	time_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	right.add_child(time_l)
-	var rate := Kit.hbox(4)
-	rate.alignment = BoxContainer.ALIGNMENT_END
-	rate.mouse_filter = MOUSE_FILTER_IGNORE
-	rate.add_child(Kit.currency_icon("gold", 28))
+	right.add_child(Kit.print_label("Idle yield  ·  per hour", 12, Color(Kit.TEXT, 0.6)))
 	var per_hour: Dictionary = st.get("per_hour", {})
-	rate.add_child(Kit.label("+%s / h" % Kit.format_full(int(per_hour.get("gold", 0))), 24, Kit.TEXT_DIM, "cond_bold"))
-	right.add_child(rate)
+	for c: String in ["gold", "hero_exp", "gems", "dust"]:
+		var n := int(per_hour.get(c, 0))
+		if n <= 0:
+			continue
+		var r := Kit.hbox(10)
+		r.mouse_filter = MOUSE_FILTER_IGNORE
+		r.custom_minimum_size.y = 33
+		var ic := Kit.currency_icon(c, 26)
+		ic.size_flags_vertical = SIZE_SHRINK_CENTER
+		r.add_child(ic)
+		var nm := Kit.print_label(str(Kit.CURRENCY_SHORT.get(c, c)), 13)
+		nm.size_flags_horizontal = SIZE_EXPAND_FILL
+		r.add_child(nm)
+		r.add_child(Kit.label("+%s" % Kit.format_full(n), 30, Kit.TEXT, "compressed"))
+		right.add_child(r)
+		var hr := ColorRect.new()
+		hr.color = Color(Kit.TEXT, 0.16)
+		hr.mouse_filter = MOUSE_FILTER_IGNORE
+		hr.custom_minimum_size.y = 1
+		right.add_child(hr)
+	right.add_child(Kit.spacer(0, 6))
+	right.add_child(Kit.print_label("Fill time", 12, Color(Kit.TEXT, 0.6)))
+	var time_l := Kit.label("", 22, Kit.TEXT, "mono_bold")
+	right.add_child(time_l)
 	head.add_child(right)
 	col.add_child(head)
-	var bar := Kit.progress_bar(0, 1, Kit.ACCENT, 18, "", true)
-	col.add_child(bar)
 	col.add_child(Kit.header_bar("Ready to collect", null, "chest"))
 	var pending := Kit.vbox(0)
-	pending.custom_minimum_size.y = 150
+	pending.custom_minimum_size.y = 120
 	pending.alignment = BoxContainer.ALIGNMENT_CENTER
 	col.add_child(pending)
-	var hint := Kit.body("The Sanctum fills for %s while you are away. Clearing stages raises its rate." % Kit.format_time(int(st.get("cap_ms", 0))), 21, Kit.TEXT_DIM)
+	var hint := Kit.label("The Sanctum fills for %s while you are away. Clearing stages raises its rate." % Kit.format_time(int(st.get("cap_ms", 0))),
+		22, Color(Kit.TEXT, 0.72), "serif_italic")
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.custom_minimum_size.x = 580
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(hint)
-	var row := Kit.hbox(14)
 	var quick_slot := Kit.hbox(0)
-	quick_slot.size_flags_horizontal = SIZE_EXPAND_FILL
-	row.add_child(quick_slot)
+	col.add_child(quick_slot)
 	var claim_slot := Kit.hbox(0)
-	claim_slot.size_flags_horizontal = SIZE_EXPAND_FILL
-	row.add_child(claim_slot)
-	col.add_child(row)
-	_sheet_refs = {"pct": pct_l, "time": time_l, "bar": bar, "pending": pending, "quick_slot": quick_slot,
+	col.add_child(claim_slot)
+	_sheet_refs = {"pct": dial.get_meta("value_label"), "time": time_l, "bar": dial, "pending": pending, "quick_slot": quick_slot,
 		"claim_slot": claim_slot, "pending_sig": "-", "quick_sig": "-"}
 	_sheet = UI.popup("Sanctum", col, func() -> void:
 		_sheet = null
@@ -1093,9 +1102,11 @@ func _refresh_sheet(st: Dictionary) -> void:
 		return
 	var elapsed := int(st.get("elapsed_ms", 0))
 	var cap := maxi(int(st.get("cap_ms", 1)), 1)
-	(_sheet_refs.pct as Label).text = "%d%%" % int(100.0 * elapsed / cap)
-	(_sheet_refs.time as Label).text = ("FULL  %s" % Kit.format_time(cap)) if bool(st.get("full", false)) else "%s / %s" % [Kit.format_time(elapsed), Kit.format_time(cap)]
-	Kit.set_progress(_sheet_refs.bar as ProgressBar, elapsed, cap, "", false)
+	var full := bool(st.get("full", false))
+	var pct := int(100.0 * elapsed / cap)
+	(_sheet_refs.pct as Label).text = "%d%%" % pct
+	(_sheet_refs.time as Label).text = ("FULL  ·  %s" % Kit.format_time(cap)) if full else "%s / %s" % [Kit.format_time(elapsed), Kit.format_time(cap)]
+	Kit.set_dial(_sheet_refs.bar as Control, float(elapsed) / cap)
 	var pending: Dictionary = st.get("pending", {})
 	var sig := JSON.stringify(pending)
 	if sig != str(_sheet_refs.pending_sig):
@@ -1103,24 +1114,31 @@ func _refresh_sheet(st: Dictionary) -> void:
 		var box := _sheet_refs.pending as VBoxContainer
 		for c in box.get_children():
 			c.queue_free()
-		var any := false
-		for k: String in pending:
-			if int(pending[k]) > 0:
-				any = true
-		if any:
-			box.add_child(Kit.reward_list(pending, 104, true, true, true))
+		var n := Kit.reward_entries(pending).size()
+		if n > 0:
+			var receipt := Kit.reward_receipt(pending, 580.0, {"compact": true})
+			if n > 4:
+				var sc := Kit.scroll(receipt)
+				sc.custom_minimum_size = Vector2(580, 4 * 41.0)
+				box.add_child(sc)
+			else:
+				box.add_child(receipt)
 		else:
 			box.add_child(Kit.empty_state("Your heroes are gathering rewards...", "sanctum", true))
-		# Claim: cyan when there is something to collect, a resting light button otherwise.
+		# Claim: the signal pass when there is something to collect, a graphite one at rest.
 		var cs := _sheet_refs.claim_slot as HBoxContainer
 		for c in cs.get_children():
 			c.queue_free()
-		var claim := Kit.primary_button("Claim", _claim, "chest") if any else Kit.light_button("Claim", Callable(), "chest")
+		var claim := Kit.sheet_pass({"width": 580.0, "kicker": "SANCTUM  //  COLLECT", "title": "CLAIM REWARDS", "icon": "chest",
+			"action": "COLLECT  >>>" if n > 0 else "FILLING", "disabled": n == 0, "text": "Claim",
+			"info": ""}, _claim)
 		claim.name = "Claim"
-		claim.disabled = not any
-		claim.size_flags_horizontal = SIZE_EXPAND_FILL
-		claim.custom_minimum_size.y = 108
 		cs.add_child(claim)
+		_sheet_refs["claim"] = claim
+	var cl: Variant = _sheet_refs.get("claim", null)
+	if cl is Button and is_instance_valid(cl):
+		var n2 := Kit.reward_entries(pending).size()
+		((cl as Button).get_meta("info_label") as Label).text = ("%d ITEMS WAITING  ·  %d%% FULL" % [n2, pct]) if n2 > 0 else "NOTHING YET  ·  %d%% FULL" % pct
 	var cost := int(st.get("quick_claim_cost", -1))
 	var left := int(st.get("quick_claims_left", 0))
 	var qsig := "%d/%d" % [cost, left]
@@ -1135,34 +1153,46 @@ func _refresh_sheet(st: Dictionary) -> void:
 		Guide.mark(q, Guide.step() == "claim", 0)
 
 
+## Quick Claim as a printed outline button: the name in heavy condensed type over a mono line (free,
+## the gem price with its icon, or none left today; the price in signal when the player is short).
 func _make_quick_button(cost: int, left: int, ms: int) -> Button:
-	var hours := "%dh" % (ms / 3600000)
-	var b: Button
+	var hours := "%dH" % (ms / 3600000)
+	var b := Kit.light_button("", _quick_claim if cost >= 0 and left > 0 else Callable())
 	if cost < 0 or left <= 0:
-		b = Kit.light_button("")
 		b.disabled = true
-		_two_line(b, "Quick Claim", "NONE LEFT TODAY", Kit.TEXT_DIM, Kit.TEXT_DIM)
+		_two_line(b, "Quick Claim", "NONE LEFT TODAY  ·  BACK TOMORROW", Color(Kit.TEXT, 0.4), Color(Kit.TEXT, 0.4))
 	elif cost == 0:
-		b = Kit.light_button("", _quick_claim)
-		_two_line(b, "Quick Claim", "FREE  ·  %s NOW" % hours.to_upper(), Kit.TEXT, Color("1f9e63"))
+		_two_line(b, "Quick Claim", "FREE  ·  %s OF REWARDS NOW  ·  %d LEFT" % [hours, left], Kit.TEXT, Kit.ACCENT_DEEP)
 	else:
-		b = Kit.cost_button("Quick Claim %s" % hours, "gems", cost, _quick_claim, "light")
+		var short := Kit.have("gems") < cost
+		_two_line(b, "Quick Claim %s" % hours.to_lower(), "%s GEMS  ·  %s OF REWARDS NOW  ·  %d LEFT" % [Kit.format_full(cost), hours, left],
+			Kit.TEXT, Kit.ACCENT_DEEP if short else Color(Kit.TEXT, 0.75), "gems")
 	b.name = "QuickClaim"
 	b.size_flags_horizontal = SIZE_EXPAND_FILL
-	b.custom_minimum_size = Vector2(0, 108)
+	b.custom_minimum_size = Vector2(580, 92)
 	return b
 
 
-func _two_line(b: Button, line1: String, line2: String, c1: Color, c2: Color) -> void:
-	var v := Kit.vbox(0)
+## Two printed lines inside a button: line1 in heavy condensed type, line2 in mono (an optional
+## currency glyph in front of it).
+func _two_line(b: Button, line1: String, line2: String, c1: Color, c2: Color, icon_name: String = "") -> void:
+	var v := Kit.vbox(2)
 	v.mouse_filter = MOUSE_FILTER_IGNORE
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
-	var a := Kit.label(line1, 30, c1, "extrabold")
+	var a := Kit.label(line1, 32, c1, "cond_black")
 	a.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var s := Kit.label(line2, 22, c2, "cond_bold")
-	s.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(a)
-	v.add_child(s)
+	var row := Kit.hbox(8)
+	row.mouse_filter = MOUSE_FILTER_IGNORE
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	if icon_name != "":
+		var ic := Kit.currency_icon(icon_name, 22)
+		ic.size_flags_vertical = SIZE_SHRINK_CENTER
+		row.add_child(ic)
+	var s := Kit.label(line2, 14, c2, "mono_bold")
+	s.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	row.add_child(s)
+	v.add_child(row)
 	v.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	v.offset_bottom = -4
 	b.add_child(v)

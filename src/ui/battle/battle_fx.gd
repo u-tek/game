@@ -26,18 +26,21 @@ static func glow_texture() -> Texture2D:
 
 
 ## Floating number/text that pops, rises and fades. size = font px. life scales how long it
-## stays (fast battle speeds pass < 1 so numbers don't pile up).
-static func number(layer: Node, pos: Vector2, text: String, color: Color, size: int = 32, rise: float = 70.0, delay: float = 0.0, life: float = 1.0) -> void:
+## stays (fast battle speeds pass < 1 so numbers don't pile up). weight: a Kit font (style v4 uses
+## "compressed" for damage and "mono_bold" for heals and status words); outline: the cut-out edge.
+static func number(layer: Node, pos: Vector2, text: String, color: Color, size: int = 32, rise: float = 70.0, delay: float = 0.0, life: float = 1.0,
+		weight: String = "black", outline: Color = Color(0.03, 0.035, 0.045)) -> void:
 	var l := Label.new()
 	l.text = text
-	l.add_theme_font_override("font", Kit.font("black"))
+	var font := Kit.font(weight)
+	l.add_theme_font_override("font", font)
 	l.add_theme_font_size_override("font_size", size)
 	l.add_theme_color_override("font_color", color)
 	l.add_theme_constant_override("outline_size", maxi(6, size / 5))
-	l.add_theme_color_override("font_outline_color", Color(0.03, 0.035, 0.045))
+	l.add_theme_color_override("font_outline_color", outline)
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var w := Kit.font("black").get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 16.0
+	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 16.0
 	l.size = Vector2(w, size * 1.4)
 	l.position = pos - l.size * 0.5
 	l.pivot_offset = l.size * 0.5

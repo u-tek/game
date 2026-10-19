@@ -3,9 +3,10 @@ extends RefCounted
 ## The app Theme, built in code from the design tokens in Kit (style v4 "Signal", see
 ## docs/dev/ui-style-v4.md; v2 layouts in docs/dev/ui-style-v2.md). main.gd applies it to the root window, so every Control in the
 ## game inherits it. Kit builders select looks with theme_type_variation:
-##   Buttons  PrimaryButton (cyan-blue), SecondaryButton (graphite), DangerButton (red),
-##            LightButton (white, for light panels), OrangeButton (highlight),
-##            SegmentButton (filter chips / toggle tabs), BareButton (invisible)
+##   Buttons  (v4 print, the poster house style) PrimaryButton (the signal plate), SecondaryButton
+##            (ink plate), DangerButton (ink plate ruled in signal), LightButton (printed ink
+##            outline on paper), OrangeButton (hot signal plate), SegmentButton (printed chips /
+##            toggle tabs: outline, the selected one solid ink), BareButton (invisible)
 ##   Panels   GlassPanel (dark translucent, default), CardPanel, InsetPanel, PlainPanel,
 ##            ChipPanel, TagPanel, ToastPanel, ModalPanel (dark chrome family) and
 ##            WhitePanel, PaperPanel, LightInsetPanel, RowPanel, DialogPanel, SpeechPanel,
@@ -21,6 +22,13 @@ static var _theme: Theme
 
 const SKEW := 0.176 # tan(10 deg): the house slant
 
+## v4 print colours (the poster house style, docs/dev/ui-style-v4.md section 0).
+const PRINT_INK := Color("101113")
+const PRINT_PAPER := Color("e9e8e2")
+const PRINT_WHITE := Color("f4f3ef")
+const PRINT_MATTE := Color("f5f4f0")
+const PRINT_BAND := Color("141517")
+
 
 ## The shared Theme instance (built on first use).
 static func get_theme() -> Theme:
@@ -34,9 +42,10 @@ static func get_theme() -> Theme:
 ## corners on dark; bone-metal plates on the light side; signal red-orange for the accent.
 ## Glass fills keep their alpha in 0.60-0.80: Kit.panel gives the glass kinds a material that
 ## blurs what is behind them there (src/ui/shaders/glass.gdshader).
-## Dark chrome: glass, card, inset, plain, chip, tag, toast, modal, topbar, navbar, disc,
+## Dark chrome: glass, card, inset, plain, chip, tag, modal, topbar, navbar, disc,
 ##   disc_gold, speech, pill, bar, bar_accent
-## Light (bone metal): white, paper, light_inset, row, row_alt, dialog, dialog_header, slot
+## Light (v4 print: paper, ink hairlines): white, paper, light_inset, row, row_alt, dialog,
+##   dialog_dark, dialog_header, header_bar, slot, reward_panel, toast (row kinds are StyleBoxFlat)
 ## Buttons: btn_<primary|secondary|danger|light|orange>[_hover|_pressed|_disabled],
 ##   seg_off, seg_on, seg_on_pressed, tab_on, tab_off
 ## Other: empty, line_edit, line_edit_focus
@@ -98,18 +107,14 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			b.chamfer_corners = 4
 			m = Vector4(10, 3, 14, 3)
 		"toast":
-			b.top_color = Color("1a1d22f7")
-			b.bottom_color = Color("121418f7")
-			b.border_width = 1.0
-			b.border_color = Color(1, 1, 1, 0.2)
-			b.accent_color = Kit.ACCENT
-			b.accent_left = 4
-			b.chamfer = 10
-			b.chamfer_corners = 5
-			b.shadow_size = 16
-			b.shadow_color = Color(0, 0, 0, 0.6)
-			b.shadow_offset = Vector2(0, 6)
-			m = Vector4(30, 16, 28, 16)
+			# A paper label strip stuck on the screen (UI.toast puts an ink or signal tag at its start).
+			b.radius = 0
+			b.top_color = PRINT_WHITE
+			b.bottom_color = PRINT_WHITE
+			b.shadow_size = 12
+			b.shadow_color = Color(0, 0, 0, 0.3)
+			b.shadow_offset = Vector2(0, 5)
+			m = Vector4(0, 0, 20, 0)
 		"modal":
 			b.top_color = Color("17191ef7")
 			b.bottom_color = Color("101215f7")
@@ -185,101 +190,86 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			b.shadow_color = Color(1.0, 0.3, 0.1, 0.3)
 			b.shadow_offset = Vector2.ZERO
 			m = Vector4(0, 0, 0, 0)
-		# ---------------- light family (bone metal)
+		# ---------------- light family (v4 print: paper, ink hairlines, soft paper shadows)
 		"white":
-			b.top_color = Color("f0efeb")
-			b.bottom_color = Color("dcdcd6")
-			b.border_width = 1.0
-			b.border_color = Color("c4c6c0")
-			b.corner_marks_color = Color(0, 0, 0, 0.22)
-			b.corner_marks_size = 8
-			b.corner_marks_inset = 5
-			b.chamfer = 12
-			b.chamfer_corners = 5
-			b.shadow_size = 10
-			b.shadow_color = Color(0, 0, 0, 0.3)
-			b.shadow_offset = Vector2(0, 4)
+			b.radius = 0
+			b.top_color = PRINT_PAPER
+			b.bottom_color = PRINT_PAPER
+			b.shadow_size = 14
+			b.shadow_color = Color(0, 0, 0, 0.24)
+			b.shadow_offset = Vector2(0, 5)
 			m = Vector4(20, 16, 20, 16)
 		"paper":
-			b.top_color = Kit.PAPER
-			b.bottom_color = Kit.PAPER.darkened(0.04)
+			b.radius = 0
+			b.top_color = PRINT_PAPER
+			b.bottom_color = PRINT_PAPER
 			m = Vector4(20, 16, 20, 16)
 		"light_inset":
-			b.top_color = Color("d8d9d3")
-			b.bottom_color = Color("e2e3dd")
+			b.radius = 0
+			b.top_color = Color("dddcd5")
+			b.bottom_color = Color("dddcd5")
 			b.border_width = 1.0
-			b.border_color = Color("c6c8c2")
+			b.border_color = Color(PRINT_INK, 0.16)
 			m = Vector4(14, 10, 14, 10)
 		"row", "row_alt":
-			b.radius = 0
-			b.top_color = Color("efeeea") if kind == "row" else Color("e5e5e0")
-			b.bottom_color = b.top_color
-			m = Vector4(14, 6, 14, 6)
+			# A printed list row: a sheet of lighter paper with a hairline under it.
+			var row := StyleBoxFlat.new()
+			row.bg_color = PRINT_WHITE if kind == "row" else Color("e4e3dd")
+			row.border_color = Color(PRINT_INK, 0.16)
+			row.border_width_bottom = 1
+			var rm := Vector4(14, 6, 14, 6) if pad < 0 else Vector4(pad, pad, pad, pad)
+			row.content_margin_left = rm.x
+			row.content_margin_top = rm.y
+			row.content_margin_right = rm.z
+			row.content_margin_bottom = rm.w
+			return row
 		"dialog":
-			b.top_color = Color("efeeea")
-			b.bottom_color = Color("dededa")
-			b.chamfer = 18
-			b.chamfer_corners = 5
+			# A printed sheet lying on the matte (Kit.dialog draws the type, rules and marks).
+			b.radius = 0
+			b.top_color = PRINT_PAPER
+			b.bottom_color = PRINT_PAPER
 			b.shadow_size = 30
-			b.shadow_color = Color(0, 0, 0, 0.55)
-			b.shadow_offset = Vector2(0, 10)
+			b.shadow_color = Color(0, 0, 0, 0.3)
+			b.shadow_offset = Vector2(0, 12)
 			m = Vector4(0, 0, 0, 0)
 		"dialog_header":
 			b.radius = 0
-			b.top_color = Color("1d1f23")
-			b.bottom_color = Color("121316")
-			b.accent_color = Kit.ACCENT
-			b.accent_left = 6
-			b.hatch_color = Color(1, 1, 1, 0.05)
-			b.hatch_from = 0.62
-			b.hatch_spacing = 8
-			b.hatch_width = 1.5
+			b.top_color = PRINT_BAND
+			b.bottom_color = PRINT_BAND
 			m = Vector4(28, 0, 12, 0)
 		"slot":
-			b.top_color = Color("e2e3dd")
-			b.bottom_color = Color("d0d2cc")
+			b.radius = 0
+			b.top_color = Color("dddcd5")
+			b.bottom_color = Color("dddcd5")
 			b.border_width = 1.0
-			b.border_color = Color("bcbfb8")
-			b.chamfer = 8
-			b.chamfer_corners = 4
+			b.border_color = Color(PRINT_INK, 0.22)
 			m = Vector4(6, 6, 6, 6)
 		"reward_panel":
-			b.top_color = Color("f0efeb")
-			b.bottom_color = Color("dcdcd6")
-			b.hatch_color = Color(0, 0, 0, 0.035)
-			b.hatch_spacing = 8
-			b.hatch_width = 1.5
-			b.hatch_from = 0.6
-			b.accent_color = Kit.ACCENT
-			b.accent_top = 4
-			b.chamfer = 18
-			b.chamfer_corners = 5
-			b.shadow_size = 30
-			b.shadow_color = Color(0, 0, 0, 0.55)
+			# The reward receipt (UI.show_reward).
+			b.radius = 0
+			b.top_color = PRINT_WHITE
+			b.bottom_color = PRINT_WHITE
+			b.shadow_size = 26
+			b.shadow_color = Color(0, 0, 0, 0.3)
 			b.shadow_offset = Vector2(0, 10)
-			m = Vector4(30, 24, 30, 30)
+			m = Vector4(32, 26, 32, 18)
 		"dialog_dark":
-			b.top_color = Color("17191ef7")
-			b.bottom_color = Color("101215f7")
-			b.border_width = 1.0
-			b.border_color = Color(1, 1, 1, 0.12)
-			b.top_line_color = Color(1, 1, 1, 0.16)
-			b.chamfer = 18
-			b.chamfer_corners = 5
+			# The dark sheet: a printed band colour, paper-white type.
+			b.radius = 0
+			b.top_color = PRINT_BAND
+			b.bottom_color = PRINT_BAND
 			b.shadow_size = 30
-			b.shadow_color = Color(0, 0, 0, 0.55)
-			b.shadow_offset = Vector2(0, 10)
+			b.shadow_color = Color(0, 0, 0, 0.36)
+			b.shadow_offset = Vector2(0, 12)
 			m = Vector4(0, 0, 0, 0)
 		"header_bar":
-			b.top_color = Color("1e2126")
-			b.bottom_color = Color("16181c")
-			b.hatch_color = Color(1, 1, 1, 0.05)
-			b.hatch_from = 0.72
-			b.hatch_spacing = 6
-			b.hatch_width = 1.5
+			# An ink band across a sheet, mono paper-white type, a signal tick at its start.
+			b.radius = 0
+			b.top_color = PRINT_BAND
+			b.bottom_color = PRINT_BAND
 			b.accent_color = Kit.ACCENT
-			b.accent_left = 4
-			m = Vector4(18, 6, 12, 6)
+			b.accent_left = 6
+			m = Vector4(20, 6, 14, 6)
 		"plate_level":
 			b.top_color = Color("24272d")
 			b.bottom_color = Color("1a1c21")
@@ -376,157 +366,133 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			b.shadow_offset = Vector2(0, 3)
 			m = Vector4(0, 0, 0, 0)
 		"chip_off":
-			b.top_color = Color("1f2227")
-			b.bottom_color = Color("17191d")
-			b.border_width = 1.0
-			b.border_color = Color(1, 1, 1, 0.12)
-			b.chamfer = 6
-			b.chamfer_corners = 5
+			# Printed filter chip: an ink outline on the paper (the selected one is solid ink).
+			b.radius = 0
+			b.top_color = Color(PRINT_WHITE, 0.6)
+			b.bottom_color = Color(PRINT_WHITE, 0.6)
+			b.border_width = 1.5
+			b.border_color = Color(PRINT_INK, 0.6)
 			m = Vector4(6, 4, 6, 4)
 		"chip_on":
-			b.top_color = Color("ff5a2e")
-			b.bottom_color = Color("e63a10")
-			b.border_width = 1.0
-			b.border_color = Color("ffb199")
-			b.chamfer = 6
-			b.chamfer_corners = 5
-			b.shadow_size = 7
-			b.shadow_color = Color(1.0, 0.28, 0.08, 0.35)
-			b.shadow_offset = Vector2.ZERO
+			b.radius = 0
+			b.top_color = PRINT_INK
+			b.bottom_color = PRINT_INK
+			b.border_width = 1.5
+			b.border_color = PRINT_INK
+			b.accent_color = Kit.ACCENT
+			b.accent_top = 4
 			m = Vector4(6, 4, 6, 4)
-		# ---------------- buttons
-		"btn_primary", "btn_primary_hover", "btn_primary_pressed":
-			b.top_color = Color("ff5a2e")
-			b.bottom_color = Color("e8390f")
-			b.border_width = 1.0
-			b.border_color = Color("ffa486")
-			b.chamfer = 12
-			b.chamfer_corners = 5
-			b.shadow_size = 8
-			b.shadow_color = Color(1.0, 0.25, 0.06, 0.26)
-			b.shadow_offset = Vector2(0, 2)
-			b.hatch_color = Color(1, 1, 1, 0.09)
-			b.hatch_from = 0.76
-			b.hatch_spacing = 6
-			b.hatch_width = 1.5
-			if kind == "btn_primary_hover":
-				b.top_color = b.top_color.lightened(0.08)
-			elif kind == "btn_primary_pressed":
-				b.top_color = Color("db3611")
-				b.bottom_color = Color("c42c0b")
+		# ---------------- buttons (v4 print: flat printed plates with a keyline, soft paper shadow)
+		"btn_primary", "btn_primary_hover", "btn_primary_pressed", "btn_orange", "btn_orange_hover", "btn_orange_pressed":
+			# The signal plate: the one main action on a sheet.
+			var base := Kit.ACCENT if kind.begins_with("btn_primary") else Kit.ORANGE
+			b.radius = 2
+			b.top_color = base
+			b.bottom_color = base
+			b.inner_color = Color(1, 1, 1, 0.42)
+			b.inner_inset = 5
+			b.shadow_size = 7
+			b.shadow_color = Color(0, 0, 0, 0.26)
+			b.shadow_offset = Vector2(0, 3)
+			if kind.ends_with("_hover"):
+				b.top_color = base.lightened(0.06)
+				b.bottom_color = b.top_color
+			elif kind.ends_with("_pressed"):
+				b.top_color = base.darkened(0.12)
+				b.bottom_color = b.top_color
 		"btn_secondary", "btn_secondary_hover", "btn_secondary_pressed":
-			b.top_color = Color("23262ce8")
-			b.bottom_color = Color("17191de8")
-			b.border_width = 1.0
-			b.border_color = Color(1, 1, 1, 0.22)
-			b.top_line_color = Color(1, 1, 1, 0.1)
-			b.chamfer = 12
-			b.chamfer_corners = 5
-			b.shadow_size = 6
-			b.shadow_color = Color(0, 0, 0, 0.32)
+			# The ink plate.
+			b.radius = 2
+			b.top_color = PRINT_BAND
+			b.bottom_color = PRINT_BAND
+			b.inner_color = Color(1, 1, 1, 0.2)
+			b.inner_inset = 5
+			b.shadow_size = 7
+			b.shadow_color = Color(0, 0, 0, 0.3)
 			b.shadow_offset = Vector2(0, 3)
 			if kind == "btn_secondary_hover":
-				b.top_color = b.top_color.lightened(0.07)
+				b.top_color = Color("24262a")
+				b.bottom_color = b.top_color
 			elif kind == "btn_secondary_pressed":
-				b.top_color = Color("141619e8")
-				b.bottom_color = Color("111316e8")
+				b.top_color = Color("060708")
+				b.bottom_color = b.top_color
 		"btn_danger", "btn_danger_hover", "btn_danger_pressed":
-			b.top_color = Color("2b1213")
-			b.bottom_color = Color("1d0b0c")
-			b.border_width = 1.5
-			b.border_color = Color("ff4d3d")
-			b.chamfer = 12
-			b.chamfer_corners = 5
-			b.hatch_color = Color(1.0, 0.3, 0.24, 0.12)
-			b.hatch_from = 0.76
-			b.hatch_spacing = 6
-			b.hatch_width = 1.5
-			b.shadow_size = 6
-			b.shadow_color = Color(0.5, 0.05, 0.0, 0.3)
+			# An ink plate ruled in signal (destructive actions).
+			b.radius = 2
+			b.top_color = PRINT_BAND
+			b.bottom_color = PRINT_BAND
+			b.border_width = 2.0
+			b.border_color = Kit.ACCENT
+			b.inner_color = Color(Kit.ACCENT, 0.4)
+			b.inner_inset = 6
+			b.shadow_size = 7
+			b.shadow_color = Color(0, 0, 0, 0.3)
 			b.shadow_offset = Vector2(0, 3)
-			if kind == "btn_danger_hover":
-				b.top_color = b.top_color.lightened(0.06)
-			elif kind == "btn_danger_pressed":
-				b.top_color = Color("1d0b0c")
-				b.bottom_color = Color("150809")
+			if kind == "btn_danger_pressed":
+				b.top_color = Color("060708")
+				b.bottom_color = b.top_color
 		"btn_light", "btn_light_hover", "btn_light_pressed":
-			b.top_color = Color("f2f1ed")
-			b.bottom_color = Color("d6d8d2")
-			b.border_width = 1.0
-			b.border_color = Color("b9bcb5")
-			b.chamfer = 12
-			b.chamfer_corners = 5
-			b.shadow_size = 5
-			b.shadow_color = Color(0, 0, 0, 0.2)
+			# The printed outline: a box ruled in ink on the paper.
+			b.radius = 0
+			b.top_color = PRINT_WHITE
+			b.bottom_color = PRINT_WHITE
+			b.border_width = 2.0
+			b.border_color = PRINT_INK
+			b.shadow_size = 4
+			b.shadow_color = Color(0, 0, 0, 0.12)
 			b.shadow_offset = Vector2(0, 2)
-			if kind == "btn_light_pressed":
-				b.top_color = Color("dcdcd6")
-				b.bottom_color = Color("cbcdc7")
-		"btn_orange", "btn_orange_hover", "btn_orange_pressed":
-			b.top_color = Color("ff6a2a")
-			b.bottom_color = Color("f2400c")
-			b.border_width = 1.0
-			b.border_color = Color("ffc4a8")
-			b.chamfer = 12
-			b.chamfer_corners = 5
-			b.hatch_color = Color(1, 1, 1, 0.11)
-			b.hatch_from = 0.7
-			b.hatch_spacing = 6
-			b.hatch_width = 1.5
-			b.shadow_size = 12
-			b.shadow_color = Color(1.0, 0.32, 0.08, 0.45)
-			b.shadow_offset = Vector2.ZERO
-			if kind == "btn_orange_pressed":
-				b.top_color = Color("e8480e")
-				b.bottom_color = Color("d0390a")
+			if kind == "btn_light_hover":
+				b.top_color = Color("fbfaf7")
+				b.bottom_color = b.top_color
+			elif kind == "btn_light_pressed":
+				b.top_color = Color("dddcd5")
+				b.bottom_color = b.top_color
 		"btn_primary_disabled", "btn_secondary_disabled", "btn_danger_disabled", "btn_orange_disabled":
 			# Flat and quiet: clearly "not now", never mistaken for a pressed button.
-			b.top_color = Color("25282dd9")
-			b.bottom_color = Color("1b1d21d9")
-			b.border_width = 1.0
-			b.border_color = Color(1, 1, 1, 0.08)
-			b.chamfer = 12
-			b.chamfer_corners = 5
+			b.radius = 2
+			b.top_color = Color("cfcec8")
+			b.bottom_color = Color("cfcec8")
+			b.inner_color = Color(PRINT_INK, 0.12)
+			b.inner_inset = 5
 		"btn_light_disabled":
-			b.top_color = Color("dcdcd7")
-			b.bottom_color = Color("cfd0ca")
-			b.border_width = 1.0
-			b.border_color = Color("c4c6c0")
-			b.chamfer = 12
-			b.chamfer_corners = 5
+			b.radius = 0
+			b.top_color = Color("e4e3dd")
+			b.bottom_color = Color("e4e3dd")
+			b.border_width = 1.5
+			b.border_color = Color(PRINT_INK, 0.28)
 		"seg_off":
-			b.top_color = Color("1a1d22cc")
-			b.bottom_color = Color("14161acc")
-			b.border_width = 1.0
-			b.border_color = Color(1, 1, 1, 0.12)
-			b.chamfer = 6
-			b.chamfer_corners = 5
+			# Printed segment: an ink outline; the selected one is solid ink with paper type.
+			b.radius = 0
+			b.top_color = Color(PRINT_WHITE, 0.6)
+			b.bottom_color = Color(PRINT_WHITE, 0.6)
+			b.border_width = 1.5
+			b.border_color = Color(PRINT_INK, 0.6)
 			m = Vector4(14, 6, 14, 6)
 		"seg_on", "seg_on_pressed":
-			b.top_color = Color("ff5a2e")
-			b.bottom_color = Color("e8390f")
-			b.border_width = 1.0
-			b.border_color = Color("ffa486")
-			b.chamfer = 6
-			b.chamfer_corners = 5
-			b.shadow_size = 6
-			b.shadow_color = Color(1.0, 0.28, 0.08, 0.3)
-			b.shadow_offset = Vector2.ZERO
+			b.radius = 0
+			b.top_color = PRINT_INK
+			b.bottom_color = PRINT_INK
+			b.border_width = 1.5
+			b.border_color = PRINT_INK
+			b.accent_color = Kit.ACCENT
+			b.accent_top = 4
 			m = Vector4(14, 6, 14, 6)
 		"tab_on", "tab_on_flat":
-			# tab_on_flat: the same plate without the accent bar (Kit.tab_strip slides its own).
+			# A printed index tab on the paper. tab_on_flat: without the bar (Kit.tab_strip slides its own).
 			b.radius = 0
-			b.top_color = Color("f2f1ed")
-			b.bottom_color = Color("e2e2dd")
+			b.top_color = PRINT_WHITE
+			b.bottom_color = PRINT_WHITE
+			b.border_width = 1.0
+			b.border_color = Color(PRINT_INK, 0.35)
 			if kind == "tab_on":
 				b.accent_color = Kit.ACCENT
 				b.accent_top = 4
 			m = Vector4(18, 8, 18, 6)
 		"tab_off":
 			b.radius = 0
-			b.top_color = Color("16181dd9")
-			b.bottom_color = Color("101215d9")
-			b.accent_color = Color(1, 1, 1, 0.12)
+			b.top_color = Color(PRINT_PAPER, 0.0)
+			b.bottom_color = Color(PRINT_PAPER, 0.0)
+			b.accent_color = Color(PRINT_INK, 0.3)
 			b.accent_top = 1
 			m = Vector4(18, 8, 18, 6)
 		"line_edit", "line_edit_focus":
@@ -584,19 +550,20 @@ static func build() -> Theme:
 	t.set_font_size("normal_font_size", "RichTextLabel", Kit.SIZE_BODY)
 	t.set_font_size("bold_font_size", "RichTextLabel", Kit.SIZE_BODY)
 
-	# Buttons: the plain Button looks like the secondary button.
-	_button_type(t, "Button", "btn_secondary", Kit.INK, Color("8e9bb0"))
-	_button_type(t, "PrimaryButton", "btn_primary", Color.WHITE, Color("8e9bb0"))
-	_button_type(t, "SecondaryButton", "btn_secondary", Kit.INK, Color("8e9bb0"))
-	_button_type(t, "DangerButton", "btn_danger", Color("ff8a7a"), Color("8e9bb0"))
-	_button_type(t, "LightButton", "btn_light", Kit.TEXT, Color("a3acb6"))
-	_button_type(t, "OrangeButton", "btn_orange", Color.WHITE, Color("8e9bb0"))
+	# Buttons (v4 print): signal plate (primary, orange), ink plate (secondary, the plain Button),
+	# ink plate ruled in signal (danger), printed ink outline (light).
+	var paper_white := Color("fbfaf6")
+	var off_text := Color(PRINT_INK, 0.4)
+	_button_type(t, "Button", "btn_secondary", PRINT_MATTE, off_text)
+	_button_type(t, "PrimaryButton", "btn_primary", paper_white, off_text)
+	_button_type(t, "SecondaryButton", "btn_secondary", PRINT_MATTE, off_text)
+	_button_type(t, "DangerButton", "btn_danger", Kit.ACCENT_HI, off_text)
+	_button_type(t, "LightButton", "btn_light", PRINT_INK, off_text)
+	_button_type(t, "OrangeButton", "btn_orange", paper_white, off_text)
 	for v in ["PrimaryButton", "SecondaryButton", "DangerButton", "LightButton", "OrangeButton"]:
 		t.set_type_variation(v, "Button")
-	for v in ["Button", "PrimaryButton", "SecondaryButton", "DangerButton", "OrangeButton"]:
+	for v in ["Button", "PrimaryButton", "SecondaryButton", "DangerButton", "OrangeButton", "LightButton"]:
 		t.set_constant("outline_size", v, 0)
-	t.set_color("font_shadow_color", "PrimaryButton", Color(0.35, 0.04, 0.0, 0.35))
-	t.set_constant("shadow_offset_y", "PrimaryButton", 1)
 
 	t.set_type_variation("SegmentButton", "Button")
 	for st in ["normal", "hover", "disabled"]:
@@ -604,35 +571,35 @@ static func build() -> Theme:
 	t.set_stylebox("pressed", "SegmentButton", style("seg_on"))
 	t.set_stylebox("hover_pressed", "SegmentButton", style("seg_on"))
 	t.set_stylebox("focus", "SegmentButton", StyleBoxEmpty.new())
-	t.set_font("font", "SegmentButton", Kit.font("cond"))
-	t.set_font_size("font_size", "SegmentButton", 26)
-	t.set_color("font_color", "SegmentButton", Color("c9ced5"))
-	t.set_color("font_hover_color", "SegmentButton", Kit.INK)
-	t.set_color("font_pressed_color", "SegmentButton", Color.WHITE)
-	t.set_color("font_hover_pressed_color", "SegmentButton", Color.WHITE)
-	t.set_color("font_focus_color", "SegmentButton", Color("c9ced5"))
-	t.set_color("font_disabled_color", "SegmentButton", Color("6d727a"))
-	t.set_color("icon_normal_color", "SegmentButton", Color(0.82, 0.84, 0.87))
+	t.set_font("font", "SegmentButton", Kit.font("mono_bold"))
+	t.set_font_size("font_size", "SegmentButton", 22)
+	t.set_color("font_color", "SegmentButton", PRINT_INK)
+	t.set_color("font_hover_color", "SegmentButton", PRINT_INK)
+	t.set_color("font_pressed_color", "SegmentButton", PRINT_MATTE)
+	t.set_color("font_hover_pressed_color", "SegmentButton", PRINT_MATTE)
+	t.set_color("font_focus_color", "SegmentButton", PRINT_INK)
+	t.set_color("font_disabled_color", "SegmentButton", Color(PRINT_INK, 0.35))
+	t.set_color("icon_normal_color", "SegmentButton", Color.WHITE)
 	t.set_color("icon_pressed_color", "SegmentButton", Color.WHITE)
 	t.set_color("icon_hover_pressed_color", "SegmentButton", Color.WHITE)
 
-	# Page / dialog tabs (Kit.tab_strip): white active plate with a cyan top bar.
+	# Page / dialog tabs (Kit.tab_strip): printed index tabs, the active one on paper with a signal bar.
 	t.set_type_variation("TabButton", "Button")
 	for st in ["normal", "hover", "disabled"]:
 		t.set_stylebox(st, "TabButton", style("tab_off"))
 	t.set_stylebox("pressed", "TabButton", style("tab_on"))
 	t.set_stylebox("hover_pressed", "TabButton", style("tab_on"))
 	t.set_stylebox("focus", "TabButton", StyleBoxEmpty.new())
-	t.set_font("font", "TabButton", Kit.font("cond_bold"))
-	t.set_font_size("font_size", "TabButton", 28)
-	t.set_color("font_color", "TabButton", Color("d5d9de"))
-	t.set_color("font_hover_color", "TabButton", Color.WHITE)
-	t.set_color("font_focus_color", "TabButton", Color("d5d9de"))
-	t.set_color("font_pressed_color", "TabButton", Kit.TEXT)
-	t.set_color("font_hover_pressed_color", "TabButton", Kit.TEXT)
-	t.set_color("icon_normal_color", "TabButton", Color("d5d9de"))
-	t.set_color("icon_pressed_color", "TabButton", Kit.ACCENT)
-	t.set_color("icon_hover_pressed_color", "TabButton", Kit.ACCENT)
+	t.set_font("font", "TabButton", Kit.font("mono_bold"))
+	t.set_font_size("font_size", "TabButton", 22)
+	t.set_color("font_color", "TabButton", Color(PRINT_INK, 0.6))
+	t.set_color("font_hover_color", "TabButton", PRINT_INK)
+	t.set_color("font_focus_color", "TabButton", Color(PRINT_INK, 0.6))
+	t.set_color("font_pressed_color", "TabButton", PRINT_INK)
+	t.set_color("font_hover_pressed_color", "TabButton", PRINT_INK)
+	t.set_color("icon_normal_color", "TabButton", Color(PRINT_INK, 0.6))
+	t.set_color("icon_pressed_color", "TabButton", PRINT_INK)
+	t.set_color("icon_hover_pressed_color", "TabButton", PRINT_INK)
 	t.set_constant("h_separation", "TabButton", 10)
 
 	t.set_type_variation("BareButton", "Button")
@@ -763,7 +730,7 @@ static func _button_type(t: Theme, type: String, base: String, text: Color, disa
 	t.set_stylebox("hover_pressed", type, style(base + "_pressed"))
 	t.set_stylebox("disabled", type, style(base + "_disabled"))
 	t.set_stylebox("focus", type, StyleBoxEmpty.new())
-	t.set_font("font", type, Kit.font("extrabold"))
+	t.set_font("font", type, Kit.font("cond_black"))
 	t.set_font_size("font_size", type, Kit.SIZE_BUTTON)
 	for c in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
 		t.set_color(c, type, text)

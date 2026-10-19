@@ -493,10 +493,11 @@ func _device_insets() -> Vector2:
 
 # ------------------------------------------------------------------ toasts
 
-## Short message at the top of the screen. kind: "info" | "good" | "bad" (icon bubble +
-## accent; "bad" also plays the deny sound). Style: a dark glass bar with a coloured left
-## edge. Toasts drop in with a spring, stack (newest at the bottom, at most MAX_TOASTS),
-## glide up when one above leaves, and leave by themselves after TOAST_SECS.
+## Short message at the top of the screen. kind: "info" | "good" | "bad" ("bad" also plays the
+## deny sound). Style v4 print: a paper label strip stuck on a touch crooked, an ink tag (signal
+## for "bad") with the glyph, a mono kicker and the message. Toasts drop in with a spring, stack
+## (newest at the bottom, at most MAX_TOASTS), glide up when one above leaves, and leave by
+## themselves after TOAST_SECS.
 func toast(text: String, kind: String = "info") -> void:
 	var box: Variant = root.get("toast_box") if root and is_instance_valid(root) else null
 	if not (box is Control):
@@ -506,31 +507,50 @@ func toast(text: String, kind: String = "info") -> void:
 	var live := _live_toasts(host)
 	while live.size() >= MAX_TOASTS:
 		_toast_out(live.pop_front(), true)
+	# Style v4 print: a paper label strip; at its start a tag block (ink, or signal for "bad") with the
+	# glyph, then a mono kicker (NOTE / CONFIRMED / DENIED and the time) over the message.
 	var p := PanelContainer.new()
 	p.theme_type_variation = &"ToastPanel"
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var accent: Color = {"good": Kit.GOOD, "bad": Kit.EMBER}.get(kind, Kit.ACCENT)
-	var sb := UITheme.style("toast")
-	sb.set("accent_color", accent)
-	p.add_theme_stylebox_override("panel", sb)
-	var row := Kit.hbox(14)
+	p.add_theme_stylebox_override("panel", UITheme.style("toast"))
+	var row := Kit.hbox(16)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var tag := PanelContainer.new()
+	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var ts := StyleBoxFlat.new()
+	ts.bg_color = Kit.ACCENT if kind == "bad" else Kit.BAND
+	ts.content_margin_left = 16
+	ts.content_margin_right = 16
+	tag.add_theme_stylebox_override("panel", ts)
+	tag.custom_minimum_size = Vector2(66, 72)
 	var ic: String = {"good": "check", "bad": "close"}.get(kind, "info")
-	var bubble := Kit.hex_badge(ic, 44, accent.darkened(0.15), Color.WHITE)
+	var bubble := Kit.icon(ic, 30, Kit.MATTE)
 	bubble.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(bubble)
-	var l := Kit.label(text, Kit.SIZE_BODY, Color.WHITE, "bold")
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	bubble.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	tag.add_child(bubble)
+	row.add_child(tag)
+	var col := Kit.vbox(2)
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var tm := Time.get_time_dict_from_system()
+	var word: String = {"good": "CONFIRMED", "bad": "DENIED"}.get(kind, "NOTE")
+	col.add_child(Kit.print_label("%s  ·  %02d:%02d" % [word, int(tm.hour), int(tm.minute)], 11,
+		Kit.ACCENT_DEEP if kind == "bad" else Color(Kit.TEXT, 0.6)))
+	var l := Kit.label(text, 23, Kit.TEXT, "bold")
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	# Every toast has the same width, so a stack lines up as one column.
-	l.custom_minimum_size.x = TOAST_W - 58.0 - 58.0
-	row.add_child(l)
+	l.custom_minimum_size.x = TOAST_W - 66.0 - 16.0 - 20.0
+	col.add_child(l)
+	row.add_child(col)
 	p.add_child(row)
 	host.add_child(p)
 	p.size = p.get_combined_minimum_size()
 	p.position = Vector2(-p.size.x * 0.5, _toast_slot_y(host, p))
 	p.pivot_offset = p.size * 0.5
+	# Stuck on a touch crooked, like a label.
+	p.rotation = -0.012 if host.get_child_count() % 2 == 0 else 0.01
 	if kind == "bad":
 		sfx("deny")
 		haptic(18, 0.6)
@@ -543,7 +563,7 @@ func toast(text: String, kind: String = "info") -> void:
 		tw.tween_property(p, "modulate:a", 1.0, 0.16)
 		tw.tween_property(p, "position:y", y, 0.42).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		tw.tween_property(p, "scale", Vector2.ONE, 0.36).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		bubble.pivot_offset = Vector2(22, 22)
+		bubble.pivot_offset = Vector2(15, 15)
 		bubble.scale = Vector2(0.4, 0.4)
 		tw.tween_property(bubble, "scale", Vector2.ONE, 0.4).set_delay(0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	var life := p.create_tween()
@@ -611,8 +631,11 @@ func modal(content: Control, dismissable: bool = true, on_closed: Callable = Cal
 	m.mouse_filter = Control.MOUSE_FILTER_STOP
 	m.set_meta("dismissable", dismissable)
 	m.set_meta("on_closed", on_closed)
+	# The screen behind goes back to the paper matte (style v4: a printed sheet laid on the matte),
+	# leaving a ghost of it. Chosen to read in both canvas modes: a light wash blends a little
+	# stronger on the linear HDR canvas (desktop) than on the plain sRGB one (iPhone, ui_linear 0).
 	var dim := ColorRect.new()
-	dim.color = Color(0.02, 0.025, 0.03, 0.72)
+	dim.color = Color(Kit.MATTE, 0.78)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	dim.gui_input.connect(func(ev: InputEvent) -> void:
@@ -685,9 +708,10 @@ func _dismiss(m: Control) -> void:
 		(cb as Callable).call()
 
 
-## Standard dialog (Kit.dialog): blue header with the title and a close X, your content
-## in the body. light = true gives the white v2 body (build content with Kit.TEXT colors);
-## the default graphite body suits content built with light text (Kit.INK).
+## Standard dialog (Kit.dialog, style v4 print): a printed sheet on the matte with a serial line, the
+## title big in compressed type over a ruled line, a printed "× CLOSE" and your content in the
+## body. light = true prints it on paper (build content with Kit.TEXT colours); the default dark
+## band sheet suits content built with light text (Kit.INK).
 ## Returns the modal root (close with close_modal).
 func popup(title: String, content: Control, on_closed: Callable = Callable(), width: float = 640.0, light: bool = false) -> Control:
 	var panel := Kit.dialog(title, content, width, light)
@@ -701,15 +725,36 @@ func popup(title: String, content: Control, on_closed: Callable = Callable(), wi
 	return m
 
 
-## In-game yes/no dialog (white v2 dialog). on_yes runs on confirm, on_no (optional) on
-## cancel/dismiss. danger = red confirm button (destructive actions).
+## In-game yes/no dialog, style v4 print: a "CONFIRM" sheet with the question set in the serif, a
+## signature line, then Cancel (printed outline) and the answer (the signal plate). on_yes runs on
+## confirm, on_no (optional) on cancel/dismiss. danger = an ink plate ruled in signal (destructive
+## actions).
 func confirm(text: String, on_yes: Callable, on_no: Callable = Callable(), yes_text: String = "Confirm", no_text: String = "Cancel", danger: bool = false) -> void:
-	var col := Kit.vbox(28)
-	var l := Kit.body(text, 28, Kit.TEXT)
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.custom_minimum_size.x = 500
-	col.add_child(Kit.spacer(0, 4))
+	var col := Kit.vbox(16)
+	col.custom_minimum_size.x = 540
+	col.add_child(Kit.print_label("Request  ·  sign to proceed" if not danger else "Warning  ·  read before you sign", 12,
+		Color(Kit.ACCENT_DEEP if danger else Kit.TEXT, 0.75)))
+	var l := Kit.label(text, 34, Kit.TEXT, "serif")
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.custom_minimum_size.x = 540
 	col.add_child(l)
+	# A signature line (print): a slanted x, the rule and a mono caption under it.
+	var sig := Control.new()
+	sig.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	sig.custom_minimum_size = Vector2(540, 46)
+	var x := Kit.label("x", 30, Color(Kit.TEXT, 0.7), "serif_italic")
+	x.position = Vector2(2, -4)
+	sig.add_child(x)
+	var rule := ColorRect.new()
+	rule.color = Color(Kit.TEXT, 0.55)
+	rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rule.position = Vector2(28, 28)
+	rule.size = Vector2(300, 1)
+	sig.add_child(rule)
+	var cap := Kit.print_label("Signature  ·  %s" % Kit._print_date(), 10, Color(Kit.TEXT, 0.55), "mono")
+	cap.position = Vector2(28, 30)
+	sig.add_child(cap)
+	col.add_child(sig)
 	var row := Kit.hbox(16)
 	var m_ref: Array[Control] = []
 	var no_btn := Kit.light_button(no_text, func() -> void:
@@ -735,8 +780,12 @@ func confirm(text: String, on_yes: Callable, on_no: Callable = Callable(), yes_t
 	m_ref.append(m)
 
 
-## Show a reward popup (Reward dictionary), then call `on_closed` if valid.
-## Popups queue if one is already open.
+## Show a reward popup (Reward dictionary), then call `on_closed` if valid. Popups queue if one
+## is already open. Style v4 print: a receipt laid on the matte (receipt number and time, the title
+## big in compressed type with its last word in signal, one printed row per reward with a dotted
+## leader, the item count, a barcode and a RECEIVED stamp on a silver disc, a torn edge), then OK
+## (the signal plate). The rows print one after another with rising notes and the stamp comes down
+## last; on close the currencies fly from their rows to the wallet.
 func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callable()) -> void:
 	if _modal_layer() == null:
 		print("[reward] ", title, " ", reward)
@@ -749,69 +798,138 @@ func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callab
 	_reward_open = true
 	sfx("reward")
 	haptic(25)
-	var col := Kit.vbox(10)
-	col.custom_minimum_size.x = 660
+	const W := 600.0
+	var iw := W - 64.0
+	var col := Kit.vbox(0)
+	col.custom_minimum_size.x = W
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
-	# Title plate with slow cyan rays behind it.
-	var title_box := Control.new()
-	title_box.custom_minimum_size = Vector2(660, 150)
-	title_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var rays := Kit.rays(Kit.ACCENT_HI, 600.0, 18)
-	rays.position = Vector2(330 - 300, 75 - 300)
-	rays.modulate.a = 0.7
-	title_box.add_child(rays)
-	var glow := Kit.glow(Kit.ACCENT, 440)
-	glow.position = Vector2(330 - 220, 75 - 220)
-	glow.modulate.a = 0.45
-	title_box.add_child(glow)
-	var banner := Kit.ribbon(title, 580.0, Kit.ACCENT)
-	banner.position = Vector2(330 - 290, 75 - 46)
-	banner.size = Vector2(580, 92)
-	title_box.add_child(banner)
-	col.add_child(title_box)
-	var panel := PanelContainer.new()
-	panel.theme_type_variation = &"DialogPanel"
-	panel.add_theme_stylebox_override("panel", UITheme.style("reward_panel"))
-	var inner := Kit.vbox(24)
-	panel.add_child(inner)
-	var head := Kit.hbox(10)
-	head.alignment = BoxContainer.ALIGNMENT_CENTER
-	head.add_child(Kit.deco("techline", Vector2(120, 10), Color(0, 0, 0, 0.25)))
-	head.add_child(Kit.label("REWARD", 22, Kit.TEXT_DIM, "cond_bold"))
-	var tl := Kit.deco("techline", Vector2(120, 10), Color(0, 0, 0, 0.25))
-	tl.scale.x = -1
-	tl.pivot_offset = Vector2(60, 5)
-	head.add_child(tl)
+	var sheet := PanelContainer.new()
+	sheet.name = "RewardSheet"
+	sheet.add_theme_stylebox_override("panel", UITheme.style("reward_panel"))
+	# The print under it: crop marks and a red halftone ramp in the top corner (a big moment: grit).
+	var prints := Control.new()
+	prints.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	prints.clip_contents = true
+	var ramp := Kit.halftone_ramp(Vector2(260, 120), Color(1.0, 0.36, 0.16, 0.55), 7.0, "right")
+	ramp.anchor_left = 1.0
+	ramp.anchor_right = 1.0
+	ramp.offset_left = -260
+	ramp.offset_right = 0
+	ramp.offset_bottom = 120
+	prints.add_child(ramp)
+	var marks := Kit.PrintBits.CropMarks.new()
+	marks.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	prints.add_child(marks)
+	sheet.add_child(prints)
+	var inner := Kit.vbox(10)
+	sheet.add_child(inner)
+	var no := 100000 + absi(hash(title + str(Time.get_ticks_msec()))) % 900000
+	var top := Kit.hbox(8)
+	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top.add_child(Kit.print_label("Receipt No.%06d" % no, 12))
+	top.add_child(Kit.spacer(0, 0, true))
+	var tm := Time.get_time_dict_from_system()
+	top.add_child(Kit.print_label("%s  %02d:%02d" % [Kit._print_date(), int(tm.hour), int(tm.minute)], 12, Color(Kit.TEXT, 0.6), "mono"))
+	inner.add_child(top)
+	var head := RichTextLabel.new()
+	head.name = "Title"
+	head.bbcode_enabled = true
+	head.fit_content = true
+	head.scroll_active = false
+	head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	head.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	head.custom_minimum_size.x = iw
+	var words := title.to_upper().split(" ", false)
+	var key := words[words.size() - 1] if not words.is_empty() else ""
+	var lead := " ".join(words.slice(0, maxi(words.size() - 1, 0)))
+	head.text = ("%s [color=#%s]%s[/color]" % [lead, Kit.ACCENT.to_html(false), key]).strip_edges()
+	var hf := Kit.font("compressed")
+	var fs := 100
+	while fs > 52 and hf.get_string_size(title.to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > iw:
+		fs -= 4
+	head.add_theme_font_override("normal_font", hf)
+	head.add_theme_font_size_override("normal_font_size", fs)
+	head.add_theme_color_override("default_color", Kit.TEXT)
+	head.add_theme_constant_override("line_separation", -int(fs * 0.18))
 	inner.add_child(head)
+	inner.add_child(Kit.tick_rule(iw, Color(Kit.TEXT, 0.55), {"lead": Kit.ACCENT}))
 	var entries := Kit.reward_entries(reward)
+	var rows: Array[Control] = []
+	var icons: Array[Control] = []
 	if entries.is_empty():
-		var none := Kit.body("Nothing this time.", Kit.SIZE_BODY, Kit.TEXT_DIM)
-		none.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		var none := Kit.empty_state("Nothing this time.", "", true)
+		none.custom_minimum_size.y = 120
 		inner.add_child(none)
 	else:
-		var list := Kit.reward_list(reward, 112.0 if entries.size() <= 8 else 96.0, true, true, true)
-		list.custom_minimum_size.x = 580
-		for tile in list.get_children():
-			(tile as Control).modulate.a = 0.0
-		inner.add_child(list)
+		var receipt := Kit.reward_receipt(reward, iw, {"compact": entries.size() > 6})
+		rows.assign(receipt.get_meta("rows", []))
+		icons.assign(receipt.get_meta("icons", []))
+		for r in rows:
+			r.modulate.a = 0.0
+		if entries.size() > 11:
+			var sc := Kit.scroll(receipt)
+			sc.custom_minimum_size = Vector2(iw, 11 * 41.0)
+			inner.add_child(sc)
+		else:
+			inner.add_child(receipt)
+	# The foot: a double rule, the item count, a barcode and the RECEIVED stamp on a silver disc.
+	var dbl := Kit.vbox(3)
+	dbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for i in 2:
+		var hr := ColorRect.new()
+		hr.color = Color(Kit.TEXT, 0.6)
+		hr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		hr.custom_minimum_size = Vector2(iw, 1)
+		dbl.add_child(hr)
+	inner.add_child(dbl)
+	var tot := Kit.hbox(8)
+	tot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tot.add_child(Kit.print_label("Items", 13))
+	tot.add_child(Kit.spacer(0, 0, true))
+	tot.add_child(Kit.print_label("%02d" % entries.size(), 13))
+	inner.add_child(tot)
+	var foot := Kit.hbox(0)
+	foot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	foot.custom_minimum_size.y = 64
+	var bcol := Kit.vbox(4)
+	bcol.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bcol.size_flags_vertical = Control.SIZE_SHRINK_END
+	bcol.add_child(SignalKit.barcode(Vector2(210, 34), Kit.TEXT, no % 997))
+	bcol.add_child(Kit.print_label("HH-%06d  ·  Keep this receipt" % no, 10, Color(Kit.TEXT, 0.6), "mono"))
+	foot.add_child(bcol)
+	foot.add_child(Kit.spacer(0, 0, true))
+	var slot := Control.new()
+	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot.custom_minimum_size = Vector2(128, 64)
+	var disc := SignalKit.plate("silver", Vector2(0, -58), Vector2(128, 128), {"circle": true, "shadow": 0.5}, slot)
+	disc.add_child(SignalKit.stamp("RECEIVED · HALO & HORN · ", "OK", 128))
+	disc.pivot_offset = Vector2(64, 64)
+	disc.rotation = -0.16
+	foot.add_child(slot)
+	inner.add_child(foot)
+	col.add_child(sheet)
+	var torn := Kit.PrintBits.Zigzag.new()
+	torn.color = Kit.SHEET_WHITE
+	torn.custom_minimum_size = Vector2(W, 14)
+	col.add_child(torn)
+	col.add_child(Kit.spacer(0, 30))
 	var m_ref: Array[Control] = []
 	var ok := Kit.primary_button("OK", func() -> void:
 		if not m_ref.is_empty():
 			_dismiss(m_ref[0]))
 	ok.custom_minimum_size.x = 320
 	ok.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	inner.add_child(ok)
-	col.add_child(panel)
-	var hint := Kit.caption("Tap anywhere to close", 20, Color(1, 1, 1, 0.6))
+	col.add_child(ok)
+	col.add_child(Kit.spacer(0, 14))
+	var hint := Kit.print_label("Tap anywhere to close", 13, Color(Kit.TEXT, 0.6))
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(hint)
 	# The top-bar wallet holds its old numbers while the popup is up; on close the currencies
-	# fly from their tiles to the wallet and it counts up as they land.
+	# fly from their rows to the wallet and it counts up as they land.
 	var hold := _hold_currency()
-	var tiles_ref: Array[Control] = []
 	var closed := func() -> void:
 		_reward_open = false
-		_fly_rewards(entries, tiles_ref, hold)
+		_fly_rewards(entries, icons, hold)
 		if on_closed.is_valid():
 			on_closed.call()
 		if not _reward_queue.is_empty():
@@ -821,57 +939,44 @@ func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callab
 	m_ref.append(m)
 	# Never leave the wallet frozen, however the popup goes away.
 	m.tree_exited.connect(func() -> void: hold.call())
-	var motion := Kit.motion_ok()
-	if motion:
-		banner.pivot_offset = Vector2(290, 46)
-		banner.scale = Vector2(1.45, 1.45)
-		banner.modulate.a = 0.0
-		var bt := banner.create_tween().set_parallel(true)
-		bt.tween_property(banner, "scale", Vector2.ONE, 0.42).set_delay(0.06).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		bt.tween_property(banner, "modulate:a", 1.0, 0.18).set_delay(0.06)
-		var ga := glow.modulate.a
-		glow.modulate.a = 0.0
-		glow.pivot_offset = Vector2(220, 220)
-		glow.scale = Vector2(0.4, 0.4)
-		var gt := glow.create_tween().set_parallel(true)
-		gt.tween_property(glow, "modulate:a", ga, 0.35).set_delay(0.1)
-		gt.tween_property(glow, "scale", Vector2.ONE, 0.5).set_delay(0.1).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-		hint.modulate.a = 0.0
-		var ht := hint.create_tween()
-		ht.tween_interval(0.9)
-		ht.tween_property(hint, "modulate:a", 1.0, 0.4)
-		ht.tween_callback(func() -> void:
-			var loop := hint.create_tween().set_loops()
-			loop.tween_property(hint, "modulate:a", 0.45, 1.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-			loop.tween_property(hint, "modulate:a", 1.0, 1.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT))
-	# Tiles pop in one after another, each with a glint and a rising note.
+	if not Kit.motion_ok():
+		for r in rows:
+			r.modulate.a = 1.0
+		return
+	head.visible_ratio = 0.0
+	head.create_tween().tween_property(head, "visible_ratio", 1.0, 0.36).set_delay(0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	disc.modulate.a = 0.0
+	hint.modulate.a = 0.0
+	# Rows print one after another, each with a rising note; then the stamp comes down.
 	await get_tree().process_frame
 	if not is_instance_valid(m):
 		return
-	var list_node: Control = null
-	for c in inner.get_children():
-		if c is HFlowContainer:
-			list_node = c
-	if list_node:
-		var i := 0
-		for tile in list_node.get_children():
-			var tc := tile as Control
-			tiles_ref.append(tc)
-			var delay := 0.16 + i * 0.07
-			Kit.pop_in(tc, delay, 0.36)
-			if motion and i < 10:
-				var pitch := 1.0 + 0.06 * i
-				var face := tc.get_child(0) as Control if tc.get_child_count() > 0 else null
-				var tt := tc.create_tween()
-				tt.tween_interval(delay + 0.08)
-				tt.tween_callback(func() -> void:
-					sfx("sparkle", pitch)
-					if face and is_instance_valid(face) and not (face is Container):
-						Kit.sparkle(face, face.size * 0.5, Kit.ACCENT_HI, 6, face.size.x * 0.62))
-			i += 1
-	var shine := ok.get_node_or_null("Shine")
-	if shine and shine.has_method("sweep_now"):
-		shine.call("sweep_now", 0.35 + tiles_ref.size() * 0.07)
+	var i := 0
+	for r in rows:
+		var delay := 0.18 + i * 0.08
+		r.modulate.a = 1.0
+		Kit.offset_in(r, Vector2(-26, 0), delay, 0.32)
+		if i < 10:
+			var pitch := 1.0 + 0.06 * i
+			var tt := r.create_tween()
+			tt.tween_interval(delay + 0.04)
+			tt.tween_callback(func() -> void: sfx("sparkle", pitch))
+		i += 1
+	var at := 0.3 + rows.size() * 0.08
+	disc.scale = Vector2(1.7, 1.7)
+	var dt := disc.create_tween().set_parallel(true)
+	dt.tween_property(disc, "modulate:a", 1.0, 0.12).set_delay(at)
+	dt.tween_property(disc, "scale", Vector2.ONE, 0.26).set_delay(at).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	dt.tween_callback(func() -> void:
+		sfx("pop")
+		haptic(18)).set_delay(at + 0.14)
+	var ht := hint.create_tween()
+	ht.tween_interval(at + 0.5)
+	ht.tween_property(hint, "modulate:a", 1.0, 0.4)
+	ht.tween_callback(func() -> void:
+		var loop := hint.create_tween().set_loops()
+		loop.tween_property(hint, "modulate:a", 0.45, 1.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		loop.tween_property(hint, "modulate:a", 1.0, 1.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT))
 
 
 ## Freezes the top-bar wallet (its amounts stay put while a reward popup is open). Returns

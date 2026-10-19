@@ -277,7 +277,7 @@ func _cell(it: Dictionary, i: int, cw: float) -> Button:
 	var b := PK.bare_button(Vector2(cw, CELL_H - 12))
 	b.name = "Gear_" + uid
 	var s := minf(cw - 24.0, 124.0)
-	var obj := PK.gear_object(slot, s, b, Vector2((cw - s) * 0.5, 10))
+	var obj := PK.gear_object(slot, s, b, Vector2((cw - s) * 0.5, 10), str(it.get("name", "")), int(it.get("tier", 1)))
 	var st := PK.sticker([[Kit.roman(int(it.tier)), 15, "wide_black"]], {"fill": "signal", "pad": 6, "rotation": -0.12 + 0.05 * (i % 3), "shadow": 0.25})
 	PK.at(b, st, Vector2(cw - st.size.x - 6, 4))
 	var who := str(it.get("equipped_by", ""))
@@ -337,7 +337,7 @@ func _open(uid: String) -> void:
 	paper.mouse_filter = MOUSE_FILTER_IGNORE
 	paper.size = Vector2(540, 220)
 	shot.add_child(paper)
-	PK.gear_object(slot, 176, shot, Vector2(26, 22))
+	PK.gear_object(slot, 176, shot, Vector2(26, 22), str(it.get("name", "")), int(it.get("tier", 1)))
 	var st := PK.sticker([[Kit.roman(int(it.tier)), 22, "wide_black"]], {"fill": "signal", "pad": 8, "rotation": -0.1})
 	PK.at(shot, st, Vector2(176, 14))
 	var nl := PK.t(str(it.get("name", "")).to_upper(), 26, INK, "wide_black")

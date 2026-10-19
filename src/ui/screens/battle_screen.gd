@@ -2,6 +2,14 @@ extends Control
 ## Screen "battle": plays a campaign stage. params: stage_index (int); skip (bool, for
 ## screenshots: skips to the result right away). params mode = "tower" and floor (int) play a
 ## floor of the Spire instead (the floor is stage-shaped, so the rest of the screen is shared).
+## Debug builds on a throwaway save (--rich / --fresh), for screenshots: result = "victory" |
+## "defeat" skips to that result; manual = true plays with manual ultimates (cards fill and wait).
+##
+## Style v4 (the poster look, docs/dev/ui-style-v4.md): the fight stays in full colour; the HUD
+## around it is printed instrument readouts on paper strips (src/ui/v4/battle/battle_print.gd): the
+## top strip (stage, FOES / TEAM pips, TIME, AUTO, the speed stamp, SKIP), the boss band, paper
+## readout tags over the units, the allies as framed print cards on the bottom strip; the results
+## are risograph posters (battle_result.gd).
 ##
 ## The BattleSim runs a little ahead of what the player sees (SIM_LEAD_MS of battle time).
 ## Every event is scheduled on a display clock so animations line up with their results:
@@ -19,6 +27,11 @@ const UltCinematic := preload("res://src/ui/battle/ult_cinematic.gd")
 const AllyPortrait := preload("res://src/ui/battle/ally_portrait.gd")
 const BattleResult := preload("res://src/ui/battle/battle_result.gd")
 const StageInfo := preload("res://src/ui/battle/stage_info.gd")
+const BP := preload("res://src/ui/v4/battle/battle_print.gd")
+const PK := preload("res://src/ui/v4/poster_kit.gd")
+const HPK := preload("res://src/ui/v4/hero_poster_kit.gd")
+const HUD := preload("res://src/ui/components/hud.gd")
+const Plate := preload("res://src/ui/components/plate.gd")
 
 const TICK_MS := 100
 ## How far (battle ms) the sim runs ahead of the display clock. Must exceed the longest lead.
@@ -30,10 +43,11 @@ const HIT_LEAD := {"attack_melee": 330.0, "attack_thrust": 320.0, "attack_ranged
 const BOLT_MS := 240.0
 ## Impact frame of the shared "ultimate" animation (seconds at speed 1).
 const ULT_HIT_S := 0.98
-const TOP_H := 112.0
-const BOSS_H := 58.0
+## The top strip (below the safe area), the boss band and the bottom strip (above the safe area).
+const TOP_H := 104.0
+const BOSS_H := 88.0
 const BOTTOM_H := 196.0
-## Width of an ally card on the bottom rail.
+## Width of an ally card on the bottom strip.
 const PORTRAIT_W := 120.0
 const END_DELAY := 1.4
 const INTRO_TIME := 1.25
@@ -41,11 +55,18 @@ const FRONT_X := [0.31, 0.69]
 const BACK_X := [0.16, 0.5, 0.84]
 ## Where repeat numbers on one unit appear (fan slots 0-3, relative to the head).
 const NUM_FAN := [Vector2(0, -10), Vector2(34, -40), Vector2(-34, -70), Vector2(14, -100)]
+## Status words float up in mono type: debuffs in signal, buffs on paper.
 const STATUS_TEXT := {
-	"stun": ["Stunned", Color("ffe066")], "burn": ["Burn", Color("ff8a4a")], "regen": ["Regen", Color("5cd6a0")],
-	"taunt": ["Taunt", Color("f2c14e")], "atk_up": ["ATK Up", Color("5cd6a0")], "atk_down": ["ATK Down", Color("ff6a6a")],
-	"def_up": ["DEF Up", Color("5cd6a0")], "def_down": ["DEF Down", Color("ff6a6a")], "spd_up": ["Haste", Color("6fc3e8")],
+	"stun": ["STUNNED", Color("ff4b1f")], "burn": ["BURN", Color("ff8a62")], "regen": ["REGEN", Color("9fe0bf")],
+	"taunt": ["TAUNT", Color("f5f4f0")], "atk_up": ["ATK UP", Color("f5f4f0")], "atk_down": ["ATK DOWN", Color("ff4b1f")],
+	"def_up": ["DEF UP", Color("f5f4f0")], "def_down": ["DEF DOWN", Color("ff4b1f")], "spd_up": ["HASTE", Color("f5f4f0")],
 }
+## Floating numbers (style v4): damage in compressed type, paper on ink for hits on echoes, ink on
+## paper for hits on the team, signal for crits and executes; heals and shields in mono.
+const NUM_PAPER := Color("f5f4f0")
+const NUM_INK := Color("101113")
+const NUM_HEAL := Color("9fe0bf")
+const NUM_SHIELD := Color("c9d6de")
 
 var _index := -1
 var _stage: Dictionary = {}
@@ -81,9 +102,18 @@ var _hud: Control
 var _bottom: Control
 var _overlay: Control
 var _timer_label: Label
+var _time_ticks: Control
+var _foe_dots: Control
+var _team_dots: Control
+var _alive_sig := ""
 var _auto_slot: Control
-var _speed_label: Label
-var _boss_bar: ProgressBar
+var _auto_led: Control
+var _auto_caption: Label
+var _mode_note: Label
+var _speed_stamp: Control
+var _boss_band: Control
+## Debug screenshots: the result a Skip lands on ("victory" | "defeat"; "" = the real one).
+var _force_result := ""
 var _shake_t := 0.0
 var _shake_amp := 0.0
 var _dim_target := 0.0
@@ -123,6 +153,11 @@ func setup(params: Dictionary) -> void:
 	_team_size = (_setup.allies as Array).size()
 	_sim = BattleSim.new(_setup)
 	_sim.auto_ultimates = Game.setting("auto_ultimates") != false
+	if _debug_params_ok():
+		var fr := str(params.get("result", ""))
+		_force_result = fr if fr in ["victory", "defeat"] else ""
+		if bool(params.get("manual", false)):
+			_sim.auto_ultimates = false
 	var sp: Variant = Game.setting("battle_speed")
 	_speed = int(sp) if (sp is int or sp is float) and [1, 2, 4].has(int(sp)) else 1
 	for u: Dictionary in _sim.units:
@@ -131,9 +166,15 @@ func setup(params: Dictionary) -> void:
 	_build()
 	_layout_units()
 	_start_intro()
-	# Screenshots: jump to the result (params skip = true).
-	if bool(params.get("skip", false)):
+	# Screenshots: jump to the result (params skip = true, or a forced result).
+	if bool(params.get("skip", false)) or _force_result != "":
 		get_tree().create_timer(0.4).timeout.connect(_skip)
+
+
+## Debug-only params (result, manual) work in debug builds on the throwaway save only.
+func _debug_params_ok() -> bool:
+	var args := OS.get_cmdline_user_args()
+	return OS.is_debug_build() and (args.has("--rich") or args.has("--fresh"))
 
 
 func _exit_tree() -> void:
@@ -281,8 +322,21 @@ func _layout_units() -> void:
 	_units.move_child(_dim, -1)
 
 
-## Top HUD (style v2): exit, the stage plate (cyan stage tag, timer, name) on dark glass,
-## then Auto / speed / Skip on the right; a boss plate with its HP bar under it.
+## Width of the screen (before the first layout, the viewport's).
+func _width() -> float:
+	return size.x if size.x > 0.0 else get_viewport_rect().size.x
+
+
+func _height() -> float:
+	return size.y if size.y > 0.0 else get_viewport_rect().size.y
+
+
+## Top HUD (style v4 poster look): a paper strip printed like an instrument panel over the field,
+## with a hairline and a tick ruler along its foot and a soft shadow under it. EXIT (a printed arrow),
+## the stage block (kicker, the stage id huge in compressed type, the name, FOES / TEAM pips), the TIME
+## block (the clock in compressed type over a tick ruler that empties), then AUTO (a status light),
+## the battle speed as a stamp on a silver disc and SKIP with signal chevrons. A boss fight adds the
+## boss band under the strip (BP.BossBand: her name huge, the HP bar crossing it, her red print).
 func _build_hud() -> void:
 	_hud = Control.new()
 	_hud.name = "Hud"
@@ -290,117 +344,228 @@ func _build_hud() -> void:
 	_hud.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	add_child(_hud)
 	var top := UI.safe_top()
-	# Top shade so the controls read on any backdrop.
-	var shade := TextureRect.new()
-	shade.texture = Kit.vgradient(Color(Kit.CHROME, 0.88), Color(Kit.CHROME, 0.0))
-	shade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	shade.stretch_mode = TextureRect.STRETCH_SCALE
-	shade.mouse_filter = MOUSE_FILTER_IGNORE
-	shade.anchor_right = 1.0
-	shade.offset_bottom = top + TOP_H + 40.0
-	_hud.add_child(shade)
-
-	var row := Kit.hbox(6)
-	row.anchor_right = 1.0
-	row.offset_left = 10
-	row.offset_right = -10
-	row.offset_top = top + 8
-	row.offset_bottom = top + 8 + 96
-	_hud.add_child(row)
-	var back := _hud_button("exit", "Exit", _ask_retreat)
-	row.add_child(back)
-	var plate := PanelContainer.new()
-	plate.mouse_filter = MOUSE_FILTER_IGNORE
-	plate.add_theme_stylebox_override("panel", Kit.style("notice"))
-	plate.size_flags_horizontal = SIZE_EXPAND_FILL
-	plate.size_flags_vertical = SIZE_SHRINK_CENTER
-	var info := Kit.vbox(0)
-	info.mouse_filter = MOUSE_FILTER_IGNORE
-	var t1 := Kit.hbox(10)
-	t1.mouse_filter = MOUSE_FILTER_IGNORE
-	t1.add_child(Kit.tag(str(_stage.get("id", "")), Kit.ACCENT, Color.WHITE, 24))
-	_timer_label = Kit.label("1:30", 30, Color.WHITE, "cond_bold")
-	t1.add_child(Kit.icon("timer", 24, Kit.INK_DIM))
-	t1.add_child(_timer_label)
-	info.add_child(t1)
-	var nm := Kit.label(str(_stage.get("name", "")).to_upper(), 18, Kit.INK_DIM, "cond_bold")
-	nm.clip_text = true
-	nm.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	nm.custom_minimum_size.x = 120
-	info.add_child(nm)
-	plate.add_child(Kit.margin(info, 14, 8))
-	row.add_child(plate)
-	_auto_slot = Control.new()
-	_auto_slot.custom_minimum_size = Vector2(84, 96)
-	row.add_child(_auto_slot)
-	_rebuild_auto()
-	var spd := _hud_button("speed", "", _toggle_speed)
-	_speed_label = spd.get_meta("caption")
-	_speed_label.text = "%dx" % _speed
-	row.add_child(spd)
-	row.add_child(_hud_button("skip", "Skip", _skip))
-
+	var w := _width()
+	var strip_h := top + TOP_H
 	if _boss_uid != "":
-		var bv: Node2D = _views[_boss_uid]
-		var bp := PanelContainer.new()
-		bp.mouse_filter = MOUSE_FILTER_IGNORE
-		bp.add_theme_stylebox_override("panel", Kit.style("notice"))
-		bp.anchor_left = 0.5
-		bp.anchor_right = 0.5
-		bp.offset_left = -260
-		bp.offset_right = 260
-		bp.offset_top = top + TOP_H - 2
-		bp.offset_bottom = top + TOP_H + BOSS_H - 6
-		var box := Kit.vbox(2)
-		box.mouse_filter = MOUSE_FILTER_IGNORE
-		var nrow := Kit.hbox(8)
-		nrow.mouse_filter = MOUSE_FILTER_IGNORE
-		nrow.add_child(Kit.tag("BOSS", Kit.EMBER, Color.WHITE, 16))
-		var bn := Kit.label(str(Game.hero_def(str(bv.get("hero_id"))).get("name", "")).to_upper(), 20, Color.WHITE, "cond_bold")
-		bn.size_flags_horizontal = SIZE_EXPAND_FILL
-		nrow.add_child(bn)
-		nrow.add_child(Kit.deco("barcode", Vector2(60, 14), Color(1, 1, 1, 0.35)))
-		box.add_child(nrow)
-		_boss_bar = Kit.progress_bar(1.0, 1.0, Kit.EMBER, 14)
-		box.add_child(_boss_bar)
-		bp.add_child(Kit.margin(box, 12, 5))
-		_hud.add_child(bp)
+		_build_boss_band(strip_h, w)
+	var sh := BP.shade(_hud, Rect2(0, strip_h, w, 18), true)
+	sh.anchor_right = 1.0
+	sh.offset_right = 0.0
+	var paper := ColorRect.new()
+	paper.name = "TopStrip"
+	paper.color = BP.PAPER
+	paper.mouse_filter = MOUSE_FILTER_IGNORE
+	paper.anchor_right = 1.0
+	paper.offset_bottom = strip_h
+	_hud.add_child(paper)
+	var foot := ColorRect.new()
+	foot.color = Color(BP.INK, 0.75)
+	foot.mouse_filter = MOUSE_FILTER_IGNORE
+	foot.anchor_right = 1.0
+	foot.offset_top = strip_h - 1.0
+	foot.offset_bottom = strip_h
+	_hud.add_child(foot)
+	var ruler := BP.Ticks.new()
+	ruler.count = int(w / 10.0)
+	ruler.major = 6
+	ruler.color = Color(BP.INK, 0.45)
+	ruler.anchor_right = 1.0
+	ruler.offset_top = strip_h - 9.0
+	ruler.offset_bottom = strip_h - 2.0
+	_hud.add_child(ruler)
+
+	var y0 := top
+	# EXIT: a long printed arrow and its label.
+	var ex := _hud_hit("Hud_Exit", Rect2(4, y0 + 8, 88, 88), _ask_retreat)
+	var arrow := HPK.Arrow.new()
+	arrow.size = Vector2(40, 16)
+	arrow.position = Vector2(20, 26)
+	ex.add_child(arrow)
+	var exl := BP.t("Exit", 12, BP.INK, "mono_bold")
+	exl.uppercase = true
+	exl.position = Vector2(20, 48)
+	ex.add_child(exl)
+	_hud.add_child(ex)
+	BP.rect(_hud, Rect2(98, y0 + 14, 1, TOP_H - 30), Color(BP.INK, 0.55))
+
+	# The stage block.
+	var kick := BP.t(("SPIRE · FLOOR" if _mode == "tower" else "STAGE · CH.%02d" % (int(_stage.get("chapter", 0)) + 1)), 11, Color(BP.INK, 0.7), "mono_bold")
+	kick.position = Vector2(110, y0 + 10)
+	_hud.add_child(kick)
+	var id_text := ("F%02d" % _floor) if _mode == "tower" else str(_stage.get("id", ""))
+	var idl := BP.t(id_text, 52, BP.INK, "compressed")
+	idl.position = Vector2(108, y0 + 18)
+	_hud.add_child(idl)
+	var idw := Kit.font("compressed").get_string_size(id_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 52).x
+	var nx := 110.0 + idw + 12.0
+	var nm := BP.t(str(_stage.get("name", "")).to_upper(), 11, BP.INK, "mono")
+	nm.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	nm.max_lines_visible = 2
+	nm.clip_text = true
+	nm.position = Vector2(nx, y0 + 33)
+	nm.size = Vector2(maxf(312.0 - nx, 40.0), 32)
+	_hud.add_child(nm)
+	var n_foes := 0
+	for u: Dictionary in _sim.units:
+		if u.side == "enemy":
+			n_foes += 1
+	var fl := BP.t("FOES", 10, Color(BP.INK, 0.75), "mono_bold")
+	fl.position = Vector2(110, y0 + 76)
+	_hud.add_child(fl)
+	_foe_dots = HUD.Dots.new()
+	_foe_dots.count = n_foes
+	_foe_dots.filled = n_foes
+	_foe_dots.square = true
+	_foe_dots.gap = 3.0
+	_foe_dots.color = BP.SIG
+	_foe_dots.empty = Color(BP.INK, 0.45)
+	_foe_dots.position = Vector2(142, y0 + 79)
+	_foe_dots.size = Vector2(n_foes * 12 + 15, 12)
+	_hud.add_child(_foe_dots)
+	var tl := BP.t("TEAM", 10, Color(BP.INK, 0.75), "mono_bold")
+	tl.position = Vector2(218, y0 + 76)
+	_hud.add_child(tl)
+	_team_dots = HUD.Dots.new()
+	_team_dots.count = _team_size
+	_team_dots.filled = _team_size
+	_team_dots.square = true
+	_team_dots.gap = 3.0
+	_team_dots.color = BP.INK
+	_team_dots.empty = Color(BP.INK, 0.45)
+	_team_dots.position = Vector2(250, y0 + 79)
+	_team_dots.size = Vector2(_team_size * 12 + 15, 12)
+	_hud.add_child(_team_dots)
+	BP.rect(_hud, Rect2(322, y0 + 14, 1, TOP_H - 30), Color(BP.INK, 0.55))
+
+	# The TIME block.
+	var tk := BP.t("TIME", 11, Color(BP.INK, 0.7), "mono_bold")
+	tk.position = Vector2(334, y0 + 10)
+	_hud.add_child(tk)
+	_timer_label = BP.t("1:30", 46, BP.INK, "compressed")
+	_timer_label.position = Vector2(332, y0 + 22)
+	_hud.add_child(_timer_label)
+	_time_ticks = PK.ticks(30, 30, Vector2(88, 9), Color(BP.INK, 0.4), BP.INK)
+	_time_ticks.position = Vector2(334, y0 + 80)
+	_hud.add_child(_time_ticks)
+
+	# AUTO, the speed stamp and SKIP, pinned to the right edge.
+	var right := Control.new()
+	right.name = "HudRight"
+	right.mouse_filter = MOUSE_FILTER_IGNORE
+	right.anchor_left = 1.0
+	right.anchor_right = 1.0
+	right.offset_left = -280.0
+	right.offset_right = -8.0
+	right.offset_top = y0 + 8.0
+	right.offset_bottom = y0 + 96.0
+	_hud.add_child(right)
+	_auto_slot = _hud_hit("Hud_Auto", Rect2(0, 0, 88, 88), _toggle_auto)
+	var sock := Panel.new()
+	sock.mouse_filter = MOUSE_FILTER_IGNORE
+	var ss := StyleBoxFlat.new()
+	ss.bg_color = Color(BP.INK, 0.06)
+	ss.border_color = Color(BP.INK, 0.6)
+	ss.set_border_width_all(1)
+	ss.set_corner_radius_all(9)
+	ss.anti_aliasing = true
+	sock.add_theme_stylebox_override("panel", ss)
+	sock.position = Vector2(10, 14)
+	sock.size = Vector2(18, 18)
+	_auto_slot.add_child(sock)
+	_auto_led = HUD.Led.new()
+	_auto_led.mode = "breathe"
+	_auto_led.color = BP.SIG
+	_auto_led.position = Vector2(5, 9)
+	_auto_led.size = Vector2(28, 28)
+	_auto_slot.add_child(_auto_led)
+	_auto_caption = BP.t("Auto", 14, BP.INK, "mono_bold")
+	_auto_caption.uppercase = true
+	_auto_caption.position = Vector2(10, 38)
+	_auto_slot.add_child(_auto_caption)
+	var asub := BP.t("ULTIMATES", 9, Color(BP.INK, 0.65), "mono")
+	asub.position = Vector2(10, 58)
+	_auto_slot.add_child(asub)
+	right.add_child(_auto_slot)
+	_rebuild_auto()
+
+	var spd := _hud_hit("Hud_Speed", Rect2(94, 0, 88, 88), _toggle_speed)
+	var disc := PK.stamp_disc(spd, Vector2(7, 7), 74.0, "SPEED · 1X · 2X · 4X · ", "%dX" % _speed, -0.12)
+	_speed_stamp = disc.get_meta("stamp") as Control
+	spd.button_down.connect(func() -> void: (disc as Plate).set_pressed_look(true))
+	spd.button_up.connect(func() -> void: (disc as Plate).set_pressed_look(false))
+	right.add_child(spd)
+
+	var skip := _hud_hit("Hud_Skip", Rect2(184, 0, 88, 88), _skip)
+	var skl := BP.t("Skip", 15, BP.INK, "mono_bold")
+	skl.uppercase = true
+	skl.position = Vector2(14, 20)
+	skip.add_child(skl)
+	var chev := PK.chevrons(3, 18.0, BP.SIG)
+	chev.position = Vector2(15, 46)
+	skip.add_child(chev)
+	BP.rect(skip, Rect2(14, 72, 52, 1), Color(BP.INK, 0.8))
+	right.add_child(skip)
+	SignalKit.relight(self)
 
 
-## HUD button: an 76 px glass (or cyan) tile with an uppercase caption under it. The
-## caption Label is in meta "caption" (its text keeps its case; it displays uppercase).
-func _hud_button(icon_name: String, caption: String, cb: Callable, look: String = "round") -> Control:
-	var b := Kit.icon_button(icon_name, cb, 76, look)
-	b.name = "Hud_" + (caption if caption != "" else icon_name).to_pascal_case()
-	b.custom_minimum_size = Vector2(80, 96)
-	var l := Kit.label(caption, 17, Color.WHITE, "cond_bold")
-	l.uppercase = true
-	l.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
-	l.add_theme_constant_override("shadow_outline_size", 4)
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.anchor_left = 0.0
-	l.anchor_right = 1.0
-	l.anchor_top = 1.0
-	l.anchor_bottom = 1.0
-	l.offset_top = -22
-	l.offset_bottom = 2
-	b.add_child(l)
-	b.set_meta("caption", l)
+## The boss band under the top strip.
+func _build_boss_band(y: float, w: float) -> void:
+	var bv: Node2D = _views[_boss_uid]
+	var hid := str(bv.get("hero_id"))
+	var def := Game.hero_def(hid)
+	var u := _sim.unit(_boss_uid)
+	var fac := str(Kit.FACTION_NAMES.get(str(def.get("faction", "")), str(def.get("faction", "")))).to_upper()
+	var kicker := "·  %s ECHO" % fac
+	if int(u.get("level", 0)) > 0:
+		kicker += "  ·  LV%d" % int(u.level)
+	_boss_band = BP.BossBand.new()
+	_boss_band.name = "BossBand"
+	_boss_band.call("build", hid, str(def.get("name", "")), kicker, w)
+	_boss_band.anchor_right = 1.0
+	_boss_band.offset_left = 0.0
+	_boss_band.offset_right = 0.0
+	_boss_band.offset_top = y
+	_boss_band.offset_bottom = y + BOSS_H
+	_hud.add_child(_boss_band)
+	_boss_band.call("set_hp", int(u.get("hp", 1)), int(u.get("max_hp", 1)), false)
+
+
+## A bare HUD button (88 px target) that holds printed type; dims while held and plays the tap.
+func _hud_hit(node_name: String, r: Rect2, cb: Callable) -> Button:
+	var b := Button.new()
+	b.name = node_name
+	b.theme_type_variation = &"BareButton"
+	b.focus_mode = FOCUS_NONE
+	b.mouse_filter = MOUSE_FILTER_STOP
+	b.position = r.position
+	b.size = r.size
+	b.button_down.connect(func() -> void:
+		b.modulate.a = 0.6
+		Kit.haptic(10))
+	b.button_up.connect(func() -> void: b.modulate.a = 1.0)
+	b.pressed.connect(func() -> void:
+		Kit.sfx("tap")
+		cb.call())
 	return b
 
 
+## AUTO's light and caption ("Auto" lit in signal, "Manual" dark) and the bottom strip's note.
 func _rebuild_auto() -> void:
-	for c in _auto_slot.get_children():
-		c.queue_free()
 	var on := _sim.auto_ultimates
-	var b := _hud_button("auto", "Auto" if on else "Manual", _toggle_auto, "accent" if on else "round")
-	b.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	_auto_slot.add_child(b)
+	if _auto_led:
+		_auto_led.visible = on
+	if _auto_caption:
+		_auto_caption.text = "Auto" if on else "Manual"
+	if _mode_note:
+		_mode_note.text = "ULTIMATES · AUTO" if on else "ULTIMATES · MANUAL · TAP"
 
 
-## Bottom rail (style v2): the five ally cards on a dark glass band with a technical top
-## line; the faction bonus tag above its left end; the manual-mode hint above its centre.
+## Bottom strip (style v4 poster look): a paper strip with a hairline and a tick ruler along its top
+## edge and a soft shadow over the field; the five allies as framed print cards (AllyPortrait); turned
+## micro type in the margins (the squad count, the ultimates mode). Stuck on above it: the faction
+## bonus as a paper sticker and the manual-mode hint as a signal sticker.
 func _build_bottom() -> void:
+	var w := _width()
 	_bottom = Control.new()
 	_bottom.name = "Bottom"
 	_bottom.mouse_filter = MOUSE_FILTER_IGNORE
@@ -409,30 +574,48 @@ func _build_bottom() -> void:
 	_bottom.anchor_bottom = 1.0
 	_bottom.offset_top = -(BOTTOM_H + UI.safe_bottom())
 	add_child(_bottom)
-	var bg := TextureRect.new()
-	bg.texture = Kit.vgradient(Color(Kit.CHROME, 0.0), Color(Kit.CHROME, 0.94))
-	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	bg.stretch_mode = TextureRect.STRETCH_SCALE
-	bg.mouse_filter = MOUSE_FILTER_IGNORE
-	bg.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	bg.offset_top = -50
-	_bottom.add_child(bg)
-	var rail := Panel.new()
-	rail.mouse_filter = MOUSE_FILTER_IGNORE
-	rail.add_theme_stylebox_override("panel", Kit.box(Color(0.06, 0.065, 0.075, 0.72), Color(0.03, 0.035, 0.04, 0.85), Color.TRANSPARENT, 0))
-	rail.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	rail.offset_top = 8
-	_bottom.add_child(rail)
-	var line := Kit.deco("techline", Vector2(720, 10), Color(1, 1, 1, 0.35))
-	line.anchor_right = 1.0
-	line.offset_top = 3
-	line.offset_bottom = 13
-	_bottom.add_child(line)
+	var sh := BP.shade(_bottom, Rect2(0, -18, w, 18), false)
+	sh.anchor_right = 1.0
+	sh.offset_right = 0.0
+	var paper := ColorRect.new()
+	paper.name = "BottomStrip"
+	paper.color = BP.PAPER
+	paper.mouse_filter = MOUSE_FILTER_IGNORE
+	paper.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	_bottom.add_child(paper)
+	var edge := ColorRect.new()
+	edge.color = Color(BP.INK, 0.75)
+	edge.mouse_filter = MOUSE_FILTER_IGNORE
+	edge.anchor_right = 1.0
+	edge.offset_bottom = 1.0
+	_bottom.add_child(edge)
+	var ruler := BP.Ticks.new()
+	ruler.count = int(w / 10.0)
+	ruler.major = 6
+	ruler.from_top = true
+	ruler.color = Color(BP.INK, 0.45)
+	ruler.anchor_right = 1.0
+	ruler.offset_top = 1.0
+	ruler.offset_bottom = 8.0
+	_bottom.add_child(ruler)
+	var squad := BP.t("SQUAD · %02d" % _team_size, 10, Color(BP.INK, 0.7), "mono_bold")
+	squad.rotation = PI * 0.5
+	squad.position = Vector2(30, 24)
+	_bottom.add_child(squad)
+	_mode_note = BP.t("", 10, Color(BP.INK, 0.7), "mono_bold")
+	_mode_note.rotation = PI * 0.5
+	_mode_note.anchor_left = 1.0
+	_mode_note.anchor_right = 1.0
+	_mode_note.offset_left = -12.0
+	_mode_note.offset_top = 24.0
+	_bottom.add_child(_mode_note)
+	_rebuild_auto()
 	var row := Kit.hbox(8)
+	row.mouse_filter = MOUSE_FILTER_IGNORE
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.anchor_right = 1.0
-	row.offset_top = 26
-	row.offset_bottom = 26 + 164
+	row.offset_top = 16
+	row.offset_bottom = 16 + AllyPortrait.HEIGHT
 	_bottom.add_child(row)
 	var by_slot := {}
 	for u: Dictionary in _sim.units:
@@ -440,15 +623,24 @@ func _build_bottom() -> void:
 			by_slot[int(u.slot)] = u
 	for s in 5:
 		if not by_slot.has(s):
-			# An unused slot: a dim plain tile (no "+": heroes can't join mid-battle).
+			# An unused slot: an empty printed frame (heroes can't join mid-battle).
 			var e := Control.new()
-			e.custom_minimum_size = Vector2(PORTRAIT_W, 150)
+			e.custom_minimum_size = Vector2(PORTRAIT_W, AllyPortrait.HEIGHT)
 			e.mouse_filter = MOUSE_FILTER_IGNORE
+			var no := BP.t("%02d" % (s + 1), 11, Color(BP.INK, 0.4), "mono_bold")
+			no.position = Vector2(0, -1)
+			e.add_child(no)
 			var ph := Panel.new()
 			ph.mouse_filter = MOUSE_FILTER_IGNORE
-			ph.add_theme_stylebox_override("panel", Kit.box(Color(1, 1, 1, 0.035), Color(1, 1, 1, 0.02), Color(1, 1, 1, 0.08), 4, 1))
-			ph.size = Vector2(PORTRAIT_W, PORTRAIT_W)
+			ph.add_theme_stylebox_override("panel", Kit.box(Color(BP.INK, 0.04), Color(BP.INK, 0.04), Color(BP.INK, 0.25), 0, 1))
+			ph.position = Vector2(0, AllyPortrait.TOP)
+			ph.size = Vector2(PORTRAIT_W, AllyPortrait.FRAME_H)
 			e.add_child(ph)
+			var dash := BP.t("EMPTY", 10, Color(BP.INK, 0.4), "mono_bold")
+			dash.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			dash.position = Vector2(0, AllyPortrait.TOP + AllyPortrait.FRAME_H * 0.5 - 8)
+			dash.size = Vector2(PORTRAIT_W, 16)
+			e.add_child(dash)
 			row.add_child(e)
 			continue
 		var u: Dictionary = by_slot[s]
@@ -459,33 +651,49 @@ func _build_bottom() -> void:
 		p.pressed.connect(func() -> void: _on_portrait(uid))
 		row.add_child(p)
 		_portraits[uid] = p
-	# Faction bonus tag.
+	# The faction bonus as a paper sticker over the field.
 	var fb := _sim.faction_bonus("ally")
 	if not fb.is_empty():
-		var chip := PanelContainer.new()
-		chip.mouse_filter = MOUSE_FILTER_IGNORE
-		chip.add_theme_stylebox_override("panel", Kit.style("notice"))
-		var r2 := Kit.hbox(6)
+		var chip := _sticker(BP.PAPER)
+		var r2 := Kit.hbox(8)
 		r2.mouse_filter = MOUSE_FILTER_IGNORE
-		r2.add_child(Kit.faction_icon(str(fb.faction), 26))
-		r2.add_child(Kit.label("x%d  +%d%% HP & ATK" % [int(fb.count), int(fb.bonus_bp) / 100], 19, Kit.GOOD, "cond_bold"))
-		chip.add_child(Kit.margin(r2, 10, 2))
-		chip.position = Vector2(12, -36)
+		var fi := Kit.icon("faction_" + str(fb.faction), 18, BP.INK)
+		fi.size_flags_vertical = SIZE_SHRINK_CENTER
+		r2.add_child(fi)
+		r2.add_child(BP.t("x%d  ·  +%d%% HP & ATK" % [int(fb.count), int(fb.bonus_bp) / 100], 12, BP.INK, "mono_bold"))
+		chip.add_child(r2)
+		chip.position = Vector2(12, -42)
+		chip.rotation = -0.02
 		_bottom.add_child(chip)
-	var hint := PanelContainer.new()
-	hint.mouse_filter = MOUSE_FILTER_IGNORE
-	hint.add_theme_stylebox_override("panel", Kit.box(Color("080c19e6"), Color("080c19e6"), Kit.ACCENT, 6, 2, 0))
-	var hl := Kit.label("Manual: tap a glowing card to cast", 20, Color.WHITE, "extrabold")
+	var hint := _sticker(BP.SIG)
+	var hl := BP.t("MANUAL  ·  TAP A FULL CARD TO CAST", 13, BP.PAPER, "mono_bold")
 	hl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint.add_child(Kit.margin(hl, 18, 4))
+	hint.add_child(hl)
 	hint.anchor_left = 0.5
 	hint.anchor_right = 0.5
 	hint.grow_horizontal = GROW_DIRECTION_BOTH
-	hint.offset_top = -44
-	hint.offset_bottom = -8
+	hint.offset_top = -48
+	hint.offset_bottom = -14
 	hint.visible = false
 	_bottom.add_child(hint)
 	_manual_hint = hint
+
+
+## A printed sticker (paper or signal) with a small shadow.
+func _sticker(fill: Color) -> PanelContainer:
+	var p := PanelContainer.new()
+	p.mouse_filter = MOUSE_FILTER_IGNORE
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = fill
+	sb.shadow_color = Color(0, 0, 0, 0.35)
+	sb.shadow_size = 6
+	sb.shadow_offset = Vector2(1, 3)
+	sb.content_margin_left = 12
+	sb.content_margin_right = 12
+	sb.content_margin_top = 6
+	sb.content_margin_bottom = 6
+	p.add_theme_stylebox_override("panel", sb)
+	return p
 
 
 ## Shows the manual-mode hint for a few seconds.
@@ -502,6 +710,8 @@ func _flash_hint() -> void:
 
 # ------------------------------------------------------------------ intro
 
+## The units fade up into place; a printed slip with the stage slides across the field, then FIGHT
+## slams in, huge in compressed signal type over an ink plate printed out of register.
 func _start_intro() -> void:
 	_phase = "intro"
 	_phase_t = 0.0
@@ -516,37 +726,41 @@ func _start_intro() -> void:
 		tw.tween_property(sprite, "modulate:a", 1.0, 0.35).set_delay(delay)
 		tw.tween_property(sprite, "position:y", 0.0, 0.45).set_delay(delay).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		v.call("set_speed", float(_speed))
-	var banner := Kit.vbox(4)
-	banner.mouse_filter = MOUSE_FILTER_IGNORE
-	banner.alignment = BoxContainer.ALIGNMENT_CENTER
-	var rib := Kit.ribbon(("Floor %d" % _floor) if _mode == "tower" else ("Stage %s" % str(_stage.get("id", ""))),
-		440, Kit.ACCENT, Color.WHITE, 40)
-	banner.add_child(rib)
-	var nm := Kit.label(str(_stage.get("name", "")).to_upper(), 30, Color.WHITE, "cond_bold", 6)
-	nm.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	banner.add_child(nm)
-	banner.set_anchors_and_offsets_preset(PRESET_CENTER)
-	banner.offset_left = -240
-	banner.offset_right = 240
-	banner.offset_top = -80
-	banner.offset_bottom = 40
-	_overlay.add_child(banner)
-	banner.pivot_offset = Vector2(240, 60)
-	Kit.pop_in(banner, 0.05, 0.35)
-	var tw2 := banner.create_tween()
+	var slip := _sticker(BP.PAPER)
+	var col := Kit.vbox(0)
+	col.mouse_filter = MOUSE_FILTER_IGNORE
+	var kick := ("SPIRE  ·  FLOOR %02d" % _floor) if _mode == "tower" else ("STAGE %s  ·  CH.%02d" % [str(_stage.get("id", "")), int(_stage.get("chapter", 0)) + 1])
+	col.add_child(BP.t(kick, 12, BP.SIG, "mono_bold"))
+	var nm := BP.t(str(_stage.get("name", "")).to_upper(), 44, BP.INK, "compressed")
+	col.add_child(nm)
+	var ticks := BP.Ticks.new()
+	ticks.count = 40
+	ticks.major = 10
+	ticks.custom_minimum_size = Vector2(0, 7)
+	col.add_child(ticks)
+	slip.add_child(col)
+	_overlay.add_child(slip)
+	var ss := slip.get_combined_minimum_size()
+	slip.size = ss
+	slip.position = Vector2((_width() - ss.x) * 0.5, _height() * 0.42 - ss.y - 30.0)
+	slip.rotation = -0.025
+	Kit.offset_in(slip, Vector2(-60, 0), 0.05, 0.3)
+	var tw2 := slip.create_tween()
 	tw2.tween_interval(0.85)
-	tw2.tween_property(banner, "modulate:a", 0.0, 0.2)
-	tw2.tween_callback(banner.queue_free)
-	var fight := Kit.title("FIGHT", 96, Color.WHITE)
-	fight.add_theme_color_override("font_outline_color", Kit.ACCENT_DEEP)
-	fight.add_theme_constant_override("outline_size", 10)
-	fight.add_theme_color_override("font_shadow_color", Color(Kit.ACCENT, 0.6))
-	fight.set_anchors_and_offsets_preset(PRESET_CENTER)
-	fight.offset_left = -260
-	fight.offset_right = 260
-	fight.offset_top = -60
-	fight.offset_bottom = 60
-	fight.pivot_offset = Vector2(260, 60)
+	tw2.tween_property(slip, "modulate:a", 0.0, 0.2)
+	tw2.tween_callback(slip.queue_free)
+	var fight := Control.new()
+	fight.mouse_filter = MOUSE_FILTER_IGNORE
+	fight.size = Vector2(600, 260)
+	fight.position = Vector2((_width() - 600.0) * 0.5, _height() * 0.44 - 130.0)
+	fight.pivot_offset = Vector2(300, 130)
+	for plate: Array in [[BP.INK, Vector2(8, 6)], [BP.SIG, Vector2.ZERO]]:
+		var l := BP.t("FIGHT", 210, plate[0], "compressed")
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		l.size = Vector2(600, 260)
+		l.position = plate[1]
+		fight.add_child(l)
 	fight.modulate.a = 0.0
 	_overlay.add_child(fight)
 	var tw3 := fight.create_tween()
@@ -655,22 +869,24 @@ func _apply(ev: Dictionary) -> void:
 			var hv: Node2D = _views.get(str(ev.target))
 			if hv:
 				hv.call("set_hp", int(ev.hp_after), int(hv.get("shield")))
-				_float_text(hv, "+%s" % Kit.format_num(int(ev.amount)), Color("6ff0b0"), 28, 60.0)
+				_float_text(hv, "+%s" % Kit.format_num(int(ev.amount)), NUM_HEAL, 26, 60.0, 0.0, Vector2.ZERO, "mono_bold")
 				BattleFx.burst(_fx, _fx.to_local(hv.call("chest_global")), Color("5cd6a0"), 46.0, 6)
 				_sync_portrait(hv)
+				if str(ev.target) == _boss_uid and _boss_band:
+					_boss_band.call("set_hp", int(ev.hp_after), int(hv.get("max_hp")), false)
 		"shield":
 			var sv: Node2D = _views.get(str(ev.target))
 			if sv:
 				sv.call("set_hp", int(sv.get("hp")), int(ev.shield_after))
-				_float_text(sv, "+%s" % Kit.format_num(int(ev.amount)), Color("a8e2ff"), 24, 50.0, 0.0, Vector2(0, 26))
+				_float_text(sv, "+%s" % Kit.format_num(int(ev.amount)), NUM_SHIELD, 22, 50.0, 0.0, Vector2(0, 26), "mono_bold")
 				BattleFx.burst(_fx, _fx.to_local(sv.call("chest_global")), Color("8fd3ff"), 60.0, 0)
 		"status":
 			var tv: Node2D = _views.get(str(ev.target))
 			if tv and not tv.get("dead"):
 				var st := str(ev.status)
 				tv.call("add_status", st, _display_ms + float(ev.duration_ms))
-				var info: Array = STATUS_TEXT.get(st, [st.capitalize(), Kit.INK])
-				_float_text(tv, str(info[0]), info[1], 22, 40.0, 0.08, Vector2(0, -34))
+				var info: Array = STATUS_TEXT.get(st, [st.to_upper(), NUM_PAPER])
+				_float_text(tv, str(info[0]), info[1], 18, 40.0, 0.08, Vector2(0, -34), "mono_bold")
 		"ultimate":
 			_start_ult(ev)
 		"energy":
@@ -687,8 +903,8 @@ func _apply(ev: Dictionary) -> void:
 				var dp: Node = _portraits.get(str(ev.unit))
 				if dp:
 					dp.call("set_dead")
-				if str(ev.unit) == _boss_uid and _boss_bar:
-					Kit.set_progress(_boss_bar, 0.0)
+				if str(ev.unit) == _boss_uid and _boss_band:
+					_boss_band.call("set_hp", 0, int(dv.get("max_hp")), true)
 		"end":
 			_on_end(str(ev.winner))
 
@@ -706,28 +922,33 @@ func _on_damage(ev: Dictionary) -> void:
 	var ult := bool(ev.get("from_ultimate", false))
 	var dot := bool(ev.get("dot", false))
 	var on_ally := str(dst.get("side")) == "ally"
-	var col := Color("fff3e0")
-	var fs := 30
+	# Hits on echoes: paper type cut out of ink; hits on the team: ink type cut out of paper.
+	var col := NUM_INK if on_ally else NUM_PAPER
+	var edge := NUM_PAPER if on_ally else NUM_INK
+	var fs := 36
+	var weight := "compressed"
 	var text := Kit.format_num(amount)
 	if dot:
-		col = Color("ff9a5a")
-		fs = 22
+		col = BP.SIG_HI
+		edge = NUM_INK
+		fs = 20
+		weight = "mono_bold"
 	elif bool(ev.get("execute", false)):
-		col = Color("ff5a4a")
-		fs = 38
+		col = BP.SIG
+		edge = NUM_INK
+		fs = 46
 		text = "EXECUTE"
 	else:
-		if on_ally:
-			col = Color("ff8a7a")
-		elif adv:
-			col = Color("ffb04a")
+		if adv and not on_ally:
+			col = BP.SIG_HI
 		if crit:
-			col = Color("ffd84a") if not on_ally else Color("ff5a4a")
-			fs = 42
+			col = BP.SIG
+			edge = NUM_INK if not on_ally else NUM_PAPER
+			fs = 50
 			text += "!"
 		if ult:
-			fs += 4
-	_float_text(dst, text, col, fs, 70.0 if not dot else 44.0, 0.0, Vector2(randf_range(-14.0, 14.0), 0))
+			fs += 6
+	_float_text(dst, text, col, fs, 70.0 if not dot else 44.0, 0.0, Vector2(randf_range(-14.0, 14.0), 0), weight, edge)
 	if not dot:
 		dst.call("play_hit")
 		var at: Vector2 = _fx.to_local(dst.call("chest_global"))
@@ -746,8 +967,8 @@ func _on_damage(ev: Dictionary) -> void:
 			_screen_flash(Color(1, 0.95, 0.8), 0.22)
 		else:
 			_shake(2.5)
-	if str(ev.target) == _boss_uid and _boss_bar:
-		Kit.set_progress(_boss_bar, float(ev.hp_after) / float(maxi(1, int(dst.get("max_hp")))), 1.0)
+	if str(ev.target) == _boss_uid and _boss_band:
+		_boss_band.call("set_hp", int(ev.hp_after), int(dst.get("max_hp")), true)
 
 
 ## Freeze the display clock and every rig for `secs` (real time) on a big hit.
@@ -836,18 +1057,19 @@ func _num_pos(v: Node2D) -> Vector2:
 ## A floating number or status word over unit `v`, kept below the HUD: when it would rise
 ## into the top bar (top-row enemies on short screens) it starts lower, and its fan slot
 ## stacks downward instead.
-func _float_text(v: Node2D, text: String, col: Color, fs: int, rise: float, delay: float = 0.0, extra: Vector2 = Vector2.ZERO) -> void:
+func _float_text(v: Node2D, text: String, col: Color, fs: int, rise: float, delay: float = 0.0, extra: Vector2 = Vector2.ZERO,
+		weight: String = "compressed", edge: Color = NUM_INK) -> void:
 	var pos := _num_pos(v) + extra
 	var lo := _hud_bottom() + 8.0 + fs * 0.75 + rise
 	if pos.y < lo:
 		pos.y = lo + _num_n * 30.0 + maxf(extra.y, 0.0)
 	pos.x = clampf(pos.x, 70.0, size.x - 70.0)
-	BattleFx.number(_numbers, pos, text, col, fs, rise, delay, _life())
+	BattleFx.number(_numbers, pos, text, col, fs, rise, delay, _life(), weight, edge)
 
 
-## Bottom edge of the top HUD (and the boss plate) in the numbers layer's space.
+## Bottom edge of the top strip (and the boss band) in the numbers layer's space.
 func _hud_bottom() -> float:
-	var b := UI.safe_top() + (TOP_H + BOSS_H - 6.0 if _boss_uid != "" else 8.0 + 96.0)
+	var b := UI.safe_top() + TOP_H + (BOSS_H if _boss_uid != "" else 0.0)
 	return b - _numbers.global_position.y
 
 
@@ -962,7 +1184,9 @@ func _toggle_auto() -> void:
 func _toggle_speed() -> void:
 	_speed = {1: 2, 2: 4, 4: 1}.get(_speed, 1)
 	Game.set_setting("battle_speed", _speed)
-	_speed_label.text = "%dx" % _speed
+	if _speed_stamp:
+		_speed_stamp.set("value", "%dX" % _speed)
+		_speed_stamp.queue_redraw()
 	if _hold <= 0.0:
 		for uid: String in _views:
 			_views[uid].call("set_speed", float(_speed))
@@ -991,11 +1215,14 @@ func _skip() -> void:
 				p.call("set_energy", int(u.energy))
 			else:
 				p.call("set_dead")
-	if _boss_bar and _boss_uid != "":
+	if _boss_band and _boss_uid != "":
 		var bu := _sim.unit(_boss_uid)
-		Kit.set_progress(_boss_bar, float(bu.get("hp", 0)) / float(maxi(1, int(bu.get("max_hp", 1)))), 1.0)
+		_boss_band.call("set_hp", int(bu.get("hp", 0)) if bool(bu.get("alive", true)) else 0, int(bu.get("max_hp", 1)), true)
 	_display_ms = float(_sim.t_ms)
-	_on_end(str(out.get("winner", "enemy")))
+	var winner := str(out.get("winner", "enemy"))
+	if _force_result != "":
+		winner = "ally" if _force_result == "victory" else "enemy"
+	_on_end(winner)
 	_phase_t = END_DELAY - 0.5
 
 
@@ -1032,6 +1259,8 @@ func _finish(outcome: Dictionary) -> void:
 		return
 	_completed = true
 	_phase = "result"
+	if _force_result != "":
+		outcome = _forced(outcome)
 	var res := _report(outcome)
 	var val: Dictionary = res.get("value", {}) if res.get("value") is Dictionary else {}
 	var r: Control = BattleResult.new()
@@ -1056,13 +1285,52 @@ func _finish(outcome: Dictionary) -> void:
 			"team_size": _team_size, "mvp": _mvp(outcome), "has_next": has_next,
 			"next_text": next_text, "back_text": "Spire" if _mode == "tower" else "Campaign",
 			"safe_top": UI.safe_top(), "safe_bottom": UI.safe_bottom(),
+			"mode": _mode, "floor": _floor, "report_no": _report_no(),
 		})
 	else:
 		UI.sfx("defeat")
 		r.call("show_defeat", {
 			"stage": _stage, "outcome": outcome, "team_power": int(Game.team_power()),
 			"safe_top": UI.safe_top(), "safe_bottom": UI.safe_bottom(),
+			"mvp": _mvp(outcome), "foe": _foe_mvp(outcome), "team_size": _team_size,
+			"mode": _mode, "floor": _floor, "report_no": _report_no(),
 		})
+
+
+## Debug screenshots: the outcome turned into the forced result (counts kept plausible).
+func _forced(outcome: Dictionary) -> Dictionary:
+	var o := outcome.duplicate(true)
+	var win := _force_result == "victory"
+	o["victory"] = win
+	o["winner"] = "ally" if win else "enemy"
+	if win and int(o.get("allies_alive", 0)) <= 0:
+		o["allies_alive"] = _team_size
+	if not win and int(o.get("enemies_alive", 0)) <= 0:
+		o["enemies_alive"] = 1
+	if not win:
+		o["timeout"] = false
+	return o
+
+
+## The battle report's serial number (battles fought so far).
+func _report_no() -> int:
+	return int(Game.counter("battles_won")) + int(Game.counter("battles_lost"))
+
+
+## The echo that dealt the most damage: {hero_id, damage}.
+func _foe_mvp(outcome: Dictionary) -> Dictionary:
+	var dmg: Dictionary = outcome.get("damage_dealt", {})
+	var best := ""
+	var best_n := -1
+	for uid: String in dmg:
+		if uid.begins_with("a") or not _views.has(uid):
+			continue
+		if int(dmg[uid]) > best_n:
+			best_n = int(dmg[uid])
+			best = uid
+	if best == "":
+		return {}
+	return {"hero_id": str(_views[best].get("hero_id")), "damage": best_n}
 
 
 ## 3 stars with nobody lost, 2 with at least half the team standing, else 1.
@@ -1128,16 +1396,42 @@ func _on_result_action(action_name: String) -> void:
 
 # ------------------------------------------------------------------ hud & feel
 
+## The clock, its tick ruler (one tick per 3 s left; signal in the last 10 s) and the FOES / TEAM
+## pips (who is still standing on the display clock).
 func _update_hud() -> void:
 	if _timer_label == null:
 		return
-	var secs := maxi(0, int(BattleSim.MAX_MS - _display_ms)) / 1000
+	var foes := 0
+	var team := 0
+	for uid: String in _views:
+		var v: Node2D = _views[uid]
+		if not v.get("dead"):
+			if str(v.get("side")) == "ally":
+				team += 1
+			else:
+				foes += 1
+	var sig := "%d/%d" % [foes, team]
+	if sig != _alive_sig:
+		_alive_sig = sig
+		if _foe_dots:
+			_foe_dots.set("filled", foes)
+			_foe_dots.queue_redraw()
+		if _team_dots:
+			_team_dots.set("filled", team)
+			_team_dots.queue_redraw()
+	var max_ms := maxi(1, int(_sim.max_ms))
+	var secs := maxi(0, int(max_ms - _display_ms)) / 1000
 	if secs == _shown_secs:
 		return
 	_shown_secs = secs
 	_timer_label.text = "%d:%02d" % [secs / 60, secs % 60]
+	if _time_ticks:
+		_time_ticks.set("filled", ceili(30.0 * secs * 1000.0 / float(max_ms)))
+		if secs <= 10:
+			_time_ticks.set("on", BP.SIG)
+		_time_ticks.queue_redraw()
 	if secs <= 10:
-		_timer_label.add_theme_color_override("font_color", Color("ff6a50"))
+		_timer_label.add_theme_color_override("font_color", BP.SIG)
 
 
 func _shake(amount: float) -> void:

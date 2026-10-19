@@ -182,6 +182,8 @@ func _ready() -> void:
 ## then fills its bar and lifts; the lobby's intro plays as it does. hold = stay up (shots).
 func _boot(hold: bool = false) -> void:
 	var boot := BootScreen.new()
+	# Over everything, popups included, until it lifts.
+	boot.z_index = 200
 	add_child(boot)
 	var t0 := Time.get_ticks_msec()
 	UI.hold_intro = true
@@ -248,11 +250,16 @@ func _build() -> void:
 
 	_build_top_bar()
 	_build_nav()
+	# Draw order: screens may raise pieces inside themselves (a pass's silver plate, a card's tag), so
+	# the shell's layers sit above any screen content: bars, then toasts, popups and effects.
+	top_bar.z_index = 60
+	nav_bar.z_index = 60
 
 	# A zero-width column at the centre line: UI.toast places (and restacks) toasts in it.
 	toast_box = Control.new()
 	toast_box.name = "Toasts"
 	toast_box.mouse_filter = MOUSE_FILTER_IGNORE
+	toast_box.z_index = 90
 	toast_box.anchor_left = 0.5
 	toast_box.anchor_right = 0.5
 	toast_box.grow_horizontal = GROW_DIRECTION_BOTH
@@ -260,12 +267,14 @@ func _build() -> void:
 
 	modal_layer = Control.new()
 	modal_layer.name = "Modals"
+	modal_layer.z_index = 100
 	modal_layer.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	modal_layer.mouse_filter = MOUSE_FILTER_IGNORE
 	add_child(modal_layer)
 
 	fx_layer = Control.new()
 	fx_layer.name = "Fx"
+	fx_layer.z_index = 110
 	fx_layer.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	fx_layer.mouse_filter = MOUSE_FILTER_IGNORE
 	add_child(fx_layer)
@@ -610,32 +619,12 @@ func _cell_icon(cell: Control) -> Control:
 	return null
 
 
-## The full-screen loading veil (UI.busy / UI.idle): dim glass, a spinner and a caption.
+## The full-screen loading veil (UI.busy / UI.idle), style v4 print (Kit.loading_veil): a dark band
+## with a red halftone ramp, the caption in big compressed type and a printed rule that runs.
 func show_veil(text: String) -> void:
 	if _veil == null:
-		_veil = Control.new()
+		_veil = Kit.loading_veil()
 		_veil.name = "Veil"
-		_veil.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-		_veil.mouse_filter = MOUSE_FILTER_STOP
-		var shade := TextureRect.new()
-		shade.texture = Kit.vgradient(Color("0a1830e6"), Color("040812f5"))
-		shade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		shade.stretch_mode = TextureRect.STRETCH_SCALE
-		shade.mouse_filter = MOUSE_FILTER_IGNORE
-		shade.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-		_veil.add_child(shade)
-		var col := Kit.vbox(22)
-		col.alignment = BoxContainer.ALIGNMENT_CENTER
-		col.mouse_filter = MOUSE_FILTER_IGNORE
-		col.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-		var sp := Kit.spinner(92)
-		sp.size_flags_horizontal = SIZE_SHRINK_CENTER
-		col.add_child(sp)
-		var l := Kit.label("", 26, Color(0.85, 0.95, 1.0, 0.92), "cond_bold")
-		l.name = "Caption"
-		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		col.add_child(l)
-		_veil.add_child(col)
 		add_child(_veil)
 	move_child(_veil, get_child_count() - 1)
 	(_veil.find_child("Caption", true, false) as Label).text = text.to_upper()

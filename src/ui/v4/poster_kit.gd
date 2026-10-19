@@ -341,9 +341,33 @@ const GEAR_SHAPES := {
 }
 
 
-## A gear piece as a studio object: a brushed silver part in its slot's silhouette, cast shadow on
-## the paper, the slot glyph engraved on it. Returns the Plate (size s x s).
-static func gear_object(slot: String, s: float, parent: Node = null, pos: Vector2 = Vector2.ZERO) -> Control:
+## The rendered piece for a gear item ("Gilded Spear", tier 3): assets/art/ui/gear/<noun>_<tier>.png
+## from tools/blender/gear_objects.py, or null.
+static func gear_texture(item_name: String, tier: int) -> Texture2D:
+	if item_name == "":
+		return null
+	var noun := item_name.get_slice(" ", item_name.get_slice_count(" ") - 1).to_lower()
+	var path := "res://assets/art/ui/gear/%s_%d.png" % [noun, clampi(tier, 1, 5)]
+	return load(path) as Texture2D if ResourceLoader.exists(path) else null
+
+
+## A gear piece as a studio object: its Cycles render (by item name and tier) on the paper, else a
+## brushed silver part in its slot's silhouette with the slot glyph engraved. Size s x s.
+static func gear_object(slot: String, s: float, parent: Node = null, pos: Vector2 = Vector2.ZERO, item_name: String = "",
+		tier: int = 0) -> Control:
+	var tex := gear_texture(item_name, tier)
+	if tex:
+		var tr := TextureRect.new()
+		tr.texture = tex
+		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		tr.position = pos
+		tr.size = Vector2(s, s)
+		tr.pivot_offset = Vector2(s, s) * 0.5
+		if parent:
+			parent.add_child(tr)
+		return tr
 	var pts := PackedVector2Array()
 	for v: Vector2 in GEAR_SHAPES.get(slot, GEAR_SHAPES["charm"]):
 		pts.append(v * s)
@@ -540,15 +564,19 @@ static func wire(b: Button, plates: Array, on_pressed: Callable, lbl: Control = 
 	b.button_down.connect(func() -> void:
 		b.set_meta("_down_at", b.get_global_mouse_position())
 		for p: Variant in plates:
-			if is_instance_valid(p):
+			if p is Plate and is_instance_valid(p):
 				(p as Plate).set_pressed_look(true)
+			elif p is Control and is_instance_valid(p):
+				(p as Control).scale = Vector2(0.95, 0.95)
 		if lbl and is_instance_valid(lbl):
 			lbl.modulate.a = 0.55
 		Kit.haptic(12))
 	b.button_up.connect(func() -> void:
 		for p: Variant in plates:
-			if is_instance_valid(p):
+			if p is Plate and is_instance_valid(p):
 				(p as Plate).set_pressed_look(false)
+			elif p is Control and is_instance_valid(p):
+				(p as Control).scale = Vector2.ONE
 		if lbl and is_instance_valid(lbl):
 			lbl.modulate.a = 1.0)
 	b.gui_input.connect(func(ev: InputEvent) -> void:

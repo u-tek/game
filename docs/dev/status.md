@@ -41,9 +41,15 @@ this file says where things stand. Older logs are under "History" at the bottom.
   Summon, Shop, Gear (`src/ui/v4/poster_kit.gd`), Hero page, Roster, Team
   (`src/ui/v4/hero_poster_kit.gd`, `poster_card.gd`), and Campaign (a real exploded 3D survey map
   per chapter in a SubViewport), Spire and Quests (`src/ui/v4/survey/`; smoke test
-  `tests/tools/v4_survey_smoke.gd`). The three kits overlap and should fold into `SignalKit`. Next:
-  battle HUD and results, settings, popups and dialogs (Sanctum sheet, confirms, gear picker,
-  chapter intro still use the old frame), loading screens, then an IPA.
+  `tests/tools/v4_survey_smoke.gd`), Battle (HUD strips, boss band, print cards, riso Victory and
+  Defeat posters; `src/ui/v4/battle/`, smoke `tests/tools/battle_v4_smoke.gd`), and every popup,
+  toast, the veil, the Sanctum sheet, Settings and the boot screen (`kit.gd`, `ui.gd`, `theme.gd`,
+  `src/ui/components/print_bits.gd`). Gear shows Blender renders of all 65 pieces. HDR 2D is off on
+  iOS (blown out on the iPhone). The shell's bars, toasts, popups and effects sit above screen
+  content by z_index (60/90/100/110; boot 200). The kits overlap and should fold into `SignalKit`.
+  Owner's next list (2026-10-19): nav bar on every screen but battle, bigger Back, animated battle
+  map, Team page that scrolls as a page, a richer hero tap reaction, more summon modes, Claim filled
+  in signal, avatar opens a player profile, and distinct button designs instead of one pass.
 - **Game:** v1 plays end to end (`docs/dev/architecture.md`). On the PC `tools/check e2e` passes:
   103 unit tests, boot, 3 e2e scripts; `check_port.py` 49 checks, 0 differ (2026-10-18). Added
   2026-10-18 (owner: "yeah go on" to base art, backdrops, more content):
