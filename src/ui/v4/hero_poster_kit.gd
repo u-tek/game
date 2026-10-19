@@ -493,3 +493,120 @@ class Pass:
 				l.add_theme_color_override("font_color", fill)
 			l.size = l.get_minimum_size()
 		box.size = (box.get_child(2) as Label).get_minimum_size()
+
+
+## The Level Up control as an arcade push button (owner, 2026-10-19: not every button the same
+## pass): a signal cap in a machined silver bezel beside a silver plate with the etched readouts and
+## the MAX knob. Same interface as Pass (hit, knob_hit, set_text, set_knob, set_live).
+class PressPass:
+	extends Pass
+	var _cap_ic: Control
+	var _act: Label
+
+	func build(width: float, _icon_name: String = "upgrade", knob_button: bool = true, _code: bool = false) -> void:
+		w = width
+		mouse_filter = MOUSE_FILTER_IGNORE
+		custom_minimum_size = Vector2(w, 176)
+		size = custom_minimum_size
+		silver = SignalKit.plate("silver", Vector2(60, 36), Vector2(w - 60, 128), {"cuts": [0, 16, 16, 0], "topo": 0.5,
+			"screws": [Vector2(w - 74, 14), Vector2(w - 74, 114)]}, self)
+		# The cap sits under the bezel ring; the ring's hole shows it.
+		sig = SignalKit.plate("signal", Vector2(22, 38), Vector2(124, 124), {"circle": true, "glow": 0.35, "glow_radius": 12.0,
+			"pulse": 0.6, "shadow": 0.0}, self)
+		var bezel := SignalKit.plate("silver", Vector2(6, 22), Vector2(156, 156), {"circle": true, "shadow": 0.55,
+			"hole": Vector3(78, 78, 56), "topo": 0.4}, self)
+		bezel.name = "Bezel"
+		_cap_ic = Kit.icon("upgrade", 44, Color(1, 1, 1, 0.96))
+		_cap_ic.position = Vector2(40, 30)
+		_cap_ic.size = Vector2(44, 44)
+		sig.add_child(_cap_ic)
+		var x := 116.0
+		_kick = Pass._etch_box("", 10, "mono_bold")
+		_kick.position = Vector2(x, 12)
+		silver.add_child(_kick)
+		_title = Pass._etch_box("", 28, "wide_black")
+		_title.position = Vector2(x - 2, 26)
+		silver.add_child(_title)
+		_sub = Pass._etch_box("", 10, "mono")
+		_sub.position = Vector2(x, 64)
+		silver.add_child(_sub)
+		_act = Kit.label("", 12, Color("ff4b1f"), "mono_bold")
+		_act.position = Vector2(x, 84)
+		silver.add_child(_act)
+		_info = Kit.label("", 10, Color("131416"), "mono")
+		_info.position = Vector2(x, 102)
+		silver.add_child(_info)
+		knob = SignalKit.plate("dial", Vector2(w - 60 - 70, 20), Vector2(54, 54), {"circle": true, "shadow": 0.5}, silver)
+		if knob_button:
+			_knob_top = Kit.label("", 12, Color(1, 1, 1, 0.95), "mono_bold")
+			_knob_bot = Kit.label("", 10, Color("ffb08f"), "mono_bold")
+			for l: Label in [_knob_top, _knob_bot]:
+				l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+				l.size = Vector2(54, 14)
+				knob.add_child(l)
+			_knob_top.position = Vector2(0, 13)
+			_knob_bot.position = Vector2(0, 27)
+		hit = Button.new()
+		hit.name = "PassHit"
+		hit.theme_type_variation = &"BareButton"
+		hit.focus_mode = FOCUS_NONE
+		hit.mouse_filter = MOUSE_FILTER_PASS
+		hit.position = Vector2(-4, 10)
+		hit.size = Vector2(w + 8, 170)
+		hit.button_down.connect(func() -> void:
+			hit.set_meta("_down_at", hit.get_global_mouse_position())
+			if not hit.disabled:
+				_press(true)
+				Kit.haptic(14))
+		hit.button_up.connect(func() -> void: _press(false))
+		hit.gui_input.connect(func(ev: InputEvent) -> void:
+			var mb := ev as InputEventMouseButton
+			if hit.disabled and mb and mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+				Kit.deny(self))
+		add_child(hit)
+		if knob_button:
+			knob_hit = Button.new()
+			knob_hit.name = "KnobHit"
+			knob_hit.theme_type_variation = &"BareButton"
+			knob_hit.focus_mode = FOCUS_NONE
+			knob_hit.mouse_filter = MOUSE_FILTER_PASS
+			knob_hit.size = Vector2(96, 96)
+			knob_hit.position = Vector2(w - 70 - 21, 36 + 47 - 48)
+			knob_hit.button_down.connect(func() -> void:
+				if not knob_hit.disabled:
+					(knob as Plate).set_pressed_look(true)
+					Kit.haptic(12))
+			knob_hit.button_up.connect(func() -> void: (knob as Plate).set_pressed_look(false))
+			knob_hit.gui_input.connect(func(ev: InputEvent) -> void:
+				var mb := ev as InputEventMouseButton
+				if knob_hit.disabled and mb and mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+					Kit.deny(knob))
+			add_child(knob_hit)
+
+	func _press(down: bool) -> void:
+		# Only the cap goes down, deep, like a real arcade button.
+		(sig as Plate).set_pressed_look(down)
+		sig.scale = Vector2(0.94, 0.94) if down else Vector2.ONE
+		sig.pivot_offset = sig.size * 0.5
+
+	func set_text(kicker: String, title: String, sub: String, action: String, info: String = "", sub_fill: Color = Color("131416")) -> void:
+		Pass._put_etch(_kick, kicker)
+		Pass._put_etch(_title, title)
+		Pass._put_etch(_sub, sub, sub_fill)
+		_act.text = action.replace(">>>", "").strip_edges()
+		_info.text = info
+		var room := w - 60.0 - _title.position.x - 84.0
+		var tl := _title.get_child(2) as Label
+		if tl.get_minimum_size().x > room:
+			var k := room / maxf(tl.get_minimum_size().x, 1.0)
+			_title.scale = Vector2(k, k)
+			_title.position.y = 26 + (1.0 - k) * 16.0
+		else:
+			_title.scale = Vector2.ONE
+			_title.position.y = 26
+
+
+static func make_press(width: float) -> PressPass:
+	var p := PressPass.new()
+	p.build(width)
+	return p

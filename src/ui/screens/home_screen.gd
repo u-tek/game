@@ -48,6 +48,9 @@ var _anchor: Node2D
 var _sprite: Node2D
 var _line := 0
 var _cheer_left := 0.0
+## Taps in a row on her (HeroReact) and when the last one landed (seconds of _t).
+var _tap_n := 0
+var _tap_at := -10.0
 
 var _built := Vector2.ZERO
 var _pw := 0.0
@@ -764,7 +767,39 @@ func _on_hero_tap() -> void:
 	var lines := LobbyLines.lines(_hero_id)
 	_line = (_line + 1) % lines.size()
 	_typeset(lines[_line], true)
-	_cheer()
+	_misregister()
+	# Her reaction (HeroReact): burst, camera punch, expression, a pose that changes tap by tap.
+	_tap_n = HeroReact.next_count(_tap_n, _t - _tap_at)
+	_tap_at = _t
+	_react_at(_hero_hit.position + _hero_hit.get_local_mouse_position())
+
+
+func _react_at(at: Vector2) -> void:
+	_cheer_left = HeroReact.react(_poster, _sprite, _anchor, at, _tap_n, _poster)
+	if _tap_n >= 4:
+		_tap_n = 0
+
+
+## Screenshots (--shoot-do=poke / poke4): taps her `times` times at her chest.
+func debug_poke(times: int) -> void:
+	for i in times:
+		var lines := LobbyLines.lines(_hero_id)
+		_line = (_line + 1) % lines.size()
+		_typeset(lines[_line], true)
+		_misregister()
+		_tap_n = HeroReact.next_count(_tap_n, 0.1)
+		_react_at(_hero_hit.position + _hero_hit.size * Vector2(0.55, 0.35))
+		await get_tree().create_timer(0.12).timeout
+
+
+## Her new line prints out of register and snaps into place; the halftone band flickers.
+func _misregister() -> void:
+	if not Kit.motion_ok():
+		return
+	_type_layer.position = Vector2(10, -6)
+	_type_layer.create_tween().tween_property(_type_layer, "position", Vector2.ZERO, 0.42).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_print_layer.modulate.a = 0.3
+	_print_layer.create_tween().tween_property(_print_layer, "modulate:a", 1.0, 0.4)
 
 
 func _switch_hero(dir: int) -> void:
@@ -1125,20 +1160,20 @@ func _refresh_sheet(st: Dictionary) -> void:
 				box.add_child(receipt)
 		else:
 			box.add_child(Kit.empty_state("Your heroes are gathering rewards...", "sanctum", true))
-		# Claim: the signal pass when there is something to collect, a graphite one at rest.
+		# Claim: an ink stamp (the button family's claim), inked signal when there is something to
+		# collect, a faint grey impression at rest.
 		var cs := _sheet_refs.claim_slot as HBoxContainer
 		for c in cs.get_children():
 			c.queue_free()
-		var claim := Kit.sheet_pass({"width": 580.0, "kicker": "SANCTUM  //  COLLECT", "title": "CLAIM REWARDS", "icon": "chest",
-			"action": "COLLECT  >>>" if n > 0 else "FILLING", "disabled": n == 0, "text": "Claim",
-			"info": ""}, _claim)
+		var claim := SignalKit.stamp_button({"width": 580.0, "height": 120.0, "word": "CLAIM REWARDS" if n > 0 else "FILLING",
+			"kicker": "SANCTUM  //  COLLECT", "disabled": n == 0, "button_text": "Claim"}, _claim)
 		claim.name = "Claim"
 		cs.add_child(claim)
 		_sheet_refs["claim"] = claim
 	var cl: Variant = _sheet_refs.get("claim", null)
 	if cl is Button and is_instance_valid(cl):
 		var n2 := Kit.reward_entries(pending).size()
-		((cl as Button).get_meta("info_label") as Label).text = ("%d ITEMS WAITING  ·  %d%% FULL" % [n2, pct]) if n2 > 0 else "NOTHING YET  ·  %d%% FULL" % pct
+		((cl as Button).get_meta("sub_label") as Label).text = ("%d ITEMS WAITING  ·  %d%% FULL" % [n2, pct]) if n2 > 0 else "NOTHING YET  ·  %d%% FULL" % pct
 	var cost := int(st.get("quick_claim_cost", -1))
 	var left := int(st.get("quick_claims_left", 0))
 	var qsig := "%d/%d" % [cost, left]

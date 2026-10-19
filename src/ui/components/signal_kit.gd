@@ -216,6 +216,359 @@ static func back_button(on_pressed: Callable, on_light: bool = true, text: Strin
 	return b
 
 
+## Button family (owner, 2026-10-19: one pass everywhere was too samey). The pass stays for battle
+## actions; claims are ink stamps, the shop's buys are price tags, equipping is label-maker tape,
+## levelling is an arcade push button (hero_poster_kit.gd PressPass), summons are tickets.
+## Each builder returns a Button; `button_text` sets its (invisible) text for tests and readers.
+
+## A rubber stamp inked solid in signal: rough inked edge, the word in paper letters, a kicker and a
+## dated rim line; press = the stamp comes down. spec: width (300), height (112), word ("CLAIM"),
+## kicker, sub, button_text, disabled.
+static func stamp_button(spec: Dictionary, on_pressed: Callable = Callable()) -> Button:
+	var w: float = spec.get("width", 300.0)
+	var h: float = spec.get("height", 112.0)
+	var off := bool(spec.get("disabled", false))
+	var b := _bare(Vector2(w, h), str(spec.get("button_text", "")))
+	var block := _InkBlock.new()
+	block.color = Color(INK, 0.35) if off else SIGNAL
+	block.size = Vector2(w, h)
+	block.pivot_offset = block.size * 0.5
+	b.add_child(block)
+	var kick := Kit.label(str(spec.get("kicker", "")), 11, Color(MATTE, 0.8), "mono_bold")
+	kick.position = Vector2(20, 12)
+	block.add_child(kick)
+	var word := Kit.label(str(spec.get("word", "CLAIM")), 40, MATTE, "wide_black")
+	word.position = Vector2(18, 26)
+	block.add_child(word)
+	var fw := Kit.font("wide_black").get_string_size(word.text, HORIZONTAL_ALIGNMENT_LEFT, -1, 40).x
+	if fw > w - 40.0:
+		word.scale = Vector2.ONE * ((w - 40.0) / fw)
+	var sub := Kit.label(str(spec.get("sub", "")), 11, Color(MATTE, 0.85), "mono")
+	sub.position = Vector2(20, h - 28)
+	block.add_child(sub)
+	b.set_meta("sub_label", sub)
+	b.set_meta("word_label", word)
+	var rule := ColorRect.new()
+	rule.color = Color(MATTE, 0.5)
+	rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rule.position = Vector2(20, h - 34)
+	rule.size = Vector2(w - 40, 1)
+	block.add_child(rule)
+	b.disabled = off
+	b.button_down.connect(func() -> void:
+		block.scale = Vector2(0.95, 0.95)
+		block.rotation = -0.02
+		Kit.haptic(14))
+	b.button_up.connect(func() -> void:
+		var tw := block.create_tween().set_parallel(true)
+		tw.tween_property(block, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.tween_property(block, "rotation", 0.0, 0.22))
+	if not off and Kit.motion_ok():
+		var pt := block.create_tween().set_loops()
+		pt.tween_property(block, "modulate", Color(1.12, 1.12, 1.12), 0.8).set_trans(Tween.TRANS_SINE)
+		pt.tween_property(block, "modulate", Color.WHITE, 0.8).set_trans(Tween.TRANS_SINE)
+	if on_pressed.is_valid():
+		b.pressed.connect(func() -> void:
+			Kit.sfx("tap")
+			on_pressed.call())
+	return b
+
+
+## A price tag: a paper tag with a punched, rimmed eyelet and its string, the price set huge, a
+## kicker, a note line, a barcode and the action in a signal box. spec: width (240), height (300),
+## price, kicker, note, action ("BUY"), button_text, disabled, fill ("paper" | "signal").
+static func tag_button(spec: Dictionary, on_pressed: Callable = Callable()) -> Button:
+	if bool(spec.get("horizontal", false)):
+		return _tag_wide(spec, on_pressed)
+	var w: float = spec.get("width", 240.0)
+	var h: float = spec.get("height", 300.0)
+	var off := bool(spec.get("disabled", false))
+	var hot := str(spec.get("fill", "paper")) == "signal"
+	var b := _bare(Vector2(w, h), str(spec.get("button_text", "")))
+	var tag := _TagShape.new()
+	tag.fill = SIGNAL if hot else Color("f1efe8")
+	tag.size = Vector2(w, h)
+	tag.pivot_offset = Vector2(w * 0.5, 0)
+	tag.rotation = -0.04
+	b.add_child(tag)
+	var ink := MATTE if hot else INK
+	var eye := plate("silver", Vector2(w * 0.5 - 15, 10), Vector2(30, 30), {"circle": true, "shadow": 0.4, "hole": Vector3(15, 15, 7)}, tag)
+	eye.name = "Eyelet"
+	var kick := Kit.label(str(spec.get("kicker", "")), 11, Color(ink, 0.75), "mono_bold")
+	kick.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	kick.size = Vector2(w, 16)
+	kick.position = Vector2(0, 52)
+	tag.add_child(kick)
+	var price := Kit.label(str(spec.get("price", "")), 58, ink, "compressed")
+	price.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	price.size = Vector2(w, 70)
+	price.position = Vector2(0, 68)
+	var pw := Kit.font("compressed").get_string_size(price.text, HORIZONTAL_ALIGNMENT_LEFT, -1, 58).x
+	if pw > w - 24.0:
+		price.add_theme_font_size_override("font_size", int(58.0 * (w - 24.0) / pw))
+	tag.add_child(price)
+	var note := Kit.label(str(spec.get("note", "")), 11, Color(ink, 0.8), "mono")
+	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.size = Vector2(w - 24, 30)
+	note.position = Vector2(12, 142)
+	tag.add_child(note)
+	var bc := barcode(Vector2(w - 60, 26), Color(ink, 0.85), 77)
+	bc.position = Vector2(30, h - 112)
+	tag.add_child(bc)
+	var act := PanelContainer.new()
+	act.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(INK, 0.35) if off else (INK if hot else SIGNAL)
+	sb.set_corner_radius_all(3)
+	sb.content_margin_left = 16
+	sb.content_margin_right = 16
+	sb.content_margin_top = 6
+	sb.content_margin_bottom = 6
+	act.add_theme_stylebox_override("panel", sb)
+	act.add_child(Kit.label(str(spec.get("action", "BUY")), 20, MATTE, "wide_black"))
+	act.position = Vector2(18, h - 70)
+	act.custom_minimum_size = Vector2(w - 36, 0)
+	(act.get_child(0) as Label).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tag.add_child(act)
+	b.disabled = off
+	b.button_down.connect(func() -> void:
+		tag.rotation = 0.03
+		tag.scale = Vector2(0.97, 0.97)
+		Kit.haptic(12))
+	b.button_up.connect(func() -> void:
+		var tw := tag.create_tween().set_parallel(true)
+		tw.tween_property(tag, "rotation", -0.04, 0.45).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+		tw.tween_property(tag, "scale", Vector2.ONE, 0.2))
+	if on_pressed.is_valid():
+		b.pressed.connect(func() -> void:
+			Kit.sfx("tap")
+			on_pressed.call())
+	return b
+
+
+## The price tag on its side (fits where a pass used to sit): eyelet and string on the left, the
+## price huge, a note and a barcode, the action in a box on the right. spec as tag_button plus
+## width (400), height (150).
+static func _tag_wide(spec: Dictionary, on_pressed: Callable) -> Button:
+	var w: float = spec.get("width", 400.0)
+	var h: float = spec.get("height", 150.0)
+	var off := bool(spec.get("disabled", false))
+	var hot := str(spec.get("fill", "paper")) == "signal"
+	var b := _bare(Vector2(w, h + 12), str(spec.get("button_text", "")))
+	var tag := _TagShape.new()
+	tag.horizontal = true
+	tag.fill = SIGNAL if hot else Color("f1efe8")
+	tag.size = Vector2(w, h)
+	tag.position = Vector2(0, 6)
+	tag.pivot_offset = Vector2(0, h * 0.5)
+	tag.rotation = -0.025
+	b.add_child(tag)
+	var ink := MATTE if hot else INK
+	plate("silver", Vector2(12, h * 0.5 - 15), Vector2(30, 30), {"circle": true, "shadow": 0.4, "hole": Vector3(15, 15, 7)}, tag)
+	var box_w := minf(150.0, w * 0.36)
+	var x0 := 58.0
+	var kick := Kit.label(str(spec.get("kicker", "")), 10, Color(ink, 0.75), "mono_bold")
+	kick.position = Vector2(x0, 14)
+	kick.size = Vector2(w - x0 - box_w - 24, 14)
+	kick.clip_text = true
+	tag.add_child(kick)
+	var price := Kit.label(str(spec.get("price", "")), 56, ink, "compressed")
+	price.position = Vector2(x0 - 2, 26)
+	var room := w - x0 - box_w - 28.0
+	var pw := Kit.font("compressed").get_string_size(price.text, HORIZONTAL_ALIGNMENT_LEFT, -1, 56).x
+	if pw > room:
+		price.add_theme_font_size_override("font_size", maxi(24, int(56.0 * room / pw)))
+	tag.add_child(price)
+	var note := Kit.label(str(spec.get("note", "")), 11, Color(ink, 0.85), "mono")
+	note.position = Vector2(x0, h - 30)
+	note.size = Vector2(room, 16)
+	note.clip_text = true
+	tag.add_child(note)
+	var bc := barcode(Vector2(box_w, 22), Color(ink, 0.85), 77)
+	bc.position = Vector2(w - box_w - 16, 16)
+	tag.add_child(bc)
+	var act := PanelContainer.new()
+	act.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(INK, 0.3) if off else (INK if hot else SIGNAL)
+	sb.set_corner_radius_all(3)
+	sb.content_margin_top = 10
+	sb.content_margin_bottom = 10
+	act.add_theme_stylebox_override("panel", sb)
+	var al := Kit.label(str(spec.get("action", "BUY")), 22, MATTE, "wide_black")
+	al.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	act.add_child(al)
+	act.custom_minimum_size = Vector2(box_w, 0)
+	act.position = Vector2(w - box_w - 16, h - 70)
+	tag.add_child(act)
+	if spec.has("info"):
+		var info := Kit.label(str(spec["info"]), 9, Color(ink, 0.7), "mono")
+		info.position = Vector2(w - box_w - 16, 44)
+		info.size = Vector2(box_w, 14)
+		info.clip_text = true
+		tag.add_child(info)
+	b.disabled = off
+	b.button_down.connect(func() -> void:
+		tag.rotation = 0.015
+		tag.scale = Vector2(0.98, 0.98)
+		Kit.haptic(12))
+	b.button_up.connect(func() -> void:
+		var tw := tag.create_tween().set_parallel(true)
+		tw.tween_property(tag, "rotation", -0.025, 0.5).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+		tw.tween_property(tag, "scale", Vector2.ONE, 0.2))
+	if on_pressed.is_valid():
+		b.pressed.connect(func() -> void:
+			Kit.sfx("tap")
+			on_pressed.call())
+	return b
+
+
+## Label-maker tape: embossed paper letters on a glossy strip (signal or ink) cut with notched
+## ends, stuck on at a slight tilt; press = it flattens. 96 px tall target.
+static func tape_button(text: String, on_pressed: Callable = Callable(), color: Color = SIGNAL, button_text: String = "") -> Button:
+	var f := Kit.font("wide_black")
+	var tw_px := f.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 26).x
+	var w := tw_px + 64.0
+	var b := _bare(Vector2(w, 96), button_text)
+	var tape := _Tape.new()
+	tape.color = color
+	tape.size = Vector2(w, 60)
+	tape.position = Vector2(0, 18)
+	tape.pivot_offset = tape.size * 0.5
+	tape.rotation = -0.025
+	b.add_child(tape)
+	for layer: Array in [[Color(1, 1, 1, 0.35), Vector2(0, -1)], [Color(0, 0, 0, 0.35), Vector2(0, 2)], [Color("f7f6f1"), Vector2.ZERO]]:
+		var l := Kit.label(text, 26, layer[0], "wide_black")
+		l.position = Vector2(32, 12) + (layer[1] as Vector2)
+		tape.add_child(l)
+	b.button_down.connect(func() -> void:
+		tape.scale = Vector2(0.97, 0.9)
+		Kit.haptic(10))
+	b.button_up.connect(func() -> void:
+		tape.create_tween().tween_property(tape, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT))
+	if on_pressed.is_valid():
+		b.pressed.connect(func() -> void:
+			Kit.sfx("tap")
+			on_pressed.call())
+	return b
+
+
+static func _bare(sz: Vector2, text: String) -> Button:
+	var b := Button.new()
+	b.theme_type_variation = &"BareButton"
+	b.focus_mode = Control.FOCUS_NONE
+	b.mouse_filter = Control.MOUSE_FILTER_STOP
+	b.custom_minimum_size = sz
+	b.size = sz
+	if text != "":
+		# Readable by tests and screen readers, invisible on the print.
+		b.text = text
+		for k in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_disabled_color", "font_hover_pressed_color"]:
+			b.add_theme_color_override(k, Color(0, 0, 0, 0))
+	return b
+
+
+## A solid ink block with a rough, inked edge (a rubber stamp's impression).
+class _InkBlock:
+	extends Control
+	var color := Color("ff4b1f")
+
+	func _init() -> void:
+		mouse_filter = MOUSE_FILTER_IGNORE
+
+	func _draw() -> void:
+		var rng := RandomNumberGenerator.new()
+		rng.seed = 911
+		var pts := PackedVector2Array()
+		var n := 18
+		for side in 4:
+			for i in n:
+				var t := float(i) / n
+				var p: Vector2
+				match side:
+					0:
+						p = Vector2(t * size.x, 0)
+					1:
+						p = Vector2(size.x, t * size.y)
+					2:
+						p = Vector2(size.x * (1.0 - t), size.y)
+					_:
+						p = Vector2(0, size.y * (1.0 - t))
+				var nrm := [Vector2(0, -1), Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0)][side] as Vector2
+				pts.append(p + nrm * rng.randf_range(-1.6, 1.2))
+		draw_colored_polygon(pts, Color(0, 0, 0, 0.18) if color.a > 0.5 else Color(0, 0, 0, 0), PackedVector2Array(), null)
+		var shifted := PackedVector2Array()
+		for p in pts:
+			shifted.append(p - Vector2(0, 3))
+		draw_colored_polygon(shifted, color)
+		# Ink speckle: paper showing through.
+		for i in 70:
+			var q := Vector2(rng.randf_range(4, size.x - 4), rng.randf_range(2, size.y - 6))
+			draw_circle(q, rng.randf_range(0.6, 1.8), Color(1, 1, 1, rng.randf_range(0.08, 0.22)))
+
+
+## A shipping-tag shape with a soft shadow (the eyelet sits at the top centre) and its string.
+class _TagShape:
+	extends Control
+	var fill := Color("f1efe8")
+	var horizontal := false
+
+	func _init() -> void:
+		mouse_filter = MOUSE_FILTER_IGNORE
+
+	func _draw() -> void:
+		var w := size.x
+		var h := size.y
+		var c := 34.0
+		if horizontal:
+			var hp := PackedVector2Array([Vector2(0, c), Vector2(c, 0), Vector2(w, 0), Vector2(w, h), Vector2(c, h), Vector2(0, h - c)])
+			var hs := PackedVector2Array()
+			for p in hp:
+				hs.append(p + Vector2(5, 7))
+			draw_colored_polygon(hs, Color(0, 0, 0, 0.18))
+			draw_colored_polygon(hp, fill)
+			var outline := hp.duplicate()
+			outline.append(hp[0])
+			draw_polyline(outline, Color(0, 0, 0, 0.12), 1.0, true)
+			var e := Vector2(27, h * 0.5)
+			draw_polyline(PackedVector2Array([e, e + Vector2(-22, -14), e + Vector2(-44, 4), e + Vector2(-60, -10)]), Color("101113"), 2.0, true)
+			return
+		var pts := PackedVector2Array([Vector2(c, 0), Vector2(w - c, 0), Vector2(w, c), Vector2(w, h), Vector2(0, h), Vector2(0, c)])
+		var sh := PackedVector2Array()
+		for p in pts:
+			sh.append(p + Vector2(5, 8))
+		draw_colored_polygon(sh, Color(0, 0, 0, 0.18))
+		draw_colored_polygon(pts, fill)
+		draw_polyline(PackedVector2Array([Vector2(c, 0), Vector2(w - c, 0), Vector2(w, c), Vector2(w, h), Vector2(0, h), Vector2(0, c), Vector2(c, 0)]),
+			Color(0, 0, 0, 0.12), 1.0, true)
+		# The string, looping up out of the eyelet.
+		var e := Vector2(w * 0.5, 25)
+		draw_polyline(PackedVector2Array([e, e + Vector2(-10, -30), e + Vector2(6, -60), e + Vector2(30, -78)]), Color("101113"), 2.0, true)
+
+
+## A label-maker tape strip: glossy fill, notched ends, a highlight along the top.
+class _Tape:
+	extends Control
+	var color := Color("ff4b1f")
+
+	func _init() -> void:
+		mouse_filter = MOUSE_FILTER_IGNORE
+
+	func _draw() -> void:
+		var w := size.x
+		var h := size.y
+		var n := 8.0
+		var pts := PackedVector2Array([Vector2(0, 0), Vector2(w, 0), Vector2(w - n, h * 0.5), Vector2(w, h), Vector2(0, h), Vector2(n, h * 0.5)])
+		var sh := PackedVector2Array()
+		for p in pts:
+			sh.append(p + Vector2(3, 5))
+		draw_colored_polygon(sh, Color(0, 0, 0, 0.22))
+		draw_colored_polygon(pts, color)
+		draw_rect(Rect2(n, 3, w - n * 2, 3), Color(1, 1, 1, 0.22))
+		draw_rect(Rect2(n, h - 5, w - n * 2, 2), Color(0, 0, 0, 0.18))
+
+
 ## Round inspection stamp: text around the rim, a big value in the middle.
 static func stamp(label: String, value: String, size: float = 112.0) -> Control:
 	var s := _Stamp.new()

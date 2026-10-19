@@ -89,8 +89,7 @@ func _build() -> void:
 	Poster.rect(p, Rect2(0, 0, BAND_W, ph), Poster.BAND)
 	if lead != "":
 		Poster.halftone_print(p, lead, Rect2(0, ph * 0.36, BAND_W, ph * 0.64), Color(1.0, 0.36, 0.16, 0.95), 6.5)
-	Poster.at(p, Poster.t("<  BACK", 13, PAPER), Vector2(20, 22))
-	Poster.hit(p, Rect2(0, 0, BAND_W, 88), func() -> void: UI.back(), "Back", "Back")
+	p.add_child(SignalKit.back_button(func() -> void: UI.back(), false))
 	Poster.vlabel(p, "©2026 HH, TOWER SURVEY. ALL RIGHTS RESERVED.", Vector2(42, 96), 10, Color(PAPER, 0.8))
 	Poster.at(p, Poster.t("No.\n%03d" % shown, 12, Color(PAPER, 0.85)), Vector2(70, ph * 0.3))
 	Poster.at(p, Poster.t(Poster.date_short(), 12, Color(PAPER, 0.85)), Vector2(70, ph * 0.3 + 40))

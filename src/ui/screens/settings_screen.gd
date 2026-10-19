@@ -112,10 +112,10 @@ func _masthead(w: float) -> Control:
 	ramp.position = Vector2(0, MAST_H * 0.38)
 	mh.add_child(ramp)
 	var mark := Kit.label("HH", 30, PAPER, "wide_black")
-	mark.position = Vector2(18, 14)
+	mark.position = Vector2(18, 104)
 	mh.add_child(mark)
 	var tm := Kit.label("™", 11, PAPER, "mono")
-	tm.position = Vector2(74, 16)
+	tm.position = Vector2(74, 106)
 	mh.add_child(tm)
 	var vs := Kit.label("CONTROL SHEET  ·  HH-0451  ·  ©2026 HH", 10, Color(PAPER, 0.8), "mono_bold")
 	vs.rotation = PI * 0.5
@@ -144,29 +144,8 @@ func _masthead(w: float) -> Control:
 	info.add_child(Kit.print_label("Device No.HH-0451  ·  firmware v%s" % ver, 12))
 	info.add_child(Kit.print_label("Seven channels  ·  saved on this device", 12, Color(INK, 0.6), "mono"))
 	mh.add_child(info)
-	var back := Button.new()
-	back.name = "Back"
-	back.theme_type_variation = &"BareButton"
-	back.focus_mode = FOCUS_NONE
-	back.position = Vector2(w - 158, 0)
-	back.size = Vector2(150, Kit.BUTTON_H)
-	var bl := Kit.label("←  BACK", 15, INK, "mono_bold")
-	bl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	bl.position = Vector2(0, 14)
-	bl.size = Vector2(128, 26)
-	back.add_child(bl)
-	var bu := ColorRect.new()
-	bu.color = Color(INK, 0.8)
-	bu.mouse_filter = MOUSE_FILTER_IGNORE
-	var bw := Kit.font("mono_bold").get_string_size("←  BACK", HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x
-	bu.position = Vector2(128 - bw, 41)
-	bu.size = Vector2(bw, 1)
-	back.add_child(bu)
-	back.button_down.connect(func() -> void: back.modulate.a = 0.5)
-	back.button_up.connect(func() -> void: back.modulate.a = 1.0)
-	back.pressed.connect(func() -> void:
-		Kit.sfx("tap")
-		UI.back())
+	# The shared big Back, printed for the dark band.
+	var back := SignalKit.back_button(func() -> void: UI.back(), false)
 	mh.add_child(back)
 	var disc := SignalKit.plate("silver", Vector2(w - 142, MAST_H - 132), Vector2(112, 112), {"circle": true, "shadow": 0.5}, mh)
 	disc.add_child(SignalKit.stamp("DEVICE · HALO & HORN · ", "v%s" % ver.get_slice(".", 0) + "." + ver.get_slice(".", 1), 112))

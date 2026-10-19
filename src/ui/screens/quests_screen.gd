@@ -333,11 +333,17 @@ func _build_bottom(ready: Array[Dictionary], bonus: Dictionary) -> void:
 		for q: Dictionary in ready:
 			_merge(total, q.get("reward", {}))
 		var gems := int(total.get("gems", 0))
-		var spec := {"width": 400.0, "kicker": "MISSION SHEET // DAILY", "title": "CLAIM ALL", "sub": "%d ORDERS READY" % ready.size(),
-			"action": "CLAIM  >>>", "icon": "gift", "info": ("+%s GEMS" % Kit.format_num(gems)) if gems > 0 else "%d REWARDS" % ready.size()}
-		var pass_root := Poster.pass_on(_bottom, spec, pp + Vector2(pw - 412, ph - 176), _claim_all, "Claim All (%d)" % ready.size(), "ClaimAll")
+		# Claims are ink stamps (the button family): the pass is for battle.
+		var st := SignalKit.stamp_button({"width": 330.0, "height": 124.0, "word": "CLAIM ALL",
+			"kicker": "MISSION SHEET // %d ORDERS READY" % ready.size(),
+			"sub": ("+%s GEMS  ·  %d REWARDS" % [Kit.format_num(gems), ready.size()]) if gems > 0 else "%d REWARDS" % ready.size(),
+			"button_text": "Claim All (%d)" % ready.size()}, _claim_all)
+		st.name = "ClaimAll"
+		st.position = pp + Vector2(pw - 352, ph - 150)
+		st.rotation = -0.03
+		_bottom.add_child(st)
 		# First-session guidance: collect finished quests.
-		Guide.mark(Poster.pass_hit(pass_root), Guide.step() == "quests", 0)
+		Guide.mark(st, Guide.step() == "quests", 0)
 	else:
 		var bc := SignalKit.barcode(Vector2(200, 44), INK, 4021)
 		bc.position = pp + Vector2(pw - 290, ph - 120)
@@ -421,10 +427,33 @@ func _quest_row(q: Dictionary, number: int) -> Control:
 	return row
 
 
-## A CLAIM rubber stamp in signal with a status light: the tap area is 108 x 86, and its Button
+## A CLAIM stamp inked solid in signal (owner: a filled claim reads as "not done yet") with paper
+## type, a soft shadow, a slow pulse and a status light: the tap area is 108 x 86, and its Button
 ## carries the word "Claim" (tests, accessibility).
 func _claim_stamp(parent: Control, pos: Vector2, on_pressed: Callable, node_name: String) -> Button:
-	var st := Poster.rubber(parent, "CLAIM", pos + Vector2(10, 26), SIG, 18, -0.06)
+	var st := PanelContainer.new()
+	st.mouse_filter = MOUSE_FILTER_IGNORE
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = SIG
+	sb.set_corner_radius_all(4)
+	sb.content_margin_left = 12
+	sb.content_margin_right = 12
+	sb.content_margin_top = 5
+	sb.content_margin_bottom = 5
+	sb.shadow_color = Color(SIG.darkened(0.5), 0.4)
+	sb.shadow_size = 6
+	sb.shadow_offset = Vector2(0, 3)
+	sb.anti_aliasing = true
+	st.add_theme_stylebox_override("panel", sb)
+	st.add_child(Poster.t("CLAIM", 19, Color("f5f4f0"), "wide_black"))
+	st.position = pos + Vector2(4, 22)
+	st.rotation = -0.05
+	parent.add_child(st)
+	if Kit.motion_ok():
+		st.pivot_offset = Vector2(48, 18)
+		var tw := st.create_tween().set_loops()
+		tw.tween_property(st, "scale", Vector2(1.06, 1.06), 0.7).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		tw.tween_property(st, "scale", Vector2.ONE, 0.7).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	var led := HUD.Led.new()
 	led.size = Vector2(16, 16)
 	led.position = pos + Vector2(88, 12)
@@ -432,10 +461,8 @@ func _claim_stamp(parent: Control, pos: Vector2, on_pressed: Callable, node_name
 	parent.add_child(led)
 	var b := Poster.hit(parent, Rect2(pos, Vector2(108, ROW_H)), on_pressed, node_name, "Claim")
 	b.mouse_filter = MOUSE_FILTER_PASS
-	b.button_down.connect(func() -> void:
-		st.pivot_offset = st.size * 0.5
-		st.scale = Vector2(0.92, 0.92))
-	b.button_up.connect(func() -> void: st.scale = Vector2.ONE)
+	b.button_down.connect(func() -> void: st.modulate = Color(0.8, 0.8, 0.8))
+	b.button_up.connect(func() -> void: st.modulate = Color.WHITE)
 	return b
 
 

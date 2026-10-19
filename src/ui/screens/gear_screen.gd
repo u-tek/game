@@ -369,11 +369,18 @@ func _open(uid: String) -> void:
 		rows.append(["SPARE · SALVAGES FOR", "  ".join(parts)])
 	col.add_child(PK.data_table(rows, 540.0, {"size": 15, "row_h": 32.0, "bar": Color(0, 0, 0, 0.06)}))
 
-	var equip := PK.pass_button({"width": 540.0, "code": true, "kicker": "GEAR // FIT", "title": "EQUIP TO HERO",
-		"sub": "COMPARE EVERY HERO IN THIS SLOT", "action": "CHOOSE  >>>", "info": "Score %s" % Kit.format_full(int(Game.gear_score(uid))),
-		"icon": "equip"}, func() -> void: _open_hero_pick(uid))
+	# Equipping is label-maker tape (the button family), stuck on under the table.
+	var equip := SignalKit.tape_button("EQUIP TO HERO  →", func() -> void: _open_hero_pick(uid), SignalKit.SIGNAL, "Equip to hero")
 	equip.name = "Equip"
-	col.add_child(equip)
+	var eq_row := Kit.hbox(14)
+	eq_row.mouse_filter = MOUSE_FILTER_IGNORE
+	eq_row.add_child(equip)
+	var eq_note := PK.t("SCORE %s
+COMPARE EVERY HERO
+IN THIS SLOT" % Kit.format_full(int(Game.gear_score(uid))), 10, Color(INK, 0.7), "mono")
+	eq_note.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	eq_row.add_child(eq_note)
+	col.add_child(eq_row)
 	var row2 := Kit.hbox(12)
 	if who != "":
 		var un := PK.plate_button("Unequip", func() -> void:

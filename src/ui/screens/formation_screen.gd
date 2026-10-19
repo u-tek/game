@@ -9,9 +9,10 @@ extends Control
 ## facing the enemy) large, the BACK three below, each a giant numeral with the hero's art in full
 ## colour boxed by a hairline in front of it, her name, level and role, and an "x" to take her out.
 ## An empty position prints a hollow numeral and "+ ASSIGN"; the chosen one turns signal ("PICK A
-## HERO"). Down the right-hand rule FRONT and BACK as turned labels. Under the poster the bench:
-## faction tabs, the owned heroes as small printed cards in a sideways strip (the ones in the team
-## carry their position number), and the Battle pass (to the campaign).
+## HERO"). Down the right-hand rule FRONT and BACK as turned labels; the Battle pass (to the
+## campaign) stuck over the poster's foot. The whole screen scrolls as one page (owner: "not a tiny
+## little window"): under the poster the bench, faction tabs and every owned hero as a printed card
+## in a three-column grid (the ones in the team carry their position number).
 ## Tap an empty position to choose it, then a bench hero to place them there; tapping a bench hero
 ## with no position chosen puts them in the best free one (front for guardians and strikers). Tap a
 ## placed hero to take them out. Every valid change is saved right away with Game.set_formation.
@@ -29,9 +30,9 @@ const INK := Color("101113")
 const PAPER := Color("e9e8e2")
 const SIG := Color("ff4b1f")
 const FACTION_SHORT := {"celestial": "CEL", "infernal": "INF", "fallen": "FAL"}
-## Room under the poster: bench header, strip and the pass beside it.
-const BELOW := 256.0
-const BENCH_W := 104.0
+## Free room at the poster's foot, where the Battle pass is stuck on.
+const PASS_ROOM := 118.0
+const BENCH_COLS := 3
 ## The poster is never wider than this (tablets centre it on the matte).
 const MAX_W := 760.0
 
@@ -47,8 +48,10 @@ var _band_lead := ""
 var _power_label: Label
 var _power_value := -1
 var _data_l: Label
-var _bench: HBoxContainer
-var _bench_scroll: ScrollContainer
+var _bench: GridContainer
+var _card_w := 200.0
+var _page: Control
+var _page_scroll: ScrollContainer
 var _filter_row: Control
 var _warn: Label
 var _hint: Label
@@ -56,8 +59,11 @@ var _pass: PK.Pass
 var _built := false
 
 
-func setup(_params: Dictionary) -> void:
+## params: scroll (int, screenshots) scrolls the page once built.
+func setup(params: Dictionary) -> void:
 	_slots = Game.formation()
+	if params.has("scroll"):
+		_scroll_later.call_deferred(int(params["scroll"]))
 	if size.y > 0.0:
 		_build()
 	else:
@@ -87,16 +93,24 @@ func _build() -> void:
 	# Wider windows (tablets) keep the poster at phone width, centred on the matte.
 	var w := minf(size.x, MAX_W)
 	var ox := floorf((size.x - w) * 0.5)
-	var h := maxf(size.y, 820.0)
 	PK.matte(self)
-	PK.at(self, PK.t("HALO & HORN  ©2026", 12, INK, "mono_bold"), Vector2(ox + 20, 8))
+	# One scrolling page: the poster, then the bench grid.
+	_page = Control.new()
+	_page.name = "Page"
+	_page.mouse_filter = MOUSE_FILTER_IGNORE
+	_page.custom_minimum_size = Vector2(size.x, size.y)
+	_page_scroll = Kit.scroll(_page)
+	_page_scroll.name = "TeamPage"
+	_page_scroll.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	add_child(_page_scroll)
+	PK.at(_page, PK.t("HALO & HORN  ©2026", 12, INK, "mono_bold"), Vector2(ox + 20, 8))
 	var pub := PK.t("FORMATION  ·  FIVE POSITIONS", 12, Color(INK, 0.7), "mono")
 	pub.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	pub.size = Vector2(420, 16)
-	PK.at(self, pub, Vector2(ox + w - 20 - 420, 9))
+	PK.at(_page, pub, Vector2(ox + w - 20 - 420, 9))
 
-	var pr := Rect2(ox + 18, 30, w - 36, h - 30 - BELOW)
-	_poster = PK.poster(self, pr)
+	var pr := Rect2(ox + 18, 30, w - 36, clampf(size.y - 70.0, 860.0, 1080.0))
+	_poster = PK.poster(_page, pr)
 	var p := _poster
 	var pw := pr.size.x
 	var ph := pr.size.y
@@ -132,7 +146,7 @@ func _build() -> void:
 
 	# ---- The five positions.
 	var top := 100.0
-	var usable := ph - top - 54.0
+	var usable := ph - top - 54.0 - PASS_ROOM
 	var front_h := floorf(usable * 0.54)
 	var back_h := usable - front_h
 	var cx0 := BAND + 10.0
@@ -156,16 +170,16 @@ func _build() -> void:
 	# ---- Notes at the poster's foot: the hint, or the empty-team warning in signal.
 	_hint = PK.t("TAP A BENCH HERO TO ADD OR REMOVE THEM. TAP AN EMPTY POSITION FIRST TO CHOOSE WHERE.", 9, Color(INK, 0.6), "mono")
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_hint.size = Vector2(cx1 - x0, 0)
+	_hint.size = Vector2(maxf(pw - x0 - 330.0, 180.0), 0)
 	PK.at(p, _hint, Vector2(x0, ph - 40))
 	_warn = PK.t("", 11, SIG, "mono_bold")
 	_warn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_warn.size = Vector2(cx1 - x0, 0)
+	_warn.size = Vector2(maxf(pw - x0 - 330.0, 180.0), 0)
 	_warn.visible = false
 	PK.at(p, _warn, Vector2(x0, ph - 44))
 
 	# ---- The Auto-fill stamp on a silver disc, stuck on the band's foot.
-	var disc := SignalKit.plate("silver", pr.position + Vector2(20, ph - 132), Vector2(112, 112), {"circle": true, "shadow": 0.5}, self)
+	var disc := SignalKit.plate("silver", pr.position + Vector2(20, ph - 132), Vector2(112, 112), {"circle": true, "shadow": 0.5}, _page)
 	disc.rotation = -0.1
 	disc.add_child(SignalKit.stamp("AUTO-FILL · STRONGEST FIVE · ", "AUTO", 112))
 	_auto_btn = Button.new()
@@ -175,43 +189,34 @@ func _build() -> void:
 	_auto_btn.mouse_filter = MOUSE_FILTER_PASS
 	_auto_btn.position = pr.position + Vector2(14, ph - 138)
 	_auto_btn.size = Vector2(124, 124)
-	add_child(_auto_btn)
+	_page.add_child(_auto_btn)
 	Kit.add_press_fx(_auto_btn, disc)
 	Kit._connect_pressed(_auto_btn, _on_auto)
 
-	# ---- Under the poster: the bench and the Battle pass.
+	# ---- The Battle pass stuck over the poster's foot, then the bench under the poster.
 	var by := pr.end.y
-	_filter_row = Control.new()
-	_filter_row.name = "BenchTabs"
-	_filter_row.mouse_filter = MOUSE_FILTER_IGNORE
-	_filter_row.position = Vector2(ox + 18, by + 12)
-	_filter_row.size = Vector2(w - 36 - 320, 28)
-	add_child(_filter_row)
-	_bench = HBoxContainer.new()
-	_bench.add_theme_constant_override("separation", 12)
-	var bm := MarginContainer.new()
-	bm.add_theme_constant_override("margin_top", 6)
-	bm.add_theme_constant_override("margin_bottom", 6)
-	bm.add_theme_constant_override("margin_left", 4)
-	bm.add_theme_constant_override("margin_right", 12)
-	bm.add_child(_bench)
-	_bench_scroll = ScrollContainer.new()
-	_bench_scroll.name = "Bench"
-	_bench_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	_bench_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_bench_scroll.scroll_deadzone = 14
-	_bench_scroll.follow_focus = false
-	_bench_scroll.mouse_filter = MOUSE_FILTER_PASS
-	_bench_scroll.add_child(bm)
-	_bench_scroll.position = Vector2(ox + 14, by + 46)
-	_bench_scroll.size = Vector2(w - 28 - 324, h - by - 46 - 6)
-	add_child(_bench_scroll)
 	_pass = PK.make_pass(300.0, "sword", false, false)
 	_pass.hit.name = "Battle"
 	Kit._connect_pressed(_pass.hit, func() -> void: UI.go("campaign"))
-	_pass.position = Vector2(ox + w - 18 - 300, by + 40)
+	_pass.position = Vector2(ox + w - 18 - 300, by - PASS_ROOM - 4.0)
 	_pass.rotation = -0.025
-	add_child(_pass)
+	_filter_row = Control.new()
+	_filter_row.name = "BenchTabs"
+	_filter_row.mouse_filter = MOUSE_FILTER_IGNORE
+	_filter_row.position = Vector2(ox + 18, by + 84)
+	_filter_row.size = Vector2(w - 36, 28)
+	_page.add_child(_filter_row)
+	PK.rule(_page, Vector2(ox + 18, by + 124), Vector2(w - 36, 1), Color(INK, 0.3))
+	_card_w = floorf((w - 36.0 - 12.0 * (BENCH_COLS - 1)) / BENCH_COLS)
+	_bench = GridContainer.new()
+	_bench.name = "Bench"
+	_bench.columns = BENCH_COLS
+	_bench.add_theme_constant_override("h_separation", 12)
+	_bench.add_theme_constant_override("v_separation", 18)
+	_bench.mouse_filter = MOUSE_FILTER_IGNORE
+	_bench.position = Vector2(ox + 18, by + 140)
+	_page.add_child(_bench)
+	_page.add_child(_pass)
 	_refresh_pass()
 	PK.grain(self)
 	SignalKit.relight(self)
@@ -440,7 +445,7 @@ func _refresh_bench() -> void:
 			# Deferred: the refresh reprints these tabs, this one included.
 			_refresh_bench.call_deferred())
 		b.name = "Faction_%d" % i
-	var keep := _bench_scroll.scroll_horizontal
+	var keep := _page_scroll.scroll_vertical
 	for c in _bench.get_children():
 		_bench.remove_child(c)
 		c.queue_free()
@@ -462,7 +467,7 @@ func _refresh_bench() -> void:
 		return pa > pb if pa != pb else a < b)
 	for id in ids:
 		var at := _slots.find(id)
-		var o := {"size": BENCH_W, "ratio": 1.42, "compact": true, "owned": true, "in_team": at >= 0,
+		var o := {"size": _card_w, "ratio": 1.42, "compact": _card_w < 170.0, "owned": true, "in_team": at >= 0,
 			"on_pressed": func() -> void: _tap_hero(id)}
 		if at >= 0:
 			o["slot"] = at
@@ -474,12 +479,22 @@ func _refresh_bench() -> void:
 		l2.custom_minimum_size = Vector2(300, 140)
 		l2.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		_bench.add_child(l2)
-	_restore_bench_scroll.call_deferred(keep)
+	# The page ends under the last row of cards.
+	var rows := maxi(1, ceili(float(maxi(ids.size(), 1)) / BENCH_COLS))
+	var grid_h := rows * (roundf(_card_w * 1.42) + 18.0)
+	_page.custom_minimum_size = Vector2(size.x, _bench.position.y + grid_h + 40.0)
+	_restore_scroll.call_deferred(keep)
 
 
-func _restore_bench_scroll(x: int) -> void:
-	if is_instance_valid(_bench_scroll):
-		_bench_scroll.scroll_horizontal = x
+func _scroll_later(y: int) -> void:
+	for i in 4:
+		await get_tree().process_frame
+	_restore_scroll(y)
+
+
+func _restore_scroll(y: int) -> void:
+	if is_instance_valid(_page_scroll):
+		_page_scroll.scroll_vertical = y
 
 
 func _hit(parent: Control, r: Rect2, cb: Callable) -> Button:

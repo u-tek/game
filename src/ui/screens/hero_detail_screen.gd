@@ -23,6 +23,8 @@ extends Control
 ## / Coming soon). A strip with BACK and POSTER pins to the top once sheet 01 has scrolled away.
 ## Unowned heroes print grey with a Summon pass; there is no armament.
 
+## The matte line above the poster: the big Back and the publication line.
+const TOP_LINE := 100.0
 const Roster := preload("res://src/ui/screens/heroes_screen.gd")
 const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
 const HUD := preload("res://src/ui/components/hud.gd")
@@ -76,6 +78,8 @@ var _sprite_skin := ""
 var _sprite_key := ""
 var _preview := ""        # a skin tried on from the wardrobe (not saved); "" = the equipped look
 var _poke: Button
+var _tap_n := 0
+var _tap_at := -10.0
 var _fx: Control
 var _sticky: Control
 var _arrows: Array[Control] = []
@@ -121,8 +125,7 @@ func setup(params: Dictionary) -> void:
 	if b is Array:
 		for x: Variant in b:
 			_browse.append(str(x))
-	# The nav is hidden here: the dossier's own BACK and LOBBY take its place.
-	UI.set_chrome(true, false)
+	# The nav stays (owner: the bottom nav on every screen but battle); the dossier adds a big Back.
 	if _def.is_empty():
 		_build_missing()
 		return
@@ -196,13 +199,13 @@ func _rebuild() -> void:
 func _build_missing() -> void:
 	PK.matte(self)
 	var d := _dims()
-	var p := PK.poster(self, Rect2(18, 40, d.x - 36, minf(d.y - 80, 700)))
+	var p := PK.poster(self, Rect2(18, TOP_LINE, d.x - 36, minf(d.y - TOP_LINE - 40, 700)))
 	PK.rect(p, Rect2(0, 0, BAND, p.size.y), PK.BAND)
 	PK.at(p, PK.t("HH", 34, PAPER, "wide_black"), Vector2(20, 18))
 	PK.at(p, PK.t("FILE\nNOT\nFOUND.", 120, INK, "compressed"), Vector2(BAND + 24, 40))
 	PK.at(p, PK.t("No record of this hero.", 14, INK, "mono"), Vector2(BAND + 28, p.size.y - 60))
-	_back_btn = _text_button(self, Rect2(0, 0, 180, 88), "<- BACK", 13, func() -> void: UI.back())
-	_back_btn.name = "Back"
+	_back_btn = SignalKit.back_button(func() -> void: UI.back())
+	add_child(_back_btn)
 	_home_btn = _text_button(self, Rect2(d.x - 200, 0, 200, 88), "LOBBY", 13, func() -> void: UI.go("home"))
 	_home_btn.name = "Home"
 	PK.grain(self)
@@ -252,14 +255,15 @@ func _build_poster() -> void:
 	var name_txt := str(_def.get("name", _id))
 	var skin := _shown_skin()
 	# ---- The matte line: BACK left, the publication line right.
-	_back_btn = _text_button(_sheet, Rect2(0, 0, 190, 88), "<- BACK", 13, func() -> void: UI.back())
-	_back_btn.name = "Back"
+	_back_btn = SignalKit.back_button(func() -> void: UI.back())
+	_back_btn.position = Vector2(4, 0)
+	_sheet.add_child(_back_btn)
 	var pub := PK.t("HALO & HORN  ©2026  ·  DOSSIER %s" % _code(), 12, Color(INK, 0.7), "mono")
 	pub.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	pub.size = Vector2(440, 16)
-	PK.at(_sheet, pub, Vector2(w - 20 - 440, 13))
+	PK.at(_sheet, pub, Vector2(w - 20 - 440, 40))
 
-	var pr := Rect2(18, 40, w - 36, _sheet_h - 40 - FOOT_H)
+	var pr := Rect2(18, TOP_LINE, w - 36, _sheet_h - TOP_LINE - FOOT_H)
 	_poster = PK.poster(_sheet, pr)
 	var p := _poster
 	var pw := pr.size.x
@@ -425,7 +429,8 @@ func _build_poster() -> void:
 
 	# ---- The pass over the poster's bottom edge: Level Up (owned) or Summon.
 	if _owned:
-		_pass = PK.make_pass(392.0, "upgrade", true)
+		# Levelling is an arcade push button (the button family), not the battle pass.
+		_pass = PK.make_press(392.0)
 		_lvl_btn = _pass.hit
 		_lvl_btn.name = "LevelUp"
 		_lvl_btn.button_down.connect(_on_level_down)
@@ -586,20 +591,21 @@ func _build_sticky() -> void:
 	_sticky = Control.new()
 	_sticky.name = "Sticky"
 	_sticky.mouse_filter = MOUSE_FILTER_IGNORE
-	_sticky.size = Vector2(_w + _ox * 2.0, 88)
+	_sticky.size = Vector2(_w + _ox * 2.0, 96)
 	_sticky.visible = false
 	add_child(_sticky)
-	PK.rect(_sticky, Rect2(0, 0, _sticky.size.x, 64), MATTE)
-	PK.rule(_sticky, Vector2(0, 64), Vector2(_sticky.size.x, 1), Color(INK, 0.5))
-	var b := _text_button(_sticky, Rect2(_ox, 0, 190, 88), "<- BACK", 13, func() -> void: UI.back())
+	PK.rect(_sticky, Rect2(0, 0, _sticky.size.x, 96), MATTE)
+	PK.rule(_sticky, Vector2(0, 96), Vector2(_sticky.size.x, 1), Color(INK, 0.5))
+	var b := SignalKit.back_button(func() -> void: UI.back())
 	b.name = "StickyBack"
-	(b.get_child(0) as Label).position.y = 24
+	b.position = Vector2(_ox + 4, 0)
+	_sticky.add_child(b)
 	var mid := PK.t("%s  ·  %s  ·  FILE 02" % [str(_def.get("name", _id)).to_upper(), _code()], 12, Color(INK, 0.7), "mono")
 	mid.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mid.size = Vector2(_w - 380, 16)
-	PK.at(_sticky, mid, Vector2(_ox + 190, 24))
-	var up := _text_button(_sticky, Rect2(_ox + _w - 190, 0, 190, 88), "POSTER ^", 13, func() -> void: _jump("poster", true))
-	(up.get_child(0) as Label).position.y = 24
+	PK.at(_sticky, mid, Vector2(_ox + 190, 40))
+	var up := _text_button(_sticky, Rect2(_ox + _w - 190, 4, 190, 88), "POSTER ^", 13, func() -> void: _jump("poster", true))
+	(up.get_child(0) as Label).position.y = 36
 	up.name = "StickyTop"
 	(up.get_child(0) as Label).position.x = 64
 
@@ -1260,12 +1266,17 @@ func _browse_step(dir: int) -> void:
 	UI.go("hero_detail", {"hero_id": n, "browse": Array(_browse), "_dir": dir})
 
 
+## Tapping her: the shared HeroReact (burst, camera punch, expression, a pose that changes tap by tap).
 func _poke_hero() -> void:
-	if _sprite == null or not is_instance_valid(_sprite) or _victory_left > 0.0:
+	if _sprite == null or not is_instance_valid(_sprite):
 		return
-	if _sprite.call("is_busy"):
-		return
-	_sprite.call("play", "hop" if randi() % 2 == 0 else "cast")
+	var now := Time.get_ticks_msec() / 1000.0
+	_tap_n = HeroReact.next_count(_tap_n, now - _tap_at)
+	_tap_at = now
+	var at := _poke.position + _poke.get_local_mouse_position()
+	_victory_left = HeroReact.react(_sheet, _sprite, _anchor, at, _tap_n, _poster)
+	if _tap_n >= 4:
+		_tap_n = 0
 
 
 func _process(delta: float) -> void:

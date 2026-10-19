@@ -293,18 +293,19 @@ func _buy_button(o: Dictionary, width: float) -> Button:
 	var id := str(o.id)
 	var available := bool(o.get("available", true))
 	var free := not bool(o.get("test_purchase", true))
-	var spec := {"width": width, "icon": str(OFFER_ICONS.get(id, _main_currency(o))), "code": false}
+	# Buying is a price tag (the button family); the daily gift is an ink stamp tag in signal.
+	var spec := {"width": width, "height": 150.0, "horizontal": true}
 	if not available:
 		var daily := str(o.get("period", "")) == "day"
-		spec.merge({"kicker": "DAILY // CLAIMED" if daily else "OFFER // SOLD OUT", "title": "CLAIMED" if daily else "SOLD OUT",
-			"sub": "COME BACK TOMORROW" if daily else "LIMIT REACHED", "action": "DONE", "info": "Come back tomorrow" if daily else "Limit reached",
-			"disabled": true})
+		spec.merge({"kicker": "DAILY // CLAIMED" if daily else "OFFER // SOLD OUT", "price": "CLAIMED" if daily else "SOLD OUT",
+			"note": "Come back tomorrow" if daily else "Limit reached", "action": "DONE", "disabled": true})
 	elif free:
-		spec.merge({"kicker": "DAILY // FREE", "title": "CLAIM FREE", "sub": "A GIFT FROM THE CHOIR", "action": "CLAIM  >>>", "info": "Daily gift"})
+		spec.merge({"kicker": "DAILY // A GIFT FROM THE CHOIR", "price": "FREE", "note": "Daily gift", "action": "CLAIM",
+			"fill": "signal", "button_text": "Claim free"})
 	else:
-		spec.merge({"kicker": "BUY // %s" % str(o.name).to_upper(), "title": "BUY  %s" % str(o.get("price_label", "")),
-			"sub": "TEST BUILD · NO PAYMENT", "action": "BUY  >>>", "info": "Test purchase: no charge"})
-	var b := PK.pass_button(spec, func() -> void: _buy(id))
+		spec.merge({"kicker": "BUY // %s" % str(o.name).to_upper(), "price": str(o.get("price_label", "")),
+			"note": "Test purchase: no charge", "action": "BUY", "info": "TEST BUILD · NO PAYMENT"})
+	var b := SignalKit.tag_button(spec, func() -> void: _buy(id))
 	b.name = "Buy_" + id
 	return b
 

@@ -308,7 +308,8 @@ func _build_top_bar() -> void:
 	_top_margin.add_child(_top_row)
 
 	# Leader avatar with the team power chip: tap to open the team.
-	_avatar = Kit.avatar("", 70, "", func() -> void: UI.go("formation"))
+	# The player's avatar opens their profile (owner, 2026-10-19), the Team before that screen exists.
+	_avatar = Kit.avatar("", 70, "", func() -> void: UI.go("profile" if UI.SCREENS.has("profile") else "formation"))
 	_avatar.name = "Avatar"
 	_avatar.size_flags_vertical = SIZE_SHRINK_CENTER
 	_avatar.custom_minimum_size = Vector2(88, 96)
@@ -944,6 +945,10 @@ func _run_shoot() -> void:
 			UI.show_reward("Stage Cleared!", {"gems": 300, "gold": 12500, "hero_exp": 2400, "scrolls": 1})
 		"veil":
 			UI.busy("Preparing battle")
+		"poke", "poke4":
+			await get_tree().create_timer(0.6).timeout
+			if UI.current and UI.current.has_method("debug_poke"):
+				UI.current.call("debug_poke", 4 if str(_shoot.get("do", "")) == "poke4" else 1)
 		"shine":
 			# Every glint on screen sweeps at once (to see them in a still).
 			await get_tree().create_timer(0.8).timeout
