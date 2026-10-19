@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for vesper red_tide, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s209001, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "red_tide.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [608, 703, 443],
+  "look_px": [8, 5],
+  "meta": {"weapon": "orb", "fx_color": "#ff8a3d", "art": "comfy s209001 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [610, 1182]},
+    {"name": "torso", "parent": "hips", "pivot": [610, 1073]},
+    {"name": "chest", "parent": "torso", "pivot": [609, 941]},
+    {"name": "neck", "parent": "chest", "pivot": [608, 820]},
+    {"name": "head", "parent": "neck", "pivot": [600, 787]},
+    {"name": "face", "parent": "head", "pivot": [608, 695]},
+    {"name": "hair_front", "parent": "head", "pivot": [608, 598]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [608, 711], "radius": [85, 71], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [608, 625], "radius": [102, 49], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [608, 679], "radius": [164, 154], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[504, 810], [712, 810], [798, 881], [788, 1053], [742, 1083], [478, 1083], [430, 1053], [420, 881]], "feather": 40}}
+  ],
+  "overlays": []
+}

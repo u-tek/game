@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for sable confession, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s310000, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "confession.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [406, 546, 554],
+  "look_px": [8, 5],
+  "meta": {"weapon": "chain", "fx_color": "#b48cff", "art": "comfy s310000 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [564, 1092]},
+    {"name": "torso", "parent": "hips", "pivot": [416, 972]},
+    {"name": "chest", "parent": "torso", "pivot": [412, 824]},
+    {"name": "neck", "parent": "chest", "pivot": [408, 690]},
+    {"name": "head", "parent": "neck", "pivot": [396, 654]},
+    {"name": "face", "parent": "head", "pivot": [406, 536]},
+    {"name": "hair_front", "parent": "head", "pivot": [406, 412]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [406, 557], "radius": [107, 91], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [406, 447], "radius": [127, 62], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [406, 515], "radius": [205, 197], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[278, 680], [538, 680], [648, 764], [636, 952], [581, 982], [251, 982], [188, 952], [176, 764]], "feather": 40}}
+  ],
+  "overlays": []
+}

@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for orrin stand_down, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s309001, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "stand_down.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [524, 872, 340],
+  "look_px": [8, 5],
+  "meta": {"weapon": "shield", "fx_color": "#b48cff", "art": "comfy s309001 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [525, 1282]},
+    {"name": "torso", "parent": "hips", "pivot": [482, 1187]},
+    {"name": "chest", "parent": "torso", "pivot": [524, 1071]},
+    {"name": "neck", "parent": "chest", "pivot": [522, 966]},
+    {"name": "head", "parent": "neck", "pivot": [518, 936]},
+    {"name": "face", "parent": "head", "pivot": [524, 866]},
+    {"name": "hair_front", "parent": "head", "pivot": [524, 791]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [524, 878], "radius": [66, 55], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [524, 812], "radius": [78, 37], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [524, 853], "radius": [126, 118], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[442, 956], [602, 956], [669, 1011], [662, 1167], [583, 1197], [381, 1197], [386, 1167], [379, 1011]], "feather": 40}}
+  ],
+  "overlays": []
+}

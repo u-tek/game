@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for seraphiel unplugged, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s108000, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "unplugged.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [522, 706, 424],
+  "look_px": [8, 5],
+  "meta": {"weapon": "sceptre", "attack": "attack_ranged", "fx_color": "#ffe9a8", "art": "comfy s108000 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [520, 1183]},
+    {"name": "torso", "parent": "hips", "pivot": [520, 1075]},
+    {"name": "chest", "parent": "torso", "pivot": [524, 943]},
+    {"name": "neck", "parent": "chest", "pivot": [537, 822]},
+    {"name": "head", "parent": "neck", "pivot": [514, 789]},
+    {"name": "face", "parent": "head", "pivot": [522, 699]},
+    {"name": "hair_front", "parent": "head", "pivot": [522, 603]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [522, 714], "radius": [82, 70], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [522, 630], "radius": [97, 48], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [522, 683], "radius": [157, 151], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[438, 812], [636, 812], [705, 883], [696, 1055], [646, 1085], [394, 1085], [352, 1055], [343, 883]], "feather": 40}}
+  ],
+  "overlays": []
+}

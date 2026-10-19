@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for sable velvet_veil, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s311001, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "velvet_veil.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [502, 934, 402],
+  "look_px": [8, 5],
+  "meta": {"weapon": "chain", "fx_color": "#b48cff", "art": "comfy s311001 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [578, 1332]},
+    {"name": "torso", "parent": "hips", "pivot": [512, 1244]},
+    {"name": "chest", "parent": "torso", "pivot": [507, 1136]},
+    {"name": "neck", "parent": "chest", "pivot": [486, 1037]},
+    {"name": "head", "parent": "neck", "pivot": [495, 1011]},
+    {"name": "face", "parent": "head", "pivot": [502, 926]},
+    {"name": "hair_front", "parent": "head", "pivot": [502, 837]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [502, 941], "radius": [77, 66], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [502, 862], "radius": [92, 45], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [502, 911], "radius": [149, 142], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[392, 1027], [580, 1027], [678, 1076], [670, 1224], [632, 1254], [392, 1254], [344, 1224], [336, 1076]], "feather": 40}}
+  ],
+  "overlays": []
+}

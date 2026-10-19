@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for sable choir_night, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s312000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "choir_night.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [438, 853, 418],
+  "look_px": [8, 5],
+  "meta": {"weapon": "chain", "fx_color": "#b48cff", "art": "comfy s312000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [451, 1280]},
+    {"name": "torso", "parent": "hips", "pivot": [447, 1184]},
+    {"name": "chest", "parent": "torso", "pivot": [443, 1068]},
+    {"name": "neck", "parent": "chest", "pivot": [439, 962]},
+    {"name": "head", "parent": "neck", "pivot": [430, 933]},
+    {"name": "face", "parent": "head", "pivot": [438, 845]},
+    {"name": "hair_front", "parent": "head", "pivot": [438, 753]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [438, 861], "radius": [81, 68], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [438, 779], "radius": [96, 46], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [438, 830], "radius": [155, 146], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[341, 952], [537, 952], [621, 1008], [612, 1164], [572, 1194], [322, 1194], [274, 1164], [265, 1008]], "feather": 40}}
+  ],
+  "overlays": []
+}

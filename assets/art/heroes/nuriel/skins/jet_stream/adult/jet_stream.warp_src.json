@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for nuriel jet_stream, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s111000, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "jet_stream.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [551, 723, 410],
+  "look_px": [8, 5],
+  "meta": {"weapon": "dagger", "fx_color": "#ffe9a8", "art": "comfy s111000 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [593, 1192]},
+    {"name": "torso", "parent": "hips", "pivot": [632, 1085]},
+    {"name": "chest", "parent": "torso", "pivot": [552, 954]},
+    {"name": "neck", "parent": "chest", "pivot": [540, 835]},
+    {"name": "head", "parent": "neck", "pivot": [543, 802]},
+    {"name": "face", "parent": "head", "pivot": [551, 715]},
+    {"name": "hair_front", "parent": "head", "pivot": [551, 624]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [551, 731], "radius": [79, 67], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [551, 650], "radius": [94, 46], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [551, 700], "radius": [152, 144], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[444, 825], [636, 825], [727, 894], [718, 1065], [754, 1095], [510, 1095], [386, 1065], [377, 894]], "feather": 40}}
+  ],
+  "overlays": []
+}

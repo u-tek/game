@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for orrin riot_beach, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s308000, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "riot_beach.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [504, 884, 351],
+  "look_px": [8, 5],
+  "meta": {"weapon": "shield", "fx_color": "#b48cff", "art": "comfy s308000 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [512, 1291]},
+    {"name": "torso", "parent": "hips", "pivot": [510, 1197]},
+    {"name": "chest", "parent": "torso", "pivot": [507, 1083]},
+    {"name": "neck", "parent": "chest", "pivot": [528, 978]},
+    {"name": "head", "parent": "neck", "pivot": [498, 950]},
+    {"name": "face", "parent": "head", "pivot": [504, 878]},
+    {"name": "hair_front", "parent": "head", "pivot": [504, 803]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [504, 891], "radius": [68, 55], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [504, 824], "radius": [81, 38], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [504, 866], "radius": [130, 119], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[446, 968], [610, 968], [656, 1023], [649, 1177], [615, 1207], [405, 1207], [365, 1177], [358, 1023]], "feather": 40}}
+  ],
+  "overlays": []
+}

@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for seraphiel encore_bunny, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s109000, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "encore_bunny.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [495, 965, 346],
+  "look_px": [8, 5],
+  "meta": {"weapon": "sceptre", "attack": "attack_ranged", "fx_color": "#ffe9a8", "art": "comfy s109000 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [462, 1345]},
+    {"name": "torso", "parent": "hips", "pivot": [471, 1258]},
+    {"name": "chest", "parent": "torso", "pivot": [482, 1152]},
+    {"name": "neck", "parent": "chest", "pivot": [509, 1056]},
+    {"name": "head", "parent": "neck", "pivot": [489, 1029]},
+    {"name": "face", "parent": "head", "pivot": [495, 959]},
+    {"name": "hair_front", "parent": "head", "pivot": [495, 884]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [495, 971], "radius": [67, 55], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [495, 905], "radius": [79, 37], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [495, 946], "radius": [128, 118], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[428, 1046], [590, 1046], [629, 1092], [622, 1238], [574, 1268], [368, 1268], [342, 1238], [335, 1092]], "feather": 40}}
+  ],
+  "overlays": []
+}

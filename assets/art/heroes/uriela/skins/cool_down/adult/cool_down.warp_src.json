@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for uriela cool_down, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s111000, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "cool_down.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [538, 863, 408],
+  "look_px": [8, 5],
+  "meta": {"weapon": "spear", "fx_color": "#ffe9a8", "art": "comfy s111000 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [600, 1284]},
+    {"name": "torso", "parent": "hips", "pivot": [582, 1190]},
+    {"name": "chest", "parent": "torso", "pivot": [513, 1074]},
+    {"name": "neck", "parent": "chest", "pivot": [538, 969]},
+    {"name": "head", "parent": "neck", "pivot": [531, 940]},
+    {"name": "face", "parent": "head", "pivot": [538, 856]},
+    {"name": "hair_front", "parent": "head", "pivot": [538, 767]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [538, 870], "radius": [79, 65], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [538, 792], "radius": [94, 44], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [538, 841], "radius": [151, 141], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[442, 959], [634, 959], [687, 1014], [678, 1170], [704, 1200], [460, 1200], [348, 1170], [339, 1014]], "feather": 40}}
+  ],
+  "overlays": []
+}

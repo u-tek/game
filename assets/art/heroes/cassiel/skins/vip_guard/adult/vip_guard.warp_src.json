@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for cassiel vip_guard, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s111001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "vip_guard.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [778, 695, 446],
+  "look_px": [8, 5],
+  "meta": {"weapon": "shield", "fx_color": "#ffe9a8", "art": "comfy s111001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [666, 1176]},
+    {"name": "torso", "parent": "hips", "pivot": [782, 1067]},
+    {"name": "chest", "parent": "torso", "pivot": [764, 933]},
+    {"name": "neck", "parent": "chest", "pivot": [705, 811]},
+    {"name": "head", "parent": "neck", "pivot": [770, 778]},
+    {"name": "face", "parent": "head", "pivot": [778, 687]},
+    {"name": "hair_front", "parent": "head", "pivot": [778, 591]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [778, 703], "radius": [86, 70], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [778, 618], "radius": [102, 48], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [778, 671], "radius": [165, 152], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[601, 801], [809, 801], [954, 873], [944, 1047], [915, 1077], [649, 1077], [584, 1047], [574, 873]], "feather": 40}}
+  ],
+  "overlays": []
+}

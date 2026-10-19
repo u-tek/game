@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for imra lucky_ember, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s212000, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "lucky_ember.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [548, 902, 359],
+  "look_px": [8, 5],
+  "meta": {"weapon": "staff", "fx_color": "#ff8a3d", "art": "comfy s212000 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [530, 1305]},
+    {"name": "torso", "parent": "hips", "pivot": [548, 1213]},
+    {"name": "chest", "parent": "torso", "pivot": [546, 1101]},
+    {"name": "neck", "parent": "chest", "pivot": [556, 999]},
+    {"name": "head", "parent": "neck", "pivot": [542, 971]},
+    {"name": "face", "parent": "head", "pivot": [548, 895]},
+    {"name": "hair_front", "parent": "head", "pivot": [548, 816]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [548, 909], "radius": [69, 58], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [548, 839], "radius": [82, 40], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [548, 882], "radius": [133, 125], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[472, 989], [640, 989], [699, 1041], [691, 1193], [655, 1223], [441, 1223], [401, 1193], [393, 1041]], "feather": 40}}
+  ],
+  "overlays": []
+}

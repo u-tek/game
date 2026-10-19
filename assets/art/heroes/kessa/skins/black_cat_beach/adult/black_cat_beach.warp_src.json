@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for kessa black_cat_beach, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s211001, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "black_cat_beach.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [584, 529, 543],
+  "look_px": [8, 5],
+  "meta": {"weapon": "sickle", "fx_color": "#ff8a3d", "art": "comfy s211001 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [548, 1078]},
+    {"name": "torso", "parent": "hips", "pivot": [634, 956]},
+    {"name": "chest", "parent": "torso", "pivot": [682, 806]},
+    {"name": "neck", "parent": "chest", "pivot": [547, 670]},
+    {"name": "head", "parent": "neck", "pivot": [574, 633]},
+    {"name": "face", "parent": "head", "pivot": [584, 519]},
+    {"name": "hair_front", "parent": "head", "pivot": [584, 399]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [584, 539], "radius": [105, 88], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [584, 433], "radius": [125, 60], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [584, 499], "radius": [201, 190], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[420, 660], [674, 660], [913, 746], [902, 936], [796, 966], [472, 966], [462, 936], [451, 746]], "feather": 40}}
+  ],
+  "overlays": []
+}

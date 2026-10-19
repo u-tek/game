@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for nuriel visor_down, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s112001, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "visor_down.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [604, 762, 413],
+  "look_px": [8, 5],
+  "meta": {"weapon": "dagger", "fx_color": "#ffe9a8", "art": "comfy s112001 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [584, 1217]},
+    {"name": "torso", "parent": "hips", "pivot": [564, 1114]},
+    {"name": "chest", "parent": "torso", "pivot": [586, 987]},
+    {"name": "neck", "parent": "chest", "pivot": [640, 872]},
+    {"name": "head", "parent": "neck", "pivot": [596, 840]},
+    {"name": "face", "parent": "head", "pivot": [604, 755]},
+    {"name": "hair_front", "parent": "head", "pivot": [604, 666]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [604, 770], "radius": [80, 66], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [604, 691], "radius": [95, 45], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [604, 740], "radius": [153, 142], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[543, 862], [737, 862], [762, 927], [753, 1094], [687, 1124], [441, 1124], [419, 1094], [410, 927]], "feather": 40}}
+  ],
+  "overlays": []
+}

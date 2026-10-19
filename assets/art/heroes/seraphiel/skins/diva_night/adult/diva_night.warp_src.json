@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for seraphiel diva_night, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s110001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "diva_night.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [510, 918, 351],
+  "look_px": [8, 5],
+  "meta": {"weapon": "sceptre", "attack": "attack_ranged", "fx_color": "#ffe9a8", "art": "comfy s110001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [516, 1315]},
+    {"name": "torso", "parent": "hips", "pivot": [514, 1225]},
+    {"name": "chest", "parent": "torso", "pivot": [512, 1114]},
+    {"name": "neck", "parent": "chest", "pivot": [499, 1013]},
+    {"name": "head", "parent": "neck", "pivot": [504, 986]},
+    {"name": "face", "parent": "head", "pivot": [510, 912]},
+    {"name": "hair_front", "parent": "head", "pivot": [510, 834]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [510, 924], "radius": [68, 57], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [510, 856], "radius": [81, 39], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [510, 898], "radius": [130, 124], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[417, 1003], [581, 1003], [662, 1054], [654, 1205], [619, 1235], [409, 1235], [370, 1205], [362, 1054]], "feather": 40}}
+  ],
+  "overlays": []
+}

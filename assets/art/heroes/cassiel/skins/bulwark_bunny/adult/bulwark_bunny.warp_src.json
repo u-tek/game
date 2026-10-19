@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for cassiel bulwark_bunny, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s110002, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "bulwark_bunny.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [466, 726, 435],
+  "look_px": [8, 5],
+  "meta": {"weapon": "shield", "fx_color": "#ffe9a8", "art": "comfy s110002 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [476, 1198]},
+    {"name": "torso", "parent": "hips", "pivot": [519, 1092]},
+    {"name": "chest", "parent": "torso", "pivot": [509, 962]},
+    {"name": "neck", "parent": "chest", "pivot": [450, 843]},
+    {"name": "head", "parent": "neck", "pivot": [457, 811]},
+    {"name": "face", "parent": "head", "pivot": [466, 718]},
+    {"name": "hair_front", "parent": "head", "pivot": [466, 621]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [466, 735], "radius": [84, 72], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [466, 648], "radius": [100, 49], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [466, 702], "radius": [161, 155], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[348, 833], [552, 833], [694, 902], [685, 1072], [649, 1102], [389, 1102], [333, 1072], [324, 902]], "feather": 40}}
+  ],
+  "overlays": []
+}

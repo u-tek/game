@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for mordessa owners_booth, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s210000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "owners_booth.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [536, 726, 451],
+  "look_px": [8, 5],
+  "meta": {"weapon": "greatsword", "fx_color": "#ff8a3d", "art": "comfy s210000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [450, 1198]},
+    {"name": "torso", "parent": "hips", "pivot": [477, 1092]},
+    {"name": "chest", "parent": "torso", "pivot": [539, 962]},
+    {"name": "neck", "parent": "chest", "pivot": [535, 843]},
+    {"name": "head", "parent": "neck", "pivot": [527, 811]},
+    {"name": "face", "parent": "head", "pivot": [536, 717]},
+    {"name": "hair_front", "parent": "head", "pivot": [536, 618]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [536, 734], "radius": [87, 73], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [536, 646], "radius": [104, 50], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [536, 701], "radius": [167, 157], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[429, 833], [641, 833], [731, 902], [721, 1072], [611, 1102], [343, 1102], [357, 1072], [347, 902]], "feather": 40}}
+  ],
+  "overlays": []
+}

@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for noctaire void_bunny, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s309001, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "void_bunny.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [644, 869, 343],
+  "look_px": [8, 5],
+  "meta": {"weapon": "scythe", "fx_color": "#b48cff", "art": "comfy s309001 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [567, 1283]},
+    {"name": "torso", "parent": "hips", "pivot": [630, 1188]},
+    {"name": "chest", "parent": "torso", "pivot": [637, 1072]},
+    {"name": "neck", "parent": "chest", "pivot": [643, 967]},
+    {"name": "head", "parent": "neck", "pivot": [638, 938]},
+    {"name": "face", "parent": "head", "pivot": [644, 862]},
+    {"name": "hair_front", "parent": "head", "pivot": [644, 783]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [644, 876], "radius": [66, 58], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [644, 806], "radius": [79, 40], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [644, 849], "radius": [127, 125], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[563, 957], [723, 957], [783, 1012], [776, 1168], [732, 1198], [528, 1198], [498, 1168], [491, 1012]], "feather": 40}}
+  ],
+  "overlays": []
+}

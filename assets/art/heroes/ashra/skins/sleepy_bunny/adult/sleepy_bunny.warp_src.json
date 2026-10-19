@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for ashra sleepy_bunny, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s313000, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "sleepy_bunny.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [570, 852, 386],
+  "look_px": [8, 5],
+  "meta": {"weapon": "wand", "fx_color": "#b48cff", "art": "comfy s313000 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [570, 1276]},
+    {"name": "torso", "parent": "hips", "pivot": [588, 1180]},
+    {"name": "chest", "parent": "torso", "pivot": [570, 1063]},
+    {"name": "neck", "parent": "chest", "pivot": [570, 956]},
+    {"name": "head", "parent": "neck", "pivot": [562, 927]},
+    {"name": "face", "parent": "head", "pivot": [570, 844]},
+    {"name": "hair_front", "parent": "head", "pivot": [570, 757]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [570, 859], "radius": [74, 64], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [570, 782], "radius": [89, 44], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [570, 830], "radius": [143, 138], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[480, 946], [660, 946], [734, 1003], [726, 1160], [703, 1190], [473, 1190], [414, 1160], [406, 1003]], "feather": 40}}
+  ],
+  "overlays": []
+}

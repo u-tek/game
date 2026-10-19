@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for orrin pit_boss, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s310001, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "pit_boss.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [515, 518, 437],
+  "look_px": [8, 5],
+  "meta": {"weapon": "shield", "fx_color": "#b48cff", "art": "comfy s310001 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [454, 1060]},
+    {"name": "torso", "parent": "hips", "pivot": [500, 935]},
+    {"name": "chest", "parent": "torso", "pivot": [506, 782]},
+    {"name": "neck", "parent": "chest", "pivot": [503, 644]},
+    {"name": "head", "parent": "neck", "pivot": [507, 605]},
+    {"name": "face", "parent": "head", "pivot": [515, 510]},
+    {"name": "hair_front", "parent": "head", "pivot": [515, 409]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [515, 526], "radius": [84, 74], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [515, 437], "radius": [100, 50], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [515, 493], "radius": [162, 160], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[401, 634], [605, 634], [692, 722], [683, 915], [630, 945], [370, 945], [329, 915], [320, 722]], "feather": 40}}
+  ],
+  "overlays": []
+}

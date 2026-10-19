@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for uriela surf_racer, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s110001, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "surf_racer.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [524, 878, 383],
+  "look_px": [8, 5],
+  "meta": {"weapon": "spear", "fx_color": "#ffe9a8", "art": "comfy s110001 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [520, 1292]},
+    {"name": "torso", "parent": "hips", "pivot": [529, 1198]},
+    {"name": "chest", "parent": "torso", "pivot": [527, 1083]},
+    {"name": "neck", "parent": "chest", "pivot": [520, 979]},
+    {"name": "head", "parent": "neck", "pivot": [517, 951]},
+    {"name": "face", "parent": "head", "pivot": [524, 870]},
+    {"name": "hair_front", "parent": "head", "pivot": [524, 786]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [524, 885], "radius": [74, 62], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [524, 810], "radius": [88, 42], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [524, 856], "radius": [142, 134], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[430, 969], [610, 969], [690, 1023], [682, 1178], [643, 1208], [415, 1208], [372, 1178], [364, 1023]], "feather": 40}}
+  ],
+  "overlays": []
+}

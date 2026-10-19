@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for noctaire glitch_gala, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s310001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "glitch_gala.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [505, 533, 448],
+  "look_px": [8, 5],
+  "meta": {"weapon": "scythe", "fx_color": "#b48cff", "art": "comfy s310001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [512, 1069]},
+    {"name": "torso", "parent": "hips", "pivot": [502, 946]},
+    {"name": "chest", "parent": "torso", "pivot": [528, 795]},
+    {"name": "neck", "parent": "chest", "pivot": [494, 657]},
+    {"name": "head", "parent": "neck", "pivot": [497, 619]},
+    {"name": "face", "parent": "head", "pivot": [505, 525]},
+    {"name": "hair_front", "parent": "head", "pivot": [505, 425]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [505, 541], "radius": [86, 73], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [505, 453], "radius": [103, 50], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [505, 508], "radius": [166, 158], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[389, 647], [599, 647], [719, 735], [709, 926], [636, 956], [368, 956], [347, 926], [337, 735]], "feather": 40}}
+  ],
+  "overlays": []
+}

@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for ashra overslept, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s312000, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "overslept.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [614, 660, 437],
+  "look_px": [8, 5],
+  "meta": {"weapon": "wand", "fx_color": "#b48cff", "art": "comfy s312000 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [538, 1152]},
+    {"name": "torso", "parent": "hips", "pivot": [558, 1040]},
+    {"name": "chest", "parent": "torso", "pivot": [584, 902]},
+    {"name": "neck", "parent": "chest", "pivot": [607, 778]},
+    {"name": "head", "parent": "neck", "pivot": [606, 743]},
+    {"name": "face", "parent": "head", "pivot": [614, 651]},
+    {"name": "hair_front", "parent": "head", "pivot": [614, 555]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [614, 668], "radius": [84, 71], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [614, 582], "radius": [100, 48], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [614, 635], "radius": [162, 153], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[505, 768], [709, 768], [770, 842], [761, 1020], [688, 1050], [428, 1050], [407, 1020], [398, 842]], "feather": 40}}
+  ],
+  "overlays": []
+}

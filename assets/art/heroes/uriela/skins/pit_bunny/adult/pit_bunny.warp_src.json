@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for uriela pit_bunny, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s112002, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "pit_bunny.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [517, 900, 416],
+  "look_px": [8, 5],
+  "meta": {"weapon": "spear", "fx_color": "#ffe9a8", "art": "comfy s112002 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [562, 1311]},
+    {"name": "torso", "parent": "hips", "pivot": [544, 1220]},
+    {"name": "chest", "parent": "torso", "pivot": [507, 1109]},
+    {"name": "neck", "parent": "chest", "pivot": [500, 1007]},
+    {"name": "head", "parent": "neck", "pivot": [509, 980]},
+    {"name": "face", "parent": "head", "pivot": [517, 892]},
+    {"name": "hair_front", "parent": "head", "pivot": [517, 800]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [517, 908], "radius": [80, 68], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [517, 826], "radius": [95, 46], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [517, 877], "radius": [154, 146], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[403, 997], [597, 997], [684, 1049], [675, 1200], [668, 1230], [420, 1230], [339, 1200], [330, 1049]], "feather": 40}}
+  ],
+  "overlays": []
+}

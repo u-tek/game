@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for imra fire_lagoon, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s210002, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "fire_lagoon.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [509, 1001, 340],
+  "look_px": [8, 5],
+  "meta": {"weapon": "staff", "fx_color": "#ff8a3d", "art": "comfy s210002 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [562, 1368]},
+    {"name": "torso", "parent": "hips", "pivot": [542, 1285]},
+    {"name": "chest", "parent": "torso", "pivot": [503, 1183]},
+    {"name": "neck", "parent": "chest", "pivot": [512, 1090]},
+    {"name": "head", "parent": "neck", "pivot": [503, 1064]},
+    {"name": "face", "parent": "head", "pivot": [509, 995]},
+    {"name": "hair_front", "parent": "head", "pivot": [509, 922]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [509, 1007], "radius": [66, 54], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [509, 942], "radius": [78, 37], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [509, 983], "radius": [126, 116], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[432, 1080], [592, 1080], [648, 1123], [641, 1265], [643, 1295], [441, 1295], [365, 1265], [358, 1123]], "feather": 40}}
+  ],
+  "overlays": []
+}

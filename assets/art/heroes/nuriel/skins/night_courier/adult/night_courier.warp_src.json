@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for nuriel night_courier, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s114001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "night_courier.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [500, 768, 375],
+  "look_px": [8, 5],
+  "meta": {"weapon": "dagger", "fx_color": "#ffe9a8", "art": "comfy s114001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [474, 1216]},
+    {"name": "torso", "parent": "hips", "pivot": [456, 1112]},
+    {"name": "chest", "parent": "torso", "pivot": [490, 985]},
+    {"name": "neck", "parent": "chest", "pivot": [500, 870]},
+    {"name": "head", "parent": "neck", "pivot": [493, 838]},
+    {"name": "face", "parent": "head", "pivot": [500, 761]},
+    {"name": "hair_front", "parent": "head", "pivot": [500, 680]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [500, 774], "radius": [72, 59], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [500, 703], "radius": [86, 40], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [500, 747], "radius": [139, 128], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[412, 860], [588, 860], [650, 925], [642, 1092], [568, 1122], [344, 1122], [338, 1092], [330, 925]], "feather": 40}}
+  ],
+  "overlays": []
+}

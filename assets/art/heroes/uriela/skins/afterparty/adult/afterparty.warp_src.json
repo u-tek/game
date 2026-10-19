@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for uriela afterparty, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s113000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "afterparty.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [501, 766, 421],
+  "look_px": [8, 5],
+  "meta": {"weapon": "spear", "fx_color": "#ffe9a8", "art": "comfy s113000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [516, 1220]},
+    {"name": "torso", "parent": "hips", "pivot": [506, 1117]},
+    {"name": "chest", "parent": "torso", "pivot": [502, 990]},
+    {"name": "neck", "parent": "chest", "pivot": [504, 875]},
+    {"name": "head", "parent": "neck", "pivot": [493, 844]},
+    {"name": "face", "parent": "head", "pivot": [501, 759]},
+    {"name": "hair_front", "parent": "head", "pivot": [501, 670]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [501, 774], "radius": [81, 66], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [501, 695], "radius": [97, 45], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [501, 744], "radius": [156, 142], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[405, 865], [603, 865], [681, 930], [672, 1097], [632, 1127], [380, 1127], [332, 1097], [323, 930]], "feather": 40}}
+  ],
+  "overlays": []
+}

@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for vesper encrypted, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s212000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "encrypted.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [498, 706, 467],
+  "look_px": [8, 5],
+  "meta": {"weapon": "orb", "fx_color": "#ff8a3d", "art": "comfy s212000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [497, 1186]},
+    {"name": "torso", "parent": "hips", "pivot": [498, 1078]},
+    {"name": "chest", "parent": "torso", "pivot": [497, 946]},
+    {"name": "neck", "parent": "chest", "pivot": [506, 826]},
+    {"name": "head", "parent": "neck", "pivot": [489, 793]},
+    {"name": "face", "parent": "head", "pivot": [498, 698]},
+    {"name": "hair_front", "parent": "head", "pivot": [498, 597]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [498, 714], "radius": [90, 74], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [498, 625], "radius": [107, 50], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [498, 681], "radius": [173, 160], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[397, 816], [615, 816], [696, 886], [686, 1058], [637, 1088], [359, 1088], [308, 1058], [298, 886]], "feather": 40}}
+  ],
+  "overlays": []
+}

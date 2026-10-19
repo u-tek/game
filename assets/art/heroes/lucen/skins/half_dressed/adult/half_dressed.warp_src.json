@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for lucen half_dressed, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s311000, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "half_dressed.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [457, 635, 432],
+  "look_px": [8, 5],
+  "meta": {"weapon": "rapier", "fx_color": "#b48cff", "art": "comfy s311000 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [464, 1136]},
+    {"name": "torso", "parent": "hips", "pivot": [508, 1021]},
+    {"name": "chest", "parent": "torso", "pivot": [463, 881]},
+    {"name": "neck", "parent": "chest", "pivot": [494, 753]},
+    {"name": "head", "parent": "neck", "pivot": [449, 718]},
+    {"name": "face", "parent": "head", "pivot": [457, 627]},
+    {"name": "hair_front", "parent": "head", "pivot": [457, 531]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [457, 643], "radius": [83, 70], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [457, 558], "radius": [99, 48], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [457, 611], "radius": [160, 152], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[393, 743], [595, 743], [647, 821], [638, 1001], [637, 1031], [379, 1031], [288, 1001], [279, 821]], "feather": 40}}
+  ],
+  "overlays": []
+}

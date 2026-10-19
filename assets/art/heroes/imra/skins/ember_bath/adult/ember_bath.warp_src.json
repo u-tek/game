@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for imra ember_bath, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s211001, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "ember_bath.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [502, 934, 362],
+  "look_px": [8, 5],
+  "meta": {"weapon": "staff", "fx_color": "#ff8a3d", "art": "comfy s211001 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [576, 1327]},
+    {"name": "torso", "parent": "hips", "pivot": [519, 1238]},
+    {"name": "chest", "parent": "torso", "pivot": [508, 1129]},
+    {"name": "neck", "parent": "chest", "pivot": [494, 1030]},
+    {"name": "head", "parent": "neck", "pivot": [495, 1003]},
+    {"name": "face", "parent": "head", "pivot": [502, 927]},
+    {"name": "hair_front", "parent": "head", "pivot": [502, 848]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [502, 941], "radius": [70, 58], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [502, 871], "radius": [83, 40], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [502, 914], "radius": [134, 125], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[409, 1020], [579, 1020], [662, 1069], [654, 1218], [627, 1248], [411, 1248], [362, 1218], [354, 1069]], "feather": 40}}
+  ],
+  "overlays": []
+}

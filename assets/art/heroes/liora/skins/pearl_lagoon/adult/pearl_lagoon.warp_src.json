@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for liora pearl_lagoon, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s109002, finalized with the face pass and the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "pearl_lagoon.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [464, 731, 408],
+  "look_px": [8, 5],
+  "meta": {"weapon": "lyre", "fx_color": "#ffe9a8", "art": "comfy s109002 final"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [410, 1197]},
+    {"name": "torso", "parent": "hips", "pivot": [430, 1090]},
+    {"name": "chest", "parent": "torso", "pivot": [480, 960]},
+    {"name": "neck", "parent": "chest", "pivot": [467, 842]},
+    {"name": "head", "parent": "neck", "pivot": [456, 809]},
+    {"name": "face", "parent": "head", "pivot": [464, 724]},
+    {"name": "hair_front", "parent": "head", "pivot": [464, 634]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [464, 738], "radius": [79, 66], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [464, 659], "radius": [94, 45], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [464, 708], "radius": [151, 142], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[371, 832], [563, 832], [654, 900], [645, 1070], [552, 1100], [308, 1100], [315, 1070], [306, 900]], "feather": 40}}
+  ],
+  "overlays": []
+}
