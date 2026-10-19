@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for sigilla saltwater_ink, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s241000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "saltwater_ink.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [541, 864, 443],
+  "look_px": [8, 5],
+  "meta": {"weapon": "tattoo_machine", "attack": "attack_ranged", "fx_color": "#ff8a3d", "art": "comfy s241000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [586, 1289]},
+    {"name": "torso", "parent": "hips", "pivot": [537, 1194]},
+    {"name": "chest", "parent": "torso", "pivot": [543, 1079]},
+    {"name": "neck", "parent": "chest", "pivot": [524, 974]},
+    {"name": "head", "parent": "neck", "pivot": [533, 946]},
+    {"name": "face", "parent": "head", "pivot": [541, 856]},
+    {"name": "hair_front", "parent": "head", "pivot": [541, 760]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [541, 871], "radius": [85, 70], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [541, 787], "radius": [102, 48], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [541, 840], "radius": [164, 151], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[420, 964], [628, 964], [732, 1019], [722, 1174], [669, 1204], [405, 1204], [364, 1174], [354, 1019]], "feather": 40}}
+  ],
+  "overlays": []
+}

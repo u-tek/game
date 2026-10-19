@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for severine riptide_ronin, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s331001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "riptide_ronin.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [550, 908, 386],
+  "look_px": [8, 5],
+  "meta": {"weapon": "sword", "fx_color": "#b48cff", "art": "comfy s331001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [550, 1313]},
+    {"name": "torso", "parent": "hips", "pivot": [550, 1222]},
+    {"name": "chest", "parent": "torso", "pivot": [581, 1111]},
+    {"name": "neck", "parent": "chest", "pivot": [551, 1010]},
+    {"name": "head", "parent": "neck", "pivot": [543, 983]},
+    {"name": "face", "parent": "head", "pivot": [550, 901]},
+    {"name": "hair_front", "parent": "head", "pivot": [550, 816]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [550, 916], "radius": [74, 63], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [550, 840], "radius": [89, 43], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [550, 887], "radius": [143, 136], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[461, 1000], [641, 1000], [745, 1051], [737, 1202], [665, 1232], [435, 1232], [425, 1202], [417, 1051]], "feather": 40}}
+  ],
+  "overlays": []
+}

@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for seyra tide_reading, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s351001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "tide_reading.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [522, 856, 356],
+  "look_px": [8, 5],
+  "meta": {"weapon": "orb", "attack": "attack_ranged", "fx_color": "#b48cff", "art": "comfy s351001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [519, 1274]},
+    {"name": "torso", "parent": "hips", "pivot": [520, 1178]},
+    {"name": "chest", "parent": "torso", "pivot": [521, 1060]},
+    {"name": "neck", "parent": "chest", "pivot": [500, 953]},
+    {"name": "head", "parent": "neck", "pivot": [515, 924]},
+    {"name": "face", "parent": "head", "pivot": [522, 850]},
+    {"name": "hair_front", "parent": "head", "pivot": [522, 772]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [522, 862], "radius": [69, 57], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [522, 794], "radius": [82, 39], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [522, 836], "radius": [132, 124], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[417, 943], [583, 943], [673, 1000], [665, 1158], [626, 1188], [414, 1188], [377, 1158], [369, 1000]], "feather": 40}}
+  ],
+  "overlays": []
+}

@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for argentiel chrome_command, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s114001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "chrome_command.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [552, 754, 408],
+  "look_px": [8, 5],
+  "meta": {"weapon": "spear", "fx_color": "#ffe9a8", "art": "comfy s114001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [580, 1212]},
+    {"name": "torso", "parent": "hips", "pivot": [542, 1108]},
+    {"name": "chest", "parent": "torso", "pivot": [546, 980]},
+    {"name": "neck", "parent": "chest", "pivot": [550, 864]},
+    {"name": "head", "parent": "neck", "pivot": [544, 832]},
+    {"name": "face", "parent": "head", "pivot": [552, 746]},
+    {"name": "hair_front", "parent": "head", "pivot": [552, 655]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [552, 761], "radius": [79, 66], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [552, 681], "radius": [94, 45], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [552, 731], "radius": [151, 143], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[454, 854], [646, 854], [720, 920], [711, 1088], [664, 1118], [420, 1118], [381, 1088], [372, 920]], "feather": 40}}
+  ],
+  "overlays": []
+}

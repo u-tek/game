@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for rivette pool_skater, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s361000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "pool_skater.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [526, 868, 343],
+  "look_px": [8, 5],
+  "meta": {"weapon": "axe", "fx_color": "#b48cff", "art": "comfy s361000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [455, 1281]},
+    {"name": "torso", "parent": "hips", "pivot": [471, 1186]},
+    {"name": "chest", "parent": "torso", "pivot": [533, 1070]},
+    {"name": "neck", "parent": "chest", "pivot": [531, 964]},
+    {"name": "head", "parent": "neck", "pivot": [520, 935]},
+    {"name": "face", "parent": "head", "pivot": [526, 861]},
+    {"name": "hair_front", "parent": "head", "pivot": [526, 784]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [526, 874], "radius": [66, 57], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [526, 806], "radius": [79, 39], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [526, 848], "radius": [127, 123], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[451, 954], [611, 954], [679, 1010], [672, 1166], [573, 1196], [369, 1196], [394, 1166], [387, 1010]], "feather": 40}}
+  ],
+  "overlays": []
+}
