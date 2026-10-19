@@ -92,7 +92,8 @@ func default_state() -> Dictionary:
 		"gear_seq": 0,
 		"quests": {"day": day, "progress": {}, "claimed": []},
 		"shop": {"purchases": {}, "daily": {}, "day": day, "monthly_until_day": -1, "monthly_last_day": -1},
-		"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 1, "auto_ultimates": true},
+		"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 1, "auto_ultimates": true,
+			"nudity": false},
 		"skins": {"owned": [], "equipped": {}},
 		"counters": {},
 		"dev_time_offset": 0,
@@ -1291,7 +1292,7 @@ func set_setting(key: String, value: Variant) -> void:
 			if not BATTLE_SPEEDS.has(v):
 				return
 			state.settings.battle_speed = v
-		"sound", "music", "haptics", "auto_ultimates":
+		"sound", "music", "haptics", "auto_ultimates", "nudity":
 			state.settings[key] = bool(value)
 		"chapter_intro_seen":
 			# Highest chapter index whose story intro the player has seen (campaign screen).

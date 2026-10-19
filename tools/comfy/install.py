@@ -196,9 +196,9 @@ def main(argv=None):
     ap.add_argument("--partial", action="store_true", help="install even if some variants of variant_set are missing")
     ap.add_argument("--skin", help="skin id (bible 'skins'): install that skin's final into assets/.../skins/<art>/")
     ap.add_argument("--adult", action="store_true",
-                    help="install the EroLabs nude variant into assets/.../skins/<art>/adult/ (or "
-                         "assets/.../<id>/adult/ for the base look): the tame build's Godot import "
-                         "ignores it via .gdignore, and the EroLabs build swaps it over the tame art")
+                    help="install the nude variant into assets/.../skins/<art>/adult/ (or "
+                         "assets/.../<id>/adult/ for the base look); the game shows it when the "
+                         "player turns on Settings > Toggle nudity (HeroArt.nudity)")
     a = ap.parse_args(argv)
     try:
         bible = prompts.load_bible()
@@ -241,8 +241,6 @@ def main(argv=None):
         vd = os.path.join(dst, "variants")
         if os.path.isdir(vd) and not os.path.exists(os.path.join(vd, ".gdignore")):
             open(os.path.join(vd, ".gdignore"), "w").close()
-        if t.get("adult") and not os.path.exists(os.path.join(dst, ".gdignore")):
-            open(os.path.join(dst, ".gdignore"), "w").close()     # the tame build ignores the nude set
         ho = handoff(t, bible, fmeta, record, found, dst)
         P.write_json(handoff_path(a.hero, t["art"], adult=bool(a.adult)), ho)
         print("hand-off: %s" % P.rel(handoff_path(a.hero, t["art"], adult=bool(a.adult))))

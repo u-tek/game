@@ -25,8 +25,12 @@ SOLES = (512, 1990)
 
 
 def paths(rig_id):
+    """<hero>, <hero>@<art> or <hero>@<art>@adult (the skin's nude art in skins/<art>/adult/)."""
     hero, _, art = rig_id.partition("@")
+    art, _, variant = art.partition("@")
     d = os.path.join(HEROES, hero, "skins", art) if art else os.path.join(HEROES, hero)
+    if variant:
+        d = os.path.join(d, variant)
     name = art or hero
     return hero, art, d, os.path.join(d, name + ".png"), os.path.join(d, name + ".warp_src.json")
 

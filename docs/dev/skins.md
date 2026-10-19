@@ -59,14 +59,24 @@ explicitly stated"). It is an opt-in mode of the ComfyUI pipeline, not a guardra
   collars, gloves, veils, belts, footwear; hero identity, pose and props unchanged).
 - Same flow as tame art, same settings: `run_hero.py --skin <id> --adult` (work in
   `art_src/<id>/skins/<art>/adult/`, seeds +5000), then `finalize.py --adult`, `variants.py --adult`,
-  `fix.py --adult`, `install.py --adult` (into `assets/art/heroes/<id>/skins/<art>/adult/`, with a
-  `.gdignore` so the tame build's Godot import ignores the nudes).
-- The EroLabs build swaps the `adult/` art over the tame files at build time (same filenames), so
-  the game code and `data/skins.json` do not change. The tame rules still gate every non-adult
-  render: a nude prompt fails `enforce()` and `Comfy.queue()` without `--adult`
-  (`tools/comfy/test_pipeline.py`).
-- erolabs.com hosts browser games, so the EroLabs build is a Godot web export; CLAUDE.md said
-  "never build a web version" (about the main game), so that needs the owner's explicit word.
+  `fix.py --adult`, `install.py --adult` (into `assets/art/heroes/<id>/skins/<art>/adult/`).
+- **In the game: a toggle, one build (owner, 2026-10-19: "implement these skins into the game now
+  with a toggle. in the settings you should be able to press 'toggle nudity'").** Settings >
+  Adult content > "Toggle nudity" (off by default; turning it on asks "I'm 18+") sets the
+  `nudity` setting; Game syncs it to `HeroArt.nudity`, and every skin with adult art then shows
+  `skins/<art>/adult/<art>.*` (sprite, portraits, thumbnails, try-on); skins without it keep
+  their normal art. Rig ids `<hero>@<art>@adult` (`art_warp_build.py`, `art_quick_rig.py`),
+  RigData art `<art>/adult`. `--nudity` with `--rich`/`--fresh` turns it on in the throwaway save
+  (screenshots). The separate EroLabs build swap and the `.gdignore` are gone.
+- Installed 2026-10-19: all 60. OpenCode's finals run (`art_src/_review/adult_finals.log`, picks
+  by framing flags in `art_src/_review/adult_picks.json`) finished 44 with the face pass and tiled
+  2x; ComfyUI went down for the last 14, which Claude cut out quick (no face pass or 2x). Two
+  cropped picks were swapped for full-body seeds: seraphiel_diva_night s110001, kessa_cat_nap
+  s212000. Claude reviewed all 60 (adult women, standing pinups, no sex acts, clean cutouts).
+  Quick rigs (face boxes from face_yolov8m), no blinks or springs.
+- The repo is public, so the nude art is too (the owner's call, 2026-10-19: "just make it public
+  i'll be fine", after being told GitHub's rules do not allow sexually explicit content and a
+  takedown would also stop the free iOS builds).
 
 ## Pricing (proposal for the owner)
 

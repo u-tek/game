@@ -59,8 +59,14 @@ static func art_dir(hero_id: String, skin_art: String = "") -> String:
 	return "%s%s/skins/%s/" % [HEROES_DIR, hero_id, skin_art]
 
 
+## Path without extension of an art's files: <dir><id> for the base look, <dir><art> for a skin.
+## skin_art may name a subfolder ("<art>/adult": the skin's nude art, files still named <art>.*).
+static func file_base(hero_id: String, skin_art: String = "") -> String:
+	return art_dir(hero_id, skin_art) + (hero_id if skin_art == "" else skin_art.get_slice("/", 0))
+
+
 static func exists(hero_id: String, skin_art: String = "") -> bool:
-	var base := art_dir(hero_id, skin_art) + (hero_id if skin_art == "" else skin_art)
+	var base := file_base(hero_id, skin_art)
 	return FileAccess.file_exists(base + ".warp.json") or FileAccess.file_exists(base + ".rig.json")
 
 
@@ -70,7 +76,7 @@ static func load_rig(hero_id: String, skin_art: String = "") -> RigData:
 	var key := hero_id if skin_art == "" else hero_id + "@" + skin_art
 	if _cache.has(key):
 		return _cache[key]
-	var base := art_dir(hero_id, skin_art) + (hero_id if skin_art == "" else skin_art)
+	var base := file_base(hero_id, skin_art)
 	var path := base + ".warp.json"
 	if not FileAccess.file_exists(path):
 		path = base + ".rig.json"

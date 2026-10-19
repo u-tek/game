@@ -5,7 +5,9 @@ class_name HeroArt
 ## Heroes without built art fall back to a faction-tinted silhouette (rig, still, portrait).
 ## Skins (data/skins.json, docs/dev/skins.md): every call takes an optional skin id; its art lives
 ## in assets/art/heroes/<id>/skins/<art>/ with the same layout. A skin whose art is not built
-## falls back to the base look, and "" always means the base look.
+## falls back to the base look, and "" always means the base look. With `nudity` on (the
+## "nudity" setting, synced by Game), a skin that has adult art in skins/<art>/adult/ shows that
+## instead; without it the skin keeps its normal art.
 
 const FACTION_COLORS := {
 	"celestial": Color("f2c14e"),
@@ -15,6 +17,8 @@ const FACTION_COLORS := {
 const FALLBACK := "_silhouette"
 
 static var _tinted := {}
+## Show skins' adult (nude) art where it is installed. Game sets it from the "nudity" setting.
+static var nudity := false
 
 
 ## True if the hero has its own built art (warp or cutout rig), not the silhouette fallback.
@@ -38,10 +42,21 @@ static func _skin_art(hero_id: String, skin_id: String) -> String:
 	return str(sd.art)
 
 
-## The built art folder to use: the skin's if its rig exists, else "" (base look).
+## True if the skin has adult (nude) art built: assets/art/heroes/<id>/skins/<art>/adult/.
+static func has_adult_art(hero_id: String, skin_id: String) -> bool:
+	var art := _skin_art(hero_id, skin_id)
+	return art != "" and RigData.exists(hero_id, art + "/adult")
+
+
+## The built art to use: the skin's adult art when nudity is on and it exists, else the skin's
+## art if its rig exists, else "" (base look).
 static func _built_art(hero_id: String, skin_id: String) -> String:
 	var art := _skin_art(hero_id, skin_id)
-	return art if art != "" and RigData.exists(hero_id, art) else ""
+	if art == "":
+		return ""
+	if nudity and RigData.exists(hero_id, art + "/adult"):
+		return art + "/adult"
+	return art if RigData.exists(hero_id, art) else ""
 
 
 ## Full-body still (the painted image for warp rigs: ~1024x2048, feet near the bottom).
@@ -88,7 +103,7 @@ static func make_portrait(hero_id: String, size: float, skin_id: String = "") ->
 static func _portrait_tex(hero_id: String, skin_id: String = "") -> Texture2D:
 	var art := _built_art(hero_id, skin_id)
 	if art != "":
-		var sp := RigData.art_dir(hero_id, art) + art + "_portrait.png"
+		var sp := RigData.file_base(hero_id, art) + "_portrait.png"
 		if ResourceLoader.exists(sp):
 			return load(sp)
 	var path := "res://assets/art/heroes/%s/%s_portrait.png" % [hero_id, hero_id]

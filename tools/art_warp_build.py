@@ -184,10 +184,13 @@ def r1(v):
 
 # ------------------------------------------------------------------ build
 def rig_dir(rig_id):
-    """(folder, file name, hero id) of a rig id: <id> (base art) or <id>@<art> (a skin)."""
+    """(folder, file name, hero id) of a rig id: <id> (base art), <id>@<art> (a skin) or
+    <id>@<art>@adult (the skin's nude art in skins/<art>/adult/, files still named <art>.*)."""
     hero_id, _, art = rig_id.partition("@")
+    art, _, variant = art.partition("@")
     if art:
-        return os.path.join(HEROES, hero_id, "skins", art), art, hero_id
+        d = os.path.join(HEROES, hero_id, "skins", art)
+        return (os.path.join(d, variant) if variant else d), art, hero_id
     return os.path.join(HEROES, hero_id), hero_id, hero_id
 
 

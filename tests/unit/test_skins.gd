@@ -149,3 +149,33 @@ func test_installed_skin_art_loads(t: TestCtx) -> void:
 		t.ok(HeroArt.texture(hero, str(s["id"])) != HeroArt.texture(hero), "%s: shows its own image" % s["id"])
 		t.ok(HeroArt.portrait_region(hero, str(s["id"])).size.x > 0, "%s: has a portrait" % s["id"])
 	t.ok(built > 0, "some skin art is installed (assets/art/heroes/<id>/skins/)")
+
+
+func test_nudity_setting_swaps_skin_art(t: TestCtx) -> void:
+	var g := _game()
+	g.new_game()
+	t.eq(g.setting("nudity"), false, "off for a new player")
+	t.eq(HeroArt.nudity, false)
+	var sid := ""
+	for s: Dictionary in SkinData.all():
+		if HeroArt.has_skin_art(str(s["hero"]), str(s["id"])) and HeroArt.has_adult_art(str(s["hero"]), str(s["id"])):
+			sid = str(s["id"])
+			break
+	t.ok(sid != "", "some skin has adult art (assets/art/heroes/<id>/skins/<art>/adult/)")
+	if sid != "":
+		var hero := str(SkinData.get_def(sid)["hero"])
+		var tame := HeroArt.texture(hero, sid)
+		g.set_setting("nudity", true)
+		t.ok(HeroArt.nudity, "Game syncs the setting to HeroArt")
+		var nude := HeroArt.texture(hero, sid)
+		t.ok(nude != tame, "nudity on: the skin shows its adult art")
+		t.ok(HeroArt.portrait_region(hero, sid).size.x > 0, "adult art has a portrait")
+		t.eq(HeroArt.texture(hero), HeroArt.texture(hero), "the base look never changes")
+		g.set_setting("nudity", false)
+		t.eq(HeroArt.texture(hero, sid), tame, "nudity off: back to the normal skin art")
+	t.eq(HeroArt.has_adult_art("uriela", "kessa_card_shark"), false, "another hero's skin never resolves")
+	var s: Dictionary = g.model.state.duplicate(true)
+	s.settings.erase("nudity")
+	t.eq(g.model.migrate(s).settings.nudity, false, "old saves start with nudity off")
+	g.set_setting("nudity", false)
+	g.free()

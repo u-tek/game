@@ -93,6 +93,11 @@ this file says where things stand. Older logs are under "History" at the bottom.
   hero page has "Try on" (preview without buying). Known: skins with wide wings are scaled down to
   fit the 1024 px canvas, so they stand smaller than wingless skins (Seraphiel Tidal Diva is about
   1300 px tall, Kessa Card Shark about 1890).
+- **Nudity toggle in the game (2026-10-19):** Settings > Adult content > "Toggle nudity" (18+
+  confirm, off by default) swaps every skin to its nude art in `assets/.../skins/<art>/adult/`.
+  All 60 installed (44 full finals by OpenCode, 16 quick cutouts by Claude), reviewed, rigged;
+  pushed to the public repo on the owner's word ("just make it public i'll be fine") after the
+  GitHub-rules risk was named. Details: `docs/dev/skins.md` "Adult set".
 - **Adult set (EroLabs):** the owner asked (2026-10-18) for fully nude versions of the skins for an
   EroLabs build ("monetise and catch a different audience"), then relaxed the adult cues ("making
   them all look 30+ and slightly fat... just keep the childlike stuff in the negative prompt"). The

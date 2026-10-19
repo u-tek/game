@@ -921,7 +921,7 @@
 			"monthly_until_day": 19730,
 			"monthly_last_day": 19702
 		},
-		"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 4, "auto_ultimates": true},
+		"settings": {"sound": true, "music": true, "haptics": true, "battle_speed": 4, "auto_ultimates": true, "nudity": false},
 		"skins": {"owned": [], "equipped": {}},
 		"counters": {"summons": 18, "battles_started": 10, "battles_won": 3, "stages_cleared": 3, "battles_lost": 3, "level_ups": 6, "idle_claims": 3, "quick_claims": 3, "daily_quests_done": 4, "star_ups": 1},
 		"dev_time_offset": 0,

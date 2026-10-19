@@ -635,7 +635,7 @@ summon {pity, total_pulls, last_free_pull_day, seed}
 gear [{uid, slot, tier, name, stats {..}, equipped_by}]
 quests {day, progress {quest id: n}, claimed [quest id]}
 shop {purchases {offer id: n}, daily {offer id: n}, day, monthly_until_day, monthly_last_day}
-settings {sound, music, haptics, battle_speed (1|2|4), auto_ultimates}
+settings {sound, music, haptics, battle_speed (1|2|4), auto_ultimates, nudity}
 skins {owned [skin id], equipped {hero id: skin id}}
 counters {name: n}   (battles_started, battles_won, battles_lost, stages_cleared, summons, level_ups,
                       star_ups, idle_claims, quick_claims, daily_quests_done, skins_bought, tower_floors)

@@ -74,6 +74,8 @@ func _ready() -> void:
 			make_rich_state()
 		else:
 			new_game()
+		if args.has("--nudity"):      # screenshots/testing: the throwaway save with nudity on
+			set_setting("nudity", true)
 		save()
 	else:
 		load_or_create()
@@ -122,6 +124,8 @@ func _clock_ms() -> int:
 ## (immediately after actions; deferred after a daily rollover found by a query, so a screen
 ## reading Game during its own refresh never re-enters itself).
 func _flush() -> void:
+	# Art follows the nudity setting (skins show their adult art when it is on and installed).
+	HeroArt.nudity = model.setting("nudity") == true
 	if not model.outbox.is_empty():
 		var events := model.outbox.duplicate()
 		model.outbox.clear()

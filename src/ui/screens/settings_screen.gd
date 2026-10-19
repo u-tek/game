@@ -52,6 +52,7 @@ func setup(params: Dictionary) -> void:
 		_speed_row(),
 		_toggle_row("auto", "Auto ultimates", "Heroes fire ultimates when ready. Turn off to time them yourself.", "auto_ultimates", true),
 	]))
+	list.add_child(_section("Adult content", "eye_off", [_nudity_row()]))
 	list.add_child(_data_section())
 	list.add_child(_dev_section())
 	list.add_child(_about())
@@ -108,6 +109,27 @@ func _toggle_row(icon_name: String, title: String, sub: String, key: String, def
 			UI.haptic(30))
 	t.name = "Toggle_" + key
 	t.size_flags_vertical = SIZE_SHRINK_CENTER
+	row.add_child(t)
+	return row
+
+
+## "Toggle nudity": skins show their nude art where it is installed. Turning it on asks for an
+## 18+ confirmation; cancelling leaves it off.
+func _nudity_row() -> Control:
+	var row := _row_head("eye_off", "Toggle nudity", "Skins show their nude versions (18+ only).")
+	var t := Kit.toggle(Game.setting("nudity") == true)
+	t.name = "Toggle_nudity"
+	t.size_flags_vertical = SIZE_SHRINK_CENTER
+	t.toggled.connect(func(val: bool) -> void:
+		if not val:
+			Game.set_setting("nudity", false)
+			return
+		if Game.setting("nudity") == true:
+			return
+		UI.confirm("Nude skin art is for adults (18+) only. Show it?",
+			func() -> void: Game.set_setting("nudity", true),
+			func() -> void: t.set_pressed_no_signal(false),
+			"I'm 18+", "Cancel"))
 	row.add_child(t)
 	return row
 

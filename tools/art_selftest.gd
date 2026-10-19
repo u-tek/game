@@ -29,6 +29,8 @@ func _init() -> void:
 			for art in DirAccess.get_directories_at(sk):
 				if RigData.exists(d, art):
 					heroes.append([d, art])
+				if RigData.exists(d, art + "/adult"):
+					heroes.append([d, art + "/adult"])
 	_ok(heroes.size() > 0, "at least one built rig")
 	var anims: Array[String] = []
 	for dir in ["res://assets/art/anim/", "res://assets/art/anim/warp/"]:
