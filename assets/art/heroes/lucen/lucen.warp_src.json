@@ -35,5 +35,8 @@
     {"name": "head", "rule": {"type": "ellipse", "center": [650, 717], "radius": [170, 164], "feather": 22}},
     {"name": "chest", "rule": {"type": "polygon", "points": [[540, 830], [800, 820], [810, 1000], [700, 1120], [520, 1120], [480, 1000]], "feather": 40}}
   ],
-  "overlays": []
+  "overlays": [
+    {"slot": "eyes", "bone": "face", "base": "open", "default": "open", "z": 10, "rect": [572, 698, 156, 66], "variants": {"closed": "variants/eyes_closed.png", "smile": "variants/smile.png"}},
+    {"slot": "mouth", "bone": "face", "base": "default", "default": "default", "z": 11, "rect": [608, 760, 85, 55], "variants": {"open": "variants/mouth_open.png", "smile": "variants/smile.png"}}
+  ]
 }

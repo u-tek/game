@@ -61,6 +61,9 @@ var _seq := 0
 var _display_ms := 0.0
 var _speed := 1
 var _hold := 0.0
+## Hit stop: seconds left of a brief freeze on big hits (crits, ultimates) that sells the impact.
+var _hitstop := 0.0
+var _flash_rect: ColorRect
 var _hold_view: Node2D
 var _phase := "intro"
 var _phase_t := 0.0
@@ -582,6 +585,12 @@ func _process(delta: float) -> void:
 
 
 func _step_display(delta: float) -> void:
+	if _hitstop > 0.0:
+		_hitstop -= delta
+		if _hitstop > 0.0:
+			return
+		for uid: String in _views:
+			_views[uid].call("set_speed", float(_speed))
 	if _hold > 0.0:
 		_hold -= delta
 		if _hold > 0.0:
@@ -727,10 +736,45 @@ func _on_damage(ev: Dictionary) -> void:
 		elif src and str(src.call("attack_anim")) != "attack_ranged" and not bool(src.get("has_swing_vfx")):
 			BattleFx.slash(_fx, at, Color(1.0, 0.95, 0.85), str(src.get("side")) == "enemy", 64.0 * float(dst.get("depth_scale")))
 		UI.sfx("hit")
-		if crit:
-			_shake(5.0)
+		if ult:
+			_shake(11.0)
+			_hit_stop(0.1)
+			_screen_flash(Color(1, 1, 1), 0.35)
+		elif crit:
+			_shake(7.0)
+			_hit_stop(0.07)
+			_screen_flash(Color(1, 0.95, 0.8), 0.22)
+		else:
+			_shake(2.5)
 	if str(ev.target) == _boss_uid and _boss_bar:
 		Kit.set_progress(_boss_bar, float(ev.hp_after) / float(maxi(1, int(dst.get("max_hp")))), 1.0)
+
+
+## Freeze the display clock and every rig for `secs` (real time) on a big hit.
+func _hit_stop(secs: float) -> void:
+	if _hold > 0.0:
+		return
+	if _hitstop <= 0.0:
+		for uid: String in _views:
+			_views[uid].call("set_speed", 0.02)
+	_hitstop = maxf(_hitstop, secs)
+
+
+## A brief full-screen flash (additive white-ish) for crits and ultimates.
+func _screen_flash(col: Color, peak: float) -> void:
+	if _flash_rect == null:
+		_flash_rect = ColorRect.new()
+		_flash_rect.name = "HitFlash"
+		_flash_rect.mouse_filter = MOUSE_FILTER_IGNORE
+		_flash_rect.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+		var m := CanvasItemMaterial.new()
+		m.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		_flash_rect.material = m
+		_world.add_child(_flash_rect)
+	_flash_rect.color = Color(col, peak)
+	_flash_rect.modulate.a = 1.0
+	var tw := _flash_rect.create_tween()
+	tw.tween_property(_flash_rect, "modulate:a", 0.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 
 ## Effects the hero animations ask for (animation events named "vfx_<kind>").

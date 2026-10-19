@@ -550,6 +550,11 @@ func _parse_args() -> void:
 				push_warning("--shoot-params is not a JSON object: " + a)
 		elif a.begins_with("--shoot-wait="):
 			_shoot["wait"] = a.substr("--shoot-wait=".length()).to_float()
+		elif a.begins_with("--shoot-frames="):
+			# motion checks: N frames, --shoot-every seconds apart, saved as <out>_0001.png ...
+			_shoot["frames"] = a.substr("--shoot-frames=".length()).to_int()
+		elif a.begins_with("--shoot-every="):
+			_shoot["every"] = a.substr("--shoot-every=".length()).to_float()
 		elif a == "--safe-area-sim":
 			UI.safe_override = Vector2(108, 62)
 
@@ -562,10 +567,16 @@ func _run_shoot() -> void:
 		push_error("--shoot: unknown screen '%s'" % screen)
 		UI.go("home")
 	await get_tree().create_timer(float(_shoot.get("wait", 1.0))).timeout
-	await RenderingServer.frame_post_draw
-	var img := get_viewport().get_texture().get_image()
 	var out: String = _shoot.get("out", "user://shot.png")
 	DirAccess.make_dir_recursive_absolute(out.get_base_dir())
+	var frames := int(_shoot.get("frames", 0))
+	for f in frames:
+		await RenderingServer.frame_post_draw
+		var fi := get_viewport().get_texture().get_image()
+		fi.save_png("%s_%04d.png" % [out.get_basename(), f + 1])
+		await get_tree().create_timer(float(_shoot.get("every", 0.05))).timeout
+	await RenderingServer.frame_post_draw
+	var img := get_viewport().get_texture().get_image()
 	var err := img.save_png(out)
 	print("[shoot] %s -> %s (%dx%d) %s" % [screen, out, img.get_width(), img.get_height(), error_string(err)])
 	UI.release_audio()
