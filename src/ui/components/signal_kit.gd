@@ -170,6 +170,52 @@ static func pass_button(spec: Dictionary, on_pressed: Callable = Callable()) -> 
 	return root
 
 
+## The Back control every screen uses (owner: the old one was too small): an ink disc with a
+## paper arrow and "BACK" in mono beside it, a 176 x 96 touch target. on_light false prints it for
+## a dark band (paper disc, ink arrow). Named "Back".
+static func back_button(on_pressed: Callable, on_light: bool = true, text: String = "BACK") -> Button:
+	var b := Button.new()
+	b.name = "Back"
+	b.theme_type_variation = &"BareButton"
+	b.focus_mode = Control.FOCUS_NONE
+	b.mouse_filter = Control.MOUSE_FILTER_STOP
+	b.custom_minimum_size = Vector2(176, 96)
+	b.size = b.custom_minimum_size
+	var disc := Panel.new()
+	disc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var ds := StyleBoxFlat.new()
+	ds.bg_color = INK if on_light else PAPER
+	ds.set_corner_radius_all(32)
+	ds.shadow_color = Color(0, 0, 0, 0.22)
+	ds.shadow_size = 6
+	ds.shadow_offset = Vector2(0, 3)
+	ds.anti_aliasing = true
+	disc.add_theme_stylebox_override("panel", ds)
+	disc.position = Vector2(8, 16)
+	disc.size = Vector2(64, 64)
+	disc.pivot_offset = disc.size * 0.5
+	b.add_child(disc)
+	var ar := Kit.icon("back", 34, PAPER if on_light else INK)
+	ar.position = Vector2(15, 15)
+	ar.size = Vector2(34, 34)
+	disc.add_child(ar)
+	var l := Kit.label(text, 18, INK if on_light else PAPER, "mono_bold")
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	l.position = Vector2(84, 36)
+	b.add_child(l)
+	b.button_down.connect(func() -> void:
+		disc.scale = Vector2(0.9, 0.9)
+		Kit.haptic(10))
+	b.button_up.connect(func() -> void:
+		var tw := disc.create_tween()
+		tw.tween_property(disc, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT))
+	if on_pressed.is_valid():
+		b.pressed.connect(func() -> void:
+			Kit.sfx("tap")
+			on_pressed.call())
+	return b
+
+
 ## Round inspection stamp: text around the rim, a big value in the middle.
 static func stamp(label: String, value: String, size: float = 112.0) -> Control:
 	var s := _Stamp.new()
