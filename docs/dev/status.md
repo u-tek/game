@@ -41,8 +41,8 @@ this file says where things stand. Older logs are under "History" at the bottom.
     bots yet: floor f is at least as hard as stage f, so it trails the campaign.
   - **Painted backdrops** (`assets/art/backgrounds/`, JPEG): Lobby and chapters 1-6 from the
     splash-card plates (`SceneBackdrop` draws them; code-drawn scenes remain the fallback).
-  - **Latest IPA:** see "Polish round" below; previous run 39198494464 (2026-10-19 04:18
-    UTC): the nudity toggle and the 60 adult skins.
+  - **Latest IPA: run 39208891047** (2026-10-19 06:20 UTC, artifact `HaloAndHorn-ipa` 245 MB,
+    expires 2026-11-02): the polish round below. Previous: 39198494464 (nudity toggle).
     Previous: 39097803986 (2026-10-18), 38946000040 (old farm art).
 - **Designs:** briefs v4 "Aero Y2K" (`docs/dev/character-briefs.md`): Y2K / Frutiger Aero
   fashion, maximum allure without nudity, female only; Nuriel, Brakka, Orrin and Lucen redesigned.
