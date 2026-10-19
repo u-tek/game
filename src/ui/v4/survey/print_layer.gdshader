@@ -3,6 +3,9 @@
 // one kind of line work: 0 a grid (the stage layer), 1 contours of the terrain (ink), 2 hydrography
 // (a signal-red vein network around the rivers; the rivers themselves are ribbon meshes on top).
 // Unshaded and blended; the camera sorts the sheets back to front.
+// The contours sheet can scan (`scan` 1): a signal band sweeps across it every scan_period seconds,
+// a hard leading edge with a fading wash behind it that turns the iso-lines it passes signal, while
+// the lines shimmer level by level, climbing the relief. `flow` 0 holds it still (Reduce motion).
 shader_type spatial;
 render_mode unshaded, blend_mix, cull_disabled, depth_draw_never, shadows_disabled;
 
@@ -20,6 +23,9 @@ uniform float line_a = 0.85;
 uniform float fade = 1.0;
 uniform float levels = 12.0;
 uniform float grid_step = 1.0;
+uniform float scan = 0.0;
+uniform float scan_period = 9.0;
+uniform float flow = 1.0;
 
 float hair(float d, float fw, float px) {
 	fw = max(fw, 1e-5);
@@ -45,6 +51,7 @@ void fragment() {
 	}
 	vec3 line = ink.rgb;
 	float lw = 0.0;
+	float edge = 0.0;
 	if (mode == 0) {
 		// Fine survey grid, crosses at the intersections.
 		vec2 gs = w / grid_step;
@@ -59,6 +66,21 @@ void fragment() {
 		float minor = hair(fract(h + 0.5) - 0.5, fw, 1.0) * 0.8;
 		float major = hair(fract(h * 0.25 + 0.5) - 0.5, fw * 0.25, 1.7);
 		lw = max(minor, major);
+		if (scan > 0.0) {
+			float tt = TIME * flow;
+			// Shimmer: each iso-line dims and comes back in turn, the wave climbing the relief.
+			lw *= 1.0 - 0.3 * scan * (0.5 + 0.5 * sin(floor(h + 0.5) * 1.9 - tt * 1.4));
+			// The scan band, front-left to back-right across the sheet.
+			float u = UV.x * 0.8 + (1.0 - UV.y) * 0.2;
+			float pos = fract(tt / scan_period) * 1.5 - 0.25;
+			float d = u - pos;
+			float glow = step(d, 0.0) * exp(d * 13.0) * scan;
+			edge = hair(d, fwidth(u), 1.6) * scan;
+			line = mix(ink.rgb, accent.rgb, clamp(glow * 1.4, 0.0, 1.0));
+			lw = clamp(lw * (1.0 + glow * 0.7), 0.0, 1.0);
+			col = mix(col, accent.rgb, glow * 0.1);
+			a = max(a, vellum + glow * 0.07);
+		}
 	} else {
 		// Hydrography: a dendritic vein network (zero crossings of a noise field), dense near the
 		// rivers and thinning out on the high ground.
@@ -74,6 +96,8 @@ void fragment() {
 	}
 	col = mix(col, line, clamp(lw * line_a, 0.0, 1.0));
 	a = max(a, clamp(lw * line_a, 0.0, 1.0));
+	col = mix(col, accent.rgb, edge * 0.85);
+	a = max(a, edge * 0.85);
 	col = mix(col, ink.rgb, max(frame, tick));
 	a = max(a, max(frame, tick));
 	ALBEDO = col;

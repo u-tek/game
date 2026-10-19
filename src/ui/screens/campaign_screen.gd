@@ -6,6 +6,8 @@ extends Control
 ## The centrepiece is the chapter's exploded survey map (src/ui/v4/survey/survey_map.gd: a real 3D
 ## terrain slab printed as halftone relief, with CONTOURS, HYDROGRAPHY and the STAGE sheet pulled
 ## apart above it, leader lines and mono ids); tap a stage mark to select it, drag to turn the map.
+## The map is alive but calm (floating sheets, flowing rivers, a contour scan, drifting clouds, a
+## slow orbit; still with Reduce motion); BACK (SignalKit.back_button) sits at the top of the band.
 ## Top right, the chapter's title block (sheet number, name, coordinates, host, counter, cleared);
 ## down the right edge, the chapter index as vertical labels with ticks (STORY, CH 01-06, locked
 ## ones dim). Under the map, the selected stage's cartouche (id, name, power check, enemy echoes,
@@ -125,11 +127,7 @@ func _build_poster(ch: Dictionary) -> void:
 	if boss_id != "":
 		var ink := Color(1.0, 0.36, 0.16, 0.95) if faction != "fallen" else Color(0.86, 0.84, 0.8, 0.85)
 		Poster.halftone_print(p, boss_id, Rect2(0, ph * 0.36, BAND_W, ph * 0.64), ink, 6.5)
-	var back_l := Poster.t("<  BACK", 13, PAPER)
-	Poster.at(p, back_l, Vector2(20, 22))
-	var back := Poster.hit(p, Rect2(0, 0, BAND_W, 88), func() -> void: UI.back(), "Back", "Back")
-	back.tooltip_text = "Back"
-	Poster.vlabel(p, "©2026 HH, SURVEY SHEET %02d. ALL RIGHTS RESERVED." % (ci + 1), Vector2(42, 96), 10, Color(PAPER, 0.8))
+	Poster.vlabel(p, "©2026 HH, SURVEY SHEET %02d. ALL RIGHTS RESERVED." % (ci + 1), Vector2(42, 108), 10, Color(PAPER, 0.8))
 	Poster.at(p, Poster.t("No.\n%03d" % (ci + 1), 12, Color(PAPER, 0.85)), Vector2(70, ph * 0.3))
 	Poster.at(p, Poster.t(Poster.date_short(), 12, Color(PAPER, 0.85)), Vector2(70, ph * 0.3 + 40))
 
@@ -197,6 +195,11 @@ func _build_poster(ch: Dictionary) -> void:
 			"active": k == ci, "dim": not unlocked, "on_pressed": func() -> void: _on_tab(k)})
 	var step := clampf((_stage_y - 96.0) / items.size(), 88.0, 104.0)
 	Poster.side_menu(p, rx, 96.0, step, items)
+
+	# BACK at the top of the dark band (it overhangs onto the paper), over the map's picture.
+	var back := SignalKit.back_button(func() -> void: UI.back(), false)
+	back.position = Vector2(0, 2)
+	p.add_child(back)
 
 	# ---- The cartouche (rebuilt per selected stage) and the pass slot.
 	_sheet = Control.new()

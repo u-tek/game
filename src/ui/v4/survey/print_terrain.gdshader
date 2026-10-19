@@ -4,6 +4,9 @@
 // signal red. The cut sides are solid ink with thin paper strata lines (printed in reverse).
 // Unshaded: the light is a uniform direction, the shading is the print. Colours are source_color
 // (linear in the 3D buffer; the SubViewport keeps linear values for the HDR canvas).
+// Weather: cloud shadows drift over the relief (the dots grow under them) and mist lies in the low
+// ground (the dots thin out, the contours fade), both cut from one seamless noise; the floodplain
+// hatch creeps along. `flow` 0 holds all of it still (Reduce motion).
 shader_type spatial;
 render_mode unshaded, cull_back, shadows_disabled;
 
@@ -28,6 +31,13 @@ uniform float river_w = 0.075;
 uniform float plain_w = 0.22;
 uniform float base_y = -0.9;
 uniform float top_y = 1.5;
+// Seamless noise for the weather; strengths of the cloud shadows and the valley mist (0 = none).
+uniform sampler2D cloud_tex : filter_linear, repeat_enable;
+uniform float clouds = 0.0;
+uniform float mist = 0.0;
+// Cloud drift (noise texture units per second) and the time scale (0 = still).
+uniform vec2 wind = vec2(0.014, 0.006);
+uniform float flow = 1.0;
 
 varying vec3 world_n;
 varying vec3 world_p;
@@ -57,6 +67,14 @@ void fragment() {
 		float tone = clamp((ambient + diff * (1.0 - ambient)) * gain + bias, 0.0, 1.0);
 		// Cavity from the mesh (COLOR.r 0.5 = flat): valleys print a little darker.
 		tone = clamp(tone - (COLOR.r - 0.5) * 0.9, 0.0, 1.0);
+		// Weather: drifting cloud shadows darken the print, mist in the low ground lightens it.
+		float tt = TIME * flow;
+		float cn = texture(cloud_tex, world_p.xz / 8.5 + wind * tt).r;
+		float shade = smoothstep(0.54, 0.76, cn) * clouds;
+		float mn = texture(cloud_tex, world_p.xz / 3.8 - wind * tt * 1.7 + vec2(0.31, 0.67)).r;
+		float low = 1.0 - smoothstep(0.04, 0.42, UV2.x);
+		float fog = smoothstep(0.4, 0.8, mn) * low * mist;
+		tone = clamp(tone - shade * 0.3 + fog * 0.5, 0.0, 1.0);
 		// Screen-space halftone: dot radius grows with the darkness.
 		vec2 sp = FRAGCOORD.xy;
 		mat2 rot = mat2(vec2(cos(angle), sin(angle)), vec2(-sin(angle), cos(angle)));
@@ -71,10 +89,10 @@ void fragment() {
 		float fw = fwidth(h);
 		float cl = hair(fract(h + 0.5) - 0.5, fw, 0.9);
 		float major = hair(fract(h * 0.25 + 0.5) - 0.5, fw * 0.25, 1.4);
-		col = mix(col, ink.rgb, max(cl * contour_a, major * contour_a * 1.3));
-		// Rivers: solid signal, a fine signal hatch over the floodplain.
+		col = mix(col, ink.rgb, max(cl * contour_a, major * contour_a * 1.3) * (1.0 - fog * 0.6));
+		// Rivers: solid signal, a fine signal hatch over the floodplain (creeping slowly along).
 		float rd = UV2.y;
-		float plain = (1.0 - smoothstep(plain_w * 0.6, plain_w, rd)) * step(0.5, fract((sp.x + sp.y) / 4.0));
+		float plain = (1.0 - smoothstep(plain_w * 0.6, plain_w, rd)) * step(0.5, fract((sp.x + sp.y + tt * 3.0) / 4.0));
 		col = mix(col, river.rgb, plain * 0.35);
 		float rv = 1.0 - smoothstep(river_w - fwidth(rd), river_w + fwidth(rd), rd);
 		col = mix(col, river.rgb, rv);

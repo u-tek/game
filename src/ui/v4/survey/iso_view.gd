@@ -11,10 +11,20 @@ extends Control
 ##   v.world.add_child(mesh_instance)
 ##   var p := v.project(Vector3(0, 1, 0))      # local px in this control
 ##
-## Motion: a slow idle sway (off with Reduce motion) and drag-to-turn (handle_input, called by the
-## screen, which keeps the tap logic): the yaw follows the finger within yaw_range and eases back.
+## Motion (all off with Reduce motion): while `animate` is on the scene is alive. The view renders
+## continuously but capped at fps_cap (every frame while a finger turns it), and each render tick
+## emits `frame(dt)` so the screen moves its 3D content and re-places its 2D overlay in step with
+## the picture (shaders animate on TIME). A slow auto-orbit (sway in yaw, pitch_sway in pitch)
+## runs while idle and pauses under a finger; the phone's tilt adds a little parallax (tilt_yaw /
+## tilt_pitch degrees per unit of the high-passed gravity, as main.gd computes "ui_tilt"). With
+## Reduce motion it renders on demand only (a drag, request_render) and emits `turned`.
+## Drag-to-turn: handle_input, called by the screen, which keeps the tap logic; the yaw follows the
+## finger within yaw_range and eases back.
 
+## The camera moved (on-demand mode; while animating, `frame` covers it).
 signal turned
+## A render tick while animating (dt: seconds since the last one): move 3D content, re-place 2D.
+signal frame(dt: float)
 
 var yaw := -30.0
 var pitch := -32.0
@@ -23,11 +33,21 @@ var ortho_width := 12.0
 var target := Vector3.ZERO
 ## Shifts the picture on screen (world units, camera space): +x right, +y up.
 var shift := Vector2.ZERO
-## Idle sway amplitude (degrees of yaw) and period (s).
+## Idle orbit: yaw amplitude (degrees) and period (s), and the same for pitch.
 var sway := 3.0
 var sway_period := 16.0
+var pitch_sway := 0.0
+var pitch_period := 30.0
 ## Continuous turntable (degrees per second, 0 = none), added to yaw.
 var spin := 0.0
+## Tilt parallax: degrees of yaw / pitch per unit of device tilt (0 = none).
+var tilt_yaw := 0.0
+var tilt_pitch := 0.0
+## Render continuously (capped at fps_cap) while motion is allowed.
+var animate := true
+var fps_cap := 30.0
+## Seconds after a finger lifts before the idle orbit eases back in.
+var idle_delay := 1.5
 var drag_turn := true
 ## Local rect where a drag turns the view (empty = the whole control).
 var drag_rect := Rect2()
@@ -47,6 +67,12 @@ var _holding := false
 var _press_at := Vector2.ZERO
 var _moved := false
 var _last_cam := Transform3D()
+var _acc := 0.0
+var _orbit_t := 0.0
+var _idle_w := 1.0
+var _idle_wait := 0.0
+var _tilt := Vector2.ZERO
+var _grav_base := Vector3.ZERO
 
 
 func _init() -> void:
@@ -62,7 +88,8 @@ func _ready() -> void:
 	# texture composites in the same space as everything else.
 	viewport.use_hdr_2d = get_tree().root.use_hdr_2d
 	viewport.positional_shadow_atlas_size = 0
-	# Rendered on demand: a frame whenever the camera moves or the scene asks (request_render).
+	# Rendered per tick: on every render tick while animating (capped, see _process), else on demand
+	# (the camera moved, or the scene asked with request_render).
 	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 	viewport.size = Vector2i(16, 16)
 	add_child(viewport)
@@ -111,7 +138,8 @@ func _fit() -> void:
 	viewport.size = Vector2i(maxi(int(size.x * k), 16), maxi(int(size.y * k), 16))
 	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 	_last_cam = Transform3D()
-	_place_camera()
+	if _place_camera():
+		turned.emit()
 
 
 ## Renders the scene again next frame (call after moving or changing anything in `world`).
@@ -127,6 +155,11 @@ func render_scale() -> float:
 	return float(viewport.size.x) / size.x
 
 
+## True while the scene animates (render ticks, orbit, parallax): `animate` and not Reduce motion.
+func is_live() -> bool:
+	return animate and Kit.motion_ok()
+
+
 func _process(delta: float) -> void:
 	_t += delta
 	if not _holding:
@@ -135,28 +168,78 @@ func _process(delta: float) -> void:
 		_drag_v = lerpf(_drag_v, 0.0, clampf(delta * 5.0, 0.0, 1.0))
 		_drag = lerpf(_drag, 0.0, clampf(delta * 1.2, 0.0, 1.0))
 		_drag = clampf(_drag, -yaw_range, yaw_range)
-	_place_camera()
+	var live := is_live()
+	if live:
+		_update_tilt(delta)
+		# The idle orbit pauses under a finger (its phase holds, so nothing jumps) and eases back in
+		# a moment after it lifts.
+		if _holding:
+			_idle_wait = idle_delay
+		else:
+			_idle_wait = maxf(_idle_wait - delta, 0.0)
+		_idle_w = move_toward(_idle_w, 0.0 if (_holding or _idle_wait > 0.0) else 1.0, delta / 1.8)
+		_orbit_t += delta * _idle_w
+	# Render ticks: capped at fps_cap while idle (a little slack so 60 Hz lands on every 2nd
+	# frame), every frame while a finger turns the view.
+	_acc += delta
+	var step := 1.0 / maxf(fps_cap, 1.0)
+	if live and not _holding and _acc < step - 0.004:
+		return
+	var dt := _acc
+	_acc = fmod(_acc, step) if _acc >= step else 0.0
+	var moved := _place_camera()
+	if live:
+		viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+		frame.emit(dt)
+	elif moved:
+		turned.emit()
 
 
-## Current yaw including sway, spin and the drag offset.
+## The device tilt, high-passed like main.gd's "ui_tilt" (gravity against its slow average), so
+## holding the phone still at any angle is "level" and only moving it tilts the view.
+func _update_tilt(delta: float) -> void:
+	if tilt_yaw == 0.0 and tilt_pitch == 0.0:
+		return
+	var g := Input.get_gravity()
+	var want := Vector2.ZERO
+	if g.length_squared() > 0.01:
+		if _grav_base == Vector3.ZERO:
+			_grav_base = g
+		_grav_base = _grav_base.lerp(g, clampf(delta * 0.6, 0.0, 1.0))
+		var d := (g - _grav_base) / 9.8
+		want = Vector2(d.x, -d.y) * 2.2
+	_tilt = _tilt.lerp(want.limit_length(0.6), clampf(delta * 6.0, 0.0, 1.0))
+
+
+## Current yaw including the orbit, spin, tilt and the drag offset.
 func view_yaw() -> float:
 	var y := yaw + _drag
 	if Kit.motion_ok():
-		y += sin(_t * TAU / maxf(sway_period, 0.1)) * sway + _t * spin
+		y += sin(_orbit_t * TAU / maxf(sway_period, 0.1)) * sway + _t * spin + _tilt.x * tilt_yaw
 	return y
 
 
-func _place_camera() -> void:
+## Current pitch including the orbit and tilt.
+func view_pitch() -> float:
+	var p := pitch
+	if Kit.motion_ok():
+		p += sin(_orbit_t * TAU / maxf(pitch_period, 0.1)) * pitch_sway + _tilt.y * tilt_pitch
+	return p
+
+
+## Places the camera; true when it moved (a render is queued then).
+func _place_camera() -> bool:
 	if camera == null:
-		return
-	var b := Basis(Vector3.UP, deg_to_rad(view_yaw())) * Basis(Vector3.RIGHT, deg_to_rad(pitch))
+		return false
+	var b := Basis(Vector3.UP, deg_to_rad(view_yaw())) * Basis(Vector3.RIGHT, deg_to_rad(view_pitch()))
 	var xf := Transform3D(b, target + b * Vector3(0.0, 0.0, 60.0) - b.x * shift.x - b.y * shift.y)
 	camera.size = ortho_width
-	if not xf.is_equal_approx(_last_cam):
-		camera.transform = xf
-		_last_cam = xf
-		viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
-		turned.emit()
+	if xf.is_equal_approx(_last_cam):
+		return false
+	camera.transform = xf
+	_last_cam = xf
+	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+	return true
 
 
 ## World point -> local px in this control.

@@ -308,8 +308,8 @@ func _build_top_bar() -> void:
 	_top_margin.add_child(_top_row)
 
 	# Leader avatar with the team power chip: tap to open the team.
-	# The player's avatar opens their profile (owner, 2026-10-19), the Team before that screen exists.
-	_avatar = Kit.avatar("", 70, "", func() -> void: UI.go("profile" if UI.SCREENS.has("profile") else "formation"))
+	# The player's avatar opens their profile (owner, 2026-10-19).
+	_avatar = Kit.avatar("", 70, "", func() -> void: UI.go("profile"))
 	_avatar.name = "Avatar"
 	_avatar.size_flags_vertical = SIZE_SHRINK_CENTER
 	_avatar.custom_minimum_size = Vector2(88, 96)
@@ -679,6 +679,10 @@ func _refresh_avatar() -> void:
 		var owned: Variant = Game.owned_heroes()
 		if owned is Array and not (owned as Array).is_empty():
 			lead = str(((owned as Array)[0] as Dictionary).get("id", ""))
+	# The portrait the player picked on their profile, else the team lead.
+	var pick := ProfileScreen.avatar_hero()
+	if pick != "":
+		lead = pick
 	# Keyed by what the art shows, so a new skin or the nudity toggle redraws it at once.
 	var skin := Kit.hero_look(lead) if lead != "" else ""
 	var key := HeroArt.art_key(lead, skin) if lead != "" else ""
