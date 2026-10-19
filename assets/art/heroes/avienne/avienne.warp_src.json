@@ -1,0 +1,42 @@
+{
+  "_doc": "HaloRig warp rig source for avienne, drawn by hand on the Amanatsu v5 art (s140600) by tools/art_rigs_v5.py (2026-10-19): spine, springs for hair/wings/cloth/tail/bust, weapon and arm regions, eye/mouth overlays from variants.py. Coordinates are image pixels of avienne.png (1024x2048, soles at the origin). Regions are listed in priority order: where masks overlap, the first one wins.",
+  "image": "avienne.png",
+  "origin": [512, 1990],
+  "grid": [28, 56],
+  "texel_scale": 1.0,
+  "portrait": [570, 314, 573],
+  "look_px": [12, 7],
+  "meta": {"weapon": "shield", "fx_color": "#ffe9a8", "art": "comfy s140600 quick, hand rig v5"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [590, 1030]},
+    {"name": "torso", "parent": "hips", "pivot": [600, 880]},
+    {"name": "chest", "parent": "torso", "pivot": [605, 700]},
+    {"name": "neck", "parent": "chest", "pivot": [565, 430]},
+    {"name": "head", "parent": "neck", "pivot": [561, 413]},
+    {"name": "face", "parent": "head", "pivot": [570, 304]},
+    {"name": "hair_front", "parent": "head", "pivot": [570, 190], "spring": "bangs"},
+    {"name": "scarf", "parent": "neck", "pivot": [580, 420], "spring": "ribbon;limit=12"},
+    {"name": "arm_r", "parent": "chest", "pivot": [380, 480]},
+    {"name": "weapon", "parent": "arm_r", "pivot": [255, 560], "spring": "weapon;limit=3", "tip": [140, 640]},
+    {"name": "wing_r", "parent": "chest", "pivot": [380, 500], "spring": "wing"},
+    {"name": "wing_l", "parent": "chest", "pivot": [760, 470], "spring": "wing"},
+    {"name": "bust", "parent": "chest", "pivot": [612, 560], "spring": "bust"}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [570, 324], "radius": [99, 84], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [570, 223], "radius": [118, 55], "feather": 12}},
+    {"name": "scarf", "rule": {"type": "polygon", "points": [[520, 392], [600, 384], [690, 400], [702, 440], [662, 472], [600, 466], [540, 442]], "feather": 12}},
+    {"name": "weapon", "rule": {"type": "polygon", "points": [[112, 141], [190, 214], [207, 421], [252, 477], [246, 723], [241, 880], [224, 1216], [202, 1552], [157, 1933], [140, 1933], [112, 1552], [67, 1216], [34, 880], [28, 723], [50, 466], [78, 219]], "feather": 10}},
+    {"name": "arm_r", "rule": {"type": "polygon", "points": [[395, 450], [450, 470], [458, 560], [420, 610], [330, 680], [280, 706], [241, 701], [241, 566], [291, 521], [336, 466]], "feather": 18}},
+    {"name": "wing_r", "rule": {"type": "union", "rules": [{"type": "polygon", "points": [[230, 309], [291, 264], [347, 286], [375, 376], [381, 466], [336, 466], [291, 521], [252, 566]], "feather": 16}, {"type": "polygon", "points": [[241, 706], [325, 706], [336, 813], [314, 947], [297, 1104], [300, 1227], [269, 1221], [249, 1048], [246, 880]], "feather": 16}], "feather": 18}},
+    {"name": "wing_l", "rule": {"type": "union", "rules": [{"type": "polygon", "points": [[746, 299], [832, 274], [885, 363], [938, 576], [938, 768], [913, 871], [883, 845], [853, 726], [819, 619], [785, 502], [746, 448]], "feather": 16}, {"type": "polygon", "points": [[733, 992], [789, 947], [812, 992], [806, 1104], [784, 1249], [750, 1227], [736, 1104]], "feather": 16}], "feather": 18}},
+    {"name": "bust", "rule": {"type": "ellipse", "center": [612, 620], "radius": [105, 85], "feather": 26}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [570, 286], "radius": [191, 180], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[470, 466], [728, 466], [784, 600], [773, 723], [694, 869], [526, 869], [482, 723], [448, 600]], "feather": 40}}
+  ],
+  "overlays": [
+    {"slot": "eyes", "bone": "face", "base": "open", "default": "open", "z": 10, "rect": [483, 265, 177, 72], "variants": {"closed": "variants/eyes_closed.png", "smile": "variants/smile.png"}},
+    {"slot": "mouth", "bone": "face", "base": "default", "default": "default", "z": 11, "rect": [523, 333, 96, 61], "variants": {"open": "variants/mouth_open.png", "smile": "variants/smile.png"}}
+  ]
+}

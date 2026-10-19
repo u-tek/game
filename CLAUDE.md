@@ -17,8 +17,8 @@ Since 2026-10-17 the art work runs in a regular Claude Code chat on the owner's 
 ## The project
 
 A mobile idle/AFK gacha RPG close to *Idle Angels*: angels (Celestial), demons (Infernal) and the
-Fallen, 40 heroes (25 of them added 2026-10-19, no art yet), 5-hero auto battles with manual
-ultimates, idle rewards, summons with pity.
+Fallen, 40 heroes (25 of them added 2026-10-19; their art quick-installed and hand-rigged on
+2026-10-20), 5-hero auto battles with manual ultimates, idle rewards, summons with pity.
 Godot 4.5.1 (GDScript, Mobile renderer with HDR 2D since 2026-10-19, portrait 720x1280 base; HDR 2D
 is off on iOS (`viewport/hdr_2d.ios=false`: it was blown out on the owner's iPhone), so canvas
 shaders convert by the `ui_linear` shader global and nothing may depend on bloom). It ships as an unsigned iOS IPA

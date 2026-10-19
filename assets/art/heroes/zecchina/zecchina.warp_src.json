@@ -1,0 +1,52 @@
+{
+  "_doc": "HaloRig warp rig source for zecchina, drawn by hand on the Amanatsu v5 art (s220602) by tools/art_rigs_v5.py (2026-10-19): spine, springs for hair/wings/cloth/tail/bust, weapon and arm regions, eye/mouth overlays from variants.py. Coordinates are image pixels of zecchina.png (1024x2048, soles at the origin). Regions are listed in priority order: where masks overlap, the first one wins.",
+  "image": "zecchina.png",
+  "origin": [512, 1990],
+  "grid": [28, 56],
+  "texel_scale": 1.0,
+  "portrait": [537, 735, 444],
+  "look_px": [12, 7],
+  "meta": {"weapon": "cards", "fx_color": "#ff8a3d", "art": "comfy s220602 quick, hand rig v5"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [535, 1150]},
+    {"name": "torso", "parent": "hips", "pivot": [540, 1040]},
+    {"name": "chest", "parent": "torso", "pivot": [530, 930]},
+    {"name": "neck", "parent": "chest", "pivot": [535, 815]},
+    {"name": "head", "parent": "neck", "pivot": [530, 813]},
+    {"name": "face", "parent": "head", "pivot": [537, 728]},
+    {"name": "hair_front", "parent": "head", "pivot": [537, 638], "spring": "bangs"},
+    {"name": "arm_r", "parent": "chest", "pivot": [660, 860]},
+    {"name": "weapon", "parent": "arm_r", "pivot": [745, 845], "spring": "weapon;limit=4", "tip": [770, 752]},
+    {"name": "hair_l", "parent": "head", "pivot": [400, 780], "spring": "hair_long;g=0.85;limit=12"},
+    {"name": "hair_r", "parent": "head", "pivot": [630, 760], "spring": "hair_long;g=0.85;limit=10"},
+    {"name": "wing_l", "parent": "chest", "pivot": [320, 1080], "spring": "wing"},
+    {"name": "wing_r", "parent": "chest", "pivot": [752, 1060], "spring": "wing"},
+    {"name": "tail", "parent": "hips", "pivot": [300, 1330], "spring": "tail;limit=8;g=0.5"},
+    {"name": "tail_tip", "parent": "hips", "pivot": [595, 1740], "spring": "tail;limit=8;g=0.5"},
+    {"name": "coat_l", "parent": "hips", "pivot": [330, 1150], "spring": "cloth;limit=6;b=0.8"},
+    {"name": "coat_r", "parent": "hips", "pivot": [690, 1110], "spring": "cloth;limit=6;b=0.8"},
+    {"name": "bust", "parent": "chest", "pivot": [527, 900], "spring": "bust"}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [537, 742], "radius": [77, 66], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [537, 663], "radius": [92, 44], "feather": 12}},
+    {"name": "weapon", "rule": {"type": "polygon", "points": [[730, 742], [806, 742], [808, 842], [765, 852], [730, 845]], "feather": 10}},
+    {"name": "arm_r", "rule": {"type": "polygon", "points": [[668, 850], [695, 845], [712, 800], [735, 778], [774, 800], [774, 870], [768, 960], [754, 1030], [736, 1058], [700, 1062], [676, 1010], [664, 940]], "feather": 18}},
+    {"name": "hair_l", "rule": {"type": "polygon", "points": [[370, 780], [425, 775], [430, 860], [412, 930], [405, 1010], [385, 1050], [365, 1020], [362, 900]], "feather": 14}},
+    {"name": "hair_r", "rule": {"type": "polygon", "points": [[615, 745], [665, 760], [680, 830], [672, 880], [642, 872], [620, 820]], "feather": 14}},
+    {"name": "wing_l", "rule": {"type": "polygon", "points": [[285, 950], [240, 940], [190, 985], [130, 1070], [70, 1170], [15, 1260], [25, 1370], [80, 1480], [140, 1500], [180, 1400], [230, 1290], [280, 1230], [320, 1190], [305, 1120], [290, 1060]], "feather": 18}},
+    {"name": "wing_r", "rule": {"type": "polygon", "points": [[762, 1000], [800, 960], [850, 940], [895, 990], [945, 1080], [990, 1200], [998, 1350], [978, 1510], [930, 1510], [880, 1400], [820, 1300], [782, 1200], [760, 1100]], "feather": 18}},
+    {"name": "tail", "rule": {"type": "polygon", "points": [[265, 1380], [215, 1460], [170, 1560], [160, 1650], [185, 1730], [250, 1765], [360, 1772], [455, 1772], [458, 1740], [360, 1742], [260, 1732], [205, 1695], [192, 1630], [205, 1540], [245, 1460], [290, 1390]], "feather": 12}},
+    {"name": "tail_tip", "rule": {"type": "polygon", "points": [[595, 1722], [640, 1712], [730, 1698], [790, 1688], [832, 1700], [842, 1770], [835, 1828], [800, 1790], [760, 1748], [720, 1738], [640, 1748], [595, 1758]], "feather": 12}},
+    {"name": "coat_l", "rule": {"type": "polygon", "points": [[300, 1120], [358, 1160], [355, 1300], [315, 1420], [270, 1520], [215, 1620], [172, 1600], [190, 1480], [230, 1350], [265, 1220]], "feather": 16}},
+    {"name": "coat_r", "rule": {"type": "polygon", "points": [[668, 1100], [735, 1100], [772, 1250], [762, 1450], [732, 1600], [692, 1600], [676, 1450], [666, 1300]], "feather": 16}},
+    {"name": "bust", "rule": {"type": "ellipse", "center": [527, 940], "radius": [122, 66], "feather": 28}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [537, 712], "radius": [148, 142], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[430, 840], [640, 840], [670, 900], [660, 1010], [600, 1060], [470, 1060], [400, 1000], [395, 900]], "feather": 40}}
+  ],
+  "overlays": [
+    {"slot": "eyes", "bone": "face", "base": "open", "default": "open", "z": 10, "rect": [476, 701, 132, 48], "variants": {"closed": "variants/eyes_closed.png", "smile": "variants/smile.png"}},
+    {"slot": "mouth", "bone": "face", "base": "default", "default": "default", "z": 11, "rect": [506, 747, 72, 40], "variants": {"open": "variants/mouth_open.png", "smile": "variants/smile.png"}}
+  ]
+}
