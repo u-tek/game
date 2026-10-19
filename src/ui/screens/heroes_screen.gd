@@ -397,6 +397,8 @@ func _card(id: String, browse: Array[String]) -> Control:
 func _codex_teaser(missing: int) -> Control:
 	var row := Control.new()
 	row.custom_minimum_size = Vector2(0, 96)
+	# Inside the roster's scroll: let finger drags through (a plain Control stops them).
+	row.mouse_filter = MOUSE_FILTER_PASS
 	var w := minf(get_viewport_rect().size.x, MAX_W) - 36.0
 	PK.rule(row, Vector2(0, 8), Vector2(w, 1), Color(INK, 0.4))
 	PK.at(row, PK.t("%02d MORE HERO%s ANSWER THE SUMMON PORTAL." % [missing, "" if missing == 1 else "ES"], 13, INK, "mono_bold"), Vector2(0, 30))

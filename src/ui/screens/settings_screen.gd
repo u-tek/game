@@ -44,6 +44,8 @@ func setup(params: Dictionary) -> void:
 
 	var sheet := PanelContainer.new()
 	sheet.name = "Sheet"
+	# A PanelContainer stops touches by default: let drags through to the scroll (phones scroll by drag).
+	sheet.mouse_filter = MOUSE_FILTER_PASS
 	sheet.add_theme_stylebox_override("panel", Kit.style("white", 0))
 	sheet.custom_minimum_size.x = w
 	var col := Kit.vbox(0)
