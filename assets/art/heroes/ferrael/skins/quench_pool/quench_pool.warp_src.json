@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for ferrael quench_pool, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s161001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "quench_pool.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [569, 593, 524],
+  "look_px": [8, 5],
+  "meta": {"weapon": "hammer", "fx_color": "#ffe9a8", "art": "comfy s161001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [622, 1117]},
+    {"name": "torso", "parent": "hips", "pivot": [571, 1000]},
+    {"name": "chest", "parent": "torso", "pivot": [638, 856]},
+    {"name": "neck", "parent": "chest", "pivot": [554, 726]},
+    {"name": "head", "parent": "neck", "pivot": [559, 691]},
+    {"name": "face", "parent": "head", "pivot": [569, 584]},
+    {"name": "hair_front", "parent": "head", "pivot": [569, 471]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [569, 602], "radius": [101, 83], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [569, 503], "radius": [120, 56], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [569, 565], "radius": [194, 179], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[431, 716], [677, 716], [861, 796], [850, 980], [727, 1010], [415, 1010], [426, 980], [415, 796]], "feather": 40}}
+  ],
+  "overlays": []
+}

@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for cordia happy_hour, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s281001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "happy_hour.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [524, 572, 529],
+  "look_px": [8, 5],
+  "meta": {"weapon": "shaker", "attack": "attack_ranged", "fx_color": "#ff8a3d", "art": "comfy s281001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [535, 1104]},
+    {"name": "torso", "parent": "hips", "pivot": [582, 985]},
+    {"name": "chest", "parent": "torso", "pivot": [596, 840]},
+    {"name": "neck", "parent": "chest", "pivot": [493, 708]},
+    {"name": "head", "parent": "neck", "pivot": [514, 672]},
+    {"name": "face", "parent": "head", "pivot": [524, 562]},
+    {"name": "hair_front", "parent": "head", "pivot": [524, 446]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [524, 581], "radius": [102, 85], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [524, 479], "radius": [122, 58], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [524, 543], "radius": [196, 183], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[369, 698], [617, 698], [821, 780], [810, 965], [740, 995], [424, 995], [382, 965], [371, 780]], "feather": 40}}
+  ],
+  "overlays": []
+}

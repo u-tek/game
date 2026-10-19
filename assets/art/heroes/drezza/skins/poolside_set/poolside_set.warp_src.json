@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for drezza poolside_set, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s211000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "poolside_set.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [501, 287, 572],
+  "look_px": [8, 5],
+  "meta": {"weapon": "record", "attack": "attack_ranged", "fx_color": "#ff8a3d", "art": "comfy s211000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [516, 917]},
+    {"name": "torso", "parent": "hips", "pivot": [456, 772]},
+    {"name": "chest", "parent": "torso", "pivot": [550, 596]},
+    {"name": "neck", "parent": "chest", "pivot": [549, 436]},
+    {"name": "head", "parent": "neck", "pivot": [490, 392]},
+    {"name": "face", "parent": "head", "pivot": [501, 273]},
+    {"name": "hair_front", "parent": "head", "pivot": [501, 148]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [501, 294], "radius": [110, 92], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [501, 183], "radius": [131, 63], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [501, 252], "radius": [212, 199], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[415, 426], [683, 426], [794, 536], [782, 752], [627, 782], [285, 782], [318, 752], [306, 536]], "feather": 40}}
+  ],
+  "overlays": []
+}

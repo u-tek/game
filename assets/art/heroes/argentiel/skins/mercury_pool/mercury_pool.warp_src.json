@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for argentiel mercury_pool, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s111001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "mercury_pool.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [584, 902, 343],
+  "look_px": [8, 5],
+  "meta": {"weapon": "spear", "fx_color": "#ffe9a8", "art": "comfy s111001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [633, 1302]},
+    {"name": "torso", "parent": "hips", "pivot": [579, 1209]},
+    {"name": "chest", "parent": "torso", "pivot": [581, 1097]},
+    {"name": "neck", "parent": "chest", "pivot": [584, 994]},
+    {"name": "head", "parent": "neck", "pivot": [578, 965]},
+    {"name": "face", "parent": "head", "pivot": [584, 895]},
+    {"name": "hair_front", "parent": "head", "pivot": [584, 822]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [584, 908], "radius": [66, 54], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [584, 842], "radius": [79, 37], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [584, 883], "radius": [127, 117], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[504, 984], [664, 984], [727, 1037], [720, 1189], [681, 1219], [477, 1219], [442, 1189], [435, 1037]], "feather": 40}}
+  ],
+  "overlays": []
+}
