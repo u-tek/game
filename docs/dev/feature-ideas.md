@@ -6,6 +6,11 @@ new to the genre ("no i need something novel"), not the usual idle gacha feature
 are open. Rules for any of these follow `CLAUDE.md`: simulations (the Rival, the market) are plain
 classes in `src/core/` on our own RNG with integer math, and real time comes in from the UI.
 
+**Nothing that makes the game harder (owner, 2026-10-19).** Of the "More ideas" batch below the owner
+said "no. these all make the game more difficult". New features add delight, rewards, spectacle or
+less grind; they never punish, take things away or add skill checks. So the Rival never takes
+anything (no Sanctum raid) and prints never fade (no ageing) unless the owner asks for them.
+
 ## Picked by the owner
 
 ### The Rival
@@ -21,7 +26,7 @@ gloats, climbs the Spire ahead of you, and challenges you; beating her wins part
 3. **Lieutenants who remember you.** Five named Fallen captains: beaten ones come back scarred and
    holding a grudge, winners get promoted. Caution: Warner Bros holds a patent on its "Nemesis"
    system; keep this lighter and different, and check the patent before it ships.
-4. **She raids the Sanctum.** Idle rewards left full too long get skimmed, with a cut-out-letter
+4. **She raids the Sanctum** (dropped: it punishes). Idle rewards left full too long get skimmed, with a cut-out-letter
    ransom note saying how much; you can win it back.
 5. **She can turn.** Rival, then frenemy, then reluctant ally; at the end of her arc she joins you, a
    16th hero that is earned, never pulled.
@@ -38,7 +43,7 @@ like stamp errors. They never change stats. The print shaders already draw every
    grading; a "Gem Mint 10" first-edition misprint is the top trophy.
 8. **Editions run out.** Each banner is a limited print run; serials 0001-0100 carry prestige, and a
    sold-out edition is gone for good.
-9. **Prints age.** Prints left out in the real sun fade a little; rare foxing and patina are prized;
+9. **Prints age** (dropped: it punishes). Prints left out in the real sun fade a little; rare foxing and patina are prized;
    laminating stops the ageing.
 10. **Double exposure.** Two heroes through the press at once: a rare cosmetic overprint with both on
     one sheet.
@@ -55,7 +60,33 @@ like stamp errors. They never change stats. The print shaders already draw every
 
 Claude's suggested first loop: 1, 2, 6 and 13 (print, she competes, the map keeps score).
 
-## More ideas (open)
+## Pure upside (open)
+
+Pitched after the owner's "these all make the game more difficult". None of these adds difficulty.
+
+- **Care packages.** Heroes leave you presents while you're away (gems, a print, a scribbled note
+  with a lipstick mark), waiting on the Lobby poster.
+- **Goodnight.** Tell the game you're going to bed; a hero says goodnight, and in the morning there
+  is a bonus on the idle haul and the Daily Halo on the doorstep.
+- **The Concierge.** A hero you pick runs your chores in one tap (dailies, the Sanctum claim, level
+  ups, best gear on everyone), with commentary on how you'd be lost without her.
+- **Divine intervention.** Once a day, when a fight is lost, a hero you don't have swoops in for one
+  giant cut-in ultimate and turns it, then winks and leaves (and a taste of her makes you want her).
+- **Stomp.** Stages far below your power clear in one second with a full-screen riso finisher
+  instead of a whole fight.
+- **Plate by plate.** Pity as a print: every pull on a banner prints one more ink plate of the
+  featured hero's poster; when the last plate lands she's yours. You always see how close you are.
+- **Benched heroes train.** Heroes outside the team slowly train themselves, so nobody falls behind
+  and every pull stays useful.
+- **The gallery wall.** Hang your prints on a wall; NPC collectors visit, admire the rare ones and
+  leave tips. Misprints that only pay out.
+- **Poster press.** Make your own poster from any hero you own (type, colours, layout, misprint
+  effects), set it as the Lobby, or save it sized as a phone wallpaper.
+- **Shake the Sanctum.** Shake the phone to collect the idle haul; coins rain down the poster.
+- **Birthdays.** Your birthday (the game asks once) turns every screen into a party with a free
+  pick; each hero has a birthday too, with a gift from her.
+
+## More ideas (rejected: "these all make the game more difficult")
 
 - **The Daily Halo.** A newspaper printed overnight from your own save, shown at the first login of
   the day: headlines ("KESSA CARRIES 4-7"), Rival sightings, gossip, classified ads (the day's
