@@ -16,6 +16,7 @@
     {"name": "head", "parent": "neck", "pivot": [519, 924]},
     {"name": "face", "parent": "head", "pivot": [526, 847]},
     {"name": "hair_front", "parent": "head", "pivot": [526, 766], "spring": "bangs"},
+    {"name": "halo", "parent": "head", "pivot": [534, 765], "spring": "accessory;limit=6"},
     {"name": "hair_side", "parent": "head", "pivot": [565, 830], "spring": "hair;limit=10"},
     {"name": "arm_r", "parent": "chest", "pivot": [432, 940]},
     {"name": "weapon", "parent": "arm_r", "pivot": [378, 1340], "spring": "weapon;limit=4", "tip": [236, 1546]},
@@ -26,6 +27,7 @@
   "regions": [
     {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [526, 860], "radius": [71, 59], "feather": 14}},
     {"name": "hair_front", "rule": {"type": "ellipse", "center": [526, 789], "radius": [84, 39], "feather": 12}},
+    {"name": "halo", "rule": {"type": "subtract", "rules": [{"type": "polygon", "points": [[454, 706], [454, 720], [469, 735], [501, 748], [503, 757], [523, 755], [555, 758], [566, 765], [574, 765], [576, 756], [600, 754], [610, 750], [615, 743], [614, 728], [607, 720], [576, 704], [543, 698], [539, 694], [471, 694]], "feather": 8}, {"type": "polygon", "points": [[486, 716], [505, 713], [540, 718], [559, 723], [582, 734], [536, 734], [494, 722]], "feather": 4}], "feather": 8}},
     {"name": "hair_side", "rule": {"type": "polygon", "points": [[562, 800], [598, 820], [602, 880], [578, 950], [546, 962], [548, 900]], "feather": 12}},
     {"name": "weapon", "rule": {"type": "polygon", "points": [[345, 1308], [408, 1302], [402, 1385], [382, 1442], [346, 1502], [300, 1546], [250, 1562], [222, 1532], [226, 1470], [254, 1400], [300, 1340]], "feather": 10}},
     {"name": "arm_r", "rule": {"type": "polygon", "points": [[404, 918], [446, 924], [466, 1000], [456, 1100], [432, 1200], [412, 1300], [406, 1342], [372, 1352], [360, 1310], [384, 1200], [398, 1100], [398, 1000]], "feather": 18}},
