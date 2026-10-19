@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for ombre silent_partner, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s384001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "silent_partner.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [528, 878, 335],
+  "look_px": [8, 5],
+  "meta": {"weapon": "rifle", "attack": "attack_ranged", "fx_color": "#b48cff", "art": "comfy s384001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [527, 1286]},
+    {"name": "torso", "parent": "hips", "pivot": [527, 1192]},
+    {"name": "chest", "parent": "torso", "pivot": [590, 1076]},
+    {"name": "neck", "parent": "chest", "pivot": [508, 972]},
+    {"name": "head", "parent": "neck", "pivot": [522, 942]},
+    {"name": "face", "parent": "head", "pivot": [528, 872]},
+    {"name": "hair_front", "parent": "head", "pivot": [528, 797]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [528, 884], "radius": [64, 55], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [528, 818], "radius": [77, 37], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [528, 859], "radius": [124, 118], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[430, 962], [586, 962], [733, 1016], [725, 1172], [627, 1202], [427, 1202], [455, 1172], [447, 1016]], "feather": 40}}
+  ],
+  "overlays": []
+}

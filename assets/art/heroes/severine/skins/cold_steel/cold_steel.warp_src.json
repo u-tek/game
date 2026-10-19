@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for severine cold_steel, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s334000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "cold_steel.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [496, 860, 375],
+  "look_px": [8, 5],
+  "meta": {"weapon": "sword", "fx_color": "#b48cff", "art": "comfy s334000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [518, 1278]},
+    {"name": "torso", "parent": "hips", "pivot": [512, 1183]},
+    {"name": "chest", "parent": "torso", "pivot": [505, 1066]},
+    {"name": "neck", "parent": "chest", "pivot": [521, 960]},
+    {"name": "head", "parent": "neck", "pivot": [489, 931]},
+    {"name": "face", "parent": "head", "pivot": [496, 853]},
+    {"name": "hair_front", "parent": "head", "pivot": [496, 770]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [496, 866], "radius": [72, 60], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [496, 794], "radius": [86, 41], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [496, 839], "radius": [139, 130], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[433, 950], [609, 950], [665, 1006], [657, 1163], [624, 1193], [400, 1193], [353, 1163], [345, 1006]], "feather": 40}}
+  ],
+  "overlays": []
+}

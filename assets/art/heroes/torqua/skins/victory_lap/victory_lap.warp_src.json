@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for torqua victory_lap, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s234001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "victory_lap.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [440, 325, 545],
+  "look_px": [8, 5],
+  "meta": {"weapon": "parasol", "fx_color": "#ff8a3d", "art": "comfy s234001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [502, 943]},
+    {"name": "torso", "parent": "hips", "pivot": [512, 803]},
+    {"name": "chest", "parent": "torso", "pivot": [447, 631]},
+    {"name": "neck", "parent": "chest", "pivot": [442, 475]},
+    {"name": "head", "parent": "neck", "pivot": [430, 432]},
+    {"name": "face", "parent": "head", "pivot": [440, 315]},
+    {"name": "hair_front", "parent": "head", "pivot": [440, 191]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [440, 335], "radius": [105, 91], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [440, 226], "radius": [125, 62], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [440, 294], "radius": [202, 196], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[314, 465], [570, 465], [679, 571], [668, 783], [675, 813], [349, 813], [226, 783], [215, 571]], "feather": 40}}
+  ],
+  "overlays": []
+}

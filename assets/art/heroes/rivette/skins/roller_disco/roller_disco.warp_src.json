@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for rivette roller_disco, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s364001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "roller_disco.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [498, 430, 502],
+  "look_px": [8, 5],
+  "meta": {"weapon": "axe", "fx_color": "#b48cff", "art": "comfy s364001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [508, 1008]},
+    {"name": "torso", "parent": "hips", "pivot": [494, 877]},
+    {"name": "chest", "parent": "torso", "pivot": [432, 715]},
+    {"name": "neck", "parent": "chest", "pivot": [356, 569]},
+    {"name": "head", "parent": "neck", "pivot": [489, 529]},
+    {"name": "face", "parent": "head", "pivot": [498, 420]},
+    {"name": "hair_front", "parent": "head", "pivot": [498, 306]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [498, 440], "radius": [97, 84], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [498, 339], "radius": [115, 57], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [498, 402], "radius": [186, 180], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[238, 559], [474, 559], [646, 655], [635, 857], [644, 887], [344, 887], [229, 857], [218, 655]], "feather": 40}}
+  ],
+  "overlays": []
+}

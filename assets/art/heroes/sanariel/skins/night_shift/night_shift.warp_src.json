@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for sanariel night_shift, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s124001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "night_shift.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [546, 760, 392],
+  "look_px": [8, 5],
+  "meta": {"weapon": "staff", "attack": "attack_ranged", "fx_color": "#ffe9a8", "art": "comfy s124001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [619, 1213]},
+    {"name": "torso", "parent": "hips", "pivot": [572, 1109]},
+    {"name": "chest", "parent": "torso", "pivot": [543, 982]},
+    {"name": "neck", "parent": "chest", "pivot": [545, 866]},
+    {"name": "head", "parent": "neck", "pivot": [538, 834]},
+    {"name": "face", "parent": "head", "pivot": [546, 753]},
+    {"name": "hair_front", "parent": "head", "pivot": [546, 669]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [546, 768], "radius": [75, 62], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [546, 693], "radius": [90, 42], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [546, 739], "radius": [145, 134], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[453, 856], [637, 856], [710, 922], [701, 1089], [689, 1119], [455, 1119], [385, 1089], [376, 922]], "feather": 40}}
+  ],
+  "overlays": []
+}

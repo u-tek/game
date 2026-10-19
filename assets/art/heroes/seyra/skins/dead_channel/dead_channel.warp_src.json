@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for seyra dead_channel, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s354000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "dead_channel.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [555, 842, 367],
+  "look_px": [8, 5],
+  "meta": {"weapon": "orb", "attack": "attack_ranged", "fx_color": "#b48cff", "art": "comfy s354000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [560, 1266]},
+    {"name": "torso", "parent": "hips", "pivot": [523, 1169]},
+    {"name": "chest", "parent": "torso", "pivot": [538, 1050]},
+    {"name": "neck", "parent": "chest", "pivot": [551, 942]},
+    {"name": "head", "parent": "neck", "pivot": [548, 913]},
+    {"name": "face", "parent": "head", "pivot": [555, 835]},
+    {"name": "hair_front", "parent": "head", "pivot": [555, 754]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [555, 849], "radius": [71, 60], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [555, 777], "radius": [84, 41], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [555, 822], "radius": [136, 129], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[465, 932], [637, 932], [694, 990], [687, 1149], [632, 1179], [414, 1179], [389, 1149], [382, 990]], "feather": 40}}
+  ],
+  "overlays": []
+}

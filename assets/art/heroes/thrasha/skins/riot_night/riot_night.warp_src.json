@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for thrasha riot_night, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s264000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "riot_night.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [497, 688, 427],
+  "look_px": [8, 5],
+  "meta": {"weapon": "axe", "fx_color": "#ff8a3d", "art": "comfy s264000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [607, 1171]},
+    {"name": "torso", "parent": "hips", "pivot": [648, 1061]},
+    {"name": "chest", "parent": "torso", "pivot": [513, 927]},
+    {"name": "neck", "parent": "chest", "pivot": [484, 805]},
+    {"name": "head", "parent": "neck", "pivot": [489, 771]},
+    {"name": "face", "parent": "head", "pivot": [497, 680]},
+    {"name": "hair_front", "parent": "head", "pivot": [497, 584]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [497, 696], "radius": [82, 70], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [497, 611], "radius": [98, 48], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [497, 664], "radius": [158, 152], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[384, 795], [584, 795], [695, 867], [686, 1041], [775, 1071], [521, 1071], [340, 1041], [331, 867]], "feather": 40}}
+  ],
+  "overlays": []
+}
