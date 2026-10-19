@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for kindra smoke_show, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s274000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "smoke_show.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [677, 586, 486],
+  "look_px": [8, 5],
+  "meta": {"weapon": "axe", "fx_color": "#ff8a3d", "art": "comfy s274000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [603, 1107]},
+    {"name": "torso", "parent": "hips", "pivot": [623, 988]},
+    {"name": "chest", "parent": "torso", "pivot": [648, 843]},
+    {"name": "neck", "parent": "chest", "pivot": [634, 712]},
+    {"name": "head", "parent": "neck", "pivot": [668, 675]},
+    {"name": "face", "parent": "head", "pivot": [677, 577]},
+    {"name": "hair_front", "parent": "head", "pivot": [677, 473]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [677, 594], "radius": [94, 76], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [677, 502], "radius": [112, 52], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [677, 560], "radius": [180, 164], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[520, 702], [748, 702], [855, 783], [845, 968], [768, 998], [478, 998], [451, 968], [441, 783]], "feather": 40}}
+  ],
+  "overlays": []
+}

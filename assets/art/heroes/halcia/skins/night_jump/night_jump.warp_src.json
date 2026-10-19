@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for halcia night_jump, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s194001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "night_jump.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [436, 786, 413],
+  "look_px": [8, 5],
+  "meta": {"weapon": "dagger", "fx_color": "#ffe9a8", "art": "comfy s194001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [457, 1234]},
+    {"name": "torso", "parent": "hips", "pivot": [480, 1133]},
+    {"name": "chest", "parent": "torso", "pivot": [488, 1009]},
+    {"name": "neck", "parent": "chest", "pivot": [416, 896]},
+    {"name": "head", "parent": "neck", "pivot": [428, 865]},
+    {"name": "face", "parent": "head", "pivot": [436, 778]},
+    {"name": "hair_front", "parent": "head", "pivot": [436, 687]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [436, 794], "radius": [80, 67], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [436, 713], "radius": [95, 46], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [436, 763], "radius": [153, 144], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[319, 886], [513, 886], [664, 949], [655, 1113], [603, 1143], [357, 1143], [321, 1113], [312, 949]], "feather": 40}}
+  ],
+  "overlays": []
+}

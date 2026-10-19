@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for isobel storm_front, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s184001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "storm_front.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [604, 303, 605],
+  "look_px": [8, 5],
+  "meta": {"weapon": "staff", "attack": "attack_ranged", "fx_color": "#ffe9a8", "art": "comfy s184001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [601, 917]},
+    {"name": "torso", "parent": "hips", "pivot": [601, 772]},
+    {"name": "chest", "parent": "torso", "pivot": [640, 596]},
+    {"name": "neck", "parent": "chest", "pivot": [626, 436]},
+    {"name": "head", "parent": "neck", "pivot": [593, 392]},
+    {"name": "face", "parent": "head", "pivot": [604, 264]},
+    {"name": "hair_front", "parent": "head", "pivot": [604, 129]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [604, 287], "radius": [116, 99], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [604, 168], "radius": [139, 68], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [604, 242], "radius": [224, 214], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[484, 426], [768, 426], [898, 536], [885, 752], [781, 782], [421, 782], [395, 752], [382, 536]], "feather": 40}}
+  ],
+  "overlays": []
+}

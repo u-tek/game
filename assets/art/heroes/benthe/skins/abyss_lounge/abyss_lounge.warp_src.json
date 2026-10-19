@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for benthe abyss_lounge, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s344000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "abyss_lounge.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [534, 896, 308],
+  "look_px": [8, 5],
+  "meta": {"weapon": "sword", "fx_color": "#b48cff", "art": "comfy s344000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [533, 1295]},
+    {"name": "torso", "parent": "hips", "pivot": [533, 1202]},
+    {"name": "chest", "parent": "torso", "pivot": [534, 1088]},
+    {"name": "neck", "parent": "chest", "pivot": [528, 984]},
+    {"name": "head", "parent": "neck", "pivot": [528, 955]},
+    {"name": "face", "parent": "head", "pivot": [534, 890]},
+    {"name": "hair_front", "parent": "head", "pivot": [534, 821]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [534, 901], "radius": [59, 51], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [534, 840], "radius": [71, 34], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [534, 878], "radius": [114, 109], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[456, 974], [600, 974], [665, 1028], [659, 1182], [625, 1212], [441, 1212], [409, 1182], [403, 1028]], "feather": 40}}
+  ],
+  "overlays": []
+}

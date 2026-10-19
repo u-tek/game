@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for nadira zero_gravity, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s314000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "zero_gravity.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [518, 1044, 300],
+  "look_px": [8, 5],
+  "meta": {"weapon": "staff", "attack": "attack_ranged", "fx_color": "#b48cff", "art": "comfy s314000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [524, 1390]},
+    {"name": "torso", "parent": "hips", "pivot": [526, 1309]},
+    {"name": "chest", "parent": "torso", "pivot": [524, 1210]},
+    {"name": "neck", "parent": "chest", "pivot": [519, 1121]},
+    {"name": "head", "parent": "neck", "pivot": [513, 1096]},
+    {"name": "face", "parent": "head", "pivot": [518, 1038]},
+    {"name": "hair_front", "parent": "head", "pivot": [518, 978]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [518, 1049], "radius": [53, 44], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [518, 995], "radius": [63, 30], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [518, 1028], "radius": [101, 96], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[455, 1111], [583, 1111], [640, 1150], [634, 1289], [607, 1319], [445, 1319], [414, 1289], [408, 1150]], "feather": 40}}
+  ],
+  "overlays": []
+}

@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for cordia black_velvet, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s284001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "black_velvet.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [537, 380, 616],
+  "look_px": [8, 5],
+  "meta": {"weapon": "shaker", "attack": "attack_ranged", "fx_color": "#ff8a3d", "art": "comfy s284001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [488, 989]},
+    {"name": "torso", "parent": "hips", "pivot": [487, 855]},
+    {"name": "chest", "parent": "torso", "pivot": [533, 690]},
+    {"name": "neck", "parent": "chest", "pivot": [538, 541]},
+    {"name": "head", "parent": "neck", "pivot": [526, 501]},
+    {"name": "face", "parent": "head", "pivot": [537, 369]},
+    {"name": "hair_front", "parent": "head", "pivot": [537, 230]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [537, 392], "radius": [119, 102], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [537, 270], "radius": [141, 69], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [537, 346], "radius": [228, 219], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[394, 531], [682, 531], [795, 630], [782, 835], [671, 865], [303, 865], [284, 835], [271, 630]], "feather": 40}}
+  ],
+  "overlays": []
+}

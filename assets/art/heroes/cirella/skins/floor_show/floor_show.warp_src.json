@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for cirella floor_show, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s154001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "floor_show.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [585, 700, 394],
+  "look_px": [8, 5],
+  "meta": {"weapon": "chakram", "fx_color": "#ffe9a8", "art": "comfy s154001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [546, 1173]},
+    {"name": "torso", "parent": "hips", "pivot": [566, 1063]},
+    {"name": "chest", "parent": "torso", "pivot": [667, 929]},
+    {"name": "neck", "parent": "chest", "pivot": [542, 807]},
+    {"name": "head", "parent": "neck", "pivot": [578, 773]},
+    {"name": "face", "parent": "head", "pivot": [585, 692]},
+    {"name": "hair_front", "parent": "head", "pivot": [585, 608]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [585, 707], "radius": [76, 62], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [585, 632], "radius": [91, 42], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [585, 678], "radius": [146, 134], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[450, 797], [634, 797], [835, 869], [827, 1043], [684, 1073], [448, 1073], [507, 1043], [499, 869]], "feather": 40}}
+  ],
+  "overlays": []
+}

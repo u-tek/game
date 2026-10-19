@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for carmesa tango_red, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s254001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "tango_red.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [512, 306, 567],
+  "look_px": [8, 5],
+  "meta": {"weapon": "sword", "fx_color": "#ff8a3d", "art": "comfy s254001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [544, 933]},
+    {"name": "torso", "parent": "hips", "pivot": [564, 791]},
+    {"name": "chest", "parent": "torso", "pivot": [456, 617]},
+    {"name": "neck", "parent": "chest", "pivot": [543, 459]},
+    {"name": "head", "parent": "neck", "pivot": [502, 416]},
+    {"name": "face", "parent": "head", "pivot": [512, 295]},
+    {"name": "hair_front", "parent": "head", "pivot": [512, 168]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [512, 317], "radius": [109, 93], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [512, 204], "radius": [130, 64], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [512, 274], "radius": [210, 201], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[410, 449], [676, 449], [698, 557], [685, 771], [733, 801], [395, 801], [227, 771], [215, 557]], "feather": 40}}
+  ],
+  "overlays": []
+}
