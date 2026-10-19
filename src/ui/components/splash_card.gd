@@ -4,12 +4,18 @@ extends Control
 ## hero_<n>_<id>.png per hero (each a full-card RGBA layer). The plate drifts slowly, each hero
 ## breathes on its own phase and a soft light sweep crosses the card, so a still painting feels alive.
 ## Fills its rect (cover), keeping the card's aspect.
+## Nudity mode (HeroArt.nudity, the "nudity" setting): a card may carry a nude version in
+## assets/art/splash/<name>/adult/ (its own layout.json and/or any of the layer files, same names);
+## with nudity on each file is read from adult/ when it is there, else from the card's folder, so a
+## card without adult art shows its normal layers.
 ##   var c := SplashCard.make("celestial_trio")   # null if the card is not installed
 ##   add_child(c); c.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 
 const DIR := "res://assets/art/splash/"
 
 var card := ""
+## True when at least one layer (or the layout) came from the card's adult/ folder.
+var adult := false
 var _plate: TextureRect
 var _heroes: Array[TextureRect] = []
 var _sweep: ColorRect
@@ -38,19 +44,30 @@ static func make(name: String) -> Control:
 	return c
 
 
+## Where a card's file is read from: <name>/adult/<file> when nudity is on and that file exists
+## (a resource or plain file), else <name>/<file>.
+static func file_path(card_name: String, file: String) -> String:
+	var a := DIR + card_name + "/adult/" + file
+	if HeroArt.nudity and (ResourceLoader.exists(a) or FileAccess.file_exists(a)):
+		return a
+	return DIR + card_name + "/" + file
+
+
 func _load(name: String) -> void:
 	card = name
 	clip_contents = true
 	mouse_filter = MOUSE_FILTER_IGNORE
-	var lj: Variant = JSON.parse_string(FileAccess.get_file_as_string(DIR + name + "/layout.json"))
+	var lp := file_path(name, "layout.json")
+	adult = lp.contains("/adult/")
+	var lj: Variant = JSON.parse_string(FileAccess.get_file_as_string(lp))
 	if not (lj is Dictionary):
 		push_error("SplashCard: bad layout for %s" % name)
 		return
 	var sz: Array = lj.get("size", [1920, 1080])
 	_size = Vector2(sz[0], sz[1])
-	_plate = _layer(DIR + name + "/" + str(lj.get("plate", "plate.png")))
+	_plate = _layer(file_path(name, str(lj.get("plate", "plate.png"))))
 	for h: Dictionary in lj.get("heroes", []):
-		_heroes.append(_layer(DIR + name + "/" + str(h.file)))
+		_heroes.append(_layer(file_path(name, str(h.file))))
 	_sweep = ColorRect.new()
 	_sweep.mouse_filter = MOUSE_FILTER_IGNORE
 	_sweep.color = Color(1, 1, 1, 0.0)
@@ -69,6 +86,7 @@ func _layer(path: String) -> TextureRect:
 	tr.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	if ResourceLoader.exists(path):
 		tr.texture = load(path)
+	adult = adult or path.contains("/adult/")
 	add_child(tr)
 	return tr
 

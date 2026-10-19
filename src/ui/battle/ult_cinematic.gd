@@ -34,9 +34,10 @@ func play(id: String, skill_name: String, is_ally: bool, duration: float) -> voi
 	for i in 14:
 		_lines.append(Vector3(randf() * w, _cy + randf_range(-_bh * 0.45, _bh * 0.45), randf_range(0.6, 1.4)))
 
-	# Portrait: head and shoulders cut from the full-body still.
-	var tex := HeroArt.texture(id)
-	var pr := HeroArt.portrait_region(id)
+	# Portrait: head and shoulders cut from the full-body still (allies in their equipped skin).
+	var skin := Game.equipped_skin(id) if ally else ""
+	var tex := HeroArt.texture(id, skin)
+	var pr := HeroArt.portrait_region(id, skin)
 	var at := AtlasTexture.new()
 	at.atlas = tex
 	var grow := pr.size.x * 0.35

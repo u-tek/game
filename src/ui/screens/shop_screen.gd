@@ -383,7 +383,7 @@ func _wardrobe_card(h: Dictionary, lines: Dictionary) -> Control:
 	row.mouse_filter = MOUSE_FILTER_IGNORE
 	card.add_child(row)
 	var pic := TextureRect.new()
-	pic.texture = Kit.art_crop(hid, 0.75, 1.5)
+	pic.texture = Kit.art_crop(hid, 0.75, 1.5, Game.equipped_skin(hid))
 	pic.custom_minimum_size = Vector2(120, 160)
 	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED

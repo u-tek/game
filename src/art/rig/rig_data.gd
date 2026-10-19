@@ -50,19 +50,36 @@ var slot_index := {}
 static var _cache := {}
 
 
+## Folder of an art variant ("adult": the nude art) under the art it belongs to.
+const ADULT := "adult"
+
+
 ## Folder of a hero's art, or of one of her skins (skin_art = the skin's "art" folder name,
 ## data/skins.json): assets/art/heroes/<id>/skins/<art>/, laid out like the base art with
-## <art>.warp.json, <art>.png, <art>_portrait.png and overlays/.
+## <art>.warp.json, <art>.png, <art>_portrait.png and overlays/. The art string names a look:
+##   ""            the base look        assets/art/heroes/<id>/              files <id>.*
+##   "<art>"       a skin               assets/art/heroes/<id>/skins/<art>/  files <art>.*
+##   "<art>/adult" the skin's nude art  assets/art/heroes/<id>/skins/<art>/adult/  files <art>.*
+##   "/adult"      the base nude art    assets/art/heroes/<id>/adult/        files <id>.*
+## (rig ids in the tools: <id>, <id>@<art>, <id>@<art>@adult, <id>@@adult; docs/dev/halorig.md 8.1)
 static func art_dir(hero_id: String, skin_art: String = "") -> String:
-	if skin_art == "":
-		return "%s%s/" % [HEROES_DIR, hero_id]
-	return "%s%s/skins/%s/" % [HEROES_DIR, hero_id, skin_art]
+	var skin := skin_art.get_slice("/", 0)
+	var variant := skin_art.substr(skin.length() + 1) if skin_art.contains("/") else ""
+	var d := "%s%s/" % [HEROES_DIR, hero_id] if skin == "" else "%s%s/skins/%s/" % [HEROES_DIR, hero_id, skin]
+	return d + variant + "/" if variant != "" else d
+
+
+## The nude variant of a look: "<art>/adult" for a skin, "/adult" for the base look ("").
+static func adult_art(skin_art: String = "") -> String:
+	return skin_art + "/" + ADULT
 
 
 ## Path without extension of an art's files: <dir><id> for the base look, <dir><art> for a skin.
-## skin_art may name a subfolder ("<art>/adult": the skin's nude art, files still named <art>.*).
+## A variant subfolder keeps the names of the art it belongs to ("<art>/adult": <art>.*,
+## "/adult": <id>.*).
 static func file_base(hero_id: String, skin_art: String = "") -> String:
-	return art_dir(hero_id, skin_art) + (hero_id if skin_art == "" else skin_art.get_slice("/", 0))
+	var skin := skin_art.get_slice("/", 0)
+	return art_dir(hero_id, skin_art) + (hero_id if skin == "" else skin)
 
 
 static func exists(hero_id: String, skin_art: String = "") -> bool:

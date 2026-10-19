@@ -6,7 +6,8 @@ silhouette, no hand-drawn hair, wing, weapon or cloth polygons and no face overl
     python tools/art_warp_build.py imra@lucky_ember --regen-masks      # then the Godot import
 
 Writes assets/art/heroes/<hero>/skins/<art>/<art>.warp_src.json (or <hero>/<hero>.warp_src.json without
-"@<art>"). The face box is in pixels of the installed 1024x2048 image (brow to chin, cheek to cheek).
+"@<art>"). Nude art: <hero>@<art>@adult writes skins/<art>/adult/<art>.warp_src.json, <hero>@@adult the base
+look's <hero>/adult/<hero>.warp_src.json (docs/dev/halorig.md 8.1). The face box is in pixels of the installed 1024x2048 image (brow to chin, cheek to cheek).
 The rig breathes, sways and turns its head; blinks, talking and spring parts (hair, wings, tails)
 need variants and a hand-made rig (docs/dev/halorig.md section 8, docs/dev/skins.md Production).
 """
@@ -25,7 +26,8 @@ SOLES = (512, 1990)
 
 
 def paths(rig_id):
-    """<hero>, <hero>@<art> or <hero>@<art>@adult (the skin's nude art in skins/<art>/adult/)."""
+    """<hero>, <hero>@<art>, <hero>@<art>@adult (the skin's nude art in skins/<art>/adult/) or
+    <hero>@@adult (the base look's nude art in <hero>/adult/, files named <hero>.*)."""
     hero, _, art = rig_id.partition("@")
     art, _, variant = art.partition("@")
     d = os.path.join(HEROES, hero, "skins", art) if art else os.path.join(HEROES, hero)
@@ -98,7 +100,7 @@ def build(rig_id, face, seed=None):
     pcx = min(max(r(fcx), psize // 2 + 1), W_img - psize // 2 - 1)
     pcy = min(max(r(fy + fh * 0.5), psize // 2 + 1), H_img - psize // 2 - 1)
     h = heroes.get(hero, {})
-    label = "%s %s" % (hero, art) if art else hero
+    label = " ".join(x for x in rig_id.split("@") if x)      # "kessa card_shark", "kessa adult"
     # weapon / attack style come from the hero's own rig (hero_sprite.attack_anim reads them);
     # read before writing, since rebuilding the base look overwrites that same file
     base_src = os.path.join(HEROES, hero, hero + ".warp_src.json")
@@ -140,7 +142,7 @@ def dumps(src):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("rig_id", nargs="?", help="<hero>@<art> or <hero>")
+    ap.add_argument("rig_id", nargs="?", help="<hero>, <hero>@<art>, <hero>@<art>@adult or <hero>@@adult")
     ap.add_argument("--face", help="x,y,w,h in image pixels")
     ap.add_argument("--seed", type=int)
     ap.add_argument("--faces", help="JSON {rig_id: {face: [x,y,w,h], seed: n}}")

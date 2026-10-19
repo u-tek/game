@@ -267,9 +267,9 @@
     832,
     1216
    ],
-   "default_eyes": "closed",
+   "default_eyes": "open",
    "variant_set": [
-    "eyes_open",
+    "eyes_closed",
     "mouth_open",
     "smile"
    ],
@@ -295,6 +295,7 @@
     "eyes_open": "yellow eyes, open eyes, looking at viewer, seductive smile, serene",
     "mouth_open": "closed eyes, open mouth, singing, serene"
    },
+   "adult": {"outfit": "nude, completely nude, bottomless, nipples, body chain", "natural": "Adult. Seraphiel nude: only her body chain, halo, wings and platform heels."},
    "brief_gaps": [
     "Six wings are 'multiple wings'; the count is not forced.",
     "The chrome microphone-stand sceptre is 'microphone stand'; the tuning-fork head is left to the model."
@@ -336,6 +337,7 @@
     "eyes_closed": "closed eyes, smirk, confident",
     "mouth_open": "blue eyes, open mouth, smile, teeth, confident"
    },
+   "adult": {"outfit": "nude, completely nude, bottomless, nipples, large pauldrons, gauntlets, gorget", "natural": "Adult. Cassiel nude but for her pauldrons, gauntlets, gorget and armored thigh boots."},
    "brief_gaps": [
     "Aqua LED seams are not tagged ('glowing' is kept out of positives); paint them with fix.py if wanted."
    ]
@@ -374,8 +376,10 @@
    "negative_extra": "(blue archive:1.3), (loli:1.3), (child:1.3), (aged down:1.2), (teenage:1.2), (petite:1.2), (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (downblouse:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2), (pantyshot:1.25), (upskirt:1.25)",
    "variants": {
     "eyes_closed": "closed eyes, seductive smile",
-    "mouth_open": "aqua eyes, open mouth, smile"
+    "mouth_open": "aqua lipstick, aqua eyes, open mouth, smile",
+    "smile": "aqua lipstick, closed eyes, smile, open mouth, happy"
    },
+   "adult": {"outfit": "nude, completely nude, bottomless, nipples, pearl necklace, body chain", "natural": "Adult. Liora nude: pearl necklace, body chain, anklet and heels."},
    "brief_gaps": [
     "Wet look is 'water drop' on the skin only; 'wet' is not tagged (it turns swimwear see-through).",
     "The sarong is opaque satin, not clear vinyl ('see-through' is a forbidden positive)."
@@ -417,6 +421,7 @@
     "eyes_closed": "closed eyes, grin, confident",
     "mouth_open": "blue eyes, open mouth, confident, teeth"
    },
+   "adult": {"outfit": "nude, completely nude, bottomless, nipples", "natural": "Adult. Uriela nude: only her platform boots, halo, sunglasses and wings."},
    "brief_gaps": [
     "The sun-sigil decals are not tagged (token budget)."
    ]
@@ -457,6 +462,7 @@
     "eyes_closed": "closed eyes, light smile, calm",
     "mouth_open": "aqua eyes, open mouth, light smile"
    },
+   "adult": {"outfit": "nude, completely nude, bottomless, nipples, cropped jacket, white jacket, open jacket", "natural": "Adult. Nuriel nude under her open cropped white jacket, with her sneakers."},
    "brief_gaps": [
     "Jet-fin wings are 'mechanical wings'; the four-wing count is not forced.",
     "Crystal blades are left to the model ('crystal' alone pulls crystal effects)."
@@ -498,6 +504,7 @@
     "eyes_closed": "closed eyes, smirk, confident",
     "mouth_open": "red eyes, open mouth, laughing, confident"
    },
+   "adult": {"outfit": "nude, completely nude, bottomless, nipples, black coat, open coat, fur-trimmed coat, chain belt, tribal tattoo", "natural": "Adult. Mordessa nude under her open fur-trimmed coat, with her chain belt, tattoos and red thigh boots."},
    "brief_gaps": [
     "The flame edge is painted on the blade, not a fire effect ('fire' stays out of positives)."
    ]
@@ -538,6 +545,7 @@
     "eyes_closed": "closed eyes, grin, tusks",
     "mouth_open": "yellow eyes, open mouth, tusks, sharp teeth, laughing"
    },
+   "adult": {"outfit": "nude, completely nude, bottomless, nipples, championship belt, chest harness, chain, tribal tattoo", "natural": "Adult. Brakka nude: championship belt, chest harness, chains, tattoos and boots."},
    "brief_gaps": [
     "Exhaust pipes and flame decals on the boots are not tagged ('flame print' could pull fire effects)."
    ]
@@ -579,6 +587,7 @@
     "eyes_closed": "closed eyes, seductive smile",
     "mouth_open": "purple eyes, half-closed eyes, open mouth, seductive smile"
    },
+   "adult": {"outfit": "nude, completely nude, bottomless, nipples, elbow gloves, black cape", "natural": "Adult. Vesper nude: elbow gloves, black cape and heels."},
    "brief_gaps": [
     "Eye colour not in the brief: purple.",
     "Footwear not in the brief: high heels.",
@@ -623,6 +632,7 @@
     "eyes_closed": "closed eyes, smirk",
     "mouth_open": "green eyes, open mouth, smile, laughing"
    },
+   "adult": {"outfit": "nude, completely nude, bottomless, nipples, waist chain, armlet, navel piercing, body markings", "natural": "Adult. Imra nude: waist chain, armlet, navel piercing, body markings and gladiator sandals."},
    "brief_gaps": [
     "Her fanged grin is gone (v4): the imp kit plus a fanged grin is a youth-coded cluster.",
     "The lava lamp is 'lantern'; the wax colors are left to the model."
@@ -664,6 +674,7 @@
     "eyes_closed": "closed eyes, fang, smug",
     "mouth_open": "orange eyes, slit pupils, open mouth, fang, smug"
    },
+   "adult": {"outfit": "nude, completely nude, bottomless, nipples, harness, red scarf", "natural": "Adult. Kessa nude: harness, red scarf and black thigh boots."},
    "brief_gaps": [
     "Cat ears are now headphones; real cat ears may still appear (the tail keeps the cat read)."
    ]
@@ -708,6 +719,7 @@
     "eyes_closed": "closed eyes, melancholy",
     "mouth_open": "purple eyes, half-closed eyes, open mouth, melancholy"
    },
+   "adult": {"outfit": "nude, completely nude, bottomless, nipples", "natural": "Adult. Noctaire nude: only her thigh boots, halo and black wings."},
    "brief_gaps": [
     "Pixel-glitch details are not tagged; the cracked halo is 'broken halo, mechanical halo'."
    ]
@@ -748,6 +760,7 @@
     "eyes_closed": "closed eyes, closed mouth, serious, scar across eye",
     "mouth_open": "purple eyes, open mouth, teeth, serious, scar across eye"
    },
+   "adult": {"outfit": "nude, completely nude, bottomless, nipples, single pauldron, gauntlets, cable", "natural": "Adult. Orrin nude: single pauldron, gauntlets, cables and armored boots."},
    "brief_gaps": [
     "The halo at her hip is not tagged (a 'halo' tag puts it on her head).",
     "The cables are 'cable'; their violet light is left out ('glowing' is kept out of positives)."
@@ -789,6 +802,7 @@
     "eyes_closed": "closed eyes, sad smile, gentle",
     "mouth_open": "grey eyes, open mouth, sad"
    },
+   "adult": {"outfit": "nude, completely nude, bottomless, nipples, garter straps, cross necklace", "natural": "Adult. Sable nude: garter straps, cross necklace, thighhighs and heels."},
    "brief_gaps": [
     "The veil is opaque holographic vinyl, not clear (it reaches the background)."
    ]
@@ -829,6 +843,7 @@
     "eyes_closed": "closed eyes, seductive smile, smug",
     "mouth_open": "purple eyes, half-closed eyes, open mouth, smile, smug"
    },
+   "adult": {"outfit": "nude, completely nude, bottomless, nipples, single sleeve", "natural": "Adult. Lucen nude: one sleeve and her asymmetric thigh boots."},
    "brief_gaps": [
     "The two-color bodysuit is 'white bodysuit, black bodysuit, asymmetrical clothes'; the split line is left to the model."
    ]
@@ -869,6 +884,7 @@
     "eyes_closed": "closed eyes, sleepy, light smile",
     "mouth_open": "purple eyes, half-closed eyes, open mouth, yawning, sleepy"
    },
+   "adult": {"outfit": "nude, completely nude, bottomless, nipples, purple robe, open robe, off shoulder, chain belt", "natural": "Adult. Ashra nude under her open purple robe, with her chain belt and ankle boots."},
    "brief_gaps": [
     "The bottoms are micro shorts (a 'panties' tag is a forbidden positive)."
    ]

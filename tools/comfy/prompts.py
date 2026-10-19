@@ -283,6 +283,22 @@ SKIN_FIELDS = ("outfit", "footwear", "accessories", "weapon", "pose", "expressio
                "background", "natural")
 
 
+def hero_view(bible, hero_id, adult=False):
+    """The hero's prompt fields; adult=True applies her "adult" block (the nude base look) and
+    requires it to exist."""
+    h = _hero(bible, hero_id)
+    if not adult:
+        return h
+    av = h.get("adult")
+    if not isinstance(av, dict) or not av.get("outfit"):
+        raise KeyError("hero %r has no 'adult' prompt block in the bible (add outfit + natural)" % hero_id)
+    v = dict(h)
+    for k in SKIN_FIELDS:
+        if k in av:
+            v[k] = av[k]
+    return v
+
+
 def skin_view(bible, hero_id, skin_id, adult=False):
     """The hero's prompt fields with a skin's overrides (bible "skins", keyed by the skin id of
     data/skins.json). Identity (subject, body, hair, eyes, wings) always comes from the hero, so a
@@ -387,7 +403,7 @@ def full_body(bible, hero_id, family, background_key=None, extra_tags="", skin=N
     skin: a skin id from the bible's "skins" (skin_view) for that skin's outfit, pose and props.
     adult=True: the EroLabs nude set -- the skin's "adult" outfit block, content_rules_adult, the
     relaxed subject line and the nsfw rating (see docs/dev/skins.md)."""
-    h = skin_view(bible, hero_id, skin, adult=adult) if skin else _hero(bible, hero_id)
+    h = skin_view(bible, hero_id, skin, adult=adult) if skin else hero_view(bible, hero_id, adult=adult)
     fam = family_block(bible, family)
     if skin and h.get("background") and not background_key:
         background_key = h["background"]
@@ -411,7 +427,7 @@ def face(bible, hero_id, family, variant=None, background_key=None, skin=None, a
     and the base expression must not leak into a variant). skin: a skin's expression for the polish
     (identity stays the hero's, skin_view). adult=True: the skin's "adult" block and
     content_rules_adult (the face itself only changes by the subject line)."""
-    h = skin_view(bible, hero_id, skin, adult=adult) if skin else _hero(bible, hero_id)
+    h = skin_view(bible, hero_id, skin, adult=adult) if skin else hero_view(bible, hero_id, adult=adult)
     fam = family_block(bible, family)
     _, bg = background(bible, hero_id, background_key)
     if variant:
@@ -479,7 +495,7 @@ def custom(bible, hero_id, family, tags, extra_negative="", background_key=None,
     """Prompt for fixing a region (hands, a prop): hero identity tags + the given tags (no prose).
     skin: that skin's outfit and props (skin_view). adult=True: the skin's "adult" outfit and
     content_rules_adult (fixes on a nude candidate keep the nude look)."""
-    h = skin_view(bible, hero_id, skin, adult=adult) if skin else _hero(bible, hero_id)
+    h = skin_view(bible, hero_id, skin, adult=adult) if skin else hero_view(bible, hero_id, adult=adult)
     fam = family_block(bible, family)
     _, bg = background(bible, hero_id, background_key)
     body = join_tags(_subject(bible, h, adult), tags, h["hair"], h["outfit"], h.get("footwear", ""), h["accessories"],

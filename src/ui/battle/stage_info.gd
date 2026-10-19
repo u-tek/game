@@ -115,7 +115,8 @@ static func _group(title: String, units: Array, slots: Array, card: float, echo:
 			e.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			h.add_child(e)
 			continue
-		var opts := {"size": card, "owned": true}
+		# Enemies keep the base look; team_slots() units carry the player's equipped skin.
+		var opts := {"size": card, "owned": true, "skin": str(u.get("skin", ""))}
 		if u.has("level"):
 			opts["level"] = int(u.level)
 		if u.has("stars"):
@@ -149,7 +150,8 @@ static func team_slots() -> Array:
 			out.append({})
 		else:
 			var h := Game.hero(id)
-			out.append({"hero_id": id, "level": int(h.get("level", 1)), "stars": int(h.get("stars", 1))})
+			out.append({"hero_id": id, "level": int(h.get("level", 1)), "stars": int(h.get("stars", 1)),
+				"skin": Game.equipped_skin(id)})
 	return out
 
 

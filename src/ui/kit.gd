@@ -156,6 +156,10 @@ static var _icons: Dictionary = {}
 static var _glow_textures: Dictionary = {}
 static var _grad_textures: Dictionary = {}
 static var _crops: Dictionary = {}
+## Hero id -> the looks (HeroArt.art_key) art_crop holds crops of, oldest first; at most
+## CROP_LOOKS per hero, so trying skins and toggling nudity never piles up full-size stills.
+static var _crop_looks: Dictionary = {}
+const CROP_LOOKS := 2
 static var _gray_material: ShaderMaterial
 
 
@@ -205,6 +209,19 @@ static func autoload(node_name: String) -> Node:
 	if tree == null or tree.root == null:
 		return null
 	return tree.root.get_node_or_null(node_name)
+
+
+## The skin a hero wears on cards, avatars and banners: opts.skin when given ("" = the base
+## look, for enemies), else the player's equipped skin (Game.equipped_skin; "" for heroes she
+## has not dressed, and without a game). HeroArt still shows adult art when nudity is on.
+static func hero_look(hero_id: String, opts: Dictionary = {}) -> String:
+	if opts.has("skin"):
+		return str(opts["skin"])
+	var g := autoload("Game")
+	var st: Variant = g.get("state") if g else null
+	if st is Dictionary and (st as Dictionary).has("skins") and g.has_method("equipped_skin"):
+		return str(g.call("equipped_skin", hero_id))
+	return ""
 
 
 ## Plays a UI sound through the UI autoload (no-op without it).
@@ -892,8 +909,9 @@ static func speech_bubble(speaker: String, text: String, width: float = 560.0) -
 
 ## Event / feature banner (top-left of the lobby): dark plate, faint hatching in `color`,
 ## optional hero art crop on the left, a big condensed title and a colored sub-plate.
-## opts: size (Vector2(330, 136)), color (ACCENT), hero_id, texture, sub_color, pages
-## (carousel dot count, 0 = none), page (active dot).
+## opts: size (Vector2(330, 136)), color (ACCENT), hero_id, skin (hero_look: default the
+## player's equipped skin, "" = base look), texture, sub_color, pages (carousel dot count,
+## 0 = none), page (active dot).
 static func banner_card(title_text: String, subtitle: String = "", on_pressed: Callable = Callable(), opts: Dictionary = {}) -> Button:
 	var sz: Vector2 = opts.get("size", Vector2(330, 136))
 	var col: Color = opts.get("color", ACCENT)
@@ -928,7 +946,7 @@ static func banner_card(title_text: String, subtitle: String = "", on_pressed: C
 	var tex: Variant = opts.get("texture", null)
 	var hid := str(opts.get("hero_id", ""))
 	if tex == null and hid != "":
-		tex = art_crop(hid, (sz.x * 0.46) / sz.y, 1.15)
+		tex = art_crop(hid, (sz.x * 0.46) / sz.y, 1.15, hero_look(hid, opts))
 	if tex is Texture2D:
 		var art := TextureRect.new()
 		art.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1163,8 +1181,9 @@ static func resource_pill(entries: Array, entry_width: float = 150.0) -> PanelCo
 	return p
 
 
-## Rounded-square avatar (a hero's head crop) with a white rim and an optional small dark
-## caption tag under it (player name). Tappable when on_pressed is valid. size = tile px.
+## Rounded-square avatar (a hero's head crop, in her equipped skin) with a white rim and an
+## optional small dark caption tag under it (player name). Tappable when on_pressed is valid.
+## size = tile px.
 static func avatar(hero_id: String, size: float = 76.0, caption_text: String = "", on_pressed: Callable = Callable()) -> Button:
 	var b := Button.new()
 	b.theme_type_variation = &"BareButton"
@@ -1193,7 +1212,7 @@ static func avatar(hero_id: String, size: float = 76.0, caption_text: String = "
 		var art := TextureRect.new()
 		art.name = "Art"
 		art.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		art.texture = art_crop(hero_id, 1.0, 1.6)
+		art.texture = art_crop(hero_id, 1.0, 1.6, hero_look(hero_id))
 		art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 		art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
@@ -1990,6 +2009,8 @@ static func deco(kind: String, size: Vector2, color: Color = Color(1, 1, 1, 0.12
 ##   dot: bool                red notification dot
 ##   tag: String              "N" = new badge, otherwise a small tag ("x2", "BOSS")
 ##   shard: bool              shard overlay (for shard rewards)
+##   skin: String             the look (default: the player's equipped skin, hero_look;
+##                            "" = base look, for enemies)
 ##   on_pressed: Callable
 static func hero_card(hero_id: String, opts: Dictionary = {}) -> Button:
 	var c := HeroCard.new()
@@ -2283,15 +2304,19 @@ static func vgradient(c0: Color, c1: Color, horizontal: bool = false) -> Gradien
 ## Crop of a hero's full-body art (HeroArt.texture) with aspect = width / height, framed
 ## from just above the head: ~0.6 gives a waist-up card crop, 1.0 a head-and-shoulders
 ## square. zoom > 1 crops tighter. Works the same for painted 1024x2048 art and the
-## placeholder silhouettes (uses HeroArt.portrait_region). Cached AtlasTexture.
-static func art_crop(hero_id: String, aspect: float, zoom: float = 1.0) -> Texture2D:
-	var key := "%s:%.3f:%.2f" % [hero_id, aspect, zoom]
+## placeholder silhouettes (uses HeroArt.portrait_region). skin_id: the look ("" = base; pass
+## hero_look(id) for the player's heroes). Cached AtlasTexture, keyed by what the art shows
+## (HeroArt.art_key), so equipping a skin or toggling nudity gives the new crop.
+static func art_crop(hero_id: String, aspect: float, zoom: float = 1.0, skin_id: String = "") -> Texture2D:
+	var look := HeroArt.art_key(hero_id, skin_id)
+	var key := "%s:%.3f:%.2f" % [look, aspect, zoom]
+	_remember_look(hero_id, look)
 	if _crops.has(key):
 		return _crops[key]
-	var tex := HeroArt.texture(hero_id)
+	var tex := HeroArt.texture(hero_id, skin_id)
 	if tex == null:
 		return null
-	var pr := HeroArt.portrait_region(hero_id)
+	var pr := HeroArt.portrait_region(hero_id, skin_id)
 	var tw := float(tex.get_width())
 	var th := float(tex.get_height())
 	var w := pr.size.x * 2.1 / maxf(zoom, 0.1)
@@ -2311,6 +2336,20 @@ static func art_crop(hero_id: String, aspect: float, zoom: float = 1.0) -> Textu
 	at.filter_clip = true
 	_crops[key] = at
 	return at
+
+
+## Drops the crops of a hero's oldest look once she has more than CROP_LOOKS (a full still is
+## ~11 MB of video memory; a card still on screen keeps its own crop alive).
+static func _remember_look(hero_id: String, look: String) -> void:
+	var looks: Array = _crop_looks.get(hero_id, [])
+	looks.erase(look)
+	looks.append(look)
+	while looks.size() > CROP_LOOKS:
+		var old := str(looks.pop_front()) + ":"
+		for k: Variant in _crops.keys():
+			if str(k).begins_with(old):
+				_crops.erase(k)
+	_crop_looks[hero_id] = looks
 
 
 ## Slowly rotating light rays (reward popups, summon reveals). Place centered behind art.

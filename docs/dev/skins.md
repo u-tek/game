@@ -68,6 +68,27 @@ explicitly stated"). It is an opt-in mode of the ComfyUI pipeline, not a guardra
   their normal art. Rig ids `<hero>@<art>@adult` (`art_warp_build.py`, `art_quick_rig.py`),
   RigData art `<art>/adult`. `--nudity` with `--rich`/`--fresh` turns it on in the throwaway save
   (screenshots). The separate EroLabs build swap and the `.gdignore` are gone.
+- **Game work, 2026-10-19 (owner: "when I change the skins, the character card doesn't change in
+  the heroes section"; "I expect every character in the game now becomes nude ... it should be
+  obvious that that's happened"):**
+  - Every place that shows one of the player's heroes wears her equipped skin: Heroes cards, Team,
+    Gear, reward tiles, the top-bar avatar, Lobby hero and banners, hero detail, battle portraits,
+    sprites and the ultimate cut-in, battle results, the shop wardrobe. `Kit.hero_card`,
+    `portrait_card`, `avatar` and `banner_card` default to `Kit.hero_look(id)` (the equipped skin);
+    enemies (campaign and Spire echoes, chapter bosses) pass `skin: ""` and keep the base look.
+  - `Kit.art_crop(id, aspect, zoom, skin)` caches by `HeroArt.art_key(id, skin)` (hero + the art
+    actually shown), so a new skin or the nudity toggle gives a new crop at once; the avatar, Lobby
+    and hero detail sprite rebuild when that key changes (screens refresh on `Game.changed`).
+  - Nude base looks: `assets/art/heroes/<id>/adult/<id>.*` (what `install.py --adult` writes for a
+    base look), RigData art `"/adult"`, rig id `<id>@@adult` (`docs/dev/halorig.md` 8.1). With
+    nudity on every look, enemies included, shows its nude art where it is built and its normal art
+    otherwise. None is rendered yet, so base looks fall back to the normal art.
+  - Splash cards (`SplashCard`): with nudity on each file is read from
+    `assets/art/splash/<name>/adult/` when it is there (same names, its own `layout.json`
+    optional), else from the card's folder. There is no boot or loading screen with hero art yet.
+  - Settings: turning nudity on (after "I'm 18+") or off shows a big notice over everything, "NUDITY
+    MODE ENABLED" / "NUDITY MODE DISABLED", and the row shows the state and how much nude art the
+    build has (skins with adult art, base looks with adult art).
 - Installed 2026-10-19: all 60. OpenCode's finals run (`art_src/_review/adult_finals.log`, picks
   by framing flags in `art_src/_review/adult_picks.json`) finished 44 with the face pass and tiled
   2x; ComfyUI went down for the last 14, which Claude cut out quick (no face pass or 2x). Two

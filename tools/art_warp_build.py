@@ -5,6 +5,9 @@ weights from region masks + overlay patches), portrait, imports.  Spec: docs/dev
     tools/art_warp seraphiel            # same, then Godot import (use this one)
     tools/art_warp imra@lucky_ember     # a skin: assets/art/heroes/imra/skins/lucky_ember/, files named
                                         # lucky_ember.* (the folder RigData.load_rig(hero, art) reads)
+    tools/art_warp imra@lucky_ember@adult   # the skin's nude art: skins/lucky_ember/adult/lucky_ember.*
+    tools/art_warp imra@@adult          # the base look's nude art: assets/art/heroes/imra/adult/imra.*
+    (with no id it builds every base look and skin, plus every adult/ folder that has a warp_src)
 
 Inputs in assets/art/heroes/<id>/:
     <id>.warp_src.json      rig setup: bones (pivots), regions (+ mask rules), overlays, grid
@@ -184,14 +187,14 @@ def r1(v):
 
 # ------------------------------------------------------------------ build
 def rig_dir(rig_id):
-    """(folder, file name, hero id) of a rig id: <id> (base art), <id>@<art> (a skin) or
-    <id>@<art>@adult (the skin's nude art in skins/<art>/adult/, files still named <art>.*)."""
+    """(folder, file name, hero id) of a rig id: <id> (base art), <id>@<art> (a skin),
+    <id>@<art>@adult (the skin's nude art in skins/<art>/adult/, files still named <art>.*) or
+    <id>@@adult (the base look's nude art in <id>/adult/, files still named <id>.*).
+    The game's RigData art strings for the same folders: "", "<art>", "<art>/adult", "/adult"."""
     hero_id, _, art = rig_id.partition("@")
     art, _, variant = art.partition("@")
-    if art:
-        d = os.path.join(HEROES, hero_id, "skins", art)
-        return (os.path.join(d, variant) if variant else d), art, hero_id
-    return os.path.join(HEROES, hero_id), hero_id, hero_id
+    d = os.path.join(HEROES, hero_id, "skins", art) if art else os.path.join(HEROES, hero_id)
+    return (os.path.join(d, variant) if variant else d), art or hero_id, hero_id
 
 
 def build(hero, regen=False, check=False):
@@ -474,10 +477,14 @@ def main():
         for d in sorted(os.listdir(HEROES)):
             if os.path.exists(os.path.join(HEROES, d, d + ".warp_src.json")):
                 ids.append(d)
+            if os.path.exists(os.path.join(HEROES, d, "adult", d + ".warp_src.json")):
+                ids.append("%s@@adult" % d)
             sk = os.path.join(HEROES, d, "skins")
             for art in sorted(os.listdir(sk)) if os.path.isdir(sk) else []:
                 if os.path.exists(os.path.join(sk, art, art + ".warp_src.json")):
                     ids.append("%s@%s" % (d, art))
+                if os.path.exists(os.path.join(sk, art, "adult", art + ".warp_src.json")):
+                    ids.append("%s@%s@adult" % (d, art))
     for h in ids:
         build(h, regen, check)
     print("art_warp_build: %d hero(es), %d error(s), %d warning(s)" % (len(ids), errors, warnings))

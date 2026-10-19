@@ -1,7 +1,8 @@
 extends Control
 ## Screen "settings" (from the top-bar Menu), style v2: a dark header with Back and the
 ## SETTINGS tab, then white panels on a light page, each under a dark header bar: SOUND
-## (effects, music, vibration), BATTLE (default speed, auto ultimates), SAVE DATA (Reset Save
+## (effects, music, vibration), BATTLE (default speed, auto ultimates), ADULT CONTENT (Toggle
+## nudity, with an 18+ confirm and a big "NUDITY MODE ENABLED / DISABLED" notice), SAVE DATA (Reset Save
 ## asks first), DEV TOOLS (+3,000 gems, +100K gold, +50K hero EXP, skip 8 hours) and ABOUT
 ## (version and credits with the font licenses).
 
@@ -58,6 +59,8 @@ func setup(params: Dictionary) -> void:
 	list.add_child(_about())
 	if params.has("scroll"):
 		_scroll_to.call_deferred(int(params["scroll"]))
+	if params.has("notice"):        # shot/testing helper: show the nudity notice (true = enabled)
+		_nudity_notice.call_deferred(bool(params["notice"]))
 
 
 ## Shot/testing helper (params.scroll).
@@ -113,25 +116,116 @@ func _toggle_row(icon_name: String, title: String, sub: String, key: String, def
 	return row
 
 
-## "Toggle nudity": skins show their nude art where it is installed. Turning it on asks for an
-## 18+ confirmation; cancelling leaves it off.
+## "Toggle nudity": every hero (base look and skins) shows her nude art where it is installed.
+## Turning it on asks for an 18+ confirmation; cancelling leaves it off. Either way a big notice
+## says what happened ("NUDITY MODE ENABLED" / "DISABLED") and the row shows the state; the art on
+## screen follows at once (Game.changed: the top-bar avatar, cards and sprites key on
+## HeroArt.art_key).
 func _nudity_row() -> Control:
-	var row := _row_head("eye_off", "Toggle nudity", "Skins show their nude versions (18+ only).")
+	var v := Kit.vbox(4)
+	var row := _row_head("eye_off", "Toggle nudity", "Every hero shows her nude art where it is installed (18+ only).")
+	v.add_child(row)
+	var state := Kit.label("", 20, Kit.TEXT_DIM, "cond_bold")
+	state.name = "NudityState"
+	state.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(state)
+	_show_nudity_state(state)
 	var t := Kit.toggle(Game.setting("nudity") == true)
 	t.name = "Toggle_nudity"
 	t.size_flags_vertical = SIZE_SHRINK_CENTER
 	t.toggled.connect(func(val: bool) -> void:
 		if not val:
-			Game.set_setting("nudity", false)
+			if Game.setting("nudity") == true:
+				_set_nudity(false, state)
 			return
 		if Game.setting("nudity") == true:
 			return
-		UI.confirm("Nude skin art is for adults (18+) only. Show it?",
-			func() -> void: Game.set_setting("nudity", true),
+		UI.confirm("Nude art is for adults (18+) only. Show it?",
+			func() -> void: _set_nudity(true, state),
 			func() -> void: t.set_pressed_no_signal(false),
 			"I'm 18+", "Cancel"))
 	row.add_child(t)
-	return row
+	return v
+
+
+func _set_nudity(on: bool, state: Label) -> void:
+	Game.set_setting("nudity", on)
+	if is_instance_valid(state):
+		_show_nudity_state(state)
+	_nudity_notice(on)
+
+
+## "NUDITY MODE ON" in the accent color, plus how much nude art the build has (skins with adult
+## art, heroes with an adult base look), so it is clear what the mode covers.
+func _show_nudity_state(state: Label) -> void:
+	var on: bool = Game.setting("nudity") == true
+	var skins := 0
+	for s: Dictionary in SkinData.all():
+		if HeroArt.has_adult_art(str(s["hero"]), str(s["id"])):
+			skins += 1
+	var bases := 0
+	var ids := HeroData.ids()
+	for id in ids:
+		if HeroArt.has_adult_art(str(id)):
+			bases += 1
+	state.text = "%s  ·  NUDE ART: %d SKINS, %d OF %d BASE LOOKS" % [
+		"NUDITY MODE ON" if on else "NUDITY MODE OFF", skins, bases, ids.size()]
+	state.add_theme_color_override("font_color", Kit.EMBER if on else Kit.TEXT_DIM)
+
+
+## A big notice over everything for a moment (it never blocks taps and outlives a screen change):
+## the ribbon "NUDITY MODE ENABLED" / "NUDITY MODE DISABLED" and a line under it.
+func _nudity_notice(on: bool) -> void:
+	var host: Control = UI.root if UI.root and is_instance_valid(UI.root) else self
+	var old := host.get_node_or_null("NudityNotice")
+	if old:
+		host.remove_child(old)
+		old.queue_free()
+	var n := Control.new()
+	n.name = "NudityNotice"
+	n.set_meta("on", on)
+	n.mouse_filter = MOUSE_FILTER_IGNORE
+	n.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	n.z_index = 50
+	var dim := ColorRect.new()
+	dim.mouse_filter = MOUSE_FILTER_IGNORE
+	dim.color = Color(0.02, 0.03, 0.06, 0.72)
+	dim.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	n.add_child(dim)
+	var center := CenterContainer.new()
+	center.mouse_filter = MOUSE_FILTER_IGNORE
+	center.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	n.add_child(center)
+	var col := Kit.vbox(14)
+	col.mouse_filter = MOUSE_FILTER_IGNORE
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	center.add_child(col)
+	var ic := Kit.hex_badge("check" if on else "eye_off", 96, Kit.EMBER if on else Color("1b2a47"), Color.WHITE)
+	ic.size_flags_horizontal = SIZE_SHRINK_CENTER
+	col.add_child(ic)
+	var title := "NUDITY MODE ENABLED" if on else "NUDITY MODE DISABLED"
+	var rb := Kit.ribbon(title, 660.0, Kit.EMBER if on else Kit.ACCENT_DEEP, Color.WHITE, 46)
+	rb.name = "Title"
+	rb.set_meta("text", title)
+	col.add_child(rb)
+	var sub := Kit.label("Every hero now shows her nude art wherever it is installed." if on
+		else "Every hero is back in her normal art.", 26, Color.WHITE, "bold", 6)
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	sub.custom_minimum_size.x = 600
+	col.add_child(sub)
+	host.add_child(n)
+	n.modulate.a = 0.0
+	col.pivot_offset = col.get_combined_minimum_size() * 0.5
+	col.scale = Vector2(0.8, 0.8)
+	var tw := n.create_tween()
+	tw.tween_property(n, "modulate:a", 1.0, 0.15)
+	tw.parallel().tween_property(col, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(1.6)
+	tw.tween_property(n, "modulate:a", 0.0, 0.4)
+	tw.tween_callback(n.queue_free)
+	UI.sfx("reward" if on else "tap")
+	UI.haptic(40)
 
 
 func _speed_row() -> Control:

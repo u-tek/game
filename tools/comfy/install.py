@@ -87,8 +87,12 @@ def dest_dir(target):
 
 
 def rig_id(target):
-    """The id tools/art_warp builds: <id> or <id>@<art>."""
-    return target["hero"] + ("@" + target["art"] if target["art"] else "")
+    """The id tools/art_warp builds: <id> or <id>@<art>; the nude set adds @adult to the skin
+    (<id>@<art>@adult) or to an empty art for the base look (<id>@@adult)."""
+    rid = target["hero"] + ("@" + target["art"] if target["art"] else "")
+    if target.get("adult"):
+        rid += ("@adult" if target["art"] else "@@adult")
+    return rid
 
 
 def _cli(target):

@@ -1,27 +1,37 @@
 {
-  "_doc": "HaloRig warp rig source for imra, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s204602, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "_doc": "HaloRig warp rig source for imra, drawn by hand on the Amanatsu v5 art (s204602) by tools/art_rigs_v5.py (2026-10-19): spine, springs for hair/wings/cloth/tail/bust, weapon and arm regions, eye/mouth overlays from variants.py. Coordinates are image pixels of imra.png (1024x2048, soles at the origin). Regions are listed in priority order: where masks overlap, the first one wins.",
   "image": "imra.png",
   "origin": [512, 1990],
-  "grid": [24, 48],
+  "grid": [28, 56],
   "texel_scale": 1.0,
-  "portrait": [458, 512, 494],
-  "look_px": [8, 5],
-  "meta": {"weapon": "staff", "fx_color": "#ff8a3d", "art": "comfy s204602 quick"},
+  "portrait": [458, 512, 549],
+  "look_px": [12, 7],
+  "meta": {"weapon": "staff", "fx_color": "#ff8a3d", "art": "comfy s204602 quick, hand rig v5"},
   "body_bone": "hips",
   "bones": [
-    {"name": "hips", "parent": "root", "pivot": [612, 1061]},
-    {"name": "torso", "parent": "hips", "pivot": [606, 937]},
-    {"name": "chest", "parent": "torso", "pivot": [399, 784]},
-    {"name": "neck", "parent": "chest", "pivot": [454, 646]},
+    {"name": "hips", "parent": "root", "pivot": [500, 990]},
+    {"name": "torso", "parent": "hips", "pivot": [470, 880]},
+    {"name": "chest", "parent": "torso", "pivot": [440, 730]},
+    {"name": "neck", "parent": "chest", "pivot": [460, 610]},
     {"name": "head", "parent": "neck", "pivot": [449, 608]},
     {"name": "face", "parent": "head", "pivot": [458, 502]},
-    {"name": "hair_front", "parent": "head", "pivot": [458, 391]}
+    {"name": "hair_front", "parent": "head", "pivot": [458, 391], "spring": "bangs"},
+    {"name": "hair_back", "parent": "head", "pivot": [600, 500], "spring": "hair;limit=14"},
+    {"name": "wing_l", "parent": "chest", "pivot": [610, 640], "spring": "wing"},
+    {"name": "wing_r", "parent": "chest", "pivot": [300, 800], "spring": "wing"},
+    {"name": "tail", "parent": "hips", "pivot": [650, 900], "spring": "tail;limit=6;g=0.5"},
+    {"name": "bust", "parent": "chest", "pivot": [420, 690], "spring": "bust"}
   ],
   "regions": [
     {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [458, 521], "radius": [95, 81], "feather": 14}},
-    {"name": "hair_front", "rule": {"type": "ellipse", "center": [458, 423], "radius": [113, 56], "feather": 12}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [458, 423], "radius": [113, 54], "feather": 12}},
+    {"name": "hair_back", "rule": {"type": "polygon", "points": [[600, 480], [700, 500], [690, 620], [620, 640], [580, 560]], "feather": 14}},
+    {"name": "wing_l", "rule": {"type": "polygon", "points": [[590, 620], [700, 600], [850, 700], [960, 780], [900, 800], [780, 780], [680, 820], [620, 800], [600, 700]], "feather": 14}},
+    {"name": "wing_r", "rule": {"type": "polygon", "points": [[200, 820], [260, 780], [310, 800], [300, 960], [200, 950]], "feather": 12}},
+    {"name": "tail", "rule": {"type": "union", "rules": [{"type": "polygon", "points": [[620, 880], [700, 860], [830, 950], [900, 1100], [880, 1250], [780, 1350], [700, 1360], [730, 1300], [820, 1220], [850, 1100], [780, 970], [680, 930]], "feather": 16}, {"type": "polygon", "points": [[130, 1220], [260, 1220], [260, 1320], [130, 1320]], "feather": 16}], "feather": 10}},
+    {"name": "bust", "rule": {"type": "ellipse", "center": [400, 750], "radius": [160, 85], "feather": 28}},
     {"name": "head", "rule": {"type": "ellipse", "center": [458, 484], "radius": [183, 176], "feather": 22}},
-    {"name": "chest", "rule": {"type": "polygon", "points": [[338, 636], [570, 636], [609, 724], [599, 917], [753, 947], [459, 947], [199, 917], [189, 724]], "feather": 40}}
+    {"name": "chest", "rule": {"type": "polygon", "points": [[330, 600], [600, 600], [620, 760], [560, 870], [330, 880], [260, 760]], "feather": 40}}
   ],
   "overlays": []
 }

@@ -6,8 +6,10 @@ class_name HeroArt
 ## Skins (data/skins.json, docs/dev/skins.md): every call takes an optional skin id; its art lives
 ## in assets/art/heroes/<id>/skins/<art>/ with the same layout. A skin whose art is not built
 ## falls back to the base look, and "" always means the base look. With `nudity` on (the
-## "nudity" setting, synced by Game), a skin that has adult art in skins/<art>/adult/ shows that
-## instead; without it the skin keeps its normal art.
+## "nudity" setting, synced by Game), every look shows its adult (nude) art where it is built:
+## a skin's in skins/<art>/adult/, the base look's in <id>/adult/ (files <id>.*). A look without
+## adult art keeps its normal art. Screens pass the player's equipped skin for her own heroes
+## (Game.equipped_skin, Kit.hero_look) and "" for enemies; art_key() names what a call shows.
 
 const FACTION_COLORS := {
 	"celestial": Color("f2c14e"),
@@ -17,7 +19,8 @@ const FACTION_COLORS := {
 const FALLBACK := "_silhouette"
 
 static var _tinted := {}
-## Show skins' adult (nude) art where it is installed. Game sets it from the "nudity" setting.
+## Show adult (nude) art where it is installed (skins and the base look). Game sets it from the
+## "nudity" setting.
 static var nudity := false
 
 
@@ -42,21 +45,35 @@ static func _skin_art(hero_id: String, skin_id: String) -> String:
 	return str(sd.art)
 
 
-## True if the skin has adult (nude) art built: assets/art/heroes/<id>/skins/<art>/adult/.
-static func has_adult_art(hero_id: String, skin_id: String) -> bool:
+## True if the look has adult (nude) art built: skins/<art>/adult/ for a skin, <id>/adult/ for the
+## base look (skin_id ""). An unknown skin or another hero's never resolves.
+static func has_adult_art(hero_id: String, skin_id: String = "") -> bool:
+	if skin_id == "":
+		return RigData.exists(hero_id, RigData.adult_art())
 	var art := _skin_art(hero_id, skin_id)
-	return art != "" and RigData.exists(hero_id, art + "/adult")
+	return art != "" and RigData.exists(hero_id, RigData.adult_art(art))
 
 
-## The built art to use: the skin's adult art when nudity is on and it exists, else the skin's
-## art if its rig exists, else "" (base look).
+## The built art to use (a RigData art string): the skin's adult art when nudity is on and it
+## exists, else the skin's art if its rig exists; otherwise the base look: its adult art
+## ("/adult") when nudity is on and it exists, else "" (the base art or the silhouette).
 static func _built_art(hero_id: String, skin_id: String) -> String:
 	var art := _skin_art(hero_id, skin_id)
-	if art == "":
-		return ""
-	if nudity and RigData.exists(hero_id, art + "/adult"):
-		return art + "/adult"
-	return art if RigData.exists(hero_id, art) else ""
+	if art != "":
+		if nudity and RigData.exists(hero_id, RigData.adult_art(art)):
+			return RigData.adult_art(art)
+		if RigData.exists(hero_id, art):
+			return art
+	if nudity and RigData.exists(hero_id, RigData.adult_art()):
+		return RigData.adult_art()
+	return ""
+
+
+## What texture/portrait/make_sprite show for this hero and skin right now, as "<id>@<art>"
+## (art as in RigData.art_dir). It changes when the skin or the nudity setting changes what is
+## shown, so caches (Kit.art_crop) and screens key on it.
+static func art_key(hero_id: String, skin_id: String = "") -> String:
+	return hero_id + "@" + _built_art(hero_id, skin_id)
 
 
 ## Full-body still (the painted image for warp rigs: ~1024x2048, feet near the bottom).

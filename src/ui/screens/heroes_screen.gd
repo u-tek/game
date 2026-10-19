@@ -223,6 +223,8 @@ func _refresh(reset_scroll: bool = false) -> void:
 
 
 func _set_scroll(y: int) -> void:
+	if not is_inside_tree():
+		return          # left the screen in the same frame as a refresh
 	await get_tree().process_frame
 	if is_instance_valid(_scroll):
 		_scroll.scroll_vertical = y

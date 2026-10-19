@@ -85,7 +85,7 @@ func _build(s: float, show_name: bool) -> void:
 	clip.size = Vector2(s, s)
 	face.add_child(clip)
 
-	var p: Control = HeroArt.make_portrait(hero_id, s)
+	var p: Control = HeroArt.make_portrait(hero_id, s, Kit.hero_look(hero_id, opts))
 	_ignore_mouse(p)
 	p.position = Vector2(0, s * 0.02)
 	p.size = Vector2(s, s)

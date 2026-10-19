@@ -103,7 +103,7 @@ func _build(w: float, h: float) -> void:
 	var art := TextureRect.new()
 	art.name = "Art"
 	art.mouse_filter = MOUSE_FILTER_IGNORE
-	art.texture = Kit.art_crop(hero_id, w / (h * 0.94), 1.3)
+	art.texture = Kit.art_crop(hero_id, w / (h * 0.94), 1.3, Kit.hero_look(hero_id, opts))
 	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS

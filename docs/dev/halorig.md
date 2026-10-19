@@ -307,6 +307,21 @@ RGBA with mipmaps ≈ 11 MB (`texel_scale: 0.75` in the warp source ≈ 6 MB).
 | `masks/<region>.png` | generated or painted | grayscale weight masks (build input, not shipped) |
 | `<id>.warp.json`, `overlays/*.png`, `<id>_portrait.png` | `tools/art_warp` | runtime data |
 
+Skins and nude art use the same layout in a subfolder. The files keep the name of the art they
+belong to, and each folder has one rig id for the tools and one art string for the game
+(`RigData.load_rig(hero, art)`, `RigData.art_dir`):
+
+| Look | Folder | Files | Rig id (`tools/art_warp`, `art_quick_rig.py`) | RigData art |
+|---|---|---|---|---|
+| base | `<id>/` | `<id>.*` | `<id>` | `""` |
+| skin | `<id>/skins/<art>/` | `<art>.*` | `<id>@<art>` | `"<art>"` |
+| skin, nude | `<id>/skins/<art>/adult/` | `<art>.*` | `<id>@<art>@adult` | `"<art>/adult"` |
+| base, nude | `<id>/adult/` | `<id>.*` | `<id>@@adult` | `"/adult"` (`RigData.adult_art()`) |
+
+With the nudity setting on, `HeroArt` shows a look's nude folder when its rig is built and the
+normal one otherwise (`docs/dev/skins.md`, Adult set). `tools/art_warp` with no id builds every
+folder that has a `warp_src.json`, nude ones included.
+
 ### 8.2 `<id>.warp_src.json`
 ```jsonc
 {"image": "<id>.png", "origin": [512, 1990], "grid": [24, 48], "texel_scale": 1.0,

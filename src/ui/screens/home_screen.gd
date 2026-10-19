@@ -38,8 +38,8 @@ var _shade: TextureRect
 var _anchor: Node2D
 var _sprite: Node2D
 var _hero_id := ""
-## The skin the Lobby sprite wears ("" = base look); a change rebuilds the sprite.
-var _hero_skin := ""
+## What the Lobby sprite shows (HeroArt.art_key: hero, skin, nude or not); a change rebuilds it.
+var _hero_key := ""
 var _hero_hit: Button
 var _ui: Control
 var _banner_slot: Control
@@ -364,10 +364,11 @@ func _refresh_hero() -> void:
 	_prev_btn.visible = many
 	_next_btn.visible = many
 	var skin := Game.equipped_skin(id) if id != "" else ""
-	if id == _hero_id and skin == _hero_skin:
+	var key := HeroArt.art_key(id, skin) if id != "" else ""
+	if id == _hero_id and key == _hero_key:
 		return
 	_hero_id = id
-	_hero_skin = skin
+	_hero_key = key
 	if _sprite and is_instance_valid(_sprite):
 		_sprite.queue_free()
 	_sprite = null
@@ -505,6 +506,7 @@ func _make_banner(page: int) -> Button:
 			var boss := _boss_of(Game.stage(first + count - 1))
 			if boss != "":
 				opts["hero_id"] = boss
+				opts["skin"] = ""        # an enemy: the base look
 			cb = _on_campaign
 	var b := Kit.banner_card(title, sub, cb, opts)
 	b.name = "Banner"

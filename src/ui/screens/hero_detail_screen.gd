@@ -46,8 +46,10 @@ var _stage: Control
 var _stripes: Control
 var _anchor: Node2D
 var _sprite: Node2D
-## The skin the sprite was built with ("" = base look); a change rebuilds the sprite.
+## The skin the sprite was built with ("" = base look) and what it shows (HeroArt.art_key, which
+## also follows the nudity setting); a change rebuilds the sprite.
 var _sprite_skin := ""
+var _sprite_key := ""
 var _preview := ""        # a skin tried on from the Skins tab (not saved); "" = the equipped look
 var _poke: Control
 var _caption: Control
@@ -194,6 +196,7 @@ func _build() -> void:
 	_anchor.name = "HeroAnchor"
 	_stage.add_child(_anchor)
 	_sprite_skin = _shown_skin()
+	_sprite_key = HeroArt.art_key(_id, _sprite_skin)
 	_sprite = HeroArt.make_sprite(_id, _sprite_skin)
 	_anchor.add_child(_sprite)
 	if not _owned:
@@ -634,7 +637,7 @@ func _refresh() -> void:
 	if not is_inside_tree() or _stage == null:
 		return
 	_owned = Game.owns(_id)
-	if _shown_skin() != _sprite_skin:
+	if HeroArt.art_key(_id, _shown_skin()) != _sprite_key:
 		_rebuild_sprite()
 	var h := Game.hero(_id)
 	var stars := int(h.get("stars", Kit.RARITY_STARS.get(str(_def.rarity), 1)))
@@ -1031,6 +1034,7 @@ func _rebuild_sprite() -> void:
 		_anchor.remove_child(_sprite)
 		_sprite.queue_free()
 	_sprite_skin = _shown_skin()
+	_sprite_key = HeroArt.art_key(_id, _sprite_skin)
 	_sprite = HeroArt.make_sprite(_id, _sprite_skin)
 	_anchor.add_child(_sprite)
 	if not _owned:

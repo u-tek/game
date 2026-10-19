@@ -47,7 +47,7 @@ var _top_margin: MarginContainer
 var _top_row: HBoxContainer
 var _avatar: Button
 var _avatar_art: TextureRect
-var _leader_id := "-"
+var _leader_key := "-"     ## HeroArt.art_key of the avatar art shown
 var _power_chip: PanelContainer
 var _power_label: Label
 var _power_value := -1
@@ -371,10 +371,13 @@ func _refresh_avatar() -> void:
 		var owned: Variant = Game.owned_heroes()
 		if owned is Array and not (owned as Array).is_empty():
 			lead = str(((owned as Array)[0] as Dictionary).get("id", ""))
-	if lead == _leader_id:
+	# Keyed by what the art shows, so a new skin or the nudity toggle redraws it at once.
+	var skin := Kit.hero_look(lead) if lead != "" else ""
+	var key := HeroArt.art_key(lead, skin) if lead != "" else ""
+	if key == _leader_key:
 		return
-	_leader_id = lead
-	_avatar_art.texture = Kit.art_crop(lead, 1.0, 1.7) if lead != "" else null
+	_leader_key = key
+	_avatar_art.texture = Kit.art_crop(lead, 1.0, 1.7, skin) if lead != "" else null
 
 
 func _refresh_dots() -> void:

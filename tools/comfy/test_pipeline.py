@@ -1474,6 +1474,7 @@ class TestSkinDryRunEndToEnd(unittest.TestCase):
 
     def test_3_rig_ids(self):
         import importlib.util
+        import install
         spec = importlib.util.spec_from_file_location("art_warp_build", os.path.join(ROOT, "tools", "art_warp_build.py"))
         awb = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(awb)
@@ -1481,6 +1482,22 @@ class TestSkinDryRunEndToEnd(unittest.TestCase):
         self.assertEqual((name, hero_id), (self.art, self.hero))
         self.assertEqual(os.path.normpath(d), os.path.join(awb.HEROES, self.hero, "skins", self.art))
         self.assertEqual(awb.rig_dir(self.hero), (os.path.join(awb.HEROES, self.hero), self.hero, self.hero))
+        # nude art: the skin's in skins/<art>/adult/ (files <art>.*), the base look's in <id>/adult/ (files <id>.*)
+        d, name, hero_id = awb.rig_dir("%s@%s@adult" % (self.hero, self.art))
+        self.assertEqual((os.path.normpath(d), name, hero_id),
+                         (os.path.join(awb.HEROES, self.hero, "skins", self.art, "adult"), self.art, self.hero))
+        d, name, hero_id = awb.rig_dir("%s@@adult" % self.hero)
+        self.assertEqual((os.path.normpath(d), name, hero_id),
+                         (os.path.join(awb.HEROES, self.hero, "adult"), self.hero, self.hero))
+        self.assertEqual(install.rig_id(dict(self.t, adult=True)), "%s@%s@adult" % (self.hero, self.art))
+        self.assertEqual(install.rig_id({"hero": self.hero, "art": "", "adult": True}), "%s@@adult" % self.hero)
+        self.assertEqual(install.rig_id({"hero": self.hero, "art": ""}), self.hero)
+        qr = importlib.util.spec_from_file_location("art_quick_rig", os.path.join(ROOT, "tools", "art_quick_rig.py"))
+        aqr = importlib.util.module_from_spec(qr)
+        qr.loader.exec_module(aqr)
+        hero, art, d, img, out = aqr.paths("%s@@adult" % self.hero)
+        self.assertEqual((hero, art, os.path.normpath(d)), (self.hero, "", os.path.join(aqr.HEROES, self.hero, "adult")))
+        self.assertEqual(os.path.basename(img), self.hero + ".png")
 
 
 if __name__ == "__main__":

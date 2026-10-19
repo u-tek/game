@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Render one screen to a PNG in a phone-shaped window (needs main.gd --shoot support).
 #   tools/shoot <screen> [--res 720x1560] [--out path.png] [any extra game args...]
-# Extra game args: --fresh | --rich, --safe-area-sim, --shoot-params='{"hero_id":"seraphiel"}',
+# Extra game args: --fresh | --rich (+ --skins: owned heroes wear a skin, --nudity), --safe-area-sim,
+#   --shoot-params='{"hero_id":"seraphiel"}',
 #   --shoot-wait=2.0
 # Prints the PNG path and any script errors. View the PNG with the Read tool.
 cd "$(dirname "$0")/.." || exit 1

@@ -20,17 +20,19 @@ func _init() -> void:
 	for e in RigAnim.EASE_NAMES.values():
 		_ok(absf(RigAnim.ease_value(e, 0.0)) < 0.001, "ease %d starts at 0" % e)
 		_ok(absf(RigAnim.ease_value(e, 1.0) - 1.0) < 0.001, "ease %d ends at 1" % e)
-	var heroes: Array = []   # [hero id, skin art folder ("" = the base look)]
+	var heroes: Array = []   # [hero id, RigData art ("" = the base look, "/adult" its nude art)]
 	for d in DirAccess.get_directories_at("res://assets/art/heroes/"):
 		if RigData.exists(d):
 			heroes.append([d, ""])
+		if RigData.exists(d, RigData.adult_art()):
+			heroes.append([d, RigData.adult_art()])
 		var sk := "res://assets/art/heroes/%s/skins/" % d
 		if DirAccess.dir_exists_absolute(sk):
 			for art in DirAccess.get_directories_at(sk):
 				if RigData.exists(d, art):
 					heroes.append([d, art])
-				if RigData.exists(d, art + "/adult"):
-					heroes.append([d, art + "/adult"])
+				if RigData.exists(d, RigData.adult_art(art)):
+					heroes.append([d, RigData.adult_art(art)])
 	_ok(heroes.size() > 0, "at least one built rig")
 	var anims: Array[String] = []
 	for dir in ["res://assets/art/anim/", "res://assets/art/anim/warp/"]:
@@ -39,7 +41,7 @@ func _init() -> void:
 				anims.append(f.trim_suffix(".anim.json"))
 	for pair in heroes:
 		var hero_id: String = pair[0]
-		var h: String = hero_id if pair[1] == "" else "%s@%s" % pair    # label in messages
+		var h: String = hero_id if pair[1] == "" else hero_id + "@" + str(pair[1]).replace("/", "@")    # the tools' rig id
 		var r := RigData.load_rig(hero_id, pair[1])
 		_ok(r != null, "%s loads" % h)
 		if r == null:
@@ -114,5 +116,31 @@ func _init() -> void:
 			_ok(spr.play_attack(Vector2(500, 0)) != "", "%s attack" % sid)
 			spr.rig.advance(0.5)
 		spr.free()
+	# nudity mode: every roster hero (her base look's adult art in <id>/adult/ or the normal base art)
+	# and every installed skin (its adult art or its normal art) still resolves through the API
+	HeroArt.nudity = true
+	for id in HeroData.ids():
+		var tex := HeroArt.texture(id)
+		_ok(tex != null and tex.get_width() > 0, "nudity: HeroArt.texture(%s)" % id)
+		_ok(tex != null and Rect2(Vector2.ZERO, tex.get_size()).encloses(HeroArt.portrait_region(id).grow(-1.0)),
+			"nudity: portrait_region(%s) inside the still" % id)
+		var por := HeroArt.make_portrait(id, 96)
+		_ok(por is TextureRect and (por as TextureRect).texture != null, "nudity: make_portrait(%s)" % id)
+		por.free()
+		var spr := HeroArt.make_sprite(id) as HeroSprite
+		_ok(spr != null and spr.rig != null and spr.rig.rig != null, "nudity: make_sprite(%s)" % id)
+		if spr:
+			spr.free()
+	for s in SkinData.all():
+		var hid := str(s["hero"])
+		var sid := str(s["id"])
+		if not HeroArt.has_adult_art(hid, sid):
+			continue
+		_ok(HeroArt.texture(hid, sid) != null, "nudity: texture(%s, %s)" % [hid, sid])
+		var spr := HeroArt.make_sprite(hid, sid) as HeroSprite
+		_ok(spr != null and spr.rig != null and spr.rig.rig != null, "nudity: make_sprite(%s, %s)" % [hid, sid])
+		if spr:
+			spr.free()
+	HeroArt.nudity = false
 	print("art_selftest: %d checks, %d failures (%d rigs, %d animations)" % [checks, fails, heroes.size(), anims.size()])
 	quit(1 if fails > 0 else 0)

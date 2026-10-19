@@ -74,6 +74,8 @@ func _ready() -> void:
 			make_rich_state()
 		else:
 			new_game()
+		if args.has("--skins"):       # screenshots/testing: every owned hero wears her first installed skin
+			_dress_owned_heroes()
 		if args.has("--nudity"):      # screenshots/testing: the throwaway save with nudity on
 			set_setting("nudity", true)
 		save()
@@ -638,6 +640,20 @@ func equip_skin(hero_id: String, skin_id: String) -> Dictionary:
 	var r := model.equip_skin(hero_id, skin_id)
 	_flush()
 	return r
+
+
+## Throwaway saves only (--skins): give every owned hero her first installed skin and equip it.
+func _dress_owned_heroes() -> void:
+	for h in owned_heroes():
+		var hid := str(h.id)
+		for s in skins_for(hid):
+			if bool(s.installed):
+				if not owns_skin(str(s.id)):
+					(state.skins.owned as Array).append(str(s.id))
+				model.equip_skin(hid, str(s.id))
+				break
+	model.changed_now = true
+	_flush()
 
 
 # ---------------------------------------------------------------- settings & dev

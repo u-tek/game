@@ -29,6 +29,7 @@ func _run() -> void:
 	_game = root.get_node("Game")
 	_ui = root.get_node("UI")
 	await _heroes()
+	await _skins()
 	await _detail()
 	await _real_input()
 	await _formation()
@@ -125,6 +126,59 @@ func _heroes() -> void:
 	await _frames(4)
 	_check(_ui.current_name == "hero_detail", "tap a card opens hero_detail")
 	_check(str(_ui.current_params.get("hero_id", "")) == browse[0], "detail opened for the tapped hero")
+
+
+# ------------------------------------------------------------------ skins on cards
+
+## The art on a hero's roster card (Heroes screen), or null.
+func _card_atlas(s: Node, id: String) -> Texture2D:
+	var card := s.find_child("PortraitCard_" + id, true, false)
+	var art := card.find_child("Art", true, false) as TextureRect if card else null
+	var at := art.texture as AtlasTexture if art else null
+	return at.atlas if at else null
+
+
+## A skin the player equips shows on her Heroes card, the top-bar avatar and the Lobby at once,
+## and the nudity setting swaps the art right away (the owner's report, 2026-10-19).
+func _skins() -> void:
+	var id := "kessa"
+	var sid := ""
+	for sk: Dictionary in _game.skins_for(id):
+		if bool(sk.installed):
+			sid = str(sk.id)
+			break
+	_check(sid != "", "kessa has an installed skin")
+	if sid == "":
+		return
+	_game.dev_add("gems", 10000)
+	_check(bool(_game.buy_skin(sid).ok), "buy a skin")
+	var s := await _go("heroes")
+	_check(_card_atlas(s, id) == HeroArt.texture(id), "the Heroes card shows the base look before")
+	_check(bool(_game.equip_skin(id, sid).ok), "equip the skin")
+	await _frames(2)
+	_check(_card_atlas(s, id) == HeroArt.texture(id, sid) and HeroArt.texture(id, sid) != HeroArt.texture(id),
+		"the Heroes card shows the new skin at once")
+	var lead := ""
+	for f: Variant in _game.formation():
+		if str(f) != "" and lead == "":
+			lead = str(f)
+	var av: TextureRect = _ui.root.get("_avatar_art")
+	_check(av != null and av.texture == Kit.art_crop(lead, 1.0, 1.7, _game.equipped_skin(lead)), "the top-bar avatar wears the lead's skin")
+	var tame := HeroArt.texture(id, sid)
+	_game.set_setting("nudity", true)
+	await _frames(2)
+	_check(_card_atlas(s, id) == HeroArt.texture(id, sid), "nudity on: the card follows at once")
+	if HeroArt.has_adult_art(id, sid):
+		_check(HeroArt.texture(id, sid) != tame, "nudity on: the skin's adult art")
+	_check(av.texture == Kit.art_crop(lead, 1.0, 1.7, _game.equipped_skin(lead)), "nudity on: the avatar follows")
+	_game.set_setting("lobby_hero", id)
+	var h := await _go("home")
+	_check(str(h.get("_hero_id")) == id and str(h.get("_hero_key")) == HeroArt.art_key(id, sid), "the Lobby hero wears her skin (nude)")
+	_game.set_setting("nudity", false)
+	await _frames(2)
+	_check(str(h.get("_hero_key")) == HeroArt.art_key(id, sid) and HeroArt.texture(id, sid) == tame, "nudity off: the Lobby hero is dressed again")
+	_game.equip_skin(id, "")
+	_game.set_setting("lobby_hero", "")
 
 
 # ------------------------------------------------------------------ hero detail
@@ -471,6 +525,26 @@ func _settings() -> void:
 	if b4:
 		b4.pressed.emit()
 	_check(int(_game.state.dev_time_offset) == off0 + 8 * 3600000, "skip 8 hours")
+	# Nudity: 18+ confirm first, then an obvious notice both ways and the row's state line.
+	var nt := s.find_child("Toggle_nudity", true, false) as CheckButton
+	_check(nt != null, "nudity toggle")
+	if nt:
+		nt.button_pressed = true
+		await _frames(1)
+		_check(_game.setting("nudity") == false, "nudity waits for the 18+ confirm")
+		_check(_press_in_modal("I'm 18+"), "nudity asks 18+ first")
+		await _frames(2)
+		_check(_game.setting("nudity") == true and HeroArt.nudity, "nudity on")
+		var notice: Node = _ui.root.get_node_or_null("NudityNotice")
+		_check(notice != null and bool(notice.get_meta("on", false)), "big notice: NUDITY MODE ENABLED")
+		var st := s.find_child("NudityState", true, false) as Label
+		_check(st != null and st.text.begins_with("NUDITY MODE ON"), "the row says nudity mode is on")
+		nt.button_pressed = false
+		await _frames(2)
+		_check(_game.setting("nudity") == false and not HeroArt.nudity, "nudity off")
+		notice = _ui.root.get_node_or_null("NudityNotice")
+		_check(notice != null and not bool(notice.get_meta("on", true)), "big notice: NUDITY MODE DISABLED")
+		_check(st != null and st.text.begins_with("NUDITY MODE OFF"), "the row says nudity mode is off")
 	for c in s.find_children("*", "CheckButton", true, false):
 		(c as CheckButton).button_pressed = not (c as CheckButton).button_pressed
 	await _frames(1)
