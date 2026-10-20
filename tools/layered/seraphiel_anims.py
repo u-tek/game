@@ -15,7 +15,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, "..", ".."))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
-from art_anims import Anim  # noqa: E402
+from art_anims import Anim, keys  # noqa: E402
 
 OUT = os.path.join(ROOT, "assets", "art", "heroes", "seraphiel", "skins", "rigproto2", "anim")
 # EO was expo_out: it dumps ~80% of a 4-frame move into its first frame (a pop); strikes use cubic_out
@@ -48,16 +48,26 @@ class A(Anim):
 
     def fx(self, name, *pts, e=S):
         return super().fx(name, *_arrive(pts, 2), e=e)
+
+    def bend(self, bone, *pts, e=S):
+        self.d["bones"].setdefault(bone, {})["bend"] = keys("bend", _arrive(pts, 2), e)
+        return self
 WINGS_R = ["wing_r1", "wing_r2", "wing_r3"]      # viewer's left, top to bottom
 WINGS_L = ["wing_l1", "wing_l2", "wing_l3"]
 
 
-def wings(a, keys, stagger=0.035, falloff=0.75):
-    """keys [(t, lift deg, ease)]: every wing lifts by `lift` (scaled down the stack), top wings first."""
+def wings(a, keys, stagger=0.035, falloff=0.75, curl=0.006):
+    """keys [(t, lift deg, ease)]: every wing lifts by `lift` (scaled down the stack), top wings first,
+    and curls with it (bend, radians at the tip per degree of lift, a beat later): the feathers fan and
+    bend instead of the wing turning as a rigid card."""
     for k, (wr, wl) in enumerate(zip(WINGS_R, WINGS_L)):
         f = falloff ** k
         a.rot(wr, *[(t + k * stagger, v * f, e) for t, v, e in keys])
         a.rot(wl, *[(t + k * stagger + 0.02, -v * f, e) for t, v, e in keys])
+        if curl:
+            lag = 0.05
+            a.bend(wr, *[(t + k * stagger + lag, v * f * curl, e) for t, v, e in keys])
+            a.bend(wl, *[(t + k * stagger + 0.02 + lag, -v * f * curl, e) for t, v, e in keys])
 
 
 def attack():
@@ -89,7 +99,8 @@ def attack():
     wings(a, [(0.0, 0, S), (0.16, -6, CO), (0.29, 12, EO), (0.4, 15, BO), (0.75, 8, S), (1.0, 0, S)])
     a.eyes((0.0, "open"), (0.14, "closed"), (0.31, "open"))
     a.att("mouth", (0.0, "default"), (0.26, "small"), (0.29, "wide"), (0.55, "open"), (0.66, "default"))
-    a.fx("glow", (0.0, 0), (0.28, 0, S), (0.32, 0.7, EO), (0.6, 0, S))
+    # the mic is beside her face now: a small, quick glow (a big one washes her face out)
+    a.fx("glow", (0.0, 0), (0.28, 0, S), (0.32, 0.28, CO), (0.5, 0, S))
     a.ev(0.05, "charge").ev(0.3, "release").ev(0.3, "vfx_bolt").ev(0.38, "hit")
     a.ev(0.17, "jiggle:0,140").ev(0.3, "jiggle:-40,-330").ev(0.84, "jiggle:0,90")
     return a
