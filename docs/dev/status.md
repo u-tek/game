@@ -185,6 +185,30 @@ this file says where things stand. Older logs are under "History" at the bottom.
     - **Owner, same day: drop `mature female`** ("it makes all the characters look like 30-40+"). It
       is gone from the content rules and all 40 subject lines; `adult` and every childlike negative
       stay required.
+  - **Layered rig prototype: Seraphiel (2026-10-20, owner: "do the rig in the main session"; "do Seraphiel").**
+    - **Art:** re-rendered on MOSS with `run_hero.py --pose rig` (the bible's `rig` block: front view, limbs
+      and props clear, eyes open). The owner picked seed 101953 of 4. It was finalized, then blink, talk and
+      smile frames were made; the blink needed `--denoise 0.85`.
+    - **Layers:** See-through (SIGGRAPH 2026; the owner approved the download) split her into 23 layers
+      with hidden parts painted in, in 15 min on the 3070.
+      - It is installed at `D:/AI/see-through` in its own Python 3.12 environment, with `HF_HOME` set to
+        `D:/AI/see-through/hf_home`.
+      - Run `inference_psd_blockswap.py --resolution 1280` after freeing ComfyUI's VRAM (`POST /free`).
+    - **Rig:** `art_src/_review/rigproto/` (git-excluded) holds the scripts.
+      - `st_to_canvas.py` places the layers on the canvas: 98% overlap with the final.
+      - `make_rig.py` builds 9 rig layers (the painting's own pixels wherever a layer shows; the halo and
+        head wings come from the painting) and 32 bones (wings split by angle).
+      - `art_warp_build.py seraphiel@rigproto` builds it: 9.9k vertices.
+      - The rig is in `assets/art/heroes/seraphiel/skins/rigproto/`, local only (in `.git/info/exclude`).
+    - **Video:** `seraphiel_rig_prototype.mp4` (idle, blink, talk, cast, generic attack, smile), sent to
+      the owner.
+    - **Known issues:**
+      - The generic attack swings the mic stand from its base; she needs her own attack.
+      - Thin dark fringes on some feather tips.
+      - A small gap between hair and a head wing mid-cast.
+      - The cutout's hole step cut her pale latex; it was re-cut without it, and the MOSS grey is now a
+        mid grey.
+    - **Disk:** C: and D: are both nearly full. See-through takes 26 GB on D:.
   - **Combat:** after a wall at stage 2-6 with five maxed heroes the owner said "don't bother i want to
     redo the whole combat system anyway ... it's going to be super intricate don't build it now".
     The balance report agrees the wall is real (2-6 needs a typical team near level 64; the economy

@@ -201,6 +201,17 @@ func _job(j: Dictionary) -> void:
 	await process_frame
 
 
+## The job's sprite. "art": a skin art folder (assets/art/heroes/<hero>/skins/<art>/), e.g. a local
+## prototype that is not in data/skins.json; "skin": a catalogue skin id; neither: the base look.
+func _make(j: Dictionary) -> HeroSprite:
+	var hero := str(j.get("hero", "seraphiel"))
+	if j.has("art"):
+		var s := HeroSprite.new()
+		s.setup(hero, str(j["art"]))
+		return s
+	return HeroArt.make_sprite(hero, str(j.get("skin", ""))) as HeroSprite
+
+
 func _step(s: HeroSprite, dt: float) -> void:
 	s.rig.advance(dt)
 	s._process(dt)

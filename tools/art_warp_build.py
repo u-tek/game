@@ -96,6 +96,8 @@ def rule_mask(rule, img):
       {"type": "alpha", "within": <rule>}         opaque pixels of the image inside <rule>
       {"type": "union"|"subtract", "rules": [...]} (subtract: first minus the rest)
       {"type": "sam", "points", "neg", "box", "pick", "clip"}   Segment Anything (tools/art_parts.py)
+      {"type": "mask", "image": "<file>", "threshold": 128, "within": <rule>}  a mask image (alpha or L)
+                                                  in the art's pixels, relative to the rig folder
     Common keys: "grow": px dilation, "feather": px blur radius."""
     size = img.size
     t = rule.get("type", "polygon")
@@ -126,6 +128,18 @@ def rule_mask(rule, img):
                 hok = (h >= lo[0]) | (h <= hi[0])
             sel &= hok & (hsv[..., 1] >= lo[1]) & (hsv[..., 1] <= hi[1]) & (hsv[..., 2] >= lo[2]) & (hsv[..., 2] <= hi[2])
         m = Image.fromarray(((sel & (np.array(within) > 127)) * 255).astype(np.uint8), "L")
+    elif t == "mask":
+        # a mask image in the art's pixels, relative to the rig folder (e.g. a See-through layer's alpha
+        # placed on the canvas): white or opaque = the part
+        path = os.path.join(_MASK_CTX["dir"], rule["image"])
+        src = Image.open(path)
+        src = src.split()[3] if src.mode == "RGBA" else src.convert("L")
+        if src.size != size:
+            raise ValueError("mask %s is %dx%d, the art is %dx%d" % (rule["image"], src.size[0], src.size[1], *size))
+        cut = int(rule.get("threshold", 128))
+        m = src.point(lambda v: 255 if v >= cut else 0)
+        if "within" in rule:
+            m = ImageChops.multiply(m, rule_mask(rule["within"], img))
     elif t == "union":
         m = Image.new("L", size, 0)
         for r in rule["rules"]:
