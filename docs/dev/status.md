@@ -249,8 +249,9 @@ this file says where things stand. Older logs are under "History" at the bottom.
         stand with her hand on her hip. `HeroSprite` plays one every 9-16 s from the rig's
         `meta.idle_gestures`.
       - 58 bones, 17 layers.
-      - **Videos sent:** `seraphiel_rig_v3*.mp4`, `seraphiel_rig_v4*.mp4` and `seraphiel_lobby_idle.mp4`, all
-        in `art_src/_review/rigproto/`.
+      - **Videos sent:** `seraphiel_rig_v3*.mp4`, `seraphiel_rig_v4*.mp4`, `seraphiel_lobby_idle.mp4`, then after
+        the review `seraphiel_rig_v5*.mp4` and `seraphiel_lobby_idle_v5.mp4`, all in
+        `art_src/_review/rigproto/`. Frame folders for the older videos were deleted to save disk.
       - **Scripts:** now in `tools/layered/`: the README has the per-hero steps, plus `seraphiel_rig.py`,
         `seraphiel_anims.py`, `sam_cut.py`, `fill_hidden.py`, `st_to_canvas.py` and
         `run_preview.sh`. The work files stay in `art_src/_review/rigproto/seraphiel/`.
