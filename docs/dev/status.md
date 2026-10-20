@@ -144,6 +144,27 @@ this file says where things stand. Older logs are under "History" at the bottom.
         that made it.
       - Prompts are each hero's own description at mid-twenties, plus her eye tags when the description
         leaves them out (32 of 40 do).
+    - **Style "variant A" is the default (owner, 2026-10-21).**
+      - **What the owner said:** they felt the MOSS renders lacked the last (Amanatsu) batch's cinematic
+        feel. They were shown a heavy-lighting version (warm key, cool rim, deep shadows; three variants
+        written by agents) and answered "not revealing enough. and the one on the left is better. no abs".
+      - **Variant A:** the plain style block plus:
+        - "Her outfit is as skimpy and revealing as possible, showing lots of bare skin: a bare midriff,
+          bare shoulders and arms, bare thighs and deep cleavage. Her body is soft and feminine, with a
+          smooth soft stomach and no visible abs or muscle definition.";
+        - a grey backdrop sentence ("Plain neutral medium-grey backdrop with nothing else in it, no
+          scenery.");
+        - negatives `abs, six-pack, muscular, muscle definition, toned stomach, covered legs, long pants`.
+      - **Hero descriptions:** "defined abs" and "muscular" are gone (Argentiel, Cirella, Halcia, Brakka,
+        Kindra, Ferrael), and `abs` is out of 9 body tag lists. Halcia's jumpsuit is spelled out as tied
+        at her hips with her stomach and legs bare (MOSS had drawn the full suit).
+      - **Batch:** 8 heroes at 25 steps (Liora, Uriela, Avienne, Mordessa, Imra, Carmesa, Ashra, Vandra),
+        plus Halcia, Noctaire and Sigilla. The owner said "these are all gold. this is perfect".
+      - **Where it is:** the images and the test harness (`cine_test.py`, `cine_variants.json`) are in
+        `art_src/_review/moss/`. The default pipeline now builds exactly these prompts (checked for all
+        11).
+      - The muscle-built heroes (Brakka, Kindra, Rivette, Benthe) will come out softer under this style
+        sentence; their tag lists, used only by the Amanatsu fallback, still say "muscular female".
       - Candidates are base-only (about 2.5 min). Finalize adds hires 1.5x, the face pass and a plain
         2x upscale.
       - No ControlNet or IP-Adapter on MOSS.
