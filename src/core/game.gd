@@ -23,8 +23,8 @@ extends Node
 ## Emitted after any state change (UI refreshes on this).
 signal changed
 ## Emitted for one-shot feedback the UI may toast, e.g. {"type": "quest_ready", "id": ...}
-## Types: level_up {hero_id, level}, star_up {hero_id, stars, passive?}, quest_ready {id, title},
-## idle_full {}, new_hero {hero_id, rarity}, monthly_card {gems}.
+## Types: level_up {hero_id, level}, star_up {hero_id, stars, passive?}, awaken {hero_id, awaken,
+## unlock}, quest_ready {id, title}, idle_full {}, new_hero {hero_id, rarity}, monthly_card {gems}.
 signal notify(event: Dictionary)
 
 const SAVE_VERSION := GameModel.SAVE_VERSION
@@ -80,6 +80,15 @@ func _ready() -> void:
 			set_setting("nudity", true)
 		if args.has("--rival-tag"):   # screenshots/testing: Rue won the last fight (her tag on the Lobby)
 			dev_rival_tag(true)
+		for a in args:
+			# screenshots/testing: --awaken=seraphiel:3,noctaire:1 sets Legendaries to max stars at
+			# those awakening tiers (tier 0: ready to awaken, shards and dust for the next one).
+			if a.begins_with("--awaken="):
+				for part in a.substr("--awaken=".length()).split(",", false):
+					var kv := part.split(":")
+					var tier := int(kv[1]) if kv.size() > 1 else 0
+					model.dev_set_awaken(kv[0], tier, 96 if tier < 3 else 40)
+				model.state.currencies.dust = maxi(int(model.state.currencies.dust), 12000)
 		save()
 	else:
 		load_or_create()
@@ -387,7 +396,7 @@ func complete_tower(f: int, outcome: Dictionary) -> Dictionary:
 
 # ---------------------------------------------------------------- heroes
 
-## Owned hero entries {id, level, stars, shards, gear}, sorted by power desc.
+## Owned hero entries {id, level, stars, shards, gear, awaken}, sorted by power desc.
 func owned_heroes() -> Array[Dictionary]:
 	return model.owned_heroes()
 
@@ -396,7 +405,7 @@ func owns(hero_id: String) -> bool:
 	return model.owns(hero_id)
 
 
-## Owned hero entry {id, level, stars, shards, gear} (a copy), or {} if not owned.
+## Owned hero entry {id, level, stars, shards, gear, awaken} (a copy), or {} if not owned.
 func hero(hero_id: String) -> Dictionary:
 	return model.hero(hero_id)
 
@@ -408,8 +417,9 @@ func hero_stats(hero_id: String) -> Dictionary:
 
 
 ## Stats preview at another level/stars (keeps current gear). For "next level" displays.
-func hero_stats_at(hero_id: String, level: int, stars: int) -> Dictionary:
-	return model.hero_stats_at(hero_id, level, stars)
+## awaken: the awakening tier to preview (-1 = her current one).
+func hero_stats_at(hero_id: String, level: int, stars: int, awaken: int = -1) -> Dictionary:
+	return model.hero_stats_at(hero_id, level, stars, awaken)
 
 
 func hero_power(hero_id: String) -> int:
@@ -453,7 +463,7 @@ func affordable_levels(hero_id: String) -> int:
 	return model.affordable_levels(hero_id)
 
 
-## True when the hero can level up or star up right now (for "upgrade ready" badges).
+## True when the hero can level up, star up or awaken right now (for "upgrade ready" badges).
 func upgrade_ready(hero_id: String) -> bool:
 	return model.upgrade_ready(hero_id)
 
@@ -471,6 +481,31 @@ func can_star_up(hero_id: String) -> bool:
 
 func star_up(hero_id: String) -> Dictionary:
 	var r := model.star_up(hero_id)
+	_flush()
+	return r
+
+
+## A Legendary's awakening tier, 0-3 (0 for every other hero). A1 unlocks her legend passive, A2
+## her empowered ultimate, A3 her Ascended title; every tier raises all stats (data/economy.json
+## heroes.awaken_*). Her legend block (title, passive, ult_bonus, lore) is hero_def(id).legend.
+func awaken_tier(hero_id: String) -> int:
+	return model.awaken_tier(hero_id)
+
+
+## The next awakening's cost, or {} (not owned, not a Legendary, fully awakened):
+## {tier, shards, dust, dust_base, shards_have, shards_used, dust_per_shard, min_stars, stars_ok}.
+## dust = dust_base + dust_per_shard for each missing shard; stars_ok is false below min_stars.
+func awaken_cost(hero_id: String) -> Dictionary:
+	return model.awaken_cost(hero_id)
+
+
+func can_awaken(hero_id: String) -> bool:
+	return model.can_awaken(hero_id)
+
+
+## Result {ok, value: {awaken, unlock: "legend_passive" | "ult_bonus" | "ascended"}, error}.
+func awaken(hero_id: String) -> Dictionary:
+	var r := model.awaken(hero_id)
 	_flush()
 	return r
 

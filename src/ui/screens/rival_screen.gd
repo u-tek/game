@@ -218,6 +218,13 @@ func _stick(parent: Control, path: String, pos: Vector2, w: float, rot: float = 
 	if path.find("thorns") >= 0:
 		tr.modulate = Color(0.86, 0.87, 0.9)
 	parent.add_child(tr)
+	# Alive: the thorns grow out over her poster and sway; the red caps catch the light.
+	if path.find("thorns") >= 0:
+		PhysicalKit.come_alive(tr)
+	elif path == DOME:
+		PhysicalKit.sheen(tr, Vector2(0.48, 0.47), Vector2(0.43, 0.41), 0.12)
+	elif path == BUTTON:
+		PhysicalKit.sheen(tr, Vector2(0.47, 0.415), Vector2(0.35, 0.27), 0.1)
 	return tr
 
 

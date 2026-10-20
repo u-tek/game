@@ -7,15 +7,21 @@ extends Control
 ##
 ##   charge   (2.7 s) The press run (summon_portal.gd): a halftone rosette grows on a sheet, its
 ##            screen turning faster, a registration target and a tick ring spinning up, the page
-##            starting to shake. The ink is the rarity tell: black for Rares only, signal red at
-##            1.05 s if an Epic is inside, then at 1.8 s the sheet floods signal and prints in
-##            black, shaking out of register, for a Legendary. Then the rosette implodes and the
-##            press bursts (paper-white flash, an ink burst, a grain burst).
-##   reveal   One poster per hero (summon_reveal.gd), the player taps through: a tap
+##            starting to shake. The ink is the rarity tell, in the rarity language
+##            (src/ui/v4/rarity_kit.gd): black for Rares only; at 1.05 s, if an Epic or better is
+##            inside, the screen turns violet over a teal plate out of register (the Epic's two
+##            plates); at 1.8 s, for a Legendary, the sheet floods gold foil and prints in black,
+##            shaking out of register. Then the rosette implodes and the press bursts (a flash,
+##            an ink burst in the best rarity's ink, a grain burst).
+##   reveal   One poster per hero (summon_reveal.gd: each rarity has its own press, from a quick
+##            Rare to the Legendary's gold foil cinematic), the player taps through: a tap
 ##            fast-forwards the current hero, the next tap brings the next one. A row of printed
-##            squares at the top counts the sheets and marks the rarities seen so far.
+##            squares at the top counts the sheets and marks the rarities seen so far (ink, violet,
+##            gold).
 ##   results  The contact sheet: every hero as a small poster on one sheet (5 x 2, or one big
-##            poster) printed with her print's flaw, her serial, a MISPRINT / HOLO tag, NEW / shards,
+##            poster) in her rarity's frame (an Epic's plate edge and violet sheen, a Legendary's
+##            gold foil, growth and LEGEND tab), printed with her print's flaw, her serial, a
+##            MISPRINT / HOLO tag, NEW / shards,
 ##            the totals as a bracketed table (with the misprints), the pity, "Again" (the
 ##            screen's summon ticket, make_ticket) and "Done". The screen shows the top bar and
 ##            the nav again for the results (results_shown); the sheet fits between them.
@@ -35,6 +41,7 @@ const Portal := preload("res://src/ui/summon/summon_portal.gd")
 const Burst := preload("res://src/ui/summon/summon_burst.gd")
 const Reveal := preload("res://src/ui/summon/summon_reveal.gd")
 const PK := preload("res://src/ui/v4/poster_kit.gd")
+const RK := preload("res://src/ui/v4/rarity_kit.gd")
 
 const CHARGE_TIME := 2.7
 const TELL_1 := 1.05
@@ -90,6 +97,8 @@ var _flash_a := 0.0
 var _flash_col := Color.WHITE
 var _grain_k := 0.0
 var _portal_col := PK.INK
+var _portal_col2 := PK.INK
+var _hud_dark := 0.0
 # Hero images loading on a worker thread during the charge, and the loaded ones (kept so
 # they stay cached until the reveals use them).
 var _warm_paths: Array[String] = []
@@ -289,9 +298,12 @@ func _step_charge(delta: float) -> void:
 	var target := _tell_color(_charge_t)
 	_portal_col = _portal_col.lerp(target, 1.0 - exp(-delta * 12.0))
 	_portal.color = _portal_col
+	_portal_col2 = _portal_col2.lerp(_tell_color2(_charge_t), 1.0 - exp(-delta * 12.0))
+	_portal.color2 = _portal_col2
+	_portal.ink_name = _ink_name(_charge_t)
 	_portal.crackle = Fx.out_cubic(Fx.k01(_charge_t, TELL_2, TELL_2 + 0.3)) if _best == "legendary" else 0.0
 	_portal.implode = Fx.in_cubic(Fx.k01(_charge_t, CHARGE_TIME - 0.45, CHARGE_TIME))
-	_backdrop.target_tint = PK.SIGNAL if _best != "rare" and _charge_t >= TELL_1 else PK.INK
+	_backdrop.target_tint = _tell_tint(_charge_t)
 	_backdrop.target_amount = 0.2 + 0.4 * k
 	_backdrop.bubble_speed = 1.0 + 5.0 * k * k
 	_base_trauma = 0.05 + 0.3 * k * k + 0.3 * _portal.implode
@@ -299,22 +311,50 @@ func _step_charge(delta: float) -> void:
 	if _tells == 0 and _charge_t >= TELL_1:
 		_tells = 1
 		if _best != "rare":
-			_tell(PK.SIGNAL, false)
+			_tell(RK.VIOLET, false)
 	if _tells == 1 and _charge_t >= TELL_2:
 		_tells = 2
 		if _best == "legendary":
-			_tell(PK.SIGNAL, true)
+			_tell(RK.GOLD, true)
 	if _charge_t >= CHARGE_TIME:
 		_open_portal()
 
 
-## The press ink at time t of the charge: the rarity tell (a Legendary's flood prints in black).
+## The press ink at time t of the charge: the rarity tell (violet for an Epic or better, then a
+## Legendary's gold foil flood prints in black).
 func _tell_color(t: float) -> Color:
 	if _best == "legendary" and t >= TELL_2:
 		return PK.INK
 	if _best != "rare" and t >= TELL_1:
-		return PK.SIGNAL
+		return RK.VIOLET
 	return PK.INK
+
+
+## The second plate's ink (the copy out of register): teal under the Epic's violet.
+func _tell_color2(t: float) -> Color:
+	if _best == "legendary" and t >= TELL_2:
+		return PK.INK
+	if _best != "rare" and t >= TELL_1:
+		return RK.TEAL
+	return PK.INK
+
+
+## The backdrop's wash: the rarity tell's ink.
+func _tell_tint(t: float) -> Color:
+	if _best == "legendary" and t >= TELL_2:
+		return RK.GOLD
+	if _best != "rare" and t >= TELL_1:
+		return RK.VIOLET
+	return PK.INK
+
+
+## The press's ink readout on the sheet.
+func _ink_name(t: float) -> String:
+	if _best == "legendary" and t >= TELL_2:
+		return "BLACK ON GOLD FOIL"
+	if _best != "rare" and t >= TELL_1:
+		return "VIOLET + TEAL"
+	return "BLACK"
 
 
 func _tell(col: Color, big: bool) -> void:
@@ -324,7 +364,9 @@ func _tell(col: Color, big: bool) -> void:
 	_kick = maxf(_kick, 0.5 if big else 0.32)
 	_punch = maxf(_punch, 0.5 if big else 0.3)
 	_grain_k = maxf(_grain_k, 0.2 if big else 0.12)
-	_spawn_burst(_portal.center, col if not big else PK.INK, 1.0 if big else 0.6)
+	_spawn_burst(_portal.center, col if not big else RK.GOLD_INK, 1.0 if big else 0.6)
+	if big:
+		_spawn_burst(_portal.center, PK.INK, 0.7)
 
 
 ## The burst at the end of the charge; the first hero is built under the flash.
@@ -338,7 +380,7 @@ func _open_portal() -> void:
 	_fx_flash(Color(1, 0.98, 0.95), 1.0)
 	_grain_k = 0.3
 	var at := _portal.center if _portal else _focus()
-	_spawn_burst(at, PK.SIGNAL if _best != "rare" else PK.INK, 1.4 + 0.3 * float(RARITY_ORDER.get(_best, 0)))
+	_spawn_burst(at, RK.ink(_best), 1.4 + 0.3 * float(RARITY_ORDER.get(_best, 0)))
 	UI.sfx("burst")
 	UI.haptic(50)
 	if _portal:
@@ -422,14 +464,12 @@ func _advance() -> void:
 		_show_summary(false)
 
 
-## Printed squares: ink for a Rare, signal for an Epic or a Legendary (a Legendary also gets a ring).
+## Printed squares in the rarity's ink: black for a Rare, violet for an Epic, gold for a Legendary
+## (a Legendary also gets a ring).
 static func _pip_color(rarity: String) -> Color:
-	match rarity:
-		"legendary":
-			return Color(PK.SIGNAL, 0.999)
-		"epic":
-			return PK.SIGNAL
-	return PK.INK
+	if rarity == "legendary":
+		return Color(RK.GOLD_INK, 0.999)
+	return RK.ink(rarity)
 
 
 # ------------------------------------------------------------------ input
@@ -490,6 +530,8 @@ func _on_reveal_fx(kind: String, color: Color, amount: float) -> void:
 		"shake":
 			_kick = maxf(_kick, amount)
 			_punch = maxf(_punch, amount * 0.6)
+		"punch":
+			_punch = maxf(_punch, amount)
 		"tint":
 			_backdrop.target_tint = color
 			_backdrop.target_amount = amount
@@ -507,16 +549,38 @@ func _fx_flash(col: Color, alpha: float) -> void:
 func _step_fx(delta: float) -> void:
 	_kick = maxf(0.0, _kick - delta * 1.7)
 	var tr := clampf(_base_trauma + _kick, 0.0, 1.0)
-	var amp := tr * tr * 30.0
+	# Reduce motion: no shake and no camera punch.
+	var mo := 1.0 if Kit.motion_ok() else 0.0
+	var amp := tr * tr * 30.0 * mo
 	_cam.position = Vector2(Fx.wave(_time, 0.0), Fx.wave(_time, 4.1)) * amp
 	_punch = maxf(0.0, _punch - delta * 2.4)
-	var z := 1.0 + 0.05 * _punch * _punch
+	var z := 1.0 + 0.05 * _punch * _punch * mo
 	_cam.scale = Vector2(z, z)
 	_flash_a = maxf(0.0, _flash_a - delta * 2.0)
 	_flash.visible = _flash_a > 0.002
 	_flash.color = Color(_flash_col, _flash_a * _flash_a * (3.0 - 2.0 * _flash_a))
 	_grain_k = maxf(0.0, _grain_k - delta * 0.6)
 	(_grain.material as ShaderMaterial).set_shader_parameter("amount", GRAIN + _grain_k)
+	_hud_ink()
+
+
+## The HUD's printed type (Skip, the pips, the hint) turns paper-coloured while the room is dark
+## (a Legendary's press), so Skip stays readable.
+func _hud_ink() -> void:
+	var dk := smoothstep(0.3, 0.7, _backdrop.darkness())
+	if absf(dk - _hud_dark) < 0.01:
+		return
+	_hud_dark = dk
+	var c := PK.INK.lerp(Color("f4f3ee"), dk)
+	if _skip and _skip.has_meta("text_label"):
+		(_skip.get_meta("text_label") as Label).add_theme_color_override("font_color", c)
+		for r in _skip.get_children():
+			if r is ColorRect:
+				(r as ColorRect).color = Color(c, 0.8)
+	if _pips:
+		_pips.ink = c
+	if _hint:
+		_hint.add_theme_color_override("font_color", c)
 
 
 func _spawn_burst(at: Vector2, col: Color, strength: float, parent: Control = null) -> void:
@@ -705,8 +769,10 @@ func _build_buttons(sr: Rect2) -> void:
 
 
 ## One small poster on the contact sheet: her art in full colour over a strip in the rarity's
-## ink, her name in compressed type, the sheet number, NEW or her shards. A Legendary is printed on
-## signal paper and ringed in grease pencil. It drops onto the sheet after `delay` seconds.
+## ink, her name in compressed type, the sheet number, NEW or her shards, in her rarity's frame
+## (RarityKit.card_frame: an Epic's plate edge and violet sheen; a Legendary's gold foil, growth,
+## LEGEND tab and shimmering name). It drops onto the sheet after `delay` seconds; then the frame
+## plays its entrance.
 func _mini_poster(i: int, holder: Control, cw: float, ch: float, delay: float, sheet_pos: Vector2) -> void:
 	var res: Dictionary = results[i]
 	var id := str(res.get("hero_id", ""))
@@ -718,9 +784,9 @@ func _mini_poster(i: int, holder: Control, cw: float, ch: float, delay: float, s
 	face.mouse_filter = MOUSE_FILTER_IGNORE
 	face.size = Vector2(cw, ch)
 	holder.add_child(face)
-	var p := PK.poster(face, Rect2(Vector2.ZERO, Vector2(cw, ch)), PK.SIGNAL if legend else PK.PAPER, 0.3)
+	var p := PK.poster(face, Rect2(Vector2.ZERO, Vector2(cw, ch)), PK.PAPER, 0.3)
 	var strip := 16.0 if not big else 34.0
-	var sc := PK.BAND if rarity == "rare" else (PK.SIGNAL if rarity == "epic" else PK.INK)
+	var sc := PK.BAND if rarity == "rare" else (RK.VIOLET if rarity == "epic" else PK.INK)
 	PK.rule(p, Rect2(0, 0, strip, ch), sc)
 	var art_h := ch * 0.68
 	var art := TextureRect.new()
@@ -735,7 +801,7 @@ func _mini_poster(i: int, holder: Control, cw: float, ch: float, delay: float, s
 		# Printed as it came off the press: the flaw and the foil on her contact print.
 		art.stretch_mode = TextureRect.STRETCH_SCALE
 		var pm := PrintCard.material_for(pd, PrintCard.region_of(art.texture), maxf(3.0, cw * 0.04))
-		pm.set_shader_parameter("paper", PK.SIGNAL if legend else PK.PAPER)
+		pm.set_shader_parameter("paper", PK.PAPER)
 		pm.set_shader_parameter("cell", 4.0 if not big else 6.0)
 		art.material = pm
 	p.add_child(art)
@@ -748,7 +814,7 @@ func _mini_poster(i: int, holder: Control, cw: float, ch: float, delay: float, s
 	if not pd.is_empty():
 		info = ("No. %04d · %s" % [int(pd.get("serial", 0)), str(Kit.RARITY_NAMES.get(rarity, rarity)).to_upper()]) if not big \
 			else "%s  ·  %s" % [PrintCard.serial_line(pd).to_upper(), str(Kit.RARITY_NAMES.get(rarity, rarity)).to_upper()]
-	var il := PK.t(info, 13 if big else 9, PK.INK if legend or rarity == "rare" else PK.SIGNAL, "mono_bold")
+	var il := PK.t(info, 13 if big else 9, PK.INK if rarity == "rare" else RK.ink(rarity), "mono_bold")
 	il.position = Vector2(strip + 6, ch - (58 if big else 34))
 	p.add_child(il)
 	var is_new := bool(res.get("is_new", false))
@@ -766,7 +832,7 @@ func _mini_poster(i: int, holder: Control, cw: float, ch: float, delay: float, s
 	var note := "NEW HERO" if is_new else "+%d SHARDS" % int(res.get("shards", 0))
 	if not is_new and int(res.get("dust", 0)) > 0:
 		note = "+%d DUST" % int(res.get("dust", 0)) if int(res.get("shards", 0)) == int(res.get("dust", 0)) else note + " +%d DUST" % int(res.get("dust", 0))
-	var nl := PK.t(note, 15 if big else 10, PK.PAPER if legend and is_new else (PK.SIGNAL if is_new else PK.INK), "mono_bold")
+	var nl := PK.t(note, 15 if big else 10, PK.SIGNAL if is_new else PK.INK, "mono_bold")
 	nl.position = Vector2(strip + 6, ch - (34 if big else 20))
 	p.add_child(nl)
 	if not pd.is_empty():
@@ -774,11 +840,9 @@ func _mini_poster(i: int, holder: Control, cw: float, ch: float, delay: float, s
 	if big:
 		var vt := PK.vt(p, "©2026 HH · %s" % str(Kit.FACTION_NAMES.get(str(d.get("faction", "")), "")).to_upper(), 10, PK.PAPER, Vector2(strip - 6, 10))
 		vt.modulate.a = 0.9
-	if legend:
-		var loop := _Loop.new()
-		loop.position = Vector2(-10, -10)
-		loop.size = Vector2(cw + 20, ch + 20)
-		holder.add_child(loop)
+	var frame := RK.card_frame(p, face, Vector2(cw, ch), rarity, {"k": cw / 218.0 * (1.25 if not big else 1.0),
+		"faction": str(d.get("faction", "celestial")), "name_label": nm, "name_len": nm.get_minimum_size().x, "seed": float(i) * 1.37,
+		"tab_x": strip + 8.0})
 	# Drops onto the sheet: from a little bigger and turned, with a print's slight tilt.
 	var rot := (float((i * 7919) % 11) - 5.0) * 0.004
 	face.pivot_offset = Vector2(cw, ch) * 0.5
@@ -791,7 +855,9 @@ func _mini_poster(i: int, holder: Control, cw: float, ch: float, delay: float, s
 	tw.parallel().tween_property(face, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.parallel().tween_property(face, "rotation", rot, 0.22).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	if rarity != "rare":
-		tw.tween_callback(_card_burst.bind(holder, Vector2(cw, ch) * 0.5, PK.SIGNAL if not legend else PK.INK, legend))
+		tw.tween_callback(_card_burst.bind(holder, Vector2(cw, ch) * 0.5, RK.ink(rarity), legend))
+	if frame:
+		frame.intro(delay + 0.2)
 
 
 ## A misprint's or a holo's tag stuck on the corner of its contact print (signal MISPRINT with the
@@ -849,6 +915,8 @@ class Pips extends Control:
 	var count := 10
 	var current := 0
 	var colors: Array[Color] = []
+	## The type and the hollow squares' ink (paper-coloured in the dark).
+	var ink := Color("101113")
 	var _t := 0.0
 
 	func _ready() -> void:
@@ -861,7 +929,6 @@ class Pips extends Control:
 		queue_redraw()
 
 	func _draw() -> void:
-		var ink := Color("101113")
 		var s := 14.0
 		var gap := 8.0
 		var y := size.y * 0.5 - s * 0.5
@@ -919,16 +986,3 @@ class _Rainbow extends Control:
 			draw_rect(Rect2(size.x * k / n, 0, size.x / n + 1.0, size.y), Color.from_hsv(float(k) / n, 0.55, 1.0))
 
 
-## A grease-pencil loop around a print (a Legendary on the contact sheet).
-class _Loop extends Control:
-	func _ready() -> void:
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	func _draw() -> void:
-		var c := size * 0.5
-		var pts := PackedVector2Array()
-		for k in 66:
-			var a := TAU * k / 60.0 - 0.6
-			var wob := 1.0 + 0.03 * sin(a * 3.0 + 1.0) + 0.02 * sin(a * 7.0)
-			pts.append(c + Vector2(cos(a) * size.x * 0.52, sin(a) * size.y * 0.51) * wob)
-		draw_polyline(pts, Color("ff4b1f"), 3.0, true)

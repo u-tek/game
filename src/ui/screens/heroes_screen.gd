@@ -1,5 +1,5 @@
 extends Control
-## Screen "heroes" (params: tab: 0 | 1 = Heroes / Codex). Style v4 (docs/dev/ui-style-v4.md): the
+## Screen "heroes" (params: tab: 0 | 1 = Heroes / Codex; scroll: px, a shot scrolled down). Style v4 (docs/dev/ui-style-v4.md): the
 ## roster as a printed catalogue sheet in the approved Lobby poster's look, on a paper matte.
 ## A masthead poster: a dark band with the team lead's red halftone print and the catalogue marks,
 ## "HEROES" (or "CODEX") set huge in compressed type crossing the band (paper over it, ink beyond),
@@ -12,6 +12,10 @@ extends Control
 ## to open her dossier (browse = the shown order). "03 PRINTS" in the index opens the print album. The Codex shows every hero, the ones still to be
 ## summoned printed grey; under a short roster a printed line points to it. Tabs, filters, sort and
 ## scroll position are remembered for the session (static vars).
+## Every card wears her rarity's frame (the summon's rarity language, src/ui/v4/rarity_kit.gd: an
+## Epic's violet plates and sheen, a Legendary's gold holo foil, growth, LEGEND tab and shimmering
+## name). When the page opens, the first rows play their rarity entrance one after another, and so
+## does every hero summoned this session and not opened yet, wherever she is in the list.
 
 const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
 const PosterCard := preload("res://src/ui/v4/poster_card.gd")
@@ -53,6 +57,8 @@ var _filter_l: Label
 var _modal: Control
 var _restore_scroll := true
 var _card_w := 214.0
+## The rarity entrances play on the page's first print only (not on every refresh).
+var _intro_left := true
 
 
 ## The summon screen calls this for every hero a summon brings in for the first time.
@@ -72,12 +78,30 @@ static func is_new(hero_id: String) -> bool:
 func setup(params: Dictionary) -> void:
 	if params.has("tab"):
 		_tab_idx = clampi(int(params["tab"]), 0, 1)
+	# Shots: open scrolled this far down the catalogue.
+	if params.has("scroll"):
+		_scroll_y = int(params["scroll"])
 	_build()
 	Game.changed.connect(_refresh)
 	_refresh()
+	if params.has("closeup") and OS.is_debug_build():
+		_closeup(str(params["closeup"]))
 
 
-func _exit_tree() -> void:
+## Shots (debug builds): one hero's card big over the catalogue, to check her rarity frame up close.
+func _closeup(id: String) -> void:
+	var dim := ColorRect.new()
+	dim.color = Color(PK.MATTE, 0.96)
+	dim.mouse_filter = MOUSE_FILTER_IGNORE
+	dim.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	add_child(dim)
+	var vw := get_viewport_rect().size
+	var w := minf(vw.x - 160.0, 460.0)
+	var card := PosterCard.new()
+	card.setup(id, {"size": w, "ratio": 1.52, "owned": Game.owns(id), "in_team": Game.formation().has(id)})
+	card.position = Vector2((vw.x - w) * 0.5, 60.0)
+	add_child(card)
+	card.play_intro(0.1)
 	if Game.changed.is_connected(_refresh):
 		Game.changed.disconnect(_refresh)
 	if _scroll:
@@ -318,9 +342,15 @@ func _refresh(reset_scroll: bool = false) -> void:
 		g.columns = COLS
 		g.add_theme_constant_override("h_separation", CARD_GAP)
 		g.add_theme_constant_override("v_separation", ROW_GAP)
+		var n := 0
 		for id in shown:
-			g.add_child(_card(id, shown))
+			var card := _card(id, shown)
+			g.add_child(card)
+			if _intro_left and (n < COLS * 3 or is_new(id)):
+				card.play_intro(0.12 + 0.07 * mini(n, 12))
+			n += 1
 		_list.add_child(g)
+		_intro_left = false
 	if _tab_idx == 0 and owned_total < total:
 		_list.add_child(_codex_teaser(total - owned_total))
 
@@ -375,7 +405,7 @@ func _sort_ids(ids: Array[String]) -> void:
 		return a < b)
 
 
-func _card(id: String, browse: Array[String]) -> Control:
+func _card(id: String, browse: Array[String]) -> PosterCard:
 	var own := Game.owns(id)
 	var dot := false
 	if own:
@@ -392,6 +422,15 @@ func _card(id: String, browse: Array[String]) -> Control:
 	})
 	if id == _guide_level_id:
 		Guide.mark(card, true, 0)
+	# An awakened Legendary carries her tier: a small foil seal at the card's head (LegendKit).
+	var aw := int(Game.awaken_tier(id)) if own else 0
+	if aw > 0:
+		var k := _card_w / 218.0
+		var side := roundf(46.0 * k)
+		var mk := LegendKit.awaken_mark(aw, side)
+		# Over the art's bottom-right corner, just above the label strip (62 * k tall).
+		mk.position = Vector2(_card_w - side - 6.0 * k, roundf(_card_w * 1.52) - 62.0 * k - side + 6.0 * k)
+		card.add_child(mk)
 	return card
 
 

@@ -16,6 +16,8 @@ parchment), each a grey detail map (128 = the paper's own colour) and a normal m
 
 Writes assets/art/ui/physical/physical.json: per piece its size, px_per_unit, the world origin's pixel
 (the poster corner for the corner pieces) and, for the round hardware, its centre and diameter.
+After re-rendering growths, run python tools/blender/growth_maps.py (their growth maps: the shader that
+grows them out of their corner and sways them reads those).
 Needs numpy, Pillow and opencv-python (cv2 reads the 16-bit renders).
 """
 import json

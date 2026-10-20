@@ -104,17 +104,27 @@ static func inputs(name: String) -> Dictionary:
 			var add_cases: Array = []
 			for c in [[1, 0, 10, "rare"], [5, 90, 40, "legendary"], [6, 0, 20, "epic"], [4, 150, 20, "epic"]]:
 				add_cases.append({"stars": c[0], "shards_have": c[1], "n": c[2], "rarity": c[3]})
+			# With an awakening tier: a Legendary keeps what her awakenings can still use.
+			for c in [[6, 0, 40, "legendary", 0], [6, 330, 40, "legendary", 1], [6, 270, 40, "legendary", 2],
+					[6, 0, 40, "legendary", 3], [6, 0, 20, "epic", 0], [3, 500, 120, "legendary", 0]]:
+				add_cases.append({"stars": c[0], "shards_have": c[1], "n": c[2], "rarity": c[3], "awaken": c[4]})
+			var aw_cases: Array = []
+			for c in [[6, 0, 100, "legendary"], [6, 1, 20, "legendary"], [6, 2, 0, "legendary"], [6, 3, 500, "legendary"],
+					[5, 0, 200, "legendary"], [6, 0, 50, "epic"], [6, 0, 50, "rare"]]:
+				aw_cases.append({"stars": c[0], "awaken": c[1], "shards_have": c[2], "rarity": c[3]})
 			var afford: Array = []
 			for c in [[1, 40, 4000, 2400], [1, 40, 0, 99999], [35, 40, 10 ** 7, 10 ** 7], [20, 60, 50000, 30000]]:
 				afford.append({"level": c[0], "cap": c[1], "gold": c[2], "hero_exp": c[3]})
 			return {
-				"about": "Progression (src/core/progression.gd): level costs (level -> level + 1), caps, star shards, star-up costs, shards to dust, affordable levels.",
+				"about": "Progression (src/core/progression.gd): level costs (level -> level + 1), caps, star shards, star-up costs, shards to dust (add_shards with an optional awaken tier, default 0), affordable levels, awakening costs and the awakening stat bonus by tier.",
 				"level_cost": range(1, 140).map(func(l: int) -> Dictionary: return {"level": l}),
 				"level_cap": range(0, 8).map(func(s: int) -> Dictionary: return {"stars": s}),
 				"star_shards": range(0, 8).map(func(s: int) -> Dictionary: return {"stars": s}),
 				"star_up_cost": star_cases,
 				"add_shards": add_cases,
 				"affordable_levels": afford,
+				"awaken_cost": aw_cases,
+				"awaken_stat_bp": range(0, 5).map(func(a: int) -> Dictionary: return {"awaken": a}),
 			}
 		"idle":
 			var accrue: Array = []
@@ -154,11 +164,18 @@ static func inputs(name: String) -> Dictionary:
 				for ls in [[1, 1], [20, 3], [60, 5], [140, 6]]:
 					cases.append({"hero_id": h.id, "level": ls[0], "stars": ls[1], "gear": gear_sets[i % 3]})
 					i += 1
+			# Awakened Legendaries (awaken tier: stat bonus, legend passive stats).
+			for h in HeroData.all():
+				if str(h.rarity) != "legendary":
+					continue
+				for a in [1, 2, 3]:
+					cases.append({"hero_id": h.id, "level": 100 + a * 10, "stars": 6, "gear": gear_sets[i % 3], "awaken": a})
+					i += 1
 			var scores: Array = []
 			for st in [{"atk": 140}, {"hp": 2190, "def": 66}, {"crit": 1500, "spd": 15, "atk": 52}, {}]:
 				scores.append({"stats": st})
 			return {
-				"about": "StatCalc (src/core/stat_calc.gd): hero stats (level, stars, gear, stat passives), power, gear score; every campaign stage's enemies as built from data/stages.json, with echo stats and enemy power; and sample Spire floors built by TowerData (src/data/tower.gd) from data/tower.json.",
+				"about": "StatCalc (src/core/stat_calc.gd): hero stats (level, stars, gear, stat passives; awaken when given, default 0), power, gear score; every campaign stage's enemies as built from data/stages.json, with echo stats and enemy power; and sample Spire floors built by TowerData (src/data/tower.gd) from data/tower.json.",
 				"hero_stats": cases,
 				"gear_score": scores,
 				"stages": range(StageData.count()).map(func(s: int) -> Dictionary: return {"index": s}),
@@ -282,14 +299,24 @@ static func _progression(f: Dictionary) -> Dictionary:
 			"out": Progression.star_up_cost(int(c.stars), int(c.shards_have), str(c.rarity))})
 	var adds: Array = []
 	for c in f.add_shards:
-		adds.append({"stars": c.stars, "shards_have": c.shards_have, "n": c.n, "rarity": c.rarity,
-			"out": Progression.add_shards(int(c.stars), int(c.shards_have), int(c.n), str(c.rarity))})
+		var e := {"stars": c.stars, "shards_have": c.shards_have, "n": c.n, "rarity": c.rarity,
+			"out": Progression.add_shards(int(c.stars), int(c.shards_have), int(c.n), str(c.rarity), int(c.get("awaken", 0)))}
+		if c.has("awaken"):
+			e["awaken"] = c.awaken
+		adds.append(e)
+	var awc: Array = []
+	for c in f.get("awaken_cost", []):
+		awc.append({"stars": c.stars, "awaken": c.awaken, "shards_have": c.shards_have, "rarity": c.rarity,
+			"out": Progression.awaken_cost(int(c.stars), int(c.awaken), int(c.shards_have), str(c.rarity))})
+	var awb: Array = []
+	for c in f.get("awaken_stat_bp", []):
+		awb.append({"awaken": c.awaken, "out": Progression.awaken_stat_bp(int(c.awaken))})
 	var aff: Array = []
 	for c in f.affordable_levels:
 		aff.append({"level": c.level, "cap": c.cap, "gold": c.gold, "hero_exp": c.hero_exp,
 			"out": Progression.affordable_levels(int(c.level), int(c.cap), int(c.gold), int(c.hero_exp))})
 	return {"level_cost": lc, "level_cap": caps, "star_shards": shards, "star_up_cost": suc, "add_shards": adds,
-		"affordable_levels": aff}
+		"affordable_levels": aff, "awaken_cost": awc, "awaken_stat_bp": awb}
 
 
 static func _idle(f: Dictionary) -> Dictionary:
@@ -333,9 +360,12 @@ static func _gear(f: Dictionary) -> Dictionary:
 static func _stats(f: Dictionary) -> Dictionary:
 	var hs: Array = []
 	for c in f.hero_stats:
-		var st := StatCalc.stats(str(c.hero_id), int(c.level), int(c.stars), c.gear)
-		hs.append({"hero_id": c.hero_id, "level": c.level, "stars": c.stars, "gear": c.gear, "out": st,
-			"power": StatCalc.power(st)})
+		var st := StatCalc.stats(str(c.hero_id), int(c.level), int(c.stars), c.gear, int(c.get("awaken", 0)))
+		var e := {"hero_id": c.hero_id, "level": c.level, "stars": c.stars, "gear": c.gear, "out": st,
+			"power": StatCalc.power(st)}
+		if c.has("awaken"):
+			e["awaken"] = c.awaken
+		hs.append(e)
 	var gs: Array = []
 	for c in f.gear_score:
 		gs.append({"stats": c.stats, "out": StatCalc.gear_score({"stats": c.stats})})
@@ -447,15 +477,19 @@ static func _guarantee_seed() -> int:
 
 # ---------------------------------------------------------------- battles
 
-static func _unit(uid: String, hero_id: String, slot: int, level: int, stars: int, boss: bool = false) -> Dictionary:
-	return {"uid": uid, "hero_id": hero_id, "side": "ally" if uid.begins_with("a") else "enemy", "slot": slot,
-		"level": level, "stars": stars, "stats": StatCalc.stats(hero_id, level, stars), "is_boss": boss}
+static func _unit(uid: String, hero_id: String, slot: int, level: int, stars: int, boss: bool = false, awaken: int = 0) -> Dictionary:
+	var u := {"uid": uid, "hero_id": hero_id, "side": "ally" if uid.begins_with("a") else "enemy", "slot": slot,
+		"level": level, "stars": stars, "stats": StatCalc.stats(hero_id, level, stars, [], awaken), "is_boss": boss}
+	if awaken > 0:
+		u["awaken"] = awaken
+	return u
 
 
+## spec rows: [hero_id, slot, level, stars, (is_boss), (awaken)].
 static func _team(prefix: String, spec: Array) -> Array:
 	var out: Array = []
 	for s in spec:
-		out.append(_unit("%s%d" % [prefix, s[1]], s[0], s[1], s[2], s[3], s.size() > 4 and s[4]))
+		out.append(_unit("%s%d" % [prefix, s[1]], s[0], s[1], s[2], s[3], s.size() > 4 and s[4], int(s[5]) if s.size() > 5 else 0))
 	return out
 
 
@@ -493,6 +527,12 @@ static func _battle_inputs() -> Array:
 		"enemies": _team("e", [["brakka", 0, 44, 3, true], ["kessa", 1, 40, 3], ["vesper", 2, 40, 3], ["imra", 3, 40, 3]])}
 	out.append({"name": "manual_ultimates", "about": "auto_ultimates off: allies cast only when requested (requests 3 ticks after a bar fills, plus some refused ones); enemy boss.",
 		"setup": manual, "auto_ultimates": false, "manual_ultimates": _manual_requests(manual)})
+	out.append({"name": "legends_awakened", "about": "Awakened Legendaries on both sides (UnitSetup awaken 1-3: legend passives from A1, empowered ultimates from A2).",
+		"setup": {"seed": 6161, "allies": _team("a", [["argentiel", 0, 110, 6, false, 1], ["gantra", 1, 110, 6, false, 2],
+			["seraphiel", 2, 110, 6, false, 2], ["sanariel", 3, 110, 6, false, 3], ["mordessa", 4, 110, 6, false, 2]]),
+			"enemies": _team("e", [["drezza", 0, 120, 6, false, 2], ["zecchina", 1, 120, 6, false, 3], ["noctaire", 2, 120, 6, false, 2],
+			["nadira", 3, 120, 6, false, 2], ["cassiel", 4, 120, 6]])},
+		"auto_ultimates": true, "manual_ultimates": []})
 	out.append({"name": "timeout", "about": "Two sturdy teams and max_ms 20000: the battle ends by timeout (a defeat).",
 		"setup": {"seed": 99, "max_ms": 20000, "allies": _team("a", [["orrin", 0, 30, 4], ["cassiel", 1, 30, 4], ["sable", 2, 30, 4]]),
 			"enemies": _team("e", [["brakka", 0, 30, 4], ["orrin", 1, 30, 4], ["liora", 2, 30, 4]])},

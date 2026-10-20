@@ -29,6 +29,14 @@ static var DUPE_SHARDS: Dictionary = _eco.heroes.dupe_shards
 static var DUST_PER_SHARD: Dictionary = _eco.heroes.dust_per_shard
 ## Dust granted per shard a maxed hero cannot use.
 static var DUST_PER_EXCESS_SHARD: Dictionary = _eco.heroes.dust_per_excess_shard
+## Awakening (Legendaries past max stars, see Progression.awaken_cost): the rarities that can
+## awaken, the stars needed, and per tier (index = tier - 1) the shards and base dust it costs and
+## the total stat bonus (basis points on every stat) a hero at that tier has.
+static var AWAKEN_RARITIES: Array[String] = GameData.strings(_eco.heroes.awaken_rarities)
+static var AWAKEN_MIN_STARS: int = int(_eco.heroes.awaken_min_stars)
+static var AWAKEN_SHARDS: Array[int] = GameData.ints(_eco.heroes.awaken_shards)
+static var AWAKEN_DUST: Array[int] = GameData.ints(_eco.heroes.awaken_dust)
+static var AWAKEN_STAT_BP: Array[int] = GameData.ints(_eco.heroes.awaken_stat_bp)
 ## Stat growth: {level_growth_bp, star_growth_bp, spd_per_star, crit_cap_bp} (StatCalc).
 static var STATS: Dictionary = _eco.stats
 

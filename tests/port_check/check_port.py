@@ -1,5 +1,5 @@
 """Independent second implementation of the pure rules, written from docs/dev/unity-port.md
-(sections 4-8: RNG, stats, battle, summon, idle, progression, gear), checked against
+(sections 4-8: RNG, stats, battle, summon, idle, progression and awakening (8.6), gear), checked against
 data/fixtures/*.json (also 8.5 prints and 9c the Rival). It proves the port document is precise enough, and is a compact
 reference for a C# port. GameModel (session.json, save.json) is not covered here.
 
@@ -36,10 +36,22 @@ def imod(a, b):
 
 # ------------------------------------------------------------------ section 6 stats
 ST = ECO["stats"]
-def active_passives(hid, stars):
-    return [p for p in HERO[hid]["passives"] if stars >= p["unlock_stars"]]
+def active_passives(hid, stars, awaken=0):
+    out = [p for p in HERO[hid]["passives"] if stars >= p["unlock_stars"]]
+    lg = HERO[hid].get("legend")
+    if awaken > 0 and lg:
+        if awaken >= lg["passive"].get("unlock_awaken", 1):
+            out.append(lg["passive"])
+        ub = lg["ult_bonus"]
+        if awaken >= ub.get("unlock_awaken", 2):
+            out.append({"effects": [{"type": "ult_bonus", "effects": ub["effects"]}]})
+    return out
 
-def stats(hid, level, stars, gear=()):
+def awaken_bp(a):
+    t = ECO["heroes"]["awaken_stat_bp"]
+    return 0 if a <= 0 or not t else t[min(a, len(t)) - 1]
+
+def stats(hid, level, stars, gear=(), awaken=0):
     base = HERO[hid]["base_stats"]
     lm = 10000 + (max(level, 1) - 1) * ST["level_growth_bp"]
     sm = 10000 + (max(stars, 1) - 1) * ST["star_growth_bp"]
@@ -48,17 +60,18 @@ def stats(hid, level, stars, gear=()):
         for k, v in it.get("stats", {}).items():
             g[k] = g.get(k, 0) + v
     bonus = {k: 0 for k in ("hp_bp", "atk_bp", "def_bp", "spd_bp", "crit_bp")}
-    for p in active_passives(hid, stars):
+    for p in active_passives(hid, stars, awaken):
         for e in p["effects"]:
             if e["type"] == "stat":
                 for k in bonus:
                     bonus[k] += e.get(k, 0)
+    aw = awaken_bp(awaken)
     out = {}
     for k in ("hp", "atk", "def"):
         v = idiv(idiv(base[k] * lm, 10000) * sm, 10000) + g[k]
-        out[k] = idiv(v * (10000 + bonus[k + "_bp"]), 10000)
-    out["spd"] = idiv((base["spd"] + (max(stars, 1) - 1) * ST["spd_per_star"] + g["spd"]) * (10000 + bonus["spd_bp"]), 10000)
-    out["crit"] = min(base["crit"] + g["crit"] + bonus["crit_bp"], ST["crit_cap_bp"])
+        out[k] = idiv(v * (10000 + bonus[k + "_bp"] + aw), 10000)
+    out["spd"] = idiv((base["spd"] + (max(stars, 1) - 1) * ST["spd_per_star"] + g["spd"]) * (10000 + bonus["spd_bp"] + aw), 10000)
+    out["crit"] = min(idiv((base["crit"] + g["crit"] + bonus["crit_bp"]) * (10000 + aw), 10000), ST["crit_cap_bp"])
     return out
 
 def power(st):
@@ -181,9 +194,18 @@ def star_up_cost(s, have, r):
     need = star_shards(s)
     if need <= 0: return {}
     return {"shards": need, "dust": max(0, need - have) * dps(r), "shards_have": have, "shards_used": min(have, need), "dust_per_shard": dps(r)}
-def add_shards(s, have, n, r):
-    keep = min(n, max(0, shards_to_max(s) - have))
+def max_awaken(r):
+    return len(H["awaken_shards"]) if r in H["awaken_rarities"] else 0
+def awaken_left(a, r):
+    return sum(H["awaken_shards"][t] for t in range(max(0, min(a, max_awaken(r))), max_awaken(r)))
+def add_shards(s, have, n, r, a=0):
+    keep = min(n, max(0, shards_to_max(s) + awaken_left(a, r) - have))
     return {"shards": have + keep, "dust": (n - keep) * dpe(r)}
+def awaken_cost(s, a, have, r):
+    if a < 0 or a >= max_awaken(r): return {}
+    need, base = H["awaken_shards"][a], H["awaken_dust"][a]
+    return {"tier": a + 1, "shards": need, "dust": base + max(0, need - have) * dps(r), "dust_base": base, "shards_have": have,
+            "shards_used": min(have, need), "dust_per_shard": dps(r), "min_stars": H["awaken_min_stars"], "stars_ok": s >= H["awaken_min_stars"]}
 def affordable(L, cap, gold, xp):
     n = 0
     while L + n < cap:
@@ -322,7 +344,8 @@ class Sim:
     def add(self, s, side):
         hid = s["hero_id"]
         if hid not in HERO: return
-        st = s.get("stats") or stats(hid, s.get("level", 1), s.get("stars", 1))
+        aw = s.get("awaken", 0)
+        st = s.get("stats") or stats(hid, s.get("level", 1), s.get("stars", 1), (), aw)
         u = U()
         u.hid, u.side, u.slot = hid, side, s.get("slot", 0)
         u.faction, u.role = HERO[hid]["faction"], HERO[hid]["role"]
@@ -341,7 +364,7 @@ class Sim:
         u.flag = False
         p = dict(start_energy=0, team_start_energy=0, aura_hp=0, aura_atk=0, start_shield=0, heal_bonus=0, thorns=0, dr=0,
                  on_hit=[], atk_heal=0, low_hp=0, kill_heal=0, kill_energy=0, lifesteal=0, crit_dmg=0, double=0, ult_bonus=[])
-        for pas in active_passives(hid, s.get("stars", 1)):
+        for pas in active_passives(hid, s.get("stars", 1), aw):
             for e in pas["effects"]:
                 t = e["type"]
                 if t == "start_energy": p["start_energy"] += e["amount"]
@@ -964,7 +987,9 @@ check("progression.level_cost", [[c["gold"], c["hero_exp"]] for c in f["level_co
 check("progression.level_cap", [c["cap"] for c in f["level_cap"]], [level_cap(c["stars"]) for c in f["level_cap"]])
 check("progression.star_shards", [[c["next"], c["to_max"]] for c in f["star_shards"]], [[star_shards(c["stars"]), shards_to_max(c["stars"])] for c in f["star_shards"]])
 check("progression.star_up_cost", [c["out"] for c in f["star_up_cost"]], [star_up_cost(c["stars"], c["shards_have"], c["rarity"]) for c in f["star_up_cost"]])
-check("progression.add_shards", [c["out"] for c in f["add_shards"]], [add_shards(c["stars"], c["shards_have"], c["n"], c["rarity"]) for c in f["add_shards"]])
+check("progression.add_shards", [c["out"] for c in f["add_shards"]], [add_shards(c["stars"], c["shards_have"], c["n"], c["rarity"], c.get("awaken", 0)) for c in f["add_shards"]])
+check("progression.awaken_cost", [c["out"] for c in f["awaken_cost"]], [awaken_cost(c["stars"], c["awaken"], c["shards_have"], c["rarity"]) for c in f["awaken_cost"]])
+check("progression.awaken_stat_bp", [c["out"] for c in f["awaken_stat_bp"]], [awaken_bp(c["awaken"]) for c in f["awaken_stat_bp"]])
 check("progression.affordable", [c["out"] for c in f["affordable_levels"]], [affordable(c["level"], c["cap"], c["gold"], c["hero_exp"]) for c in f["affordable_levels"]])
 
 f = fx("idle")
@@ -981,7 +1006,7 @@ check("gear.make_item", [c["out"] for c in f["make_item"]], [make_item(c["slot"]
 check("gear.salvage", [c["out"] for c in f["salvage"]], [{"gold": G["salvage_gold_per_tier"] * c["tier"], "dust": G["salvage_dust_per_tier"] * c["tier"]} for c in f["salvage"]])
 
 f = fx("stats")
-check("stats.hero_stats", [[c["out"], c["power"]] for c in f["hero_stats"]], [[stats(c["hero_id"], c["level"], c["stars"], c["gear"]), power(stats(c["hero_id"], c["level"], c["stars"], c["gear"]))] for c in f["hero_stats"]])
+check("stats.hero_stats", [[c["out"], c["power"]] for c in f["hero_stats"]], [[stats(c["hero_id"], c["level"], c["stars"], c["gear"], c.get("awaken", 0)), power(stats(c["hero_id"], c["level"], c["stars"], c["gear"], c.get("awaken", 0)))] for c in f["hero_stats"]])
 check("stats.gear_score", [c["out"] for c in f["gear_score"]], [gear_score({"stats": c["stats"]}) for c in f["gear_score"]])
 bs = built_stages()
 exp_st, act_st = [], []

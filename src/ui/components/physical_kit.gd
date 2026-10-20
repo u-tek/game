@@ -18,18 +18,29 @@ extends RefCounted
 ##                     | edge | clump_a | clump_b; `at` is where the poster corner (the piece's origin)
 ##                     goes, ppu the screen px per world unit (about 70 on a full poster). Add growths
 ##                     under the stuck-on controls: they may run beneath a touch target, never over one
+##                     Growths are alive (come_alive): they grow out of their corner along the branches
+##                     when they appear, then sway and twist a few px at the tips
+##   PhysicalKit.come_alive(texture_rect)                 makes any growth render alive (the rival thorns)
+##   PhysicalKit.wither(growth)                           shrinks a growth back into its root, then frees it
 ##   PhysicalKit.paper_fill(control, fill)                real paper inside a StyleBox sheet (dialogs)
 ##   PhysicalKit.piece(name, parent, at, ppu)             any rendered piece by its manifest anchor
 ##   PhysicalKit.Led          a real LED (green, orange, red, cyan): steady, breathe, blink or off
-##   PhysicalKit.PushCap      the red dome or the red cap in a knurled bezel, up / pressed
+##   PhysicalKit.PushCap      the red dome or the red cap in a knurled bezel, up / pressed (its highlight
+##                            drifts a little, with the phone's tilt)
 ##   PhysicalKit.Acrylic      the clear frosted tab or the orange acrylic card over whatever is behind
-## Reduce motion (Kit.motion_ok) stops LEDs breathing and blinking.
+##                            (a faint sheet of light crosses it now and then)
+## Reduce motion (Kit.motion_ok) stops LEDs breathing and blinking, shows growths fully grown and
+## still, and keeps highlights and acrylic still.
 
 const DIR := "res://assets/art/ui/physical/"
 const PAPER_SHADER := preload("res://src/ui/shaders/paper.gdshader")
 const RELIEF_SHADER := preload("res://src/ui/shaders/paper_relief.gdshader")
 const DEBOSS_SHADER := preload("res://src/ui/shaders/deboss.gdshader")
 const ACRYLIC_SHADER := preload("res://src/ui/shaders/acrylic.gdshader")
+const GROWTH_SHADER := preload("res://src/ui/shaders/growth.gdshader")
+const GLEAM_SHADER := preload("res://src/ui/shaders/gleam.gdshader")
+## Growths that sprout in the same frame follow each other by this much (s).
+const SPROUT_STAGGER := 0.14
 ## Sheets bigger than this (px area) get the relief overlay (a screen read: only a few per screen).
 const RELIEF_AREA := 160000.0
 ## How far the sheet's shadow reaches past it.
@@ -37,9 +48,13 @@ const MARGIN := 34.0
 
 static var _manifest: Dictionary = {}
 static var _loaded := false
-## A/B checks (debug builds): HH_PHYS_OFF="relief,deboss,acrylic" leaves those out.
+## A/B checks (debug builds): HH_PHYS_OFF="relief,deboss,acrylic,growth,sheen" leaves those out.
 static var _off := OS.get_environment("HH_PHYS_OFF").split(",") if OS.is_debug_build() else PackedStringArray()
 static var _tex_cache: Dictionary = {}
+## growth.json per folder (tools/blender/growth_maps.py): each growth's root and branch length.
+static var _growth_meta: Dictionary = {}
+static var _sprout_frame := -1
+static var _sprout_n := 0
 
 
 ## The manifest entry of a piece (size, px_per_unit, origin, center, diameter), or {}.
@@ -265,8 +280,129 @@ static func piece(piece_name: String, parent: Node, at: Vector2, ppu: float = 0.
 	return tr
 
 
+## A growth for a faction (see growth_name) at a poster corner, alive (come_alive).
 static func growth(faction: String, shape: String, parent: Node, at: Vector2, ppu: float = 70.0, rot: float = 0.0) -> TextureRect:
-	return piece(growth_name(faction, shape), parent, at, ppu, rot)
+	var tr := piece(growth_name(faction, shape), parent, at, ppu, rot)
+	come_alive(tr)
+	return tr
+
+
+## A growth render's entry in its folder's growth.json ({root: [u, v], len: px}), or {}.
+static func growth_info(texture_path: String) -> Dictionary:
+	var dir := texture_path.get_base_dir()
+	if not _growth_meta.has(dir):
+		var j: Variant = null
+		var f := FileAccess.open(dir.path_join("growth.json"), FileAccess.READ)
+		if f:
+			j = JSON.parse_string(f.get_as_text())
+		_growth_meta[dir] = j if j is Dictionary else {}
+	return (_growth_meta[dir] as Dictionary).get(texture_path.get_file().get_basename(), {})
+
+
+## Brings a growth render (a TextureRect showing the whole of one of the growth PNGs, stretched;
+## flip_h / flip_v are fine) to life with its growth map (<name>_grow.png beside it, from
+## tools/blender/growth_maps.py): once it is on screen (after the boot screen lifts) it grows out of
+## its root along every branch (a soft front, not a fade; pieces sprouting in the same frame follow
+## each other), then idles: a slow twist around the root and a slow wave out along the branches,
+## a few px at the tips and none at the root, moss and fur barely shimmering, LED beads and crystal
+## softly pulsing. delay: extra wait before it sprouts. Reduce motion (or no map): it stays as it
+## is, fully grown and still, and this returns null; else the growth material.
+static func come_alive(tr: TextureRect, delay: float = 0.0) -> ShaderMaterial:
+	if tr == null or tr.texture == null or "growth" in _off or not Kit.motion_ok():
+		return null
+	var path := tr.texture.resource_path
+	var map_path := path.get_basename() + "_grow.png"
+	if path == "" or not ResourceLoader.exists(map_path):
+		return null
+	var inf := growth_info(path)
+	var tsize := tr.texture.get_size()
+	# The longest branch as drawn: sets how far the tips travel and how long the growth takes.
+	var reach := float(inf.get("len", tsize.length() * 0.6)) * tr.size.x / maxf(tsize.x, 1.0)
+	var root: Array = inf.get("root", [0.5, 0.5])
+	var m := ShaderMaterial.new()
+	m.shader = GROWTH_SHADER
+	m.set_shader_parameter("grow_map", load(map_path))
+	m.set_shader_parameter("grow", 0.0)
+	m.set_shader_parameter("root", Vector2(float(root[0]), float(root[1])))
+	m.set_shader_parameter("flip", Vector2(-1.0 if tr.flip_h else 1.0, -1.0 if tr.flip_v else 1.0))
+	m.set_shader_parameter("draw_size", tr.size)
+	m.set_shader_parameter("sway_px", clampf(reach / 115.0, 1.2, 2.6))
+	m.set_shader_parameter("twist_px", clampf(reach / 95.0, 1.2, 3.0))
+	m.set_shader_parameter("seed", fposmod(tr.position.x * 0.0173 + tr.position.y * 0.0091 + float(path.hash() % 97) * 0.13, 10.0))
+	tr.material = m
+	tr.resized.connect(func() -> void: m.set_shader_parameter("draw_size", tr.size))
+	var sp := Sprout.new()
+	sp.name = "Sprout"
+	sp.mat = m
+	sp.delay = 0.12 + delay
+	sp.dur = clampf(0.45 + reach / 520.0, 0.6, 1.1)
+	tr.add_child(sp)
+	return m
+
+
+## Takes a growth away: it shrinks back into its root, then is freed (at once when it is not alive).
+static func wither(n: Node, dur: float = 0.32) -> void:
+	var ci := n as CanvasItem
+	var m: ShaderMaterial = ci.material as ShaderMaterial if ci else null
+	if m == null or m.shader != GROWTH_SHADER or not n.is_inside_tree():
+		n.queue_free()
+		return
+	var sp := n.get_node_or_null("Sprout")
+	if sp:
+		sp.queue_free()
+	var tw := n.create_tween()
+	tw.tween_property(m, "shader_parameter/grow", 0.0, dur).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tw.tween_callback(n.queue_free)
+
+
+## A soft reflection of the key light on a rendered glossy cap (any CanvasItem drawing the whole
+## render): it sits top left on the cap (an ellipse, centre and radii in UV) and drifts with the
+## phone's tilt and slowly on its own (gleam.gdshader). Nothing under Reduce motion.
+static func sheen(ci: CanvasItem, center_uv: Vector2, radius_uv: Vector2, strength: float = 0.1) -> void:
+	if ci == null or not Kit.motion_ok() or "sheen" in _off:
+		return
+	var m := ShaderMaterial.new()
+	m.shader = GLEAM_SHADER
+	m.set_shader_parameter("center_uv", center_uv)
+	m.set_shader_parameter("radius_uv", radius_uv)
+	m.set_shader_parameter("strength", strength)
+	var p := (ci as Control).position if ci is Control else Vector2.ZERO
+	m.set_shader_parameter("seed", fposmod(p.x * 0.013 + p.y * 0.007, 6.0))
+	ci.material = m
+
+
+## Grows its growth once the screen is showing (UI.hold_intro is false: the boot screen has lifted),
+## then frees itself. It steps the growth itself, at most 1/30 s a frame, so the hitch of building a
+## screen slows the growth for a frame instead of skipping it.
+class Sprout:
+	extends Node
+	var mat: ShaderMaterial
+	var delay := 0.12
+	var dur := 0.9
+	var _t := 0.0
+	var _started := false
+
+	func _process(delta: float) -> void:
+		if not _started:
+			var ui := Kit.autoload("UI")
+			if ui != null and bool(ui.get("hold_intro")):
+				return
+			# Growths sprouting in the same frame follow each other.
+			var f := Engine.get_process_frames()
+			if f != PhysicalKit._sprout_frame:
+				PhysicalKit._sprout_frame = f
+				PhysicalKit._sprout_n = 0
+			# _t counts up from minus the delay: it grows from 0.
+			_t = -(delay + PhysicalKit._sprout_n * PhysicalKit.SPROUT_STAGGER)
+			PhysicalKit._sprout_n += 1
+			_started = true
+		_t += minf(delta, 1.0 / 30.0)
+		var p := clampf(_t / dur, 0.0, 1.0)
+		# Eased out: quick out of the corner, slowing as it reaches the tips.
+		mat.set_shader_parameter("grow", sin(p * PI * 0.5))
+		if p >= 1.0:
+			set_process(false)
+			queue_free()
 
 
 ## How big a round piece is drawn so its body is `diameter` screen px: the scale for piece().
@@ -365,6 +501,19 @@ class PushCap:
 		_up = _layer(kind + "_up")
 		_down = _layer(kind + "_down")
 		_down.visible = false
+		_sheen()
+
+	## The key light's soft reflection on the cap, drifting with the tilt (not under Reduce motion).
+	func _sheen() -> void:
+		if not Kit.motion_ok() or _up.texture == null:
+			return
+		var inf := PhysicalKit.info(kind + "_up")
+		var ts := _up.texture.get_size()
+		var c: Array = inf.get("center", [ts.x * 0.5, ts.y * 0.5])
+		var r := float(inf.get("diameter", ts.x)) * 0.5
+		# The dome is all cap (an ellipsoid seen from above the front); the bezel's cap is its inner 2/3.
+		var rad := Vector2(r, r * 0.8) if kind == "dome" else Vector2(r, r) * 0.66
+		PhysicalKit.sheen(_up, Vector2(float(c[0]), float(c[1])) / ts, rad / ts, 0.13 if kind == "dome" else 0.1)
 
 	func _layer(n: String) -> TextureRect:
 		var t := PhysicalKit.tex(n)
@@ -427,6 +576,9 @@ class Acrylic:
 		_mat.set_shader_parameter("t_tex", t)
 		_mat.set_shader_parameter("l_tex", PhysicalKit.tex(n + "_l"))
 		_mat.set_shader_parameter("frost", frost)
+		# A faint sheet of light crosses the slab now and then (none under Reduce motion).
+		_mat.set_shader_parameter("sweep", 0.24 if Kit.motion_ok() else 0.0)
+		_mat.set_shader_parameter("sweep_seed", fposmod(width * 0.031, 1.0))
 		_surf.material = _mat
 		add_child(_surf)
 		move_child(_surf, 1)

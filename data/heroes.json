@@ -35,7 +35,36 @@
 					"description": "+20% ATK and +10% HP.",
 					"effects": [{"type": "stat", "atk_bp": 2000, "hp_bp": 1000}]
 				}
-			]
+			],
+			"legend": {
+				"title": "Herald of the Last Hymn",
+				"passive": {
+					"id": "last_hymn",
+					"name": "Last Hymn",
+					"unlock_awaken": 1,
+					"description": "+25% ATK, +15% crit chance and +40% crit damage. Battle start: gains 400 energy.",
+					"effects": [
+						{"type": "stat", "atk_bp": 2500, "crit_bp": 1500},
+						{"type": "crit_damage", "bp": 4000},
+						{"type": "start_energy", "amount": 400}
+					]
+				},
+				"ult_bonus": {
+					"id": "hymn_of_judgment_encore",
+					"name": "Hymn of Judgment: Encore",
+					"unlock_awaken": 2,
+					"description": "Her ultimate also Weakens every enemy (-25% ATK for 5 s) and shields all allies for 10% of her max HP.",
+					"effects": [
+						{"type": "status", "target": "enemy_all", "status": "atk_down", "duration_ms": 5000, "value_bp": 2500},
+						{"type": "shield", "target": "ally_all", "pct_max_hp_bp": 1000}
+					]
+				},
+				"lore": [
+					"The hymn has one more verse. She has never sung it in front of anyone who lived.",
+					"Heaven keeps a recording of her first sunrise. The tape is played once a millennium, quietly.",
+					"When the sky finally falls, she means to be the last thing it hears."
+				]
+			}
 		},
 		{
 			"id": "cassiel",
@@ -216,7 +245,36 @@
 					"description": "+40% crit damage. On kill: gains 300 energy.",
 					"effects": [{"type": "crit_damage", "bp": 4000}, {"type": "on_kill", "energy": 300}]
 				}
-			]
+			],
+			"legend": {
+				"title": "Quicksilver Sovereign",
+				"passive": {
+					"id": "quicksilver_oath",
+					"name": "Quicksilver Oath",
+					"unlock_awaken": 1,
+					"description": "+20% ATK and +15% DEF. Takes 15% less damage. Each basic attack has a 30% chance to strike twice.",
+					"effects": [
+						{"type": "stat", "atk_bp": 2000, "def_bp": 1500},
+						{"type": "damage_reduction", "bp": 1500},
+						{"type": "double_strike", "chance_bp": 3000}
+					]
+				},
+				"ult_bonus": {
+					"id": "mercury_verdict_final",
+					"name": "Mercury Verdict: Final Ruling",
+					"unlock_awaken": 2,
+					"description": "Her ultimate also hits every back-row enemy for 160% ATK and gives her +30% SPD for 6 s.",
+					"effects": [
+						{"type": "damage", "target": "enemy_back_row", "mult_bp": 16000},
+						{"type": "status", "target": "self", "status": "spd_up", "duration_ms": 6000, "value_bp": 3000}
+					]
+				},
+				"lore": [
+					"Four hundred duels, four hundred wins. She keeps the losers' halos in a drawer, polished.",
+					"The flask is not chrome. It is the first legion, melted down and carried with her.",
+					"She has requested a duel with heaven's throne itself. The paperwork is still pending."
+				]
+			}
 		},
 		{
 			"id": "sanariel",
@@ -253,7 +311,36 @@
 					"description": "Each basic attack also heals the most wounded ally for 30% ATK. Battle start: all allies gain +5% max HP.",
 					"effects": [{"type": "on_attack_heal", "mult_bp": 3000}, {"type": "team_aura", "hp_bp": 500}]
 				}
-			]
+			],
+			"legend": {
+				"title": "Saint of the Night Shift",
+				"passive": {
+					"id": "miracle_shift",
+					"name": "Miracle Shift",
+					"unlock_awaken": 1,
+					"description": "Healing done +30%. Battle start: all allies gain +10% max HP and +8% ATK, and she shields herself for 25% of her max HP.",
+					"effects": [
+						{"type": "heal_bonus", "bp": 3000},
+						{"type": "team_aura", "hp_bp": 1000, "atk_bp": 800},
+						{"type": "start_shield", "pct_max_hp_bp": 2500}
+					]
+				},
+				"ult_bonus": {
+					"id": "code_white_all_hands",
+					"name": "Code White: All Hands",
+					"unlock_awaken": 2,
+					"description": "Her ultimate also gives all allies Regen (60% ATK per second) for 5 s and every other ally 150 energy.",
+					"effects": [
+						{"type": "status", "target": "ally_all", "status": "regen", "duration_ms": 5000, "dot_mult_bp": 6000},
+						{"type": "energy", "target": "ally_others", "amount": 150}
+					]
+				},
+				"lore": [
+					"Her chart notes are signed in gold thread. No angel has died on her ward. Several have tried.",
+					"She once stitched a seraph's wing back on mid-flight and billed him for the thread.",
+					"The infirmary never closes. Neither, it turns out, do her eyes."
+				]
+			}
 		},
 		{
 			"id": "rimelle",
@@ -544,7 +631,36 @@
 					"description": "On kill: restores 20% of her max HP and gains 300 energy.",
 					"effects": [{"type": "on_kill", "heal_pct_bp": 2000, "energy": 300}]
 				}
-			]
+			],
+			"legend": {
+				"title": "Crown of Cinders",
+				"passive": {
+					"id": "crown_of_cinders",
+					"name": "Crown of Cinders",
+					"unlock_awaken": 1,
+					"description": "+25% ATK and +15% crit chance. Basic attacks Burn the target (40% ATK per second) for 3 s. Heals for 15% of damage dealt.",
+					"effects": [
+						{"type": "stat", "atk_bp": 2500, "crit_bp": 1500},
+						{"type": "on_hit_status", "status": "burn", "chance_bp": 10000, "duration_ms": 3000, "dot_mult_bp": 4000},
+						{"type": "lifesteal", "bp": 1500}
+					]
+				},
+				"ult_bonus": {
+					"id": "ninth_furnace_unbanked",
+					"name": "Ninth Furnace: Unbanked",
+					"unlock_awaken": 2,
+					"description": "Her ultimate also cuts every enemy's DEF by 30% for 6 s and gives her +30% ATK for 6 s.",
+					"effects": [
+						{"type": "status", "target": "enemy_all", "status": "def_down", "duration_ms": 6000, "value_bp": 3000},
+						{"type": "status", "target": "self", "status": "atk_up", "duration_ms": 6000, "value_bp": 3000}
+					]
+				},
+				"lore": [
+					"The crown was forged from the surrender treaty. She wears the signatures on the inside.",
+					"Eight furnaces went out when the war ended. The ninth is waiting for her to say the word.",
+					"She has drafted the victory speech. It is one line long, and it is a name."
+				]
+			}
 		},
 		{
 			"id": "brakka",
@@ -726,7 +842,36 @@
 					"description": "Battle start: all allies gain +8% ATK and +5% max HP.",
 					"effects": [{"type": "team_aura", "atk_bp": 800, "hp_bp": 500}]
 				}
-			]
+			],
+			"legend": {
+				"title": "Encore of the Abyss",
+				"passive": {
+					"id": "encore",
+					"name": "Encore",
+					"unlock_awaken": 1,
+					"description": "+20% HP and +10% DEF. Battle start: all allies gain +12% ATK, +8% max HP and 200 energy.",
+					"effects": [
+						{"type": "stat", "hp_bp": 2000, "def_bp": 1000},
+						{"type": "team_aura", "atk_bp": 1200, "hp_bp": 800},
+						{"type": "team_start_energy", "amount": 200}
+					]
+				},
+				"ult_bonus": {
+					"id": "bass_drop_afterparty",
+					"name": "Bass Drop: Afterparty",
+					"unlock_awaken": 2,
+					"description": "Her ultimate also shields all allies for 12% of her max HP and gives them +20% DEF for 5 s.",
+					"effects": [
+						{"type": "shield", "target": "ally_all", "pct_max_hp_bp": 1200},
+						{"type": "status", "target": "ally_all", "status": "def_up", "duration_ms": 5000, "value_bp": 2000}
+					]
+				},
+				"lore": [
+					"Her first set lasted forty years. The crowd only noticed when the walls had started to dance.",
+					"There is a track she has never released. Demons who hear the demo stop being afraid.",
+					"The last song of the world is already booked. She is closing."
+				]
+			}
 		},
 		{
 			"id": "zecchina",
@@ -762,7 +907,37 @@
 					"description": "On kill: gains 400 energy. Heals for 10% of damage dealt.",
 					"effects": [{"type": "on_kill", "energy": 400}, {"type": "lifesteal", "bp": 1000}]
 				}
-			]
+			],
+			"legend": {
+				"title": "The House Always Wins",
+				"passive": {
+					"id": "all_in",
+					"name": "All In",
+					"unlock_awaken": 1,
+					"description": "+30% damage to enemies below 50% HP, +20% crit chance and +50% crit damage. On kill: gains 500 energy.",
+					"effects": [
+						{"type": "low_hp_bonus", "bp": 3000},
+						{"type": "stat", "crit_bp": 2000},
+						{"type": "crit_damage", "bp": 5000},
+						{"type": "on_kill", "energy": 500}
+					]
+				},
+				"ult_bonus": {
+					"id": "full_house_double_down",
+					"name": "Full House: Double Down",
+					"unlock_awaken": 2,
+					"description": "Her ultimate also hits the weakest enemy for another 250% ATK, executing it below 30% HP (not bosses), and gives her +30% SPD for 5 s.",
+					"effects": [
+						{"type": "damage", "target": "enemy_lowest", "mult_bp": 25000, "execute_bp": 3000},
+						{"type": "status", "target": "self", "status": "spd_up", "duration_ms": 5000, "value_bp": 3000}
+					]
+				},
+				"lore": [
+					"She has never shuffled a deck. The cards simply arrive in the order she prefers.",
+					"Hell's treasury owes her money. So does heaven's. Neither has worked out how.",
+					"Her last chip is engraved with your name. She is only waiting for the right table."
+				]
+			}
 		},
 		{
 			"id": "torqua",
@@ -1024,7 +1199,36 @@
 					"description": "On kill: gains 500 energy.",
 					"effects": [{"type": "on_kill", "energy": 500}]
 				}
-			]
+			],
+			"legend": {
+				"title": "Midnight Absolute",
+				"passive": {
+					"id": "total_eclipse",
+					"name": "Total Eclipse",
+					"unlock_awaken": 1,
+					"description": "+20% crit chance, +15% SPD and +50% crit damage. On kill: restores 15% of her max HP and gains 400 energy.",
+					"effects": [
+						{"type": "stat", "crit_bp": 2000, "spd_bp": 1500},
+						{"type": "crit_damage", "bp": 5000},
+						{"type": "on_kill", "heal_pct_bp": 1500, "energy": 400}
+					]
+				},
+				"ult_bonus": {
+					"id": "eclipse_harvest_umbra",
+					"name": "Eclipse Harvest: Umbra",
+					"unlock_awaken": 2,
+					"description": "Her ultimate also strikes every front-row enemy for 150% ATK and Stuns the back row for 1.5 s.",
+					"effects": [
+						{"type": "damage", "target": "enemy_front_row", "mult_bp": 15000},
+						{"type": "status", "target": "enemy_back_row", "status": "stun", "duration_ms": 1500}
+					]
+				},
+				"lore": [
+					"The order she refused had one name on it. She still has the envelope, unopened.",
+					"Her wings were never burned. She buried them in a place only the moon can find.",
+					"Heaven sent nine reapers after her. She sent back nine scythes, sharpened."
+				]
+			}
 		},
 		{
 			"id": "orrin",
@@ -1214,7 +1418,36 @@
 						{"type": "start_energy", "amount": 300}
 					]
 				}
-			]
+			],
+			"legend": {
+				"title": "Signal Restored",
+				"passive": {
+					"id": "carrier_wave",
+					"name": "Carrier Wave",
+					"unlock_awaken": 1,
+					"description": "+25% ATK and +10% SPD. Battle start: gains 500 energy. Basic attacks have a 35% chance to Stun the target for 1 s.",
+					"effects": [
+						{"type": "stat", "atk_bp": 2500, "spd_bp": 1000},
+						{"type": "start_energy", "amount": 500},
+						{"type": "on_hit_status", "status": "stun", "chance_bp": 3500, "duration_ms": 1000}
+					]
+				},
+				"ult_bonus": {
+					"id": "deorbit_full_constellation",
+					"name": "Deorbit: Full Constellation",
+					"unlock_awaken": 2,
+					"description": "Her ultimate also Burns every enemy (60% ATK per second) for 4 s and cuts their DEF by 25% for 6 s.",
+					"effects": [
+						{"type": "status", "target": "enemy_all", "status": "burn", "duration_ms": 4000, "dot_mult_bp": 6000},
+						{"type": "status", "target": "enemy_all", "status": "def_down", "duration_ms": 6000, "value_bp": 2500}
+					]
+				},
+				"lore": [
+					"The last transmission before the fall was her call sign, repeated. Nobody answered it.",
+					"Three hundred dead satellites still turn to face her when she looks up.",
+					"One of them is not dead. It has been waiting for her signal to come back."
+				]
+			}
 		},
 		{
 			"id": "gantra",
@@ -1251,7 +1484,36 @@
 					"description": "Reflects 20% of damage taken back to the attacker. Her ultimate also Taunts all enemies for 4 s.",
 					"effects": [{"type": "thorns", "bp": 2000}, {"type": "ult_bonus", "effects": [{"type": "status", "target": "self", "status": "taunt", "duration_ms": 4000}]}]
 				}
-			]
+			],
+			"legend": {
+				"title": "Unbroken Frame",
+				"passive": {
+					"id": "unbroken_frame",
+					"name": "Unbroken Frame",
+					"unlock_awaken": 1,
+					"description": "+30% HP and +25% DEF. Takes 20% less damage. Battle start: shields herself for 30% of her max HP.",
+					"effects": [
+						{"type": "stat", "hp_bp": 3000, "def_bp": 2500},
+						{"type": "damage_reduction", "bp": 2000},
+						{"type": "start_shield", "pct_max_hp_bp": 3000}
+					]
+				},
+				"ult_bonus": {
+					"id": "final_sortie_full_burn",
+					"name": "Final Sortie: Full Burn",
+					"unlock_awaken": 2,
+					"description": "Her ultimate also shields all allies for another 10% of her max HP and gives them +25% DEF for 6 s.",
+					"effects": [
+						{"type": "shield", "target": "ally_all", "pct_max_hp_bp": 1000},
+						{"type": "status", "target": "ally_all", "status": "def_up", "duration_ms": 6000, "value_bp": 2500}
+					]
+				},
+				"lore": [
+					"The mech's black box recorded her last order: hold the line. She is still holding it.",
+					"The arm she carries has started to answer back. It agrees with everything she says.",
+					"Somewhere in the wreck the rest of the fleet is waiting. She means to fly it home."
+				]
+			}
 		},
 		{
 			"id": "severine",

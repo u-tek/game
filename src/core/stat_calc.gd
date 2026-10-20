@@ -4,9 +4,12 @@ extends RefCounted
 ## and tests. Pure functions, ints only. Growth numbers: data/economy.json "stats".
 ## Golden fixture: data/fixtures/stats.json.
 ##
-##   stat = (base * level_mult * star_mult + gear) * (1 + passive stat bonus)
+##   stat = (base * level_mult * star_mult + gear) * (1 + passive stat bonus + awaken bonus)
 ##   level_mult = 1 + 7% per level above 1, star_mult = 1 + 12% per star above 1
 ##   spd and crit do not scale with level; stars add +1 spd each.
+##   awaken bonus: a Legendary's awakening tier (Progression.awaken_stat_bp) on every stat; crit
+##   is (base + gear + passive crit) * (1 + awaken bonus), capped. Her legend passive (A1) counts
+##   as a passive (HeroKits.active_passives).
 
 # Static initializers read GameData only (see GameData: load-order rule).
 static var LEVEL_GROWTH_BP: int = int(GameData.economy().stats.level_growth_bp)
@@ -34,8 +37,9 @@ static func gear_totals(items: Array) -> Dictionary:
 	return out
 
 
-## Final stats {hp, atk, def, spd, crit} for a hero at this level/stars with this gear.
-static func stats(hero_id: String, level: int, stars: int, gear: Array = []) -> Dictionary:
+## Final stats {hp, atk, def, spd, crit} for a hero at this level/stars with this gear (and
+## awakening tier).
+static func stats(hero_id: String, level: int, stars: int, gear: Array = [], awaken: int = 0) -> Dictionary:
 	var kit := HeroKits.get_kit(hero_id)
 	if kit.is_empty():
 		return {"hp": 0, "atk": 0, "def": 0, "spd": 100, "crit": 0}
@@ -44,16 +48,17 @@ static func stats(hero_id: String, level: int, stars: int, gear: Array = []) -> 
 	var sm := star_mult_bp(stars)
 	var g := gear_totals(gear)
 	var bonus := {"hp_bp": 0, "atk_bp": 0, "def_bp": 0, "spd_bp": 0, "crit_bp": 0}
-	for e in HeroKits.passive_effects(hero_id, stars, "stat"):
+	for e in HeroKits.passive_effects(hero_id, stars, "stat", awaken):
 		for k in bonus:
 			bonus[k] = int(bonus[k]) + int(e.get(k, 0))
+	var aw := Progression.awaken_stat_bp(awaken)
 	var out := {}
 	for k in SCALED:
 		var v: int = int(base[k]) * lm / 10000 * sm / 10000 + int(g[k])
-		out[k] = v * (10000 + int(bonus[k + "_bp"])) / 10000
+		out[k] = v * (10000 + int(bonus[k + "_bp"]) + aw) / 10000
 	var spd: int = int(base.spd) + (maxi(stars, 1) - 1) * SPD_PER_STAR + int(g.spd)
-	out["spd"] = spd * (10000 + int(bonus.spd_bp)) / 10000
-	out["crit"] = mini(int(base.crit) + int(g.crit) + int(bonus.crit_bp), CRIT_CAP_BP)
+	out["spd"] = spd * (10000 + int(bonus.spd_bp) + aw) / 10000
+	out["crit"] = mini((int(base.crit) + int(g.crit) + int(bonus.crit_bp)) * (10000 + aw) / 10000, CRIT_CAP_BP)
 	return out
 
 

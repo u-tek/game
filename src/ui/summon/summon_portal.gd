@@ -2,18 +2,25 @@ extends Control
 ## The press run (the summon charge, in the poster look): a sheet on the matte being printed. A
 ## halftone rosette grows out of its middle as the charge rises, its dot screen turning faster and
 ## faster; a registration target and a ring of ticks spin up around it; the run's number and the
-## count of prints are set huge on the sheet. The ink is the rarity tell (the sequence drives
-## `color`): ink black for Rares only, signal red when an Epic is inside, and for a Legendary
-## (`crackle`) the whole sheet floods signal and the screen prints in black, shaking out of
-## register. `implode` pulls the rosette in just before the burst. Size it to the whole screen and
-## set `center` / `radius`; `count` is the number of prints in the run.
+## count of prints are set huge on the sheet. The ink is the rarity tell, in the rarity language
+## (src/ui/v4/rarity_kit.gd; the sequence drives `color`, `color2` and `ink_name`): ink black for
+## Rares only; violet over a teal copy out of register when an Epic or better is inside (the Epic's
+## two plates); and for a Legendary (`crackle`) the sheet floods gold foil, glinting with the
+## phone's tilt, and the screen prints in black, shaking out of register. `implode` pulls the
+## rosette in just before the burst. Size it to the whole screen and set `center` / `radius`;
+## `count` is the number of prints in the run.
 
 const PK := preload("res://src/ui/v4/poster_kit.gd")
+const RK := preload("res://src/ui/v4/rarity_kit.gd")
 
 var center := Vector2(360, 600)
 var radius := 290.0
 var charge := 0.0
 var color := PK.INK
+## The misregistered copy's ink (teal under an Epic's violet; black otherwise).
+var color2 := PK.INK
+## The ink readout ("BLACK", "VIOLET + TEAL", "BLACK ON GOLD FOIL").
+var ink_name := "BLACK"
 var crackle := 0.0
 var implode := 0.0
 ## Whole-sheet opacity (fades it in at the start).
@@ -23,7 +30,8 @@ var count := 10
 var _t := 0.0
 var _spin := 0.0
 var _sheet: Control
-var _flood: ColorRect
+var _flood: Control
+var _foil: ColorRect
 var _dots: TextureRect
 var _dots2: TextureRect
 var _m1: ShaderMaterial
@@ -47,12 +55,16 @@ func _ready() -> void:
 	_root.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	add_child(_root)
 	_sheet = PK.poster(_root, rect)
-	_flood = ColorRect.new()
-	_flood.color = PK.SIGNAL
+	# The gold foil flood (a Legendary): the whole sheet's foil, shown through a window rising from
+	# the bottom.
+	_flood = Control.new()
+	_flood.name = "FoilFlood"
 	_flood.mouse_filter = MOUSE_FILTER_IGNORE
+	_flood.clip_contents = true
 	_flood.size = Vector2(sw, 0)
 	_flood.position = Vector2(0, sh)
 	_sheet.add_child(_flood)
+	_foil = RK.foil_rect(_flood, Rect2(Vector2.ZERO, Vector2(sw, sh)), "gold", 0, {"glint": 1.2, "sparkle": 1.0, "speed": 0.16})
 	# The giant count of prints, cut off by the sheet's bottom left corner.
 	_giant = PK.giant(_sheet, "×%02d" % count, 230, [[0.0, sw, PK.INK]], Vector2(-12, sh - 196), Vector2(sw, 260), 0.0)
 	for g in _giant:
@@ -118,6 +130,7 @@ func _process(delta: float) -> void:
 	var sh := _sheet.size.y
 	_flood.size = Vector2(_sheet.size.x, sh * flood)
 	_flood.position = Vector2(0, sh * (1.0 - flood))
+	_foil.position = Vector2(0, -sh * (1.0 - flood))
 	# The screen: dots spread out from the middle as the charge rises; the implosion pulls them in.
 	var lift := lerpf(-0.75, 0.25, _ease_out(charge)) - implode * 1.1
 	var ink := color
@@ -126,7 +139,9 @@ func _process(delta: float) -> void:
 	_m1.set_shader_parameter("gain", 1.3 + 0.4 * charge)
 	_m1.set_shader_parameter("angle", 0.5236 + _spin * 0.6)
 	_m1.set_shader_parameter("cell", 11.0 - 3.0 * charge)
-	_m2.set_shader_parameter("ink", Color(PK.INK, 0.85 if flood > 0.0 else 0.35 * charge))
+	# The copy: faint black early on; the Epic's teal plate stands out; black on the gold flood.
+	var teal := clampf((color2.b - color2.r) * 2.0, 0.0, 1.0)
+	_m2.set_shader_parameter("ink", Color(color2, 0.85 if flood > 0.0 else lerpf(0.35 * charge, 0.8, teal)))
 	_m2.set_shader_parameter("lift", lift - 0.1)
 	_m2.set_shader_parameter("angle", 0.26 - _spin * 0.4)
 	_m2.set_shader_parameter("cell", 11.0 - 3.0 * charge)
@@ -138,7 +153,7 @@ func _process(delta: float) -> void:
 	_dots2.scale = Vector2(s, s)
 	var pal := PK.PAPER if flood > 0.5 else PK.INK
 	_pct.text = "CHARGE %03d%%" % int(round(charge * 100.0))
-	_ink_l.text = "INK  %s" % ("BLACK ON SIGNAL" if flood > 0.5 else ("SIGNAL" if color.r > 0.5 else "BLACK"))
+	_ink_l.text = "INK  %s" % ink_name
 	_pct.add_theme_color_override("font_color", PK.INK)
 	_ink_l.add_theme_color_override("font_color", PK.INK)
 	for g in _giant:

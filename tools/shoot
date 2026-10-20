@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Render one screen to a PNG in a phone-shaped window (needs main.gd --shoot support).
 #   tools/shoot <screen> [--res 720x1560] [--out path.png] [--place] [any extra game args...]
-# Extra game args: --fresh | --rich (+ --skins: owned heroes wear a skin, --nudity), --safe-area-sim,
+# Extra game args: --fresh | --rich (+ --skins: owned heroes wear a skin, --nudity, --awaken=seraphiel:3,noctaire:0:
+#   Legendaries at 6 stars and those awakening tiers), --safe-area-sim,
 #   --shoot-params='{"hero_id":"seraphiel"}',
 #   --shoot-wait=2.0, --tilt=-0.45,0.05 (holds the phone tilt: the Legendary foil, the plates), --ldr
 # --place (Windows): holds the window 60 s so the owner can drag it where shots should open; the

@@ -69,12 +69,65 @@ static func star_up_cost(stars: int, shards_have: int, rarity: String) -> Dictio
 		"shards_used": mini(shards_have, need), "dust_per_shard": per}
 
 
-## Adding `n` shards to a hero at `stars` holding `shards_have`: shards beyond what the hero can
-## still use become dust. Returns {shards (new total), dust (granted)}.
-static func add_shards(stars: int, shards_have: int, n: int, rarity: String) -> Dictionary:
-	var usable := maxi(0, shards_to_max(stars) - shards_have)
+## Adding `n` shards to a hero at `stars` (and awakening tier `awaken`) holding `shards_have`:
+## shards beyond what the hero can still use (star-ups, then a Legendary's awakenings) become dust.
+## Returns {shards (new total), dust (granted)}.
+static func add_shards(stars: int, shards_have: int, n: int, rarity: String, awaken: int = 0) -> Dictionary:
+	var usable := maxi(0, shards_usable(stars, awaken, rarity) - shards_have)
 	var keep := mini(n, usable)
 	return {"shards": shards_have + keep, "dust": (n - keep) * dust_per_excess_shard(rarity)}
+
+
+# ---------------------------------------------------------------- awakening (Legendaries)
+## After max stars a Legendary can awaken AWAKEN_SHARDS.size() times (A1-A3). Each tier costs her
+## own shards plus dust (missing shards are covered by dust at dust_per_shard, like star-ups) and
+## gives every stat a bonus (StatCalc); A1 unlocks her legend passive, A2 her empowered ultimate
+## (HeroKits.active_passives), A3 her Ascended title (cosmetic).
+
+## True when heroes of this rarity can awaken.
+static func can_awaken_rarity(rarity: String) -> bool:
+	return EconomyData.AWAKEN_RARITIES.has(rarity)
+
+
+## Highest awakening tier for this rarity (0 = cannot awaken).
+static func max_awaken(rarity: String) -> int:
+	return EconomyData.AWAKEN_SHARDS.size() if can_awaken_rarity(rarity) else 0
+
+
+## Shards a hero at awakening tier `awaken` can still use for awakenings.
+static func awaken_shards_left(awaken: int, rarity: String) -> int:
+	var total := 0
+	for t in range(clampi(awaken, 0, max_awaken(rarity)), max_awaken(rarity)):
+		total += EconomyData.AWAKEN_SHARDS[t]
+	return total
+
+
+## Every shard a hero can still use: star-ups to max stars, then awakenings.
+static func shards_usable(stars: int, awaken: int, rarity: String) -> int:
+	return shards_to_max(stars) + awaken_shards_left(awaken, rarity)
+
+
+## The next awakening for a hero at `stars` and tier `awaken` holding `shards_have`, or {} when her
+## rarity cannot awaken or she is fully awakened: {tier (the one it reaches), shards (needed),
+## dust (base + missing shards * dust_per_shard), dust_base, shards_have, shards_used,
+## dust_per_shard, min_stars, stars_ok}.
+static func awaken_cost(stars: int, awaken: int, shards_have: int, rarity: String) -> Dictionary:
+	if awaken < 0 or awaken >= max_awaken(rarity):
+		return {}
+	var need: int = EconomyData.AWAKEN_SHARDS[awaken]
+	var base: int = EconomyData.AWAKEN_DUST[awaken]
+	var per := dust_per_shard(rarity)
+	var missing := maxi(0, need - shards_have)
+	return {"tier": awaken + 1, "shards": need, "dust": base + missing * per, "dust_base": base,
+		"shards_have": shards_have, "shards_used": mini(shards_have, need), "dust_per_shard": per,
+		"min_stars": EconomyData.AWAKEN_MIN_STARS, "stars_ok": stars >= EconomyData.AWAKEN_MIN_STARS}
+
+
+## Total stat bonus (basis points, on every stat) at awakening tier `awaken` (0 below A1).
+static func awaken_stat_bp(awaken: int) -> int:
+	if awaken <= 0 or EconomyData.AWAKEN_STAT_BP.is_empty():
+		return 0
+	return EconomyData.AWAKEN_STAT_BP[mini(awaken, EconomyData.AWAKEN_STAT_BP.size()) - 1]
 
 
 ## Most levels affordable from `level` (stopping at `cap`) with this gold and hero EXP.

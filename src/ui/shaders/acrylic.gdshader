@@ -23,6 +23,9 @@ uniform float shadow_px = 8.0;
 // 1 = the slab's own tint; 0 = clear.
 uniform float tint = 1.0;
 uniform float lift = 1.0;
+// A faint sheet of light that crosses the slab corner to corner now and then (0 = none, still).
+uniform float sweep = 0.0;
+uniform float sweep_seed = 0.0;
 
 vec3 lin(vec3 s) {
 	s = max(s, vec3(0.0));
@@ -71,5 +74,12 @@ void fragment() {
 	shade /= sw;
 	vec3 bg = behind(SCREEN_UV, frost * smoothstep(0.0, 0.6, cover), SCREEN_PIXEL_SIZE) * shade;
 	vec3 res = bg * mix(vec3(1.0), T.rgb, tint * cover) + L;
+	if (sweep > 0.0) {
+		// On the slab for about a third of a 9 s cycle, slanted like the key light.
+		float pos = fract(TIME / 9.0 + sweep_seed) * 3.2 - 1.1;
+		float dd = (tuv.x * 0.78 + tuv.y * 0.42) - pos;
+		float band = exp(-dd * dd / 0.005) * sweep * cover;
+		res += band * (res * 0.55 + vec3(0.045));
+	}
 	COLOR = vec4(mix(pow(max(res, vec3(0.0)), vec3(1.0 / 2.2)), res, ui_linear), 1.0);
 }

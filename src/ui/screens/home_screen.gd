@@ -7,10 +7,11 @@ extends Control
 ## - her lobby line set huge in compressed type, turned on its side and cut by the poster edge, the
 ##   last word in signal (tap her for another line, she cheers);
 ## - the hero in full colour, boxed by the right-hand rule, where small vertical labels are the
-##   side menu (Daily, Offers, Team, Spire, Shop, Hero, View) with status lights;
-## - stuck on: a rendered coil, the Sanctum stamp on a machined disc (idle rewards: fill, level,
-##   time; tap for the claim sheet), a paper label with the next objective, and the Campaign pass
-##   (next stage, recommended power).
+##   side menu (Daily, Offers, Spire, Rival, Shop, View) with status lights; Heroes and Team live
+##   only in the bottom nav (owner, 2026-10-20: "no need to have them twice");
+## - stuck on: the Sanctum stamp on a machined disc (idle rewards: fill, level, time; tap for the
+##   claim sheet), a paper label with the next objective, and the Campaign pass (next stage,
+##   recommended power). (The rendered coil is gone: owner, 2026-10-20, "useless".)
 ## Under the poster: the date and her signature (tap: her hero page). View hides the stuck-on
 ## pieces and the chrome. Refreshes on Game.changed and once a second.
 ## Physical (PhysicalKit, the owner's references 23 / 24): the poster is real paper (grain lit by the
@@ -32,17 +33,15 @@ const MATTE := SignalKit.MATTE
 const INK := SignalKit.INK
 const SIG := SignalKit.SIGNAL
 const BAND_C := Color("141517")
-## Rendered collage objects (tools/blender/ui_objects.py): the object sits at PAD px inside the PNG
+## Rendered collage object (tools/blender/ui_objects.py): the object sits at PAD px inside the PNG
 ## (the rest is its baked paper shadow), OBJ px across.
-const COIL_TEX := "res://assets/art/ui/objects/coil_ink.png"
-const COIL_PAD := 46.0
-const COIL_OBJ := 480.0
 const DISC_TEX := "res://assets/art/ui/objects/disc.png"
 const DISC_PAD := 23.0
 const DISC_OBJ := 300.0
 const STAMP := 140.0
-const MENU := [["daily", "DAILY"], ["offers", "OFFERS"], ["team", "TEAM"], ["spire", "SPIRE"], ["rival", "RIVAL"],
-	["shop", "SHOP"], ["hero", "HERO"], ["view", "VIEW"]]
+## The side menu. Heroes and Team are only in the bottom nav (her hero page: tap her signature).
+const MENU := [["daily", "DAILY"], ["offers", "OFFERS"], ["spire", "SPIRE"], ["rival", "RIVAL"],
+	["shop", "SHOP"], ["view", "VIEW"]]
 const CK := preload("res://src/ui/v4/collect/collect_kit.gd")
 
 ## Blurred red echoes of hero art, by art key (an Image resize per hero is not free).
@@ -140,9 +139,7 @@ func intro() -> void:
 	_typeset_in(0.05)
 	Kit.offset_in(_bull_slot, Vector2(0, -24), 0.1, 0.45)
 	Kit.offset_in(_bull_tab, Vector2(-30, 0), 0.16, 0.45)
-	if _growth_layer:
-		_growth_layer.modulate.a = 0.0
-		_growth_layer.create_tween().tween_property(_growth_layer, "modulate:a", 1.0, 0.6).set_delay(0.2)
+	# The growths grow out of their corners on their own (PhysicalKit.come_alive).
 	var i := 0
 	for m: Array in MENU:
 		var b := _labels.get(m[0]) as Control
@@ -197,21 +194,8 @@ func _build() -> void:
 	rights.position = Vector2(46, 90)
 	_poster.add_child(rights)
 
-	# The paper's grain re-lights the print under it (the coil and her line sit on top: the coil is
-	# stuck on, the line is pressed in).
+	# The paper's grain re-lights the print under it (her line sits on top: it is pressed in).
 	PhysicalKit.relief(_poster)
-	# The coil, rendered (top right of the paper, cut by the poster's top edge).
-	var coil_tex := load(COIL_TEX) as Texture2D
-	if coil_tex:
-		var k := 250.0 / COIL_OBJ
-		var coil := TextureRect.new()
-		coil.texture = coil_tex
-		coil.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		coil.stretch_mode = TextureRect.STRETCH_SCALE
-		coil.mouse_filter = MOUSE_FILTER_IGNORE
-		coil.size = coil_tex.get_size() * k
-		coil.position = Vector2(BAND + 168, -96) - Vector2(COIL_PAD, COIL_PAD) * k
-		_poster.add_child(coil)
 
 	_type_layer = _layer(_poster, "Type")
 	# The hero, full colour, in front of her line, boxed by the right-hand rule.
@@ -410,8 +394,9 @@ func _build_growth(faction: String) -> void:
 	if faction == _growth_for or _growth_layer == null:
 		return
 	_growth_for = faction
+	# The old faction's growth shrinks back into its corner as the new one grows out.
 	for c in _growth_layer.get_children():
-		c.queue_free()
+		PhysicalKit.wither(c)
 	if faction == "":
 		return
 	# Under the stuck-on pieces (bulletin, its tab, the label): it runs beneath them, never over.
@@ -465,16 +450,12 @@ func _on_menu(id: String) -> void:
 			UI.go("quests")
 		"offers":
 			UI.go("shop", {"tab": 0})
-		"team":
-			UI.go("formation")
 		"spire":
 			UI.go("tower")
 		"rival":
 			UI.go("rival")
 		"shop":
 			UI.go("shop")
-		"hero":
-			_open_hero()
 		"view":
 			_hide_ui()
 
@@ -590,12 +571,11 @@ func _refresh() -> void:
 	_refresh_guide()
 
 
-## First-session guidance: the Sanctum stamp (free quick claim), the Team label and the Campaign
-## pass; the Sanctum sheet marks its Quick Claim button.
+## First-session guidance: the Sanctum stamp (free quick claim) and the Campaign pass; the Sanctum
+## sheet marks its Quick Claim button. Filling the team is pointed at on the nav's Team tab (main.gd).
 func _refresh_guide() -> void:
 	var step := Guide.step()
 	Guide.mark(_stamp_btn, step == "claim", 0)
-	Guide.mark(_labels.get("team") as Control, step == "formation", 0)
 	if _pass_root and is_instance_valid(_pass_root):
 		Guide.mark(_pass_root, step == "battle", 0)
 	var q: Variant = _sheet_refs.get("quick", null)
@@ -610,7 +590,6 @@ func _refresh_badges() -> void:
 		if str(o.get("price_label", "")) == "Free" and bool(o.get("available", false)):
 			gift = true
 	_set_led("offers", gift)
-	_set_led("team", Guide.formation_can_improve())
 	_set_led("rival", Game.rival_alert())
 	_refresh_objective()
 	_refresh_rue_tag()
@@ -734,6 +713,11 @@ func _refresh_objective() -> void:
 func _pick_hero() -> String:
 	if _force_hero != "":
 		return _force_hero
+	return lobby_hero()
+
+
+## The Lobby's hero (the boot screen prints and preloads the same one).
+static func lobby_hero() -> String:
 	var want: Variant = Game.setting(HERO_KEY)
 	if want is String and want != "" and Game.owns(want):
 		return want
@@ -825,15 +809,7 @@ func _build_print(id: String, skin: String, key: String) -> void:
 	ht.size = Vector2(BAND, _ph * 0.76)
 	ht.material = SignalKit.halftone_material(7.0, Color(1.0, 0.36, 0.16, 0.95))
 	_print_layer.add_child(ht)
-	var echo_tex: Texture2D = _echo_cache.get(key)
-	if echo_tex == null:
-		var img := tex.get_image()
-		if img:
-			if img.is_compressed():
-				img.decompress()
-			img.resize(maxi(img.get_width() / 20, 8), maxi(img.get_height() / 20, 8), Image.INTERPOLATE_BILINEAR)
-			echo_tex = ImageTexture.create_from_image(img)
-			_echo_cache[key] = echo_tex
+	var echo_tex := echo_texture(key, tex)
 	if echo_tex:
 		var echo := TextureRect.new()
 		echo.texture = echo_tex
@@ -844,6 +820,21 @@ func _build_print(id: String, skin: String, key: String) -> void:
 		echo.position = Vector2(150, _ph * 0.08)
 		echo.modulate = Color(1.0, 0.3, 0.12, 0.38)
 		_print_layer.add_child(echo)
+
+
+## Her blurred red echo: the art shrunk 20x (cached by art key; an Image resize is not free, so the
+## boot screen makes the Lobby hero's while it loads).
+static func echo_texture(key: String, tex: Texture2D) -> Texture2D:
+	var echo_tex: Texture2D = _echo_cache.get(key)
+	if echo_tex == null and tex:
+		var img := tex.get_image()
+		if img:
+			if img.is_compressed():
+				img.decompress()
+			img.resize(maxi(img.get_width() / 20, 8), maxi(img.get_height() / 20, 8), Image.INTERPOLATE_BILINEAR)
+			echo_tex = ImageTexture.create_from_image(img)
+			_echo_cache[key] = echo_tex
+	return echo_tex
 
 
 ## Sets her line huge, turned on its side: ink over the paper, paper-white over the band, the last

@@ -51,7 +51,7 @@ func _coverage(fx: Dictionary) -> void:
 		var stars := {}
 		for u in b.setup.allies + b.setup.enemies:
 			stars[u.uid] = int(u.stars)
-			for p in HeroKits.active_passives(str(u.hero_id), int(u.stars)):
+			for p in HeroKits.active_passives(str(u.hero_id), int(u.stars), int(u.get("awaken", 0))):
 				for e in p.effects:
 					passives[e.type] = true
 		for e in b.events:

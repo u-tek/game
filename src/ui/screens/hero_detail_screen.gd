@@ -22,6 +22,18 @@ extends Control
 ## WARDROBE (her base look and each skin: thumbnail, Try on / Back to equipped, Wear / Equipped / Buy
 ## / Coming soon). A strip with BACK and POSTER pins to the top once sheet 01 has scrolled away.
 ## Unowned heroes print grey with a Summon pass; there is no armament.
+##
+## A Legendary's page (LegendKit, src/ui/v4/legend_kit.gd; owner, 2026-10-20: "more built out and more
+## powerful. and cooler. with exclusive features") is hot-stamped in gold holo foil that moves with
+## the phone: a LEGEND masthead with her legend title on the matte, a foil frame round the poster, her
+## print in gold, a holo sheen on the band, her faction's growth (thorns or jelly) round her figure and
+## a gold aura once she has awakened; her legend passive on the capsule; past 6 stars the stamp disc
+## becomes AWAKEN. A third sheet, the LEGEND FILE, sits between the poster and the file: three sigil
+## seals (A1 legend passive, A2 empowered ultimate, A3 Ascended), the AWAKEN press with its cost (a big
+## awakening animation, LegendKit.AwakenFx), her two exclusive cards (locked until their tier, with
+## what they need) and three lore lines declassified one per tier. Ascended (A3): her name in gold
+## foil, a crown stamp, a stronger aura with rays. Debug params: fx_awaken (tier) plays the animation,
+## fx_at (s) freezes it at that moment (screenshots).
 
 ## The matte line above the poster: the big Back and the publication line.
 const TOP_LINE := 100.0
@@ -49,6 +61,10 @@ const SIG := Color("ff4b1f")
 const SHORT := Color("c9300d")
 const FACTION_CODE := {"celestial": "CE", "infernal": "IN", "fallen": "FA"}
 const SECTIONS := [["poster", "DOSSIER"], ["equip", "ARMAMENT"], ["skills", "ABILITIES"], ["skins", "WARDROBE"]]
+## A Legendary's matte line is taller (the LEGEND masthead).
+const LEGEND_TOP := 128.0
+## The legend sheet's dark strip with the turned LEGEND type.
+const LEGEND_STRIP := 128.0
 
 ## Base-stat range over every hero (stat dots rate a hero against the roster): stat -> [min, max].
 static var _stat_range := {}
@@ -110,6 +126,21 @@ var _file_sig := ""
 var _section_y := {}
 var _gear_modal: Control
 
+# A Legendary's page (LegendKit).
+var _legend := false
+var _aw := 0
+var _legend_sheet: Control
+var _legend_body: Control
+var _legend_h := 0.0
+var _legend_sig := ""
+var _aw_press: PK.Pass
+var _aw_btn: Button
+var _seals: Array[Control] = []
+var _awaken_fx: Control
+## True from AWAKEN until the animation's flash (the page waits to reprint under it).
+var _awaken_pending := false
+var _fx_params := {}
+
 var _holding := false
 var _hold_t := 0.0
 var _hold_next := 0.0
@@ -131,6 +162,8 @@ func setup(params: Dictionary) -> void:
 		return
 	Roster.mark_seen(_id)
 	_owned = Game.owns(_id)
+	_legend = LegendKit.is_legend(_def)
+	_aw = int(Game.awaken_tier(_id)) if _legend else 0
 	_preview = str(params.get("preview", ""))
 	if _browse.is_empty() or not _browse.has(_id):
 		_browse.clear()
@@ -146,9 +179,14 @@ func setup(params: Dictionary) -> void:
 		_scroll_to.call_deferred(int(params["scroll"]))
 	var want := str(params.get("tab", ""))
 	if want != "":
-		_jump.call_deferred({"equip": "equip", "skills": "skills", "skins": "skins", "story": "poster"}.get(want, "poster"), false)
+		_jump.call_deferred({"equip": "equip", "skills": "skills", "skins": "skins", "story": "poster",
+			"legend": "legend" if _legend else "poster"}.get(want, "poster"), false)
 	if str(params.get("show", "")) != "":
 		_open_gear_picker.call_deferred(str(params["show"]))
+	if _legend and params.has("fx_awaken"):
+		# Screenshots: play the awakening animation for this tier (nothing changes in the save).
+		_fx_params = {"tier": clampi(int(params["fx_awaken"]), 1, 3), "at": float(params.get("fx_at", -1.0))}
+		_debug_fx.call_deferred()
 
 
 ## Screenshot/testing helper (params.scroll): scroll the dossier once laid out.
@@ -162,6 +200,8 @@ func _scroll_to(px: int) -> void:
 func _exit_tree() -> void:
 	if Game.changed.is_connected(_refresh):
 		Game.changed.disconnect(_refresh)
+	if _awaken_fx and is_instance_valid(_awaken_fx):
+		_awaken_fx.queue_free()
 	if _gear_modal and is_instance_valid(_gear_modal):
 		UI.close_modal(_gear_modal)
 
@@ -182,15 +222,20 @@ func _on_resized() -> void:
 func _rebuild() -> void:
 	var keep := _scroll.scroll_vertical if is_instance_valid(_scroll) else 0
 	for c in get_children():
+		if c == _awaken_fx:
+			continue
 		remove_child(c)
 		c.queue_free()
 	_arrows.clear()
 	_stat_cells.clear()
 	_index.clear()
+	_seals.clear()
 	_stats_sig = ""
 	_capsule_sig = ""
 	_file_sig = ""
+	_legend_sig = ""
 	_power_value = -1
+	_aw = int(Game.awaken_tier(_id)) if _legend else 0
 	_build()
 	_refresh()
 	_scroll_to.call_deferred(keep)
@@ -239,6 +284,8 @@ func _build() -> void:
 	add_child(_scroll)
 	_scroll.get_v_scroll_bar().value_changed.connect(func(_v: float) -> void: _on_scrolled())
 	_build_poster()
+	if _legend:
+		_build_legend_sheet()
 	_build_file_sheet()
 	_fx = Control.new()
 	_fx.name = "Fx"
@@ -258,12 +305,16 @@ func _build_poster() -> void:
 	_back_btn = SignalKit.back_button(func() -> void: UI.back())
 	_back_btn.position = Vector2(4, 0)
 	_sheet.add_child(_back_btn)
-	var pub := PK.t("HALO & HORN  ©2026  ·  DOSSIER %s" % _code(), 12, Color(INK, 0.7), "mono")
-	pub.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	pub.size = Vector2(440, 16)
-	PK.at(_sheet, pub, Vector2(w - 20 - 440, 40))
+	var top := LEGEND_TOP if _legend else TOP_LINE
+	if _legend:
+		_build_masthead(w)
+	else:
+		var pub := PK.t("HALO & HORN  ©2026  ·  DOSSIER %s" % _code(), 12, Color(INK, 0.7), "mono")
+		pub.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		pub.size = Vector2(440, 16)
+		PK.at(_sheet, pub, Vector2(w - 20 - 440, 40))
 
-	var pr := Rect2(18, TOP_LINE, w - 36, _sheet_h - TOP_LINE - FOOT_H)
+	var pr := Rect2(18, top, w - 36, _sheet_h - top - FOOT_H)
 	_poster = PK.poster(_sheet, pr)
 	var p := _poster
 	var pw := pr.size.x
@@ -271,10 +322,13 @@ func _build_poster() -> void:
 
 	# ---- The band: her red halftone print, brand marks, title and bio in paper type.
 	PK.rect(p, Rect2(0, 0, BAND, ph), PK.BAND)
-	var ht := PK.halftone_print(_id, skin, Vector2(BAND, ph * 0.58), 7.0, PK.PRINT, 1.25)
+	var ht := PK.halftone_print(_id, skin, Vector2(BAND, ph * 0.58), 7.0, LegendKit.GOLD_PRINT if _legend else PK.PRINT, 1.25)
 	ht.position = Vector2(0, ph * 0.42)
 	p.add_child(ht)
-	PK.at(p, PK.t("HH", 34, PAPER, "wide_black"), Vector2(20, 16))
+	if _legend:
+		# Hot-stamped holo: a glint that slides across the band as the phone tilts.
+		LegendKit.foil_rect(p, Rect2(0, 0, BAND, ph), 2, {"strength": 0.45, "band_px": 300.0}).name = "BandSheen"
+	PK.at(p, LegendKit.foil_label("HH", 34, "wide_black", "gold", {"band_px": 120.0}) if _legend else PK.t("HH", 34, PAPER, "wide_black"), Vector2(20, 16))
 	PK.at(p, PK.t("™", 12, PAPER, "mono"), Vector2(84, 18))
 	PK.at(p, PK.t("No.\n%02d" % _number(), 12, Color(PAPER, 0.85), "mono_bold"), Vector2(20, 72))
 	PK.at(p, PK.t(_print_date(), 12, Color(PAPER, 0.85), "mono_bold"), Vector2(64, 78))
@@ -304,8 +358,13 @@ func _build_poster() -> void:
 	var fs := clampi(int(240.0 * (pw - RULE_IN - 40.0) / maxf(PK.text_w(nm + ".", 240), 1.0)), 110, 300)
 	var bb := "%s[color=#%s].[/color]" % [nm, SIG.to_html(false)]
 	var name_y := ph * 0.45 - fs * 0.62
+	if _legend and _owned and _aw >= 1:
+		_build_legend_glow(p, Vector2(BAND + 262, ph + 10), ph * 0.82)
 	PK.giant(p, bb, fs, Vector2(14, name_y), Vector2(pw * 1.4, fs * 1.4),
 		[[Rect2(0, 0, BAND, ph), PAPER], [Rect2(BAND, 0, pw - BAND - RULE_IN, ph), INK]], 0, "compressed", false)
+	if _legend and _aw >= 3:
+		# Ascended: her name stamped in gold foil (bright on the band, deep gold on the paper).
+		_foil_giant(p.get_child(p.get_child_count() - 1))
 
 	# ---- The hero, full colour, in front of her name, boxed by the right-hand rule.
 	_box = Control.new()
@@ -319,6 +378,8 @@ func _build_poster() -> void:
 	var echo := PK.echo(_id, skin, _fig_h * 1.14, 0.36 if _owned else 0.16)
 	echo.position = Vector2(feet.x - echo.size.x * 0.5 + 96, feet.y - echo.size.y - 30)
 	_box.add_child(echo)
+	if _legend:
+		_build_legend_figure(feet, pw, ph)
 	_anchor = Node2D.new()
 	_anchor.name = "HeroAnchor"
 	_anchor.position = feet
@@ -408,8 +469,8 @@ func _build_poster() -> void:
 	_capsule = Control.new()
 	_capsule.name = "Capsule"
 	_capsule.mouse_filter = MOUSE_FILTER_IGNORE
-	_capsule.position = pr.position + Vector2(14, ph - 316)
-	_capsule.size = Vector2(minf(400.0, pw - RULE_IN - 40.0), 116)
+	_capsule.position = pr.position + Vector2(14, ph - (358 if _legend else 316))
+	_capsule.size = Vector2(minf(400.0, pw - RULE_IN - 40.0), 158 if _legend else 116)
 	_sheet.add_child(_capsule)
 	if _owned:
 		_star_disc = SignalKit.plate("silver", pr.position + Vector2(20, ph - 172), Vector2(112, 112), {"circle": true, "shadow": 0.5}, _sheet)
@@ -452,6 +513,11 @@ func _build_poster() -> void:
 	_pass.position = Vector2(pr.end.x - 404, pr.end.y - 176)
 	_pass.rotation = -0.03
 	_sheet.add_child(_pass)
+	if _legend:
+		# A foil frame round the whole poster (hot-stamped; she stands in front of it).
+		LegendKit.foil_rect(p, Rect2(0, 0, pw, ph), 1, {"inset": 9.0, "frame_w": 3.0, "band_px": 340.0}).name = "FoilFrame"
+		if _aw >= 3:
+			_stamp_crown(pr, name_y, fs)
 
 	# ---- Under the poster: the file index, the date and her signature.
 	var nav_y := pr.end.y + 18.0
@@ -460,6 +526,8 @@ func _build_poster() -> void:
 		if str(s[0]) == "equip" and not _owned:
 			continue
 		items.append(s)
+		if _legend and str(s[0]) == "poster":
+			items.append(["legend", "LEGEND"])
 	var colw := (w - 40.0) / items.size()
 	_index.clear()
 	for i in items.size():
@@ -531,6 +599,8 @@ func _text_button(parent: Control, r: Rect2, text: String, size_px: int, cb: Cal
 ## Sheet 02: a second poster with a band, a giant "02" and the file's three parts.
 func _build_file_sheet() -> void:
 	var y2 := _sheet_h + 8.0
+	if _legend and _legend_sheet:
+		y2 = _legend_sheet.position.y + _legend_h + 26.0
 	var pw := _w - 36.0
 	_file_shadow = Panel.new()
 	_file_shadow.mouse_filter = MOUSE_FILTER_IGNORE
@@ -556,10 +626,12 @@ func _build_file_sheet() -> void:
 	ht.position = Vector2(pw * 0.5, 0)
 	fp.add_child(ht)
 	PK.at(fp, PK.t("HH", 26, PAPER, "wide_black"), Vector2(20, 16))
-	PK.at(fp, PK.t("FILE 02 / 02\n%s  ·  %s" % [_code(), str(_def.get("name", _id)).to_upper()], 12, Color(PAPER, 0.85), "mono_bold"), Vector2(20, 56))
+	var fno := "03 / 03" if _legend else "02 / 02"
+	PK.at(fp, PK.t("FILE %s\n%s  ·  %s" % [fno, _code(), str(_def.get("name", _id)).to_upper()], 12, Color(PAPER, 0.85), "mono_bold"), Vector2(20, 56))
 	PK.at(fp, PK.t("ARMAMENT · ABILITIES · WARDROBE", 11, Color(PAPER, 0.6), "mono"), Vector2(20, bh - 28))
 	# A giant "02", paper on the band and ink below it.
-	PK.giant(fp, "02", 280, Vector2(pw - PK.text_w("02", 280) - 30, bh - 196), Vector2(420, 330),
+	var big := "03" if _legend else "02"
+	PK.giant(fp, big, 280, Vector2(pw - PK.text_w(big, 280) - 30, bh - 196), Vector2(420, 330),
 		[[Rect2(0, 0, pw, bh), PAPER], [Rect2(0, bh, pw, 400), INK]], 0, "compressed", false)
 	_file = VBoxContainer.new()
 	_file.name = "File"
@@ -580,6 +652,8 @@ func _fit_file() -> void:
 	_file_poster.size.y = h
 	_page.custom_minimum_size.y = _file_poster.position.y + h + 40.0
 	_section_y["poster"] = 0.0
+	if _legend and _legend_sheet:
+		_section_y["legend"] = _legend_sheet.position.y - 100.0
 	for c in _file.get_children():
 		var key := str(c.get_meta("section", ""))
 		if key != "":
@@ -600,7 +674,7 @@ func _build_sticky() -> void:
 	b.name = "StickyBack"
 	b.position = Vector2(_ox + 4, 0)
 	_sticky.add_child(b)
-	var mid := PK.t("%s  ·  %s  ·  FILE 02" % [str(_def.get("name", _id)).to_upper(), _code()], 12, Color(INK, 0.7), "mono")
+	var mid := PK.t("%s  ·  %s  ·  %s" % [str(_def.get("name", _id)).to_upper(), _code(), "LEGEND FILE" if _legend else "FILE 02"], 12, Color(INK, 0.7), "mono")
 	mid.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mid.size = Vector2(_w - 380, 16)
 	PK.at(_sticky, mid, Vector2(_ox + 190, 40))
@@ -715,6 +789,8 @@ func _refresh() -> void:
 		_refresh_level(level, cap)
 		_refresh_stars(stars)
 	_refresh_capsule(stars)
+	if _legend:
+		_refresh_legend()
 	if _gear_led:
 		var better := false
 		var hg: Dictionary = h.get("gear", {})
@@ -815,6 +891,18 @@ func _refresh_level(level: int, cap: int) -> void:
 
 func _refresh_stars(stars: int) -> void:
 	var c := Game.star_up_cost(_id)
+	if c.is_empty() and _legend:
+		# Past max stars a Legendary's disc is her awakening: tap for the legend file.
+		var ac := Game.awaken_cost(_id)
+		if ac.is_empty():
+			_star_stamp.set("label", "ASCENDED · AWAKENED A3 · LEGEND · ")
+			_star_stamp.set("value", "A3")
+		else:
+			_star_stamp.set("label", "AWAKEN · A%d · SHARDS %d/%d · " % [int(ac.tier), mini(int(ac.shards_have), int(ac.shards)), int(ac.shards)])
+			_star_stamp.set("value", "A%d" % _aw)
+		_star_btn.disabled = false
+		_star_stamp.queue_redraw()
+		return
 	if c.is_empty():
 		_star_stamp.set("label", "STARS · MAXED · %d OF %d · " % [stars, Kit.MAX_STARS])
 		_star_stamp.set("value", "%d★" % stars if Kit.font("wide_black").has_char(0x2605) else "%d/%d" % [stars, Kit.MAX_STARS])
@@ -834,7 +922,7 @@ func _refresh_stars(stars: int) -> void:
 
 ## The abilities capsule on the poster: "/ ULTIMATE > ..." and "/ PASSIVE > ..." blocks.
 func _refresh_capsule(stars: int) -> void:
-	var sig := "%d|%s" % [stars, _owned]
+	var sig := "%d|%s|%d" % [stars, _owned, _aw]
 	if sig == _capsule_sig:
 		return
 	_capsule_sig = sig
@@ -874,7 +962,17 @@ func _refresh_capsule(stars: int) -> void:
 		pn.clip_text = true
 		PK.at(_capsule, pn, Vector2(lw + 12, y + 15))
 		y += 42.0
-	var hb := _hit(_capsule, Rect2(Vector2.ZERO, cs), _jump.bind("skills", true))
+	if _legend:
+		# Her legend passive (A1), in deep gold once awakened.
+		var lp: Dictionary = (_def.legend as Dictionary).get("passive", {})
+		var on2 := _owned and _aw >= 1
+		var col2 := LegendKit.GOLD_DEEP if on2 else Color(INK, 0.45)
+		PK.at(_capsule, PK.t("/ LEGEND  ·  A1", 10, col2, "mono_bold"), Vector2(lw + 12, y))
+		var ln := PK.t("> " + str(lp.get("name", "")).to_upper() + ("" if on2 else "  (LOCKED)"), 12, col2, "mono_bold")
+		ln.size = Vector2(cs.x - lw - 30, 16)
+		ln.clip_text = true
+		PK.at(_capsule, ln, Vector2(lw + 12, y + 15))
+	var hb := _hit(_capsule, Rect2(Vector2.ZERO, cs), _jump.bind("legend" if _legend else "skills", true))
 	hb.name = "CapsuleHit"
 	Kit.add_press_fx(hb, pill)
 
@@ -882,8 +980,8 @@ func _refresh_capsule(stars: int) -> void:
 # ------------------------------------------------------------------ sheet 02 (the file)
 
 func _refresh_file() -> void:
-	var sig := "%s|%s|%s|%s|%s|%s" % [_owned, JSON.stringify(Game.hero(_id).get("gear", {})), JSON.stringify(Game.gear_items()),
-		JSON.stringify(Game.skins_for(_id)), Game.currency("gems"), _preview]
+	var sig := "%s|%s|%s|%s|%s|%s|%d" % [_owned, JSON.stringify(Game.hero(_id).get("gear", {})), JSON.stringify(Game.gear_items()),
+		JSON.stringify(Game.skins_for(_id)), Game.currency("gems"), _preview, _aw]
 	sig += str(Game.hero(_id).get("stars", 0))
 	if sig == _file_sig:
 		return
@@ -1069,7 +1167,11 @@ func _build_abilities() -> void:
 	for pas: Dictionary in passives:
 		if _owned and stars >= int(pas.unlock_stars):
 			on_n += 1
-	var v := _section("skills", "ABILITIES", "%d / %d ACTIVE" % [1 + on_n, 1 + passives.size()])
+	var total := 1 + passives.size()
+	if _legend:
+		total += 2
+		on_n += (1 if _owned and _aw >= 1 else 0) + (1 if _owned and _aw >= 2 else 0)
+	var v := _section("skills", "ABILITIES", "%d / %d ACTIVE" % [1 + on_n, total])
 	var cap := PanelContainer.new()
 	cap.mouse_filter = MOUSE_FILTER_IGNORE
 	var sb := StyleBoxFlat.new()
@@ -1091,6 +1193,14 @@ func _build_abilities() -> void:
 		var on := _owned and stars >= int(pas.unlock_stars)
 		var head := "/ PASSIVE  ·  UNLOCKED" if on else "/ PASSIVE  ·  UNLOCKS AT %d STARS" % int(pas.unlock_stars)
 		col.add_child(_ability(head, str(pas.name), str(pas.description), on))
+	if _legend:
+		var lg: Dictionary = _def.legend
+		for i in 2:
+			var part: Dictionary = lg.get("passive" if i == 0 else "ult_bonus", {})
+			var on3 := _owned and _aw >= i + 1
+			var kind := "LEGEND PASSIVE" if i == 0 else "EMPOWERED ULTIMATE"
+			var head3 := "/ %s  ·  %s" % [kind, "AWAKENED" if on3 else "UNLOCKS AT AWAKENING A%d" % (i + 1)]
+			col.add_child(_ability(head3, str(part.get("name", "")), str(part.get("description", "")), on3))
 	v.add_child(cap)
 
 
@@ -1359,6 +1469,9 @@ func _do_level(n: int, quiet: bool) -> bool:
 
 func _on_star_up() -> void:
 	var c := Game.star_up_cost(_id)
+	if c.is_empty() and _legend:
+		_jump("legend", true)
+		return
 	if c.is_empty():
 		return
 	if not Game.can_star_up(_id):
@@ -1500,6 +1613,515 @@ func _close_gear_modal() -> void:
 	if _gear_modal and is_instance_valid(_gear_modal):
 		UI.close_modal(_gear_modal)
 	_gear_modal = null
+
+
+# ------------------------------------------------------------------ the Legendary page
+
+## The LEGEND masthead on the matte line: LEGEND in foil, the three tier seals, her legend title.
+func _build_masthead(w: float) -> void:
+	var lg: Dictionary = _def.legend
+	var word := LegendKit.foil_label("LEGEND", 86, "compressed", "deep", {"band_px": 220.0})
+	word.name = "Masthead"
+	var ww := PK.text_w("LEGEND", 86)
+	PK.at(_sheet, word, Vector2(w - 22 - ww, 2))
+	# Three small seals, lit up to her tier, left of the word.
+	for i in 3:
+		var sm := LegendKit.seal(i + 1, "lit" if _owned and _aw > i else "locked", 34.0)
+		sm.mini = true
+		PK.at(_sheet, sm, Vector2(w - 34 - ww - (3 - i) * 40.0, 34))
+		if not (_owned and _aw > i):
+			sm.modulate = Color(0.1, 0.1, 0.1, 0.5)
+	var title := ("ASCENDED  ·  " if _aw >= 3 else "") + str(lg.get("title", "")).to_upper()
+	var line := PK.t("%s  ·  A%d / 3  ·  %s" % [title, _aw, _code()], 12, Color(INK, 0.78), "mono_bold")
+	line.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	line.size = Vector2(w - 220, 16)
+	PK.at(_sheet, line, Vector2(198, 92))
+	LegendKit.foil_rect(_sheet, Rect2(198, 114, w - 220, 2), 0, {"band_px": 200.0}, "deep").name = "MastRule"
+
+
+## Once she has awakened, a gold aura printed behind her (and her name): stronger, with rays, when
+## she has Ascended.
+func _build_legend_glow(p: Control, feet: Vector2, fig_h: float) -> void:
+	var side := fig_h * (1.15 if _aw >= 3 else 0.95)
+	var c := Vector2(feet.x + 10, feet.y - fig_h * 0.6)
+	var holder := Control.new()
+	holder.name = "LegendGlow"
+	holder.mouse_filter = MOUSE_FILTER_IGNORE
+	holder.clip_contents = true
+	holder.position = Vector2(BAND, 0)
+	holder.size = Vector2(p.size.x - BAND - RULE_IN, p.size.y)
+	p.add_child(holder)
+	if _aw >= 3:
+		var r := LegendKit.rays(side * 1.3, 0.16)
+		r.position = c - Vector2(BAND, 0) - r.size * 0.5
+		holder.add_child(r)
+	var a := LegendKit.aura(Vector2(side, side), 0.66 if _aw >= 3 else 0.44)
+	a.position = c - Vector2(BAND, 0) - a.size * 0.5
+	holder.add_child(a)
+
+
+## Behind her on the poster: her faction's growth round the figure (a corner by the dossier data, one
+## at her feet).
+func _build_legend_figure(feet: Vector2, pw: float, ph: float) -> void:
+	var faction := str(_def.get("faction", "celestial"))
+	var ppu := clampf(pw / 11.5, 46.0, 64.0)
+	var g1 := PhysicalKit.growth(faction, "tr", _box, Vector2(pw - RULE_IN - 30.0, 250.0), ppu)
+	var g2 := PhysicalKit.growth(faction, "bl", _box, Vector2(BAND - 18.0, ph - 4.0), ppu * 1.08)
+	for g: Control in [g1, g2]:
+		if g:
+			g.name = "Growth"
+
+
+## Paints the giant name's two copies (the band's and the paper's) in foil.
+func _foil_giant(host: Node) -> void:
+	var i := 0
+	for clip in host.get_children():
+		for rt in clip.get_children():
+			if rt is RichTextLabel:
+				(rt as RichTextLabel).add_theme_color_override("default_color", Color.WHITE)
+				rt.material = LegendKit.foil_material(0, "gold" if i == 0 else "ink", {"band_px": 520.0})
+		i += 1
+
+
+## The Ascended crown stamp, pressed onto the poster beside her name.
+func _stamp_crown(pr: Rect2, name_y: float, fs: int) -> void:
+	var st := LegendKit.CrownStamp.new()
+	st.label = "ASCENDED · %s · " % str(_def.legend.get("title", "")).to_upper()
+	st.size = Vector2(150, 150)
+	st.pivot_offset = st.size * 0.5
+	st.rotation = -0.22
+	st.name = "CrownStamp"
+	# On the open paper between the stat row and her name, left of the dossier lines.
+	st.position = pr.position + Vector2(BAND + 22.0, clampf(name_y - 150.0, 116.0, 220.0))
+	_sheet.add_child(st)
+
+
+## Sheet 02 of a Legendary: the LEGEND FILE on dark felt (built once; its height never changes).
+func _build_legend_sheet() -> void:
+	var pw := _w - 36.0
+	# The sheet first (its print goes on in the tree: labels only know their fonts there), then cut to
+	# the printed height.
+	_legend_sheet = PhysicalKit.sheet(_sheet, Rect2(18, _sheet_h + 26.0, pw, 2000.0), LegendKit.FELT, 0.34, {"relief": false})
+	_legend_sheet.name = "LegendSheet"
+	var body := Control.new()
+	body.name = "LegendBody"
+	body.mouse_filter = MOUSE_FILTER_IGNORE
+	_legend_sheet.add_child(body)
+	_legend_h = _fill_legend(body, pw)
+	body.size = Vector2(pw, _legend_h)
+	_legend_sheet.size.y = _legend_h
+	var holder: Control = _legend_sheet.get_meta("shadow")
+	holder.size.y = _legend_h
+	var paper: ColorRect = _legend_sheet.get_meta("paper")
+	paper.size = _legend_sheet.size + Vector2(PhysicalKit.MARGIN, PhysicalKit.MARGIN) * 2.0
+	(paper.material as ShaderMaterial).set_shader_parameter("rect_size", paper.size)
+	_legend_body = body
+	_legend_sig = _legend_state_sig()
+
+
+func _legend_state_sig() -> String:
+	var h := Game.hero(_id)
+	return "%s|%d|%d|%d|%d" % [_owned, _aw, int(h.get("stars", 0)), int(h.get("shards", 0)), Game.currency("dust")]
+
+
+## Game changed: a new tier rebuilds the page (the awakening animation does it under its flash);
+## new shards or dust reprint the legend file.
+func _refresh_legend() -> void:
+	if _legend_sheet == null:
+		return
+	var now := int(Game.awaken_tier(_id))
+	if now != _aw:
+		if not _awaken_pending and not (_awaken_fx and is_instance_valid(_awaken_fx)):
+			_rebuild.call_deferred()
+		return
+	var sig := _legend_state_sig()
+	if sig == _legend_sig:
+		return
+	_legend_sig = sig
+	var body := Control.new()
+	body.name = "LegendBody"
+	body.mouse_filter = MOUSE_FILTER_IGNORE
+	var at := _legend_body.get_index()
+	_legend_sheet.remove_child(_legend_body)
+	_legend_body.queue_free()
+	_legend_sheet.add_child(body)
+	_legend_sheet.move_child(body, at)
+	var h := _fill_legend(body, _legend_sheet.size.x)
+	body.size = Vector2(_legend_sheet.size.x, h)
+	_legend_body = body
+	if absf(h - _legend_h) > 1.0:
+		_rebuild.call_deferred()
+
+
+## Prints the legend file into `b` (pw wide); returns its height.
+func _fill_legend(b: Control, pw: float) -> float:
+	var lg: Dictionary = _def.legend
+	var nm := str(_def.get("name", _id)).to_upper()
+	var x0 := LEGEND_STRIP + 26.0
+	var cw := pw - x0 - 26.0
+	var gold := Color(1.0, 0.84, 0.5)
+	var dim := Color(PAPER, 0.38)
+	_seals.clear()
+	_aw_press = null
+	_aw_btn = null
+	# ---- The strip down the left: LEGEND turned, in foil, and her name in micro type.
+	PK.rect(b, Rect2(0, 0, LEGEND_STRIP, 4000), Color("1f2024"))
+	LegendKit.foil_rect(b, Rect2(LEGEND_STRIP - 2, 0, 2, 4000), 0, {"band_px": 400.0})
+	var lw := LegendKit.foil_label("LEGEND", 168, "compressed", "gold", {"band_px": 420.0})
+	lw.rotation = PI * 0.5
+	PK.at(b, lw, Vector2(LEGEND_STRIP + 18, 22))
+	var rep_t := PK.vlabel(("%s  ·  LEGEND FILE  ·  " % nm).repeat(10), 10, Color(PAPER, 0.3), "mono_bold")
+	PK.at(b, rep_t, Vector2(14, 640))
+	var y := 30.0
+	# ---- Head: kicker, her legend title, her state.
+	PK.at(b, PK.t("FILE 02 / 03  ·  LEGEND FILE  ·  %s" % _code(), 12, Color(PAPER, 0.6), "mono_bold"), Vector2(x0, y))
+	y += 26.0
+	var tt := str(lg.get("title", "")).to_upper()
+	# One line, as big as fits (up to 64 px).
+	var tfs := clampi(int(64.0 * cw / maxf(PK.text_w(tt, 64), 1.0)), 30, 64)
+	var title: Label
+	if _aw >= 3:
+		title = LegendKit.foil_label(tt, tfs, "compressed", "gold", {"band_px": 300.0})
+	else:
+		title = PK.t(tt, tfs, PAPER, "compressed")
+	PK.at(b, title, Vector2(x0, y))
+	y += title.get_minimum_size().y + 2.0
+	var state := "NOT YET SUMMONED" if not _owned else ("ASCENDED  ·  AWAKENED A3 OF 3" if _aw >= 3 else ("AWAKENED A%d OF 3" % _aw if _aw > 0 else "NOT YET AWAKENED"))
+	var st_line := "%s  ·  %s  ·  %s ALL STATS" % [nm, state, LegendKit.bonus_text(_aw)] if _aw > 0 else "%s  ·  %s  ·  AWAKENS AT %d STARS" % [nm, state, EconomyData.AWAKEN_MIN_STARS]
+	var stl := PK.t(st_line, 12, gold, "mono_bold")
+	stl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	stl.size = Vector2(cw, 0)
+	PK.at(b, stl, Vector2(x0, y))
+	y += stl.get_minimum_size().y + 16.0
+	LegendKit.foil_rect(b, Rect2(x0, y, cw, 2), 0, {"band_px": 260.0})
+	y += 26.0
+	# ---- Awakening: three seals, the press.
+	y = _legend_head(b, x0, y, cw, "AWAKENING", "TIER %d / 3" % _aw)
+	var side := floorf(minf(150.0, (cw - 48.0) / 3.0))
+	var gap := (cw - side * 3.0) / 2.0
+	var cost := Game.awaken_cost(_id)
+	for i in 3:
+		var stt := "lit" if _owned and _aw > i else ("next" if _owned and _aw == i and not cost.is_empty() and bool(cost.stars_ok) else "locked")
+		var sl := LegendKit.seal(i + 1, stt, side)
+		sl.name = "Seal%d" % (i + 1)
+		PK.at(b, sl, Vector2(x0 + i * (side + gap), y))
+		_seals.append(sl)
+		var cap := PK.t("%s\n%s" % [Kit.roman(i + 1), LegendKit.UNLOCKS[i]], 10, gold if stt == "lit" else (Color(PAPER, 0.75) if stt == "next" else dim), "mono_bold")
+		cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cap.size = Vector2(side + gap * 0.8, 30)
+		PK.at(b, cap, Vector2(x0 + i * (side + gap) - gap * 0.4, y + side + 8))
+	y += side + 52.0
+	_aw_press = PK.make_press(cw)
+	_aw_press.name = "AwakenPress"
+	_aw_btn = _aw_press.hit
+	_aw_btn.name = "Awaken"
+	_aw_btn.text = "Awaken"
+	for k: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_disabled_color", "font_hover_pressed_color"]:
+		_aw_btn.add_theme_color_override(k, Color(0, 0, 0, 0))
+	Kit._connect_pressed(_aw_btn, _on_awaken)
+	PK.at(b, _aw_press, Vector2(x0, y))
+	_print_press(cost)
+	y += 190.0
+	var how := PK.t("Shards come from her duplicates. Dust covers any missing shard (%d each)." % Progression.dust_per_shard("legendary"), 12, dim, "mono")
+	how.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	how.size = Vector2(cw, 0)
+	PK.at(b, how, Vector2(x0, y))
+	y += how.get_minimum_size().y + 30.0
+	# ---- Her two exclusive cards.
+	y = _legend_head(b, x0, y, cw, "EXCLUSIVE", "LEGENDARY ONLY")
+	for i in 2:
+		var part: Dictionary = lg.get("passive" if i == 0 else "ult_bonus", {})
+		y += _legend_card(b, Rect2(x0 - 4, y, cw + 8, 0), i, part) + 22.0
+	y += 10.0
+	# ---- The legend file: three lines, declassified one per tier.
+	var lore: Array = lg.get("lore", [])
+	y = _legend_head(b, x0, y, cw, "LEGEND FILE", "%d / %d DECLASSIFIED" % [mini(_aw, lore.size()) if _owned else 0, lore.size()])
+	y += _lore_sheet(b, Rect2(x0 - 4, y, cw + 8, 0), lore) + 34.0
+	# ---- End of the file.
+	PK.rule(b, Vector2(x0, y), Vector2(cw, 1), Color(PAPER, 0.3))
+	y += 18.0
+	PK.at(b, SignalKit.barcode(Vector2(140, 30), Color(PAPER, 0.7), (_id + "legend").hash() & 0xffff), Vector2(x0, y))
+	PK.at(b, PK.t("END OF LEGEND FILE\n%s  ·  %s" % [_code(), _print_date()], 11, Color(PAPER, 0.6), "mono_bold"), Vector2(x0 + 156, y))
+	var sig := LegendKit.foil_label(str(_def.get("name", _id)), 50, "serif_italic", "gold", {"band_px": 200.0})
+	sig.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	sig.size = Vector2(240, 60)
+	PK.at(b, sig, Vector2(x0 + cw - 240, y - 14))
+	y += 72.0
+	return y
+
+
+## A section head on the felt: "/ NAME", a hairline, a note on the right. Returns the next y.
+func _legend_head(b: Control, x0: float, y: float, cw: float, title_text: String, note: String) -> float:
+	var t := PK.t("/ " + title_text, 15, PAPER, "mono_bold")
+	PK.at(b, t, Vector2(x0, y))
+	var tw := PK.text_w("/ " + title_text, 15, "mono_bold")
+	var nt := PK.t(note, 11, Color(PAPER, 0.5), "mono")
+	nt.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	nt.size = Vector2(240, 16)
+	PK.at(b, nt, Vector2(x0 + cw - 240, y + 3))
+	var nw := PK.text_w(note, 11, "mono")
+	PK.rule(b, Vector2(x0 + tw + 12, y + 10), Vector2(maxf(cw - tw - nw - 34, 10.0), 1), Color(PAPER, 0.3))
+	return y + 38.0
+
+
+## The AWAKEN press's readouts for the next tier (or the state when she can't).
+func _print_press(cost: Dictionary) -> void:
+	if _aw_press == null:
+		return
+	var h := Game.hero(_id)
+	if not _owned:
+		_aw_press.set_text("AWAKENING // LOCKED", "NOT SUMMONED", "SUMMON HER, THEN STAR HER TO %d" % EconomyData.AWAKEN_MIN_STARS, "AWAKEN", "")
+		_aw_press.set_live(false)
+		_aw_press.set_knob("", "", false)
+		return
+	if cost.is_empty():
+		_aw_press.set_text("AWAKENING // COMPLETE", "ASCENDED", "EVERY SEAL IS LIT", "FULLY AWAKENED", "%s ALL STATS" % LegendKit.bonus_text(3))
+		_aw_press.set_live(false)
+		_aw_press.set_knob("A3", "", false)
+		return
+	var tier := int(cost.tier)
+	var need := int(cost.shards)
+	var have := mini(int(cost.shards_have), need)
+	var gain := "%s ALL STATS  ·  %s" % [LegendKit.bonus_text(tier), LegendKit.UNLOCKS[tier - 1]]
+	if not bool(cost.stars_ok):
+		_aw_press.set_text("AWAKENING // NEEDS %d STARS" % int(cost.min_stars), "AWAKEN A%d" % tier,
+			"STARS %d / %d  ·  STAR HER UP FIRST" % [int(h.get("stars", 1)), int(cost.min_stars)], "AWAKEN", gain)
+		_aw_press.set_live(false)
+		_aw_press.set_knob("A%d" % _aw, "", false)
+		return
+	var short := Game.currency("dust") < int(cost.dust)
+	var sub := "SHARDS %d/%d  ·  DUST %s" % [have, need, Kit.format_full(int(cost.dust))]
+	if need > have:
+		sub += "  (+%d MISSING)" % (need - have)
+	if short:
+		sub += "  ·  SHORT"
+	_aw_press.set_text("AWAKENING // TIER %s" % Kit.roman(tier), "AWAKEN A%d" % tier, sub, "AWAKEN  >>>", gain, SHORT if short else PK.ETCH)
+	_aw_press.set_live(true)
+	_aw_press.set_knob("A%d" % _aw, "", false)
+
+
+## One exclusive card (0 legend passive, 1 empowered ultimate): a paper slip stuck on the felt, its
+## foil rule and kicker, the name and the full text; locked: printed faint with a LOCKED stamp and
+## what it needs. Returns its height.
+func _legend_card(b: Control, r: Rect2, i: int, part: Dictionary) -> float:
+	var on := _owned and _aw >= i + 1
+	var tier := i + 1
+	var ink := INK if on else Color(INK, 0.62)
+	var w := r.size.x
+	var tw := w - 56.0
+	var kind := "LEGEND PASSIVE" if i == 0 else "EMPOWERED ULTIMATE"
+	# Locked: what it takes (every tier still missing, in shards and base dust).
+	var need_sh := 0
+	var need_du := 0
+	for t2 in range(_aw if _owned else 0, tier):
+		need_sh += EconomyData.AWAKEN_SHARDS[t2]
+		need_du += EconomyData.AWAKEN_DUST[t2]
+	var need := "AWAKEN TO A%d  ·  %d SHARDS + %s DUST" % [tier, need_sh, Kit.format_full(need_du)]
+	if not _owned:
+		need = "SUMMON HER, STAR HER TO %d, " % EconomyData.AWAKEN_MIN_STARS + need
+	elif int(Game.hero(_id).get("stars", 1)) < EconomyData.AWAKEN_MIN_STARS:
+		need = "STAR HER TO %d, THEN " % EconomyData.AWAKEN_MIN_STARS + need
+	var foot := "ACTIVE IN BATTLE" if on else need
+	if i == 1:
+		foot += "  ·  ADDS TO %s" % str((_def.get("ultimate", {}) as Dictionary).get("name", "")).to_upper()
+	# The slip's lines, each sized to its width first (so its wrapped height is known).
+	var lines: Array[Label] = [
+		PK.t("/ %s  ·  A%d  ·  EXCLUSIVE" % [kind, tier], 11, SIG if on else ink, "mono_bold"),
+		PK.t("> " + str(part.get("name", "")).to_upper(), 21, ink, "mono_bold"),
+		PK.t(str(part.get("description", "")), 15, ink, "regular"),
+		PK.t(foot, 10, Color(INK, 0.55), "mono_bold"),
+	]
+	var gaps: Array[float] = [4.0, 4.0, 10.0, 0.0]
+	var h := 26.0
+	for k in lines.size():
+		var l := lines[k]
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.position = Vector2(28, h)
+		# Clear of the seal (lit: the first two lines) or the LOCKED stamp (locked: three).
+		l.set_meta("w", tw - (84.0 if k <= 1 or (k == 2 and not on) else 0.0))
+		h += _measure(b, l, float(l.get_meta("w"))) + gaps[k]
+	h += 26.0
+	var card := PhysicalKit.sheet(b, Rect2(r.position, Vector2(w, h)), PAPER if on else Color("c9c8c2"), 0.4, {"relief": false, "shadow_r": 14.0})
+	card.name = "LegendCard%d" % tier
+	var holder: Control = card.get_meta("shadow")
+	var rot := -0.012 if i == 0 else 0.009
+	for c2: Control in [card, holder]:
+		c2.pivot_offset = c2.size * 0.5
+		c2.rotation = rot
+	LegendKit.foil_rect(card, Rect2(Vector2.ZERO, Vector2(w, h)), 1, {"inset": 6.0, "frame_w": 2.0, "band_px": 260.0}, "deep" if on else "pale")
+	for l in lines:
+		# Width first, then into the tree (it wraps at that width as it enters).
+		l.size = Vector2(float(l.get_meta("w")), 0)
+		card.add_child(l)
+	if on:
+		var sm := LegendKit.seal(tier, "lit", 58.0)
+		sm.mini = true
+		PK.at(card, sm, Vector2(w - 74, 14))
+	else:
+		var stamp := SignalKit.stamp("LOCKED · AWAKEN A%d · " % tier, "A%d" % tier, 84)
+		stamp.rotation = 0.2
+		PK.at(card, stamp, Vector2(w - 100, 10))
+	return h
+
+
+## Height of label `l` wrapped at `width`, measured on a copy in the tree under `b` (a label only knows
+## its font there); its line count goes in meta "lines".
+func _measure(b: Control, l: Label, width: float) -> float:
+	var m := l.duplicate() as Label
+	m.size = Vector2(width, 0)
+	b.add_child(m)
+	var h := m.get_minimum_size().y
+	l.set_meta("lines", m.get_line_count())
+	b.remove_child(m)
+	m.free()
+	return h
+
+
+## The legend file itself: a paper dossier page stuck on the felt, her three lore lines numbered;
+## a line still classified is a black redaction bar the shape of its words, with the tier that
+## declassifies it, and the page carries a CLASSIFIED stamp until all three are open. Returns its height.
+func _lore_sheet(b: Control, r: Rect2, lore: Array) -> float:
+	var w := r.size.x
+	var tw := w - 56.0 - 58.0
+	var parts: Array[Control] = []
+	var y := 24.0
+	var head := PK.t("DOSSIER  ·  EYES ONLY  ·  %s  ·  %s" % [_code(), str(_def.get("name", _id)).to_upper()], 10, Color(SIG, 0.9), "mono_bold")
+	head.position = Vector2(28, y)
+	parts.append(head)
+	y += 26.0
+	var closed := 0
+	for i in lore.size():
+		var open := _owned and _aw >= i + 1
+		var num := PK.t("%02d" % (i + 1), 34, INK if open else Color(INK, 0.45), "compressed")
+		num.position = Vector2(26, y - 6)
+		parts.append(num)
+		var l := PK.t(str(lore[i]), 21, INK, "serif_italic")
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		var lh := _measure(b, l, tw)
+		var lines := maxi(1, int(l.get_meta("lines", 1)))
+		if open:
+			l.position = Vector2(84, y)
+			l.set_meta("w", tw)
+			parts.append(l)
+			y += lh + 18.0
+			continue
+		closed += 1
+		l.free()
+		# Redacted: one ink bar per line of words, the last one shorter.
+		var line_h := lh / lines
+		for k in lines:
+			var bw := tw * (0.5 + 0.35 * float((i * 7 + k * 3) % 5) / 4.0) if k == lines - 1 else tw * (0.97 - 0.05 * float(k % 2))
+			var bar := ColorRect.new()
+			bar.mouse_filter = MOUSE_FILTER_IGNORE
+			bar.color = Color("0b0b0c")
+			bar.position = Vector2(84, y + k * line_h + line_h * 0.18)
+			bar.size = Vector2(bw, line_h * 0.66)
+			parts.append(bar)
+		var tag := PK.t("CLASSIFIED  ·  DECLASSIFIED AT AWAKENING A%d" % (i + 1), 11, SIG, "mono_bold")
+		tag.position = Vector2(84, y + lh + 2)
+		parts.append(tag)
+		y += lh + 34.0
+	y += 8.0
+	var page := PhysicalKit.sheet(b, Rect2(r.position, Vector2(w, y)), PAPER, 0.42, {"relief": false, "shadow_r": 14.0})
+	page.name = "LegendLore"
+	var holder: Control = page.get_meta("shadow")
+	for c2: Control in [page, holder]:
+		c2.pivot_offset = c2.size * 0.5
+		c2.rotation = -0.006
+	PK.rule(page, Vector2(70, 14), Vector2(1, y - 28), Color(SIG, 0.5))
+	for c in parts:
+		if c.has_meta("w"):
+			c.size = Vector2(float(c.get_meta("w")), 0)
+		page.add_child(c)
+	if closed > 0:
+		var st := SignalKit.stamp("CLASSIFIED · %d OF %d SEALED · " % [closed, lore.size()], "%d/%d" % [lore.size() - closed, lore.size()], 92)
+		st.rotation = -0.25
+		st.set("ink", Color(SIG, 0.85))
+		PK.at(page, st, Vector2(w - 108, y - 104))
+	return y
+
+
+## AWAKEN: confirm the price, awaken, then the big moment.
+func _on_awaken() -> void:
+	if not _legend or not _owned:
+		return
+	var c := Game.awaken_cost(_id)
+	if c.is_empty():
+		UI.toast("%s is fully awakened" % str(_def.name))
+		return
+	if not bool(c.stars_ok):
+		UI.toast("Awakening needs %d stars" % int(c.min_stars), "bad")
+		if _aw_press:
+			Kit.shake(_aw_press, 8)
+		return
+	if not Game.can_awaken(_id):
+		UI.toast("Not enough shards or dust", "bad")
+		if _aw_press:
+			Kit.shake(_aw_press, 8)
+		return
+	var missing := int(c.shards) - int(c.shards_used)
+	var msg := "Awaken %s to A%d? Uses %d shards and %s dust" % [str(_def.name), int(c.tier), int(c.shards_used), Kit.format_full(int(c.dust))]
+	if missing > 0:
+		msg += " (the dust covers %d missing shards)" % missing
+	UI.confirm(msg + ".", _do_awaken, Callable(), "Awaken")
+
+
+func _do_awaken() -> void:
+	# The page reprints under the animation's flash, not as the save changes.
+	_awaken_pending = true
+	var r := Game.awaken(_id)
+	if not bool(r.get("ok", false)):
+		_awaken_pending = false
+		UI.toast(str(r.get("error", "Can't awaken")), "bad")
+		return
+	_play_awaken_fx(int(r.value.get("awaken", 1)), true)
+
+
+## The awakening animation over the whole screen; rebuild = reprint the page under its flash.
+func _play_awaken_fx(tier: int, rebuild: bool, freeze_at: float = -1.0) -> void:
+	if _awaken_fx and is_instance_valid(_awaken_fx):
+		_awaken_fx.queue_free()
+	var lg: Dictionary = _def.legend
+	var fx := LegendKit.AwakenFx.new()
+	fx.name = "AwakenFx"
+	fx.hero_id = _id
+	fx.skin = _shown_skin()
+	fx.faction = str(_def.get("faction", "celestial"))
+	fx.tier = tier
+	fx.name_text = str(_def.get("name", _id))
+	fx.title_text = str(lg.get("title", ""))
+	match tier:
+		1:
+			fx.unlock_name = str((lg.get("passive", {}) as Dictionary).get("name", ""))
+		2:
+			fx.unlock_name = str((lg.get("ult_bonus", {}) as Dictionary).get("name", ""))
+		_:
+			fx.unlock_name = str(lg.get("title", ""))
+	if rebuild:
+		fx.midpoint = func() -> void:
+			_awaken_pending = false
+			_rebuild()
+	fx.finished.connect(func() -> void:
+		_awaken_fx = null
+		if tier - 1 < _seals.size() and is_instance_valid(_seals[tier - 1]):
+			Kit.pulse(_seals[tier - 1], 1.12))
+	var host: Variant = UI.call("_modal_layer")
+	if host is Control:
+		(host as Control).add_child(fx)
+	else:
+		fx.top_level = true
+		fx.z_index = 105
+		add_child(fx)
+	_awaken_fx = fx
+	if freeze_at >= 0.0:
+		fx.seek(freeze_at)
+		fx.set_process(false)
+
+
+func _debug_fx() -> void:
+	await get_tree().create_timer(0.25).timeout
+	if is_inside_tree() and not _fx_params.is_empty():
+		_play_awaken_fx(int(_fx_params.tier), false, float(_fx_params.at))
 
 
 # ------------------------------------------------------------------ celebration

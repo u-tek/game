@@ -32,6 +32,7 @@ func _run() -> void:
 	await _heroes()
 	await _skins()
 	await _detail()
+	await _legend()
 	await _real_input()
 	await _formation()
 	await _summon()
@@ -252,6 +253,60 @@ func _detail() -> void:
 		var u := await _go("hero_detail", {"hero_id": unowned})
 		_check(u.get("_lvl_btn") == null, "unowned preview has no level panel")
 	await _go("hero_detail", {"hero_id": "nobody"})
+
+
+# ------------------------------------------------------------------ a Legendary's page
+
+## A Legendary at 6 stars: the legend file's AWAKEN press confirms, awakens and plays the awakening;
+## the page reprints under its flash with the first seal lit; no dust, no awakening; a Rare's page
+## has no legend file.
+func _legend() -> void:
+	var id := "seraphiel"
+	_game.model.dev_set_awaken(id, 0, 100)
+	_game.dev_add("dust", 50000)
+	var s := await _go("hero_detail", {"hero_id": id})
+	_check(s.get("_legend") == true and s.get("_legend_sheet") != null, "a Legendary's page has the legend file")
+	var btn: Button = s.get("_aw_btn")
+	_check(btn != null and btn.text == "Awaken" and not btn.disabled, "the AWAKEN press is live at 6 stars")
+	s.call("_on_awaken")
+	await _frames(2)
+	_check(_press_in_modal("Awaken"), "awaken confirm shows")
+	await _frames(3)
+	_check(int(_game.awaken_tier(id)) == 1, "Awaken raises her to A1")
+	var fx: Variant = s.get("_awaken_fx")
+	_check(fx != null and is_instance_valid(fx), "the awakening animation plays")
+	if fx != null and is_instance_valid(fx):
+		(fx as Node).call("seek", 3.9)
+	await create_timer(0.3).timeout
+	_check(_ui.current == s and int(s.get("_aw")) == 1, "the page reprinted at A1")
+	var seals: Array = s.get("_seals")
+	_check(seals.size() == 3 and str(seals[0].get("state")) == "lit" and str(seals[1].get("state")) == "next",
+		"the first seal is lit, the second is next")
+	_check(not is_instance_valid(s.get("_awaken_fx")), "the animation is gone")
+	# Reduce motion: the animation is its last frame, still; the page reprints at once.
+	_game.set_setting("reduce_motion", true)
+	_game.model.state.heroes[id].shards = 200
+	_game.dev_add("dust", 50000)
+	await _frames(2)
+	s.call("_on_awaken")
+	await _frames(2)
+	_check(_press_in_modal("Awaken"), "awaken confirm shows (reduce motion)")
+	await _frames(3)
+	var fx2: Variant = s.get("_awaken_fx")
+	_check(fx2 != null and is_instance_valid(fx2) and float((fx2 as Node).get("_t")) >= 2.0, "reduce motion: the awakening starts on its last frame")
+	_check(int(s.get("_aw")) == 2, "reduce motion: the page reprinted at A2")
+	await create_timer(2.0).timeout
+	_check(not is_instance_valid(s.get("_awaken_fx")), "reduce motion: the still frame closes by itself")
+	_game.set_setting("reduce_motion", false)
+	# Out of dust: a toast, no confirm, no awakening.
+	_game.model.state.currencies.dust = 0
+	_game.changed.emit()
+	await _frames(2)
+	s.call("_on_awaken")
+	await _frames(2)
+	_check(not _ui.has_modal() and int(_game.awaken_tier(id)) == 2, "no dust: no awakening")
+	var r := await _go("hero_detail", {"hero_id": "uriela"})
+	_check(r.get("_legend") == false and r.get("_legend_sheet") == null, "a Rare's page has no legend file")
 
 
 # ------------------------------------------------------------------ real input

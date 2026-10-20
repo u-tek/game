@@ -1,0 +1,142 @@
+{
+ "jelly_bl": {
+  "root": [
+   0.1547,
+   0.8453
+  ],
+  "len": 611.8
+ },
+ "jelly_br": {
+  "root": [
+   0.8453,
+   0.8453
+  ],
+  "len": 612.6
+ },
+ "jelly_clump": {
+  "root": [
+   0.4913,
+   0.373
+  ],
+  "len": 201.3
+ },
+ "jelly_edge": {
+  "root": [
+   0.5,
+   0.5
+  ],
+  "len": 531.5
+ },
+ "jelly_tl": {
+  "root": [
+   0.1547,
+   0.1547
+  ],
+  "len": 611.0
+ },
+ "jelly_tr": {
+  "root": [
+   0.8453,
+   0.1547
+  ],
+  "len": 611.3
+ },
+ "thorn_black_bl": {
+  "root": [
+   0.1574,
+   0.8423
+  ],
+  "len": 663.3
+ },
+ "thorn_black_br": {
+  "root": [
+   0.8401,
+   0.8436
+  ],
+  "len": 583.0
+ },
+ "thorn_black_clump_a": {
+  "root": [
+   0.5512,
+   0.4936
+  ],
+  "len": 210.8
+ },
+ "thorn_black_clump_b": {
+  "root": [
+   0.4929,
+   0.5331
+  ],
+  "len": 211.7
+ },
+ "thorn_black_edge": {
+  "root": [
+   0.5,
+   0.512
+  ],
+  "len": 521.1
+ },
+ "thorn_black_tl": {
+  "root": [
+   0.1588,
+   0.1568
+  ],
+  "len": 610.3
+ },
+ "thorn_black_tr": {
+  "root": [
+   0.8421,
+   0.1565
+  ],
+  "len": 650.1
+ },
+ "thorn_chrome_bl": {
+  "root": [
+   0.1562,
+   0.8427
+  ],
+  "len": 693.8
+ },
+ "thorn_chrome_br": {
+  "root": [
+   0.8415,
+   0.8415
+  ],
+  "len": 613.8
+ },
+ "thorn_chrome_clump_a": {
+  "root": [
+   0.5981,
+   0.4762
+  ],
+  "len": 170.4
+ },
+ "thorn_chrome_clump_b": {
+  "root": [
+   0.5903,
+   0.4935
+  ],
+  "len": 152.5
+ },
+ "thorn_chrome_edge": {
+  "root": [
+   0.5,
+   0.4513
+  ],
+  "len": 529.3
+ },
+ "thorn_chrome_tl": {
+  "root": [
+   0.1601,
+   0.1561
+  ],
+  "len": 684.4
+ },
+ "thorn_chrome_tr": {
+  "root": [
+   0.8436,
+   0.1581
+  ],
+  "len": 686.6
+ }
+}

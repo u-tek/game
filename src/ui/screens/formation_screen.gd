@@ -11,8 +11,11 @@ extends Control
 ## An empty position prints a hollow numeral and "+ ASSIGN"; the chosen one turns signal ("PICK A
 ## HERO"). Down the right-hand rule FRONT and BACK as turned labels; the Battle pass (to the
 ## campaign) stuck over the poster's foot. The whole screen scrolls as one page (owner: "not a tiny
-## little window"): under the poster the bench, faction tabs and every owned hero as a printed card
-## in a three-column grid (the ones in the team carry their position number).
+## little window"): under the poster the bench, faction tabs and every owned hero who is not in the
+## team as a printed card in a three-column grid (owner, 2026-10-20: a hero put in the team leaves
+## the list). Placing a hero flies her art up to her position and the cards after her slide over to
+## close the gap; taking her out drops her card back in. With nobody left on the bench, a printed
+## note says so and links to Summon.
 ## Tap an empty position to choose it, then a bench hero to place them there; tapping a bench hero
 ## with no position chosen puts them in the best free one (front for guardians and strikers). Tap a
 ## placed hero to take them out. Every valid change is saved right away with Game.set_formation.
@@ -33,6 +36,10 @@ const FACTION_SHORT := {"celestial": "CEL", "infernal": "INF", "fallen": "FAL"}
 ## Free room at the poster's foot, where the Battle pass is stuck on.
 const PASS_ROOM := 118.0
 const BENCH_COLS := 3
+const BENCH_HSEP := 12.0
+const BENCH_VSEP := 18.0
+## Bench cards slide to their new place in this long (seconds) when the grid re-flows.
+const REFLOW := 0.32
 ## The poster is never wider than this (tablets centre it on the matte).
 const MAX_W := 760.0
 
@@ -48,8 +55,17 @@ var _band_lead := ""
 var _power_label: Label
 var _power_value := -1
 var _data_l: Label
-var _bench: GridContainer
+## The bench: a plain control whose cards are placed by hand (so they can slide when it re-flows).
+var _bench: Control
 var _card_w := 200.0
+var _card_h := 284.0
+## Bench cards on show, by hero id, and what each was built from (a change rebuilds that card).
+var _cards: Dictionary = {}
+var _card_sigs: Dictionary = {}
+var _bench_note: Control
+var _bench_laid := false
+## Where each position's art box is (holder space), for the art that flies up from the bench.
+var _slot_boxes: Array[Rect2] = [Rect2(), Rect2(), Rect2(), Rect2(), Rect2()]
 var _page: Control
 var _page_scroll: ScrollContainer
 var _filter_row: Control
@@ -59,9 +75,17 @@ var _pass: PK.Pass
 var _built := false
 
 
-## params: scroll (int, screenshots) scrolls the page once built.
+## params: scroll (int, screenshots) scrolls the page once built; debug builds (motion shots): empty
+## (array of positions) shows those positions empty without saving, tap_hero (id) taps her bench
+## card after a moment.
 func setup(params: Dictionary) -> void:
 	_slots = Game.formation()
+	if OS.is_debug_build() and params.get("empty", null) is Array:
+		for i: Variant in params["empty"]:
+			if int(i) >= 0 and int(i) < _slots.size():
+				_slots[int(i)] = ""
+	if OS.is_debug_build() and params.has("tap_hero"):
+		_debug_tap.call_deferred(str(params["tap_hero"]))
 	if params.has("scroll"):
 		_scroll_later.call_deferred(int(params["scroll"]))
 	if size.y > 0.0:
@@ -168,10 +192,10 @@ func _build() -> void:
 	_edge_label(p, "BACK", top + front_h + 10)
 
 	# ---- Notes at the poster's foot: the hint, or the empty-team warning in signal.
-	_hint = PK.t("TAP A BENCH HERO TO ADD OR REMOVE THEM. TAP AN EMPTY POSITION FIRST TO CHOOSE WHERE.", 9, Color(INK, 0.6), "mono")
+	_hint = PK.t("TAP A BENCH HERO TO PLACE HER, A PLACED ONE TO TAKE HER OUT. PICK A POSITION FIRST TO CHOOSE WHERE.", 9, Color(INK, 0.6), "mono")
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_hint.size = Vector2(maxf(pw - x0 - 330.0, 180.0), 0)
-	PK.at(p, _hint, Vector2(x0, ph - 40))
+	PK.at(p, _hint, Vector2(x0, ph - 48))
 	_warn = PK.t("", 11, SIG, "mono_bold")
 	_warn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_warn.size = Vector2(maxf(pw - x0 - 330.0, 180.0), 0)
@@ -207,14 +231,13 @@ func _build() -> void:
 	_filter_row.size = Vector2(w - 36, 28)
 	_page.add_child(_filter_row)
 	PK.rule(_page, Vector2(ox + 18, by + 124), Vector2(w - 36, 1), Color(INK, 0.3))
-	_card_w = floorf((w - 36.0 - 12.0 * (BENCH_COLS - 1)) / BENCH_COLS)
-	_bench = GridContainer.new()
+	_card_w = floorf((w - 36.0 - BENCH_HSEP * (BENCH_COLS - 1)) / BENCH_COLS)
+	_card_h = roundf(_card_w * 1.42)
+	_bench = Control.new()
 	_bench.name = "Bench"
-	_bench.columns = BENCH_COLS
-	_bench.add_theme_constant_override("h_separation", 12)
-	_bench.add_theme_constant_override("v_separation", 18)
 	_bench.mouse_filter = MOUSE_FILTER_IGNORE
 	_bench.position = Vector2(ox + 18, by + 140)
+	_bench.size = Vector2(w - 36, _card_h)
 	_page.add_child(_bench)
 	_page.add_child(_pass)
 	_refresh_pass()
@@ -266,6 +289,7 @@ func _refresh_slots() -> void:
 		num = minf(num, num * r.size.x * 0.8 / maxf(PK.text_w("%02d" % (i + 1), int(num)), 1.0))
 		var box := Rect2(r.size.x * (0.3 if front else 0.2), r.size.y * (0.26 if front else 0.3),
 			r.size.x * (0.64 if front else 0.74), r.size.y * (0.6 if front else 0.52))
+		_slot_boxes[i] = box
 		var numeral := PK.t("%02d" % (i + 1), int(num), INK, "compressed")
 		numeral.position = Vector2(-2, -num * 0.17)
 		holder.add_child(numeral)
@@ -421,12 +445,16 @@ func _refresh_summary() -> void:
 func _refresh_bench() -> void:
 	if _bench == null:
 		return
+	var owned := Game.owned_heroes()
+	var free_n := 0
+	for hd: Dictionary in owned:
+		if not _slots.has(str(hd.id)):
+			free_n += 1
 	# Faction tabs: ALL and the three factions, printed, the chosen one signal.
 	for c in _filter_row.get_children():
 		_filter_row.remove_child(c)
 		c.queue_free()
-	var owned := Game.owned_heroes()
-	PK.at(_filter_row, PK.t("BENCH  %02d" % owned.size(), 13, INK, "mono_bold"), Vector2(0, 4))
+	PK.at(_filter_row, PK.t("BENCH  %02d" % free_n, 13, INK, "mono_bold"), Vector2(0, 4))
 	var opts := ["ALL"]
 	for f: String in Kit.FACTIONS:
 		opts.append(str(FACTION_SHORT.get(f, f)))
@@ -445,45 +473,174 @@ func _refresh_bench() -> void:
 			# Deferred: the refresh reprints these tabs, this one included.
 			_refresh_bench.call_deferred())
 		b.name = "Faction_%d" % i
-	var keep := _page_scroll.scroll_vertical
-	for c in _bench.get_children():
-		_bench.remove_child(c)
-		c.queue_free()
+	var in_team := PK.t("%02d IN TEAM" % (owned.size() - free_n), 11, Color(INK, 0.55), "mono")
+	in_team.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	in_team.size = Vector2(130, 16)
+	PK.at(_filter_row, in_team, Vector2(_filter_row.size.x - 130, 6))
+	# Only the heroes not placed, strongest first.
 	var ids: Array[String] = []
+	var of_faction := 0
 	for hd: Dictionary in owned:
 		var id := str(hd.id)
 		var fac := str(Game.hero_def(id).get("faction", ""))
 		if _filter_idx > 0 and fac != Kit.FACTIONS[_filter_idx - 1]:
 			continue
+		of_faction += 1
+		if _slots.has(id):
+			continue
 		ids.append(id)
-	# Strongest first, the ones in the team before the rest.
 	ids.sort_custom(func(a: String, b: String) -> bool:
-		var ta := _slots.has(a)
-		var tb := _slots.has(b)
-		if ta != tb:
-			return ta
 		var pa := int(Game.hero_power(a))
 		var pb := int(Game.hero_power(b))
 		return pa > pb if pa != pb else a < b)
-	for id in ids:
-		var at := _slots.find(id)
-		var o := {"size": _card_w, "ratio": 1.42, "compact": _card_w < 170.0, "owned": true, "in_team": at >= 0,
-			"on_pressed": func() -> void: _tap_hero(id)}
-		if at >= 0:
-			o["slot"] = at
-		var card := PosterCard.new()
-		card.setup(id, o)
-		_bench.add_child(card)
-	if ids.is_empty():
-		var l2 := PK.t("NO HEROES OF THIS FACTION YET.", 12, Color(INK, 0.6), "mono_bold")
-		l2.custom_minimum_size = Vector2(300, 140)
-		l2.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		_bench.add_child(l2)
-	# The page ends under the last row of cards.
-	var rows := maxi(1, ceili(float(maxi(ids.size(), 1)) / BENCH_COLS))
-	var grid_h := rows * (roundf(_card_w * 1.42) + 18.0)
+	var keep := _page_scroll.scroll_vertical
+	_lay_bench(ids)
+	_refresh_bench_note(ids.is_empty(), of_faction)
+	# The page ends under the last row of cards (or the note).
+	var rows := ceili(float(ids.size()) / BENCH_COLS)
+	var grid_h := rows * (_card_h + BENCH_VSEP) if rows > 0 else 190.0
+	_bench.size.y = grid_h
 	_page.custom_minimum_size = Vector2(size.x, _bench.position.y + grid_h + 40.0)
 	_restore_scroll.call_deferred(keep)
+
+
+## Places the bench cards for `ids` (in order): cards that left fold away, new ones drop in, the
+## rest slide to their new place. The first lay-out (and reduce motion) just puts them there.
+func _lay_bench(ids: Array[String]) -> void:
+	var animate := _bench_laid and Kit.motion_ok() and is_visible_in_tree()
+	_bench_laid = true
+	for id: String in _cards.keys():
+		var gone := not ids.has(id)
+		var stale := not gone and str(_card_sigs.get(id, "")) != _card_sig(id)
+		if not gone and not stale:
+			continue
+		var old := _cards[id] as Control
+		_cards.erase(id)
+		_card_sigs.erase(id)
+		if gone and animate:
+			_fold_away(old)
+		else:
+			old.queue_free()
+	var i := 0
+	var fresh := 0
+	for id in ids:
+		var at := Vector2((i % BENCH_COLS) * (_card_w + BENCH_HSEP), (i / BENCH_COLS) * (_card_h + BENCH_VSEP))
+		i += 1
+		var card := _cards.get(id) as Control
+		if card == null:
+			card = _make_card(id)
+			card.position = at
+			_bench.add_child(card)
+			_cards[id] = card
+			_card_sigs[id] = _card_sig(id)
+			if animate:
+				_drop_in(card, 0.06 + 0.03 * fresh)
+				fresh += 1
+			continue
+		var tw: Variant = card.get_meta("move_tw") if card.has_meta("move_tw") else null
+		if tw is Tween and (tw as Tween).is_valid():
+			(tw as Tween).kill()
+		if card.position.distance_to(at) < 0.5:
+			card.position = at
+		elif animate:
+			var mv := card.create_tween()
+			mv.tween_property(card, "position", at, REFLOW).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			card.set_meta("move_tw", mv)
+		else:
+			card.position = at
+
+
+func _make_card(id: String) -> Control:
+	var o := {"size": _card_w, "ratio": 1.42, "compact": _card_w < 170.0, "owned": true,
+		"on_pressed": func() -> void: _tap_hero(id)}
+	var card := PosterCard.new()
+	card.setup(id, o)
+	card.size = Vector2(_card_w, _card_h)
+	card.pivot_offset = card.size * 0.5
+	return card
+
+
+## What a bench card shows (level, stars, gear, the look she wears): a change rebuilds it.
+func _card_sig(id: String) -> String:
+	return JSON.stringify(Game.hero(id)) + "|" + HeroArt.art_key(id, Kit.hero_look(id))
+
+
+## A card leaving the bench (placed in the team, or filtered out) folds away where it stood.
+func _fold_away(card: Control) -> void:
+	card.mouse_filter = MOUSE_FILTER_IGNORE
+	if card is BaseButton:
+		(card as BaseButton).disabled = true
+	card.pivot_offset = card.size * 0.5
+	var tw := card.create_tween().set_parallel(true)
+	tw.tween_property(card, "scale", Vector2(0.86, 0.86), 0.16).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tw.tween_property(card, "modulate:a", 0.0, 0.16)
+	tw.chain().tween_callback(card.queue_free)
+
+
+## A card coming back to the bench (taken out of the team) drops into its place.
+func _drop_in(card: Control, delay: float) -> void:
+	card.modulate.a = 0.0
+	card.scale = Vector2(0.92, 0.92)
+	var tw := card.create_tween().set_parallel(true)
+	tw.tween_property(card, "modulate:a", 1.0, 0.2).set_delay(delay)
+	tw.tween_property(card, "scale", Vector2.ONE, 0.3).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+## The empty bench: a printed note in a dashed box (everyone is in the team, or none of this
+## faction is free) with a link to Summon.
+func _refresh_bench_note(empty: bool, of_faction: int) -> void:
+	if _bench_note and is_instance_valid(_bench_note):
+		_bench_note.queue_free()
+	_bench_note = null
+	if not empty:
+		return
+	var fac := "" if _filter_idx == 0 else str(Kit.FACTION_NAMES.get(Kit.FACTIONS[_filter_idx - 1], "")).to_upper()
+	var head := "EVERYONE IS IN THE TEAM"
+	var sub := "EVERY HERO YOU OWN IS PLACED. TAKE ONE OUT AND SHE COMES BACK HERE."
+	if of_faction == 0:
+		head = "NO %sHEROES YET" % ("" if fac == "" else fac + " ")
+		sub = "SUMMON TO FIND %sHEROES." % ("NEW " if fac == "" else fac + " ")
+	elif fac != "":
+		head = "EVERY %s IS IN THE TEAM" % fac
+		sub = "NO %s HEROES ARE WAITING ON THE BENCH." % fac
+	var w := _bench.size.x
+	var note := Control.new()
+	note.name = "BenchEmpty"
+	note.mouse_filter = MOUSE_FILTER_IGNORE
+	note.size = Vector2(w, 168)
+	_bench.add_child(note)
+	_bench_note = note
+	var dash := Dashed.new()
+	dash.color = Color(INK, 0.4)
+	dash.size = note.size
+	note.add_child(dash)
+	PK.at(note, PK.t("BENCH // EMPTY", 11, SIG, "mono_bold"), Vector2(18, 16))
+	var big := PK.t(head, 44, INK, "compressed")
+	big.size = Vector2(w - 36, 52)
+	big.clip_text = true
+	PK.at(note, big, Vector2(16, 34))
+	var sl := PK.t(sub, 11, Color(INK, 0.6), "mono")
+	sl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	sl.size = Vector2(w - 36 - 190, 0)
+	sl.custom_minimum_size.x = w - 36 - 190
+	PK.at(note, sl, Vector2(18, 98))
+	# Summon, as a printed link in signal (an 88 px target).
+	var link := PK.t("SUMMON  →", 15, SIG, "mono_bold")
+	link.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	link.size = Vector2(160, 20)
+	PK.at(note, link, Vector2(w - 18 - 160, 118))
+	PK.rect(note, Rect2(w - 18 - 104, 141, 104, 2), SIG)
+	var b := _hit(note, Rect2(w - 18 - 190, 84, 190, 88), func() -> void: UI.go("summon"))
+	b.name = "BenchSummon"
+	if Kit.motion_ok() and is_visible_in_tree():
+		note.modulate.a = 0.0
+		note.create_tween().tween_property(note, "modulate:a", 1.0, 0.25).set_delay(0.12)
+
+
+func _debug_tap(id: String) -> void:
+	await get_tree().create_timer(0.9).timeout
+	if is_inside_tree():
+		_tap_hero(id)
 
 
 func _scroll_later(y: int) -> void:
@@ -541,16 +698,53 @@ func _tap_hero(id: String) -> void:
 		for h in _slot_holders:
 			Kit.shake(h, 6)
 		return
+	var from := Rect2()
+	var card := _cards.get(id) as Control
+	if card and is_instance_valid(card) and card.is_visible_in_tree():
+		from = card.get_global_rect()
 	_slots[target] = id
 	_selected = -1
 	_commit()
 	if target < _slot_holders.size():
 		_pop_slot.call_deferred(target)
+		if from.size.x > 0.0:
+			_fly_to_slot.call_deferred(id, from, target)
 
 
 func _pop_slot(i: int) -> void:
 	if i < _slot_holders.size() and is_instance_valid(_slot_holders[i]):
 		Kit.pop_in(_slot_holders[i], 0.0, 0.28)
+
+
+## Her art lifts off the bench card (screen rect `from`) and flies up into position `i`'s box as
+## the position pops in. Nothing when motion is off or neither end is on screen.
+func _fly_to_slot(id: String, from: Rect2, i: int) -> void:
+	if not Kit.motion_ok() or i >= _slot_holders.size() or not is_instance_valid(_slot_holders[i]):
+		return
+	var holder := _slot_holders[i]
+	var box := _slot_boxes[i]
+	var xf := holder.get_global_transform()
+	var to := Rect2(xf * box.position, box.size * xf.get_scale())
+	var vp := get_viewport_rect()
+	if not vp.intersects(from) and not vp.intersects(to):
+		return
+	var ghost := TextureRect.new()
+	ghost.name = "FlyArt"
+	ghost.mouse_filter = MOUSE_FILTER_IGNORE
+	ghost.texture = Kit.art_crop(id, box.size.x / maxf(box.size.y, 1.0), 1.0, Kit.hero_look(id))
+	ghost.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	ghost.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	ghost.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	ghost.top_level = true
+	ghost.z_index = 20
+	ghost.position = from.position
+	ghost.size = from.size
+	add_child(ghost)
+	var tw := ghost.create_tween().set_parallel(true)
+	tw.tween_property(ghost, "position", to.position, 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(ghost, "size", to.size, 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(ghost, "modulate:a", 0.0, 0.1).set_delay(0.26)
+	tw.chain().tween_callback(ghost.queue_free)
 
 
 ## Front for guardians and strikers, back for everyone else, else any free slot.

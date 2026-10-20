@@ -35,6 +35,11 @@ func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_IGNORE
 
 
+## How dark the room is right now (0..1): the HUD's type turns paper-coloured on the dark.
+func darkness() -> float:
+	return _darken
+
+
 ## Jumps straight to the targets (no easing), e.g. when the sequence opens.
 func snap() -> void:
 	_tint = target_tint

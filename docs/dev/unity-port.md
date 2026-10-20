@@ -98,6 +98,7 @@ JSON integer (read as `long`), `bp` = basis points int, `ms` = milliseconds int.
 | `base_stats` | `{hp, atk, def, spd, crit}` ints | Level 1, 1 star. `spd` 100 = one attack per second; `crit` in bp. |
 | `ultimate` | `{id, name, description, effects: [Effect]}` | Cast at 1000 energy. |
 | `passives` | `[{id, name, description, unlock_stars, effects: [PassiveEffect]}]` | Active when stars >= `unlock_stars` (3 and 5). |
+| `legend` | Legendaries only: `{title, passive, ult_bonus, lore: [3 strings]}` | Awakening (section 8.6). `passive` `{id, name, description, unlock_awaken (1), effects: [PassiveEffect]}` is a third passive from that tier; `ult_bonus` `{id, name, description, unlock_awaken (2), effects: [Effect]}` is added to her ultimate from that tier; `title` and `lore` are display text (lore line i unlocks at tier i + 1, the title is "Ascended" at tier 3). |
 
 **Effect** (ultimates; also `ult_bonus` passives). Common keys: `type`, `target`.
 
@@ -163,6 +164,10 @@ Built stage (what `Game.stage(i)` returns): `id = "<chapter#>-<stage#>"` (1-base
 | `heroes.dupe_shards` | `{rarity: int}` | Shards from a duplicate. |
 | `heroes.dust_per_shard` | `{rarity: int}` | Dust that replaces one missing shard. |
 | `heroes.dust_per_excess_shard` | `{rarity: int}` | Dust per shard a maxed hero can't use. |
+| `heroes.awaken_rarities` | [rarity] | Who can awaken (`["legendary"]`). Section 8.6. |
+| `heroes.awaken_min_stars` | int | Stars needed to awaken (6). |
+| `heroes.awaken_shards`, `awaken_dust` | [int] by tier - 1 | Shards (80, 120, 160) and base dust (1500, 3000, 5000) of awakenings A1, A2, A3. |
+| `heroes.awaken_stat_bp` | [bp] by tier - 1 | Total bonus on every stat at A1, A2, A3 (600, 1200, 2000). |
 | `stats.level_growth_bp`, `star_growth_bp` | bp | +7% per level, +12% per star above 1. |
 | `stats.spd_per_star` | int | +1 spd per star above 1. |
 | `stats.crit_cap_bp` | bp | 7500. |
@@ -341,9 +346,11 @@ For hero `h` at `level`, `stars` with equipped items `gear`:
 lm = 10000 + (max(level,1) - 1) * level_growth_bp          sm = 10000 + (max(stars,1) - 1) * star_growth_bp
 g[k] = sum of item.stats[k] over gear (k in hp, atk, def, spd, crit; missing = 0)
 bonus[k_bp] = sum over active passives' "stat" effects (hp_bp, atk_bp, def_bp, spd_bp, crit_bp)
-for k in hp, atk, def:  v = base[k] * lm / 10000 * sm / 10000 + g[k];   out[k] = v * (10000 + bonus[k_bp]) / 10000
-spd  = (base.spd + (max(stars,1) - 1) * spd_per_star + g.spd) * (10000 + bonus.spd_bp) / 10000
-crit = min(base.crit + g.crit + bonus.crit_bp, crit_cap_bp)
+              (active passives of (hero, stars, awaken): her legend passive counts from A1, section 8.6)
+aw = awaken_stat_bp(awaken)        (0 at awaken 0; every unit and hero without the field has awaken 0)
+for k in hp, atk, def:  v = base[k] * lm / 10000 * sm / 10000 + g[k];   out[k] = v * (10000 + bonus[k_bp] + aw) / 10000
+spd  = (base.spd + (max(stars,1) - 1) * spd_per_star + g.spd) * (10000 + bonus.spd_bp + aw) / 10000
+crit = min((base.crit + g.crit + bonus.crit_bp) * (10000 + aw) / 10000, crit_cap_bp)
 power(st)      = (hp/2 + atk*8 + def*6) * spd / 100 * (20000 + crit) / 20000 / 5
 gear_score(it) = hp/2 + atk*8 + def*6 + spd*15 + crit/6       (of it.stats)
 echo_stats(hero, level, stars, echo_bp) = stats(hero, level, stars) with hp/atk/def = max(1, v * echo_bp / 10000)
@@ -359,7 +366,8 @@ Fixture: `stats.json`.
 ### 7.1 Setup
 
 `BattleSim(setup)`, `setup = {seed, allies: [Unit], enemies: [Unit], max_ms?}`;
-`Unit = {uid, hero_id, side, slot, level, stars, stats {hp, atk, def, spd, crit}, is_boss}`.
+`Unit = {uid, hero_id, side, slot, level, stars, stats {hp, atk, def, spd, crit}, is_boss, awaken?}`
+(`awaken`, optional, default 0: a Legendary's awakening tier; GameModel writes it only when > 0).
 `rng = SeededRng(seed)`. Units are added allies first, then enemies, in list order; this
 **unit order** is used by every loop below. For each unit (unknown hero ids are skipped):
 
@@ -367,7 +375,8 @@ Fixture: `stats.json`.
 hp = max(1, stats.hp); atk = max(1, stats.atk); def = max(0, stats.def); spd = max(min_spd, stats.spd); crit = stats.crit
 if is_boss: hp = hp * boss.hp_bp / 10000; atk = atk * boss.atk_bp / 10000; def = def * boss.def_bp / 10000
 uid defaults to "a<slot>" / "e<slot>" when missing or duplicate
-passives = active passives of (hero_id, stars), summed by type (section 7.8)
+passives = active passives of (hero_id, stars, awaken), summed by type (section 7.8; 8.6 for awaken)
+stats missing or empty: stats(hero_id, level, stars, [], awaken)
 timer    = first_attack.base + slot * first_attack.per_slot + rng.RangeInt(0, first_attack.random_max)   <- one draw per unit
 interval = max(min_interval_ms, attack_interval_k / spd)
 damage_dealt[uid] = 0; healing_done[uid] = 0
@@ -619,7 +628,7 @@ level_cap(s) = level_cap_base + level_cap_per_star * clamp(s, 1, max_stars)
 star_shards(s) = (s < 1 or s >= max_stars) ? 0 : star_shards[s];  shards_to_max(s) = sum of star_shards[max(s,1) .. max_stars-1]
 star_up_cost(s, have, rarity): need = star_shards(s); none if 0; missing = max(0, need - have)
      -> {shards: need, dust: missing * dust_per_shard[rarity], shards_have: have, shards_used: min(have, need), dust_per_shard}
-add_shards(s, have, n, rarity): keep = min(n, max(0, shards_to_max(s) - have))
+add_shards(s, have, n, rarity, awaken = 0): keep = min(n, max(0, shards_to_max(s) + awaken_shards_left(awaken, rarity) - have))
      -> {shards: have + keep, dust: (n - keep) * dust_per_excess_shard[rarity]}
 affordable_levels(L, cap, gold, exp): count levels from L while L+n < cap and both costs are affordable (paying as it goes)
 ```
@@ -675,6 +684,38 @@ the pulls are the same with or without prints. API: `prints(filter)` newest firs
 (best = the highest score, the earlier print on ties), `set_showcase(uids)` (errors: more than
 `showcase_max`, a repeated uid, an unknown uid), `showcase()`. Fixture: `prints.json`.
 
+### 8.6 Awakening (Legendaries, `progression.gd` + `hero_kits.gd`)
+
+A Legendary at `awaken_min_stars` (6) can awaken three times. Each tier is paid in her own shards
+plus dust; dust covers missing shards at `dust_per_shard` (as star-ups do). Every tier raises all
+stats (section 6); A1 adds her legend passive, A2 her empowered ultimate, A3 is cosmetic (the
+Ascended title and look). Shards she can still use for awakening are kept, not turned into dust.
+
+```
+max_awaken(r)              = awaken_rarities contains r ? len(awaken_shards) : 0
+awaken_shards_left(a, r)   = sum of awaken_shards[t] for t in clamp(a, 0, max_awaken(r)) .. max_awaken(r) - 1
+awaken_cost(s, a, have, r) : none if a < 0 or a >= max_awaken(r)
+     need = awaken_shards[a]; base = awaken_dust[a]
+     -> {tier: a + 1, shards: need, dust: base + max(0, need - have) * dust_per_shard[r], dust_base: base,
+         shards_have: have, shards_used: min(have, need), dust_per_shard, min_stars: awaken_min_stars,
+         stars_ok: s >= awaken_min_stars}
+awaken_stat_bp(a)          = a <= 0 ? 0 : awaken_stat_bp[min(a, len) - 1]
+active_passives(hero, s, a) = her passives with s >= unlock_stars, in order; then, when a > 0 and she has a
+     legend: legend.passive if a >= its unlock_awaken (default 1); then {effects: [{type: "ult_bonus",
+     effects: legend.ult_bonus.effects}]} if a >= its unlock_awaken (default 2)
+```
+
+GameModel: `awaken_cost(id)` (the above with her stars, awaken and shards; {} if not owned),
+`can_awaken(id)` (cost not empty, stars_ok and dust >= cost.dust), `awaken(id)`: errors in order
+"Hero not owned", "Only Legendary heroes can awaken", "Already fully awakened", "Awakening needs N
+stars", "Not enough shards or dust"; else `shards -= shards_used`, `dust -= dust`, `awaken = tier`,
+bump `awakenings`, notify `awaken {hero_id, awaken, unlock}` and return `{awaken, unlock}` (unlock:
+`legend_passive`, `ult_bonus`, `ascended` for tiers 1-3). `_add_shards` passes her awaken tier to
+`add_shards`; `hero_stats` and battle setups pass it to `stats` (setups carry `awaken` when > 0).
+`upgrade_ready` is also true when she can awaken. Fixtures: `progression.json` (`awaken_cost[]`,
+`awaken_stat_bp[]`, `add_shards[]` with `awaken`), `stats.json` (`hero_stats[]` with `awaken`),
+`battles.json` (`legends_awakened`).
+
 ## 9. GameModel and the save format
 
 `GameModel` (src/core/game_model.gd) holds `state` and implements every Game API action
@@ -684,7 +725,7 @@ by method; it is plain dictionary logic over the rules above. Its environment:
 - `clock()` returns ms since the Unix epoch; `now = clock() + state.dev_time_offset`.
 - `tz_bias_ms`: local offset; `day_of(ms) = floor((ms + tz_bias_ms) / 86400000)` (true floor,
   also for negatives); `today = day_of(now)`.
-- `outbox`: notifications in emit order (`level_up`, `star_up`, `quest_ready`, `idle_full`,
+- `outbox`: notifications in emit order (`level_up`, `star_up`, `awaken`, `quest_ready`, `idle_full`,
   `new_hero`, `monthly_card`); `changed_now` / `changed_later`: the adapter raises "changed"
   after actions (now) or after a daily rollover found by a query (deferred) and schedules a save.
 
@@ -717,7 +758,7 @@ Ordering details that change results:
 ```
 version 1 · created_at ms · player_name · dev_time_offset ms · rng_seed · gear_seq
 currencies {gold, hero_exp, gems, scrolls, dust}
-heroes {id: {id, level, stars, shards, gear {slot: gear uid}}}
+heroes {id: {id, level, stars, shards, gear {slot: gear uid}, awaken (0-3, section 8.6)}}
 formation [5 hero ids or ""]          campaign {cleared}          tower {best}
 idle {last_claim_at, quick_claims_used, quick_claim_day, carry {currency: remainder}, gear_ms, full_notified}
 summon {pity (standard banner), total_pulls (all banners), last_free_pull_day, seed,
@@ -731,7 +772,7 @@ prints {seed, seq, ed {banner: {e, n}}, list [print (oldest first)], total, show
 rival {seed, met, day, heroes {id: dupes}, pulls, pity {banner: n}, lost, ed, print_seq, prints,
        feed, feed_seq, seen, wins, losses, fights, haul_day, tag_you, tag_her, tag_v}        (9c)
 counters {name: n}   (battles_started, battles_won, battles_lost, stages_cleared, summons, level_ups,
-                      star_ups, idle_claims, quick_claims, daily_quests_done, skins_bought, tower_floors)
+                      star_ups, awakenings, idle_claims, quick_claims, daily_quests_done, skins_bought, tower_floors)
 ```
 
 Skins: `buy_skin(id)` pays the tier's gems once (errors "Unknown skin", "Already owned", "Not enough
@@ -740,7 +781,8 @@ look). `migrate` keeps known skin ids once each and an equipped skin only if it 
 to that hero.
 
 `migrate(loaded)` repairs any older or damaged save: fills missing keys from the default state
-(missing currencies are 0), drops unknown heroes and invalid gear, clamps stars/levels/tiers,
+(missing currencies are 0), drops unknown heroes and invalid gear, clamps stars/levels/tiers
+(`awaken` to 0..max_awaken(rarity), and 0 below awaken_min_stars),
 fixes gear ownership both ways, restores the starters if no hero survived, cleans the
 formation (auto-formation if empty), resets an invalid battle speed and clamps `campaign.cleared`.
 Fixtures: `session.json` (a scripted first two days) and `save.json` (migrations).
@@ -856,10 +898,10 @@ Each file: `{version, about, regenerate, ...}`. Inputs and expected outputs sit 
 | File | Inputs -> outputs |
 |---|---|
 | `rng.json` | `sequences[]: seed -> next_u32 (12 values)`; `mix[]: a, b -> out`; `range_int[]`, `chance_bp[]`, `pick[]`: seed + args -> 10 successive results (+ `next_u32_after` to check draw counts). |
-| `progression.json` | `level_cost[]` for levels 1-139; `level_cap[]`, `star_shards[]` (next, to_max) for stars 0-7; `star_up_cost[]`, `add_shards[]`, `affordable_levels[]` -> out. |
+| `progression.json` | `level_cost[]` for levels 1-139; `level_cap[]`, `star_shards[]` (next, to_max) for stars 0-7; `star_up_cost[]`, `add_shards[]` (some with `awaken`; missing = 0), `affordable_levels[]`, `awaken_cost[]` (stars, awaken, shards_have, rarity), `awaken_stat_bp[]` -> out. |
 | `idle.json` | `per_hour[]` by cleared; `elapsed[]`; `accrue[]` (elapsed_ms, cleared, carry, gear_ms -> {reward, carry, gear_ms}); `quick_claim[]` (used -> cost, left); `quick_reward[]`. |
 | `gear.json` | `tier_for[]`; `random_slot[]` (rng_seed, gear_seq); `make_item[]` (slot, tier, rng_seed, seq -> item); `salvage[]`. |
-| `stats.json` | `hero_stats[]` (hero, level, stars, gear items -> stats, power); `gear_score[]`; `stages[]`: every built stage's enemies with echo stats, enemy_power, recommended_power, first_clear_reward. |
+| `stats.json` | `hero_stats[]` (hero, level, stars, gear items, `awaken` when present -> stats, power); `gear_score[]`; `stages[]`: every built stage's enemies with echo stats, enemy_power, recommended_power, first_clear_reward. |
 | `summon.json` | `rarity_for_roll[]` (rate boundaries); `cases[]` (standard banner): seed, total_pulls, pity, counts -> one `{results [{hero_id, rarity, pity}], pity, total_pulls}` per summon, chained; `banner_cases[]`: the same on `banner` with `opts` (featured + lost, faction, target; on the featured banner `opts.lost` chains from each `out.lost`); `rotation[]`: day -> featured, faction, their next change days, the wish and envoy limit periods and reset days (`epoch_day` stored). |
 | `battles.json` | `battles[]`: setup (+ `auto_ultimates`, `manual_ultimates [{tick, uid, accepted}]`) -> `steps`, every event of every step in order, `outcome`, `final_units`, `skip_outcome` (run_to_end on a fresh sim). Manual requests are made before step number `tick` (1 = the first step). |
 | `session.json` | GameModel: `start_ms`, `tz_bias_ms`, `steps [{advance_ms, call, args}]` -> `results [{value, notify}]`, `final_state`. Each step advances the clock, then calls the method; `"battle"` = `stage_battle_setup(i)` + `run_to_end` + `complete_stage(i, outcome)`, value `{seed, victory, duration_ms, complete}`. |

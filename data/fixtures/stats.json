@@ -1,6 +1,6 @@
 {
 	"version": 1,
-	"about": "StatCalc (src/core/stat_calc.gd): hero stats (level, stars, gear, stat passives), power, gear score; every campaign stage's enemies as built from data/stages.json, with echo stats and enemy power; and sample Spire floors built by TowerData (src/data/tower.gd) from data/tower.json.",
+	"about": "StatCalc (src/core/stat_calc.gd): hero stats (level, stars, gear, stat passives; awaken when given, default 0), power, gear score; every campaign stage's enemies as built from data/stages.json, with echo stats and enemy power; and sample Spire floors built by TowerData (src/data/tower.gd) from data/tower.json.",
 	"regenerate": "tools/gd --headless --path . -s tests/tools/make_fixtures.gd",
 	"hero_stats": [
 		{
@@ -1282,6 +1282,249 @@
 			"gear": [],
 			"out": {"hp": 25408, "atk": 1868, "def": 635, "spd": 119, "crit": 4200},
 			"power": 9059
+		},
+		{
+			"hero_id": "seraphiel",
+			"level": 110,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 27968, "atk": 2378, "def": 629, "spd": 107, "crit": 2862},
+			"power": 8997,
+			"awaken": 1
+		},
+		{
+			"hero_id": "seraphiel",
+			"level": 120,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 33215, "atk": 2656, "def": 753, "spd": 122, "crit": 3920},
+			"power": 12365,
+			"awaken": 2
+		},
+		{
+			"hero_id": "seraphiel",
+			"level": 130,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 35673, "atk": 2963, "def": 807, "spd": 121, "crit": 3240},
+			"power": 13042,
+			"awaken": 3
+		},
+		{
+			"hero_id": "argentiel",
+			"level": 110,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 31265, "atk": 1992, "def": 952, "spd": 111, "crit": 1802},
+			"power": 9021,
+			"awaken": 1
+		},
+		{
+			"hero_id": "argentiel",
+			"level": 120,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 37013, "atk": 2235, "def": 1121, "spd": 126, "crit": 2800},
+			"power": 12385,
+			"awaken": 2
+		},
+		{
+			"hero_id": "argentiel",
+			"level": 130,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 40440, "atk": 2502, "def": 1210, "spd": 126, "crit": 2040},
+			"power": 13189,
+			"awaken": 3
+		},
+		{
+			"hero_id": "sanariel",
+			"level": 110,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 32614, "atk": 1318, "def": 805, "spd": 113, "crit": 636},
+			"power": 7387,
+			"awaken": 1
+		},
+		{
+			"hero_id": "sanariel",
+			"level": 120,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 38498, "atk": 1495, "def": 954, "spd": 128, "crit": 1568},
+			"power": 10196,
+			"awaken": 2
+		},
+		{
+			"hero_id": "sanariel",
+			"level": 130,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 41724, "atk": 1693, "def": 1038, "spd": 128, "crit": 720},
+			"power": 10776,
+			"awaken": 3
+		},
+		{
+			"hero_id": "mordessa",
+			"level": 110,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 30533, "atk": 2178, "def": 805, "spd": 115, "crit": 4558},
+			"power": 10596,
+			"awaken": 1
+		},
+		{
+			"hero_id": "mordessa",
+			"level": 120,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 36177, "atk": 2435, "def": 954, "spd": 131, "crit": 5712},
+			"power": 14581,
+			"awaken": 2
+		},
+		{
+			"hero_id": "mordessa",
+			"level": 130,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 39476, "atk": 2720, "def": 1038, "spd": 130, "crit": 5160},
+			"power": 15610,
+			"awaken": 3
+		},
+		{
+			"hero_id": "drezza",
+			"level": 110,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 33686, "atk": 1318, "def": 847, "spd": 119, "crit": 636},
+			"power": 7973,
+			"awaken": 1
+		},
+		{
+			"hero_id": "drezza",
+			"level": 120,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 39683, "atk": 1495, "def": 1005, "spd": 135, "crit": 1568},
+			"power": 11014,
+			"awaken": 2
+		},
+		{
+			"hero_id": "drezza",
+			"level": 130,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 42687, "atk": 1693, "def": 1082, "spd": 135, "crit": 720},
+			"power": 11574,
+			"awaken": 3
+		},
+		{
+			"hero_id": "zecchina",
+			"level": 110,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 26727, "atk": 1640, "def": 658, "spd": 130, "crit": 5724},
+			"power": 10176,
+			"awaken": 1
+		},
+		{
+			"hero_id": "zecchina",
+			"level": 120,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 31830, "atk": 1862, "def": 788, "spd": 146, "crit": 6944},
+			"power": 13980,
+			"awaken": 2
+		},
+		{
+			"hero_id": "zecchina",
+			"level": 130,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 34468, "atk": 2116, "def": 846, "spd": 147, "crit": 6480},
+			"power": 15273,
+			"awaken": 3
+		},
+		{
+			"hero_id": "noctaire",
+			"level": 110,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 26142, "atk": 1612, "def": 658, "spd": 168, "crit": 6360},
+			"power": 13247,
+			"awaken": 1
+		},
+		{
+			"hero_id": "noctaire",
+			"level": 120,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 31161, "atk": 1828, "def": 788, "spd": 187, "crit": 7500},
+			"power": 17963,
+			"awaken": 2
+		},
+		{
+			"hero_id": "noctaire",
+			"level": 130,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 33699, "atk": 2078, "def": 846, "spd": 187, "crit": 7200},
+			"power": 19607,
+			"awaken": 3
+		},
+		{
+			"hero_id": "nadira",
+			"level": 110,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 26288, "atk": 2386, "def": 629, "spd": 112, "crit": 1272},
+			"power": 8578,
+			"awaken": 1
+		},
+		{
+			"hero_id": "nadira",
+			"level": 120,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 31328, "atk": 2669, "def": 753, "spd": 128, "crit": 2240},
+			"power": 11823,
+			"awaken": 2
+		},
+		{
+			"hero_id": "nadira",
+			"level": 130,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 33891, "atk": 2979, "def": 807, "spd": 126, "crit": 1440},
+			"power": 12323,
+			"awaken": 3
+		},
+		{
+			"hero_id": "gantra",
+			"level": 110,
+			"stars": 6,
+			"gear": [{"stats": {"atk": 30}}, {"stats": {"hp": 500, "def": 15}}],
+			"out": {"hp": 60771, "atk": 996, "def": 1680, "spd": 100, "crit": 636},
+			"power": 9994,
+			"awaken": 1
+		},
+		{
+			"hero_id": "gantra",
+			"level": 120,
+			"stars": 6,
+			"gear": [{"stats": {"crit": 800, "spd": 8, "atk": 22}}, {"stats": {"hp": 1700, "def": 48}}],
+			"out": {"hp": 70245, "atk": 1126, "def": 1945, "spd": 115, "crit": 1568},
+			"power": 13840,
+			"awaken": 2
+		},
+		{
+			"hero_id": "gantra",
+			"level": 130,
+			"stars": 6,
+			"gear": [],
+			"out": {"hp": 77029, "atk": 1268, "def": 2138, "spd": 114, "crit": 720},
+			"power": 14523,
+			"awaken": 3
 		}
 	],
 	"gear_score": [

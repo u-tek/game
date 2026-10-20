@@ -104,6 +104,21 @@ quickly but replaces a Legendary duplicate only after weeks. It smooths bad luck
 makes summoning pointless (the first version priced every shard at 10 dust, which let a
 Legendary reach 6 stars from idle dust in about three days).
 
+**Awakening (Legendaries only, 2026-10-20; owner: "the legendary heroes get different power
+ups").** At 6 stars a Legendary can awaken three times, each tier paid with her own shards plus
+dust (`heroes.awaken_*`; missing shards cost 60 dust each, like star-ups):
+
+| Tier | Shards | Base dust | All stats (total) | Unlocks |
+|---|---|---|---|---|
+| A1 | 80 (2 dupes) | 1,500 | +6% | her legend passive (a third, stronger passive) |
+| A2 | 120 (3 dupes) | 3,000 | +12% | her empowered ultimate (extra effects on it) |
+| A3 | 160 (4 dupes) | 5,000 | +20% | the Ascended title and look (cosmetic) |
+
+360 shards (9 duplicates) and 9,500 dust in all, past the 200 shards to 6 stars. Shards she can
+still use for awakening are kept, not turned into dust (they are worth 60 dust each there, against
+24 as excess), so a maxed Legendary's duplicate is never worth less than before. The numbers are
+Claude's; the bonus applies to HP, ATK, DEF, SPD and crit chance (capped as usual).
+
 ### Kits
 
 Every hero has one ultimate (fires at 1,000 energy) and two passives (3 and 5 stars). Effect

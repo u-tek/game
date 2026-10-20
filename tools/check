@@ -3,7 +3,7 @@
 #   tools/check            # import + tests + boot (about 15 s)
 #   tools/check tests      # import + tests only
 #   tools/check e2e        # everything, plus the screen end-to-end scripts (battle, meta screens, first
-#                          # session, the Rival and prints) and the touch-scroll audit
+#                          # session, the Rival and prints, the boot print run) and the touch-scroll audit
 cd "$(dirname "$0")/.." || exit 1
 NOISE='ALSA|audio_driver_alsa|All audio drivers failed|audio_server.cpp|init_output_device|Condition "status < 0" is true|^\s*at: (init_output_device|initialize) '
 status=0
@@ -23,7 +23,7 @@ if [ "${1:-}" != "tests" ]; then
   else echo "BOOT: ok"; fi
 fi
 if [ "${1:-}" = "e2e" ]; then
-  for e2e in battle_screen_e2e meta_screens_e2e first_session_e2e rival_prints_e2e scroll_audit; do
+  for e2e in battle_screen_e2e meta_screens_e2e first_session_e2e rival_prints_e2e boot_e2e scroll_audit; do
     out=$(tools/gd --headless --path . -s "tests/tools/$e2e.gd" -- --fresh 2>&1 | grep -vE "$NOISE")
     if echo "$out" | grep -qE "SCRIPT ERROR|Parse Error|ERROR:" || ! echo "$out" | grep -qE "E2E.*[^0-9]0 failures"; then
       echo "E2E $e2e: FAILED"; echo "$out" | grep -E -A2 "SCRIPT ERROR|Parse Error|ERROR:|FAIL" | head -30; status=1

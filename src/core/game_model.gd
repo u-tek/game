@@ -24,8 +24,8 @@ var tz_bias_ms: int = 0
 ## adapter; the default is a frozen clock at 0.
 var clock: Callable = func() -> int: return 0
 ## One-shot notifications for the UI, in order: level_up {hero_id, level}, star_up {hero_id,
-## stars, passive?}, quest_ready {id, title}, idle_full {}, new_hero {hero_id, rarity},
-## monthly_card {gems}. The adapter drains it after every call.
+## stars, passive?}, awaken {hero_id, awaken, unlock}, quest_ready {id, title}, idle_full {},
+## new_hero {hero_id, rarity}, monthly_card {gems}. The adapter drains it after every call.
 var outbox: Array[Dictionary] = []
 ## Set by actions that changed the state (the adapter emits `changed` and schedules a save).
 var changed_now: bool = false
@@ -125,9 +125,11 @@ func migrate(loaded: Dictionary) -> Dictionary:
 		var h: Dictionary = loaded.heroes[id]
 		var rarity: String = HeroData.get_def(str(id)).rarity
 		_merge_defaults(h, {"id": str(id), "level": 1, "stars": Progression.start_stars(rarity),
-			"shards": 0, "gear": {}})
+			"shards": 0, "gear": {}, "awaken": 0})
 		h.stars = clampi(int(h.stars), 1, EconomyData.MAX_STARS)
 		h.level = clampi(int(h.level), 1, Progression.level_cap(int(h.stars)))
+		# Awakening (Legendaries at max stars only; older saves have none).
+		h.awaken = clampi(int(h.awaken), 0, Progression.max_awaken(rarity)) if int(h.stars) >= EconomyData.AWAKEN_MIN_STARS else 0
 		heroes[str(id)] = h
 	loaded.heroes = heroes
 	var gear: Array = []
@@ -163,7 +165,7 @@ func migrate(loaded: Dictionary) -> Dictionary:
 		# Nothing usable survived: give the starters back rather than an empty roster.
 		for id in EconomyData.STARTER_HEROES:
 			var d := hero_def(id)
-			heroes[id] = {"id": id, "level": 1, "stars": int(d.start_stars), "shards": 0, "gear": {}}
+			heroes[id] = {"id": id, "level": 1, "stars": int(d.start_stars), "shards": 0, "gear": {}, "awaken": 0}
 	var f: Array = loaded.formation
 	var clean: Array = []
 	for i in 5:
@@ -518,8 +520,12 @@ func _ally_setups() -> Array:
 		if id == "":
 			continue
 		var h: Dictionary = state.heroes[id]
-		allies.append({"uid": "a%d" % slot, "hero_id": id, "side": "ally", "slot": slot,
-			"level": int(h.level), "stars": int(h.stars), "stats": hero_stats(id), "is_boss": false})
+		var a := {"uid": "a%d" % slot, "hero_id": id, "side": "ally", "slot": slot,
+			"level": int(h.level), "stars": int(h.stars), "stats": hero_stats(id), "is_boss": false}
+		# A Legendary's awakening tier brings her legend passive and empowered ultimate (BattleSim).
+		if int(h.get("awaken", 0)) > 0:
+			a["awaken"] = int(h.awaken)
+		allies.append(a)
 	return allies
 
 
@@ -613,7 +619,7 @@ func complete_tower(f: int, outcome: Dictionary) -> Dictionary:
 
 # ---------------------------------------------------------------- heroes
 
-## Owned hero entries {id, level, stars, shards, gear}, sorted by power desc, then id.
+## Owned hero entries {id, level, stars, shards, gear, awaken}, sorted by power desc, then id.
 func owned_heroes() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var powers := {}
@@ -631,14 +637,14 @@ func owns(hero_id: String) -> bool:
 	return state.get("heroes", {}).has(hero_id)
 
 
-## Owned hero entry {id, level, stars, shards, gear} (a copy), or {} if not owned.
+## Owned hero entry {id, level, stars, shards, gear, awaken} (a copy), or {} if not owned.
 func hero(hero_id: String) -> Dictionary:
 	if not owns(hero_id):
 		return {}
 	return state.heroes[hero_id].duplicate(true)
 
 
-## Final stats {hp, atk, def, spd, crit} for an owned hero (level, stars, gear).
+## Final stats {hp, atk, def, spd, crit} for an owned hero (level, stars, gear, awakening).
 ## Unowned heroes: level 1 at their starting stars, no gear.
 func hero_stats(hero_id: String) -> Dictionary:
 	if not owns(hero_id):
@@ -647,12 +653,16 @@ func hero_stats(hero_id: String) -> Dictionary:
 			return {}
 		return StatCalc.stats(hero_id, 1, int(d.start_stars))
 	var h: Dictionary = state.heroes[hero_id]
-	return StatCalc.stats(hero_id, int(h.level), int(h.stars), equipped_items(hero_id))
+	return StatCalc.stats(hero_id, int(h.level), int(h.stars), equipped_items(hero_id), int(h.get("awaken", 0)))
 
 
 ## Stats preview at another level/stars (keeps current gear). For "next level" displays.
-func hero_stats_at(hero_id: String, level: int, stars: int) -> Dictionary:
-	return StatCalc.stats(hero_id, level, stars, equipped_items(hero_id))
+## awaken: the awakening tier to preview, -1 = her current one.
+func hero_stats_at(hero_id: String, level: int, stars: int, awaken: int = -1) -> Dictionary:
+	var aw := awaken
+	if aw < 0:
+		aw = awaken_tier(hero_id)
+	return StatCalc.stats(hero_id, level, stars, equipped_items(hero_id), aw)
 
 
 func hero_power(hero_id: String) -> int:
@@ -734,14 +744,14 @@ func affordable_levels(hero_id: String) -> int:
 		currency("gold"), currency("hero_exp"))
 
 
-## True when the hero can level up or star up right now (for "upgrade ready" badges).
+## True when the hero can level up, star up or awaken right now (for "upgrade ready" badges).
 func upgrade_ready(hero_id: String) -> bool:
 	if not owns(hero_id):
 		return false
 	var c := level_up_cost(hero_id)
 	if not c.is_empty() and _can_afford(c):
 		return true
-	return can_star_up(hero_id)
+	return can_star_up(hero_id) or can_awaken(hero_id)
 
 
 ## {shards, dust, shards_have, shards_used, dust_per_shard} for the next star, or {} at max.
@@ -779,18 +789,64 @@ func star_up(hero_id: String) -> Dictionary:
 	return _ok({"stars": int(h.stars), "level_cap": max_level(hero_id)})
 
 
+## A Legendary's awakening tier (0-3; 0 for everyone else and unowned heroes).
+func awaken_tier(hero_id: String) -> int:
+	return int(state.heroes[hero_id].get("awaken", 0)) if owns(hero_id) else 0
+
+
+## The next awakening's cost, or {} when she can't awaken (not owned, not a Legendary, fully
+## awakened): {tier, shards, dust, dust_base, shards_have, shards_used, dust_per_shard, min_stars,
+## stars_ok} (Progression.awaken_cost). dust covers the base price plus any missing shards.
+func awaken_cost(hero_id: String) -> Dictionary:
+	if not owns(hero_id):
+		return {}
+	var h: Dictionary = state.heroes[hero_id]
+	return Progression.awaken_cost(int(h.stars), int(h.get("awaken", 0)), int(h.shards), str(hero_def(hero_id).rarity))
+
+
+func can_awaken(hero_id: String) -> bool:
+	var c := awaken_cost(hero_id)
+	return not c.is_empty() and bool(c.stars_ok) and currency("dust") >= int(c.dust)
+
+
+## Awaken a Legendary at max stars one tier (A1 legend passive, A2 empowered ultimate, A3 Ascended).
+## Result {ok, value: {awaken, unlock: "legend_passive" | "ult_bonus" | "ascended"}, error}.
+func awaken(hero_id: String) -> Dictionary:
+	if not owns(hero_id):
+		return _err("Hero not owned")
+	if not Progression.can_awaken_rarity(str(hero_def(hero_id).rarity)):
+		return _err("Only Legendary heroes can awaken")
+	var c := awaken_cost(hero_id)
+	if c.is_empty():
+		return _err("Already fully awakened")
+	if not bool(c.stars_ok):
+		return _err("Awakening needs %d stars" % int(c.min_stars))
+	if currency("dust") < int(c.dust):
+		return _err("Not enough shards or dust")
+	var h: Dictionary = state.heroes[hero_id]
+	h.shards = int(h.shards) - int(c.shards_used)
+	_add_currency("dust", -int(c.dust))
+	h.awaken = int(c.tier)
+	_bump("awakenings")
+	var unlock: String = ["legend_passive", "ult_bonus", "ascended"][clampi(int(h.awaken) - 1, 0, 2)]
+	_notify({"type": "awaken", "hero_id": hero_id, "awaken": int(h.awaken), "unlock": unlock})
+	_changed()
+	return _ok({"awaken": int(h.awaken), "unlock": unlock})
+
+
 ## Adds a hero at level 1 and its starting stars (no-op if unknown or owned).
 func add_hero(hero_id: String) -> void:
 	var d := hero_def(hero_id)
 	if d.is_empty() or owns(hero_id):
 		return
-	state.heroes[hero_id] = {"id": hero_id, "level": 1, "stars": int(d.start_stars), "shards": 0, "gear": {}}
+	state.heroes[hero_id] = {"id": hero_id, "level": 1, "stars": int(d.start_stars), "shards": 0, "gear": {}, "awaken": 0}
 
 
-## Adds shards; anything a maxed hero can't use becomes dust. Returns dust granted.
+## Adds shards; anything a maxed hero can't use becomes dust (a Legendary keeps what her
+## awakenings can still use). Returns dust granted.
 func _add_shards(hero_id: String, n: int) -> int:
 	var h: Dictionary = state.heroes[hero_id]
-	var r := Progression.add_shards(int(h.stars), int(h.shards), n, str(hero_def(hero_id).rarity))
+	var r := Progression.add_shards(int(h.stars), int(h.shards), n, str(hero_def(hero_id).rarity), int(h.get("awaken", 0)))
 	h.shards = int(r.shards)
 	var dust: int = int(r.dust)
 	if dust > 0:
@@ -1982,6 +2038,21 @@ func dev_skip_time(ms: int) -> void:
 	state.dev_time_offset = int(state.dev_time_offset) + ms
 	refresh_daily()
 	check_idle_full()
+	_changed()
+
+
+## Debug (throwaway saves; Game checks): a Legendary at max stars and awakening tier `tier` (0-3),
+## holding `shards` shards when >= 0 (screenshots of the awakening).
+func dev_set_awaken(hero_id: String, tier: int, shards: int = -1) -> void:
+	var rarity := str(hero_def(hero_id).get("rarity", ""))
+	if not Progression.can_awaken_rarity(rarity):
+		return
+	add_hero(hero_id)
+	var h: Dictionary = state.heroes[hero_id]
+	h.stars = EconomyData.MAX_STARS
+	h.awaken = clampi(tier, 0, Progression.max_awaken(rarity))
+	if shards >= 0:
+		h.shards = shards
 	_changed()
 
 

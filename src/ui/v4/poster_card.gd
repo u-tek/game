@@ -5,6 +5,11 @@ extends Button
 ## TextureRect, Kit.art_crop in the look she wears: Kit.hero_look follows skins and nudity), and a
 ## printed label strip: level in big compressed numerals, role, power, star pips and the rarity tier.
 ## Status lights in signal: in the team, ready to level or star up (blinking), new.
+## Her rarity's frame (src/ui/v4/rarity_kit.gd, the summon's rarity language carried over): a Rare is
+## a plain print; an Epic gets the violet and teal plate edge and a slow violet foil sheen; a
+## Legendary gold holo foil that moves with the phone's tilt, her faction's growth curling slowly on
+## the top right corner, a LEGEND tab and a shimmer on her name. play_intro(delay) plays the frame's
+## entrance (the roster's first view).
 ## Layout at width w (height w * ratio); everything scales with k = w / 218.
 ##   setup(hero_id, {size, ratio, owned, level, stars, new, dot, in_team, slot (her team position,
 ##   0-4, as a signal tab at the band's head: the team bench), compact (no label strip), skin,
@@ -13,10 +18,13 @@ extends Button
 
 const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
 const HUD := preload("res://src/ui/components/hud.gd")
+const RK := preload("res://src/ui/v4/rarity_kit.gd")
 
 var hero_id := ""
 var opts: Dictionary = {}
 var face: Control
+## The rarity frame (null for a Rare).
+var rarity_frame: Control
 
 
 func setup(id: String, o: Dictionary = {}) -> void:
@@ -139,10 +147,16 @@ func _build(w: float, h: float) -> void:
 		pips.gap = 1.5 * k
 		pips.size = Vector2(pips.count * 9.0 * k + (pips.count - 1) * 1.5 * k, 9.0 * k)
 		PK.at(p, pips, Vector2(mid_x, fy + 40 * k))
-		var tier := PK.t(str(Kit.RARITY_TIER.get(rarity, "I")), int(34 * k), ink, "compressed")
+		var tier_ink := ink if rarity == "rare" or not owned else RK.ink(rarity)
+		var tier := PK.t(str(Kit.RARITY_TIER.get(rarity, "I")), int(34 * k), tier_ink, "compressed")
 		tier.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		tier.size = Vector2(44 * k, 40 * k)
 		PK.at(p, tier, Vector2(w - 50 * k, fy + 2 * k))
+
+	# Her rarity's frame (under the lights and tags).
+	rarity_frame = RK.card_frame(p, face, Vector2(w, h), rarity, {"k": k, "faction": str(def.get("faction", "celestial")),
+		"name_label": nl, "name_len": PK.text_w(nm, fs), "live": owned, "seed": float(hash(hero_id) % 97) * 0.31,
+		"tab_x": band + 8.0 * k, "dim": not owned})
 
 	# Status lights and tags (signal).
 	if bool(opts.get("in_team", false)) and not opts.has("slot"):
@@ -165,6 +179,13 @@ func _build(w: float, h: float) -> void:
 		(nb.get_child(0) as Label).add_theme_color_override("font_color", Color.WHITE)
 		nb.position = Vector2(w - 60 * k, -8 * k)
 		face.add_child(nb)
+
+
+## The rarity frame's entrance (an Epic's plates come into register, a Legendary's foil flashes,
+## her growth grows out and the tab slams on); nothing for a Rare or under Reduce motion.
+func play_intro(delay: float = 0.0) -> void:
+	if rarity_frame and rarity_frame.has_method("intro"):
+		rarity_frame.call("intro", delay)
 
 
 ## Her catalogue number (order in data/heroes.json, from 1).

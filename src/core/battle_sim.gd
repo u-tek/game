@@ -219,9 +219,12 @@ func _add_unit(s: Dictionary, side: String, index: int) -> void:
 	if ident.is_empty() or kit.is_empty():
 		push_warning("BattleSim: unknown hero '%s'" % hid)
 		return
+	# awaken (optional, default 0): a Legendary's awakening tier, which adds her legend passive and
+	# empowered ultimate to her passives (HeroKits.active_passives); the effects work as any passive's.
+	var awaken: int = int(s.get("awaken", 0))
 	var st: Dictionary = s.get("stats", {})
 	if st.is_empty():
-		st = StatCalc.stats(hid, int(s.get("level", 1)), int(s.get("stars", 1)))
+		st = StatCalc.stats(hid, int(s.get("level", 1)), int(s.get("stars", 1)), [], awaken)
 	var boss := bool(s.get("is_boss", false))
 	var hp: int = maxi(1, int(st.get("hp", 1)))
 	var atk: int = maxi(1, int(st.get("atk", 1)))
@@ -246,7 +249,7 @@ func _add_unit(s: Dictionary, side: String, index: int) -> void:
 		"idx": units.size(),
 		"beats": BEATS.get(ident.faction, ""),
 		"mods": {}, "dots": {}, "dot_src": {}, "exp": {}, "next_exp": NO_EXPIRY,
-		"pas": _collect_passives(hid, stars),
+		"pas": _collect_passives(hid, stars, awaken),
 		"ult": kit.ultimate,
 		"_ed": false,
 	}
@@ -260,14 +263,14 @@ func _add_unit(s: Dictionary, side: String, index: int) -> void:
 	_healing[uid] = 0
 
 
-func _collect_passives(hid: String, stars: int) -> Dictionary:
+func _collect_passives(hid: String, stars: int, awaken: int = 0) -> Dictionary:
 	var p := {
 		"start_energy": 0, "team_start_energy": 0, "aura_hp": 0, "aura_atk": 0,
 		"start_shield": 0, "heal_bonus": 0, "thorns": 0, "dr": 0, "on_hit": [],
 		"atk_heal": 0, "low_hp": 0, "kill_heal": 0, "kill_energy": 0, "lifesteal": 0,
 		"crit_dmg": 0, "double": 0, "ult_bonus": [],
 	}
-	for pas in HeroKits.active_passives(hid, stars):
+	for pas in HeroKits.active_passives(hid, stars, awaken):
 		for e in pas.effects:
 			match str(e.type):
 				"start_energy": p.start_energy += int(e.amount)

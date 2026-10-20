@@ -21,7 +21,7 @@
 				"created_at": 1702083600000,
 				"player_name": "Old",
 				"currencies": {"gold": 77, "gems": 5, "hero_exp": 0, "scrolls": 0, "dust": 0},
-				"heroes": {"uriela": {"id": "uriela", "level": 7, "stars": 2, "shards": 0, "gear": {}}},
+				"heroes": {"uriela": {"id": "uriela", "level": 7, "stars": 2, "shards": 0, "gear": {}, "awaken": 0}},
 				"formation": ["uriela", "", "", "", ""],
 				"campaign": {"cleared": 4},
 				"idle": {"last_claim_at": 1702080000000, "quick_claims_used": 0, "quick_claim_day": 19700, "carry": {}, "gear_ms": 0, "full_notified": false},
@@ -69,9 +69,16 @@
 			"out": {
 				"version": 1,
 				"heroes": {
-					"uriela": {"id": "uriela", "level": 1, "stars": 1, "shards": 0, "gear": {"weapon": "5"}},
-					"lucen": {"id": "lucen", "level": 1, "stars": 1, "shards": 0, "gear": {}},
-					"kessa": {"id": "kessa", "level": 1, "stars": 1, "shards": 0, "gear": {}}
+					"uriela": {
+						"id": "uriela",
+						"level": 1,
+						"stars": 1,
+						"shards": 0,
+						"gear": {"weapon": "5"},
+						"awaken": 0
+					},
+					"lucen": {"id": "lucen", "level": 1, "stars": 1, "shards": 0, "gear": {}, "awaken": 0},
+					"kessa": {"id": "kessa", "level": 1, "stars": 1, "shards": 0, "gear": {}, "awaken": 0}
 				},
 				"gear": [
 					{
@@ -126,7 +133,7 @@
 			"out": {
 				"version": 1,
 				"created_at": 1702083600000,
-				"heroes": {"uriela": {"id": "uriela", "level": 3, "stars": 1, "shards": 0, "gear": {}}},
+				"heroes": {"uriela": {"id": "uriela", "level": 3, "stars": 1, "shards": 0, "gear": {}, "awaken": 0}},
 				"summon": {
 					"pity": 37,
 					"total_pulls": 120,
@@ -179,7 +186,7 @@
 			},
 			"out": {
 				"version": 1,
-				"heroes": {"kessa": {"id": "kessa", "level": 1, "stars": 1, "shards": 0, "gear": {}}},
+				"heroes": {"kessa": {"id": "kessa", "level": 1, "stars": 1, "shards": 0, "gear": {}, "awaken": 0}},
 				"summon": {
 					"pity": 59,
 					"total_pulls": 0,
@@ -221,18 +228,25 @@
 				"player_name": "Envoy",
 				"currencies": {"gold": 6400, "hero_exp": 4000, "gems": 1512, "scrolls": 0, "dust": 12},
 				"heroes": {
-					"uriela": {"id": "uriela", "level": 1, "stars": 1, "shards": 0, "gear": {}},
-					"lucen": {"id": "lucen", "level": 1, "stars": 1, "shards": 0, "gear": {}},
-					"kessa": {"id": "kessa", "level": 1, "stars": 1, "shards": 10, "gear": {}},
-					"verdelle": {"id": "verdelle", "level": 1, "stars": 1, "shards": 10, "gear": {}},
-					"kindra": {"id": "kindra", "level": 1, "stars": 1, "shards": 0, "gear": {"weapon": "g1"}},
-					"avienne": {"id": "avienne", "level": 1, "stars": 2, "shards": 0, "gear": {}},
-					"severine": {"id": "severine", "level": 1, "stars": 2, "shards": 0, "gear": {}},
-					"nuriel": {"id": "nuriel", "level": 1, "stars": 1, "shards": 0, "gear": {}},
-					"ferrael": {"id": "ferrael", "level": 1, "stars": 1, "shards": 0, "gear": {}},
-					"imra": {"id": "imra", "level": 1, "stars": 1, "shards": 0, "gear": {}},
-					"brakka": {"id": "brakka", "level": 1, "stars": 2, "shards": 0, "gear": {}},
-					"isobel": {"id": "isobel", "level": 1, "stars": 1, "shards": 0, "gear": {}}
+					"uriela": {"id": "uriela", "level": 1, "stars": 1, "shards": 0, "gear": {}, "awaken": 0},
+					"lucen": {"id": "lucen", "level": 1, "stars": 1, "shards": 0, "gear": {}, "awaken": 0},
+					"kessa": {"id": "kessa", "level": 1, "stars": 1, "shards": 10, "gear": {}, "awaken": 0},
+					"verdelle": {"id": "verdelle", "level": 1, "stars": 1, "shards": 10, "gear": {}, "awaken": 0},
+					"kindra": {
+						"id": "kindra",
+						"level": 1,
+						"stars": 1,
+						"shards": 0,
+						"gear": {"weapon": "g1"},
+						"awaken": 0
+					},
+					"avienne": {"id": "avienne", "level": 1, "stars": 2, "shards": 0, "gear": {}, "awaken": 0},
+					"severine": {"id": "severine", "level": 1, "stars": 2, "shards": 0, "gear": {}, "awaken": 0},
+					"nuriel": {"id": "nuriel", "level": 1, "stars": 1, "shards": 0, "gear": {}, "awaken": 0},
+					"ferrael": {"id": "ferrael", "level": 1, "stars": 1, "shards": 0, "gear": {}, "awaken": 0},
+					"imra": {"id": "imra", "level": 1, "stars": 1, "shards": 0, "gear": {}, "awaken": 0},
+					"brakka": {"id": "brakka", "level": 1, "stars": 2, "shards": 0, "gear": {}, "awaken": 0},
+					"isobel": {"id": "isobel", "level": 1, "stars": 1, "shards": 0, "gear": {}, "awaken": 0}
 				},
 				"formation": ["kindra", "uriela", "lucen", "verdelle", "kessa"],
 				"campaign": {"cleared": 0},
@@ -303,18 +317,25 @@
 				"player_name": "Envoy",
 				"currencies": {"gold": 6400, "hero_exp": 4000, "gems": 1512, "scrolls": 0, "dust": 12},
 				"heroes": {
-					"uriela": {"id": "uriela", "level": 1, "stars": 1, "shards": 0, "gear": {}},
-					"lucen": {"id": "lucen", "level": 1, "stars": 1, "shards": 0, "gear": {}},
-					"kessa": {"id": "kessa", "level": 1, "stars": 1, "shards": 10, "gear": {}},
-					"verdelle": {"id": "verdelle", "level": 1, "stars": 1, "shards": 10, "gear": {}},
-					"kindra": {"id": "kindra", "level": 1, "stars": 1, "shards": 0, "gear": {"weapon": "g1"}},
-					"avienne": {"id": "avienne", "level": 1, "stars": 2, "shards": 0, "gear": {}},
-					"severine": {"id": "severine", "level": 1, "stars": 2, "shards": 0, "gear": {}},
-					"nuriel": {"id": "nuriel", "level": 1, "stars": 1, "shards": 0, "gear": {}},
-					"ferrael": {"id": "ferrael", "level": 1, "stars": 1, "shards": 0, "gear": {}},
-					"imra": {"id": "imra", "level": 1, "stars": 1, "shards": 0, "gear": {}},
-					"brakka": {"id": "brakka", "level": 1, "stars": 2, "shards": 0, "gear": {}},
-					"isobel": {"id": "isobel", "level": 1, "stars": 1, "shards": 0, "gear": {}}
+					"uriela": {"id": "uriela", "level": 1, "stars": 1, "shards": 0, "gear": {}, "awaken": 0},
+					"lucen": {"id": "lucen", "level": 1, "stars": 1, "shards": 0, "gear": {}, "awaken": 0},
+					"kessa": {"id": "kessa", "level": 1, "stars": 1, "shards": 10, "gear": {}, "awaken": 0},
+					"verdelle": {"id": "verdelle", "level": 1, "stars": 1, "shards": 10, "gear": {}, "awaken": 0},
+					"kindra": {
+						"id": "kindra",
+						"level": 1,
+						"stars": 1,
+						"shards": 0,
+						"gear": {"weapon": "g1"},
+						"awaken": 0
+					},
+					"avienne": {"id": "avienne", "level": 1, "stars": 2, "shards": 0, "gear": {}, "awaken": 0},
+					"severine": {"id": "severine", "level": 1, "stars": 2, "shards": 0, "gear": {}, "awaken": 0},
+					"nuriel": {"id": "nuriel", "level": 1, "stars": 1, "shards": 0, "gear": {}, "awaken": 0},
+					"ferrael": {"id": "ferrael", "level": 1, "stars": 1, "shards": 0, "gear": {}, "awaken": 0},
+					"imra": {"id": "imra", "level": 1, "stars": 1, "shards": 0, "gear": {}, "awaken": 0},
+					"brakka": {"id": "brakka", "level": 1, "stars": 2, "shards": 0, "gear": {}, "awaken": 0},
+					"isobel": {"id": "isobel", "level": 1, "stars": 1, "shards": 0, "gear": {}, "awaken": 0}
 				},
 				"formation": ["kindra", "uriela", "lucen", "verdelle", "kessa"],
 				"campaign": {"cleared": 0},

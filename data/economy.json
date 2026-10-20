@@ -14,7 +14,12 @@
 		"star_shards": [0, 10, 20, 40, 60, 100],
 		"dupe_shards": {"rare": 10, "epic": 20, "legendary": 40},
 		"dust_per_shard": {"rare": 10, "epic": 25, "legendary": 60},
-		"dust_per_excess_shard": {"rare": 4, "epic": 10, "legendary": 24}
+		"dust_per_excess_shard": {"rare": 4, "epic": 10, "legendary": 24},
+		"awaken_rarities": ["legendary"],
+		"awaken_min_stars": 6,
+		"awaken_shards": [80, 120, 160],
+		"awaken_dust": [1500, 3000, 5000],
+		"awaken_stat_bp": [600, 1200, 2000]
 	},
 	"stats": {"level_growth_bp": 700, "star_growth_bp": 1200, "spd_per_star": 1, "crit_cap_bp": 7500},
 	"idle": {

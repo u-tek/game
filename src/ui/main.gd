@@ -9,22 +9,26 @@ extends Control
 ## UI.set_full_bleed(true) (the lobby) it fills the window and the bars turn into
 ## translucent gradients over its art. UI.set_chrome() hides either bar (battle, summon).
 ##
-## Launch: when this is the running main scene, a boot screen (BootScreen) covers the first
-## frames while the lobby builds, then lifts and the lobby plays its intro. Test scripts that
-## add main.tscn themselves skip it.
+## Launch: when this is the running main scene, the boot screen (BootScreen, a print run of about
+## 4 s) covers the start while the Lobby's art loads and the Lobby builds (BootLoader), then lifts
+## and the Lobby plays its intro. Test scripts that add main.tscn themselves skip it, and so does
+## --no-boot (dev runs).
 ##
 ## Screenshot mode (docs/dev/architecture.md section 1), args after "--":
 ##   --shoot=<screen> --shoot-out=<png> --shoot-params=<json> --shoot-wait=<s>
 ##   --safe-area-sim  (108 px top / 62 px bottom insets, like a notched iPhone)
 ##   --tilt=x,y  holds the phone tilt (ui_tilt, about -0.6..0.6): the Legendary foil and the plates
 ##   at a fixed lean, e.g. --tilt=-0.45,0.05 (left), --tilt=0,0 (at rest), --tilt=0.45,-0.1 (right)
-##   --shoot=boot                 the boot screen (held), --shoot-from=<screen> opens that
+##   --shoot=boot                 the boot screen (held; --shoot-params='{"t":2.0}' holds the
+##   run at that second), --shoot-from=<screen> opens that
 ##   screen first and navigates after 0.6 s (catch a transition with a short --shoot-wait),
 ##   --shoot-do=toast|confirm|reward|veil  opens one of those over the screen.
 
 const Backdrop := preload("res://src/ui/components/backdrop.gd")
 const NavTab := preload("res://src/ui/components/nav_tab.gd")
 const BootScreen := preload("res://src/ui/components/boot_screen.gd")
+const BootLoader := preload("res://src/ui/components/boot_loader.gd")
+const HomeScreen := preload("res://src/ui/screens/home_screen.gd")
 
 ## Heights of the chrome bars, not counting the safe-area insets.
 const TOP_H := 104.0
@@ -79,6 +83,8 @@ var _bleed := false
 var _veil: Control
 var _veil_tw: Tween
 var _chrome_shown := Vector2i(-1, -1)
+## --no-boot: straight into the Lobby (dev runs), as test scripts that add main.tscn themselves do.
+var _no_boot := false
 
 
 ## Style v4 "Signal" lighting: HDR 2D bloom (WorldEnvironment glow over the canvas; emissive UI
@@ -192,40 +198,52 @@ func _ready() -> void:
 	_refresh()
 	if _shoot.has("screen"):
 		_run_shoot()
-	elif get_tree().current_scene == self:
+	elif get_tree().current_scene == self and not _no_boot:
 		_boot()
 	else:
 		UI.go("home")
 
 
-## Launch: the boot screen covers the first frames while caches warm up and the lobby builds,
-## then fills its bar and lifts; the lobby's intro plays as it does. hold = stay up (shots).
-func _boot(hold: bool = false) -> void:
+## Launch: the boot screen's print run (about 4 s) covers the start while the real work happens
+## (BootLoader): the Lobby hero's art, the team's stills and the Lobby's renders load on worker
+## threads, the warm-ups (her rig, outline, echo, the team's crops) run a frame at a time, then the
+## Lobby builds under the sheet and draws once. Its rule tracks that work; when it is done and the
+## run has printed, the sheet lifts and the Lobby plays its intro. hold = stay up (shots); freeze
+## >= 0 holds the run at that second (--shoot=boot --shoot-params='{"t":2.0}').
+func _boot(hold: bool = false, freeze: float = -1.0) -> void:
 	var boot := BootScreen.new()
 	# Over everything, popups included, until it lifts.
 	boot.z_index = 200
 	add_child(boot)
-	var t0 := Time.get_ticks_msec()
+	if freeze >= 0.0:
+		boot.freeze_at(freeze)
 	UI.hold_intro = true
-	boot.set_progress(0.15)
+	boot.set_progress(0.04)
 	await get_tree().process_frame
-	await get_tree().process_frame
-	# Warm the art and glyphs the lobby and the chrome use first.
-	for id: Variant in Game.formation():
-		if str(id) != "":
-			Kit.art_crop(str(id), 1.0, 1.7)
-	boot.set_progress(0.45)
-	await get_tree().process_frame
+	var id := HomeScreen.lobby_hero()
+	var look := Kit.hero_look(id) if id != "" else ""
+	var bl := BootLoader.new()
+	bl.start(id, look)
+	while not bl.loaded():
+		boot.set_progress(0.04 + 0.56 * bl.progress())
+		await get_tree().process_frame
+	boot.set_progress(0.6)
+	var steps := bl.steps()
+	for i in steps.size():
+		steps[i].call()
+		if i == 0 and is_instance_valid(boot):
+			boot.show_print(id, look)
+		boot.set_progress(0.6 + 0.28 * float(i + 1) / float(steps.size()))
+		await get_tree().process_frame
 	if UI.current_name == "":
 		UI.go("home")
-	boot.set_progress(0.85)
-	await get_tree().process_frame
+	boot.set_progress(0.92)
+	# The Lobby draws a few times under the sheet: its shaders compile now, not on the first look.
+	for i in 3:
+		await get_tree().process_frame
+	boot.set_progress(1.0)
 	if hold:
 		return
-	# Long enough to read as a deliberate splash, never a flash.
-	var left := 1.25 - float(Time.get_ticks_msec() - t0) / 1000.0
-	if left > 0.0:
-		await get_tree().create_timer(left).timeout
 	if not is_instance_valid(boot):
 		UI.play_intro()
 		return
@@ -760,7 +778,8 @@ func _refresh_guide() -> void:
 		"summon":
 			tab = "" if here == "summon" else "summon"
 		"formation":
-			tab = "" if here in ["home", "formation"] else "formation"
+			# The Lobby has no Team label any more (only the nav has it): point at the tab there too.
+			tab = "" if here == "formation" else "formation"
 		"level":
 			tab = "" if here in ["heroes", "hero_detail"] else "heroes"
 		"battle":
@@ -970,12 +989,16 @@ func _parse_args() -> void:
 			var v := a.substr("--tilt=".length()).split(",")
 			if v.size() == 2:
 				_tilt_fixed = Vector2(v[0].to_float(), v[1].to_float())
+		elif a == "--no-boot":
+			_no_boot = true
 
 
 func _run_shoot() -> void:
 	var screen: String = _shoot["screen"]
 	if screen == "boot":
-		_boot(true)
+		# params: t holds the run at that second; live lets it run out and lift into the Lobby.
+		var bp: Dictionary = _shoot.get("params", {})
+		_boot(not bool(bp.get("live", false)), float(bp.get("t", -1.0)))
 	elif UI.SCREENS.has(screen):
 		var from := str(_shoot.get("from", ""))
 		if from != "" and UI.SCREENS.has(from):

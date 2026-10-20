@@ -1,6 +1,6 @@
 {
 	"version": 1,
-	"about": "Progression (src/core/progression.gd): level costs (level -> level + 1), caps, star shards, star-up costs, shards to dust, affordable levels.",
+	"about": "Progression (src/core/progression.gd): level costs (level -> level + 1), caps, star shards, star-up costs, shards to dust (add_shards with an optional awaken tier, default 0), affordable levels, awakening costs and the awakening stat bonus by tier.",
 	"regenerate": "tools/gd --headless --path . -s tests/tools/make_fixtures.gd",
 	"level_cost": [
 		{"level": 1, "gold": 48, "hero_exp": 31},
@@ -198,14 +198,102 @@
 	],
 	"add_shards": [
 		{"stars": 1, "shards_have": 0, "n": 10, "rarity": "rare", "out": {"shards": 10, "dust": 0}},
-		{"stars": 5, "shards_have": 90, "n": 40, "rarity": "legendary", "out": {"shards": 100, "dust": 720}},
+		{"stars": 5, "shards_have": 90, "n": 40, "rarity": "legendary", "out": {"shards": 130, "dust": 0}},
 		{"stars": 6, "shards_have": 0, "n": 20, "rarity": "epic", "out": {"shards": 0, "dust": 200}},
-		{"stars": 4, "shards_have": 150, "n": 20, "rarity": "epic", "out": {"shards": 160, "dust": 100}}
+		{"stars": 4, "shards_have": 150, "n": 20, "rarity": "epic", "out": {"shards": 160, "dust": 100}},
+		{
+			"stars": 6,
+			"shards_have": 0,
+			"n": 40,
+			"rarity": "legendary",
+			"out": {"shards": 40, "dust": 0},
+			"awaken": 0
+		},
+		{
+			"stars": 6,
+			"shards_have": 330,
+			"n": 40,
+			"rarity": "legendary",
+			"out": {"shards": 330, "dust": 960},
+			"awaken": 1
+		},
+		{
+			"stars": 6,
+			"shards_have": 270,
+			"n": 40,
+			"rarity": "legendary",
+			"out": {"shards": 270, "dust": 960},
+			"awaken": 2
+		},
+		{
+			"stars": 6,
+			"shards_have": 0,
+			"n": 40,
+			"rarity": "legendary",
+			"out": {"shards": 0, "dust": 960},
+			"awaken": 3
+		},
+		{
+			"stars": 6,
+			"shards_have": 0,
+			"n": 20,
+			"rarity": "epic",
+			"out": {"shards": 0, "dust": 200},
+			"awaken": 0
+		},
+		{
+			"stars": 3,
+			"shards_have": 500,
+			"n": 120,
+			"rarity": "legendary",
+			"out": {"shards": 560, "dust": 1440},
+			"awaken": 0
+		}
 	],
 	"affordable_levels": [
 		{"level": 1, "cap": 40, "gold": 4000, "hero_exp": 2400, "out": 14},
 		{"level": 1, "cap": 40, "gold": 0, "hero_exp": 99999, "out": 0},
 		{"level": 35, "cap": 40, "gold": 10000000, "hero_exp": 10000000, "out": 5},
 		{"level": 20, "cap": 60, "gold": 50000, "hero_exp": 30000, "out": 22}
+	],
+	"awaken_cost": [
+		{
+			"stars": 6,
+			"awaken": 0,
+			"shards_have": 100,
+			"rarity": "legendary",
+			"out": {"tier": 1, "shards": 80, "dust": 1500, "dust_base": 1500, "shards_have": 100, "shards_used": 80, "dust_per_shard": 60, "min_stars": 6, "stars_ok": true}
+		},
+		{
+			"stars": 6,
+			"awaken": 1,
+			"shards_have": 20,
+			"rarity": "legendary",
+			"out": {"tier": 2, "shards": 120, "dust": 9000, "dust_base": 3000, "shards_have": 20, "shards_used": 20, "dust_per_shard": 60, "min_stars": 6, "stars_ok": true}
+		},
+		{
+			"stars": 6,
+			"awaken": 2,
+			"shards_have": 0,
+			"rarity": "legendary",
+			"out": {"tier": 3, "shards": 160, "dust": 14600, "dust_base": 5000, "shards_have": 0, "shards_used": 0, "dust_per_shard": 60, "min_stars": 6, "stars_ok": true}
+		},
+		{"stars": 6, "awaken": 3, "shards_have": 500, "rarity": "legendary", "out": {}},
+		{
+			"stars": 5,
+			"awaken": 0,
+			"shards_have": 200,
+			"rarity": "legendary",
+			"out": {"tier": 1, "shards": 80, "dust": 1500, "dust_base": 1500, "shards_have": 200, "shards_used": 80, "dust_per_shard": 60, "min_stars": 6, "stars_ok": false}
+		},
+		{"stars": 6, "awaken": 0, "shards_have": 50, "rarity": "epic", "out": {}},
+		{"stars": 6, "awaken": 0, "shards_have": 50, "rarity": "rare", "out": {}}
+	],
+	"awaken_stat_bp": [
+		{"awaken": 0, "out": 0},
+		{"awaken": 1, "out": 600},
+		{"awaken": 2, "out": 1200},
+		{"awaken": 3, "out": 2000},
+		{"awaken": 4, "out": 2000}
 	]
 }

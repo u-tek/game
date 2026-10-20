@@ -95,7 +95,8 @@ events like `{"type": "level_up", "hero_id": ...}`.
 **HeroDef** (`Game.hero_def(id)`): `id, name, title, faction ("celestial"|"infernal"|"fallen"),
 role ("guardian"|"striker"|"caster"|"support"|"assassin"), rarity ("rare"|"epic"|"legendary"),
 bio, look, base_stats {hp, atk, def, spd, crit}, ultimate {id, name, description, ...},
-passives [{id, name, description, unlock_stars, ...}]`.
+passives [{id, name, description, unlock_stars, ...}], legend` (Legendaries: `{title, passive,
+ult_bonus, lore}`; `{}` for everyone else).
 
 **Counter wheel:** celestial beats infernal, infernal beats fallen, fallen beats celestial
 (+20% damage dealt to the beaten faction). **Faction bonus:** 3/4/5 allies of one faction
@@ -104,7 +105,7 @@ give +6%/+10%/+15% HP and ATK.
 **Reward:** `{gold?, hero_exp?, gems?, scrolls?, dust?, shards?: {hero_id: n}, gear?: [uid], heroes?: [hero_id]}`
 
 **Player state** (`Game.state`, read-only for UI): `version, created_at, player_name,
-currencies {gold, hero_exp, gems, scrolls, dust}, heroes {id: {id, level, stars, shards, gear {slot: uid}}},
+currencies {gold, hero_exp, gems, scrolls, dust}, heroes {id: {id, level, stars, shards, gear {slot: uid}, awaken}},
 formation [5 ids or ""], campaign {cleared}, idle {last_claim_at, quick_claims_used, quick_claim_day},
 summon {pity, total_pulls, last_free_pull_day}, gear [GearItem], quests {day, progress, claimed},
 shop {purchases}, settings {sound, battle_speed (1|2|4), auto_ultimates}, counters {}, dev_time_offset`.
@@ -121,6 +122,14 @@ v (0-999, picks the flaw's look), day, first, from (""|"rival")}`. API: `Game.pr
 first; `all`, `misprint`, `holo`, `top`, `rival`, `hero:<id>`), `print_by_uid(uid)`,
 `print_stats()` `{total, kept, misprints, holo, top, from_rival, best_grade, best}`,
 `set_showcase(uids)` (up to 3, shown on the profile), `showcase()`.
+
+**Awakening** (Legendaries past 6 stars; rules `Progression`, `HeroKits`, `unity-port.md` 8.6):
+`Game.awaken_tier(id)` (0-3), `awaken_cost(id)` -> `{tier, shards, dust, dust_base, shards_have,
+shards_used, dust_per_shard, min_stars, stars_ok}` or `{}`, `can_awaken(id)`, `awaken(id)` ->
+`{awaken, unlock ("legend_passive"|"ult_bonus"|"ascended")}` (notify `awaken {hero_id, awaken,
+unlock}`), `hero_stats_at(id, level, stars, awaken = -1)`. A1 adds her legend passive, A2 her
+empowered ultimate, A3 the Ascended title; every tier raises all stats. Debug: `--awaken=id:tier,...`
+with `--rich`/`--fresh` (throwaway saves).
 
 **The Rival** (Rue; rules `RivalRules`, `unity-port.md` 9c): `Game.rival_unlocked()`, `rival()` (the
 view: `name, title, unlocked, met, team, ace, level, roster, power, your_power, record {wins, losses,
@@ -146,7 +155,8 @@ sim.outcome() -> Dictionary         # {winner, victory, duration_ms, allies_aliv
 sim.run_to_end() -> Dictionary      # for Skip
 ```
 
-Unit setup: `{uid, hero_id, side, slot, level, stars, stats {hp, atk, def, spd, crit}, is_boss}`.
+Unit setup: `{uid, hero_id, side, slot, level, stars, stats {hp, atk, def, spd, crit}, is_boss, awaken?}`
+(`awaken`: a Legendary's awakening tier, adds her legend passive and empowered ultimate; default 0).
 Slots 0-1 = front row, 2-4 = back row. Events (all have `t` = battle ms and `type`):
 `attack {src, target}`, `damage {src, target, amount, crit, advantage, from_ultimate, hp_after, shield_after}`,
 `heal {src, target, amount, hp_after}`, `shield {src, target, amount, shield_after}`,
