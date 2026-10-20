@@ -594,8 +594,8 @@ class TestBible(unittest.TestCase):
             self.assertIn("adult", h["natural"].lower(), hid)
             tw = prompts.tag_weights(h["subject"])
             self.assertIn("adult", tw, hid)
-            cue = BIBLE["content_rules"]["adult_cue_by_gender"][h["gender"]]
-            self.assertGreaterEqual(tw.get(cue, 0), 0.8 if hid in ("liora", "uriela", "imra") else 0.6, hid)
+            self.assertGreaterEqual(tw["adult"], 0.6, hid)
+            self.assertNotIn("mature female", tw, hid)      # owner, 2026-10-20: it aged the cast
             if h.get("size"):
                 self.assertEqual([v % 8 for v in h["size"]], [0, 0], hid)
 
@@ -881,9 +881,7 @@ class TestContentRules(unittest.TestCase):
         self.assertTrue(prompts.check(BIBLE, "imra", pr["positive"], pr["negative"].replace("pantyshot, ", "")))
         no_adult = pr["positive"].replace("adult, ", "")
         self.assertTrue(prompts.check(BIBLE, "imra", no_adult, pr["negative"]))
-        no_mature = pr["positive"].replace("(mature female:0.8), ", "")
-        self.assertTrue(prompts.check(BIBLE, "imra", no_mature, pr["negative"]))
-        weak = pr["positive"].replace("(mature female:0.8)", "(mature female:0.1)")
+        weak = pr["positive"].replace("adult, ", "(adult:0.1), ", 1)
         self.assertTrue(any("weighted" in p for p in prompts.check(BIBLE, "imra", weak, pr["negative"])))
         weak_neg = pr["negative"].replace("nude,", "(nude:0.2),")
         self.assertTrue(any("nude" in p for p in prompts.check(BIBLE, "imra", pr["positive"], weak_neg)))

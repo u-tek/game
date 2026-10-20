@@ -6,7 +6,7 @@
   "_doc": "Hard rules from docs/dev/character-briefs.md. Alluring fan-service up to the App Store 18+ limit; every character an ADULT (apparent age 20+, adult face, proportions and styling); suggestive but never explicit (no visible nipples, genitals or pubic area, including through sheer fabric; no sexual acts or poses mimicking them). tools/comfy/prompts.py refuses to compose, and comfy.py refuses to queue, a prompt that breaks these. Terms match whole words, weights ignored ('young' also catches 'young girl', 'young-looking').",
   "adult_cues": ["adult", "mature female", "mature male"],
   "adult_cue_required": "adult",
-  "adult_cue_by_gender": {"female": "mature female", "male": "mature male"},
+  "adult_cue_by_gender": {},
   "min_adult_cue_weight": 0.6,
   "min_negative_weight": 0.9,
   "required_negative": {
@@ -22,7 +22,7 @@
  },
 
  "content_rules_adult": {
-  "_doc": "Rules for the EroLabs nude set (--adult in tools/comfy): fully nude pinups, no sex acts. Nudity terms are allowed in the positive and not required in the negative; sex-act and childlike terms stay forbidden and the childlike negative block stays required. Adult cues relaxed 2026-10-18 (the owner: the old cues made the cast look 30+ and slightly fat): only a plain 'adult' tag is required at weight >= 0.5, the gendered 'mature female' cue is dropped, and subject_override replaces the heroes' subject line. The tame content_rules above are unchanged and still gate every non-adult render.",
+  "_doc": "Rules for the EroLabs nude set (--adult in tools/comfy): fully nude pinups, no sex acts. Nudity terms are allowed in the positive and not required in the negative; sex-act and childlike terms stay forbidden and the childlike negative block stays required. Adult cues relaxed 2026-10-18 (the owner: the old cues made the cast look 30+ and slightly fat): only a plain 'adult' tag is required at weight >= 0.5, the gendered 'mature female' cue is dropped, and subject_override replaces the heroes' subject line. The tame content_rules above still gate every non-adult render; on 2026-10-20 the owner dropped the 'mature female' cue there too (it aged the cast to 30-40+), so both modes now require only 'adult'.",
   "adult_cues": [
    "adult",
    "mature female",
@@ -274,7 +274,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "huge breasts, wide hips, narrow waist",
    "hair": "platinum blonde hair, very long hair",
@@ -317,7 +317,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, (mature female:0.8)",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "athletic, abs, large breasts, wide hips, thick thighs",
    "hair": "silver hair, short hair, bob cut",
@@ -358,7 +358,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "makeup, lipstick, eyeliner, long eyelashes",
    "body": "curvy, large breasts, wide hips, thick thighs",
    "hair": "pink hair, long hair, side braid",
@@ -401,7 +401,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "makeup, lipstick, eyeliner, long eyelashes",
    "body": "toned, large breasts, wide hips, thick thighs",
    "hair": "blonde hair, high ponytail",
@@ -442,7 +442,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "toned, abs, long legs, medium breasts",
    "hair": "white hair, pixie cut, colored tips",
@@ -488,7 +488,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "tall female, abs, broad shoulders, huge breasts, wide hips, thick thighs, dark-skinned female",
    "hair": "black hair, box braids, high ponytail",
@@ -531,7 +531,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "curvy, huge breasts, narrow waist, wide hips, thick thighs",
    "hair": "aqua hair, wavy hair, hair bun",
@@ -574,7 +574,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "makeup, lipstick, eyeliner, long eyelashes",
    "body": "long legs, toned, large breasts, wide hips",
    "hair": "light purple hair, very long hair, straight hair",
@@ -616,7 +616,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "tall female, curvy, large breasts, narrow waist, wide hips, long legs",
    "hair": "brown hair, updo",
@@ -658,7 +658,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "makeup, lipstick, eyeliner, long eyelashes",
    "body": "toned, abs, long legs, large breasts, wide hips",
    "hair": "blue hair, single hair bun",
@@ -700,7 +700,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "muscular female, broad shoulders, huge breasts, wide hips, thick thighs, freckles",
    "hair": "red hair, short hair, messy hair",
@@ -742,7 +742,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "makeup, lipstick, long eyelashes",
    "body": "curvy, large breasts, wide hips, thick thighs",
    "hair": "blonde hair, long hair, wavy hair, gradient hair",
@@ -784,7 +784,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "makeup, lipstick, eyeliner, long eyelashes",
    "body": "tall female, toned, large breasts, wide hips, long legs",
    "hair": "dark blue hair, bob cut, streaked hair",
@@ -826,7 +826,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "toned, abs, large breasts, wide hips, thick thighs, tan",
    "hair": "blonde hair, medium hair, messy hair",
@@ -868,7 +868,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "huge breasts, wide hips, thick thighs",
    "hair": "black hair, long hair, wavy hair, red tips",
@@ -909,7 +909,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "muscular female, tall female, huge breasts, abs, thick thighs, red skin, colored skin",
    "hair": "blonde hair, spiked hair, short hair",
@@ -951,7 +951,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "huge breasts, wide hips, narrow waist",
    "hair": "red hair, long hair, straight hair",
@@ -996,7 +996,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, (mature female:0.8), (aged up:1.2)",
+   "subject": "1girl, solo, adult, (aged up:1.2)",
    "adult_face": "makeup, lipstick, eyeliner, long eyelashes",
    "body": "toned, large breasts, wide hips",
    "hair": "orange hair, medium hair, messy hair",
@@ -1038,7 +1038,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "athletic, large breasts, wide hips, thick thighs",
    "hair": "black hair, short hair, streaked hair",
@@ -1080,7 +1080,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "tall female, large breasts, narrow waist, wide hips, long legs, dark-skinned female",
    "hair": "black hair, pink hair, two-tone hair, high ponytail",
@@ -1124,7 +1124,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "tall female, huge breasts, narrow waist, wide hips, long legs",
    "hair": "blonde hair, long hair, wavy hair",
@@ -1168,7 +1168,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "very tall female, huge breasts, wide hips, thick thighs, dark-skinned female, very dark skin",
    "hair": "red hair, long hair, big hair, curly hair",
@@ -1211,7 +1211,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "curvy, huge breasts, wide hips, thick thighs, pale skin, full-body tattoo",
    "hair": "black hair, colored inner hair, long hair, curly hair",
@@ -1254,7 +1254,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "makeup, eyeliner",
    "body": "toned, large breasts, narrow waist, wide hips, thick thighs, tan",
    "hair": "dark red hair, single hair bun, slicked back hair",
@@ -1296,7 +1296,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "eyeliner, black lipstick",
    "body": "tall female, toned, large breasts, long legs",
    "hair": "pink hair, wolf cut, medium hair",
@@ -1339,7 +1339,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "muscular female, broad shoulders, abs, large breasts, wide hips, thick thighs, tan, dirty",
    "hair": "blonde hair, short hair, undercut",
@@ -1382,7 +1382,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "lipstick",
    "body": "huge breasts, narrow waist, wide hips, thick thighs",
    "hair": "brown hair, long hair, curly hair, hair over shoulder",
@@ -1428,7 +1428,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "tall female, slender, long legs, large breasts",
    "hair": "silver hair, long hair",
@@ -1469,7 +1469,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "tall female, toned, large breasts, wide hips, thick thighs",
    "hair": "silver hair, long hair, straight hair, two-tone hair",
@@ -1511,7 +1511,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "curvy, huge breasts, wide hips, thick thighs",
    "hair": "teal hair, long hair",
@@ -1552,7 +1552,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "slender, long legs, large breasts, wide hips",
    "hair": "split-color hair, white hair, black hair, long hair",
@@ -1593,7 +1593,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, (mature female:0.8)",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "huge breasts, wide hips",
    "hair": "grey hair, messy hair, multicolored hair",
@@ -1638,7 +1638,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "tall female, long legs, huge breasts, wide hips, dark skin",
    "hair": "white hair, dreadlocks, very long hair",
@@ -1681,7 +1681,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "tall female, broad shoulders, toned, abs, huge breasts, wide hips, thick thighs",
    "hair": "teal hair, short hair, undercut, messy hair",
@@ -1723,7 +1723,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "athletic, toned, large breasts, wide hips, thick thighs",
    "hair": "black hair, very long hair, high ponytail, straight hair",
@@ -1766,7 +1766,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "tall female, muscular female, huge breasts, wide hips, thick thighs, colored skin, blue skin",
    "hair": "teal hair, long hair, wavy hair, wet hair",
@@ -1808,7 +1808,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "makeup, lipstick",
    "body": "curvy, huge breasts, wide hips, thick thighs",
    "hair": "light purple hair, long hair, straight hair, blunt bangs",
@@ -1849,7 +1849,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "makeup, lipstick, eyeliner, long eyelashes",
    "body": "athletic, muscular female, abs, large breasts, wide hips, thick thighs",
    "hair": "platinum blonde hair, very short hair, buzz cut, colored tips",
@@ -1891,7 +1891,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "makeup, lipstick, eyeliner, long eyelashes",
    "body": "long legs, narrow waist, large breasts, wide hips",
    "hair": "aqua hair, purple hair, two-tone hair, messy hair, medium hair",
@@ -1933,7 +1933,7 @@
     "smile"
    ],
    "loras": [],
-   "subject": "1girl, solo, adult, mature female",
+   "subject": "1girl, solo, adult",
    "adult_face": "",
    "body": "tall female, slender, long legs, large breasts, narrow waist",
    "hair": "black hair, gradient hair, silver hair, very long hair, low ponytail",

@@ -185,7 +185,7 @@ def cmd_card(a):
     n = len(heroes)
     who = {1: "1girl, solo", 2: "2girls", 3: "3girls, multiple girls"}[n]
     names = ", ".join(sorted({bible["heroes"][h]["faction"] for h, _ in heroes}))
-    pos = prompts.join_tags(fam.get("quality", ""), fam.get("rating", ""), who, "adult, mature female",
+    pos = prompts.join_tags(fam.get("quality", ""), fam.get("rating", ""), who, "adult",
                             "cowboy shot", PLATES[bible["heroes"][heroes[0][0]]["faction"]].replace("no humans, ", ""),
                             bible["style"]["tags"], "key visual, promotional art")
     neg = _negative(bible, fam, characters=True)

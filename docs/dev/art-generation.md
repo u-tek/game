@@ -41,8 +41,8 @@ fabric), no sexual acts or poses that mimic them.
 How the pipeline enforces it (`data/art_prompts.json` → `content_rules`, `tools/comfy/prompts.py`):
 - Every composed prompt goes through `prompts.enforce()` before any workflow is built. It refuses
   to send a prompt unless:
-  - the positive has an **adult cue tag** (`adult` plus `mature female` / `mature male`, weighted
-    lower for early-20s heroes) and the word "adult" in the natural-language line;
+  - the positive has the **adult cue tag** `adult` and the word "adult" in the natural-language
+    line (`mature female` was dropped on 2026-10-20: the owner said it aged the cast to 30-40+);
   - the positive has **none of the forbidden terms** (nudity, genitals, sex acts, `see-through`,
     `panties`, `loli`, `child`, `school uniform`, `flat chest`, ...; `topless` for women);
   - the negative carries **every required term**: explicit (`nsfw, explicit, nude, nipples,

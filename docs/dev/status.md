@@ -117,6 +117,30 @@ this file says where things stand. Older logs are under "History" at the bottom.
     quality, the art **re-rendered for rigging** (rig-ready poses, separable parts), all AI, one
     system for the hero page, Lobby, summons and the coming combat skins. Next: prototype the
     re-render and a Live2D-style layered rig on Argentiel, then show video before any rollout.
+  - **MOSS-Image trial, 2026-10-20 (PC):** the owner asked to try MOSS-Image (OpenMOSS, Apache-2.0,
+    5B DiT, Qwen3.5 9B text encoder) as the generator. Installed on the PC: the SFT int8 ConvRot DiT,
+    the int8 text encoder and the FLUX.2 VAE (Comfy-Org/MOSS-Image), and the OpenMOSS plugin in
+    `D:/comfyui/custom_nodes/moss-image`. The PC's ComfyUI is 0.39, and native MOSS support arrived in
+    0.42; the Comfy-Org file fuses q/k/v, so the plugin is **patched locally** to read it
+    (`model.py`, `loaders.py`; the originals are kept as `*.orig` beside them).
+    - **Settings:** euler / sgm_uniform, CFG 3, shift 5, negative-branch layer skip 22, 896x1152,
+      about 5 s per step on the 3070.
+    - **The style prompt:** it describes the Korean gacha splash look (NIKKE / Brown Dust 2) rather than
+      naming the games: airbrushed soft shading, thin warm brown line art, glossy skin, blush, large
+      glossy anime eyes. MOSS follows long briefs far better than Amanatsu, with props, details and
+      skin tones right.
+    - **Tests:** Zecchina at 15/25/40/50 steps, and Seraphiel, Torqua, Noctaire and Sigilla at 15/25.
+      25 steps (about 2 min) fixed hidden or doubled limbs that 15 steps (about 1.3 min) left in
+      two of the five heroes.
+    - **Finishing:** hires 1.5x worked (190 s); the face polish at 0.35 changed little. The owner
+      cancelled the MOSS 2x tile pass (an estimated 12-15 min).
+    - **The scripts are outside the repo** (session scratchpad: `moss_steps.py`, `moss_heroes.py`,
+      `moss_finish.py`).
+    - **Open:** the owner's verdict; the 8-step DMD LoRA (it ignores the negative prompt) and the
+      quant options are researched, nothing more installed.
+    - **Owner, same day: drop `mature female`** ("it makes all the characters look like 30-40+"). It
+      is gone from the content rules and all 40 subject lines; `adult` and every childlike negative
+      stay required.
   - **Combat:** after a wall at stage 2-6 with five maxed heroes the owner said "don't bother i want to
     redo the whole combat system anyway ... it's going to be super intricate don't build it now".
     The balance report agrees the wall is real (2-6 needs a typical team near level 64; the economy

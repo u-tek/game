@@ -10,8 +10,9 @@
 
 Every composed prompt passes through enforce(), and comfy.Comfy.queue() runs check_graph() on every
 graph before it is written or sent, so a prompt that breaks the rules never reaches a server:
-- the positive carries `adult` and the gendered `mature female` / `mature male` tag, each at an
-  effective ComfyUI weight of at least content_rules.min_adult_cue_weight;
+- the positive carries `adult` at an effective ComfyUI weight of at least
+  content_rules.min_adult_cue_weight (the gendered `mature female` cue was dropped on 2026-10-20:
+  it aged the cast; content_rules.adult_cue_by_gender can still require one);
 - the positive carries none of the forbidden terms (whole-word match, weights ignored);
 - the negative carries every required explicit-nudity and childlike-appearance term at full weight.
 
@@ -667,7 +668,7 @@ def check_graph(bible, graph, adult=False):
             if pr not in problems:
                 problems.append(pr)
     if not pos:
-        for pr in check_text(bible, "1girl, adult, mature female", negative, adult=adult):
+        for pr in check_text(bible, "1girl, adult", negative, adult=adult):
             if pr not in problems and "negative" in pr:
                 problems.append(pr)
     return problems
