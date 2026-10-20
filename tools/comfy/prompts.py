@@ -480,19 +480,31 @@ def _sentence_subject(bible, h, adult):
     return plain_tags(join_tags(_subject(bible, h, adult), rules_for(bible, adult).get("family_rating") if adult else ""))
 
 
+def _face_sentence(fam, closed):
+    """The family's face sentence; its closed-eyes form for closed eyes (MOSS follows sentences, and
+    'large glossy eyes with detailed gradient irises' kept an eyes_closed variant open, 2026-10-20)."""
+    return fam.get("face_natural_closed" if closed else "face_natural", "")
+
+
 def _sentence_full_body(bible, fam, h, hero_id, bg, extra_tags, adult):
     subj = _sentence_subject(bible, h, adult)
-    parts = ["%s, full body." % subj, fam.get("style_natural", ""), fam.get("composition_natural", ""),
+    parts = ["%s, full body." % subj, fam.get("style_natural", ""),
+             _face_sentence(fam, h.get("default_eyes") == "closed"), fam.get("composition_natural", ""),
              _who(fam, h), _prose(plain_tags(extra_tags)) if extra_tags else "",
              bg.get("natural") or "Plain flat background, no scenery."]
     return " ".join(p.strip() for p in parts if p and p.strip())
 
 
-def _sentence_close_up(bible, fam, h, tags, bg, adult, what="close-up of her face and shoulders"):
-    """Tags first (so variant_conflicts reads them as clean tags), then the style and who she is."""
+def _sentence_close_up(bible, fam, h, tags, bg, adult, what="close-up of her face and shoulders", expression=""):
+    """Tags first (so variant_conflicts reads them as clean tags), then the style and who she is. A
+    variant's expression is said again as a sentence: MOSS barely moved an eyes_closed or mouth_open
+    region from the tags alone (2026-10-20)."""
     age = fam.get("age_natural", "in her mid-twenties")
     head = "%s." % plain_tags(join_tags(_sentence_subject(bible, h, adult), what, tags))
-    parts = [head, fam.get("style_natural", ""), "She is %s, a beautiful adult woman %s." % (h["name"], age),
+    closed = "closed eyes" in tag_weights(plain_tags(tags))
+    parts = [head, fam.get("style_natural", ""), _face_sentence(fam, closed),
+             "She is %s, a beautiful adult woman %s." % (h["name"], age),
+             "Her expression: %s." % plain_tags(expression) if expression else "",
              bg.get("natural") or "Plain flat background, no scenery."]
     return " ".join(p.strip() for p in parts if p and p.strip())
 
@@ -551,7 +563,7 @@ def face(bible, hero_id, family, variant=None, background_key=None, skin=None, a
             problems = variant_conflicts(bible, hero_id, variant, plain_tags(join_tags(_subject(bible, h, adult), tags)))
             if problems:
                 raise PromptError("%s %s variant contradicts itself: %s" % (hero_id, variant, "; ".join(problems)))
-        positive = _sentence_close_up(bible, fam, h, tags, bg, adult)
+        positive = _sentence_close_up(bible, fam, h, tags, bg, adult, expression=expr if variant else "")
         return _finish(bible, hero_id, positive, _sentence_negative(bible, fam, h, extra=vneg, adult=adult),
                        adult=adult)
     body = join_tags(_subject(bible, h, adult), h.get("adult_face", ""), bible["crop_tags"], h["face"], expr,

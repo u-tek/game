@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Post-processing for generated hero art (PIL + numpy only).
+"""Post-processing for generated hero art (PIL + numpy; onnxruntime optional, for the face detector).
 
     remove_background(img)        flat-background cutout: flood fill from the borders with colour
                                   tolerance (against a fitted background surface, so gentle gradients
@@ -8,7 +8,8 @@
     alpha_from_mask(img, mask)    same edge treatment for a mask from a ComfyUI background-removal node
     place_on_canvas(rgba)         trim, scale and place on the 1024x2048 canvas, feet at y=1990, body
                                   axis centred at x=512 (shifted only if the figure would leave the canvas)
-    estimate_face_box(rgba)       heuristic face box (skin colour + body proportions)
+    estimate_face_box(rgba)       face box: the face_yolov8m detector (ONNX) when installed, else a
+                                  heuristic (skin colour + body proportions)
     portrait(canvas, face_box)    square head-and-shoulders crop
     contact_sheet(entries, out)   labelled grid of candidates (full body + face detail) for review
 
@@ -400,9 +401,12 @@ def map_box(box, tr):
     return [round(x * s + ox), round(y * s + oy), round(w * s), round(h * s)]
 
 
-# Skin colour windows in PIL HSV (0-255 each). "light": peach/pale anime skin (excludes blonde/gold
-# hair and halos, which sit at higher hues, and saturated red/orange hair). "red": red-skinned demons.
-SKIN_PROFILES = {"light": {"hue": (0, 25), "hue_wrap": 248, "sat": (12, 130), "val": 110},
+# Skin colour windows in PIL HSV (0-255 each). "light": peach/pale anime skin up to hue 15 (cheeks
+# measure 0-14; cream-blonde hair starts at 16-17, gold hair and halos higher), not saturated red/orange
+# hair; "pale" adds the bright, barely saturated lavender-pink skin MOSS paints (hue 232-247).
+# "red": red-skinned demons.
+SKIN_PROFILES = {"light": {"hue": (0, 15), "hue_wrap": 248, "sat": (12, 130), "val": 110,
+                           "pale": {"hue": 232, "sat": 60, "val": 215}},
                  "red": {"hue": (0, 14), "hue_wrap": 240, "sat": (90, 235), "val": 70}}
 
 
@@ -411,15 +415,98 @@ def skin_mask(rgba, profile="light"):
     hsv = np.asarray(rgba.convert("RGB").convert("HSV")).astype(np.int32)
     h, s, v = hsv[..., 0], hsv[..., 1], hsv[..., 2]
     a = np.asarray(rgba.split()[3]) > 127
-    return (((h >= p["hue"][0]) & (h <= p["hue"][1])) | (h >= p["hue_wrap"])) & \
-        (s >= p["sat"][0]) & (s <= p["sat"][1]) & (v >= p["val"]) & a
+    m = (((h >= p["hue"][0]) & (h <= p["hue"][1])) | (h >= p["hue_wrap"])) & \
+        (s >= p["sat"][0]) & (s <= p["sat"][1]) & (v >= p["val"])
+    if "pale" in p:
+        q = p["pale"]
+        m |= (h >= q["hue"]) & (s >= p["sat"][0]) & (s <= q["sat"]) & (v >= q["val"])
+    return m & a
+
+
+# face_yolov8m (the ADetailer face model the installed skins were placed with), exported once to ONNX
+# and run on the CPU with onnxruntime (~0.3 s an image). It found the face on all 46 MOSS and Amanatsu
+# test images, where the skin heuristic missed 19. Optional: without the file or onnxruntime the
+# heuristic is used. HALO_FACE_ONNX=<path> points elsewhere, HALO_FACE_ONNX=off turns it off.
+FACE_ONNX = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "art_src",
+                                          "_server", "face_yolov8m.onnx"))
+FACE_SOURCE = "face_yolov8m"
+_face_sessions = {}
+
+
+def face_detector():
+    """onnxruntime session for the face model, or None (turned off, no file, or no onnxruntime)."""
+    path = os.environ.get("HALO_FACE_ONNX") or FACE_ONNX
+    if path.lower() in ("off", "0", "none"):
+        return None
+    if path not in _face_sessions:
+        sess = None
+        if os.path.exists(path):
+            try:
+                import onnxruntime
+                sess = onnxruntime.InferenceSession(path, providers=["CPUExecutionProvider"])
+            except Exception as e:      # no package or a bad file: the heuristic still works
+                print("note: face detector %s unavailable (%s); using the skin heuristic" % (path, e), file=sys.stderr)
+        _face_sessions[path] = sess
+    return _face_sessions[path]
+
+
+def yolo_faces(pred, scale, pad, conf=0.35, iou=0.5):
+    """Decode a one-class YOLOv8 output (5 x N: cx, cy, w, h, score in network pixels) of a letterboxed
+    image (source * scale + pad) into [([x, y, w, h], score)] in source pixels, best first, without
+    overlapping duplicates."""
+    p = np.asarray(pred, np.float32).reshape(5, -1).T
+    p = p[p[:, 4] >= conf]
+    p = p[np.argsort(-p[:, 4], kind="stable")]
+    xy = np.stack([p[:, 0] - p[:, 2] / 2, p[:, 1] - p[:, 3] / 2, p[:, 0] + p[:, 2] / 2, p[:, 1] + p[:, 3] / 2], 1)
+    area = p[:, 2] * p[:, 3]
+    keep = []
+    for i in range(len(p)):
+        if keep:
+            k = np.array(keep)
+            iw = np.clip(np.minimum(xy[k, 2], xy[i, 2]) - np.maximum(xy[k, 0], xy[i, 0]), 0, None)
+            ih = np.clip(np.minimum(xy[k, 3], xy[i, 3]) - np.maximum(xy[k, 1], xy[i, 1]), 0, None)
+            if (iw * ih > iou * (area[k] + area[i] - iw * ih)).any():
+                continue
+        keep.append(i)
+    out = []
+    for i in keep:
+        x0, y0, x1, y1 = (xy[i] - (pad[0], pad[1], pad[0], pad[1])) / scale
+        out.append(([int(round(x0)), int(round(y0)), int(round(x1 - x0)), int(round(y1 - y0))],
+                    round(float(p[i, 4]), 3)))
+    return out
+
+
+def detect_faces(img, size=640):
+    """Faces found by the face model ([([x, y, w, h], score)], best first; RGBA is laid over mid grey).
+    [] when the detector is not installed or finds nothing."""
+    sess = face_detector()
+    if sess is None:
+        return []
+    if img.mode == "RGBA":
+        rgb = Image.new("RGB", img.size, (128, 128, 128))
+        rgb.paste(img, (0, 0), img)
+    else:
+        rgb = img.convert("RGB")
+    s = size / float(max(rgb.size))
+    nw, nh = max(1, int(round(rgb.width * s))), max(1, int(round(rgb.height * s)))
+    pad = ((size - nw) // 2, (size - nh) // 2)
+    sq = Image.new("RGB", (size, size), (114, 114, 114))     # the letterbox the model was trained with
+    sq.paste(rgb.resize((nw, nh), Image.BILINEAR), pad)
+    x = (np.asarray(sq, np.float32) / 255.0).transpose(2, 0, 1)[None]
+    pred = sess.run(None, {sess.get_inputs()[0].name: x})[0]
+    return yolo_faces(pred, s, pad)
 
 
 def estimate_face_box(rgba, skin_profile="light"):
-    """Heuristic face box (x, y, w, h) spanning brow/hairline to chin, plus a confidence string.
-    Finds the topmost band of skin-coloured pixels near the body axis that persists for several
-    rows (so halo rings and hair highlights don't count); head height from the distance to the
-    feet (~7 heads). Always check it (finalize's _boxes.png) and pass --face-box if it is off."""
+    """Face box (x, y, w, h) spanning brow/hairline to chin and ear to ear, plus its source.
+    The face detector when it is installed and finds a face ("face_yolov8m"). Else a heuristic
+    ("skin"): the topmost band of skin-coloured pixels near the body axis that persists for several
+    rows (so halo rings and hair highlights don't count), head height from the distance to the feet
+    (~7 heads); it misses raised arms, pink hair and leaning poses. Always check finalize's
+    _boxes.png and pass --face-box if it is off."""
+    faces = detect_faces(rgba)
+    if faces:
+        return faces[0][0], FACE_SOURCE
     m = figure_metrics(rgba)
     skin = skin_mask(rgba, skin_profile)
     fig_h = m["feet"] - m["top"]

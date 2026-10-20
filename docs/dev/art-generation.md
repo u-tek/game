@@ -282,10 +282,26 @@ anti-aliased edge pixels against the local background (alpha from the best-expla
 neighbour), feather 0.7 px, despill the background colour, drop specks. Placement: soles at
 y=1990, crown at y=108 when the face box is known (else figure top to soles 1900 px), body axis
 (centre of the feet) at x=512, everything ≥ 24 px from the edges (scaled down or shifted if not;
-notes in the meta). Face box: topmost skin-coloured band near the body axis that persists over
-several rows (halo rings, gold crowns and blonde hair are outside the skin window; Brakka uses a
-red-skin window), head height from the distance to the feet (~7 heads); always check
-`_boxes.png` and pass `--face-box` if needed.
+notes in the meta). Face box (brow/hairline to chin, ear to ear; the eye and mouth regions of
+`variants.py` are fractions of it): the `face_yolov8m` face detector when it is installed, else a
+heuristic. Always check `_boxes.png` and pass `--face-box` if needed.
+
+- **Detector:** `art_src/_server/face_yolov8m.onnx` (git-ignored, about 100 MB), run on the CPU with
+  onnxruntime (about 0.3 s an image; the PC's Python has onnxruntime). It is the ADetailer face model
+  the installed skins were placed with, exported once from `D:/comfyui/models/ultralytics/bbox/face_yolov8m.pt`.
+  It found the face on all 46 test images (6 MOSS, 40 Amanatsu); the heuristic missed 12. It is tooling
+  only: nothing from it ships. `HALO_FACE_ONNX=<path>` points elsewhere, `HALO_FACE_ONNX=off` turns it
+  off. To re-make the file (ComfyUI venv Python, ultralytics in a scratch folder; the venv is not
+  changed): copy the `.pt` to a scratch folder `<s>`, then
+  `D:/comfyui/.venv/Scripts/python.exe -m pip install --no-deps --target <s>/ulib ultralytics`, then
+  in `<s>`: `CUDA_VISIBLE_DEVICES=-1 YOLO_OFFLINE=true PYTHONPATH=<s>/ulib D:/comfyui/.venv/Scripts/python.exe
+  -c "from ultralytics import YOLO; YOLO('face_yolov8m.pt').export(format='onnx', imgsz=640, opset=12)"`
+  and copy `face_yolov8m.onnx` to `art_src/_server/`.
+- **Heuristic (no detector):** the topmost skin-coloured band near the body axis that persists over
+  several rows, head height from the distance to the feet (~7 heads). The skin window stops at hue
+  15, so halo rings, gold crowns and blonde or cream hair are outside it. It also takes MOSS's pale
+  lavender-pink skin (hue 232+, low saturation, bright). Brakka uses a red-skin window. It misses
+  raised arms, pink hair and leaning poses.
 
 ## 9. Troubleshooting
 

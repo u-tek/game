@@ -155,7 +155,9 @@
     "text_encoder": "qwen3.5_9b_int8_convrot.safetensors",
     "vae": "flux2-vae.safetensors"
    },
-   "style_natural": "Official character splash art for a premium Korean mobile gacha game, polished 2D anime illustration. Smooth airbrushed soft shading with no hard cel steps, thin warm dark-brown line art, glossy highlights on her skin and on every latex surface, soft pink blush on her cheeks, nose, shoulders and knees, bright clean studio lighting with a soft rim light, rich saturated colours, crisp detail, hair painted in many fine strands with a bright sheen. A beautiful anime face: large glossy eyes with detailed gradient irises and sparkling highlights, long dark lashes, a small nose and small glossy lips.",
+   "style_natural": "Official character splash art for a premium Korean mobile gacha game, polished 2D anime illustration. Smooth airbrushed soft shading with no hard cel steps, thin warm dark-brown line art, glossy highlights on her skin and on every latex surface, soft pink blush on her cheeks, nose, shoulders and knees, bright clean studio lighting with a soft rim light, rich saturated colours, crisp detail, hair painted in many fine strands with a bright sheen.",
+   "face_natural": "A beautiful anime face: large glossy eyes with detailed gradient irises and sparkling highlights, long dark lashes, a small nose and small glossy lips.",
+   "face_natural_closed": "A beautiful anime face with her eyes closed: both eyelids shut in soft curved lines, long dark lashes resting on her cheeks, no iris showing, a small nose and small glossy lips.",
    "composition_natural": "The whole figure is in frame from the top of her head to both feet, with wings, weapon and hair fully inside the frame.",
    "age_natural": "in her mid-twenties",
    "quality": "",

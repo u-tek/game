@@ -149,13 +149,35 @@ this file says where things stand. Older logs are under "History" at the bottom.
       - No ControlNet or IP-Adapter on MOSS.
       - **Live end-to-end test on Zecchina:** run_hero then finalize, in a scratch art folder (the real
         art is untouched). 8.5 min, clean cutout on the 1024x2048 canvas.
-      - **Known issue:** the automatic face box sat half a face too high on MOSS art. The estimator was
-        tuned on Amanatsu. Check `final/<id>_boxes.png` and pass `--face-box`, especially before
-        `variants.py`.
-      - **Not yet tried on MOSS:** `variants.py`, `fix.py`, `splash.py`, the skins and the adult set.
-        They all go through the same family code, and the dry-run tests cover the graphs, but no live
-        run yet.
-      - **Tests:** test_pipeline 71/71 (5 new MOSS tests).
+      - **Face box fixed (same day).** The old skin-colour heuristic put the box half a face too high
+        on MOSS Zecchina, because cream-blonde hair counted as skin. Against the face_yolov8m detector
+        it was off on 19 of 46 test images (6 MOSS, 40 Amanatsu sources), Amanatsu included.
+        - `post.estimate_face_box` now runs that detector first: ONNX at
+          `art_src/_server/face_yolov8m.onnx` (git-ignored), on the CPU, about 0.3 s an image.
+          0 of 46 are off.
+        - Without the file, the heuristic runs with a tighter skin window (hue up to 15, plus MOSS's
+          pale lavender-pink skin): 12 of 46 off, all among the old 19.
+        - How to re-make the file: `docs/dev/art-generation.md` section 8.
+        - **Stored boxes from before the fix are off for 12 Amanatsu finals:** Brakka, Halcia, Imra,
+          Kessa, Liora, Mordessa, Nuriel, Sable, Seraphiel, Thrasha, Uriela and Zecchina.
+          `variants.py` reuses a final's stored box, so pass `--face-box` for these (or re-make the
+          final).
+      - **Variants work on MOSS (live, same day).** Zecchina in a scratch art folder:
+        - run_hero took 2 min and finalize 6.8 min (the detector placed the face pass on the face).
+        - `variants.py` takes about 2.3 min per try. Each try changed only its own region, with
+          alpha identical to the final.
+        - With the first prompts the expressions barely moved: the MOSS style sentence "large glossy
+          eyes with detailed gradient irises" overruled "closed eyes".
+        - Fix: the bible's moss family now has `face_natural` and `face_natural_closed`. Close-ups with
+          closed eyes get the closed sentence, and a variant's expression is repeated as a sentence.
+          Full-body and skin prompts are byte-identical to before.
+        - Round 2 results: eyes_closed is a clean blink, mouth_open shows parted lips and teeth, and
+          smile is a grin with one eye half open.
+      - **Not yet tried on MOSS:** `fix.py`, `splash.py`, the skins and the adult set. They all go
+        through the same family code, and the dry-run tests cover the graphs, but there has been no
+        live run yet.
+      - **Tests:** test_pipeline 76/76 (5 new: face-box colours, YOLO decoding, the detector fallback,
+        the detector on committed Zecchina art, MOSS variant prompts).
     - **The trial scripts** are still on the PC in `art_src/_review/moss/` (git-excluded), for A/B
       runs outside the pipeline.
     - **Open:** the 8-step DMD LoRA (it ignores the negative prompt) and the quant options are
@@ -319,8 +341,8 @@ this file says where things stand. Older logs are under "History" at the bottom.
 ## Next steps
 
 1. Upscale pass for each hero (on hold, ask first): `python tools/comfy/finalize.py <id> <seed> --force`
-   (check `final/<id>_boxes.png`; pass `--face-box x,y,w,h` when the auto face box lands on hair or a
-   halo), then `variants.py <id>` (eyes_closed needs denoise ~0.75 and a region covering both eyes),
+   (check `final/<id>_boxes.png`; the face detector places the box, and `--face-box x,y,w,h` overrides
+   it), then `variants.py <id>` (eyes_closed needs denoise ~0.75 and a region covering both eyes),
    1:1 review, `install.py <id>`, rig (`python tools/art_warp_build.py <id> --regen-masks`, then
    `tools/gd --headless --path . --import`; the rig polygons in `tools/art_import/rigs.py` are drawn
    per image and need redrawing for new art), `tools/check e2e`, commit.

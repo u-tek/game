@@ -13,6 +13,7 @@ import email.parser
 import email.policy
 import hashlib
 import http.server
+import importlib.util
 import io
 import json
 import os
@@ -22,6 +23,7 @@ import tempfile
 import threading
 import types
 import unittest
+from unittest import mock
 from contextlib import redirect_stdout, redirect_stderr
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -47,11 +49,13 @@ def setUpModule():
     global TMP
     TMP = tempfile.mkdtemp(prefix="halo_comfy_test_")
     os.environ["HALO_ART_SRC"] = TMP      # keep tests out of the real art_src/
+    os.environ["HALO_FACE_ONNX"] = "off"  # the skin heuristic, on every machine (the detector has its own test)
 
 
 def tearDownModule():
     shutil.rmtree(TMP, ignore_errors=True)
     os.environ.pop("HALO_ART_SRC", None)
+    os.environ.pop("HALO_FACE_ONNX", None)
 
 
 def args(**kw):
@@ -1107,6 +1111,55 @@ class TestPost(unittest.TestCase):
         self.assertEqual(conf2, "skin")
         self.assertTrue(40 <= fb2[1] <= 110, fb2)
 
+    def test_face_box_moss_colours(self):
+        # MOSS paints cream-blonde hair at hue 17-22, which counted as skin and lifted the box half a face
+        # (Zecchina, 2026-10-20), and bright lavender-pink skin at hue 232-247, which was missed (Noctaire)
+        img = synthetic()
+        ImageDraw.Draw(img).pieslice([238, 52, 338, 120], 180, 360, fill=(246, 224, 205))   # cream-blonde hair
+        rgba, _ = post.remove_background(img)
+        fb, conf = post.estimate_face_box(rgba)
+        self.assertEqual(conf, "skin")
+        self.assertGreaterEqual(fb[1], 70, fb)
+        pale = synthetic()
+        ImageDraw.Draw(pale).ellipse([248, 60, 328, 150], fill=(245, 224, 231), outline=(42, 29, 61), width=3)
+        pr, _ = post.remove_background(pale)
+        fb2, conf2 = post.estimate_face_box(pr)
+        self.assertEqual(conf2, "skin")
+        self.assertTrue(40 <= fb2[1] <= 110, fb2)
+
+    def test_yolo_face_decode(self):
+        # one-class YOLOv8 head, 1 x 5 x N (cx, cy, w, h, score) in letterboxed network pixels
+        pred = np.zeros((1, 5, 6), np.float32)
+        pred[0, :, 0] = (320, 100, 40, 40, 0.90)     # the face
+        pred[0, :, 1] = (322, 101, 42, 40, 0.80)     # the same face again: suppressed
+        pred[0, :, 2] = (100, 500, 30, 30, 0.50)     # a weaker second face
+        pred[0, :, 3] = (500, 500, 30, 30, 0.10)     # below the score threshold
+        faces = post.yolo_faces(pred, 0.5, (40, 0))
+        self.assertEqual([f[0] for f in faces], [[520, 160, 80, 80], [90, 970, 60, 60]])
+        self.assertEqual([f[1] for f in faces], [0.9, 0.5])
+        self.assertEqual(post.yolo_faces(np.zeros((1, 5, 8400), np.float32), 1.0, (0, 0)), [])
+
+    def test_face_detector_missing_falls_back(self):
+        with mock.patch.dict(os.environ, {"HALO_FACE_ONNX": os.path.join(TMP, "no_such_model.onnx")}):
+            self.assertIsNone(post.face_detector())
+            self.assertEqual(post.detect_faces(self.rgba), [])
+            self.assertEqual(post.estimate_face_box(self.rgba)[1], "skin")
+
+    @unittest.skipUnless(os.path.exists(post.FACE_ONNX) and importlib.util.find_spec("onnxruntime"),
+                         "face model not installed (art_src/_server/face_yolov8m.onnx, docs/dev/art-generation.md)")
+    def test_face_detector_on_shipped_art(self):
+        # committed hero art: the box sits on the face its rig was built around (warp_src "face" region)
+        path = os.path.join(ROOT, "assets", "art", "heroes", "zecchina", "zecchina.png")
+        with mock.patch.dict(os.environ, {"HALO_FACE_ONNX": post.FACE_ONNX}), Image.open(path) as im:
+            fb, conf = post.estimate_face_box(im.convert("RGBA"))
+        with open(path[:-4] + ".warp_src.json") as f:
+            face = [r for r in json.load(f)["regions"] if r["name"] == "face"][0]["rule"]
+        self.assertEqual(conf, post.FACE_SOURCE)
+        cx, cy = face["center"]
+        self.assertLess(abs(fb[0] + fb[2] / 2 - cx), 0.25 * fb[3], fb)
+        self.assertLess(abs(fb[1] + fb[3] / 2 - cy), 0.25 * fb[3], fb)
+        self.assertTrue(0.6 < fb[3] / (2 * face["radius"][1]) < 1.6, fb)
+
     def test_flood_and_morphology(self):
         cand = np.ones((50, 50), bool)
         cand[:, 25] = False
@@ -1614,6 +1667,22 @@ class TestMoss(unittest.TestCase):
         b2["heroes"]["zecchina"]["variants"]["eyes_closed"] = "closed eyes, eyes open"
         with self.assertRaises(prompts.PromptError):
             prompts.face(b2, "zecchina", "moss", variant="eyes_closed")
+
+    def test_variant_prompts_say_the_expression(self):
+        # MOSS follows sentences: "large glossy eyes with detailed gradient irises" kept eyes_closed open,
+        # and the tags alone barely moved the mouth (Zecchina, 2026-10-20)
+        fam = BIBLE["families"]["moss"]
+        full = prompts.full_body(BIBLE, "zecchina", "moss")["positive"]
+        self.assertIn(fam["style_natural"] + " " + fam["face_natural"], full)      # candidates unchanged
+        for v in ("eyes_closed", "smile"):
+            pos = prompts.face(BIBLE, "zecchina", "moss", variant=v)["positive"]
+            self.assertIn(fam["face_natural_closed"], pos, v)
+            self.assertNotIn("glossy eyes", pos, v)
+        pos = prompts.face(BIBLE, "zecchina", "moss", variant="mouth_open")["positive"]
+        expr = prompts.plain_tags(prompts.variant_spec(BIBLE, "zecchina", "mouth_open")["prompt"])
+        self.assertIn("Her expression: %s." % expr, pos)
+        self.assertIn(fam["face_natural"], pos)
+        self.assertNotIn("Her expression", prompts.face(BIBLE, "zecchina", "moss")["positive"])   # the polish
 
     def test_fallback_is_amanatsu(self):
         pin = comfy.pin_path()
