@@ -33,7 +33,7 @@ const BLINK_TIME := BLINK_CLOSE + BLINK_HOLD + BLINK_OPEN
 const HEAD_TURN_SQUASH := 0.05
 ## Procedural idle (format 2 rigs, docs/dev/halorig.md 11.3): what each bone does, by its name.
 enum { ROLE_NONE, ROLE_HIPS, ROLE_TORSO, ROLE_CHEST, ROLE_NECK, ROLE_HEAD, ROLE_ARM, ROLE_FOREARM,
-	ROLE_WING, ROLE_BREAST, ROLE_THIGH, ROLE_SHIN, ROLE_TAIL }
+	ROLE_WING, ROLE_BREAST, ROLE_THIGH, ROLE_SHIN, ROLE_TAIL, ROLE_IRIS }
 ## Share of the procedural idle kept while an action plays over it.
 const IDLE_ACTION_SHARE := 0.35
 ## Turns on packed format 2 rigs (rig px per unit of depth at look = 1): the head turns with `look`,
@@ -111,6 +111,8 @@ var _sp_tg2 := PackedVector2Array()    # jiggle: the attach point two physics st
 var _sp_side := PackedFloat32Array()   # jiggle: -1 / +1, her right / left (the two sides never move as one)
 var _sp_kick := PackedVector2Array()   # jiggle: velocity kicks waiting for the next step (parent frame)
 var _kick_q: Array = []                # [[seconds left, spring index, kick]] delayed kicks (the far side)
+var _ik_by_upper := {}                 # two-bone IK: upper bone index -> chain (RigData.ik)
+var _ik_pending := {}                  # lower bone index -> its solved world transform this frame
 var _phys_acc := 0.0
 var _clock := 0.0
 # procedural idle state
@@ -133,7 +135,14 @@ var _jig_on := PackedByteArray()      # per bone: 1 = a jiggle spring (the idle 
 var _br_u := 0.0                      # last frame's place in the breath (0..1)
 var _sw_last := 0.0                   # last frame's sway (-1..1), for its turns
 const IDLE_DEFAULTS := {"breath": 3.4, "noise": 1.0, "head": 1.0, "arms": 1.0, "wings": 1.0,
-	"sway": 0.0, "sway_period": 7.2, "sway_rot": 0.0, "sway_dip": 0.0, "kick_breath": 0.0, "kick_sway": 0.0}
+	"sway": 0.0, "sway_period": 7.2, "sway_rot": 0.0, "sway_dip": 0.0, "kick_breath": 0.0, "kick_sway": 0.0,
+	"iris_x": 2.5, "iris_y": 1.0}
+var _talk_left := 0.0                 # talk(): seconds of talking left
+var _talk_next := 0.0                 # seconds to the next mouth shape
+var _talk_shape := ""                 # the mouth shape now ("" = closed)
+var _iris := Vector2.ZERO             # an "iris" bone (the irises as their own piece): where they look
+var _iris_to := Vector2.ZERO
+var _iris_t := 1.0                    # seconds to the next saccade
 var _gaze := Vector2.ZERO             # idle look-around (packed rigs): where she looks now
 var _gaze_to := Vector2.ZERO          # ... and where she is turning to
 var _gaze_t := 1.0                    # seconds until she picks a new spot
@@ -251,6 +260,9 @@ func setup(r: RigData) -> void:
 		_sp_side[k] = -1.0 if r.setup_world[_sp_bones[k]].x < cx0 else 1.0
 		_sp_kick[k] = Vector2.ZERO
 	_sp_ready = false
+	_ik_by_upper.clear()
+	for c: Dictionary in r.ik:
+		_ik_by_upper[int(c.upper)] = c
 	_setup_idle(r)
 
 	_mat = ShaderMaterial.new()
@@ -493,6 +505,14 @@ func blink() -> void:
 	_blink_left = BLINK_TIME
 
 
+## Talks for `seconds`: the mouth slot steps through its painted shapes in syllables (0.07-0.2 s
+## open, short closes between, a longer pause now and then) instead of flapping between two frames.
+## Uses whichever of "small", "open", "wide" the rig has.
+func talk(seconds: float) -> void:
+	_talk_left = seconds
+	_talk_next = 0.0
+
+
 ## Persistent expression: makes `variant` the slot's resting attachment (e.g. "eyes", "open"
 ## for a hero whose eyes are closed by default). Animations still key over it. "" clears.
 func set_expression(slot: String, variant: String) -> void:
@@ -619,6 +639,8 @@ func _setup_idle(r: RigData) -> void:
 			role = ROLE_SHIN
 		elif nm.begins_with("tail"):
 			role = ROLE_TAIL
+		elif nm == "iris":
+			role = ROLE_IRIS
 		_role[i] = role
 		_side[i] = -1.0 if r.setup_world[i].x < cx else 1.0
 		if role == ROLE_WING or role == ROLE_TAIL:
@@ -632,7 +654,7 @@ func _setup_idle(r: RigData) -> void:
 		for k in lst.size():
 			_rank[lst[k]] = float(k)
 	for i in _n:
-		if _role[i] == ROLE_THIGH:
+		if _role[i] == ROLE_THIGH and not _ik_by_upper.has(i):     # IK legs keep their own feet
 			var sh := r.bone("shin" + r.bone_names[i].substr(5))
 			if sh >= 0 and r.parent[i] >= 0:
 				_knees.append([i, sh])
@@ -684,6 +706,13 @@ func _idle_drive() -> void:
 		jiggle(Vector2(-ks * signf(sw), ks * 0.5))
 	_br_u = u
 	_sw_last = cos(sw_ph)
+	# the eyes dart (saccades: a quick jump every 0.8-2.8 s, held), back to centre now and then
+	_iris_t -= dt
+	if _iris_t <= 0.0:
+		_iris_t = randf_range(0.8, 2.8)
+		_iris_to = Vector2(randf_range(-1.0, 1.0) * float(_ic.iris_x), randf_range(-1.0, 1.0) * float(_ic.iris_y)) 			if randf() < 0.7 else Vector2.ZERO
+	if dt > 0.0:
+		_iris += (_iris_to - _iris) * (1.0 - exp(-dt / 0.035))
 	# look-around: every 1.5-4.5 s a new spot, turned to smoothly, with a slow drift on top
 	_gaze_t -= dt
 	if _gaze_t <= 0.0:
@@ -750,6 +779,8 @@ func _idle_drive() -> void:
 					_pos[i].y += 1.2 * (_br - lg) * w
 			ROLE_TAIL:
 				_rot[i] += 4.0 * sin(t * TAU * 0.3 - _rank[i] * 0.9 + s) * w
+			ROLE_IRIS:
+				_pos[i] += (_iris + look * Vector2(float(_ic.iris_x), float(_ic.iris_y))) * w
 
 
 ## Thighs hang from the hips, shins stand on the ground (parented to root): when the hips move, each
@@ -1213,10 +1244,51 @@ func _solve(dt: float) -> void:
 				rot_deg = r_plant
 		_bend_out[i] = bend
 		_world[i] = pw * Transform2D(deg_to_rad(rot_deg), scl, 0.0, lpos)
+		if _ik_by_upper.has(i):
+			_solve_ik(i, pw * lpos)
+		elif _ik_pending.has(i):
+			_world[i] = _ik_pending[i]
+			_ik_pending.erase(i)
 		if _bones_live:
 			_bone_nodes[i].transform = Transform2D(deg_to_rad(rot_deg), scl, 0.0, lpos) if p >= 0 else _world[i]
 	if nsp > 0:
 		_sp_ready = true
+
+
+## Two-bone IK (a leg reaching its planted ankle): the knee goes where the rest triangle puts it,
+## bending the way it bends at rest. Seen from the front a knee cannot swing far sideways, so past
+## `knee_room` px more than at rest the leg shortens instead (scale along it), as a knee coming
+## toward the viewer would. Sets the upper bone's world transform and queues the lower's.
+func _solve_ik(i: int, hip: Vector2) -> void:
+	var c: Dictionary = _ik_by_upper[i]
+	var lo: int = c.lower
+	var tg: int = c.target
+	var H0 := rig.setup_world[i]
+	var K0 := rig.setup_world[lo]
+	var A0 := rig.setup_world[tg]
+	var L1 := (K0 - H0).length()
+	var L2 := (A0 - K0).length()
+	var T := _world[tg].origin
+	var dv := T - hip
+	var d := maxf(dv.length(), 0.001)
+	var u := dv / d
+	var r0 := (A0 - H0).normalized()
+	var hr := (K0 - H0).dot(Vector2(-r0.y, r0.x))
+	var sgn := 1.0 if hr >= 0.0 else -1.0
+	var p := (L1 * L1 - L2 * L2 + d * d) / (2.0 * d)
+	var h := sqrt(maxf(L1 * L1 - p * p, 0.0))
+	if d >= L1 + L2:
+		p = d * L1 / (L1 + L2)
+		h = 0.0
+	h = minf(h, absf(hr) + float(c.knee_room))
+	var K := hip + u * p + Vector2(-u.y, u.x) * h * sgn
+	var sU := clampf((K - hip).length() / maxf(L1, 1.0), 0.6, 1.04)
+	var sL := clampf((T - K).length() / maxf(L2, 1.0), 0.6, 1.04)
+	_world[i] = Transform2D((K - hip).angle() - (K0 - H0).angle(), Vector2(1.0, sU), 0.0, hip)
+	_ik_pending[lo] = Transform2D((T - K).angle() - (A0 - K0).angle(), Vector2(1.0, sL), 0.0, K)
+	var ft := int(c.get("foot", -1))
+	if ft > lo:
+		_ik_pending[ft] = Transform2D(_world[tg].get_rotation(), Vector2.ONE, 0.0, T + (rig.setup_world[ft] - A0))
 
 
 func _apply() -> void:
@@ -1246,15 +1318,38 @@ func _apply() -> void:
 			shut = 1.0 - (e - BLINK_CLOSE - BLINK_HOLD) / BLINK_OPEN
 		shut = smoothstep(0.0, 1.0, clampf(shut, 0.0, 1.0))
 		_blink_left -= _frame_dt
+	if _talk_left > 0.0:
+		_talk_left -= _frame_dt
+		_talk_next -= _frame_dt
+		if _talk_left <= 0.0:
+			_talk_shape = ""
+		elif _talk_next <= 0.0:
+			if _talk_shape == "":
+				var opts: Array = []
+				var mi := int(rig.slot_index.get("mouth", -1))
+				if mi >= 0:
+					for v in ["small", "open", "small", "wide"]:
+						if (rig.slots[mi].attachments as Dictionary).has(v):
+							opts.append(v)
+				_talk_shape = str(opts[randi() % opts.size()]) if not opts.is_empty() else ""
+				_talk_next = randf_range(0.07, 0.2)
+			else:
+				_talk_shape = ""
+				_talk_next = randf_range(0.05, 0.11) if randf() < 0.85 else randf_range(0.25, 0.45)
 	var ns := rig.slots.size()
 	for si in ns:
 		var s: Dictionary = rig.slots[si]
 		var want := _att_want[si]
 		if want == "" or want == "default":
 			want = _expr.get(s.name, s.default)
+			if _talk_shape != "" and s.name == "mouth":
+				want = _talk_shape
 		var alpha := 1.0
 		if blinking and want == "open" and s.attachments.has("closed"):
-			if (s.attachments.closed as Dictionary).get("texture") != null:
+			if s.attachments.has("half") and (s.attachments.half as Dictionary).get("texture") != null:
+				# a painted half-lid: the blink steps open -> half -> closed -> half -> open, no fade
+				want = "open" if shut < 0.2 else ("half" if shut < 0.75 else "closed")
+			elif (s.attachments.closed as Dictionary).get("texture") != null:
 				want = "closed"            # closed-eye overlay over the painted open eyes, fading in
 				alpha = shut
 			else:

@@ -289,6 +289,9 @@
   "eyes_open": {"region": "eyes", "denoise": 0.62, "negative": "closed eyes", "conflicts": ["eyes closed"]},
   "mouth_open": {"region": "mouth", "denoise": 0.58, "negative": "closed mouth", "conflicts": ["mouth closed"]},
   "smile": {"region": "eyes_mouth", "denoise": 0.6, "negative": "frown, sad", "conflicts": ["crying"], "tags": "happy, smile, closed eyes, open mouth"},
+  "mouth_wide": {"region": "mouth", "denoise": 0.64, "negative": "closed mouth", "conflicts": ["mouth closed", "closed mouth"], "tags": "wide open mouth, singing loudly, {eyes}"},
+  "mouth_small": {"region": "mouth", "denoise": 0.55, "negative": "closed mouth, wide open mouth", "conflicts": ["mouth closed", "closed mouth"], "tags": "slightly parted lips, small open mouth, {eyes}"},
+  "eyes_half": {"region": "eyes", "denoise": 0.6, "negative": "closed eyes, wide eyes", "conflicts": ["eyes closed", "closed eyes"], "tags": "half-closed eyes, drooping upper eyelids, eyelids half lowered, {eyes}"},
   "hurt": {"region": "eyes_mouth", "denoise": 0.6, "negative": "smile", "conflicts": ["happy"], "tags": "pain, wince, clenched teeth, one eye closed, {eyes}"}
  },
  "_variants_doc": "Delivery names follow docs/dev/art-style.md section 2: variants/eyes_open.png or eyes_closed.png (whichever the base is not), mouth_open.png, smile.png, optional hurt.png. A hero's 'variants' entry may be a prompt string or {prompt, region}; missing ones use the 'tags' above ({eyes} = the hero's eye tags). 'conflicts' (and the variant's negative) must not appear in its positive prompt; with 'closed eyes' no eye colour may appear either (prompts.variant_conflicts). variant_set = what variants.py makes by default.",
@@ -351,7 +354,7 @@
    "variants": {
     "eyes_closed": "closed eyes, seductive smile, serene, long eyelashes",
     "eyes_open": "yellow eyes, open eyes, looking at viewer, seductive smile, serene",
-    "mouth_open": "closed eyes, open mouth, singing, serene"
+    "mouth_open": "closed eyes, open mouth, singing, serene", "eyes_half": "aqua eyes, half-closed eyes, drooping upper eyelids, eyelids half lowered, light smile", "mouth_small": "aqua eyes, looking at viewer, slightly parted lips, small open mouth, singing softly", "mouth_wide": "aqua eyes, wide open mouth, singing loudly, belting a high note, passionate"
    },
    "adult": {"outfit": "nude, completely nude, bottomless, nipples, body chain", "natural": "Adult. Seraphiel nude: only her body chain, halo, wings and platform heels."},
    "brief_gaps": [

@@ -56,6 +56,8 @@ var spring: Array = []                 ## Dictionary or null per bone
 var bend := PackedFloat32Array()       ## static bend share for non-spring bend parts
 var tip: Array = []                    ## Vector2 (bone space) or null
 var grip: Array = []                   ## held props: [hand bone index, grip point (rig space)] or null
+## Two-bone IK chains: {"upper", "lower", "target" (bone indices), "knee_room" (px)} (warp.json "ik")
+var ik: Array = []
 
 # Slots in draw order (back to front).
 ## {name, bone (int), z, default, attachments {variant: {texture: Texture2D, rect: Rect2}}}
@@ -169,6 +171,13 @@ func _load(d: Dictionary, hero_id: String, art_folder: String = "") -> void:
 			var hi := int(bone_index.get(str(g.get("bone", "")), -1))
 			var at: Array = g.get("at", [0, 0])
 			grip[i] = [hi, Vector2(at[0], at[1])] if hi >= 0 and hi < i else null
+	for c in d.get("ik", []):
+		var u := int(bone_index.get(str(c.get("upper", "")), -1))
+		var lo := int(bone_index.get(str(c.get("lower", "")), -1))
+		var tg := int(bone_index.get(str(c.get("target", "")), -1))
+		if u >= 0 and lo > u and tg >= 0 and tg < u:
+			ik.append({"upper": u, "lower": lo, "target": tg, "knee_room": float(c.get("knee_room", 12.0)),
+				"foot": int(bone_index.get(str(c.get("foot", "")), -1))})
 	kind = "warp" if str(d.get("format", "")) == "halowarp" else "cutout"
 	if kind == "warp":
 		_load_warp(d)

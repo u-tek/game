@@ -901,6 +901,19 @@ def build(hero, regen=False, check=False):
            "portrait_rect": prect, "bounds": [r1(bx0 - ox), r1(by0 - oy), r1(bx1 - bx0), r1(by1 - by0)],
            "meta": meta, "body_bone": body, "max_influences": MAX_INFLUENCES,
            "bones": bones_json, "slots": slots}
+    ik = []
+    for c in src.get("ik", []):
+        # two-bone IK (RigPlayer): upper and lower reach for the target bone's pivot (an ankle)
+        names_ok = all(c.get(k) in index for k in ("upper", "lower", "target"))
+        if not names_ok or index[c["target"]] > index[c["upper"]]:
+            err(hero, "ik %s: needs known bones, the target solved before the upper bone" % c)
+            continue
+        ik.append({"upper": c["upper"], "lower": c["lower"], "target": c["target"],
+                   "knee_room": float(c.get("knee_room", 12.0))})
+        if c.get("foot") in index:
+            ik[-1]["foot"] = c["foot"]          # held at the target's angle (flat on the floor)
+    if ik:
+        out["ik"] = ik
     if version >= 2:
         out["max_influences"] = 4
         out["core"] = core

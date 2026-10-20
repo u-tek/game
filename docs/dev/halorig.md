@@ -541,6 +541,26 @@ backwards compatible:
   - Hip-to-hip weight shift: `sway` (px), `sway_period`, `sway_rot`, `sway_dip`.
   - Breast kicks at each breath and sway turn: `kick_breath`, `kick_sway`.
   - Rigs without the block keep the old idle.
+- **Two-bone IK** (warp.json `"ik": [{"upper", "lower", "target", "foot", "knee_room"}]`; RigPlayer
+  `_solve_ik`). The upper and lower bones reach the target bone's pivot (an ankle planted on root):
+  - The knee goes where the rest triangle puts it.
+  - Past `knee_room` px more sideways than at rest, the leg shortens along itself instead, like a
+    knee coming toward the viewer.
+  - `foot` holds the target's angle, flat on the floor.
+  - The target must come before the upper bone in bone order.
+  - IK legs skip `_keep_knees`.
+- **Talking:** `RigPlayer.talk(seconds)` steps the mouth slot through its painted shapes (`small`,
+  `open`, `wide`, whichever the rig has) in syllables of 0.07-0.2 s, with short closes and an
+  occasional pause. `art_preview.gd` timeline action `talk:<seconds>`.
+- **Moving eyes:** a bone named `iris` (the irises as their own layer between the face and a lash
+  layer, the eye white painted in under them) gets saccades in the idle: a quick jump every
+  0.8-2.8 s, sized by `meta.idle` `iris_x`/`iris_y` (px). It also follows `look`.
+- **Half-lid blink.** An eyes slot with a `half` variant blinks in steps (open, half, closed, half,
+  open) with no cross-fade. `data/art_prompts.json` variant `eyes_half` makes the frame.
+- **Jointed limbs** (prototype cut, `make_rig2.py`):
+  - Each arm is an upper piece (rigid on its bone) and a forearm piece with the hand. Both keep a
+    disc around the elbow (a cap), so bends of 90-130° read as a ball joint instead of a stretch.
+  - Back hair is two locks per side of four chained springs each; the bangs are three locks.
 - **Colour fix (all rigs).** In a canvas shader's `fragment()`, `COLOR` is already the texture times
   the vertex colour. The rig, warp and foil shaders multiplied the texture in again, which squared
   the art (darker, more saturated). They now keep the vertex colour in the varying `v_mod`.

@@ -233,13 +233,23 @@ this file says where things stand. Older logs are under "History" at the bottom.
     - **Findings behind v2:** four research and audit agents. The v1 belly was weighted to the hair and
       breast springs. The idle breast motion was 0.1 px. The right elbow bent 80 px too high. The stand
       left her hand.
+    - **v3 (2026-10-21, overnight; owner: "this is better. continue", and keep going without approval):**
+      - **Arms:** cut into upper and forearm pieces with elbow caps. Bends of 90-130° hold up: an arm
+        across her belly, or raised overhead.
+      - **Hair:** 4 locks of 4 chained segments, and 3 bang locks.
+      - **Legs:** two-bone IK to planted ankles, with feet held flat. Her knees flex as her hips sway
+        and dip.
+      - **Blink:** a painted half-lid frame (`eyes_half`, MOSS try s101501).
+      - **Animations:** in the cast her free arm reaches high; in the poke she covers herself with an
+        arm; a new victory has her hand on her hip and a bounce on the beat.
+      - **Face:** the irises are a separate layer that darts every 1-3 s. Talking steps through four
+        mouth shapes (closed, small, open, and a wide singing mouth for belting; `mouth_small` and
+        `mouth_wide` are new bible variants, MOSS tries s101500 and s101501).
+      - 58 bones, 17 layers.
     - **Still open:**
-      - The arms are one piece from shoulder to hand, so bends past about 40° stretch. Joint caps or
-        painted raised-arm drawings would fix that.
-      - The legs are planted and can't bend at the knee.
-      - Hair has two segments per side; BD2-style 4-6 bone strands are next.
-      - The blink is a cross-fade with no half-lid frame, and the mouth has two shapes.
       - The six wings share one layer.
+      - An arm raised past about 130° needs a painted drawing.
+      - Her held-stand hand has the pole painted into its fist.
     - **Disk:** C: and D: are both nearly full. See-through takes 26 GB on D:.
   - **Combat:** after a wall at stage 2-6 with five maxed heroes the owner said "don't bother i want to
     redo the whole combat system anyway ... it's going to be super intricate don't build it now".

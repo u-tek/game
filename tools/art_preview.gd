@@ -45,7 +45,8 @@ func _run(jobs: Array) -> void:
 
 
 ## {"timeline": [[t, action], ...], "duration": s, "expression": {"eyes": "open"}, ...}
-## actions: attack | cast | ultimate | hit | death | victory | idle | blink | <any animation>
+## actions: attack | cast | ultimate | hit | death | victory | idle | blink | talk:<seconds> |
+## expr:<slot>=<variant> | <any animation>
 func _timeline(j: Dictionary) -> void:
 	var size: Array = j.get("size", [600, 1000])
 	_vp = _new_vp(size)
@@ -93,7 +94,9 @@ func _timeline(j: Dictionary) -> void:
 				"blink":
 					sprite.rig.blink()
 				_:
-					if act.begins_with("expr:"):     # expr:eyes=open  /  expr:eyes=
+					if act.begins_with("talk:"):     # talk:2.5 (seconds of talking)
+						sprite.rig.talk(float(act.substr(5)))
+					elif act.begins_with("expr:"):     # expr:eyes=open  /  expr:eyes=
 						var kv := act.substr(5).split("=")
 						sprite.set_expression(kv[0], kv[1] if kv.size() > 1 else "")
 					else:
