@@ -614,6 +614,120 @@ WARP_ALL = [w_idle, w_attack_melee, w_attack_thrust, w_attack_ranged, w_cast, w_
             w_death, w_victory, w_stun, w_hop, w_run]
 
 
+# Format 2 warp rigs (per-part rigs, docs/dev/halorig.md 11): the idle is procedural
+# (RigPlayer._idle_drive: breathing, weight shift, wings, planted legs), so their idle animation
+# only keeps the base track looping. Their actions key the per-part skeleton: each wing on its own
+# (wing_r1..3 on her right, wing_l1..3 on her left, top to bottom; lower wings follow later and a
+# little less), upper arms and forearms, chest and head trailing the hips. Breasts, hair, braids,
+# halo and earrings follow through on their springs. Animations missing here come from the warp set.
+WARP2_OUT = os.path.join(OUT, "warp2")
+WINGS2 = [("wing_r1", 1), ("wing_r2", 1), ("wing_r3", 1), ("wing_l1", -1), ("wing_l2", -1), ("wing_l3", -1),
+          ("wing_r", 1), ("wing_l", -1)]
+
+
+def wings2(a, pts, stagger=0.03, fall=0.15):
+    """pts: [(t, lift deg[, ease])]; positive opens every wing (her right wings turn clockwise, her
+    left ones counter-clockwise). Wing n starts (n-1)*stagger later and lifts (n-1)*fall less."""
+    end = a.d["duration"]
+    for name, sg in WINGS2:
+        rank = int(name[-1]) - 1 if name[-1].isdigit() else 0
+        dt = stagger * rank
+        k = 1.0 - fall * rank
+        ks = []
+        for p in pts:
+            t = p[0] if p[0] <= 0 else min(p[0] + dt, end)
+            if ks and t <= ks[-1][0]:
+                continue
+            ks.append((t, round(p[1] * sg * k, 2)) + tuple(p[2:]))
+        a.rot(name, *ks)
+
+
+def w2_idle():
+    return Anim("idle", 4.0, loop=True, mix=0.3)
+
+
+def w2_attack_thrust():
+    """Spear strike: she sinks and draws the spear back as all six wings fold in, then drives forward
+    off the back foot - hips first, chest, then head and spear arm - the wings flaring open one
+    after another; she holds the strike a beat and settles back with a small overshoot."""
+    a = Anim("attack_thrust", 0.85, mix=0.06, mix_out=0.22)
+    a.lunge((0, 0), (0.2, -0.1, "cubic_out"), (0.31, 1.0, "expo_out"), (0.52, 1.0, "cubic_in_out"), (0.85, 0))
+    a.sc("root", (0, 1, 1), (0.2, 1.05, 0.95, "expo_out"), (0.3, 0.95, 1.06, "expo_out"), (0.42, 1.01, 0.99), (0.6, 1, 1))
+    a.rot("root", (0, 0), (0.2, -5, "cubic_out"), (0.31, 9, "expo_out"), (0.5, 7), (0.85, 0))
+    a.tr("hips", (0, 0, 0), (0.2, -4, 14, "cubic_out"), (0.31, 6, -6, "expo_out"), (0.5, 4, -2), (0.85, 0, 0))
+    a.rot("torso", (0, 0), (0.2, -3), (0.32, 4, "expo_out"), (0.6, 1.5), (0.85, 0))
+    a.tr("chest", (0, 0, 0), (0.2, -3, 4, "cubic_out"), (0.32, 4, -6, "expo_out"), (0.6, 1, -1), (0.85, 0, 0))
+    a.sc("chest", (0, 1, 1), (0.2, 0.99, 0.97), (0.32, 1.02, 1.04, "expo_out"), (0.6, 1, 1))
+    a.rot("head", (0, 0), (0.21, -5, "cubic_out"), (0.34, 4, "expo_out"), (0.56, 2), (0.85, 0))
+    a.rot("arm_l", (0, 0), (0.2, -8, "cubic_out"), (0.31, 10, "expo_out"), (0.5, 7), (0.85, 0))
+    a.rot("forearm_l", (0, 0), (0.21, -6, "cubic_out"), (0.33, 9, "expo_out"), (0.85, 0))
+    a.rot("arm_r", (0, 0), (0.2, 5, "cubic_out"), (0.32, -6, "expo_out"), (0.85, 0))
+    a.rot("forearm_r", (0, 0), (0.21, 4, "cubic_out"), (0.34, -5, "expo_out"), (0.85, 0))
+    a.tr("weapon", (0, 0, 0), (0.2, -16, -8, "cubic_out"), (0.31, 26, 5, "expo_out"), (0.5, 22, 3), (0.85, 0, 0))
+    a.rot("weapon", (0, 0), (0.2, -3, "cubic_out"), (0.31, 3, "expo_out"), (0.85, 0))
+    wings2(a, [(0, 0), (0.2, -4, "cubic_out"), (0.31, 7, "expo_out"), (0.5, 5), (0.85, 0)], stagger=0.02, fall=0.06)
+    a.look((0, 0, 0), (0.3, 0.4, 0.1), (0.85, 0, 0))
+    a.eyes((0, "open"), (0.62, "default"))
+    a.att("mouth", (0.26, "open"), (0.5, "default"))
+    a.fx("flash", (0.28, 0, "expo_out"), (0.31, 0.14, "cubic_out"), (0.46, 0))
+    a.ev(0.18, "windup").ev(0.27, "vfx_thrust").ev(0.27, "swing").ev(0.32, "hit")
+    return a
+
+
+def w2_ultimate():
+    """She gathers (crouch, wings folded tight), rises on a great wingbeat - all six wings sweeping
+    open in a wave from the top pair down - hangs in the air trembling with the charge, then dives
+    into the strike, wings snapping back, and lands."""
+    a = Anim("ultimate", 1.7, mix=0.08, mix_out=0.25)
+    a.lunge((0, 0), (0.8, 0, "cubic_in"), (0.93, 1.0, "expo_out"), (1.3, 1.0, "cubic_in_out"), (1.7, 0))
+    a.tr("root", (0, 0, 0), (0.32, 0, 14, "cubic_out"), (0.65, 0, -90, "back_out"), (0.88, 0, -84), (0.98, 0, 0, "expo_out"), (1.7, 0, 0))
+    a.sc("root", (0, 1, 1), (0.32, 1.06, 0.92, "cubic_out"), (0.65, 0.97, 1.05, "back_out"), (0.88, 0.98, 1.04),
+         (0.98, 1.06, 0.95, "expo_out"), (1.2, 1, 1))
+    a.rot("root", (0, 0), (0.32, 2), (0.65, -3), (0.7, -2.2), (0.75, -3.4), (0.8, -2.4), (0.88, -3), (0.98, 7, "expo_out"), (1.3, 4), (1.7, 0))
+    a.tr("hips", (0, 0, 0), (0.32, 0, 10, "cubic_out"), (0.65, 0, -4, "back_out"), (0.98, 4, -4, "expo_out"), (1.7, 0, 0))
+    a.rot("torso", (0, 0), (0.32, 3), (0.66, -4, "back_out"), (0.99, 4, "expo_out"), (1.7, 0))
+    a.sc("chest", (0, 1, 1), (0.32, 0.98, 0.96), (0.66, 1.04, 1.06, "back_out"), (1.0, 1, 1))
+    a.rot("head", (0, 0), (0.33, 5), (0.67, -6, "back_out"), (1.0, 4, "expo_out"), (1.7, 0))
+    a.rot("arm_l", (0, 0), (0.32, 4), (0.66, -8, "back_out"), (0.98, 6, "expo_out"), (1.7, 0))
+    a.rot("forearm_l", (0, 0), (0.33, 3), (0.68, -6, "back_out"), (1.0, 5, "expo_out"), (1.7, 0))
+    a.rot("arm_r", (0, 0), (0.32, -4), (0.66, 8, "back_out"), (0.98, -5, "expo_out"), (1.7, 0))
+    a.rot("forearm_r", (0, 0), (0.33, -3), (0.68, 6, "back_out"), (1.0, -4, "expo_out"), (1.7, 0))
+    a.tr("weapon", (0, 0, 0), (0.32, 0, 10), (0.65, 0, -40, "back_out"), (0.98, 30, -8, "expo_out"), (1.7, 0, 0))
+    a.rot("weapon", (0, 0), (0.65, -2), (0.98, 3, "expo_out"), (1.7, 0))
+    wings2(a, [(0, 0), (0.32, -5, "cubic_out"), (0.62, 9, "back_out"), (0.7, 7.5), (0.76, 9), (0.82, 8),
+               (0.88, 8.5), (0.98, -4, "expo_out"), (1.25, 1.5), (1.7, 0)], stagger=0.03, fall=0.06)
+    a.look((0, 0, 0), (0.32, 0, 0.6), (0.65, -0.2, -0.7), (0.98, 0.45, 0.1), (1.7, 0, 0))
+    a.eyes((0, "closed"), (0.6, "open"), (1.45, "default"))
+    a.att("mouth", (0.6, "open"), (1.3, "default"))
+    a.fx("aura", (0, 0), (0.6, 1.0), (1.1, 1.2), (1.7, 0))
+    a.fx("hand_glow", (0.1, 0), (0.6, 1.2), (0.9, 1.4), (1.05, 0))
+    a.fx("glow", (0.3, 0), (0.85, 1.4), (1.0, 1.8), (1.3, 0))
+    a.fx("flash", (0.9, 0, "expo_out"), (0.96, 0.6, "cubic_out"), (1.25, 0))
+    a.ev(0.0, "ult_start").ev(0.1, "vfx_charge").ev(0.65, "ult_pose").ev(0.92, "release").ev(0.92, "vfx_burst").ev(0.98, "hit")
+    return a
+
+
+def w2_hit():
+    """Knocked back: the body snaps away, head and wings a frame later, everything soft still swinging."""
+    a = Anim("hit", 0.5, mix=0.03, mix_out=0.18)
+    a.tr("root", (0, 0, 0, "expo_out"), (0.06, -46, 0), (0.5, 0, 0, "cubic_in_out"))
+    a.rot("root", (0, 0, "expo_out"), (0.06, -6), (0.22, -2, "back_out"), (0.5, 0))
+    a.sc("root", (0, 1, 1, "expo_out"), (0.06, 0.96, 1.03), (0.2, 1.02, 0.98), (0.5, 1, 1))
+    a.rot("torso", (0, 0, "expo_out"), (0.08, -3), (0.25, 1, "back_out"), (0.5, 0))
+    a.rot("head", (0, 0, "expo_out"), (0.09, -7), (0.24, -2, "back_out"), (0.5, 0))
+    a.rot("arm_l", (0, 0, "expo_out"), (0.09, 6), (0.3, -2), (0.5, 0))
+    a.rot("arm_r", (0, 0, "expo_out"), (0.09, -6), (0.3, 2), (0.5, 0))
+    wings2(a, [(0, 0, "expo_out"), (0.07, 7), (0.25, -2, "back_out"), (0.5, 0)], stagger=0.02)
+    a.eyes((0, "closed"), (0.3, "default"))
+    a.att("mouth", (0, "open"), (0.3, "default"))
+    a.fx("flash", (0, 0.5, "cubic_out"), (0.18, 0))
+    a.ev(0.0, "impact")
+    return a
+
+
+WARP2_ALL = [w2_idle, w2_attack_thrust, w2_ultimate, w2_hit]
+
+
 ALL = [idle, attack_melee, attack_thrust, attack_ranged, cast, support_cast, ultimate, hit, death, victory, stun, hop, run]
 
 if __name__ == "__main__":
@@ -621,3 +735,5 @@ if __name__ == "__main__":
         print("wrote", os.path.relpath(fn().save()))
     for fn in WARP_ALL:
         print("wrote", os.path.relpath(fn().save(WARP_OUT)))
+    for fn in WARP2_ALL:
+        print("wrote", os.path.relpath(fn().save(WARP2_OUT)))

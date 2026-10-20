@@ -4,6 +4,7 @@ extends SceneTree
 ##   flock /tmp/halo-godot.lock xvfb-run -a -s "-screen 0 1800x2400x24" godot --path . \
 ##     --rendering-driver opengl3 --resolution 64x64 -s tools/art_preview.gd -- jobs.json
 ## jobs.json: [{"hero": "seraphiel", "skin": "<skin id, optional>", "out": "dir", "size": [600, 1000], "scale": 0.45,
+##   "idle_amount": 1.0 (format 2 rigs: scales the procedural idle), "auto_blink": true,
 ##   "feet": [300, 960], "fps": 30, "warm": 1.0, "base": "idle",
 ##   "frames": [{"anim": "attack_ranged", "track": 1, "t": 0.4, "look": [0, 0],
 ##               "flip": false, "echo": false, "label": "x"}...]          # single poses
@@ -147,6 +148,9 @@ func _job(j: Dictionary) -> void:
 			holder.add_child(sprite)
 			sprite.rig.manual = true
 			sprite.set_process(false)
+			# "idle_amount": scales the procedural idle (format 2 rigs; 4 shows how the parts deform)
+			sprite.rig.idle_amount = float(j.get("idle_amount", 1.0))
+			sprite.rig.blink_enabled = bool(j.get("auto_blink", true))
 			if bool(fr.get("flip", false)):
 				sprite.set_facing(-1)
 			if bool(fr.get("echo", false)):

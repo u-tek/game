@@ -27,7 +27,7 @@ global uniform vec2 ui_tilt;
 uniform float strength = 1.0;          // 0..1 master
 uniform float motion = 1.0;            // 1: tilt and time move it; 0: Reduce motion (still, gentle)
 uniform vec4 face_ellipse = vec4(0.0, -1050.0, 70.0, 60.0);   // rest rig space: centre xy, radii zw
-uniform float bone_foil[32];           // per bone 0..1 (face 0, head and hair low), set by HeroSprite
+uniform float bone_foil[64];           // per bone 0..1 (face 0, head and hair low), set by HeroSprite
 uniform int debug_view = 0;            // 1: the masks (red highlights, green material, blue skin); 2: what the foil adds (x3)
 
 varying float v_foil;
@@ -36,9 +36,10 @@ void vertex() {
 	vec2 p = VERTEX;
 	part_pos = p;
 	VERTEX = warp_skin(p, CUSTOM0, CUSTOM1);
-	float wb = max(0.0, 1.0 - CUSTOM0.y - CUSTOM0.w - CUSTOM1.y);
+	float wb = max(0.0, 1.0 - CUSTOM0.y - CUSTOM0.w - CUSTOM1.y - CUSTOM1.w);
 	v_foil = bone_foil[int(CUSTOM0.x + 0.5)] * CUSTOM0.y + bone_foil[int(CUSTOM0.z + 0.5)] * CUSTOM0.w
-		+ bone_foil[int(CUSTOM1.x + 0.5)] * CUSTOM1.y + bone_foil[body_bone] * wb;
+		+ bone_foil[int(CUSTOM1.x + 0.5)] * CUSTOM1.y + bone_foil[int(CUSTOM1.z + 0.5)] * CUSTOM1.w
+		+ bone_foil[body_bone] * wb;
 }
 
 vec3 to_srgb(vec3 c) {

@@ -17,15 +17,25 @@ signal anim_finished(name: String)
 
 const SHADER := preload("res://src/art/rig/rig.gdshader")
 const WARP_SHADER := preload("res://src/art/rig/warp.gdshader")
-const MAX_WARP_BONES := 32
+const MAX_WARP_BONES := 64
 const PHYS_DT := 1.0 / 60.0
 const MAX_SUBSTEPS := 4
 const TRACKS := 3
 const BEND_GRID := Vector2i(6, 10)
 const BLINK_MIN := 2.5
 const BLINK_MAX := 5.0
-const BLINK_TIME := 0.11
+## A blink: the lids close, hold and open again (s); the closed-eye overlay fades in and out over
+## those times instead of popping (on 120 Hz screens that reads as a lid, not a cut).
+const BLINK_CLOSE := 0.055
+const BLINK_HOLD := 0.045
+const BLINK_OPEN := 0.11
+const BLINK_TIME := BLINK_CLOSE + BLINK_HOLD + BLINK_OPEN
 const HEAD_TURN_SQUASH := 0.05
+## Procedural idle (format 2 rigs, docs/dev/halorig.md 11.3): what each bone does, by its name.
+enum { ROLE_NONE, ROLE_HIPS, ROLE_TORSO, ROLE_CHEST, ROLE_NECK, ROLE_HEAD, ROLE_ARM, ROLE_FOREARM,
+	ROLE_WING, ROLE_BREAST, ROLE_THIGH, ROLE_SHIN, ROLE_TAIL }
+## Share of the procedural idle kept while an action plays over it.
+const IDLE_ACTION_SHARE := 0.35
 
 var rig: RigData
 var speed_scale := 1.0
@@ -36,6 +46,10 @@ var look_extra := Vector2.ZERO        ## added to the animation's look channel (
 var fx_color := Color(1.0, 0.85, 0.45)
 var manual := false                   ## true: call advance(dt) yourself (previews/tests)
 var hero_id := ""
+## Format 2 rigs: breathing, weight shift and settling drawn procedurally (_idle_drive) while the
+## base track plays "idle". idle_amount scales it (0 = still).
+var idle_motion := true
+var idle_amount := 1.0
 
 
 class Binding:
@@ -87,8 +101,23 @@ var _sp_tg := PackedVector2Array()    # last frame's target (global)
 var _sp_step_tg := PackedVector2Array()
 var _sp_off := PackedFloat32Array()   # last offset (rad), for debugging/previews
 var _sp_ready := false
+var _sp_pp := PackedVector2Array()     # position one physics step earlier: drawn between the two
+var _sp_mass := PackedByteArray()      # 1: a soft mass that shifts (breasts) instead of swinging
 var _phys_acc := 0.0
 var _clock := 0.0
+# procedural idle state
+var _idle_on := false
+var _idle_w := 0.0
+var _br_t := 0.0                      # time into the current breath
+var _br_len := 4.0                    # this breath's length (s), new every breath
+var _br_amp := 1.0                    # this breath's depth, new every breath
+var _br := 0.0                        # breath this frame (0 out .. 1 in)
+var _lag := PackedFloat32Array()      # per bone: the breath as that bone trails it
+var _role := PackedInt32Array()
+var _side := PackedFloat32Array()     # per bone: -1 left of her centre, +1 right (unflipped)
+var _rank := PackedFloat32Array()     # per bone: order in its group from the top (wings, tail)
+var _knees: Array = []                # [thigh, shin]: thighs turn so the knees stay on the planted shins
+var _seed := 0.0
 
 # slots
 var _slot_nodes: Array[Node2D] = []
@@ -103,7 +132,8 @@ var _col_want: Array[Color] = []
 var _mat: ShaderMaterial
 var _bend_mats: Array = []            # per slot: ShaderMaterial or null
 var _warp_mat: ShaderMaterial         # warp rigs: one material (bone uniforms) for body + overlays
-var _warp_body: MeshInstance2D
+var _warp_body: MeshInstance2D           # the base layer (the painting)
+var _layer_nodes: Array[MeshInstance2D] = []
 var _ua := PackedVector4Array()
 var _ub := PackedVector4Array()
 var _uc := PackedVector4Array()
@@ -181,11 +211,16 @@ func setup(r: RigData) -> void:
 			_sp_bones.append(i)
 	var ns := _sp_bones.size()
 	_sp_p.resize(ns)
+	_sp_pp.resize(ns)
 	_sp_v.resize(ns)
 	_sp_tg.resize(ns)
 	_sp_step_tg.resize(ns)
 	_sp_off.resize(ns)
+	_sp_mass.resize(ns)
+	for k in ns:
+		_sp_mass[k] = 1 if float((r.spring[_sp_bones[k]] as Dictionary).get("m", 0.0)) > 0.0 else 0
 	_sp_ready = false
+	_setup_idle(r)
 
 	_mat = ShaderMaterial.new()
 	_mat.shader = SHADER
@@ -231,12 +266,19 @@ func setup(r: RigData) -> void:
 		_ua.resize(MAX_WARP_BONES)
 		_ub.resize(MAX_WARP_BONES)
 		_uc.resize(MAX_WARP_BONES)
-		_warp_body = MeshInstance2D.new()
-		_warp_body.name = "Image"
-		_warp_body.mesh = r.mesh
-		_warp_body.texture = r.image
-		_warp_body.material = _warp_mat
-		_draw_root.add_child(_warp_body)
+		# One mesh per layer, back to front (format 1: the painting alone); the overlay slots go
+		# between them by z below.
+		_layer_nodes.clear()
+		for ly: Dictionary in r.layers:
+			var lm := MeshInstance2D.new()
+			lm.name = "Layer_" + str(ly.name)
+			lm.mesh = ly.mesh
+			lm.texture = ly.image
+			lm.material = _warp_mat
+			lm.set_meta(&"z", int(ly.z))
+			_draw_root.add_child(lm)
+			_layer_nodes.append(lm)
+		_warp_body = _layer_nodes[0] if not _layer_nodes.is_empty() else null
 	_slot_nodes.clear()
 	_slot_xf.clear()
 	_slot_mesh_cache.clear()
@@ -281,6 +323,16 @@ func setup(r: RigData) -> void:
 		_col_want.append(Color.WHITE)
 		_slot_att[si] = ""
 		_set_attachment(si, s.default)
+	if _layer_nodes.size() > 1:
+		# draw order: layers and overlay slots by z (a slot sits above layers with a lower or equal z)
+		var items: Array = []
+		for ln in _layer_nodes:
+			items.append([int(ln.get_meta(&"z", 0)), 0, ln])
+		for si in r.slots.size():
+			items.append([int(r.slots[si].z), 1, _slot_nodes[si]])
+		items.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0] or (a[0] == b[0] and a[1] < b[1]))
+		for k in items.size():
+			_draw_root.move_child(items[k][2], k)
 
 	_glow = Sprite2D.new()
 	_glow.texture = _glow_tex
@@ -320,13 +372,13 @@ func load_hero(id: String) -> bool:
 # ------------------------------------------------------------------ public API
 
 func has_anim(anim_name: String) -> bool:
-	return RigAnim.find(anim_name, hero_id, rig.kind if rig else "") != null
+	return RigAnim.find(anim_name, hero_id, rig.anim_kind() if rig else "") != null
 
 
 ## Plays `anim_name` on `track` (0 = base/loops, 1+ = overlays). loop: -1 = anim default,
 ## 0 = once, 1 = loop. mix < 0 uses the animation's own "mix". Returns false if missing.
 func play(anim_name: String, track := 0, loop := -1, mix := -1.0) -> bool:
-	var a := RigAnim.find(anim_name, hero_id, rig.kind if rig else "")
+	var a := RigAnim.find(anim_name, hero_id, rig.anim_kind() if rig else "")
 	if a == null:
 		push_warning("RigPlayer[%s]: no animation '%s'" % [hero_id, anim_name])
 		return false
@@ -459,6 +511,177 @@ func warp_shader() -> Shader:
 
 func reset_physics() -> void:
 	_sp_ready = false
+
+
+# ------------------------------------------------------------------ procedural idle (format 2)
+
+## Roles from the bone names (docs/dev/halorig.md 11.3), sides, the order of wings and tail links
+## from the top, thigh-shin pairs for the knees, and a per-hero seed so heroes side by side never
+## breathe in step.
+func _setup_idle(r: RigData) -> void:
+	_idle_on = r.kind == "warp" and r.version >= 2
+	_role.resize(_n)
+	_side.resize(_n)
+	_rank.resize(_n)
+	_lag.resize(_n)
+	_role.fill(ROLE_NONE)
+	_rank.fill(0.0)
+	_lag.fill(0.0)
+	_knees.clear()
+	_idle_w = 0.0
+	if not _idle_on:
+		return
+	_seed = float(absi(hash(r.id)) % 1000) * 0.37
+	var hb := r.bone("hips")
+	var cx := r.setup_world[hb].x if hb >= 0 else 0.0
+	var groups := {}
+	for i in _n:
+		var nm := r.bone_names[i]
+		var role := ROLE_NONE
+		if nm == "hips":
+			role = ROLE_HIPS
+		elif nm == "torso" or nm == "spine":
+			role = ROLE_TORSO
+		elif nm == "chest":
+			role = ROLE_CHEST
+		elif nm == "neck":
+			role = ROLE_NECK
+		elif nm == "head":
+			role = ROLE_HEAD
+		elif nm.begins_with("forearm"):
+			role = ROLE_FOREARM
+		elif nm.begins_with("arm"):
+			role = ROLE_ARM
+		elif nm.begins_with("wing"):
+			role = ROLE_WING
+		elif nm.begins_with("breast"):
+			role = ROLE_BREAST
+		elif nm.begins_with("thigh"):
+			role = ROLE_THIGH
+		elif nm.begins_with("shin"):
+			role = ROLE_SHIN
+		elif nm.begins_with("tail"):
+			role = ROLE_TAIL
+		_role[i] = role
+		_side[i] = -1.0 if r.setup_world[i].x < cx else 1.0
+		if role == ROLE_WING or role == ROLE_TAIL:
+			var key := "%d:%d" % [role, int(_side[i])]
+			if not groups.has(key):
+				groups[key] = []
+			groups[key].append(i)
+	for key: String in groups:
+		var lst: Array = groups[key]
+		lst.sort_custom(func(a: int, b: int) -> bool: return r.setup_world[a].y < r.setup_world[b].y)
+		for k in lst.size():
+			_rank[lst[k]] = float(k)
+	for i in _n:
+		if _role[i] == ROLE_THIGH:
+			var sh := r.bone("shin" + r.bone_names[i].substr(5))
+			if sh >= 0 and r.parent[i] >= 0:
+				_knees.append([i, sh])
+	_br_len = randf_range(3.6, 4.4)
+	_br_t = randf() * _br_len
+
+
+## Smooth noise in -1..1 (three sines at unrelated rates: it never visibly repeats).
+static func _noise(t: float, s: float, f: float) -> float:
+	return 0.55 * sin(t * f * TAU + s) + 0.3 * sin(t * f * 2.13 * TAU + s * 1.7) + 0.15 * sin(t * f * 3.71 * TAU + s * 2.9)
+
+
+## The procedural idle, added to what the tracks posed: breathing lifts the chest and all it carries,
+## the head and arms trail it, each wing opens a little on the breath one after another (top wings
+## first), the breasts trail the chest, the weight drifts slowly from hip to hip, and everything
+## drifts on slow noise so no two breaths look alike. Full while she idles, IDLE_ACTION_SHARE under an
+## action, eased between.
+func _idle_drive() -> void:
+	var dt := _frame_dt
+	var e0: Entry = _tracks[0]
+	var idling := e0 != null and e0.anim.name == "idle" and not e0.fading
+	var acting := false
+	for ti in range(1, TRACKS):
+		var e: Entry = _tracks[ti]
+		if e != null and not e.fading:
+			acting = true
+	var want := (IDLE_ACTION_SHARE if acting else 1.0) if idle_motion and idling else 0.0
+	_idle_w = move_toward(_idle_w, want, dt * 2.5) if dt > 0.0 else want
+	_br_t += dt
+	if _br_t >= _br_len:
+		_br_t -= _br_len
+		_br_len = randf_range(3.5, 4.6)
+		_br_amp = randf_range(0.8, 1.15)
+	var u := _br_t / _br_len
+	var b := smoothstep(0.0, 0.42, u) if u < 0.44 else 1.0 - smoothstep(0.46, 1.0, u)
+	_br = b * _br_amp
+	var w := _idle_w * idle_amount
+	var t := _clock
+	var s := _seed
+	for i in _n:
+		var role := _role[i]
+		if role == ROLE_NONE:
+			continue
+		var tau := 0.0
+		match role:
+			ROLE_HEAD, ROLE_NECK:
+				tau = 0.22
+			ROLE_ARM:
+				tau = 0.16
+			ROLE_FOREARM:
+				tau = 0.26
+			ROLE_WING:
+				tau = 0.2 + 0.12 * _rank[i]
+			ROLE_BREAST:
+				tau = 0.3
+		if tau > 0.0 and dt > 0.0:
+			_lag[i] += (_br - _lag[i]) * (1.0 - exp(-dt / tau))
+		if w <= 0.0005:
+			continue
+		var lg := _lag[i]
+		match role:
+			ROLE_HIPS:
+				var nh := _noise(t, s, 0.055)
+				_pos[i] += Vector2(1.8 * nh, 0.5 * absf(nh)) * w
+				_rot[i] += 0.35 * _noise(t, s + 2.1, 0.05) * w
+			ROLE_TORSO:
+				_rot[i] += (0.3 * _noise(t, s + 4.2, 0.045) - 0.25 * _noise(t, s + 2.1, 0.05)) * w
+			ROLE_CHEST:
+				_pos[i].y -= 3.4 * _br * w
+				_scl[i] *= Vector2(1.0 + 0.008 * _br * w, 1.0 + 0.012 * _br * w)
+			ROLE_NECK:
+				_rot[i] += 0.25 * _noise(t, s + 6.3, 0.07) * w
+			ROLE_HEAD:
+				_pos[i].y += 2.0 * (_br - lg) * w
+				_rot[i] += (0.9 * _noise(t, s + 8.4, 0.045) + 0.5 * (lg - 0.5)) * w
+			ROLE_ARM:
+				_rot[i] += _side[i] * (0.6 * lg + 0.35 * _noise(t, s + 1.3 * i, 0.06)) * w
+			ROLE_FOREARM:
+				_rot[i] += _side[i] * (0.45 * lg + 0.3 * _noise(t, s + 1.7 * i, 0.08)) * w
+			ROLE_WING:
+				var ax := rig.axis[i]
+				var lift := -signf(ax.x) if absf(ax.x) > 0.05 else -_side[i]
+				var k := 1.0 / (1.0 + 0.3 * _rank[i])
+				_rot[i] += lift * k * (2.2 * (lg - 0.5) + 0.9 * _noise(t, s + 0.9 * i, 0.08)) * w
+			ROLE_BREAST:
+				_pos[i].y += 1.2 * (_br - lg) * w
+			ROLE_TAIL:
+				_rot[i] += 4.0 * sin(t * TAU * 0.3 - _rank[i] * 0.9 + s) * w
+
+
+## Thighs hang from the hips, shins stand on the ground (parented to root): when the hips move, each
+## thigh turns so it still reaches its knee instead of the legs sliding with the hips.
+func _keep_knees() -> void:
+	for kp: Array in _knees:
+		var th: int = kp[0]
+		var sh: int = kp[1]
+		var hp := rig.parent[th]
+		if rig.parent[sh] == hp:
+			continue                  # shin rides on the hips too: nothing to keep
+		var hpiv := rig.setup_world[hp]
+		var tp := rig.setup_world[th]
+		var tp2 := hpiv + _pos[hp] + ((tp - hpiv) * _scl[hp]).rotated(deg_to_rad(_rot[hp]))
+		var kn := rig.setup_world[sh] + _pos[sh]
+		var a0 := (kn - tp).angle()
+		var a1 := (kn - tp2).angle()
+		_rot[th] += rad_to_deg(angle_difference(a0, a1)) - _rot[hp]
 
 
 ## Manual stepping (set manual = true first): advance animations and physics by dt seconds.
@@ -701,6 +924,10 @@ func _pose() -> void:
 	look = (lk + look_extra).clamp(Vector2(-1, -1), Vector2(1, 1))
 	fx = fxv
 	lunge = lg
+	if _idle_on:
+		_idle_drive()
+	if not _knees.is_empty():
+		_keep_knees()
 	# head turn: features shift with the turn, back hair counter-shifts, head narrows a bit
 	if look != Vector2.ZERO:
 		for i in _look_on:
@@ -747,6 +974,7 @@ func _solve(dt: float) -> void:
 				target += Vector2(n1, n2 * 0.35) * (wk * 0.22 * len_g)
 			if not _sp_ready or (target - _sp_tg[si]).length() > len_g * 2.5 + 40.0:
 				_sp_p[si] = target
+				_sp_pp[si] = target
 				_sp_v[si] = Vector2.ZERO
 				_sp_tg[si] = target
 				_sp_step_tg[si] = target
@@ -759,6 +987,8 @@ func _solve(dt: float) -> void:
 				var vv := _sp_v[si]
 				var last := _sp_step_tg[si]
 				for s in steps:
+					if s == steps - 1:
+						_sp_pp[si] = pp
 					var tg := tg0.lerp(target, float(s + 1) / float(steps))
 					pp += (tg - last) * (1.0 - inertia)
 					last = tg
@@ -769,15 +999,27 @@ func _solve(dt: float) -> void:
 				_sp_v[si] = vv
 				_sp_step_tg[si] = last
 			_sp_tg[si] = target
-			var off := (rigid_g - origin_g).angle_to(_sp_p[si] - origin_g)
-			if det_g * pw.determinant() < 0.0:
-				off = -off
-			var lim := deg_to_rad(float(sp.get("limit", 20.0)))
-			off = clampf(off, -lim, lim)
-			_sp_off[si] = off
-			var b := float(sp.get("b", 0.0))
-			rot_deg += rad_to_deg(off * (1.0 - b))
-			bend += off * b * 1.6
+			# Physics runs at 60 Hz; draw between the last two steps so 120 Hz screens see every
+			# frame move (stepped springs judder against the smoothly animated body).
+			var pr := _sp_pp[si].lerp(_sp_p[si], clampf(_phys_acc / PHYS_DT, 0.0, 1.0)) if _sp_ready else _sp_p[si]
+			if _sp_mass[si] == 1:
+				# a soft mass: the part shifts with its lag (clamped), it does not swing on its pivot
+				var d := pr - target
+				var lim_g := float(sp.get("limit", 8.0)) * G.get_scale().length() * 0.7071
+				if d.length() > lim_g:
+					d = d.normalized() * lim_g
+				lpos += (G * pw).affine_inverse().basis_xform(d)
+				_sp_off[si] = d.length()
+			else:
+				var off := (rigid_g - origin_g).angle_to(pr - origin_g)
+				if det_g * pw.determinant() < 0.0:
+					off = -off
+				var lim := deg_to_rad(float(sp.get("limit", 20.0)))
+				off = clampf(off, -lim, lim)
+				_sp_off[si] = off
+				var b := float(sp.get("b", 0.0))
+				rot_deg += rad_to_deg(off * (1.0 - b))
+				bend += off * b * 1.6
 			si += 1
 		elif si < nsp and _sp_bones[si] < i:
 			si += 1
@@ -804,8 +1046,17 @@ func _apply() -> void:
 				_blink_timer = 0.28
 			else:
 				_blink_timer = randf_range(BLINK_MIN, BLINK_MAX)
+	var shut := 0.0                     # how far the lids are down, 0..1
 	if _blink_left > 0.0:
 		blinking = true
+		var e := BLINK_TIME - _blink_left
+		if e < BLINK_CLOSE:
+			shut = e / BLINK_CLOSE
+		elif e < BLINK_CLOSE + BLINK_HOLD:
+			shut = 1.0
+		else:
+			shut = 1.0 - (e - BLINK_CLOSE - BLINK_HOLD) / BLINK_OPEN
+		shut = smoothstep(0.0, 1.0, clampf(shut, 0.0, 1.0))
 		_blink_left -= _frame_dt
 	var ns := rig.slots.size()
 	for si in ns:
@@ -813,12 +1064,19 @@ func _apply() -> void:
 		var want := _att_want[si]
 		if want == "" or want == "default":
 			want = _expr.get(s.name, s.default)
+		var alpha := 1.0
 		if blinking and want == "open" and s.attachments.has("closed"):
-			want = "closed"
+			if (s.attachments.closed as Dictionary).get("texture") != null:
+				want = "closed"            # closed-eye overlay over the painted open eyes, fading in
+				alpha = shut
+			else:
+				alpha = 1.0 - shut         # open-eye overlay fading out to the painted closed eyes
 		if want != _slot_att[si]:
 			_set_attachment(si, want)
 		var node := _slot_nodes[si]
 		var col := _col_want[si]
+		if alpha < 1.0:
+			col.a *= alpha
 		if col != _slot_col[si]:
 			_slot_col[si] = col
 			node.self_modulate = col

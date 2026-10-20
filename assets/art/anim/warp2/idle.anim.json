@@ -1,0 +1,9 @@
+{
+ "name": "idle",
+ "duration": 4.0,
+ "loop": true,
+ "mix": 0.3,
+ "mix_out": 0.15,
+ "bones": {},
+ "events": []
+}

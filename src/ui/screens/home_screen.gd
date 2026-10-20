@@ -782,9 +782,9 @@ func _refresh_hero() -> void:
 	_build_print(id, skin, key)
 	_sprite = HeroArt.make_sprite(id, skin)
 	_anchor.add_child(_sprite)
-	# Framed by her real outline: as tall as the poster, smaller when a wide pose (a weapon held
-	# out, bent over) would run past the band or the right-hand rule.
-	HeroArt.fit_sprite(_sprite, _anchor, Rect2(BAND - 70.0, _ph * 0.02, _pw - 54.0 - (BAND - 70.0), _ph * 0.98), BAND + 250.0)
+	# Framed by her body as tall as the poster (owner 2026-10-20: "take up the whole screen ... her
+	# wings can be off screen"): wings, weapon, tail and cape may run past the band and the rule.
+	HeroArt.fit_sprite(_sprite, _anchor, Rect2(BAND - 140.0, _ph * 0.02, _pw - (BAND - 140.0), _ph * 0.98), BAND + 250.0, true)
 	var lines := LobbyLines.lines(id)
 	_line = int(Time.get_unix_time_from_system() / 60.0) % lines.size()
 	_typeset(lines[_line], false)

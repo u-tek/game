@@ -103,6 +103,20 @@ this file says where things stand. Older logs are under "History" at the bottom.
     (grow from the corner, sway at the tips), per-rarity summon reveals and rarity frames on cards,
     Legendary Awakening A1-A3 (shards + dust; +6/+12/+20% all stats; Legend passive, empowered
     ultimate, Ascended look; Claude's numbers, owner can change them) and a built-out Legendary page.
+  - **Animation, 2026-10-20 (after the IPA):** the owner called the rigs "subpar ... jank" and sent a
+    Brown Dust 2 viewer as the bar. Done:
+    - **Framing:** heroes fill the hero page and Lobby, sized by their body (wings, weapon and tail
+      may run off).
+    - **Runtime fixes for every rig:** smooth 120 Hz springs (they had stepped at 60 Hz) and eased
+      blinks.
+    - **Per-part format 2 rig on Argentiel:** SAM part masks, a bone per breast, thigh, shin, arm
+      segment and wing, a procedural idle with planted feet, and layers (body / whole spear / wings)
+      with her own spear strike and ultimate (halorig.md section 11).
+
+    The owner's verdict on the videos: "this isn't any good". Their choices: Brown Dust 2 / NIKKE
+    quality, the art **re-rendered for rigging** (rig-ready poses, separable parts), all AI, one
+    system for the hero page, Lobby, summons and the coming combat skins. Next: prototype the
+    re-render and a Live2D-style layered rig on Argentiel, then show video before any rollout.
   - **Combat:** after a wall at stage 2-6 with five maxed heroes the owner said "don't bother i want to
     redo the whole combat system anyway ... it's going to be super intricate don't build it now".
     The balance report agrees the wall is real (2-6 needs a typical team near level 64; the economy

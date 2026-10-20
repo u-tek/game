@@ -58,6 +58,30 @@ def warn(hero, msg):
 
 
 # ------------------------------------------------------------------ masks from rules
+# ---- SAM masks (tools/art_parts.py cuts them; the build only reads the cache)
+_MASK_CTX = {"dir": "", "key": ""}
+
+
+def set_mask_context(hdir, img):
+    """The rig folder and image whose cached SAM masks rule_mask reads (masks/_sam/<key>.png)."""
+    import hashlib
+    _MASK_CTX["dir"] = hdir
+    _MASK_CTX["key"] = hashlib.sha1(np.array(img).tobytes()).hexdigest()[:12]
+
+
+def sam_dir():
+    return os.path.join(_MASK_CTX["dir"], "masks", "_sam")
+
+
+def sam_path(rule):
+    """Cache file of a "sam" rule: its prompt and the image both name it, so a new prompt or a
+    repainted image needs a new run of tools/art_parts.py."""
+    import hashlib
+    k = {key: rule[key] for key in ("points", "neg", "box", "pick", "clip") if key in rule}
+    h = hashlib.sha1((json.dumps(k, sort_keys=True) + _MASK_CTX["key"]).encode()).hexdigest()[:16]
+    return os.path.join(sam_dir(), h + ".png")
+
+
 def _poly_mask(size, pts):
     m = Image.new("L", size, 0)
     ImageDraw.Draw(m).polygon([tuple(p) for p in pts], fill=255)
@@ -71,10 +95,16 @@ def rule_mask(rule, img):
       {"type": "color", "within": <rule>, "hsv_min": [h, s, v], "hsv_max": [h, s, v]}   (0-255 HSV)
       {"type": "alpha", "within": <rule>}         opaque pixels of the image inside <rule>
       {"type": "union"|"subtract", "rules": [...]} (subtract: first minus the rest)
+      {"type": "sam", "points", "neg", "box", "pick", "clip"}   Segment Anything (tools/art_parts.py)
     Common keys: "grow": px dilation, "feather": px blur radius."""
     size = img.size
     t = rule.get("type", "polygon")
-    if t == "polygon":
+    if t == "sam":
+        path = sam_path(rule)
+        if not os.path.exists(path):
+            raise ValueError("SAM mask not cut yet (%s): run tools/art_parts.py on this rig" % os.path.basename(path))
+        m = Image.open(path).convert("L")
+    elif t == "polygon":
         m = _poly_mask(size, rule["points"])
     elif t == "ellipse":
         cx, cy = rule["center"]
@@ -185,6 +215,262 @@ def r1(v):
     return round(float(v), 1)
 
 
+def tone_match(vimg, img, alpha, rect=None, pad=48):
+    """A face variant (eyes closed, smile ...) from img2img drifts in skin tone: measure the drift
+    where it barely differs from the base (not the lids or mouth it was made for), smooth it, and
+    take it out everywhere, so swapping in its patch changes the features, not the face's colour."""
+    from scipy import ndimage
+    W, H = img.size
+    if rect:
+        x0, y0, w0, h0 = rect
+        bx0, by0 = max(0, int(x0) - pad), max(0, int(y0) - pad)
+        bx1, by1 = min(W, int(x0 + w0) + pad), min(H, int(y0 + h0) + pad)
+    else:
+        bx0, by0, bx1, by1 = 0, 0, W, H
+    va = np.array(vimg).astype(np.float32)
+    ba = np.array(img).astype(np.float32)
+    v = va[by0:by1, bx0:bx1, :3]
+    b = ba[by0:by1, bx0:bx1, :3]
+    d = v - b
+    calm = ((np.abs(d).max(axis=2) < 40) & (alpha[by0:by1, bx0:bx1] > 0.5)).astype(np.float32)
+    den = ndimage.gaussian_filter(calm, 10.0) + 1e-3
+    tone = np.stack([ndimage.gaussian_filter(d[..., c] * calm, 10.0) / den for c in range(3)], axis=2)
+    tone *= np.clip(den[..., None] * 4.0, 0, 1)          # no estimate far from any calm pixel
+    va[by0:by1, bx0:bx1, :3] = np.clip(v - tone, 0, 255)
+    return Image.fromarray(va.astype(np.uint8), "RGBA")
+
+
+# ------------------------------------------------------------------ format 2 mesh
+# Blend width (px) at a part's edge by bone name: soft flesh blends wide, hair, wings and props
+# stay crisp against what is behind them. A region's "soft" key overrides it.
+SOFT_DEFAULT = [("face", 10), ("hair", 6), ("braid", 6), ("ponytail", 6), ("ahoge", 6), ("lock", 6), ("wing", 6),
+                ("tail", 8), ("weapon", 4), ("prop", 4), ("halo", 4), ("horn", 4), ("ear", 6), ("breast", 14),
+                ("thigh", 10), ("shin", 10), ("foot", 8), ("arm", 10), ("forearm", 10), ("hand", 8), ("skirt", 8),
+                ("cape", 8), ("ribbon", 6), ("chest", 16), ("torso", 16), ("hips", 16), ("belly", 16),
+                ("neck", 12), ("head", 12)]
+# Parts a full-screen view may cut (the "core" rect leaves them out; RigData.core_rect).
+CROPPABLE = ("wing", "tail", "weapon", "cape", "ribbon")
+MAP_SCALE = 2          # weight maps at half resolution
+
+
+def soft_for(bone, reg):
+    if "soft" in reg:
+        return float(reg["soft"])
+    for p, v in SOFT_DEFAULT:
+        if bone.startswith(p):
+            return float(v)
+    return 8.0
+
+
+def compose_weights(regions, index, body, alpha):
+    """Hard weight maps at half resolution: the region masks as drawn, composed in priority order
+    (the first region takes its weight, later ones the rest, the body bone what is left). When a
+    region claims the body bone itself (a "hips" mask), every painted pixel no mask covers takes the
+    weights of the nearest claimed pixel instead: anti-aliased edges and stray feathers follow
+    their part, not the hips. Returns (stack (K, h, w), keys = bone indices, blend width per bone,
+    alpha at half resolution)."""
+    from scipy import ndimage
+    H, W = alpha.shape
+    S = MAP_SCALE
+    h2, w2 = H // S, W // S
+    a2 = alpha[:h2 * S, :w2 * S].reshape(h2, S, w2, S).mean(axis=(1, 3))
+    wmap = {}
+    soft_of = {}
+    rem = np.ones((h2, w2), np.float32)
+    for reg in regions:
+        m = reg["raw"][:h2 * S, :w2 * S].reshape(h2, S, w2, S).mean(axis=(1, 3))
+        w = np.clip(m, 0.0, 1.0) * rem
+        rem = rem - w
+        b = index[reg["bone"]]
+        wmap[b] = wmap.get(b, 0.0) + w
+        soft_of[b] = max(soft_of.get(b, 0.0), soft_for(reg["bone"], reg.get("src", {})))
+    bi = index[body]
+    full = bi in wmap
+    wmap[bi] = wmap.get(bi, 0.0) + rem
+    soft_of.setdefault(bi, 16.0)
+    keys = sorted(wmap)
+    stack = np.stack([np.asarray(wmap[k], np.float32) * np.ones((h2, w2), np.float32) for k in keys])
+    if full:
+        un = (rem > 0.5) & (a2 > 0.05)
+        if un.any() and not un.all():
+            _, (iy, ix) = ndimage.distance_transform_edt(rem > 0.5, return_indices=True)
+            stack[:, un] = stack[:, iy[un], ix[un]]
+    return stack, keys, soft_of, a2
+
+
+def core_rect(stack, keys, a2, index, ox, oy):
+    """Her body without the croppable parts (the largest connected piece), rig space."""
+    from scipy import ndimage
+    S = MAP_SCALE
+    names = {v: k for k, v in index.items()}
+    crop = [i for i, k in enumerate(keys) if names[k].startswith(CROPPABLE)]
+    cropw = stack[crop].sum(axis=0) if crop else np.zeros_like(a2)
+    bodyish = ndimage.binary_opening((a2 > 0.5) & (cropw < 0.5), iterations=2)
+    lab, nlab = ndimage.label(bodyish)
+    if nlab:
+        sizes = ndimage.sum(bodyish, lab, range(1, nlab + 1))
+        bodyish = lab == (int(np.argmax(sizes)) + 1)
+    cy, cx = np.nonzero(bodyish)
+    if len(cx) == 0:
+        cy, cx = np.nonzero(a2 > 0.5)
+    qx0, qx1 = np.percentile(cx, [0.1, 99.9]) * S
+    qy0, qy1 = np.percentile(cy, [0.1, 99.9]) * S
+    return [r1(qx0 - ox), r1(qy0 - oy), r1(qx1 - qx0 + S), r1(qy1 - qy0 + S)]
+
+
+def layer_mesh(hero, src, stack, keys, soft_of, index, body, lay_alpha, image_rect, ox, oy, name, image, z,
+               native=None, rigid=None):
+    """One format 2 layer: a `cell` px grid (default 12) over the layer's paint, four influences per
+    grid point. The layer's own painted pixels (`native`: painted in the original, not filled in)
+    keep their weights; everything else in the layer (transparent margins, painted-in hidden parts
+    such as wing roots behind the body) takes the weights of the nearest native pixel, so an outline
+    moves with its part and a hidden root moves with its wing. Then parts blend where they meet,
+    each by its blend width, and each grid point takes the weights of the paint around it.
+    `rigid`: every point follows that one bone (a prop). Returns (layer json, grid rect, n, tris)."""
+    import base64
+    import zlib
+    from scipy import ndimage
+    H, W = lay_alpha.shape
+    S = MAP_SCALE
+    h2, w2 = H // S, W // S
+    cell = int(src.get("cell", 12))
+    la2 = lay_alpha[:h2 * S, :w2 * S].reshape(h2, S, w2, S).mean(axis=(1, 3))
+    st = stack.copy()
+    if rigid is None:
+        own = la2 > 0.35
+        if native is not None:
+            own &= native
+        if own.any() and not own.all():
+            iy, ix = ndimage.distance_transform_edt(~own, return_distances=False, return_indices=True)
+            st = st[:, iy, ix]
+        for k, b in enumerate(keys):
+            sg = soft_of.get(b, 8.0) / S * 0.5
+            if sg > 0.3:
+                st[k] = ndimage.gaussian_filter(st[k], sg)
+        st /= np.maximum(st.sum(axis=0, keepdims=True), 1e-6)
+        sig = cell / S * 0.6
+        den = ndimage.gaussian_filter(la2, sig)
+        held = den > 0.02
+        for k in range(len(keys)):
+            sm = ndimage.gaussian_filter(st[k] * la2, sig) / np.maximum(den, 1e-4)
+            st[k] = np.where(held, sm, st[k])
+    ys, xs = np.nonzero(lay_alpha > 0.0)
+    if len(xs) == 0:
+        err(hero, "layer %s is empty" % name)
+        return None, (0, 0, 0, 0), 0, 0
+    x0 = max(0, int(xs.min()) - cell)
+    y0 = max(0, int(ys.min()) - cell)
+    cols = int(math.ceil((min(W, int(xs.max()) + 1 + cell) - x0) / cell))
+    rows = int(math.ceil((min(H, int(ys.max()) + 1 + cell) - y0) / cell))
+    pad = np.zeros((rows * cell, cols * cell), np.float32)
+    sub = lay_alpha[y0:y0 + rows * cell, x0:x0 + cols * cell]
+    pad[:sub.shape[0], :sub.shape[1]] = sub
+    keep = pad.reshape(rows, cell, cols, cell).max(axis=(1, 3)) > 0.0
+    used = np.zeros((rows + 1, cols + 1), bool)
+    used[:-1, :-1] |= keep
+    used[:-1, 1:] |= keep
+    used[1:, :-1] |= keep
+    used[1:, 1:] |= keep
+    jj, ii = np.nonzero(used)                       # row by row, as RigData._load_layer numbers them
+    px = x0 + ii * cell
+    py = y0 + jj * cell
+    nv = len(px)
+    bi = index[body]
+    skin = np.zeros((nv, 8), np.uint8)
+    if rigid is not None:
+        skin[:, 0] = index[rigid]
+        skin[:, 1] = 255
+        for k in range(1, 4):
+            skin[:, k * 2] = bi
+    else:
+        coords = np.array([np.clip(py / S - 0.5, 0, h2 - 1), np.clip(px / S - 0.5, 0, w2 - 1)])
+        wv = np.stack([ndimage.map_coordinates(st[k], coords, order=1, mode="nearest") for k in range(len(keys))], axis=1)
+        kb = np.array(keys)
+        body_col = keys.index(bi)
+        wv_nb = wv.copy()
+        wv_nb[:, body_col] = -1.0                    # the body bone takes the remainder
+        top = np.argsort(-wv_nb, axis=1)[:, :4]
+        for k in range(min(4, top.shape[1])):
+            col = top[:, k]
+            w = np.clip(wv[np.arange(nv), col], 0.0, 1.0)
+            w = np.where(col == body_col, 0.0, w)
+            skin[:, k * 2] = np.where(w > 0.0, kb[col], bi).astype(np.uint8)
+            skin[:, k * 2 + 1] = np.round(w * 255).astype(np.uint8)
+        for k in range(top.shape[1], 4):
+            skin[:, k * 2] = bi
+        tot = skin[:, 1::2].astype(np.int32).sum(axis=1)
+        over = tot > 255
+        if over.any():
+            f = 255.0 / tot[over]
+            for k in range(4):
+                skin[over, k * 2 + 1] = np.floor(skin[over, k * 2 + 1] * f).astype(np.uint8)
+        if max(keys) > 255:
+            err(hero, "more than 255 bones")
+    lj = {"name": name, "image": image, "z": int(z),
+          "mesh": {"cell": cell, "rect": [x0, y0, cols, rows], "n": int(nv),
+                   "cells": base64.b64encode(zlib.compress(keep.astype(np.uint8).tobytes(), 9)).decode(),
+                   "skin": base64.b64encode(zlib.compress(skin.tobytes(), 9)).decode()}}
+    if image_rect is not None:
+        lj["image_rect"] = [int(v) for v in image_rect]
+    return lj, (x0, y0, min(W, x0 + cols * cell), min(H, y0 + rows * cell)), int(nv), int(keep.sum()) * 2
+
+
+def mesh_v2(hero, src, img, alpha, regions, index, body, ox, oy, image_name, hdir):
+    """Format 2 layers (docs/dev/halorig.md 11). Without "layers" in the source: one layer, the
+    painting. With them (tools/art_layers.py peels the art apart): each layer's image (cropped to
+    `image_rect` on the canvas), its own mesh; `parts` (bone name prefixes, or "rest") says which of
+    the painting's parts the layer holds, `bone` makes it a rigid prop. Returns (layers json, core
+    rect, grid bounds in image px, vertices, triangles)."""
+    from scipy import ndimage
+    stack, keys, soft_of, a2 = compose_weights(regions, index, body, alpha)
+    core = core_rect(stack, keys, a2, index, ox, oy)
+    names = {v: k for k, v in index.items()}
+    dom = np.array(keys)[np.argmax(stack, axis=0)]
+    specs = src.get("layers") or [{"name": "base", "image": image_name, "z": 0}]
+    claimed = []
+    for ls in specs:
+        p = ls.get("parts")
+        if isinstance(p, list):
+            claimed += p
+    out, nv_all, nt_all = [], 0, 0
+    bx0 = by0 = 10 ** 9
+    bx1 = by1 = 0
+    H, W = alpha.shape
+    for ls in specs:
+        lp = os.path.join(hdir, ls["image"])
+        if not os.path.exists(lp):
+            err(hero, "layer %s: missing %s (tools/art_layers.py makes it)" % (ls["name"], ls["image"]))
+            return None, None, (0, 0, 0, 0), 0, 0
+        limg = Image.open(lp).convert("RGBA")
+        ir = ls.get("image_rect")
+        lay_alpha = np.zeros((H, W), np.float32)
+        la = np.array(limg.split()[3]).astype(np.float32) / 255.0
+        if ir:
+            x, y = int(ir[0]), int(ir[1])
+            lay_alpha[y:y + la.shape[0], x:x + la.shape[1]] = la[:H - y, :W - x]
+        else:
+            lay_alpha[:la.shape[0], :la.shape[1]] = la
+        native = None
+        p = ls.get("parts")
+        if p is not None:
+            if p == "rest":
+                native = ~np.isin(dom, [k for k in keys if names[k].startswith(tuple(claimed))])
+            else:
+                native = np.isin(dom, [k for k in keys if names[k].startswith(tuple(p))])
+            native &= a2 > 0.35
+        lj, (x0, y0, x1, y1), nv, nt = layer_mesh(hero, src, stack, keys, soft_of, index, body, lay_alpha,
+                                                  ir, ox, oy, ls["name"], ls["image"], ls.get("z", 0),
+                                                  native=native, rigid=ls.get("bone"))
+        if lj is None:
+            return None, None, (0, 0, 0, 0), 0, 0
+        out.append(lj)
+        nv_all += nv
+        nt_all += nt
+        bx0, by0, bx1, by1 = min(bx0, x0), min(by0, y0), max(bx1, x1), max(by1, y1)
+    _ = ndimage
+    return out, core, (bx0, by0, bx1, by1), nv_all, nt_all
+
+
 # ------------------------------------------------------------------ build
 def rig_dir(rig_id):
     """(folder, file name, hero id) of a rig id: <id> (base art), <id>@<art> (a skin),
@@ -253,6 +539,7 @@ def build(hero, regen=False, check=False):
 
     # ---- region masks (priority order: first listed wins where masks overlap)
     os.makedirs(os.path.join(hdir, "masks"), exist_ok=True)
+    set_mask_context(hdir, img)
     gi = os.path.join(hdir, "masks", ".gdignore")
     if not os.path.exists(gi):
         open(gi, "w").close()
@@ -264,7 +551,8 @@ def build(hero, regen=False, check=False):
             err(hero, "region %s: unknown bone %s" % (rname, bone))
             continue
         mp = os.path.join(hdir, r.get("mask", "masks/%s.png" % rname))
-        if "rule" in r and (regen or not os.path.exists(mp)):
+        # format 2: masks always come from the rules (SAM masks are cached by tools/art_parts.py)
+        if "rule" in r and (regen or int(src.get("version", 1)) >= 2 or not os.path.exists(mp)):
             m = rule_mask(r["rule"], img)
             if not check:
                 m.save(mp)
@@ -280,59 +568,72 @@ def build(hero, regen=False, check=False):
         arr = np.array(m.filter(ImageFilter.GaussianBlur(cell * 0.25))).astype(np.float32) / 255.0
         if arr.max() <= 0.01:
             warn(hero, "region %s mask is empty" % rname)
-        regions.append({"name": rname, "bone": bone, "arr": arr, "raw": np.array(m).astype(np.float32) / 255.0})
+        regions.append({"name": rname, "bone": bone, "arr": arr, "raw": np.array(m).astype(np.float32) / 255.0, "src": r})
 
-    # ---- grid over the alpha bounds (+ margin), culling fully transparent cells
-    ys, xs = np.nonzero(alpha > 0.02)
-    if len(xs) == 0:
-        err(hero, "image is fully transparent")
-        return
-    pad = 24
-    bx0, by0 = max(0, xs.min() - pad), max(0, ys.min() - pad)
-    bx1, by1 = min(W, xs.max() + pad), min(H, ys.max() + pad)
-    gx = np.linspace(bx0, bx1, cols + 1)
-    gy = np.linspace(by0, by1, rows + 1)
-    keep_cell = np.zeros((rows, cols), bool)
-    for j in range(rows):
-        for i in range(cols):
-            x0, x1 = int(gx[i]), int(math.ceil(gx[i + 1]))
-            y0, y1 = int(gy[j]), int(math.ceil(gy[j + 1]))
-            if alpha[y0:y1 + 1, x0:x1 + 1].max() > 0.0:
-                keep_cell[j, i] = True
-    vid = -np.ones((rows + 1, cols + 1), int)
-    verts, uvs, skin = [], [], []
-    for j in range(rows + 1):
-        for i in range(cols + 1):
-            used = any(keep_cell[jj, ii] for jj in (j - 1, j) for ii in (i - 1, i) if 0 <= jj < rows and 0 <= ii < cols)
-            if not used:
-                continue
-            vid[j, i] = len(verts) // 2
-            x, y = gx[i], gy[j]
-            verts += [r1((x - ox) / 1.0), r1((y - oy) / 1.0)]
-            uvs += [round(x / W, 5), round(y / H, 5)]
-            # skin weights: priority composition, keep the strongest MAX_INFLUENCES
-            remaining = 1.0
-            infl = []
-            for reg in regions:
-                w = bilinear(reg["arr"], x, y) * remaining
-                if w > 0.004:
-                    infl.append((index[reg["bone"]], w))
-                    remaining -= w
-            infl.sort(key=lambda t: -t[1])
-            infl = infl[:MAX_INFLUENCES]
-            tot = sum(w for _, w in infl)
-            if tot > 1.0:
-                infl = [(b, w / tot) for b, w in infl]
-            while len(infl) < MAX_INFLUENCES:
-                infl.append((index[body], 0.0))
-            for b, w in infl:
-                skin += [b, round(w, 4)]
-    tris = []
-    for j in range(rows):
-        for i in range(cols):
-            if keep_cell[j, i]:
-                a, b2, c, d = vid[j, i], vid[j, i + 1], vid[j + 1, i + 1], vid[j + 1, i]
-                tris += [int(a), int(b2), int(c), int(a), int(c), int(d)]
+    version = int(src.get("version", 1))
+    if version >= 2 and not check:
+        # masks of regions this source no longer has (an older rig's) would only mislead
+        want = {os.path.basename(r.get("mask", "masks/%s.png" % r["name"])) for r in src.get("regions", [])}
+        for f in os.listdir(os.path.join(hdir, "masks")):
+            if f.endswith(".png") and f not in want:
+                os.remove(os.path.join(hdir, "masks", f))
+    if version >= 2:
+        # format 2 (docs/dev/halorig.md section 11): a fine grid, weights from the part masks
+        layers_json, core, (bx0, by0, bx1, by1), nv, nt = mesh_v2(hero, src, img, alpha, regions, index, body, ox, oy, os.path.basename(img_path), hdir)
+        if layers_json is None:
+            return
+    else:
+        # ---- grid over the alpha bounds (+ margin), culling fully transparent cells
+        ys, xs = np.nonzero(alpha > 0.02)
+        if len(xs) == 0:
+            err(hero, "image is fully transparent")
+            return
+        pad = 24
+        bx0, by0 = max(0, xs.min() - pad), max(0, ys.min() - pad)
+        bx1, by1 = min(W, xs.max() + pad), min(H, ys.max() + pad)
+        gx = np.linspace(bx0, bx1, cols + 1)
+        gy = np.linspace(by0, by1, rows + 1)
+        keep_cell = np.zeros((rows, cols), bool)
+        for j in range(rows):
+            for i in range(cols):
+                x0, x1 = int(gx[i]), int(math.ceil(gx[i + 1]))
+                y0, y1 = int(gy[j]), int(math.ceil(gy[j + 1]))
+                if alpha[y0:y1 + 1, x0:x1 + 1].max() > 0.0:
+                    keep_cell[j, i] = True
+        vid = -np.ones((rows + 1, cols + 1), int)
+        verts, uvs, skin = [], [], []
+        for j in range(rows + 1):
+            for i in range(cols + 1):
+                used = any(keep_cell[jj, ii] for jj in (j - 1, j) for ii in (i - 1, i) if 0 <= jj < rows and 0 <= ii < cols)
+                if not used:
+                    continue
+                vid[j, i] = len(verts) // 2
+                x, y = gx[i], gy[j]
+                verts += [r1((x - ox) / 1.0), r1((y - oy) / 1.0)]
+                uvs += [round(x / W, 5), round(y / H, 5)]
+                # skin weights: priority composition, keep the strongest MAX_INFLUENCES
+                remaining = 1.0
+                infl = []
+                for reg in regions:
+                    w = bilinear(reg["arr"], x, y) * remaining
+                    if w > 0.004:
+                        infl.append((index[reg["bone"]], w))
+                        remaining -= w
+                infl.sort(key=lambda t: -t[1])
+                infl = infl[:MAX_INFLUENCES]
+                tot = sum(w for _, w in infl)
+                if tot > 1.0:
+                    infl = [(b, w / tot) for b, w in infl]
+                while len(infl) < MAX_INFLUENCES:
+                    infl.append((index[body], 0.0))
+                for b, w in infl:
+                    skin += [b, round(w, 4)]
+        tris = []
+        for j in range(rows):
+            for i in range(cols):
+                if keep_cell[j, i]:
+                    a, b2, c, d = vid[j, i], vid[j, i + 1], vid[j + 1, i + 1], vid[j + 1, i]
+                    tris += [int(a), int(b2), int(c), int(a), int(c), int(d)]
 
     # ---- bones json (pivots in rig units; axis/length from the region masks for springs)
     bones_json = []
@@ -404,6 +705,7 @@ def build(hero, regen=False, check=False):
             if vimg.size != img.size:
                 err(hero, "overlay %s/%s: size %s differs from the image %s" % (slot, vname, vimg.size, img.size))
                 continue
+            vimg = tone_match(vimg, img, alpha, ov.get("rect"))
             diff = np.abs(np.array(vimg).astype(np.int32) - np.array(img).astype(np.int32)).max(axis=2)
             if "rect" in ov:
                 x0, y0, w0, h0 = ov["rect"]
@@ -418,13 +720,18 @@ def build(hero, regen=False, check=False):
             x0, y0 = max(0, xx.min() - m), max(0, yy.min() - m)
             x1, y1 = min(W, xx.max() + m + 1), min(H, yy.max() + m + 1)
             patch = vimg.crop((x0, y0, x1, y1))
-            # feather the patch border so it blends into the base
+            # only where the variant really differs (the lids, the mouth), feathered, and faded out
+            # toward the patch border: a blink fades the lids, not a rectangle of skin
             pa = np.array(patch).astype(np.float32)
             ph, pw = pa.shape[:2]
+            from scipy import ndimage
+            dz = diff[y0:y1, x0:x1] > int(ov.get("threshold", 24))
+            dz = ndimage.binary_dilation(dz, iterations=4)
+            soft = np.clip(ndimage.gaussian_filter(dz.astype(np.float32), 3.0) * 1.6, 0, 1)
             fy = np.minimum(np.arange(ph), np.arange(ph)[::-1])[:, None]
             fx = np.minimum(np.arange(pw), np.arange(pw)[::-1])[None, :]
             ramp = np.clip(np.minimum(fx, fy) / max(1.0, m * 0.8), 0, 1)
-            pa[..., 3] *= ramp
+            pa[..., 3] *= ramp * soft
             fname = "overlays/%s_%s.png" % (slot, vname)
             if not check:
                 Image.fromarray(pa.astype(np.uint8), "RGBA").save(os.path.join(hdir, fname))
@@ -438,15 +745,20 @@ def build(hero, regen=False, check=False):
     pc = src.get("portrait", [ox, oy - 1700, 480])
     prect = [pc[0] - pc[2] / 2, pc[1] - pc[2] / 2, pc[2], pc[2]]
     meta = dict(src.get("meta", {}))
-    out = {"format": "halowarp", "version": FORMAT_VERSION, "id": hero_id,
+    out = {"format": "halowarp", "version": FORMAT_VERSION if version < 2 else 2, "id": hero_id,
            "image": os.path.basename(img_path) if texel == 1.0 else "%s_warp.png" % name,
            "image_size": [W, H], "canvas": [W, H], "origin": [ox, oy], "texel_scale": texel,
            "look_px": src.get("look_px", [14, 8]), "still": os.path.basename(img_path), "portrait": "%s_portrait.png" % name,
            "portrait_rect": prect, "bounds": [r1(bx0 - ox), r1(by0 - oy), r1(bx1 - bx0), r1(by1 - by0)],
            "meta": meta, "body_bone": body, "max_influences": MAX_INFLUENCES,
-           "bones": bones_json, "slots": slots,
-           "mesh": {"grid": [cols, rows], "vertices": verts, "uvs": uvs, "triangles": tris, "skin": skin}}
-    nv, nt = len(verts) // 2, len(tris) // 3
+           "bones": bones_json, "slots": slots}
+    if version >= 2:
+        out["max_influences"] = 4
+        out["core"] = core
+        out["layers"] = layers_json
+    else:
+        out["mesh"] = {"grid": [cols, rows], "vertices": verts, "uvs": uvs, "triangles": tris, "skin": skin}
+        nv, nt = len(verts) // 2, len(tris) // 3
     if check:
         print("art_warp_build: [%s] check ok: %d bones, %d regions, %d vertices, %d triangles" % (hero, len(bones_json), len(regions), nv, nt))
         return

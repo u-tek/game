@@ -53,6 +53,10 @@ const MAX_W := 760.0
 const BAND := 196.0
 ## The right-hand rule's inset from the poster's right edge (the menu labels sit right of it).
 const RULE_IN := 48.0
+## Her body's height on the poster (share of the poster) and how far her feet sit below its bottom
+## edge: the plate and the star disc cover her feet anyway (_fit_sprite).
+const FIG_FILL := 0.95
+const FIG_SINK := 0.06
 const FOOT_H := 112.0
 const INK := Color("101113")
 const PAPER := Color("e9e8e2")
@@ -708,10 +712,12 @@ func _jump(section: String, animate: bool = true) -> void:
 func _fit_sprite() -> void:
 	if _sprite == null or not is_instance_valid(_sprite):
 		return
-	# Framed by her real outline (HeroArt.fit_sprite): _fig_h tall, smaller when a wide pose would
-	# run past the band or the right-hand rule; feet where the poster puts them.
-	var feet_y := _box.size.y + 10.0
-	HeroArt.fit_sprite(_sprite, _anchor, Rect2(BAND - 60.0, feet_y - _fig_h, _box.size.x - (BAND - 60.0) - 6.0, _fig_h), BAND + 262.0)
+	# Full screen (owner 2026-10-20: "i want the characters to take up the whole screen ... her wings
+	# can be off screen"): her body (HeroArt.fit_sprite, core) as tall as the poster, feet just under
+	# its bottom edge behind the level-up plate; wings, weapon, tail and cape may run off the poster.
+	var fig := _box.size.y * FIG_FILL
+	var feet_y := _box.size.y * (1.0 + FIG_SINK)
+	HeroArt.fit_sprite(_sprite, _anchor, Rect2(BAND - 150.0, feet_y - fig, _box.size.x - (BAND - 150.0), fig), BAND + 262.0, true)
 	if not _owned:
 		_sprite.modulate = Color(0.5, 0.5, 0.52, 0.9)
 

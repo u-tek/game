@@ -1,7 +1,7 @@
 class_name RigData
 extends RefCounted
 ## A built HaloRig, loaded once and shared by every RigPlayer of that hero. Two kinds:
-##   "warp"   - one painted image on a skinned grid mesh (<id>.warp.json), the default for heroes
+##   "warp"   - painted image layers on skinned grid meshes (<id>.warp.json), the default for heroes
 ##   "cutout" - separate part images per bone (<id>.rig.json), used by the fallback silhouette
 ## Formats: docs/dev/halorig.md sections 4 (cutout) and 8 (warp).
 
@@ -10,10 +10,15 @@ const HEROES_DIR := "res://assets/art/heroes/"
 var id := ""
 var kind := "cutout"
 # warp only
-var image: Texture2D
-var mesh: ArrayMesh
+var image: Texture2D                      ## the painted image (the base layer)
+var mesh: ArrayMesh                        ## the base layer's mesh
+## Warp layers, back to front: {name, z, image: Texture2D, mesh: ArrayMesh}. Format 1 rigs have one
+## (the painting); format 2 rigs may add parts peeled off it (docs/dev/halorig.md section 11).
+var layers: Array = []
+var version := 1
 var body_bone := 0
-var _mesh_skin := PackedFloat32Array()     ## per vertex b0,w0,b1,w1,b2,w2
+var _skin_n := 3                           ## influences per vertex in _mesh_skin (3: format 1, 4: format 2)
+var _mesh_skin := PackedFloat32Array()     ## base layer, per vertex b0,w0,b1,w1,b2,w2(,b3,w3)
 var _mesh_verts := PackedVector2Array()
 var _grid := Vector2i.ZERO
 var _grid_origin := Vector2.ZERO
@@ -32,6 +37,7 @@ var still_path := ""
 var portrait_path := ""
 var _base := ""                          ## file base this rig was loaded from (load_rig)
 var _face := Vector4.ZERO                ## face_ellipse() cache
+var _core := Rect2()                     ## core_rect() cache
 
 # Bones, parents before children.
 var bone_names := PackedStringArray()
@@ -170,8 +176,17 @@ func _load(d: Dictionary, hero_id: String, art_folder: String = "") -> void:
 
 
 func _load_warp(d: Dictionary) -> void:
-	image = load(dir + str(d.get("image", id + ".png")))
+	version = int(d.get("version", 1))
 	body_bone = int(bone_index.get(str(d.get("body_bone", "hips")), 0))
+	var cr: Array = d.get("core", [])
+	if cr.size() == 4:
+		_core = Rect2(cr[0], cr[1], cr[2], cr[3])
+	if version >= 2:
+		for lj: Dictionary in d.get("layers", []):
+			_load_layer(lj, layers.is_empty())
+		layers.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return int(a.z) < int(b.z))
+		return
+	image = load(dir + str(d.get("image", id + ".png")))
 	var m: Dictionary = d.get("mesh", {})
 	var v: Array = m.get("vertices", [])
 	var uv: Array = m.get("uvs", [])
@@ -204,6 +219,93 @@ func _load_warp(d: Dictionary) -> void:
 	for i in nv:
 		var gi := Vector2i(roundi((_mesh_verts[i].x - _grid_origin.x) / _grid_cell.x), roundi((_mesh_verts[i].y - _grid_origin.y) / _grid_cell.y))
 		_grid_vid[gi] = i
+	layers = [{"name": "image", "z": 0, "image": image, "mesh": mesh}]
+
+
+## A format 2 layer: a uniform grid of `cell` px over `rect` (image px: x, y, cols, rows), the kept
+## cells as one byte each and four influences per used grid point as bytes (b0 w0 b1 w1 b2 w2 b3
+## w3, weights /255), both deflated and base64. Grid points are numbered row by row, skipping
+## points no kept cell uses. `image_rect` places the layer's image on the canvas (default: all of
+## it). The base layer also feeds skin_at() (overlay patches) and core_rect().
+func _load_layer(lj: Dictionary, base: bool) -> void:
+	var tex: Texture2D = load(dir + str(lj.get("image", id + ".png")))
+	var m: Dictionary = lj.get("mesh", {})
+	var cell := float(m.get("cell", 12))
+	var r: Array = m.get("rect", [0, 0, 1, 1])
+	var x0 := float(r[0])
+	var y0 := float(r[1])
+	var cols := int(r[2])
+	var rows := int(r[3])
+	var ir: Array = lj.get("image_rect", [0, 0, canvas.x, canvas.y])
+	var nv := int(m.get("n", 0))
+	var cells := Marshalls.base64_to_raw(str(m.get("cells", ""))).decompress(cols * rows, FileAccess.COMPRESSION_DEFLATE)
+	var sk := Marshalls.base64_to_raw(str(m.get("skin", ""))).decompress(nv * 8, FileAccess.COMPRESSION_DEFLATE)
+	if cells.size() != cols * rows or sk.size() != nv * 8:
+		push_error("RigData[%s]: bad mesh in layer %s" % [id, str(lj.get("name", ""))])
+		return
+	var vid := PackedInt32Array()
+	vid.resize((cols + 1) * (rows + 1))
+	vid.fill(-1)
+	var verts := PackedVector2Array()
+	var uvs := PackedVector2Array()
+	var c0 := PackedFloat32Array()
+	var c1 := PackedFloat32Array()
+	verts.resize(nv)
+	uvs.resize(nv)
+	c0.resize(nv * 4)
+	c1.resize(nv * 4)
+	var iw := maxf(float(ir[2]), 1.0)
+	var ih := maxf(float(ir[3]), 1.0)
+	var n := 0
+	for j in rows + 1:
+		for i in cols + 1:
+			var used := (j > 0 and i > 0 and cells[(j - 1) * cols + i - 1] != 0) 				or (j > 0 and i < cols and cells[(j - 1) * cols + i] != 0) 				or (j < rows and i > 0 and cells[j * cols + i - 1] != 0) 				or (j < rows and i < cols and cells[j * cols + i] != 0)
+			if not used or n >= nv:
+				continue
+			vid[j * (cols + 1) + i] = n
+			var px := x0 + i * cell
+			var py := y0 + j * cell
+			verts[n] = Vector2(px - origin.x, py - origin.y)
+			uvs[n] = Vector2((px - float(ir[0])) / iw, (py - float(ir[1])) / ih)
+			var o := n * 8
+			c0[n * 4] = sk[o]
+			c0[n * 4 + 1] = sk[o + 1] / 255.0
+			c0[n * 4 + 2] = sk[o + 2]
+			c0[n * 4 + 3] = sk[o + 3] / 255.0
+			c1[n * 4] = sk[o + 4]
+			c1[n * 4 + 1] = sk[o + 5] / 255.0
+			c1[n * 4 + 2] = sk[o + 6]
+			c1[n * 4 + 3] = sk[o + 7] / 255.0
+			n += 1
+	var idx := PackedInt32Array()
+	for j in rows:
+		for i in cols:
+			if cells[j * cols + i] == 0:
+				continue
+			var a := vid[j * (cols + 1) + i]
+			var b := vid[j * (cols + 1) + i + 1]
+			var c := vid[(j + 1) * (cols + 1) + i + 1]
+			var e := vid[(j + 1) * (cols + 1) + i]
+			idx.append_array([a, b, c, a, c, e])
+	var lm := _make_mesh(verts, uvs, idx, c0, c1)
+	layers.append({"name": str(lj.get("name", "layer")), "z": int(lj.get("z", 0)), "image": tex, "mesh": lm})
+	if not base:
+		return
+	image = tex
+	mesh = lm
+	_skin_n = 4
+	_mesh_verts = verts
+	_mesh_skin.resize(nv * 8)
+	for k in nv * 8:
+		_mesh_skin[k] = sk[k] if k % 2 == 0 else sk[k] / 255.0
+	_grid = Vector2i(cols, rows)
+	_grid_origin = Vector2(x0 - origin.x, y0 - origin.y)
+	_grid_cell = Vector2(cell, cell)
+	for jj in rows + 1:
+		for ii in cols + 1:
+			var v := vid[jj * (cols + 1) + ii]
+			if v >= 0:
+				_grid_vid[Vector2i(ii, jj)] = v
 
 
 static func _make_mesh(verts: PackedVector2Array, uvs: PackedVector2Array, idx: PackedInt32Array, c0: PackedFloat32Array, c1: PackedFloat32Array) -> ArrayMesh:
@@ -235,9 +337,10 @@ func skin_at(p: Vector2) -> Array:
 		if vi == null or wc <= 0.0:
 			continue
 		var rest := 1.0
-		for k in 3:
-			var b := int(_mesh_skin[int(vi) * 6 + k * 2])
-			var w := _mesh_skin[int(vi) * 6 + k * 2 + 1]
+		var st := _skin_n * 2
+		for k in _skin_n:
+			var b := int(_mesh_skin[int(vi) * st + k * 2])
+			var w := _mesh_skin[int(vi) * st + k * 2 + 1]
 			acc[b] = float(acc.get(b, 0.0)) + w * wc
 			rest -= w
 		acc[body_bone] = float(acc.get(body_bone, 0.0)) + maxf(rest, 0.0) * wc
@@ -246,9 +349,9 @@ func skin_at(p: Vector2) -> Array:
 		if b != body_bone:
 			lst.append([b, acc[b]])
 	lst.sort_custom(func(a, b2): return a[1] > b2[1])
-	while lst.size() < 3:
+	while lst.size() < 4:
 		lst.append([body_bone, 0.0])
-	return lst.slice(0, 3)
+	return lst.slice(0, 4)
 
 
 ## Small skinned grid for an overlay patch (deforms exactly like the image under it).
@@ -266,7 +369,7 @@ func _patch_mesh(r: Rect2) -> ArrayMesh:
 			uvs.append(Vector2(float(i) / n, float(j) / n))
 			var sk := skin_at(p)
 			c0.append_array([sk[0][0], sk[0][1], sk[1][0], sk[1][1]])
-			c1.append_array([sk[2][0], sk[2][1], 0.0, 0.0])
+			c1.append_array([sk[2][0], sk[2][1], sk[3][0], sk[3][1]])
 	for j in n:
 		for i in n:
 			var a := j * (n + 1) + i
@@ -312,6 +415,52 @@ func face_ellipse() -> Vector4:
 	var at := setup_world[fb] if fb >= 0 else Vector2(0.0, bounds.position.y * 0.82)
 	_face = Vector4(at.x, at.y + 10.0, 70.0, 60.0)
 	return _face
+
+
+## Which shared animation set this rig plays (RigAnim.find): "warp2" for format 2 warp rigs (their
+## idle is procedural, RigPlayer._idle_drive), else the kind.
+func anim_kind() -> String:
+	return "warp2" if kind == "warp" and version >= 2 else kind
+
+
+## Bone name prefixes of the parts a tight frame may cut off (core_rect).
+const CROPPABLE := ["wing", "tail", "weapon", "cape", "ribbon"]
+
+
+## Her body without the parts a tight frame may cut (wings, tail, weapon, cape, ribbons): the
+## bounds, in rig space, of the warp mesh vertices whose heaviest bone is none of those. Views that
+## fill the screen with her frame this and let the rest run off the edge (HeroArt.fit_sprite).
+## Cutout rigs and rigs without a mesh return bounds. Cached.
+func core_rect() -> Rect2:
+	if _core.size != Vector2.ZERO:
+		return _core
+	var st := _skin_n * 2
+	if kind != "warp" or _mesh_verts.is_empty() or _mesh_skin.size() < _mesh_verts.size() * st:
+		_core = bounds
+		return _core
+	var crop := {}
+	for i in bone_names.size():
+		for pre: String in CROPPABLE:
+			if bone_names[i].begins_with(pre):
+				crop[i] = true
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for i in _mesh_verts.size():
+		var best := body_bone
+		var best_w := 1.0
+		for k in _skin_n:
+			best_w -= _mesh_skin[i * st + k * 2 + 1]
+		for k in _skin_n:
+			var w := _mesh_skin[i * st + k * 2 + 1]
+			if w > best_w:
+				best_w = w
+				best = int(_mesh_skin[i * st + k * 2])
+		if crop.has(best):
+			continue
+		lo = lo.min(_mesh_verts[i])
+		hi = hi.max(_mesh_verts[i])
+	_core = Rect2(lo, hi - lo) if lo.x <= hi.x else bounds
+	return _core
 
 
 ## Total pixels of part textures (memory estimate: x4 bytes, x1.33 with mipmaps).

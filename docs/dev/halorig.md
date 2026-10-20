@@ -421,6 +421,7 @@ limits; big actions are sold with whole-body motion + VFX (`vfx_<kind>` events).
 
 | Tool | Purpose |
 |---|---|
+| `tools/art_parts.py <rig> [--sheet] [--grid]` | SAM part masks for format 2 sources (section 11) |
 | `tools/art_warp [id] [--regen-masks] [--check]` | warp build (`tools/art_warp_build.py`, Python 3 + Pillow + numpy) + Godot import |
 | `tools/art_build [id] [--check]` | cutout build (`tools/art_build.gd`) + import |
 | `python3 tools/art_anims.py` | rewrite the shared animation JSON (cutout + warp sets) |
@@ -442,3 +443,68 @@ limits; big actions are sold with whole-body motion + VFX (`vfx_<kind>` events).
 - Port `rig_anim.gd` (sampling, easing table, events), the mixing in 5.1, springs in 6.2
   (fixed 1/60 sub-steps), and the tint shader in 6.5. Golden check: play `attack_melee` on the
   silhouette rig at 30 fps and compare bone world positions with Godot's.
+
+---------------------------------------------------------------------------------------------
+
+## 11. Format 2: per-part warp rigs and layers (2026-10-20, pilot: Argentiel)
+
+The owner's verdict on the format 1 rigs: "subpar ... jank", with "one point for these huge
+areas". Format 2 gives every part its own bone and moves the idle into code. Its ceiling is still a
+painting where most of the body is hidden behind other parts. The owner picked the next step:
+art re-rendered for rigging (memory: animation direction, NIKKE / Brown Dust 2).
+
+### 11.1 Source (`<id>.warp_src.json`, `"version": 2`)
+- `"cell": 12`: grid size in px (format 1 used `grid` cols/rows of about 37 px).
+- One bone per part. Breasts `breast_r/l`, thighs `thigh_r/l`, shins `shin_r/l` (parented to
+  **root**: planted), upper arms `arm_r/l`, forearms `forearm_r/l`, every wing `wing_r1..3` /
+  `wing_l1..3` (top to bottom), braid segments, earrings, halo. `_r` = her right = the viewer's left.
+- Region rule `{"type": "sam", "points", "neg", "box", "pick", "clip"}`: the mask is cut by Segment
+  Anything. `tools/art_parts.py <rig>` (ComfyUI venv python, segment-anything in `.pylib/`, SAM
+  ViT-B from `D:/comfyui/models/sams/`) runs each prompt on a crop and caches 1-bit masks in
+  `masks/_sam/<hash>.png` (hash = prompt + image). `--sheet out.png` draws every final mask with a
+  grid for review; `--grid out.png` gives the art with a coordinate grid. A `hips` region (bone =
+  body_bone) turns on full labelling: painted pixels no mask covers take the nearest part's weights.
+- `"layers"` (optional; `tools/art_anims_argentiel.py` shows what they enable):
+  `[{"name", "image", "z", "image_rect", "parts": [bone prefixes] | "rest", "bone": "<rigid bone>"}]`.
+  The first listed is the base layer: face overlays sit on it, and `skin_at`/`core_rect` read it. The
+  still (`HeroArt.texture`) stays the original painting. Argentiel's were made by scratch scripts:
+  the whole spear rebuilt from its painted head, butt and the shaft's own cross-section; the body
+  with the spear painted out; the wings with their roots extended under the body. A general
+  `tools/art_layers.py` comes with the re-rendered art.
+
+### 11.2 Build (`tools/art_warp_build.py`, `mesh_v2`)
+1. Masks are composed hard, in priority order, at half resolution.
+2. Per layer, transparent and filled-in pixels take the weights of the nearest **native** pixel (one
+   the painting really shows in that layer), so outlines and hidden roots move with their part.
+3. Weights are blurred where parts meet, by blend width (`SOFT_DEFAULT`: flesh 14-16 px, hair and
+   wings 6, props 4), then renormalised.
+4. Each grid point takes the alpha-weighted weights of the paint within about a cell, keeping the
+   top four.
+
+Format 2 masks always rebuild from their rules, and stale mask files are deleted. JSON:
+`"version": 2, "max_influences": 4, "core": [x, y, w, h]` (her body without wings, tail, weapon,
+cape and ribbons; full-screen views frame this), and `"layers"` with the mesh compact: kept cells
+one byte each, eight skin bytes per used grid point (b0 w0 .. b3 w3, weights /255), deflated and
+base64. `RigData._load_layer` rebuilds the mesh (about 4-7k vertices). Face overlays are
+tone-matched to the base (`tone_match`) and only cover what really differs, so a blink no longer
+tints the face.
+
+### 11.3 Runtime
+- **Shader:** `warp_skin` takes up to 64 bones and 4 influences; format 1 data still works.
+- **Animation set:** format 2 rigs play `assets/art/anim/warp2/` first (`RigData.anim_kind()`), then
+  `warp/`. Per-hero overrides live in `assets/art/heroes/<id>/anim/` (`tools/art_anims_<id>.py`).
+- **Procedural idle (`RigPlayer._idle_drive`).** It runs while the base track plays "idle", at 35%
+  under actions. The parts and what they do:
+  - **Breath:** 3.5-4.6 s, varied depth.
+  - **Chest:** rises and expands.
+  - **Head, arms, breasts, wings:** trail the breath through first-order lags; each wing lifts in
+    turn, top first.
+  - **Hips and torso:** drift on slow noise.
+  - **Tail:** carries a travelling wave.
+- **Planted legs (`_keep_knees`):** thighs turn so they still meet their planted shins.
+- **Springs** draw between the last two 60 Hz physics steps, so 120 Hz phones see smooth hair and
+  wings. Spring preset key `m: 1` makes a soft mass that shifts instead of swinging (`breast`).
+- **Blink:** the lids close over 55 ms, hold 45 ms and open over 110 ms, with the overlay faded
+  (all rigs).
+- **Framing:** `HeroArt.fit_sprite(..., core = true)` sizes her by her body. The hero page and the
+  Lobby use it ("take up the whole screen ... her wings can be off screen").

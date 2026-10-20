@@ -17,3 +17,6 @@ __pycache__/
 
 # tools/shoot on Windows (off-screen, no-focus window)
 override.cfg
+
+# Python packages for the art tools (tools/art_parts.py: segment-anything), installed locally
+/.pylib/

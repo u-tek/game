@@ -118,11 +118,13 @@ static func used_rect(tex: Texture2D) -> Rect2:
 ## Frames a HeroSprite inside `box` (in the anchor's parent space): as tall as the box allows,
 ## smaller if her outline is wider than the box, centred on her outline (on prefer_x when that
 ## keeps her inside the box), feet on the box's bottom edge. Returns the scale used.
-static func fit_sprite(sprite: Node2D, anchor: Node2D, box: Rect2, prefer_x: float = NAN) -> float:
+## `core` (full-screen views, owner 2026-10-20: "her wings can be off screen"): frame only her body
+## (HeroSprite.figure_rect(true)); wings, tail, weapon, cape and ribbons may run past the box.
+static func fit_sprite(sprite: Node2D, anchor: Node2D, box: Rect2, prefer_x: float = NAN, core: bool = false) -> float:
 	if sprite == null or anchor == null:
 		return 1.0
 	sprite.scale = Vector2.ONE
-	var fr: Rect2 = sprite.call("figure_rect") if sprite.has_method("figure_rect") else Rect2(-130, -400, 260, 400)
+	var fr: Rect2 = sprite.call("figure_rect", core) if sprite.has_method("figure_rect") else Rect2(-130, -400, 260, 400)
 	var k := minf(box.size.y / maxf(-fr.position.y, 1.0), box.size.x / maxf(fr.size.x, 1.0))
 	sprite.scale = Vector2(k, k)
 	var half := fr.size.x * k * 0.5
