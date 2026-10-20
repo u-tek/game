@@ -19,7 +19,7 @@ import sys
 
 import cv2
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter
 from scipy import ndimage
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -256,6 +256,38 @@ if os.path.exists(os.path.join(WORK, "body_fill.png")):
     rep[..., 3] = np.minimum(rep[..., 3], 255.0 * (1.0 - ndimage.gaussian_filter(bgk.astype(np.float32), 1.0)))
     body[put] = rep[put]
     print("body: hole repainted from work2/body_fill.png (%d backdrop px cleared)" % int((bgk & put).sum()))
+rl_img["body"] = body
+
+# the side of her torso under the left arm (armpit to waist): the painting never showed it and the
+# body layer stops short, so a raised arm showed hair where her side should be. Rough fill + hole for
+# fill_hidden.py; the repaint (WORK/side_fill.png) wins
+side_poly = Image.new("L", (W, H), 0)
+# her side's outline: armpit under the shoulder, out over the ribs, in to the waist
+SIDE = [(604, 962), (616, 972), (626, 992), (633, 1030), (636, 1075), (633, 1115), (627, 1160), (622, 1192)]
+ImageDraw.Draw(side_poly).polygon(SIDE + [(590, 1192), (590, 962)], fill=255)
+side_hole = (np.asarray(side_poly) > 127) & (body[..., 3] < 200) & ~both
+# rough fill: her own skin tone (the bare skin beside the breast), a little darker toward the breast
+# (its shadow) and toward the armpit
+skin_m = ndimage.binary_dilation(breast["l"], iterations=6) & ~breast["l"] & (final[..., 3] > 250)
+fin3 = final[..., :3]
+skin_m &= (fin3[..., 0] > 225) & (fin3[..., 0] - fin3[..., 2] > 12)
+skin = np.median(fin3[skin_m], axis=0) if skin_m.any() else np.array([252.0, 222.0, 219.0])
+dx = np.clip((xx - 600) / 40.0, 0, 1)
+dy = np.clip((yy - 960) / 60.0, 0, 1)
+tone = (0.90 + 0.10 * dx) * (0.93 + 0.07 * dy)
+body[side_hole, :3] = skin[None, :] * tone[side_hole, None]
+body[side_hole, 3] = 255
+# a thin warm line along the outer edge (her line art) and a soft edge
+inside = np.asarray(side_poly) > 127
+d_in = ndimage.distance_transform_edt(inside)
+edge = side_hole & (d_in <= 2.2) & (xx > 600)
+body[edge, :3] = body[edge, :3] * np.array([0.72, 0.6, 0.6])[None, :]
+Image.fromarray((side_hole * 255).astype(np.uint8)).save(os.path.join(WORK, "side_hole.png"))
+Image.fromarray(np.clip(body, 0, 255).astype(np.uint8), "RGBA").save(os.path.join(WORK, "side_rough.png"))
+if os.path.exists(os.path.join(WORK, "side_fill.png")):
+    rep_s = np.asarray(Image.open(os.path.join(WORK, "side_fill.png")).convert("RGBA")).astype(np.float32)
+    body[side_hole] = rep_s[side_hole]
+    print("body: the side under her left arm repainted from work2/side_fill.png")
 rl_img["body"] = body
 
 # the wings behind the stand: See-through left a clamp-shaped hole and the pole's edges in the feathers.
