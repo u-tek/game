@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for carmesa cape_drop, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s252000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "cape_drop.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [464, 311, 594],
+  "look_px": [8, 5],
+  "meta": {"weapon": "sword", "fx_color": "#ff8a3d", "art": "comfy s252000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [510, 939]},
+    {"name": "torso", "parent": "hips", "pivot": [519, 798]},
+    {"name": "chest", "parent": "torso", "pivot": [490, 625]},
+    {"name": "neck", "parent": "chest", "pivot": [512, 468]},
+    {"name": "head", "parent": "neck", "pivot": [453, 425]},
+    {"name": "face", "parent": "head", "pivot": [464, 300]},
+    {"name": "hair_front", "parent": "head", "pivot": [464, 168]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [464, 322], "radius": [114, 97], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [464, 205], "radius": [136, 66], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [464, 278], "radius": [220, 209], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[373, 458], [651, 458], [743, 565], [730, 778], [696, 808], [342, 808], [250, 778], [237, 565]], "feather": 40}}
+  ],
+  "overlays": []
+}

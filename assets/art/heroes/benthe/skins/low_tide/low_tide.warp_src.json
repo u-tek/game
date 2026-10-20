@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for benthe low_tide, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s342000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "low_tide.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [504, 790, 364],
+  "look_px": [8, 5],
+  "meta": {"weapon": "sword", "fx_color": "#b48cff", "art": "comfy s342000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [506, 1232]},
+    {"name": "torso", "parent": "hips", "pivot": [505, 1130]},
+    {"name": "chest", "parent": "torso", "pivot": [504, 1006]},
+    {"name": "neck", "parent": "chest", "pivot": [510, 893]},
+    {"name": "head", "parent": "neck", "pivot": [497, 862]},
+    {"name": "face", "parent": "head", "pivot": [504, 784]},
+    {"name": "hair_front", "parent": "head", "pivot": [504, 701]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [504, 797], "radius": [70, 60], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [504, 725], "radius": [84, 41], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [504, 770], "radius": [135, 130], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[425, 883], [595, 883], [659, 946], [651, 1110], [614, 1140], [396, 1140], [357, 1110], [349, 946]], "feather": 40}}
+  ],
+  "overlays": []
+}

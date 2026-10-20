@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for gantra cockpit_open, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s322001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "cockpit_open.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [501, 300, 599],
+  "look_px": [8, 5],
+  "meta": {"weapon": "fists", "fx_color": "#b48cff", "art": "comfy s322001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [504, 919]},
+    {"name": "torso", "parent": "hips", "pivot": [521, 775]},
+    {"name": "chest", "parent": "torso", "pivot": [494, 599]},
+    {"name": "neck", "parent": "chest", "pivot": [464, 439]},
+    {"name": "head", "parent": "neck", "pivot": [490, 395]},
+    {"name": "face", "parent": "head", "pivot": [501, 270]},
+    {"name": "hair_front", "parent": "head", "pivot": [501, 138]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [501, 292], "radius": [115, 97], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [501, 175], "radius": [138, 66], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [501, 248], "radius": [222, 209], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[324, 429], [604, 429], [749, 539], [737, 755], [700, 785], [342, 785], [251, 755], [239, 539]], "feather": 40}}
+  ],
+  "overlays": []
+}
