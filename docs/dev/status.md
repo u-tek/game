@@ -279,6 +279,23 @@ this file says where things stand. Older logs are under "History" at the bottom.
         and edges have no dark fringe.
       - **Legs:** the reviewer saw them as "locked". A difference image shows they lean with the hip
         sway over the planted feet; it's subtle from the front.
+    - **v6 (a second review of v5: 1,695 frames scripted, 48 by eye):**
+      - Smooth leg IK: no knee pops near full extension.
+      - Eased blends and idle return: no slide-then-stop.
+      - A longer blink, so the half-lid always shows; a half-lid between scripted eye snaps.
+      - No auto-blink during actions.
+      - Gentler breast kicks; the lower poles take no kicks.
+      - Clean fingers on the stand hand; skin under the breasts where hair or holes showed.
+      - A 6-frame attack lift with a wobble on set-down.
+      - The poke raises her hand shyly to her shoulder; a reach to her waist from a hand hanging at
+        her hip has to sweep across her lap.
+      - Videos `seraphiel_rig_v6*.mp4` and `seraphiel_lobby_idle_v6.mp4`.
+      - Left over:
+        - The cast glow reads as haze.
+        - The hair has little follow-through.
+        - Slight halo flecks and notched wing edges.
+        - The grip slides a few px along the pole as her body moves.
+        - The pole runs off frame in the attack.
     - **Still open:**
       - The six wings share one layer.
       - An arm raised past about 130° needs a painted drawing.
