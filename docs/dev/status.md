@@ -1,6 +1,6 @@
 # Status and handoff
 
-**Status as of 2026-10-19, 21:45 UTC (07:45 on 2026-10-20 on the owner's PC clock, UTC+10).** This is the living
+**Status as of 2026-10-20, 01:40 UTC (11:40 on the owner's PC clock, UTC+10).** This is the living
 status file: update it at the end of every work block. Rules and conventions are in `CLAUDE.md`;
 this file says where things stand. Older logs are under "History" at the bottom.
 
@@ -89,16 +89,26 @@ this file says where things stand. Older logs are under "History" at the bottom.
     BiRefNet cutout drops thin glowing halos (6 Celestials and most Celestial skins); Torqua's parasol
     is cut at the top and Gantra has no mech arm in any seed (rerolls worth it); weak talk frames on
     grinning faces; Seyra and Vandra's lipstick turns pink in two variants.
-  - **Skins for the 25:** rendering overnight (2 candidates each, `art_src/_review/launch_run.log`,
-    chain script with a ComfyUI watchdog: its listener died once at 20:04 UTC). 14 Aqua Resort skins
-    installed (666b7e5); the rest go in as they finish. `benthe_deep_end` held (both seeds) and
-    re-rendered at +2/+3.
+  - **Skins for the 25: all 100 installed** (quick install, 2 candidates each, 1:1 chest and hip
+    checks; 30+ seeds held in `art_src/_review/held.json`). Four After Dark / Bunny skins rendered
+    bare or with areola-like marks on every seed and were re-prompted: the covering now sits in the
+    pose (arm across chest, covering breasts) or as shaped pasties, which render clean. The BiRefNet
+    cutout drops floating glowing halos: restored on 6 base Celestials and every angel skin with a
+    soft-glow alpha merge (steps in each `final/*.json`). Rerolls worth doing: Torqua's parasol (cut
+    at the top), Gantra's mech arm (never drawn), Seyra Tide Reading (wing tips cut).
+  - **Legendary holo foil** (8b36bc1, owner's idea): tilt-reactive thin-film rainbow, glare and
+    glitter on every Legendary look's glossy material, face and skin kept clean, not in battle.
+  - **Owner's list of 2026-10-20** (aede259): the Lobby spring and the TEAM/HERO side entries gone,
+    a ~4 s animated print-run loading screen, team members leave the Team bench, living growths
+    (grow from the corner, sway at the tips), per-rarity summon reveals and rarity frames on cards,
+    Legendary Awakening A1-A3 (shards + dust; +6/+12/+20% all stats; Legend passive, empowered
+    ultimate, Ascended look; Claude's numbers, owner can change them) and a built-out Legendary page.
   - **Combat:** after a wall at stage 2-6 with five maxed heroes the owner said "don't bother i want to
     redo the whole combat system anyway ... it's going to be super intricate don't build it now".
     The balance report agrees the wall is real (2-6 needs a typical team near level 64; the economy
     affords about 32-38). Left alone until the owner describes the new system.
-- **Latest IPA: run 39325271229** (2026-10-19 21:14 UTC): everything above with the 25 heroes' art
-  (skins not yet). Previous: 39314207419 (before the new art), 39248997675 (five summon banners).
+- **Latest IPA: run 39352104374** (2026-10-20 01:40 UTC): everything above, all 100 new skins.
+  Before: 39325271229 (the 25 heroes' art, no new skins). Previous: 39314207419 (before the new art), 39248997675 (five summon banners).
 - **Game:** v1 plays end to end (`docs/dev/architecture.md`). On the PC `tools/check e2e` passes:
   103 unit tests, boot, 3 e2e scripts; `check_port.py` 49 checks, 0 differ (2026-10-18). Added
   2026-10-18 (owner: "yeah go on" to base art, backdrops, more content):
