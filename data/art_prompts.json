@@ -249,7 +249,7 @@
  },
  "crop_tags": "portrait, close-up, face",
  "backgrounds": {
-  "grey": {"tags": "simple background, grey background", "rgb": [128, 128, 128], "style_tags": "rim lighting", "natural": "Plain flat light-grey background, no scenery."},
+  "grey": {"tags": "simple background, grey background", "rgb": [128, 128, 128], "style_tags": "rim lighting", "natural": "Plain flat mid-grey background, a neutral medium grey that is darker than her outfit, no scenery."},
   "white": {"tags": "simple background, white background", "rgb": [255, 255, 255], "style_tags": "", "natural": "Plain flat white background, no scenery."},
   "green": {"tags": "simple background, green background", "rgb": [0, 177, 64], "style_tags": "", "natural": "Plain flat chroma-key green background, no scenery."}
  },
