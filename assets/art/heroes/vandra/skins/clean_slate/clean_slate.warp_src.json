@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for vandra clean_slate, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s372000, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "clean_slate.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [472, 326, 651],
+  "look_px": [8, 5],
+  "meta": {"weapon": "spray_can", "attack": "attack_ranged", "fx_color": "#b48cff", "art": "comfy s372000 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [455, 952]},
+    {"name": "torso", "parent": "hips", "pivot": [494, 813]},
+    {"name": "chest", "parent": "torso", "pivot": [466, 642]},
+    {"name": "neck", "parent": "chest", "pivot": [468, 487]},
+    {"name": "head", "parent": "neck", "pivot": [460, 446]},
+    {"name": "face", "parent": "head", "pivot": [472, 308]},
+    {"name": "hair_front", "parent": "head", "pivot": [472, 163]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [472, 332], "radius": [125, 106], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [472, 204], "radius": [149, 73], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [472, 284], "radius": [241, 230], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[316, 477], [620, 477], [743, 582], [729, 793], [688, 823], [300, 823], [203, 793], [189, 582]], "feather": 40}}
+  ],
+  "overlays": []
+}

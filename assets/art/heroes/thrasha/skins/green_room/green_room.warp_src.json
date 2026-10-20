@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for thrasha green_room, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s262001, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "green_room.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [564, 638, 451],
+  "look_px": [8, 5],
+  "meta": {"weapon": "axe", "fx_color": "#ff8a3d", "art": "comfy s262001 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [524, 1140]},
+    {"name": "torso", "parent": "hips", "pivot": [564, 1026]},
+    {"name": "chest", "parent": "torso", "pivot": [592, 886]},
+    {"name": "neck", "parent": "chest", "pivot": [588, 759]},
+    {"name": "head", "parent": "neck", "pivot": [556, 724]},
+    {"name": "face", "parent": "head", "pivot": [564, 629]},
+    {"name": "hair_front", "parent": "head", "pivot": [564, 529]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [564, 646], "radius": [87, 73], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [564, 557], "radius": [104, 50], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [564, 612], "radius": [167, 159], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[482, 749], [694, 749], [784, 826], [774, 1006], [698, 1036], [430, 1036], [410, 1006], [400, 826]], "feather": 40}}
+  ],
+  "overlays": []
+}
