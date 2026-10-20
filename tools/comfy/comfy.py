@@ -723,6 +723,9 @@ def main(argv=None):
     pp = sub.add_parser("pin", help="pin the checkpoint (and family) for every later command")
     pp.add_argument("checkpoint", help="file name as listed by discover; 'none' removes the pin")
     pp.add_argument("--family", help="family from data/art_prompts.json (default: detected from the name)")
+    pp.add_argument("--fallback", help="a second checkpoint the tools use with --fallback (or --family of its "
+                                       "family), e.g. amanatsuIllustrious_v2.safetensors behind MOSS")
+    pp.add_argument("--fallback-family", help="the fallback's family (default: detected from its name)")
     qp = sub.add_parser("queue")
     qp.add_argument("graph", help="API graph JSON (either the graph itself or a {prompt: ...} body)")
     qp.add_argument("--out", default=None, help="download folder (default art_src/_downloads)")
@@ -755,16 +758,27 @@ def main(argv=None):
                 print("pin removed")
                 return 0
             disc, _ = load_cached_discovery()
-            if disc and disc.get("checkpoints") and a.checkpoint not in disc["checkpoints"]:
-                raise ComfyError("%r is not in the last discovery. Checkpoints: %s" % (a.checkpoint, ", ".join(disc["checkpoints"])))
-            if a.family and families and a.family not in families:
-                raise ComfyError("unknown family %r (known: %s)" % (a.family, ", ".join(families)))
+            for name, fam_arg in ((a.checkpoint, a.family), (a.fallback, a.fallback_family)):
+                if not name:
+                    continue
+                if fam_arg and families and fam_arg not in families:
+                    raise ComfyError("unknown family %r (known: %s)" % (fam_arg, ", ".join(families)))
+                fam_x = fam_arg or detect_family(name, families)[0]
+                if (families or {}).get(fam_x, {}).get("arch") == "moss":
+                    continue                # a diffusion_models file, checked by the tools against its loader
+                if disc and disc.get("checkpoints") and name not in disc["checkpoints"]:
+                    raise ComfyError("%r is not in the last discovery. Checkpoints: %s" % (name, ", ".join(disc["checkpoints"])))
             fam, guessed = (a.family, False) if a.family else detect_family(a.checkpoint, families)
+            pin = {"checkpoint": a.checkpoint, "family": fam, "pinned": time.strftime("%Y-%m-%dT%H:%M:%S")}
+            if a.fallback:
+                pin["fallback"] = {"checkpoint": a.fallback,
+                                   "family": a.fallback_family or detect_family(a.fallback, families)[0]}
             os.makedirs(server_dir(), exist_ok=True)
             with open(pin_path(), "w") as f:
-                json.dump({"checkpoint": a.checkpoint, "family": fam, "pinned": time.strftime("%Y-%m-%dT%H:%M:%S")}, f, indent=1)
-            print("pinned %s (family %s%s) in %s" % (a.checkpoint, fam, ", guessed from the name: pass --family if wrong"
-                                                     if guessed else "", rel(pin_path())))
+                json.dump(pin, f, indent=1)
+            print("pinned %s (family %s%s)%s in %s" % (
+                a.checkpoint, fam, ", guessed from the name: pass --family if wrong" if guessed else "",
+                "; fallback %s (%s)" % (a.fallback, pin["fallback"]["family"]) if a.fallback else "", rel(pin_path())))
         elif a.cmd == "queue":
             body = json.load(open(a.graph))
             graph = body.get("prompt", body)

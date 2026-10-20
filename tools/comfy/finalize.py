@@ -137,8 +137,36 @@ def main(argv=None):
                 img = Image.open(out[0]).convert("RGB")
             steps_done.append({"step": "img2img", "denoise": a.refine_denoise, "seed": seed})
 
+        # 1b. hires 1.5x for a base-size candidate (the MOSS family renders candidates without it)
+        hz = s.get("hires") or {}
+        src_scale = 1.0
+        if s.get("final_hires") and not a.no_hires and img.width <= s["width"] + 8 and img.height <= s["height"] + 8:
+            pr = prompts.full_body(bible, a.hero, s["family"], background_key=bg_key, skin=t["skin"], adult=a.adult)
+            p = os.path.join(work, "%s_hires_src.png" % name)
+            os.makedirs(work, exist_ok=True)
+            img.save(p)
+            sname = client.upload_image(p, subfolder=P.SERVER_SUBFOLDER)
+            den = float(hz.get("denoise", 0.4))
+            g = workflows.img2img(s, sname, pr["positive"], pr["negative"], seed, den,
+                                  "%s/%s/hires_s%d" % (P.SERVER_SUBFOLDER, job, seed),
+                                  scale_by=float(hz.get("scale", 1.5)), steps=hz.get("steps"))
+            out = client.run(g, "%s/hires_s%d" % (job, seed), work, timeout=a.timeout, names=["%s_hires_out.png" % name])
+            if out:
+                hi = Image.open(out[0]).convert("RGB")
+            else:       # dry run: stand in with a plain resize
+                f = float(hz.get("scale", 1.5))
+                hi = img.resize((int(round(img.width * f)), int(round(img.height * f))), Image.LANCZOS)
+            src_scale = hi.width / float(img.width)
+            img = hi
+            if a.feet_y:
+                a.feet_y = int(round(a.feet_y * src_scale))
+            steps_done.append({"step": "hires", "scale": round(src_scale, 4), "denoise": den, "steps": hz.get("steps"),
+                               "seed": seed})
+
         # 2. face polish
         user_box = post.parse_box(a.face_box)
+        if user_box and src_scale != 1.0:      # --face-box is in candidate pixels
+            user_box = [int(round(v * src_scale)) for v in user_box]
         if user_box:
             face_box, conf = user_box, "user"
         else:
@@ -160,6 +188,9 @@ def main(argv=None):
         # 3. upscale
         use_up = a.upscale in ("on", "tiled") or (a.upscale == "auto" and s.get("upscale_model"))
         tiled = None
+        if a.upscale == "auto" and s.get("final_upscale"):
+            a.upscale = s["final_upscale"]      # the family's own choice (MOSS: "on", the plain model 2x)
+            use_up = a.upscale in ("on", "tiled")
         if a.upscale == "auto" and s.get("upscale_model") and oi and "UltimateSDUpscale" in oi:
             a.upscale = "tiled"     # the A/B winner (docs/dev/status.md, 2026-10-17)
         if a.upscale == "tiled":

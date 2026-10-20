@@ -150,6 +150,16 @@ class TestWorkflows(unittest.TestCase):
                 classes = [n["class_type"] for n in g.values()]
                 self.assertIn("SaveImage", classes)
                 ks = [n for n in g.values() if n["class_type"] == "KSampler"]
+                if s.get("arch") == "moss":      # candidates are base-only; finalize does the hires
+                    self.assertEqual(len(ks), 1, kw)
+                    for c in ("MOSSImageUNETLoader", "MOSSImageCLIPLoader", "EmptyFlux2LatentImage",
+                              "ModelSamplingSD3", "SkipLayerGuidanceDiTSimple"):
+                        self.assertIn(c, classes)
+                    self.assertNotIn("CheckpointLoaderSimple", classes)
+                    self.assertNotIn("EmptyLatentImage", classes)
+                    if kw.get("lora"):
+                        self.assertIn("LoraLoaderModelOnly", classes)
+                    continue
                 self.assertEqual(len(ks), 1 if kw.get("no_hires") else 2)
                 if not kw.get("no_hires"):
                     self.assertAlmostEqual(ks[1]["inputs"]["denoise"], s["hires"]["denoise"])
@@ -661,9 +671,16 @@ class TestBible(unittest.TestCase):
 
     def test_every_composed_prompt_passes_the_rules_and_fits(self):
         for fam in BIBLE["families"]:
+            sentences = prompts.sentence_mode(BIBLE["families"][fam])
             for hid, kind, pr in all_prompts(fam):
                 self.assertEqual(prompts.check(BIBLE, hid, pr["positive"], pr["negative"]), [], (fam, hid, kind))
                 self.assertEqual(prompts.syntax_problems(pr["positive"]) + prompts.syntax_problems(pr["negative"]), [])
+                if sentences:       # MOSS: sentences, no weight syntax; its encoder reads up to 4096 tokens
+                    self.assertTrue(pr["positive"].startswith("1girl, solo, adult"), (hid, kind))
+                    self.assertNotIn("(", pr["positive"] + pr["negative"], (hid, kind))
+                    self.assertNotIn("mature female", pr["positive"])
+                    self.assertIn("She is %s" % BIBLE["heroes"][hid]["name"], pr["positive"], (hid, kind))
+                    continue
                 # ComfyUI encodes whole-tag chunks joined by ConditioningConcat (art-generation.md section 7),
                 # so the cinematic style block may take the positive to 3 chunks and the negative to 4
                 self.assertLessEqual(pr["stats"]["positive"]["chunks"], 3, (fam, hid, kind, pr["stats"]))
@@ -687,8 +704,9 @@ class TestBible(unittest.TestCase):
             for fam in BIBLE["families"]:
                 pr = prompts.full_body(BIBLE, s["hero"], fam, skin=sid)
                 self.assertEqual(prompts.check(BIBLE, s["hero"], pr["positive"], pr["negative"]), [], (fam, sid))
-                self.assertLessEqual(pr["stats"]["positive"]["chunks"], 3, (fam, sid))
-                self.assertLessEqual(pr["stats"]["negative"]["chunks"], 4, (fam, sid))
+                if not prompts.sentence_mode(BIBLE["families"][fam]):
+                    self.assertLessEqual(pr["stats"]["positive"]["chunks"], 3, (fam, sid))
+                    self.assertLessEqual(pr["stats"]["negative"]["chunks"], 4, (fam, sid))
                 tw = prompts.tag_weights(pr["positive"])
                 h = BIBLE["heroes"][s["hero"]]
                 for t in prompts.tag_weights(h["hair"]):           # identity stays the hero's
@@ -734,9 +752,14 @@ class TestBible(unittest.TestCase):
                 pr = prompts.full_body(BIBLE, s["hero"], fam, skin=sid, adult=True)
                 self.assertEqual(prompts.check(BIBLE, s["hero"], pr["positive"], pr["negative"], adult=True),
                                  [], (fam, sid))
+                tw = prompts.tag_weights(pr["positive"])
+                if prompts.sentence_mode(BIBLE["families"][fam]):
+                    for t in ("nude", "completely nude", "nipples", "nsfw", "adult"):
+                        self.assertTrue(prompts._has_term(pr["positive"], t), (sid, t))
+                    self.assertNotIn("mature female", tw, sid)
+                    continue
                 self.assertLessEqual(pr["stats"]["positive"]["chunks"], 3, (fam, sid))
                 self.assertLessEqual(pr["stats"]["negative"]["chunks"], 4, (fam, sid))
-                tw = prompts.tag_weights(pr["positive"])
                 for t in ("nude", "completely nude", "nipples", "nsfw", "adult"):
                     self.assertIn(t, tw, (sid, t))
                 self.assertNotIn("mature female", tw, sid)      # the relaxed subject line
@@ -825,8 +848,8 @@ class TestBible(unittest.TestCase):
             self.assertIn("old", qn)
             for t in ("furry", "anthro", "mammal", "feral"):
                 self.assertIn(t, qn)
-        for fam, f in BIBLE["families"].items():
-            self.assertFalse(f.get("use_natural"), fam)
+        for fam, f in BIBLE["families"].items():      # prose only for families that read sentences (MOSS)
+            self.assertEqual(bool(f.get("use_natural")), prompts.sentence_mode(f), fam)
 
     def test_variants_do_not_contradict_themselves(self):
         opposite = {"eyes_open": ["closed eyes", "eyes closed"], "eyes_closed": ["open eyes", "eyes open"],
@@ -1530,6 +1553,113 @@ class TestSkinDryRunEndToEnd(unittest.TestCase):
         hero, art, d, img, out = aqr.paths("%s@@adult" % self.hero)
         self.assertEqual((hero, art, os.path.normpath(d)), (self.hero, "", os.path.join(aqr.HEROES, self.hero, "adult")))
         self.assertEqual(os.path.basename(img), self.hero + ".png")
+
+
+# ------------------------------------------------------------------ MOSS-Image, the main generator (2026-10-20)
+class TestMoss(unittest.TestCase):
+    """The moss family: its loaders, sentence prompts, the Amanatsu fallback and a dry-run candidate -> final."""
+
+    def test_settings_are_the_owners(self):
+        s = settings("moss", hero="zecchina")
+        self.assertEqual((s["arch"], s["steps"], s["cfg"], s["sampler"], s["scheduler"]),
+                         ("moss", 25, 3.0, "euler", "sgm_uniform"))      # owner: "use 25 steps for moss"
+        self.assertEqual((s["width"], s["height"], s["shift"], s["slg_single_layers"]), (896, 1152, 5.0, "22"))
+        self.assertEqual(s["checkpoint"], BIBLE["families"]["moss"]["loaders"]["unet"])
+        self.assertFalse(s["hires"]["enabled"])               # candidates are base-only ...
+        self.assertTrue(s["final_hires"])                     # ... finalize does the hires
+        self.assertEqual(s["final_upscale"], "on")            # and a plain 2x (the MOSS tiles were too slow)
+        self.assertEqual(settings("moss", hero="noctaire")["width"], 832)    # a hero's own size still applies
+        with self.assertRaises(P.PipelineError):
+            settings("moss", size="900x1152")                  # MOSS latents need multiples of 16
+
+    def test_graphs(self):
+        s = settings("moss", hero="zecchina")
+        g = workflows.txt2img(s, "1girl, solo, adult. A sentence, with commas.", "nsfw", 7, "halo_horn/x")
+        self.assertEqual(core_nodes.validate_graph(g), [])
+        enc = [n for n in g.values() if n["class_type"] == "CLIPTextEncode"]
+        self.assertEqual(len(enc), 2)                          # whole prompts: no 75-token CLIP chunks
+        self.assertNotIn("ConditioningConcat", [n["class_type"] for n in g.values()])
+        ld = BIBLE["families"]["moss"]["loaders"]
+        by = {n["class_type"]: n["inputs"] for n in g.values()}
+        self.assertEqual(by["MOSSImageUNETLoader"]["unet_name"], ld["unet"])
+        self.assertEqual(by["MOSSImageCLIPLoader"]["clip_name"], ld["text_encoder"])
+        self.assertEqual(by["VAELoader"]["vae_name"], ld["vae"])
+        self.assertEqual(by["ModelSamplingSD3"]["shift"], 5.0)
+        self.assertEqual(by["SkipLayerGuidanceDiTSimple"]["single_layers"], "22")
+        self.assertEqual((by["KSampler"]["steps"], by["KSampler"]["cfg"]), (25, 3.0))
+        s2 = dict(s, upscale_model="4x-AnimeSharp.pth", upscale_model_scale=4)
+        for g in (workflows.img2img(s2, "a.png", "p", "n", 1, 0.4, "x", scale_by=1.5, steps=15),
+                  workflows.inpaint(s2, "a.png", "m.png", "p", "n", 1, 0.35, "x")):
+            classes = [n["class_type"] for n in g.values()]
+            self.assertIn("MOSSImageUNETLoader", classes)
+            self.assertNotIn("CheckpointLoaderSimple", classes)
+        with self.assertRaises(workflows.WorkflowError):
+            workflows.txt2img(s, "p", "n", 1, "x", controlnet={"name": "x"})
+
+    def test_prompts_read_as_mid_twenties_and_keep_the_rules(self):
+        for hid, h in BIBLE["heroes"].items():
+            pr = prompts.full_body(BIBLE, hid, "moss")
+            pos = pr["positive"]
+            self.assertIn("She is %s, " % h["name"], pos)
+            self.assertNotRegex(pos, r"in her (early|mid|late)[ -]?(20s|30s)", hid)     # owner: no 30-40+ look
+            self.assertIn("mid-twenties", pos, hid)
+            self.assertNotIn("mature", pos.lower(), hid)
+            self.assertIn(BIBLE["families"]["moss"]["style_natural"], pos)
+            _, bg = prompts.background(BIBLE, hid)
+            self.assertTrue(pos.endswith(bg["natural"]), hid)
+            for term in BIBLE["content_rules"]["required_negative"]["childlike"]:
+                self.assertIn(term, prompts.tag_weights(pr["negative"]), (hid, term))
+        # a variant prompt still refuses to contradict itself
+        b2 = json.loads(json.dumps(BIBLE))
+        b2["heroes"]["zecchina"]["variants"]["eyes_closed"] = "closed eyes, eyes open"
+        with self.assertRaises(prompts.PromptError):
+            prompts.face(b2, "zecchina", "moss", variant="eyes_closed")
+
+    def test_fallback_is_amanatsu(self):
+        pin = comfy.pin_path()
+        os.makedirs(os.path.dirname(pin), exist_ok=True)
+        with open(pin, "w") as f:
+            json.dump({"checkpoint": BIBLE["families"]["moss"]["loaders"]["unet"], "family": "moss",
+                       "fallback": {"checkpoint": "illustriousXL_v01.safetensors", "family": "illustrious"}}, f)
+        try:
+            client = comfy.Comfy(dry_run=True, verbose=False)
+            s, _, _ = P.resolve_settings(BIBLE, args(), client, "kessa")
+            self.assertEqual((s["family"], s.get("arch")), ("moss", "moss"))       # the pin's main model
+            for kw in ({"fallback": True}, {"family": "illustrious"}):
+                s, _, _ = P.resolve_settings(BIBLE, args(**kw), client, "kessa")
+                self.assertEqual((s["family"], s["checkpoint"]), ("illustrious", "illustriousXL_v01.safetensors"), kw)
+                self.assertNotIn("arch", s)
+            # a candidate made by MOSS is finalized by MOSS (inherit_model), whatever the pin says
+            a = args()
+            P.inherit_model(a, {"settings": {"checkpoint": "moss_image_sft_int8_convrot.safetensors",
+                                             "family": "moss"}}, "test", log=lambda *x: None)
+            self.assertEqual(P.resolve_settings(BIBLE, a, client, "kessa")[0]["arch"], "moss")
+        finally:
+            os.remove(pin)
+
+    def test_dry_run_candidate_to_final(self):
+        import finalize
+        import run_hero
+        hero = "zecchina"
+        seed = BIBLE["heroes"][hero]["seed_base"]
+        for mod, argv in ((run_hero, [hero, "--count", "1", "--family", "moss", "--dry-run"]),
+                          (finalize, [hero, str(seed), "--dry-run"])):
+            out, err = io.StringIO(), io.StringIO()
+            with redirect_stdout(out), redirect_stderr(err):
+                self.assertEqual(mod.main(argv), 0, err.getvalue() + out.getvalue())
+        hdir = os.path.join(comfy.dryrun_dir(), hero)
+        cand = Image.open(os.path.join(hdir, "candidates", "%s_s%d.png" % (hero, seed)))
+        self.assertEqual(cand.size, (896, 1152))              # base-only candidate
+        body = json.load(open(os.path.join(hdir, "txt2img_s%d.json" % seed)))
+        self.assertEqual(core_nodes.validate_graph(body["prompt"]), [])
+        self.assertEqual(prompts.check_graph(BIBLE, body["prompt"]), [])
+        fmeta = json.load(open(os.path.join(hdir, "final", hero + ".json")))
+        steps = [st["step"] for st in fmeta["steps"]]
+        self.assertEqual(steps[:2], ["hires", "face_refine"], steps)      # hires first, from the inherited family
+        up = [st for st in fmeta["steps"] if st["step"] == "upscale"][0]
+        self.assertNotIn("tiled", up)                          # the plain 2x, not the slow MOSS tiles
+        self.assertEqual(fmeta["settings"]["family"], "moss")
+        self.assertEqual(Image.open(os.path.join(hdir, "final", hero + ".png")).size, (1024, 2048))
 
 
 if __name__ == "__main__":

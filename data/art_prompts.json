@@ -142,6 +142,53 @@
                 "hires": {"enabled": true, "scale": 1.5, "latent_method": "nearest-exact", "denoise_latent": 0.5, "denoise_model": 0.4, "steps": 18}},
    "notes": "Score tags must lead the prompt. Clip skip 2. No positive rating tag on purpose (rating_questionable is the suggestive tier but drifts toward nudity). Live-test Uriela first (runbook step 2); if anything slips, add rating_questionable to rating_negative."
   },
+  "moss": {
+   "label": "MOSS-Image SFT (OpenMOSS, 5B DiT, Qwen3.5 9B text encoder, FLUX.2 VAE): the main generator since 2026-10-20",
+   "match": [
+    "moss"
+   ],
+   "arch": "moss",
+   "prompt_mode": "sentences",
+   "loaders": {
+    "unet": "moss_image_sft_int8_convrot.safetensors",
+    "weight_dtype": "default",
+    "text_encoder": "qwen3.5_9b_int8_convrot.safetensors",
+    "vae": "flux2-vae.safetensors"
+   },
+   "style_natural": "Official character splash art for a premium Korean mobile gacha game, polished 2D anime illustration. Smooth airbrushed soft shading with no hard cel steps, thin warm dark-brown line art, glossy highlights on her skin and on every latex surface, soft pink blush on her cheeks, nose, shoulders and knees, bright clean studio lighting with a soft rim light, rich saturated colours, crisp detail, hair painted in many fine strands with a bright sheen. A beautiful anime face: large glossy eyes with detailed gradient irises and sparkling highlights, long dark lashes, a small nose and small glossy lips.",
+   "composition_natural": "The whole figure is in frame from the top of her head to both feet, with wings, weapon and hair fully inside the frame.",
+   "age_natural": "in her mid-twenties",
+   "quality": "",
+   "quality_position": "start",
+   "quality_negative": "bare breasts, genitals, photorealistic, 3d render, western comic style, heavy makeup, old, wrinkles, thick black outlines, blurry, lowres, watermark, text, signature, extra fingers",
+   "rating": "",
+   "rating_negative": "",
+   "use_natural": true,
+   "settings": {
+    "sampler": "euler",
+    "scheduler": "sgm_uniform",
+    "steps": 25,
+    "cfg": 3.0,
+    "width": 896,
+    "height": 1152,
+    "clip_skip": null,
+    "model_sampling": null,
+    "rescale_cfg": null,
+    "shift": 5.0,
+    "slg_single_layers": "22",
+    "hires": {
+     "enabled": false,
+     "scale": 1.5,
+     "latent_method": "nearest-exact",
+     "denoise_latent": 0.5,
+     "denoise_model": 0.4,
+     "steps": 15
+    },
+    "final_hires": true,
+    "final_upscale": "on"
+   },
+   "notes": "Owner, 2026-10-20: 'make moss the main generator in the pipeline at 25 steps, keep amanatsu as a fallback'. Settings are the model card's (euler / sgm_uniform, CFG 3, shift 5, negative-branch layer skip 22); 25 steps is the owner's pick from 15/25/30/40/50 (about 2 min per image on the 3070; 15 steps left hidden or doubled limbs in two of five heroes). Prompts are sentences (prompt_mode 'sentences': the Korean gacha style block above, the hero's own natural description with her age set to the mid-twenties, the background), never tag weights; the content rules still apply. Candidates are base-only (hires disabled here, about 2 min each); finalize does the hires 1.5x (4x-AnimeSharp, 0.4, 15 steps, about 3 min), the face polish and a plain 2x upscale-model pass (final_upscale 'on': the MOSS tiled 2x took an estimated 12-15 min and the owner cancelled it; --upscale tiled still works). Amanatsu (family illustrious) is the fallback: --fallback or --family illustrious."
+  },
   "illustrious": {
    "label": "Illustrious-XL, NoobAI-XL epsilon and their merges (default when the name is unknown)",
    "match": ["illustrious", "illu", "noob", "ilxl", "wai", "obsession"],
@@ -199,9 +246,9 @@
  },
  "crop_tags": "portrait, close-up, face",
  "backgrounds": {
-  "grey": {"tags": "simple background, grey background", "rgb": [128, 128, 128], "style_tags": "rim lighting"},
-  "white": {"tags": "simple background, white background", "rgb": [255, 255, 255], "style_tags": ""},
-  "green": {"tags": "simple background, green background", "rgb": [0, 177, 64], "style_tags": ""}
+  "grey": {"tags": "simple background, grey background", "rgb": [128, 128, 128], "style_tags": "rim lighting", "natural": "Plain flat light-grey background, no scenery."},
+  "white": {"tags": "simple background, white background", "rgb": [255, 255, 255], "style_tags": "", "natural": "Plain flat white background, no scenery."},
+  "green": {"tags": "simple background, green background", "rgb": [0, 177, 64], "style_tags": "", "natural": "Plain flat chroma-key green background, no scenery."}
  },
  "_backgrounds_doc": "Flat background for a clean cutout, chosen per hero for contrast with the figure's EDGES (hair, wings, armour): grey for white/gold designs (Celestial, Lucen), white for dark designs, green (chroma key; the cutout despills the fringe) for silver/grey hair, wings or armour that clash with both (Cassiel, Noctaire, Orrin, Ashra). Never green for green or teal designs (Sable). 'rim lighting' only on grey: on white it brightens the silhouette edge toward the background. A server background-removal node (BiRefNet/RMBG) makes this choice much less critical.",
  "negative": {

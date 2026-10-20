@@ -95,7 +95,10 @@ def output_index(object_info, class_type, type_name):
 
 # ------------------------------------------------------------------ shared pieces
 def model_stack(g, s):
-    """Checkpoint -> LoRAs -> clip skip -> v-pred sampling -> RescaleCFG. Returns (model, clip, vae)."""
+    """Checkpoint -> LoRAs -> clip skip -> v-pred sampling -> RescaleCFG. Returns (model, clip, vae).
+    The MOSS family (s["arch"] == "moss") has its own stack: moss_stack."""
+    if s.get("arch") == "moss":
+        return moss_stack(g, s)
     ck = g.add("CheckpointLoaderSimple", "Checkpoint", ckpt_name=s["checkpoint"])
     model, clip, vae = L(ck, 0), L(ck, 1), L(ck, 2)
     for lo in s.get("loras") or []:
@@ -120,6 +123,26 @@ def model_stack(g, s):
     return model, clip, vae
 
 
+def moss_stack(g, s):
+    """MOSS-Image: the DiT and Qwen3.5 loaders (OpenMOSS plugin), the FLUX.2 VAE, LoRAs on the model only,
+    ModelSamplingSD3(shift) and the negative-branch layer skip, as the model card's workflow wires them.
+    Returns (model, clip, vae)."""
+    ld = s["loaders"]
+    model = L(g.add("MOSSImageUNETLoader", "MOSS DiT", unet_name=ld["unet"],
+                    weight_dtype=ld.get("weight_dtype", "default")))
+    for lo in s.get("loras") or []:
+        model = L(g.add("LoraLoaderModelOnly", "LoRA " + lo["name"], model=model, lora_name=lo["name"],
+                        strength_model=float(lo.get("strength", 1.0))))
+    clip = L(g.add("MOSSImageCLIPLoader", "Qwen3.5 text encoder", clip_name=ld["text_encoder"],
+                   device=ld.get("text_device", "default")))
+    vae = L(g.add("VAELoader", "FLUX.2 VAE", vae_name=s.get("vae") or ld["vae"]))
+    model = L(g.add("ModelSamplingSD3", "Shift", model=model, shift=float(s.get("shift") or 5.0)))
+    if s.get("slg_single_layers"):
+        model = L(g.add("SkipLayerGuidanceDiTSimple", "Negative-branch layer skip", model=model, double_layers="",
+                        single_layers=str(s["slg_single_layers"]), start_percent=0.0, end_percent=1.0))
+    return model, clip, vae
+
+
 def text_cond(g, clip, text, title):
     """One CLIPTextEncode per chunk of whole tags (prompts.split_chunks), joined by ConditioningConcat,
     so no tag is cut at a 75-token chunk break. The first chunk's pooled output is kept, as in
@@ -134,7 +157,12 @@ def text_cond(g, clip, text, title):
     return cond
 
 
-def encode(g, clip, positive, negative):
+def encode(g, clip, positive, negative, s=None):
+    """Positive and negative conditioning. MOSS's text encoder is a language model that reads the whole
+    prompt (up to 4096 tokens): one encode each, never CLIP's 75-token chunks, which would cut sentences."""
+    if s and s.get("arch") == "moss":
+        return (L(g.add("CLIPTextEncode", "Positive prompt", text=positive, clip=clip)),
+                L(g.add("CLIPTextEncode", "Negative prompt", text=negative, clip=clip)))
     return text_cond(g, clip, positive, "Positive prompt"), text_cond(g, clip, negative, "Negative prompt")
 
 
@@ -197,14 +225,18 @@ def txt2img(s, positive, negative, seed, prefix, ipadapter=None, controlnet=None
     """Full-body portrait at an SDXL bucket (s.width x s.height), then a hires-fix second pass:
     latent upscale (LatentUpscaleBy) or, when an upscale model is set and hires.mode == "model",
     pixel upscale with the model, re-encode and re-sample at low denoise."""
+    if s.get("arch") == "moss" and (ipadapter or controlnet):
+        raise WorkflowError("IP-Adapter and ControlNet are SDXL tools; the MOSS family has neither "
+                            "(use --fallback for Amanatsu)")
     g = Graph()
     model, clip, vae = model_stack(g, s)
     if ipadapter:
         model = apply_ipadapter(g, model, ipadapter, object_info)
-    pos, neg = encode(g, clip, positive, negative)
+    pos, neg = encode(g, clip, positive, negative, s)
     if controlnet:
         pos, neg = apply_controlnet(g, pos, neg, vae, controlnet, object_info)
-    lat = g.add("EmptyLatentImage", "Canvas", width=int(s["width"]), height=int(s["height"]), batch_size=1)
+    canvas = "EmptyFlux2LatentImage" if s.get("arch") == "moss" else "EmptyLatentImage"
+    lat = g.add(canvas, "Canvas", width=int(s["width"]), height=int(s["height"]), batch_size=1)
     base = ksampler(g, s, model, pos, neg, L(lat), seed, title="Base pass")
     hires = s.get("hires") or {}
     if not hires.get("enabled", True):
@@ -236,7 +268,7 @@ def img2img(s, image_name, positive, negative, seed, denoise, prefix, scale_by=1
     model, clip, vae = model_stack(g, s)
     if ipadapter:
         model = apply_ipadapter(g, model, ipadapter, object_info)
-    pos, neg = encode(g, clip, positive, negative)
+    pos, neg = encode(g, clip, positive, negative, s)
     img = L(g.add("LoadImage", "Source", image=image_name))
     if abs(float(scale_by) - 1.0) > 1e-6:
         img = upscale_with_model(g, s, img, scale_by)
@@ -257,7 +289,7 @@ def inpaint(s, image_name, mask_name, positive, negative, seed, denoise, prefix,
       pixels outside the mask are bit-identical."""
     g = Graph()
     model, clip, vae = model_stack(g, s)
-    pos, neg = encode(g, clip, positive, negative)
+    pos, neg = encode(g, clip, positive, negative, s)
     src = g.add("LoadImage", "Source", image=image_name)
     mask = L(g.add("LoadImageMask", "Mask", image=mask_name, channel="red"))
     if mode == "vae_inpaint":
@@ -306,7 +338,7 @@ def tiled_upscale(s, image_name, positive, negative, seed, prefix, object_info, 
         d["tile"] = int(tile)
     g = Graph()
     model, clip, vae = model_stack(g, s)
-    pos, neg = encode(g, clip, positive, negative)
+    pos, neg = encode(g, clip, positive, negative, s)
     img = L(g.add("LoadImage", "Source", image=image_name))
     um = L(g.add("UpscaleModelLoader", "Upscale model", model_name=s["upscale_model"]))
     node = "UltimateSDUpscale"

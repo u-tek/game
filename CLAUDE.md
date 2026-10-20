@@ -66,13 +66,24 @@ that the owner sideloads. The repo `u-tek/game` is public. The only code branch 
 - **Art:** professionally rendered, full-body anime gacha splash art, one painted PNG per hero.
   Not chibi, not vector, no code-drawn characters; cinematic, painterly rendering, never flat
   ("i do not want a flat design ... like it was drawn by god"). Source: ComfyUI on the owner's GPU PC,
-  driven by a Claude chat on that PC (`tools/comfy/`, `docs/dev/art-generation.md`). The checkpoint is
-  **Amanatsu Illustrious v2**, the owner's pick from 8 models tested on one prompt and seed
-  (2026-10-17). The first 15 heroes' art in `assets/` today still comes from the old art farm
+  driven by a Claude chat on that PC (`tools/comfy/`, `docs/dev/art-generation.md`). **The main
+  generator is MOSS-Image** (owner, 2026-10-20: "make moss the main generator in the pipeline at 25
+  steps, keep amanatsu as a fallback"); **Amanatsu Illustrious v2**, the owner's pick from 8 SDXL
+  models (2026-10-17), is the fallback (`--fallback`). The art style target is the NIKKE / Brown Dust
+  2 Korean-gacha anime look, and heroes read as mid-twenties adults: never prompt `mature female` or
+  30s ages (owner, 2026-10-20). The first 15 heroes' art in `assets/` today still comes from the old art farm
   (Animagine XL 4.0 on GitHub Actions CPU runners, `docs/dev/art-farm.md`) and is being replaced.
 - **Animation:** HaloRig, our own replacement for Spine: a warp rig on the painted PNG with eye
   and mouth variants (`docs/dev/halorig.md`).
-- **Render settings (locked in by the owner, 2026-10-17: "2m karras. for sure. the face + hires &
+- **MOSS render settings (main, 2026-10-20):** family `moss` in `data/art_prompts.json`: the OpenMOSS
+  plugin's loaders (SFT int8 DiT, Qwen3.5 9B int8 text encoder, FLUX.2 VAE), euler / sgm_uniform,
+  **25 steps** (the owner's pick from 15/25/30/40/50), CFG 3, shift 5, negative-branch layer skip 22,
+  896x1152. Prompts are sentences (the Korean-gacha style block plus each hero's own description),
+  never tag weights; the content rules still apply. Candidates are base-only (about 2 min); finals add
+  hires 1.5x (4x-AnimeSharp, 0.4, 15 steps), the face pass and a plain 2x upscale-model pass (the MOSS
+  tiled 2x took 12-15 min and the owner cancelled it). The PC's ComfyUI is 0.39, so the plugin in
+  `D:/comfyui/custom_nodes/moss-image` is patched locally for Comfy-Org's fused-qkv file (see status.md).
+- **Amanatsu render settings (the fallback; locked in by the owner, 2026-10-17: "2m karras. for sure. the face + hires &
   2x tile really works wonders"):** Amanatsu, family `illustrious`, dpmpp_2m/karras, 30 steps, CFG
   5.5, SDXL size 832x1216 (896x1152 for wide poses), model hires 1.5x with 4x-AnimeSharp at 0.4, the
   cinematic style block, grey backdrops; finals add a face pass (0.35) and the tiled 2x repaint
@@ -218,7 +229,8 @@ Ask the owner for approval (plan mode or a permission rule they add) instead.
   Godot at a time). Verified 2026-10-17: import, 93 tests, boot and the 3 e2e scripts pass. Rig
   build instead of `tools/art_warp`: `python tools/art_warp_build.py <id> --regen-masks`, then
   `tools/gd --headless --path . --import`. ComfyUI runs headless on 127.0.0.1:8188 (start line in
-  `art_src/_review/HANDOFF.md`); the pinned checkpoint is Amanatsu Illustrious v2.
+  `art_src/_review/HANDOFF.md`); the pin (`art_src/_server/pin.json`) is MOSS-Image with Amanatsu
+  Illustrious v2 as its fallback.
   **The owner games on this PC (2026-10-19):** windows popping up on the main monitor (2560x1440)
   interrupted a match ("i can't play like this"). Tests run headless; `tools/shoot` opens its
   window without focus where the owner parked it (`tools/shoot <screen> --place` holds it 60 s to
@@ -251,7 +263,8 @@ python3 tools/comfy/test_pipeline.py             # ComfyUI pipeline tests (56, a
 # On the owner's PC (Git Bash): export GODOT=<console exe> first; use python, not python3. Art:
 python tools/comfy/roster.py candidates --count 3 --seed-offset N [--size 896x1152]   # a round
 python tools/comfy/run_hero.py <id> --skin <skin id> --count 3 --size 896x1152      # skin candidates
-python tools/comfy/finalize.py <id> <seed>          # face pass + tiled 2x repaint + cutout + canvas
+python tools/comfy/finalize.py <id> <seed>          # (MOSS: hires 1.5x) + face pass + 2x + cutout + canvas
+# every tools/comfy command renders with the pin's main model (MOSS); add --fallback for Amanatsu
 python tools/comfy/splash.py plates | card <name> --plate <png> --heroes id:png[,...]   # splash cards
 python tools/art_quick_rig.py <id>@<art> --face x,y,w,h   # quick skin rig (docs/dev/skins.md, Quick install)
 tools/art_warp --check                           # validate every built hero rig (the first 15)

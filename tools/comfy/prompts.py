@@ -23,6 +23,8 @@ sex-act and childlike terms stay forbidden and required-negative. See docs/dev/s
 
 Prompts are tag lists for tag-trained SDXL anime models: no prose by default (a family may opt in
 with "use_natural": true), at most 2 CLIP chunks of 75 tokens (stats["positive"]["chunks"]).
+The MOSS family ("prompt_mode": "sentences", the main generator since 2026-10-20) gets sentences
+instead, with no weight syntax: see the "sentence prompts" section.
 Weights follow ComfyUI's own parser (comfy/sd1_clip.py): "(tag:0.8)" sets 0.8, a bare "(tag)" is
 emphasis 1.1, literal parentheses must be escaped as "\\(" "\\)". lint() rejects bare groups.
 """
@@ -395,6 +397,106 @@ def _subject(bible, h, adult):
     return rules_for(bible, adult).get("subject_override") or h["subject"]
 
 
+# ------------------------------------------------------------------ sentence prompts (the MOSS family)
+# MOSS-Image reads prompts with a language model (Qwen3.5), so its family ("prompt_mode": "sentences")
+# gets prose: the subject tags the content rules need ("1girl, solo, adult"), the family's style block,
+# the hero's own description with her age set to the family's ("in her mid-twenties", owner 2026-10-20),
+# and the background as a sentence. No weight syntax anywhere: "(tag:1.2)" would be read as text.
+SENTENCES = "sentences"
+_AGE_RE = re.compile(r"\b(?:in her (?:(?:early|mid|late)[ -]?)?(?:20s|30s|40s|twenties|thirties|forties)"
+                     r"|around (?:30|35|40|thirty|forty))\b", re.I)
+
+
+def sentence_mode(fam):
+    return fam.get("prompt_mode") == SENTENCES
+
+
+def plain_tags(text):
+    """Tags with every weight and bracket removed: '(aged up:1.2), adult' -> 'aged up, adult',
+    an escaped literal 'heart (symbol)' -> 'heart symbol'."""
+    return join_tags(*[re.sub(r"\s+", " ", re.sub(r"[()\[\]]", " ", t)).strip() for t, _ in weighted_tags(text)])
+
+
+def _prose(text):
+    """A description as clean prose: literal parentheses become commas (lint and ComfyUI's weight parser
+    would read them as emphasis), and it ends with a full stop."""
+    t = re.sub(r"\s*\(([^()]*)\)", r", \1,", (text or "").strip())
+    t = re.sub(r",\s*([,.;:])", r"\1", t)
+    t = re.sub(r"\s+", " ", t).strip(" ,")
+    return t if not t or t[-1] in ".!?" else t + "."
+
+
+def _with_age(text, fam):
+    return _AGE_RE.sub(fam.get("age_natural", "in her mid-twenties"), text or "")
+
+
+def _who(fam, h):
+    """'She is <Name>, ...': the hero's own description, or for a skin or the adult look (whose 'natural'
+    is only the outfit: "Adult. Seraphiel in a pearl micro bikini ...") her identity tags plus that
+    outfit sentence and the skin's outfit tags."""
+    age = fam.get("age_natural", "in her mid-twenties")
+    nat = _prose(_with_age(h["natural"], fam))
+    outfit_only = re.match(r"^\s*adult\.\s*", h["natural"] or "", re.I)
+    if not outfit_only:
+        who = "She is %s, %s" % (h["name"], nat[:1].lower() + nat[1:])
+        if h.get("default_eyes") != "closed" and not re.search(r"\beyes?\b", nat, re.I):
+            who += " Her eyes: %s." % plain_tags(h["eyes"])     # 32 of 40 descriptions leave eye colour out
+        return who
+    eyes = "" if h.get("default_eyes") == "closed" else h["eyes"]
+    identity = plain_tags(join_tags(h["body"], h["hair"], eyes, h["head"], h["wings_tail"]))
+    look = plain_tags(join_tags(h["outfit"], h.get("footwear", ""), h["accessories"], h["weapon"]))
+    pose = plain_tags(join_tags(h.get("pose", ""), h["expression"]))
+    return " ".join(x for x in (
+        "She is %s, a beautiful adult woman %s: %s." % (h["name"], age, identity),
+        _prose(re.sub(r"^\s*adult\.\s*", "", nat, flags=re.I)),
+        "Outfit details: %s." % look if look else "", "Pose and expression: %s." % pose if pose else "") if x)
+
+
+def _sentence_negative(bible, fam, h, extra="", adult=False):
+    """Plain (unweighted) negative: every required content-rule term, the explicit and childlike blocks,
+    the gender block, the hero's extras and the family's style negatives. The SDXL quality, anatomy and
+    framing tag lists are left out (MOSS was tested without them)."""
+    n = bible["negative"]
+    rules = rules_for(bible, adult)
+    req = [t for terms in rules["required_negative"].values() for t in terms]
+    for g, blocks in (rules.get("required_negative_by_gender") or {}).items():
+        if g == h["gender"]:
+            req += [t for terms in blocks.values() for t in terms]
+    parts = [", ".join(req), n["explicit_adult" if adult else "explicit"], n["childlike"],
+             bible["gender"][h["gender"]]["negative_adult" if adult else "negative"],
+             h.get("negative_extra", ""), extra, fam.get("quality_negative", ""),
+             rules.get("family_rating_negative") if adult else fam.get("rating_negative", "")]
+    neg = plain_tags(join_tags(*parts))
+    if adult:      # no nudity-fighting terms in a nude render (as _negative does for the hero's extras)
+        tame = bible["content_rules"]
+        drop = set(tame["required_negative"].get("explicit", [])) | set(tame["forbidden_positive"])
+        keep = set(req)
+        neg = ", ".join(t for t in split_tags(neg) if t not in drop or t in keep)
+    return neg
+
+
+def _sentence_subject(bible, h, adult):
+    """The subject tags the content rules read: '1girl, solo, adult' (+ the adult set's 'nsfw' rating)."""
+    return plain_tags(join_tags(_subject(bible, h, adult), rules_for(bible, adult).get("family_rating") if adult else ""))
+
+
+def _sentence_full_body(bible, fam, h, hero_id, bg, extra_tags, adult):
+    subj = _sentence_subject(bible, h, adult)
+    parts = ["%s, full body." % subj, fam.get("style_natural", ""), fam.get("composition_natural", ""),
+             _who(fam, h), _prose(plain_tags(extra_tags)) if extra_tags else "",
+             bg.get("natural") or "Plain flat background, no scenery."]
+    return " ".join(p.strip() for p in parts if p and p.strip())
+
+
+def _sentence_close_up(bible, fam, h, tags, bg, adult, what="close-up of her face and shoulders"):
+    """Tags first (so variant_conflicts reads them as clean tags), then the style and who she is."""
+    age = fam.get("age_natural", "in her mid-twenties")
+    head = "%s." % plain_tags(join_tags(_sentence_subject(bible, h, adult), what, tags))
+    parts = [head, fam.get("style_natural", ""), "She is %s, a beautiful adult woman %s." % (h["name"], age),
+             bg.get("natural") or "Plain flat background, no scenery."]
+    return " ".join(p.strip() for p in parts if p and p.strip())
+
+
 # ------------------------------------------------------------------ composers
 def full_body(bible, hero_id, family, background_key=None, extra_tags="", skin=None, adult=False):
     """Positive/negative for a full-body candidate. Order: quality/rating (family position),
@@ -409,6 +511,9 @@ def full_body(bible, hero_id, family, background_key=None, extra_tags="", skin=N
     if skin and h.get("background") and not background_key:
         background_key = h["background"]
     _, bg = background(bible, hero_id, background_key)
+    if sentence_mode(fam):
+        positive = _sentence_full_body(bible, fam, h, hero_id, bg, extra_tags, adult)
+        return _finish(bible, hero_id, positive, _sentence_negative(bible, fam, h, adult=adult), adult=adult)
     eyes = "" if h.get("default_eyes") == "closed" else h["eyes"]
     body = join_tags(_subject(bible, h, adult), h.get("adult_face", ""), bible["composition"]["tags"], h["body"], h["hair"],
                      eyes, h["expression"],
@@ -440,6 +545,15 @@ def face(bible, hero_id, family, variant=None, background_key=None, skin=None, a
         expr = join_tags("" if closed else h["eyes"], h["expression"], fr["tags"],
                          "" if closed else fr.get("eyes_open_tags", ""))
         vneg = ""
+    if sentence_mode(fam):
+        tags = join_tags(h["face"], expr)
+        if variant:
+            problems = variant_conflicts(bible, hero_id, variant, plain_tags(join_tags(_subject(bible, h, adult), tags)))
+            if problems:
+                raise PromptError("%s %s variant contradicts itself: %s" % (hero_id, variant, "; ".join(problems)))
+        positive = _sentence_close_up(bible, fam, h, tags, bg, adult)
+        return _finish(bible, hero_id, positive, _sentence_negative(bible, fam, h, extra=vneg, adult=adult),
+                       adult=adult)
     body = join_tags(_subject(bible, h, adult), h.get("adult_face", ""), bible["crop_tags"], h["face"], expr,
                      style_tags(bible, bg), bg["tags"])
     positive = _wrap_quality(fam, body, rating_override=rules_for(bible, adult).get("family_rating") if adult else None)
@@ -499,6 +613,11 @@ def custom(bible, hero_id, family, tags, extra_negative="", background_key=None,
     h = skin_view(bible, hero_id, skin, adult=adult) if skin else hero_view(bible, hero_id, adult=adult)
     fam = family_block(bible, family)
     _, bg = background(bible, hero_id, background_key)
+    if sentence_mode(fam):
+        detail = join_tags(tags, h["hair"], h["outfit"], h.get("footwear", ""), h["accessories"], h["weapon"])
+        positive = _sentence_close_up(bible, fam, h, detail, bg, adult, what="detail view")
+        return _finish(bible, hero_id, positive, _sentence_negative(bible, fam, h, extra=extra_negative, adult=adult),
+                       adult=adult)
     body = join_tags(_subject(bible, h, adult), tags, h["hair"], h["outfit"], h.get("footwear", ""), h["accessories"],
                      h["weapon"], style_tags(bible, bg), bg["tags"])
     positive = _wrap_quality(fam, body, rating_override=rules_for(bible, adult).get("family_rating") if adult else None)

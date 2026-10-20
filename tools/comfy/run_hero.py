@@ -119,7 +119,7 @@ def main(argv=None):
             st = pr["stats"][side]
             # Whole-tag chunks are joined by ConditioningConcat; 3 positive / 4 negative chunks are
             # the tested production size (the cinematic style block), beyond that tags thin out.
-            if st["chunks"] > (3 if side == "positive" else 4):
+            if s.get("arch") != "moss" and st["chunks"] > (3 if side == "positive" else 4):   # MOSS: no CLIP
                 log("warning: %s prompt is ~%d tokens (%d CLIP chunks); tags after the first chunks get diluted. "
                     "Trim --extra-tags or the hero's tags." % (side, st["tokens"], st["chunks"]))
         cdir = os.path.join(t["dir"], "candidates")

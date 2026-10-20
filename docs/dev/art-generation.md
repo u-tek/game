@@ -1,7 +1,9 @@
 # AI art generation (ComfyUI pipeline and prompt bible)
 
-> **Current production setup (2026-10-18):** this pipeline runs on the owner's PC with Amanatsu
-> Illustrious v2, dpmpp_2m/karras, CFG 5.5, 30 steps, model hires and the tiled 2x repaint. Exact
+> **Current production setup (2026-10-20):** the main generator is **MOSS-Image** (family `moss`,
+> 25 steps, sentence prompts; section 4), pinned on the owner's PC; Amanatsu Illustrious v2
+> (dpmpp_2m/karras, CFG 5.5, 30 steps, model hires and the tiled 2x repaint) is the fallback, used
+> with `--fallback` or `--family illustrious`. Exact
 > settings, commands and the art state are in `docs/dev/status.md`; skins (`run_hero.py --skin`) in
 > `docs/dev/skins.md`; splash cards in `tools/comfy/splash.py`. Where this file says the pipeline
 > has not run against a real server, that is out of date.
@@ -154,7 +156,8 @@ still runs), model flags `--ckpt --family --sampler --scheduler --steps --cfg --
 
 | Family | Detected from file name | Quality block | Sampler | Notes |
 |---|---|---|---|---|
-| `illustrious` (default) | illustrious, illu, noob, ilxl, wai, obsession | `masterpiece, best quality, amazing quality, very aesthetic, absurdres, newest` at the end, rating `sensitive` | euler_ancestral / normal, 28 steps, cfg 5.5 | NoobAI epsilon is here too |
+| `moss` (**main since 2026-10-20**, pinned) | moss | none: sentence prompts (`prompt_mode: sentences`): subject tags, the Korean-gacha style block, the hero's own description at mid-twenties, the background sentence | euler / sgm_uniform, **25 steps**, cfg 3, 896x1152 | OpenMOSS plugin loaders (DiT, Qwen3.5 text encoder, FLUX.2 VAE), `ModelSamplingSD3` shift 5, `SkipLayerGuidanceDiTSimple` layer 22, `EmptyFlux2LatentImage`, one `CLIPTextEncode` per prompt (no CLIP chunks, no weights). Candidates base-only; finalize adds hires 1.5x (0.4, 15 steps), the face pass and a plain 2x. No ControlNet or IP-Adapter. |
+| `illustrious` (the fallback: `--fallback`) | illustrious, illu, noob, ilxl, wai, obsession | `masterpiece, best quality, amazing quality, very aesthetic, absurdres, newest` at the end, rating `sensitive` | euler_ancestral / normal, 28 steps, cfg 5.5 | NoobAI epsilon is here too |
 | `noobai_vpred` | v-pred / vpred | same | euler / normal, 32 steps, cfg 4.5 | adds `ModelSamplingDiscrete(v_prediction, zsnr)` + `RescaleCFG 0.7` |
 | `pony` | pony, pdxl, autismmix | `score_9, score_8_up, score_7_up, score_6_up, source_anime` first | euler_ancestral / normal, 25 steps, cfg 7 | clip skip 2 (`CLIPSetLastLayer -2`), negative `score_6, score_5, score_4, source_pony, ...` |
 | `animagine` | animagine | `masterpiece, high score, great score, absurdres` | euler_ancestral, 28, cfg 5 | |

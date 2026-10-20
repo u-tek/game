@@ -135,13 +135,31 @@ this file says where things stand. Older logs are under "History" at the bottom.
       two of the five heroes.
     - **Finishing:** hires 1.5x worked (190 s); the face polish at 0.35 changed little. The owner
       cancelled the MOSS 2x tile pass (an estimated 12-15 min).
-    - **The scripts are outside the repo**, on the PC in `art_src/_review/moss/` (git-excluded):
-      `moss_steps.py` (style prompt, Zecchina), `moss_heroes.py <hero ...> [steps]` (any hero from its
-      bible description), `moss_finish.py` (hires, face, 2x through the pipeline's own passes), and
-      `comfy_restart.ps1`. Run them with `COMFYUI_URL=http://127.0.0.1:8188`. Not part of
-      `tools/comfy` yet.
-    - **Open:** the owner's verdict; the 8-step DMD LoRA (it ignores the negative prompt) and the
-      quant options are researched, nothing more installed.
+    - **MOSS is the main generator in the pipeline (owner, same day: "make moss the main generator in
+      the pipeline at 25 steps, keep amanatsu as a fallback").**
+      - The bible has family `moss` (loaders, 25 steps, sentence prompts: `prompt_mode: sentences`).
+      - The PC pin (`art_src/_server/pin.json`) is MOSS with Amanatsu as `fallback`.
+      - Every `tools/comfy` command renders with MOSS. `--fallback` or `--family illustrious` uses
+        Amanatsu with its locked settings. A candidate is always finalized and varied with the model
+        that made it.
+      - Prompts are each hero's own description at mid-twenties, plus her eye tags when the description
+        leaves them out (32 of 40 do).
+      - Candidates are base-only (about 2.5 min). Finalize adds hires 1.5x, the face pass and a plain
+        2x upscale.
+      - No ControlNet or IP-Adapter on MOSS.
+      - **Live end-to-end test on Zecchina:** run_hero then finalize, in a scratch art folder (the real
+        art is untouched). 8.5 min, clean cutout on the 1024x2048 canvas.
+      - **Known issue:** the automatic face box sat half a face too high on MOSS art. The estimator was
+        tuned on Amanatsu. Check `final/<id>_boxes.png` and pass `--face-box`, especially before
+        `variants.py`.
+      - **Not yet tried on MOSS:** `variants.py`, `fix.py`, `splash.py`, the skins and the adult set.
+        They all go through the same family code, and the dry-run tests cover the graphs, but no live
+        run yet.
+      - **Tests:** test_pipeline 71/71 (5 new MOSS tests).
+    - **The trial scripts** are still on the PC in `art_src/_review/moss/` (git-excluded), for A/B
+      runs outside the pipeline.
+    - **Open:** the 8-step DMD LoRA (it ignores the negative prompt) and the quant options are
+      researched, nothing more installed.
     - **Owner, same day: drop `mature female`** ("it makes all the characters look like 30-40+"). It
       is gone from the content rules and all 40 subject lines; `adult` and every childlike negative
       stay required.

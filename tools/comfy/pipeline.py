@@ -128,8 +128,12 @@ def add_common_args(ap):
                         "work goes to .../adult/ and seeds shift +5000")
     g.add_argument("--dry-run", action="store_true",
                    help="send nothing: write the exact API JSON to art_src/_dryrun/ and use placeholder images")
-    g.add_argument("--ckpt", help="checkpoint file name (default: COMFYUI_CKPT or best anime SDXL found)")
+    g.add_argument("--ckpt", help="checkpoint file name (default: COMFYUI_CKPT or best anime SDXL found); for the "
+                                  "MOSS family, the DiT file in models/diffusion_models")
     g.add_argument("--family", help="prompt/settings family from data/art_prompts.json (default: from the name)")
+    g.add_argument("--fallback", action="store_true",
+                   help="render with the pin's fallback model (Amanatsu Illustrious v2) instead of the main one "
+                        "(MOSS-Image); --family illustrious does the same")
     g.add_argument("--sampler")
     g.add_argument("--scheduler")
     g.add_argument("--steps", type=int)
@@ -174,7 +178,22 @@ def resolve_settings(bible, args, client, hero_id=None):
         oi = client.object_info_cache
     rec = (disc or {}).get("recommended") or {}
     pin = comfy.load_pin() or {}
-    ckpt = args.ckpt or os.environ.get("COMFYUI_CKPT") or pin.get("checkpoint")
+    fb = pin.get("fallback") or {}
+    ckpt_arg, fam_arg = args.ckpt, args.family
+    if getattr(args, "fallback", False):
+        if not fb.get("checkpoint"):
+            raise PipelineError("--fallback: the pin (%s) names no fallback model; pin one with "
+                                "`comfy.py pin <main> --fallback <ckpt>`" % rel(comfy.pin_path()))
+        ckpt_arg, fam_arg = ckpt_arg or fb["checkpoint"], fam_arg or fb.get("family")
+    elif fam_arg and not ckpt_arg and fb.get("family") == fam_arg and pin.get("family") != fam_arg:
+        ckpt_arg = fb["checkpoint"]          # --family illustrious = the fallback's own checkpoint
+    fam_pre = fam_arg or os.environ.get("COMFYUI_FAMILY") or (
+        pin.get("family") if not ckpt_arg or ckpt_arg == pin.get("checkpoint") else None)
+    if not fam_pre and ckpt_arg:
+        fam_pre = comfy.detect_family(ckpt_arg, bible["families"])[0]
+    if fam_pre and (bible["families"].get(fam_pre) or {}).get("arch") == "moss":
+        return _resolve_moss(bible, args, client, hero_id, fam_pre, ckpt_arg, disc, oi, rec)
+    ckpt = ckpt_arg or os.environ.get("COMFYUI_CKPT") or pin.get("checkpoint")
     if not ckpt and rec.get("checkpoint"):
         score = rec.get("checkpoint_score")
         if score is not None and score < MIN_CKPT_SCORE:
@@ -191,7 +210,7 @@ def resolve_settings(bible, args, client, hero_id=None):
         ckpt = DRYRUN_CKPT
     if disc and disc.get("checkpoints") and ckpt not in disc["checkpoints"]:
         raise PipelineError("checkpoint %r is not on the server. Available: %s" % (ckpt, ", ".join(disc["checkpoints"])))
-    family = args.family or os.environ.get("COMFYUI_FAMILY") or (
+    family = fam_arg or os.environ.get("COMFYUI_FAMILY") or (
         pin.get("family") if pin.get("checkpoint") and ckpt == pin.get("checkpoint") else None)
     guessed = False
     if not family:
@@ -213,9 +232,7 @@ def resolve_settings(bible, args, client, hero_id=None):
         for lo in loras:
             if lo["name"] not in disc["loras"]:
                 raise PipelineError("LoRA %r is not on the server. Available: %s" % (lo["name"], ", ".join(disc["loras"][:30])))
-    up = getattr(args, "upscale_model", None) or os.environ.get("COMFYUI_UPSCALER") or rec.get("upscale_model")
-    if disc and up and disc.get("upscale_models") is not None and up not in disc["upscale_models"]:
-        raise PipelineError("upscale model %r is not on the server" % up)
+    up = _upscaler(args, disc, rec)
     hires = dict(st["hires"])
     hires["enabled"] = not args.no_hires
     mode = args.hires_mode
@@ -247,6 +264,68 @@ def resolve_settings(bible, args, client, hero_id=None):
         s["scheduler"] = "normal" if "normal" in disc["schedulers"] else disc["schedulers"][0]
     if guessed:
         client.log("note: model family guessed as %r from %r; pass --family if wrong" % (family, ckpt))
+    return s, disc, oi
+
+
+def _upscaler(args, disc, rec):
+    up = getattr(args, "upscale_model", None) or os.environ.get("COMFYUI_UPSCALER") or rec.get("upscale_model")
+    if disc and up and disc.get("upscale_models") is not None and up not in disc["upscale_models"]:
+        raise PipelineError("upscale model %r is not on the server" % up)
+    return up
+
+
+def _resolve_moss(bible, args, client, hero_id, family, unet, disc, oi, rec):
+    """Settings for the MOSS family: its own loaders (DiT, Qwen3.5 text encoder, FLUX.2 VAE) instead of a
+    checkpoint, checked against the live server's loader options when connected."""
+    fam = prompts.family_block(bible, family)
+    st = fam["settings"]
+    ld = dict(fam["loaders"])
+    if unet and unet != ld["unet"]:
+        ld["unet"] = unet                   # e.g. a DeBand or other MOSS SFT file via --ckpt
+    if oi:
+        for cls, key, want in (("MOSSImageUNETLoader", "unet_name", ld["unet"]),
+                               ("MOSSImageCLIPLoader", "clip_name", ld["text_encoder"]),
+                               ("VAELoader", "vae_name", args.vae or ld["vae"])):
+            if cls not in oi:
+                raise PipelineError("the server has no %s node: install the OpenMOSS moss-image plugin "
+                                    "(custom_nodes/moss-image), or render with --fallback" % cls)
+            opts = comfy.combo_options(oi, cls, key)
+            if opts and want not in opts:
+                raise PipelineError("%s %r is not on the server (have: %s)" % (cls, want, ", ".join(opts)))
+    w, h = st["width"], st["height"]
+    if hero_id and bible["heroes"][hero_id].get("size"):
+        w, h = [int(v) for v in bible["heroes"][hero_id]["size"]]
+    if args.size:
+        w, h = [int(v) for v in args.size.lower().split("x")]
+    if w % 16 or h % 16:
+        raise PipelineError("MOSS sizes must be multiples of 16 (got %dx%d)" % (w, h))
+    loras = [parse_lora(x) for x in args.lora]       # the roster style LoRAs are SDXL files: not for MOSS
+    if disc and disc.get("loras") is not None:
+        for lo in loras:
+            if lo["name"] not in disc["loras"]:
+                raise PipelineError("LoRA %r is not on the server" % lo["name"])
+    up = _upscaler(args, disc, rec)
+    hires = dict(st["hires"])
+    hires["enabled"] = bool(hires.get("enabled", True)) and not args.no_hires
+    mode = args.hires_mode
+    if mode == "auto":
+        mode = "model" if up else "latent"
+    hires["mode"] = mode
+    hires["denoise"] = args.hires_denoise if args.hires_denoise is not None else (
+        hires.get("denoise_model", 0.4) if mode == "model" else hires.get("denoise_latent", 0.5))
+    s = {
+        "checkpoint": ld["unet"], "family": family, "family_guessed": False, "arch": "moss", "loaders": ld,
+        "shift": st.get("shift", 5.0), "slg_single_layers": st.get("slg_single_layers"),
+        "sampler": args.sampler or st["sampler"], "scheduler": args.scheduler or st["scheduler"],
+        "steps": args.steps or st["steps"], "cfg": args.cfg if args.cfg is not None else st["cfg"],
+        "width": w, "height": h, "clip_skip": None, "model_sampling": None, "rescale_cfg": None,
+        "vae": args.vae, "loras": loras, "hires": hires, "final_hires": bool(st.get("final_hires")),
+        "final_upscale": st.get("final_upscale"),
+        "upscale_model": up, "upscale_model_scale": comfy.upscaler_scale(up) if up else None,
+        "rembg": rec.get("rembg"), "ipadapter": False, "server_checked": bool(disc),
+    }
+    if disc and disc.get("samplers") and s["sampler"] not in disc["samplers"]:
+        raise PipelineError("sampler %s is not on the server" % s["sampler"])
     return s, disc, oi
 
 

@@ -74,6 +74,15 @@ CORE = {
                                    "control_net": "CONTROL_NET", "image": "IMAGE", "strength": "FLOAT",
                                    "start_percent": "FLOAT", "end_percent": "FLOAT"},
                                   ["CONDITIONING", "CONDITIONING"], {"vae": "VAE"}),
+    # the MOSS family (data/art_prompts.json "moss"): core nodes (comfy_extras) ...
+    "EmptyFlux2LatentImage": _n({"width": "INT", "height": "INT", "batch_size": "INT"}, ["LATENT"]),
+    "ModelSamplingSD3": _n({"model": "MODEL", "shift": "FLOAT"}, ["MODEL"]),
+    "SkipLayerGuidanceDiTSimple": _n({"model": "MODEL", "double_layers": "STRING", "single_layers": "STRING",
+                                      "start_percent": "FLOAT", "end_percent": "FLOAT"}, ["MODEL"]),
+    # ... and the OpenMOSS plugin's loaders (custom_nodes/moss-image; ComfyUI 0.42+ also has native ones)
+    "MOSSImageUNETLoader": _n({"unet_name": "COMBO", "weight_dtype": ["default", "bf16", "fp32", "fp8_e4m3fn",
+                                                                      "fp8_e4m3fn_fast", "fp8_e5m2"]}, ["MODEL"]),
+    "MOSSImageCLIPLoader": _n({"clip_name": "COMBO", "device": ["default", "cpu"]}, ["CLIP"]),
 }
 
 OUTPUT_NODES = {"SaveImage", "PreviewImage"}
