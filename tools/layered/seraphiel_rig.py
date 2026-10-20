@@ -334,6 +334,10 @@ for side, sign in (("r", -1), ("l", 1)):
     outer = np.clip(((xx - CLEAVE) * sign - 95) / 25.0, 0, 1)
     w *= 1.0 - 0.35 * outer
     save_mask("breast_%s_w" % side, w * m)
+    # the lower pole: a second bone that follows the first with its own lag ("the upper moves first,
+    # the lower follows"), 0 above mid-breast, full over the underside
+    u2 = np.clip((yy - ytop[None, :] - 45.0) / 55.0, 0, 1)
+    save_mask("breast_%s_lo_w" % side, (u2 * u2 * (3 - 2 * u2)) * (1.0 - 0.35 * outer) * m)
 
 # the six wings, split by angle around each side's root (as v1)
 wing = L["wings"][..., 3] > 127
@@ -410,7 +414,9 @@ regions = [
     {"name": "torso", "rule": P([[400, 1130], [625, 1130], [620, 1245], [405, 1245]], feather=26)},
     {"name": "hips", "rule": P([[360, 1225], [665, 1225], [670, 1360], [355, 1360]], feather=20)},
     # breast layers (grey-level weights; the rest goes to the chest)
+    {"name": "breast_r_lo", "rule": M("breast_r_lo_w", levels=True)},
     {"name": "breast_r", "rule": M("breast_r_w", levels=True)},
+    {"name": "breast_l_lo", "rule": M("breast_l_lo_w", levels=True)},
     {"name": "breast_l", "rule": M("breast_l_w", levels=True)},
     # extras
 ] + [{"name": n, "rule": M("front_hair", within=P([[x0, 0], [x1, 0], [x1, 2048], [x0, 2048]]))}
@@ -434,9 +440,9 @@ regions = [
     {"name": "shin_l", "rule": M("legs", within=P([[511, 1560], [760, 1560], [760, 2048], [511, 2048]]))},
     {"name": "thigh_l", "rule": M("legs", within=P([[511, 1180], [760, 1180], [760, 1560], [511, 1560]]))},
     # drapes: two-bone chains
-    {"name": "drape_r2", "rule": M("drapes", within=P([[0, 1620], [512, 1620], [512, 2048], [0, 2048]]))},
+    {"name": "drape_r2", "soft": 140, "rule": M("drapes", within=P([[0, 1700], [512, 1700], [512, 2048], [0, 2048]]))},
     {"name": "drape_r", "rule": M("drapes", within=P([[0, 1150], [512, 1150], [512, 2048], [0, 2048]]))},
-    {"name": "drape_l2", "rule": M("drapes", within=P([[512, 1620], [1024, 1620], [1024, 2048], [512, 2048]]))},
+    {"name": "drape_l2", "soft": 140, "rule": M("drapes", within=P([[512, 1700], [1024, 1700], [1024, 2048], [512, 2048]]))},
     {"name": "drape_l", "rule": M("drapes", within=P([[512, 1150], [1024, 1150], [1024, 2048], [512, 2048]]))},
 ] + [{"name": n, "rule": M(n)} for n, _, _ in wing_bones] + [
 ] + hair_regions + [
@@ -444,6 +450,8 @@ regions = [
 ]
 
 wing_parent = {"1": "chest", "2": "chest", "3": "torso"}
+# the lower pole's spring: stiffer, softer-capped, more squash than shift (it rides on the upper one)
+JIG_LO = "jiggle;kx=170;ky=230;ky2=560;z=0.3;limit=10;tx=0.3;ty=0.45;rot=0.35;sq=0.6"
 bones = [
     # planted ankles: the legs reach them by IK (src "ik"), so the knees flex as the hips move
     {"name": "ik_foot_r", "parent": "root", "pivot": [488, 1830]},
@@ -462,7 +470,9 @@ bones = [
     {"name": "head_wing_r", "parent": "head", "pivot": [470, 830], "spring": "accessory;limit=10"},
     {"name": "head_wing_l", "parent": "head", "pivot": [558, 830], "spring": "accessory;limit=10"},
     {"name": "breast_r", "parent": "chest", "pivot": [458, 1004], "spring": "jiggle"},
+    {"name": "breast_r_lo", "parent": "breast_r", "pivot": [458, 1062], "spring": JIG_LO},
     {"name": "breast_l", "parent": "chest", "pivot": [572, 1008], "spring": "jiggle"},
+    {"name": "breast_l_lo", "parent": "breast_l", "pivot": [572, 1064], "spring": JIG_LO},
     {"name": "arm_r", "parent": "chest", "pivot": [418, 965]},
     {"name": "forearm_r", "parent": "arm_r", "pivot": [403, 1130]},
     {"name": "hand_r", "parent": "forearm_r", "pivot": [322, 1048]},
@@ -477,9 +487,9 @@ bones = [
     {"name": "shin_l", "parent": "thigh_l", "pivot": [548, 1560]},
     {"name": "foot_l", "parent": "shin_l", "pivot": [530, 1822]},
     {"name": "drape_r", "parent": "hips", "pivot": [428, 1240], "spring": "cape;w=0.1;g=0.85;limit=12"},
-    {"name": "drape_r2", "parent": "drape_r", "pivot": [390, 1630], "spring": "cape;w=0.1;g=0.85;limit=12"},
+    {"name": "drape_r2", "parent": "root", "pivot": [390, 1700], "spring": "cape;w=0.06;g=0.9;limit=5"},
     {"name": "drape_l", "parent": "hips", "pivot": [602, 1240], "spring": "cape;w=0.1;g=0.85;limit=12"},
-    {"name": "drape_l2", "parent": "drape_l", "pivot": [640, 1630], "spring": "cape;w=0.1;g=0.85;limit=12"},
+    {"name": "drape_l2", "parent": "root", "pivot": [640, 1700], "spring": "cape;w=0.06;g=0.9;limit=5"},
 ] + [{"name": n, "parent": wing_parent[n[-1]], "pivot": piv, "spring": "wing;w=0.05"} for n, piv, _ in wing_bones]
 
 fmeta = json.load(open(os.path.join(SRC, "final", "seraphiel.json")))
