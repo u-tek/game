@@ -211,7 +211,8 @@ def main(argv=None):
             region = overrides.get(spec["region"]) or post.region_box(face_box, spec["region_frac"])
             mask = P.ellipse_mask(base.size, region, feather=max(3, region[3] // 10))
             mask.save(os.path.join(mdir, "%s.png" % spec["region"]))
-            pr = prompts.face(bible, a.hero, s["family"], variant=name, skin=t["skin"], adult=a.adult)
+            pr = prompts.face(bible, a.hero, s["family"], variant=name, skin=t["skin"], adult=a.adult,
+                              pose=src_meta.get("pose"))
             den = a.denoise if a.denoise is not None else spec["denoise"]
             entry = dict(record["variants"].get(name) or {})
             done = set(entry.get("seeds") or []) | existing_tries(vcand, name)

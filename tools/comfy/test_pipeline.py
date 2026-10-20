@@ -1684,6 +1684,29 @@ class TestMoss(unittest.TestCase):
         self.assertIn(fam["face_natural"], pos)
         self.assertNotIn("Her expression", prompts.face(BIBLE, "zecchina", "moss")["positive"])   # the polish
 
+    def test_rig_pose(self):
+        pr = prompts.full_body(BIBLE, "seraphiel", "moss", pose="rig")
+        rig = BIBLE["heroes"]["seraphiel"]["rig"]
+        self.assertIn(BIBLE["families"]["moss"]["composition_rig_natural"], pr["positive"])
+        self.assertNotIn(BIBLE["families"]["moss"]["composition_natural"], pr["positive"])
+        self.assertIn("microphone stand upright", pr["positive"])
+        self.assertNotIn("like a torch", pr["positive"])               # the display pose is gone
+        self.assertEqual(prompts.check(BIBLE, "seraphiel", pr["positive"], pr["negative"]), [])
+        self.assertIn("aqua eyes", prompts.face(BIBLE, "seraphiel", "moss", pose="rig")["positive"])
+        self.assertEqual(prompts.hero_view(BIBLE, "seraphiel", pose="rig")["eyes"], rig["eyes"])
+        with self.assertRaises(KeyError):
+            prompts.full_body(BIBLE, "kessa", "moss", pose="rig")      # no rig block yet
+        with self.assertRaises(prompts.PromptError):
+            prompts.full_body(BIBLE, "seraphiel", "moss", pose="rig", skin="seraphiel_tidal_diva")
+        import run_hero
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            self.assertEqual(run_hero.main(["seraphiel", "--count", "1", "--family", "moss", "--pose", "rig",
+                                            "--seed", "101950", "--dry-run"]), 0, err.getvalue())
+        meta = json.load(open(os.path.join(comfy.dryrun_dir(), "seraphiel", "candidates", "seraphiel_s101950.json")))
+        self.assertEqual(meta["pose"], "rig")
+        self.assertIn("microphone stand upright", meta["prompt"])
+
     def test_fallback_is_amanatsu(self):
         pin = comfy.pin_path()
         os.makedirs(os.path.dirname(pin), exist_ok=True)

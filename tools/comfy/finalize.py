@@ -124,7 +124,8 @@ def main(argv=None):
 
         # 1. optional full-image polish
         if a.refine_denoise and a.refine_denoise > 0:
-            pr = prompts.full_body(bible, a.hero, s["family"], background_key=bg_key, skin=t["skin"], adult=a.adult)
+            pr = prompts.full_body(bible, a.hero, s["family"], background_key=bg_key, skin=t["skin"], adult=a.adult,
+                                       pose=cmeta.get("pose"))
             p = os.path.join(work, "%s_refine_src.png" % name)
             os.makedirs(work, exist_ok=True)
             img.save(p)
@@ -141,7 +142,8 @@ def main(argv=None):
         hz = s.get("hires") or {}
         src_scale = 1.0
         if s.get("final_hires") and not a.no_hires and img.width <= s["width"] + 8 and img.height <= s["height"] + 8:
-            pr = prompts.full_body(bible, a.hero, s["family"], background_key=bg_key, skin=t["skin"], adult=a.adult)
+            pr = prompts.full_body(bible, a.hero, s["family"], background_key=bg_key, skin=t["skin"], adult=a.adult,
+                                       pose=cmeta.get("pose"))
             p = os.path.join(work, "%s_hires_src.png" % name)
             os.makedirs(work, exist_ok=True)
             img.save(p)
@@ -175,7 +177,8 @@ def main(argv=None):
         log("face box %s (%s)%s" % (",".join(map(str, face_box)), conf,
                                     "" if conf == "user" else "  -> check final/%s_boxes.png; override with --face-box" % name))
         if not a.no_face_refine:
-            pr = prompts.face(bible, a.hero, s["family"], background_key=bg_key, skin=t["skin"], adult=a.adult)
+            pr = prompts.face(bible, a.hero, s["family"], background_key=bg_key, skin=t["skin"], adult=a.adult,
+                              pose=cmeta.get("pose"))
             fr = bible["regions"]["face"]
             mbox = post.region_box(face_box, fr)
             mask = P.ellipse_mask(img.size, mbox, feather=max(3, face_box[3] // 30))
@@ -206,7 +209,8 @@ def main(argv=None):
             img.save(p)
             sname = client.upload_image(p, subfolder=P.SERVER_SUBFOLDER)
             if tiled:
-                pr = prompts.full_body(bible, a.hero, s["family"], background_key=bg_key, skin=t["skin"], adult=a.adult)
+                pr = prompts.full_body(bible, a.hero, s["family"], background_key=bg_key, skin=t["skin"], adult=a.adult,
+                                       pose=cmeta.get("pose"))
                 g = workflows.tiled_upscale(s, sname, pr["positive"], pr["negative"], seed,
                                             "%s/%s/upscale" % (P.SERVER_SUBFOLDER, job), oi, scale=2.0,
                                             denoise=tiled["denoise"])
@@ -254,6 +258,7 @@ def main(argv=None):
             bg=None, mask=mask_img, feet_y_src=a.feet_y,
             tol=a.tol, holes=not a.no_holes, flip=a.flip,
             extra_meta={"hero": a.hero, "skin": t["skin"], "art": t["art"] or None, "adult": bool(a.adult),
+                        "pose": cmeta.get("pose"),
                         "source_candidate": P.rel(src_path), "candidate_seed": cmeta.get("seed"),
                         "source_sha256": src_sha, "source_copy": name + "_source.png",
                         "polish_seed": seed, "steps": steps_done, "settings": P.settings_for_meta(s),

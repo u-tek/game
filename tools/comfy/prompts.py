@@ -286,10 +286,25 @@ SKIN_FIELDS = ("outfit", "footwear", "accessories", "weapon", "pose", "expressio
                "background", "natural")
 
 
-def hero_view(bible, hero_id, adult=False):
+RIG_FIELDS = ("natural", "eyes", "default_eyes", "expression", "pose")
+POSES = ("rig",)
+
+
+def hero_view(bible, hero_id, adult=False, pose=None):
     """The hero's prompt fields; adult=True applies her "adult" block (the nude base look) and
-    requires it to exist."""
+    requires it to exist. pose="rig" applies her "rig" block: the rig-ready pose for the layered rig
+    (front view, limbs and props clear of the body, eyes open for the blink frames)."""
     h = _hero(bible, hero_id)
+    if pose:
+        if pose not in POSES:
+            raise KeyError("unknown pose %r (known: %s)" % (pose, ", ".join(POSES)))
+        rv = h.get("rig")
+        if not isinstance(rv, dict) or not rv.get("natural"):
+            raise KeyError("hero %r has no 'rig' block in the bible (a rig-ready natural, eyes, pose)" % hero_id)
+        h = dict(h)
+        for k in RIG_FIELDS:
+            if k in rv:
+                h[k] = rv[k]
     if not adult:
         return h
     av = h.get("adult")
@@ -486,10 +501,11 @@ def _face_sentence(fam, closed):
     return fam.get("face_natural_closed" if closed else "face_natural", "")
 
 
-def _sentence_full_body(bible, fam, h, hero_id, bg, extra_tags, adult):
+def _sentence_full_body(bible, fam, h, hero_id, bg, extra_tags, adult, pose=None):
     subj = _sentence_subject(bible, h, adult)
+    composition = fam.get("composition_rig_natural" if pose == "rig" else "composition_natural", "")
     parts = ["%s, full body." % subj, fam.get("style_natural", ""),
-             _face_sentence(fam, h.get("default_eyes") == "closed"), fam.get("composition_natural", ""),
+             _face_sentence(fam, h.get("default_eyes") == "closed"), composition,
              _who(fam, h), _prose(plain_tags(extra_tags)) if extra_tags else "",
              bg.get("natural") or "Plain flat background, no scenery."]
     return " ".join(p.strip() for p in parts if p and p.strip())
@@ -510,21 +526,24 @@ def _sentence_close_up(bible, fam, h, tags, bg, adult, what="close-up of her fac
 
 
 # ------------------------------------------------------------------ composers
-def full_body(bible, hero_id, family, background_key=None, extra_tags="", skin=None, adult=False):
+def full_body(bible, hero_id, family, background_key=None, extra_tags="", skin=None, adult=False, pose=None):
     """Positive/negative for a full-body candidate. Order: quality/rating (family position),
     subject, adult face styling, composition (full body early: the rig needs head to feet), body, hair, eyes,
     expression, head, wings/tail, outfit, footwear, accessories, weapon, pose, palette,
     background, style. The brief sentence is appended only for families with use_natural.
     skin: a skin id from the bible's "skins" (skin_view) for that skin's outfit, pose and props.
     adult=True: the EroLabs nude set -- the skin's "adult" outfit block, content_rules_adult, the
-    relaxed subject line and the nsfw rating (see docs/dev/skins.md)."""
-    h = skin_view(bible, hero_id, skin, adult=adult) if skin else hero_view(bible, hero_id, adult=adult)
+    relaxed subject line and the nsfw rating (see docs/dev/skins.md).
+    pose="rig": the hero's rig-ready pose (hero_view) for the layered rig; base look only."""
+    if skin and pose:
+        raise PromptError("pose %r is for the base look, not a skin" % pose)
+    h = skin_view(bible, hero_id, skin, adult=adult) if skin else hero_view(bible, hero_id, adult=adult, pose=pose)
     fam = family_block(bible, family)
     if skin and h.get("background") and not background_key:
         background_key = h["background"]
     _, bg = background(bible, hero_id, background_key)
     if sentence_mode(fam):
-        positive = _sentence_full_body(bible, fam, h, hero_id, bg, extra_tags, adult)
+        positive = _sentence_full_body(bible, fam, h, hero_id, bg, extra_tags, adult, pose=pose)
         return _finish(bible, hero_id, positive, _sentence_negative(bible, fam, h, adult=adult), adult=adult)
     eyes = "" if h.get("default_eyes") == "closed" else h["eyes"]
     body = join_tags(_subject(bible, h, adult), h.get("adult_face", ""), bible["composition"]["tags"], h["body"], h["hair"],
@@ -539,13 +558,14 @@ def full_body(bible, hero_id, family, background_key=None, extra_tags="", skin=N
     return _finish(bible, hero_id, positive, negative, adult=adult)
 
 
-def face(bible, hero_id, family, variant=None, background_key=None, skin=None, adult=False):
+def face(bible, hero_id, family, variant=None, background_key=None, skin=None, adult=False, pose=None):
     """Prompt for a face crop: polish (variant None) or an expression variant (eyes_closed, ...).
     Only face identity tags + the expression: no prose, costume or pose (the crop shows a face,
     and the base expression must not leak into a variant). skin: a skin's expression for the polish
     (identity stays the hero's, skin_view). adult=True: the skin's "adult" block and
-    content_rules_adult (the face itself only changes by the subject line)."""
-    h = skin_view(bible, hero_id, skin, adult=adult) if skin else hero_view(bible, hero_id, adult=adult)
+    content_rules_adult (the face itself only changes by the subject line). pose="rig": the rig
+    block's eyes and expression (hero_view)."""
+    h = skin_view(bible, hero_id, skin, adult=adult) if skin else hero_view(bible, hero_id, adult=adult, pose=pose)
     fam = family_block(bible, family)
     _, bg = background(bible, hero_id, background_key)
     if variant:

@@ -159,6 +159,7 @@
    "face_natural": "A beautiful anime face: large glossy eyes with detailed gradient irises and sparkling highlights, long dark lashes, a small nose and small glossy lips.",
    "face_natural_closed": "A beautiful anime face with her eyes closed: both eyelids shut in soft curved lines, long dark lashes resting on her cheeks, no iris showing, a small nose and small glossy lips.",
    "composition_natural": "The whole figure is in frame from the top of her head to both feet, with wings, weapon and hair fully inside the frame.",
+  "composition_rig_natural": "She stands facing the viewer, upright and symmetrical, in a relaxed pose made for animation: both arms held a little away from her sides so nothing crosses her body, legs slightly apart with both feet flat and fully visible, hair falling behind her shoulders, wings spread wide and level, clear of her body, every limb, wing and prop fully visible and separate. The whole figure is in frame from the top of her head to both feet.",
    "age_natural": "in her mid-twenties",
    "quality": "",
    "quality_position": "start",
@@ -338,6 +339,14 @@
    "pose": "arm up, hand on own chest, arched back, wind, floating hair",
    "face": "platinum blonde hair, very long hair, mechanical halo",
    "natural": "A statuesque, voluptuous adult pop goddess in her mid-20s: six pearl-white wings with aqua tips, a large chrome halo ring, very long platinum hair; a pearl-white liquid-latex sling leotard plunging to the navel, open at the sides, with long pearl vinyl stage drapes from chrome hip rings, chrome body chains and mirror-chrome platform heels; she raises a tall chrome tuning-fork microphone stand like a torch, eyes closed, a knowing half-smile.",
+   "rig": {
+    "_doc": "The rig-ready pose (pipeline --pose rig, owner 2026-10-20: layered-rig prototype): eyes open for the blink frames (aqua: the brief gives no colour; it matches her hair sheen and wing tips), the mic stand upright at her side, nothing crossing her body.",
+    "natural": "A statuesque, voluptuous adult pop goddess in her mid-20s: six pearl-white wings with aqua tips (two large pairs and a small pair at her head), a large chrome halo ring, very long platinum hair with an aqua sheen falling behind her shoulders; a pearl-white liquid-latex sling leotard plunging to the navel, open at the sides, with long pearl vinyl stage drapes hanging straight down from chrome hip rings, chrome body chains and mirror-chrome platform heels; her right hand holds a tall chrome tuning-fork microphone stand upright at her side like a staff, its base on the ground, her left arm relaxed a little away from her side; eyes open, soft aqua eyes looking at the viewer, a knowing half-smile.",
+    "eyes": "aqua eyes, looking at viewer",
+    "default_eyes": "open",
+    "expression": "light smile",
+    "pose": "standing, front view, arms at sides, holding microphone stand"
+   },
    "negative_extra": "(blue archive:1.3), (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2), (see-through:1.3), (transparent:1.2)",
    "variants": {
     "eyes_closed": "closed eyes, seductive smile, serene, long eyelashes",

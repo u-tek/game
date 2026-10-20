@@ -79,6 +79,9 @@ def main(argv=None):
     ap.add_argument("--force", action="store_true", help="re-render seeds that already exist")
     ap.add_argument("--background", choices=["grey", "white", "green"], help="override the hero's flat background")
     ap.add_argument("--extra-tags", default="", help="extra positive tags for this run (checked by the content rules)")
+    ap.add_argument("--pose", choices=list(prompts.POSES),
+                    help="rig: the hero's rig-ready pose (bible 'rig' block) for the layered rig; finalize and "
+                         "variants follow the candidate's pose", default=None)
     ap.add_argument("--ref", help="reference image for IPAdapter (used only if the server has ComfyUI_IPAdapter_plus)")
     ap.add_argument("--ref-weight", type=float, default=0.7)
     ap.add_argument("--controlnet", help="ControlNet model name (core ControlNetLoader)")
@@ -101,9 +104,9 @@ def main(argv=None):
         a.skin = t["skin"]
         client = P.make_client(a)
         s, disc, oi = P.resolve_settings(bible, a, client, a.hero)
-        pr = prompts.full_body(bible, a.hero, s["family"], background_key=a.background, extra_tags=a.extra_tags,
+        pr = prompts.full_body(bible, a.hero, s["family"], background_key=a.background, extra_tags=a.extra_tags, pose=a.pose,
                                skin=a.skin, adult=a.adult)
-        h = prompts.skin_view(bible, a.hero, a.skin, adult=a.adult) if a.skin else bible["heroes"][a.hero]
+        h = prompts.skin_view(bible, a.hero, a.skin, adult=a.adult) if a.skin else prompts.hero_view(bible, a.hero, pose=a.pose)
         sk = bible["skins"][a.skin] if a.skin else {}
         bg_key, bg = prompts.background(bible, a.hero, a.background or sk.get("background"))
         first = a.seed if a.seed is not None else t["seed_base"]
@@ -181,7 +184,7 @@ def main(argv=None):
                 if check["flags"]:
                     log("  s%d check: %s" % (seed, " ".join(check["flags"])))
             meta = {
-                "hero": a.hero, "skin": a.skin, "adult": bool(a.adult), "seed": seed,
+                "hero": a.hero, "skin": a.skin, "adult": bool(a.adult), "pose": a.pose, "seed": seed,
                 "image": os.path.basename(png), "created": P.stamp(),
                 "dry_run": a.dry_run, "prompt": pr["positive"], "negative": pr["negative"],
                 "prompt_stats": pr["stats"], "brief": h["natural"], "check": check,
