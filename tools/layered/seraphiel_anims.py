@@ -88,10 +88,10 @@ def attack():
     # the stand turns in her grip (the pole is painted out of the fist) to a 67 degree diagonal with the
     # mic just below-left of her mouth (solved from the joint chain: arm 2, forearm -28, wrist 23, stand
     # 64 in the hand); the forearm drops first so the mic's arc stays under her eyes
-    a.rot("arm_r", (0.0, 0), (0.17, 4, CO), (0.3, 2, CO), (0.6, 2, S), (0.84, 0, CIO))
-    a.rot("forearm_r", (0.0, 0), (0.17, -4, CO), (0.27, -28, CO), (0.6, -27, S), (0.84, 0, CIO))
-    a.rot("hand_r", (0.0, 0), (0.17, 0, CO), (0.3, 23, CO), (0.6, 22, S), (0.84, 0, CIO))
-    a.rot("weapon", (0.0, 0), (0.19, 0, CO), (0.35, 64, CO), (0.6, 63, S), (0.84, 0, CIO))
+    a.rot("arm_r", (0.0, 0), (0.17, 4, CO), (0.33, 2, S), (0.6, 2, S), (0.84, 0, S))
+    a.rot("forearm_r", (0.0, 0), (0.17, -4, CO), (0.31, -28, S), (0.6, -27, S), (0.84, 0, S))
+    a.rot("hand_r", (0.0, 0), (0.17, 0, CO), (0.34, 23, S), (0.6, 22, S), (0.84, 0, S))
+    a.rot("weapon", (0.0, 0), (0.18, 0, CO), (0.38, 64, S), (0.6, 63, S), (0.8, -3, S), (0.9, 1, S), (0.98, 0, S))
     # the free arm: counterweight back, then flung out on the belt
     a.rot("arm_l", (0.0, 0), (0.17, 6, CO), (0.31, -24, EO), (0.4, -27, BO), (0.75, -18, S), (1.05, 0, S))
     a.rot("forearm_l", (0.0, 0), (0.17, -4, CO), (0.33, 18, EO), (0.45, 22, BO), (0.8, 10, S), (1.05, 0, S))
@@ -99,10 +99,8 @@ def attack():
     wings(a, [(0.0, 0, S), (0.16, -6, CO), (0.29, 12, EO), (0.4, 15, BO), (0.75, 8, S), (1.0, 0, S)])
     a.eyes((0.0, "open"), (0.14, "closed"), (0.31, "open"))
     a.att("mouth", (0.0, "default"), (0.26, "small"), (0.29, "wide"), (0.55, "open"), (0.66, "default"))
-    # the mic is beside her face now: a small, quick glow (a big one washes her face out)
-    a.fx("glow", (0.0, 0), (0.28, 0, S), (0.32, 0.28, CO), (0.5, 0, S))
     a.ev(0.05, "charge").ev(0.3, "release").ev(0.3, "vfx_bolt").ev(0.38, "hit")
-    a.ev(0.17, "jiggle:0,140").ev(0.3, "jiggle:-40,-330").ev(0.84, "jiggle:0,90")
+    a.ev(0.17, "jiggle:0,100").ev(0.32, "jiggle:-30,-200").ev(0.84, "jiggle:0,90")
     return a
 
 
@@ -124,14 +122,12 @@ def cast():
     a.rot("forearm_l", (0.0, 0), (0.35, 14, CO), (0.86, -28, EO), (1.05, -36, BO), (1.75, -30, S), (2.3, 0, CIO))
     a.rot("hand_l", (0.0, 0), (0.35, 10, CO), (0.86, -22, EO), (1.1, -30, S), (1.75, -24, S), (2.3, 0, S))
     # the stand hand pulls the mic in a little (stand leans on its base)
-    a.rot("arm_r", (0.0, 0), (0.82, -5, EO), (1.75, -4, S), (2.3, 0, S))
-    a.rot("forearm_r", (0.0, 0), (0.82, 9, EO), (1.75, 8, S), (2.3, 0, S))
     wings(a, [(0.0, 0, S), (0.35, -10, CO), (0.8, 24, EO), (0.95, 28, BO), (1.75, 22, S), (2.35, 0, CIO)], stagger=0.04)
     a.eyes((0.0, "open"), (0.3, "closed"), (1.8, "open"))
     a.att("mouth", (0.0, "default"), (0.55, "small"), (0.78, "wide"), (1.62, "open"), (1.78, "smile"), (2.3, "default"))
-    a.fx("glow", (0.0, 0), (0.75, 0.15, S), (0.84, 0.75, EO), (1.6, 0.45, S), (2.2, 0, S))      # the mic glows
+    a.fx("glow", (0.0, 0), (0.75, 0.1, S), (0.86, 0.45, CO), (1.6, 0.3, S), (2.2, 0, S))      # the mic glows
     a.ev(0.82, "release").ev(0.84, "vfx_burst").ev(0.9, "hit")
-    a.ev(0.35, "jiggle:0,120").ev(0.82, "jiggle:0,-300").ev(1.2, "jiggle:20,-120").ev(2.1, "jiggle:0,160")
+    a.ev(0.35, "jiggle:0,120").ev(0.82, "jiggle:0,-200").ev(1.2, "jiggle:20,-120").ev(2.1, "jiggle:0,160")
     return a
 
 
@@ -142,13 +138,15 @@ def touch():
     a.rot("torso", (0.0, 0), (0.08, 3, EO), (0.3, -1.5, S), (1.2, 0, S))
     a.tr("chest", (0.0, 0, 0), (0.06, 0, -8, EO), (0.18, 0, 6, QI), (0.3, 0, -3, S), (0.42, 0, 2, S), (0.6, 0, 0, S))
     a.rot("head", (0.0, 0), (0.08, -4, EO), (0.25, 6, S), (0.7, 5, S), (1.2, 0, S))
-    a.rot("arm_l", (0.0, 0), (0.12, -16, QO), (0.3, 5, S), (0.9, 4, S), (1.25, 0, CIO))
-    a.rot("forearm_l", (0.0, 0), (0.12, 30, QO), (0.3, 100, BO), (0.85, 96, S), (1.25, 0, CIO))
-    a.rot("hand_l", (0.0, 0), (0.12, -10, QO), (0.3, -28, BO), (0.85, -25, S), (1.25, 0, S))
-    wings(a, [(0.0, 0, S), (0.05, -9, EO), (0.3, 6, BO), (0.8, 0, S)], stagger=0.03)
+    # coy: she folds her forearm up and brings her hand to her chin (the hand travels out and up,
+    # never across her lap; a reach to the waist from a hand hanging at her hip has to)
+    a.rot("arm_l", (0.0, 0), (0.13, 5, QO), (0.32, 13, S), (0.9, 12, S), (1.25, 0, CIO))
+    a.rot("forearm_l", (0.0, 0), (0.13, -85, QO), (0.32, -152, BO), (0.85, -148, S), (1.25, 0, CIO))
+    a.rot("hand_l", (0.0, 0), (0.13, -5, QO), (0.32, 8, BO), (0.85, 6, S), (1.25, 0, S))
+    wings(a, [(0.0, 0, S), (0.12, -7, QO), (0.4, 5, BO), (0.85, 0, S)], stagger=0.03)
     a.eyes((0.0, "open"), (0.04, "closed"), (0.3, "smile"), (1.15, "open"))
     a.att("mouth", (0.0, "default"), (0.25, "smile"), (1.15, "default"))
-    a.ev(0.06, "jiggle:0,-420").ev(0.2, "jiggle:-50,260").ev(0.36, "jiggle:0,-180")
+    a.ev(0.06, "jiggle:0,-240").ev(0.22, "jiggle:-30,150").ev(0.38, "jiggle:0,-100")
     return a
 
 
@@ -169,7 +167,7 @@ def victory():
         beats += [(t, 0, 14 if k % 4 == 0 else 10, QI), (t + 0.25, 0, -3, QO)]
     a.tr("hips", *beats)
     for k in range(5):
-        a.ev(round(0.5 + 0.5 * k + 0.02, 3), "jiggle:0,%d" % (190 if k % 4 == 0 else 120))
+        a.ev(round(0.5 + 0.5 * k + 0.02, 3), "jiggle:0,%d" % (130 if k % 4 == 0 else 90))
     a.eyes((0.0, "open"), (0.2, "half"), (0.45, "smile"))
     a.att("mouth", (0.0, "default"), (0.45, "smile"))
     return a

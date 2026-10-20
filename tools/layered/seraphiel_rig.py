@@ -240,7 +240,14 @@ shade = 1.0 - 0.16 * np.clip(dist_up / 30.0, 0, 1)            # deeper under the
 put = hole & inside
 body[put, :3] = fill[put] * shade[put, None]
 body[put, 3] = 255
-body[hole & ~inside, 3] = 0
+# beside her torso (the breasts are wider than her ribs) a lifted breast shows the side of her body:
+# her skin, darker toward the breast's crease
+out_side = hole & ~inside
+fin3_ = final[..., :3]
+skin_ref = (fin3_[..., 0] > 225) & (fin3_[..., 0] - fin3_[..., 2] > 12) & (final[..., 3] > 250) & ~both
+skin_c = np.median(fin3_[skin_ref & (np.abs(yy - 1080) < 120) & (np.abs(xx - 512) < 160)], axis=0)
+body[out_side, :3] = skin_c[None, :] * (0.86 + 0.0 * xx[out_side, None])
+body[out_side, 3] = 255
 # the image model's repaint of the hole (fill_hidden.py, picked try copied to WORK/body_fill.png) wins
 WORK = os.path.join(SRC, "work2")
 os.makedirs(WORK, exist_ok=True)
@@ -252,9 +259,8 @@ if os.path.exists(os.path.join(WORK, "body_fill.png")):
     # lifted breast shows the hair behind her there
     bgk = (np.abs(rep[..., :3] - 128.0) < 14.0).all(axis=2)
     bgk = ndimage.binary_opening(bgk, iterations=2)
-    rep[..., 3] = np.where(bgk, 0.0, rep[..., 3])
-    rep[..., 3] = np.minimum(rep[..., 3], 255.0 * (1.0 - ndimage.gaussian_filter(bgk.astype(np.float32), 1.0)))
-    body[put] = rep[put]
+    keep = put & ~bgk                               # the backdrop the model left keeps the skin fill
+    body[keep] = rep[keep]
     print("body: hole repainted from work2/body_fill.png (%d backdrop px cleared)" % int((bgk & put).sum()))
 rl_img["body"] = body
 
@@ -341,10 +347,13 @@ for side, sel in (("r", xx < 512), ("l", xx >= 512)):
         hand_m = ndimage.binary_dilation(np.asarray(Image.open(os.path.join(SAM, "hand_r.png"))) > 127, iterations=2)
         pole_in = hand_m & (L["objects"][..., 3] > 90) & (a[..., 3] > 60)
         pole_in = ndimage.binary_dilation(pole_in, iterations=1) & (a[..., 3] > 60)
-        rgb8 = np.clip(a[..., :3], 0, 255).astype(np.uint8)
-        fixed = cv2.cvtColor(cv2.inpaint(cv2.cvtColor(rgb8, cv2.COLOR_RGB2BGR), pole_in.astype(np.uint8) * 255, 4,
-                                         cv2.INPAINT_TELEA), cv2.COLOR_BGR2RGB)
-        a[pole_in, :3] = fixed[pole_in]
+        # filled from the hand's own light pixels (an inpaint pulled her finger lines in as black marks)
+        lum = a[..., :3].mean(axis=2)
+        src_ok = hand_m & ~pole_in & (a[..., 3] > 200) & (lum > 175)
+        _, (iy, ix) = ndimage.distance_transform_edt(~src_ok, return_indices=True)
+        fill_c = a[iy, ix, :3]
+        fill_c = cv2.GaussianBlur(fill_c.astype(np.float32), (0, 0), 1.2)
+        a[pole_in, :3] = fill_c[pole_in]
         print("arm_r: %d pole px painted out of the fist" % int(pole_in.sum()))
     for piece, want in (("up", nearest == 0), ("fore", nearest >= 1)):
         m = ndimage.gaussian_filter((want | cap).astype(np.float32), 0.8)
@@ -514,7 +523,7 @@ regions = [
 
 wing_parent = {"1": "chest", "2": "chest", "3": "torso"}
 # the lower pole's spring: stiffer, softer-capped, more squash than shift (it rides on the upper one)
-JIG_LO = "jiggle;kx=170;ky=230;ky2=560;z=0.3;limit=10;tx=0.3;ty=0.45;rot=0.35;sq=0.6"
+JIG_LO = "jiggle;kx=170;ky=230;ky2=560;z=0.3;limit=10;tx=0.3;ty=0.45;rot=0.35;sq=0.6;kick=0"
 bones = [
     # planted ankles: the legs reach them by IK (src "ik"), so the knees flex as the hips move
     {"name": "ik_foot_r", "parent": "root", "pivot": [488, 1830]},
@@ -532,9 +541,9 @@ bones = [
     {"name": "halo", "parent": "head", "pivot": [515, 775], "spring": "accessory;limit=5"},
     {"name": "head_wing_r", "parent": "head", "pivot": [470, 830], "spring": "accessory;limit=10"},
     {"name": "head_wing_l", "parent": "head", "pivot": [558, 830], "spring": "accessory;limit=10"},
-    {"name": "breast_r", "parent": "chest", "pivot": [458, 1004], "spring": "jiggle"},
+    {"name": "breast_r", "parent": "chest", "pivot": [458, 1004], "spring": "jiggle;ky=190"},
     {"name": "breast_r_lo", "parent": "breast_r", "pivot": [458, 1062], "spring": JIG_LO},
-    {"name": "breast_l", "parent": "chest", "pivot": [572, 1008], "spring": "jiggle"},
+    {"name": "breast_l", "parent": "chest", "pivot": [572, 1008], "spring": "jiggle;ky=190"},
     {"name": "breast_l_lo", "parent": "breast_l", "pivot": [572, 1064], "spring": JIG_LO},
     {"name": "arm_r", "parent": "chest", "pivot": [418, 965]},
     {"name": "forearm_r", "parent": "arm_r", "pivot": [403, 1130]},
@@ -587,8 +596,8 @@ src = {
              # a livelier idle than the shared default: deeper breath, a hip-to-hip weight shift every
              # 7.2 s, faster drift, and bounce kicks at each breath and each turn of the sway
              "idle_gestures": ["idle_wings", "idle_sway", "idle_lean"],
-             "idle": {"breath": 6.0, "noise": 2.2, "head": 1.6, "arms": 2.2, "wings": 1.8, "sway": 9.0,
-                      "sway_period": 7.2, "sway_rot": 1.6, "sway_dip": 2.5, "kick_breath": 95.0, "kick_sway": 60.0,
+             "idle": {"breath": 6.0, "noise": 2.2, "head": 1.6, "arms": 2.2, "wings": 1.8, "sway": 6.0,
+                      "sway_period": 7.2, "sway_rot": 0.8, "sway_dip": 2.5, "kick_breath": 75.0, "kick_sway": 45.0,
                       "iris_x": 1.8, "iris_y": 0.6, "gaze": 0.6}},
     "body_bone": "hips", "bones": bones, "regions": regions, "layers": layers,
     "ik": [{"upper": "thigh_r", "lower": "shin_r", "target": "ik_foot_r", "foot": "foot_r", "knee_room": 10},

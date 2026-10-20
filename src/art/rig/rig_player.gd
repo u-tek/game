@@ -26,9 +26,9 @@ const BLINK_MIN := 2.5
 const BLINK_MAX := 5.0
 ## A blink: the lids close, hold and open again (s); the closed-eye overlay fades in and out over
 ## those times instead of popping (on 120 Hz screens that reads as a lid, not a cut).
-const BLINK_CLOSE := 0.055
-const BLINK_HOLD := 0.045
-const BLINK_OPEN := 0.11
+const BLINK_CLOSE := 0.075
+const BLINK_HOLD := 0.05
+const BLINK_OPEN := 0.13
 const BLINK_TIME := BLINK_CLOSE + BLINK_HOLD + BLINK_OPEN
 const HEAD_TURN_SQUASH := 0.05
 ## Procedural idle (format 2 rigs, docs/dev/halorig.md 11.3): what each bone does, by its name.
@@ -176,6 +176,8 @@ var _bones_live := false
 # blink
 var _blink_timer := 3.0
 var _blink_left := 0.0
+var _eyes_last := ""                  # the eyes slot's last frame (a snap shut/open gets a half-lid between)
+var _eyes_half_t := 0.0
 var _blink_double := false
 
 # look + fx
@@ -573,7 +575,9 @@ func jiggle(v: Vector2, prefix := "") -> void:
 	for k in _sp_bones.size():
 		if _sp_mass[k] != 2 or (prefix != "" and not rig.bone_names[_sp_bones[k]].begins_with(prefix)):
 			continue
-		var amp := 1.0 + 0.06 * _sp_side[k]
+		var amp := (1.0 + 0.06 * _sp_side[k]) * float((rig.spring[_sp_bones[k]] as Dictionary).get("kick", 1.0))
+		if amp <= 0.0:
+			continue
 		if _sp_side[k] > 0.0:
 			_kick_q.append([0.025, k, v * amp * 0.92])
 		else:
@@ -682,7 +686,8 @@ func _idle_drive() -> void:
 		if e != null and not e.fading:
 			acting = true
 	var want := (IDLE_ACTION_SHARE if acting else 1.0) if idle_motion and idling else 0.0
-	_idle_w = move_toward(_idle_w, want, dt * 2.5) if dt > 0.0 else want
+	# eased, not a linear ramp: a gesture's end used to drift at constant speed, then stop dead
+	_idle_w += (want - _idle_w) * (1.0 - exp(-dt / 0.22)) if dt > 0.0 else want - _idle_w
 	_br_t += dt
 	if _br_t >= _br_len:
 		_br_t -= _br_len
@@ -953,11 +958,11 @@ func _pose() -> void:
 			continue
 		var w := 1.0
 		if e.fading:
-			w = 1.0 - clampf(e.fade_t / maxf(e.fade_dur, 0.001), 0.0, 1.0)
+			w = 1.0 - smoothstep(0.0, 1.0, clampf(e.fade_t / maxf(e.fade_dur, 0.001), 0.0, 1.0))
 		var p: Entry = e.prev
 		var m := 1.0
 		if e.mix_dur > 0.0 and (p != null or ti > 0):
-			m = clampf(e.mix_t / e.mix_dur, 0.0, 1.0)
+			m = smoothstep(0.0, 1.0, clampf(e.mix_t / e.mix_dur, 0.0, 1.0))      # eased crossfade
 		var t := _anim_time(e)
 		var tp := _anim_time(p) if p != null else 0.0
 		var cb := e.b
@@ -1275,15 +1280,17 @@ func _solve_ik(i: int, hip: Vector2) -> void:
 	var r0 := (A0 - H0).normalized()
 	var hr := (K0 - H0).dot(Vector2(-r0.y, r0.x))
 	var sgn := 1.0 if hr >= 0.0 else -1.0
-	var p := (L1 * L1 - L2 * L2 + d * d) / (2.0 * d)
-	var h := sqrt(maxf(L1 * L1 - p * p, 0.0))
-	if d >= L1 + L2:
-		p = d * L1 / (L1 + L2)
-		h = 0.0
-	h = minf(h, absf(hr) + float(c.knee_room))
+	# A front-view leg is nearly straight at rest: the law of cosines then swings the knee tens of px
+	# for a few px of hip travel (it popped sideways). Instead the knee's sideways offset changes
+	# gently with the leg's length (half a px per px, up to knee_room more than at rest, down to
+	# straight), the knee stays at its rest share of the hip-ankle line, and the bones stretch or
+	# foreshorten along themselves to meet it.
+	var d0 := (A0 - H0).length()
+	var h := clampf(absf(hr) + 0.5 * (d0 - d), 0.0, absf(hr) + float(c.knee_room))
+	var p := d * (K0 - H0).dot(r0) / maxf(d0, 1.0)
 	var K := hip + u * p + Vector2(-u.y, u.x) * h * sgn
-	var sU := clampf((K - hip).length() / maxf(L1, 1.0), 0.6, 1.04)
-	var sL := clampf((T - K).length() / maxf(L2, 1.0), 0.6, 1.04)
+	var sU := clampf((K - hip).length() / maxf(L1, 1.0), 0.8, 1.06)
+	var sL := clampf((T - K).length() / maxf(L2, 1.0), 0.8, 1.06)
 	_world[i] = Transform2D((K - hip).angle() - (K0 - H0).angle(), Vector2(1.0, sU), 0.0, hip)
 	_ik_pending[lo] = Transform2D((T - K).angle() - (A0 - K0).angle(), Vector2(1.0, sL), 0.0, K)
 	var ft := int(c.get("foot", -1))
@@ -1294,7 +1301,7 @@ func _solve_ik(i: int, hip: Vector2) -> void:
 func _apply() -> void:
 	# blink timing (automatic when blink_enabled; blink() forces one)
 	var blinking := false
-	if blink_enabled:
+	if blink_enabled and not is_playing(1):     # no auto-blink over an action (it flickered into scripted eyes)
 		_blink_timer -= _frame_dt
 		if _blink_timer <= 0.0:
 			_blink_left = BLINK_TIME
@@ -1354,6 +1361,15 @@ func _apply() -> void:
 				alpha = shut
 			else:
 				alpha = 1.0 - shut         # open-eye overlay fading out to the painted closed eyes
+		if s.name == "eyes" and (s.attachments as Dictionary).has("half"):
+			# an animation snapping the eyes shut or open passes through the half-lid for ~2 frames
+			if (want == "closed" and _eyes_last == "open") or (want == "open" and _eyes_last == "closed"):
+				_eyes_half_t = 0.07
+			_eyes_last = want
+			if _eyes_half_t > 0.0:
+				_eyes_half_t -= _frame_dt
+				if want == "open" or want == "closed":
+					want = "half"
 		if want != _slot_att[si]:
 			_set_attachment(si, want)
 		var node := _slot_nodes[si]
