@@ -124,7 +124,8 @@ this file says where things stand. Older logs are under "History" at the bottom.
     0.42; the Comfy-Org file fuses q/k/v, so the plugin is **patched locally** to read it
     (`model.py`, `loaders.py`; the originals are kept as `*.orig` beside them).
     - **Settings:** euler / sgm_uniform, CFG 3, shift 5, negative-branch layer skip 22, 896x1152,
-      about 5 s per step on the 3070.
+      about 5 s per step on the 3070. **The owner picked 25 steps** (about 2 min per image) after seeing
+      15/25/30/40/50: "use 25 steps for moss".
     - **The style prompt:** it describes the Korean gacha splash look (NIKKE / Brown Dust 2) rather than
       naming the games: airbrushed soft shading, thin warm brown line art, glossy skin, blush, large
       glossy anime eyes. MOSS follows long briefs far better than Amanatsu, with props, details and
@@ -134,8 +135,11 @@ this file says where things stand. Older logs are under "History" at the bottom.
       two of the five heroes.
     - **Finishing:** hires 1.5x worked (190 s); the face polish at 0.35 changed little. The owner
       cancelled the MOSS 2x tile pass (an estimated 12-15 min).
-    - **The scripts are outside the repo** (session scratchpad: `moss_steps.py`, `moss_heroes.py`,
-      `moss_finish.py`).
+    - **The scripts are outside the repo**, on the PC in `art_src/_review/moss/` (git-excluded):
+      `moss_steps.py` (style prompt, Zecchina), `moss_heroes.py <hero ...> [steps]` (any hero from its
+      bible description), `moss_finish.py` (hires, face, 2x through the pipeline's own passes), and
+      `comfy_restart.ps1`. Run them with `COMFYUI_URL=http://127.0.0.1:8188`. Not part of
+      `tools/comfy` yet.
     - **Open:** the owner's verdict; the 8-step DMD LoRA (it ignores the negative prompt) and the
       quant options are researched, nothing more installed.
     - **Owner, same day: drop `mature female`** ("it makes all the characters look like 30-40+"). It
