@@ -5,7 +5,7 @@ extends SceneTree
 ##     --rendering-driver opengl3 --resolution 64x64 -s tools/art_preview.gd -- jobs.json
 ## jobs.json: [{"hero": "seraphiel", "skin": "<skin id, optional>", "out": "dir", "size": [600, 1000], "scale": 0.45,
 ##   "idle_amount": 1.0 (format 2 rigs: scales the procedural idle), "auto_blink": true,
-##   "feet": [300, 960], "fps": 30, "warm": 1.0, "base": "idle",
+##   "feet": [300, 960], "fps": 30, "warm": 1.0, "base": "idle", "bg": "#2b2d3a" (opaque; default transparent),
 ##   "frames": [{"anim": "attack_ranged", "track": 1, "t": 0.4, "look": [0, 0],
 ##               "flip": false, "echo": false, "label": "x"}...]          # single poses
 ##   or "anim": "idle", "track": 0, "count": 96                           # a sequence
@@ -49,7 +49,7 @@ func _run(jobs: Array) -> void:
 ## expr:<slot>=<variant> | <any animation>
 func _timeline(j: Dictionary) -> void:
 	var size: Array = j.get("size", [600, 1000])
-	_vp = _new_vp(size)
+	_vp = _new_vp(size, str(j.get("bg", "")))
 	var feet: Array = j.get("feet", [size[0] * 0.5, size[1] * 0.96])
 	var sc := float(j.get("scale", 0.45))
 	var out := str(j.get("out", "/tmp/rigprev"))
@@ -114,7 +114,7 @@ func _timeline(j: Dictionary) -> void:
 
 func _job(j: Dictionary) -> void:
 	var size: Array = j.get("size", [600, 1000])
-	_vp = _new_vp(size)
+	_vp = _new_vp(size, str(j.get("bg", "")))
 	var holder := Node2D.new()
 	_vp.add_child(holder)
 	var feet: Array = j.get("feet", [size[0] * 0.5, size[1] * 0.96])
@@ -214,10 +214,14 @@ func _make(j: Dictionary) -> HeroSprite:
 
 
 ## The preview viewport: HDR 2D off, as on the iPhone (ui_linear 0, see _init).
-func _new_vp(size: Array) -> SubViewport:
+## "bg": "#rrggbb" renders over that colour instead (videos: additive glows then read as light, and
+## edges carry no premultiplied dark fringe).
+func _new_vp(size: Array, bg := "") -> SubViewport:
 	var vp := SubViewport.new()
 	vp.size = Vector2i(int(size[0]), int(size[1]))
-	vp.transparent_bg = true
+	vp.transparent_bg = bg == ""
+	if bg != "":
+		RenderingServer.set_default_clear_color(Color(bg))
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	vp.disable_3d = true
 	vp.use_hdr_2d = false

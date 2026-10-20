@@ -18,7 +18,36 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 from art_anims import Anim  # noqa: E402
 
 OUT = os.path.join(ROOT, "assets", "art", "heroes", "seraphiel", "skins", "rigproto2", "anim")
-S, CO, EO, BO, QI, CIO = "sine_in_out", "cubic_out", "expo_out", "back_out", "quad_in", "cubic_in_out"
+# EO was expo_out: it dumps ~80% of a 4-frame move into its first frame (a pop); strikes use cubic_out
+S, CO, EO, BO, QI, CIO = "sine_in_out", "cubic_out", "cubic_out", "back_out", "quad_in", "cubic_in_out"
+QO = "quad_out"
+
+
+def _arrive(pts, ei):
+    """The ease written on a key here says how the motion ARRIVES at it; RigAnim eases the segment
+    that LEAVES a key (rig_anim.gd Timeline). Shift every ease one key earlier."""
+    pts = [list(p) for p in pts]
+    out = []
+    for i, p in enumerate(pts):
+        nxt = pts[i + 1] if i + 1 < len(pts) else None
+        e = (nxt[ei] if len(nxt) > ei else S) if nxt else S
+        out.append(tuple(p[:ei]) + (e,))
+    return out
+
+
+class A(Anim):
+    """Anim with arrival eases (see _arrive)."""
+    def rot(self, bone, *pts, e=S):
+        return super().rot(bone, *_arrive(pts, 2), e=e)
+
+    def tr(self, bone, *pts, e=S):
+        return super().tr(bone, *_arrive(pts, 3), e=e)
+
+    def sc(self, bone, *pts, e=S):
+        return super().sc(bone, *_arrive(pts, 3), e=e)
+
+    def fx(self, name, *pts, e=S):
+        return super().fx(name, *_arrive(pts, 2), e=e)
 WINGS_R = ["wing_r1", "wing_r2", "wing_r3"]      # viewer's left, top to bottom
 WINGS_L = ["wing_l1", "wing_l2", "wing_l3"]
 
@@ -33,22 +62,26 @@ def wings(a, keys, stagger=0.035, falloff=0.75):
 
 def attack():
     """Feedback Ring (1.0 s): she lifts the stand into a diagonal, mic at her cheek, and belts."""
-    a = Anim("attack_ranged", 1.05, mix=0.08, mix_out=0.22)
+    a = A("attack_ranged", 1.05, mix=0.08, mix_out=0.22)
     # planted through the wind-up (the body's lean would swing a carried stand's foot about 16 px per
     # degree); taken into the hand at the start of the fast swing, set down upright after it
-    a.fx("carry", (0.0, 0.0), (0.15, 0.0), (0.21, 1.0, S), (0.83, 1.0), (0.91, 0.0, S))
+    a.fx("carry", (0.0, 0.0), (0.15, 0.0), (0.21, 1.0, S), (0.87, 1.0), (0.95, 0.0, S))
+    a.fx("trail", (0.0, 0.0), (0.17, 0.0), (0.21, 1.0, QO), (0.36, 0.0, S))
     # anticipation: sink, chin down, gather; then rise into the belt
-    a.tr("hips", (0.0, 0, 0), (0.17, -3, 9, CO), (0.29, 4, -7, EO), (0.5, 2, -4, S), (0.8, 0, 1, S), (1.05, 0, 0, S))
-    a.rot("torso", (0.0, 0), (0.17, -2.5, CO), (0.3, 3.5, EO), (0.55, 2.5, S), (1.05, 0, S))
-    a.rot("chest", (0.0, 0), (0.19, -1.5, CO), (0.31, 2.5, EO), (0.6, 1.5, S), (1.05, 0, S))
+    a.tr("hips", (0.0, 0, 0), (0.17, -3, 9, CO), (0.31, 4, -7, CO), (0.5, 2, -4, S), (0.82, 0, 1, S), (0.9, 0, 0, S))
+    a.rot("torso", (0.0, 0), (0.17, -2.5, CO), (0.32, 3.5, CO), (0.55, 2.5, S), (0.85, 0, CIO))
+    a.rot("chest", (0.0, 0), (0.19, -1.5, CO), (0.33, 2.5, CO), (0.6, 1.5, S), (0.85, 0, CIO))
     a.sc("chest", (0.0, 1, 1), (0.19, 1.0, 1.02, CO), (0.3, 1.01, 0.985, EO), (0.6, 1, 1, S))
-    a.rot("head", (0.0, 0), (0.17, 3, CO), (0.31, -7, EO), (0.36, -8.5, S), (0.6, -6, S), (1.05, 0, S))
+    a.rot("head", (0.0, 0), (0.17, 3, CO), (0.33, -8, CO), (0.6, -7, S), (0.9, 0, S))
     a.rot("neck", (0.0, 0), (0.17, 1.5, CO), (0.31, -2.5, EO), (1.05, 0, S))
     # the stand hand: lift and tip the stand to her mouth (the stand turns with the hand)
-    a.rot("arm_r", (0.0, 0), (0.17, 4, CO), (0.3, -9, EO), (0.36, -10, S), (0.6, -8, S), (0.82, 0, CIO))
-    a.rot("forearm_r", (0.0, 0), (0.17, -6, CO), (0.3, 22, EO), (0.36, 25, BO), (0.6, 21, S), (0.82, 0, CIO))
-    a.rot("hand_r", (0.0, 0), (0.17, 2, CO), (0.29, 30, EO), (0.36, 36, BO), (0.6, 32, S), (0.82, -2, CIO), (1.05, 0, S))
-    a.rot("weapon", (0.0, 0), (0.18, 0, CO), (0.3, 12, EO), (0.36, 15, BO), (0.6, 12, S), (0.82, 0, CIO))
+    # the stand turns in her grip (the pole is painted out of the fist) to a 67 degree diagonal with the
+    # mic just below-left of her mouth (solved from the joint chain: arm 2, forearm -28, wrist 23, stand
+    # 64 in the hand); the forearm drops first so the mic's arc stays under her eyes
+    a.rot("arm_r", (0.0, 0), (0.17, 4, CO), (0.3, 2, CO), (0.6, 2, S), (0.84, 0, CIO))
+    a.rot("forearm_r", (0.0, 0), (0.17, -4, CO), (0.27, -28, CO), (0.6, -27, S), (0.84, 0, CIO))
+    a.rot("hand_r", (0.0, 0), (0.17, 0, CO), (0.3, 23, CO), (0.6, 22, S), (0.84, 0, CIO))
+    a.rot("weapon", (0.0, 0), (0.19, 0, CO), (0.35, 64, CO), (0.6, 63, S), (0.84, 0, CIO))
     # the free arm: counterweight back, then flung out on the belt
     a.rot("arm_l", (0.0, 0), (0.17, 6, CO), (0.31, -24, EO), (0.4, -27, BO), (0.75, -18, S), (1.05, 0, S))
     a.rot("forearm_l", (0.0, 0), (0.17, -4, CO), (0.33, 18, EO), (0.45, 22, BO), (0.8, 10, S), (1.05, 0, S))
@@ -65,7 +98,7 @@ def attack():
 def cast():
     """Seraphic Aria (2.4 s): wings up and in, a breath, then the belt: wings flare, free arm up and
     out, head back, the note held with vibrato; stand planted."""
-    a = Anim("cast", 2.4, mix=0.1, mix_out=0.3)
+    a = A("cast", 2.4, mix=0.1, mix_out=0.3)
     a.tr("hips", (0.0, 0, 0), (0.35, 0, 12, CO), (0.8, 0, -5, EO), (1.0, 0, -7, S), (1.75, 0, -6, S), (2.1, 0, 3, QI), (2.4, 0, 0, BO))
     a.rot("torso", (0.0, 0), (0.35, -2, CO), (0.82, 2.5, EO), (1.75, 2, S), (2.4, 0, S))
     a.tr("chest", (0.0, 0, 0), (0.35, 0, 4, CO), (0.55, 0, -6, S), (0.82, 0, -3, EO), (1.75, 0, -4, S), (2.4, 0, 0, S))
@@ -93,14 +126,14 @@ def cast():
 
 def touch():
     """A poke on the body (1.2 s): flinch, a giggle bob, a bounce, back to idle with a smile."""
-    a = Anim("touch", 1.2, mix=0.05, mix_out=0.3)
+    a = A("touch", 1.2, mix=0.05, mix_out=0.3)
     a.tr("hips", (0.0, 0, 0), (0.06, -4, -5, EO), (0.18, 6, 4, S), (0.32, 3, -2, S), (0.5, 1, 1, S), (1.2, 0, 0, S))
     a.rot("torso", (0.0, 0), (0.08, 3, EO), (0.3, -1.5, S), (1.2, 0, S))
     a.tr("chest", (0.0, 0, 0), (0.06, 0, -8, EO), (0.18, 0, 6, QI), (0.3, 0, -3, S), (0.42, 0, 2, S), (0.6, 0, 0, S))
     a.rot("head", (0.0, 0), (0.08, -4, EO), (0.25, 6, S), (0.7, 5, S), (1.2, 0, S))
-    a.rot("arm_l", (0.0, 0), (0.08, 9, EO), (0.3, 5, S), (0.9, 4, S), (1.2, 0, S))
-    a.rot("forearm_l", (0.0, 0), (0.1, 45, EO), (0.26, 104, BO), (0.85, 98, S), (1.2, 0, CIO))
-    a.rot("hand_l", (0.0, 0), (0.26, 18, BO), (0.85, 14, S), (1.2, 0, S))
+    a.rot("arm_l", (0.0, 0), (0.12, -16, QO), (0.3, 5, S), (0.9, 4, S), (1.25, 0, CIO))
+    a.rot("forearm_l", (0.0, 0), (0.12, 30, QO), (0.3, 100, BO), (0.85, 96, S), (1.25, 0, CIO))
+    a.rot("hand_l", (0.0, 0), (0.12, -10, QO), (0.3, -28, BO), (0.85, -25, S), (1.25, 0, S))
     wings(a, [(0.0, 0, S), (0.05, -9, EO), (0.3, 6, BO), (0.8, 0, S)], stagger=0.03)
     a.eyes((0.0, "open"), (0.04, "closed"), (0.3, "smile"), (1.15, "open"))
     a.att("mouth", (0.0, "default"), (0.25, "smile"), (1.15, "default"))
@@ -110,7 +143,7 @@ def touch():
 
 def victory():
     """Hand on her hip, the stand leaned in, a bounce on every beat (0.5 s intro, 2.0 s loop at 120 BPM)."""
-    a = Anim("victory", 2.5, loop=True, loop_start=0.5, mix=0.15)
+    a = A("victory", 2.5, loop=True, loop_start=0.5, mix=0.15)
     # elbow out, wrist on the hip ring at about (655, 1235): arm -38, forearm +90 (worked from the rest
     # pose: shoulder (607, 965), elbow (621, 1143), wrist (688, 1288))
     a.rot("arm_l", (0.0, 0), (0.35, -38, BO), (2.5, -38))
@@ -122,7 +155,7 @@ def victory():
     beats = [(0.0, 0, 0)]
     for k in range(5):
         t = 0.5 + 0.5 * k
-        beats += [(t, 0, 7 if k % 4 == 0 else 4, QI), (t + 0.25, 0, -1, "quad_out")]
+        beats += [(t, 0, 14 if k % 4 == 0 else 10, QI), (t + 0.25, 0, -3, QO)]
     a.tr("hips", *beats)
     for k in range(5):
         a.ev(round(0.5 + 0.5 * k + 0.02, 3), "jiggle:0,%d" % (190 if k % 4 == 0 else 120))
@@ -133,7 +166,7 @@ def victory():
 
 def idle_wings():
     """Idle gesture: a deep breath and a long wing stretch with a shake, eyes drifting shut (2.4 s)."""
-    a = Anim("idle_wings", 2.4, mix=0.25, mix_out=0.4)
+    a = A("idle_wings", 2.4, mix=0.25, mix_out=0.4)
     a.tr("chest", (0.0, 0, 0), (0.7, 0, -7, S), (1.3, 0, -6, S), (1.9, 0, 2, QI), (2.4, 0, 0, S))
     a.sc("chest", (0.0, 1, 1), (0.7, 1.012, 1.03, S), (1.9, 1, 1, S))
     a.rot("head", (0.0, 0), (0.7, -4, S), (1.4, -5, S), (2.4, 0, S))
@@ -148,7 +181,7 @@ def idle_wings():
 
 def idle_sway():
     """Idle gesture: she sways and nods to a song in her head, humming (2.5 s, two bars at 96 BPM)."""
-    a = Anim("idle_sway", 2.5, mix=0.25, mix_out=0.35)
+    a = A("idle_sway", 2.5, mix=0.25, mix_out=0.35)
     beat = 0.625
     hx = [(0.0, 0, 0, S)]
     for k in range(4):
@@ -170,7 +203,7 @@ def idle_sway():
 
 def idle_lean():
     """Idle gesture: she leans toward the stand, hand to hip, a knowing smile (3.0 s)."""
-    a = Anim("idle_lean", 3.0, mix=0.3, mix_out=0.45)
+    a = A("idle_lean", 3.0, mix=0.3, mix_out=0.45)
     a.tr("hips", (0.0, 0, 0), (0.6, 8, 3, S), (2.4, 8, 3, S), (3.0, 0, 0, S))
     a.rot("torso", (0.0, 0), (0.6, -3, S), (2.4, -3, S), (3.0, 0, S))
     a.rot("head", (0.0, 0), (0.6, -6, S), (2.4, -5, S), (3.0, 0, S))

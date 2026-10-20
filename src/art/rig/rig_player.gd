@@ -136,7 +136,7 @@ var _br_u := 0.0                      # last frame's place in the breath (0..1)
 var _sw_last := 0.0                   # last frame's sway (-1..1), for its turns
 const IDLE_DEFAULTS := {"breath": 3.4, "noise": 1.0, "head": 1.0, "arms": 1.0, "wings": 1.0,
 	"sway": 0.0, "sway_period": 7.2, "sway_rot": 0.0, "sway_dip": 0.0, "kick_breath": 0.0, "kick_sway": 0.0,
-	"iris_x": 2.5, "iris_y": 1.0}
+	"iris_x": 2.5, "iris_y": 1.0, "gaze": 1.0}
 var _talk_left := 0.0                 # talk(): seconds of talking left
 var _talk_next := 0.0                 # seconds to the next mouth shape
 var _talk_shape := ""                 # the mouth shape now ("" = closed)
@@ -717,7 +717,7 @@ func _idle_drive() -> void:
 	_gaze_t -= dt
 	if _gaze_t <= 0.0:
 		_gaze_t = randf_range(1.5, 4.5)
-		_gaze_to = Vector2(randf_range(-0.45, 0.45), randf_range(-0.22, 0.18)) if randf() < 0.75 else Vector2.ZERO
+		_gaze_to = Vector2(randf_range(-0.45, 0.45), randf_range(-0.22, 0.18)) * float(_ic.get("gaze", 1.0)) 			if randf() < 0.75 else Vector2.ZERO
 	if dt > 0.0:
 		_gaze += (_gaze_to - _gaze) * (1.0 - exp(-dt / 0.45))
 	_gaze += Vector2(0.04 * _noise(_clock, _seed + 3.3, 0.21), 0.03 * _noise(_clock, _seed + 5.1, 0.17)) * dt * 4.0

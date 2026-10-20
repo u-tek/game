@@ -254,6 +254,30 @@ this file says where things stand. Older logs are under "History" at the bottom.
       - **Scripts:** now in `tools/layered/`: the README has the per-hero steps, plus `seraphiel_rig.py`,
         `seraphiel_anims.py`, `sam_cut.py`, `fill_hidden.py`, `st_to_canvas.py` and
         `run_preview.sh`. The work files stay in `art_src/_review/rigproto/seraphiel/`.
+    - **Fixes from a frame-by-frame review of v4 (a review agent, 67 frames plus optical flow):**
+      - **Eyes:** an iris vanished during head turns because the iris layer sat at a different depth
+        from the face. It now has the face's depth (`DEPTH_DEFAULT` "iris"). Darts and head turns are
+        smaller, and the eye white has a lid shadow. The half-lid frame is now really half closed
+        (MOSS try s101504).
+      - **One-frame jumps:** a key's ease shapes the segment that leaves it, but the animations were
+        written as if it shaped the arrival. `seraphiel_anims.py` now shifts eases (class `A`), and
+        expo-out strikes became cubic-out over 4 or more frames.
+      - **Attack:**
+        - The mic grille crossed her eyes; the joint chain was solved again.
+        - The pole is painted out of her fist, so the stand turns 64° in her grip and the mic lands
+          by her chin.
+        - The stand is planted through the wind-up, and everything is home before it is set down
+          (no skid).
+      - **Poke:** the elbow leads, so the hand no longer passes through her lap, and her palm turns
+        down.
+      - **Victory:** a 10-14 px bounce with the hard contact at the bottom.
+      - **Hair:** it hangs by gravity (`g` 0.8-0.85) instead of fanning against head tilts.
+      - **Asset cleanup:** a stray grille sliver is gone from the halo layer, and small pockets in
+        the wing cut are filled.
+      - **Previews:** `art_preview.gd` jobs can render over an opaque `"bg"`, so glows read as light
+        and edges have no dark fringe.
+      - **Legs:** the reviewer saw them as "locked". A difference image shows they lean with the hip
+        sway over the planted feet; it's subtle from the front.
     - **Still open:**
       - The six wings share one layer.
       - An arm raised past about 130° needs a painted drawing.

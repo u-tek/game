@@ -40,7 +40,7 @@ if not os.path.isdir(os.path.join(RIG, "variants")):
     shutil.copytree(os.path.join(V1, "variants"), os.path.join(RIG, "variants"))
 # expression frames made later (variants.py on the rig-pose final; HALO_ART_SRC=art_src/_review/rigproto):
 # the picked try of each
-PICKS = {"eyes_half": "eyes_half_s101501", "mouth_small": "mouth_small_s101500", "mouth_wide": "mouth_wide_s101501"}
+PICKS = {"eyes_half": "eyes_half_s101504", "mouth_small": "mouth_small_s101500", "mouth_wide": "mouth_wide_s101501"}
 for vname, pick in PICKS.items():
     cands = sorted(f for f in os.listdir(os.path.join(SRC, "variants", "candidates")) if f.startswith(vname + "_s") and f.endswith(".png"))
     f = pick + ".png" if pick else (cands[0] if cands else None)
@@ -122,6 +122,26 @@ def compose(rl):
 
 rl_img = {rl: compose(rl) for rl in ("back_hair", "wings", "extras", "drapes", "legs", "body", "stand", "arms", "front_hair",
                                      "irides", "lashes")}
+# small strays: a sliver of the mic grille caught in the halo sheet rode on the head; enclosed pockets
+# in the wing cut showed as black bites
+ex = rl_img["extras"]
+lab_x, n_x = ndimage.label(ex[..., 3] > 40)
+if n_x:
+    sizes = ndimage.sum(np.ones_like(lab_x), lab_x, range(1, n_x + 1))
+    for k, sz in enumerate(sizes, 1):
+        if sz < 400:
+            ex[lab_x == k, 3] = 0
+wg = rl_img["wings"]
+wsol = wg[..., 3] > 127
+pockets = ndimage.binary_fill_holes(wsol) & ~wsol
+lab_p, n_p = ndimage.label(pockets)
+if n_p:
+    sizes = ndimage.sum(np.ones_like(lab_p), lab_p, range(1, n_p + 1))
+    small = np.isin(lab_p, [k for k, sz in enumerate(sizes, 1) if sz < 3000])
+    _, (iy, ix) = ndimage.distance_transform_edt(~wsol, return_indices=True)
+    wg[small, :3] = wg[iy[small], ix[small], :3]
+    wg[small, 3] = 255
+    print("wings: %d small pockets filled" % int(len([1 for sz in sizes if sz < 3000])))
 
 # the eyes: the irises are their own piece (they dart about) between the face and the lash lines;
 # See-through left no eye white, so the white under each iris is painted from the visible sclera
@@ -139,7 +159,7 @@ for k in range(1, n_e + 1):
         continue
     ys_e = np.nonzero(sel)[0]
     t = (yy - ys_e.min()) / max(ys_e.max() - ys_e.min(), 1)       # the lid's shadow on the top of the white
-    shade_e = 0.86 + 0.14 * np.clip(t, 0, 1)
+    shade_e = 0.76 + 0.24 * np.clip(t, 0, 1) ** 0.7
     eye_body[sel, :3] = sclera[None, :] * shade_e[sel, None]
     eye_body[sel, 3] = 255
 rl_img["body"] = eye_body
@@ -283,6 +303,17 @@ for side, sel in (("r", xx < 512), ("l", xx >= 512)):
     dseg = np.stack([seg_dist(ch[k], ch[k + 1]) for k in range(3)])
     nearest = np.argmin(dseg, axis=0)
     cap = np.hypot(xx - ch[1][0], yy - ch[1][1]) <= ARM_CAP[side]
+    if side == "r":
+        # the pole painted inside her fist comes out (inpainted from the hand round it): the stand is
+        # its own layer behind the fist, so it can turn in her grip at any angle
+        hand_m = ndimage.binary_dilation(np.asarray(Image.open(os.path.join(SAM, "hand_r.png"))) > 127, iterations=2)
+        pole_in = hand_m & (L["objects"][..., 3] > 90) & (a[..., 3] > 60)
+        pole_in = ndimage.binary_dilation(pole_in, iterations=1) & (a[..., 3] > 60)
+        rgb8 = np.clip(a[..., :3], 0, 255).astype(np.uint8)
+        fixed = cv2.cvtColor(cv2.inpaint(cv2.cvtColor(rgb8, cv2.COLOR_RGB2BGR), pole_in.astype(np.uint8) * 255, 4,
+                                         cv2.INPAINT_TELEA), cv2.COLOR_BGR2RGB)
+        a[pole_in, :3] = fixed[pole_in]
+        print("arm_r: %d pole px painted out of the fist" % int(pole_in.sum()))
     for piece, want in (("up", nearest == 0), ("fore", nearest >= 1)):
         m = ndimage.gaussian_filter((want | cap).astype(np.float32), 0.8)
         pc = a.copy()
@@ -400,7 +431,7 @@ for lk, (x0, x1) in HAIR_LOCKS.items():
         px = int(xs_b.mean()) + x0 if len(xs_b) else (x0 + x1) // 2
         hair_regions.append({"name": nm, "soft": 22, "rule": M("back_hair", within=P([[x0, y0], [x1, y0], [x1, y1], [x0, y1]]))})
         hair_bones.append({"name": nm, "parent": parent, "pivot": [px, y0],
-                           "spring": "hair_long;w=0.06;i=0.62;limit=13;k=%d" % (48 - 5 * k)})
+                           "spring": "hair_long;w=0.06;i=0.62;g=0.8;limit=13;k=%d" % (48 - 5 * k)})
         parent = nm
 hair_regions.reverse()           # the lowest segments first (priority), the mass on the head last
 BANG_LOCKS = {"hair_front_r": (0, 480, 455), "hair_front": (480, 548, 515), "hair_front_l": (548, 1024, 578)}
@@ -464,7 +495,7 @@ bones = [
     {"name": "face", "parent": "head", "pivot": [515, 880]},
     {"name": "iris", "parent": "face", "pivot": [515, 856]},
 ] + [{"name": n, "parent": "head", "pivot": [px, 800], "spring": "bangs"} for n, (_, _, px) in BANG_LOCKS.items()] + [
-    {"name": "hair_back", "parent": "head", "pivot": [512, 830], "spring": "hair_mass"},
+    {"name": "hair_back", "parent": "head", "pivot": [512, 830], "spring": "hair_mass;g=0.85"},
 ] + hair_bones + [
     {"name": "halo", "parent": "head", "pivot": [515, 775], "spring": "accessory;limit=5"},
     {"name": "head_wing_r", "parent": "head", "pivot": [470, 830], "spring": "accessory;limit=10"},
@@ -525,7 +556,8 @@ src = {
              # 7.2 s, faster drift, and bounce kicks at each breath and each turn of the sway
              "idle_gestures": ["idle_wings", "idle_sway", "idle_lean"],
              "idle": {"breath": 6.0, "noise": 2.2, "head": 1.6, "arms": 2.2, "wings": 1.8, "sway": 9.0,
-                      "sway_period": 7.2, "sway_rot": 1.6, "sway_dip": 2.5, "kick_breath": 95.0, "kick_sway": 60.0}},
+                      "sway_period": 7.2, "sway_rot": 1.6, "sway_dip": 2.5, "kick_breath": 95.0, "kick_sway": 60.0,
+                      "iris_x": 1.8, "iris_y": 0.6, "gaze": 0.6}},
     "body_bone": "hips", "bones": bones, "regions": regions, "layers": layers,
     "ik": [{"upper": "thigh_r", "lower": "shin_r", "target": "ik_foot_r", "foot": "foot_r", "knee_room": 10},
            {"upper": "thigh_l", "lower": "shin_l", "target": "ik_foot_l", "foot": "foot_l", "knee_room": 10}],

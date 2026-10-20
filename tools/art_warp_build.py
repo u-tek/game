@@ -273,7 +273,7 @@ MAP_SCALE = 2          # weight maps at half resolution
 # (base, bulge): a part sits at `base` (+ toward the viewer) and swells by `bulge` toward its middle
 # (a pillow from its mask), so a turn slides the bangs over the face, the face over the skull and
 # the back hair the other way. First match wins.
-DEPTH_DEFAULT = [("face", (0.55, 0.45)), ("hair_front", (1.1, 0.1)), ("bangs", (1.1, 0.1)), ("hair_side", (0.45, 0.2)),
+DEPTH_DEFAULT = [("iris", (0.9, 0.0)), ("face", (0.55, 0.45)), ("hair_front", (1.1, 0.1)), ("bangs", (1.1, 0.1)), ("hair_side", (0.45, 0.2)),
                  ("hair_back", (-0.6, 0.1)), ("hair_long", (-0.6, 0.1)), ("ponytail", (-0.5, 0.1)),
                  ("braid", (-0.3, 0.1)), ("ahoge", (0.3, 0.0)), ("ear", (-0.2, 0.1)), ("halo", (-0.45, 0.0)),
                  ("horn", (-0.1, 0.1)), ("head", (0.15, 0.5)), ("neck", (0.0, 0.2)), ("breast", (0.6, 0.5)),
