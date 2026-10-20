@@ -555,6 +555,9 @@ backwards compatible:
 - **Moving eyes:** a bone named `iris` (the irises as their own layer between the face and a lash
   layer, the eye white painted in under them) gets saccades in the idle: a quick jump every
   0.8-2.8 s, sized by `meta.idle` `iris_x`/`iris_y` (px). It also follows `look`.
+- **Idle gestures:** `HeroSprite` plays one of the rig's `meta.idle_gestures` (animation names) on
+  the overlay track every 9-16 s while she idles (`idle_gestures`; previews only on request).
+- **Making one:** `tools/layered/README.md` has the steps, and Seraphiel's scripts are the reference.
 - **Half-lid blink.** An eyes slot with a `half` variant blinks in steps (open, half, closed, half,
   open) with no cross-fade. `data/art_prompts.json` variant `eyes_half` makes the frame.
 - **Jointed limbs** (prototype cut, `make_rig2.py`):

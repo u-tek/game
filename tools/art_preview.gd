@@ -209,6 +209,7 @@ func _make(j: Dictionary) -> HeroSprite:
 		s = HeroArt.make_sprite(hero, str(j.get("skin", ""))) as HeroSprite
 	if j.has("holo"):          # "holo": false shows a Legendary hero without the foil
 		s.holo = bool(j["holo"])
+	s.idle_gestures = bool(j.get("idle_gestures", false))      # previews play them only when asked
 	return s
 
 

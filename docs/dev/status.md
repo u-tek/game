@@ -194,7 +194,7 @@ this file says where things stand. Older logs are under "History" at the bottom.
       - It is installed at `D:/AI/see-through` in its own Python 3.12 environment, with `HF_HOME` set to
         `D:/AI/see-through/hf_home`.
       - Run `inference_psd_blockswap.py --resolution 1280` after freeing ComfyUI's VRAM (`POST /free`).
-    - **Rig:** `art_src/_review/rigproto/` (git-excluded) holds the scripts.
+    - **Rig (v1):** `art_src/_review/rigproto/` (git-excluded) held the v1 scripts.
       - `st_to_canvas.py` places the layers on the canvas: 98% overlap with the final.
       - `make_rig.py` builds 9 rig layers (the painting's own pixels wherever a layer shows; the halo and
         head wings come from the painting) and 32 bones (wings split by angle).
@@ -245,7 +245,15 @@ this file says where things stand. Older logs are under "History" at the bottom.
       - **Face:** the irises are a separate layer that darts every 1-3 s. Talking steps through four
         mouth shapes (closed, small, open, and a wide singing mouth for belting; `mouth_small` and
         `mouth_wide` are new bible variants, MOSS tries s101500 and s101501).
+      - **Idle gestures:** a wing stretch with a deep breath, a hummed sway to a beat, and a lean on the
+        stand with her hand on her hip. `HeroSprite` plays one every 9-16 s from the rig's
+        `meta.idle_gestures`.
       - 58 bones, 17 layers.
+      - **Videos sent:** `seraphiel_rig_v3*.mp4`, `seraphiel_rig_v4*.mp4` and `seraphiel_lobby_idle.mp4`, all
+        in `art_src/_review/rigproto/`.
+      - **Scripts:** now in `tools/layered/`: the README has the per-hero steps, plus `seraphiel_rig.py`,
+        `seraphiel_anims.py`, `sam_cut.py`, `fill_hidden.py`, `st_to_canvas.py` and
+        `run_preview.sh`. The work files stay in `art_src/_review/rigproto/seraphiel/`.
     - **Still open:**
       - The six wings share one layer.
       - An arm raised past about 130° needs a painted drawing.

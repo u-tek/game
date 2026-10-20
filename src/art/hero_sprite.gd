@@ -51,6 +51,12 @@ var _holo_motion := -1.0       ## motion uniform last sent (Reduce motion holds 
 
 ## Holographic foil on her art (holo_foil.gdshader). setup() turns it on for Legendary heroes, in
 ## every look; set it false where she is small or busy (battle units). Warp rigs only.
+## Idle gestures (the rig's meta "idle_gestures": animation names): while she idles, one plays on
+## the overlay track every 9-16 s (a wing stretch, a sway to a beat ...), so a lobby idle never
+## visibly loops. Rigs without the list are unaffected.
+var idle_gestures := true
+var _gesture_t := 7.0
+
 var holo := false:
 	set(v):
 		holo = v
@@ -395,6 +401,13 @@ func _process(delta: float) -> void:
 		return
 	_t += delta
 	_body.position = _lunge_vec * rig.lunge
+	if idle_gestures and not is_dead and rig.current(0) == _anim("idle") and not rig.is_playing(1):
+		_gesture_t -= delta
+		if _gesture_t <= 0.0:
+			_gesture_t = randf_range(9.0, 16.0)
+			var gl: Variant = rig.rig.meta.get("idle_gestures", []) if rig.rig else []
+			if gl is Array and not (gl as Array).is_empty():
+				rig.play(str((gl as Array)[randi() % (gl as Array).size()]), 1)
 	if _holo_on:
 		_sync_holo_motion()
 	if _hit_flash > 0.0:
