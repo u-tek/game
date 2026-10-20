@@ -71,6 +71,7 @@ func setup(u: Dictionary, k: float, facing: int, echo: bool, bars_layer: Node2D)
 	home_facing = facing
 	# The player's heroes wear their equipped skin; enemies (campaign echoes) keep the base look.
 	sprite = HeroArt.make_sprite(hero_id, Game.equipped_skin(hero_id) if side == "ally" else "")
+	sprite.set("holo", false)    # the Legendary foil is for the big portraits, not the battlefield
 	add_child(sprite)
 	sprite.scale = Vector2(k, k)
 	sprite.call("set_facing", facing)

@@ -3,7 +3,7 @@
 #   tools/shoot <screen> [--res 720x1560] [--out path.png] [--place] [any extra game args...]
 # Extra game args: --fresh | --rich (+ --skins: owned heroes wear a skin, --nudity), --safe-area-sim,
 #   --shoot-params='{"hero_id":"seraphiel"}',
-#   --shoot-wait=2.0
+#   --shoot-wait=2.0, --tilt=-0.45,0.05 (holds the phone tilt: the Legendary foil, the plates), --ldr
 # --place (Windows): holds the window 60 s so the owner can drag it where shots should open; the
 #   spot is saved in screenshots/.shot_window and every later shot opens there.
 # Prints the PNG path and any script errors. View the PNG with the Read tool.

@@ -16,6 +16,8 @@ extends Control
 ## Screenshot mode (docs/dev/architecture.md section 1), args after "--":
 ##   --shoot=<screen> --shoot-out=<png> --shoot-params=<json> --shoot-wait=<s>
 ##   --safe-area-sim  (108 px top / 62 px bottom insets, like a notched iPhone)
+##   --tilt=x,y  holds the phone tilt (ui_tilt, about -0.6..0.6): the Legendary foil and the plates
+##   at a fixed lean, e.g. --tilt=-0.45,0.05 (left), --tilt=0,0 (at rest), --tilt=0.45,-0.1 (right)
 ##   --shoot=boot                 the boot screen (held), --shoot-from=<screen> opens that
 ##   screen first and navigates after 0.6 s (catch a transition with a short --shoot-wait),
 ##   --shoot-do=toast|confirm|reward|veil  opens one of those over the screen.
@@ -81,12 +83,18 @@ var _chrome_shown := Vector2i(-1, -1)
 
 ## Style v4 "Signal" lighting: HDR 2D bloom (WorldEnvironment glow over the canvas; emissive UI
 ## colours above 1.0 bloom) and the "ui_tilt" shader global the metal plates reflect their studio by.
-## On a phone the tilt follows how the device moves (a high-passed gravity vector); elsewhere it
-## drifts slowly so reflections stay alive.
+## On a phone the tilt follows how the device moves (a high-passed gravity vector). On a desktop it
+## follows the mouse while it moves over the window (its offset from the centre, so the Legendary
+## foil and the plates can be checked without a phone) and otherwise drifts slowly so reflections
+## stay alive. --tilt=x,y holds it at one value (screenshots: tilt left / right for the foil).
 var _tilt := Vector2.ZERO
 var _ui_px := -1.0
 var _grav_base := Vector3.ZERO
 var _tilt_t := 0.0
+var _tilt_fixed := Vector2.INF
+var _mouse_seen := -100.0          ## _tilt_t when the mouse last moved (desktop)
+const MOUSE_TILT := 1.1            ## tilt per window width / height from the centre (corners ~0.55)
+const MOUSE_TILT_HOLD := 4.0       ## s after the last mouse move before the tilt drifts again
 
 
 ## The screen as an sRGB image. With HDR 2D the viewport texture holds linear colour, so it is
@@ -135,15 +143,20 @@ func _process(delta: float) -> void:
 	_tilt_t += delta
 	var g := Input.get_gravity()
 	var want := Vector2.ZERO
+	var mouse := _mouse_tilt()
 	if g.length_squared() > 0.01:
 		if _grav_base == Vector3.ZERO:
 			_grav_base = g
 		_grav_base = _grav_base.lerp(g, clampf(delta * 0.6, 0.0, 1.0))
 		var d := (g - _grav_base) / 9.8
 		want = Vector2(d.x, -d.y) * 2.2
+	elif mouse.is_finite():
+		want = mouse
 	elif Kit.motion_ok():
 		want = Vector2(sin(_tilt_t * 0.31), cos(_tilt_t * 0.23)) * 0.12
 	_tilt = _tilt.lerp(want.limit_length(0.6), clampf(delta * 6.0, 0.0, 1.0))
+	if _tilt_fixed.is_finite():
+		_tilt = _tilt_fixed
 	RenderingServer.global_shader_parameter_set(&"ui_tilt", _tilt)
 	# Device pixels per UI pixel (the canvas_items stretch), for shaders that read the screen at
 	# offsets measured in UI pixels (deboss, acrylic frost).
@@ -217,6 +230,23 @@ func _boot(hold: bool = false) -> void:
 		UI.play_intro()
 		return
 	boot.finish(func() -> void: UI.play_intro())
+
+
+## Desktop stand-in for tilting the phone: the mouse's offset from the window centre while it moves
+## over the window (INF when it doesn't apply: a phone, a screenshot run, the mouse resting or away).
+func _mouse_tilt() -> Vector2:
+	if not OS.has_feature("pc") or _shoot.has("screen") or _tilt_t - _mouse_seen > MOUSE_TILT_HOLD:
+		return Vector2.INF
+	var vs := get_viewport().get_visible_rect().size
+	var m := get_viewport().get_mouse_position()
+	if vs.x <= 0.0 or vs.y <= 0.0 or not Rect2(Vector2.ZERO, vs).has_point(m):
+		return Vector2.INF
+	return (m / vs - Vector2(0.5, 0.5)) * MOUSE_TILT
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion:
+		_mouse_seen = _tilt_t
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -931,6 +961,15 @@ func _parse_args() -> void:
 			get_viewport().use_hdr_2d = false
 		elif a == "--safe-area-sim":
 			UI.safe_override = Vector2(108, 62)
+		elif a.begins_with("--holo-debug="):
+			# The Legendary foil's debug views (tuning): 1 its masks, 2 what it adds.
+			HeroSprite.holo_debug = a.substr("--holo-debug=".length()).to_int()
+		elif a.begins_with("--tilt="):
+			# Holds the ui_tilt global (the phone's tilt) at x,y, about -0.6..0.6 (screenshots of the
+			# Legendary foil and the tilt-lit plates).
+			var v := a.substr("--tilt=".length()).split(",")
+			if v.size() == 2:
+				_tilt_fixed = Vector2(v[0].to_float(), v[1].to_float())
 
 
 func _run_shoot() -> void:

@@ -9,6 +9,10 @@ extends Node2D
 ## "release" when a spell leaves the hand, "step"/"land" for sounds; anim_finished(name);
 ## vfx_requested(kind, global_pos, facing) for animation events named "vfx_<kind>" - the battle
 ## screen spawns the effect (kinds: slash, thrust, bolt, burst, sparkle, charge, dissolve).
+##
+## Legendary heroes wear a holographic foil in every look (holo; src/art/holo_foil.gdshader): a
+## rainbow film, a glare sweep and glitter on her glossy materials that move with the phone's tilt,
+## wherever she is shown large. Battle units turn it off (unit_view.gd).
 
 signal anim_event(name: String)
 signal anim_finished(name: String)
@@ -18,6 +22,13 @@ const BASE_SCALE := 0.145
 const FALLBACK_RIG := "_silhouette"
 const LUNGE_STOP := 120.0       ## px (node space) a melee lunge stops short of the target
 const BOSS_SCALE := 1.3
+const HOLO_SHADER := preload("res://src/art/holo_foil.gdshader")
+## Foil weight per bone (by name; others 1.0): never the face, little on hair and the head (hair,
+## not headgear, is most of it), softer on big feathered wings, so the foil sits on her outfit,
+## armour and weapon.
+const HOLO_BONE_FOIL := {"face": 0.0, "head": 0.45, "neck": 0.7}
+const HOLO_HAIR_FOIL := 0.3
+const HOLO_WING_FOIL := 0.6
 
 var hero_id := ""
 var role := ""
@@ -35,8 +46,19 @@ var _boss := false
 var _echo := false
 var _t := 0.0
 var _hit_flash := 0.0
+var _holo_on := false          ## the foil shader is on the rig
+var _holo_motion := -1.0       ## motion uniform last sent (Reduce motion holds it at 0)
+
+## Holographic foil on her art (holo_foil.gdshader). setup() turns it on for Legendary heroes, in
+## every look; set it false where she is small or busy (battle units). Warp rigs only.
+var holo := false:
+	set(v):
+		holo = v
+		_apply_holo()
 
 static var _shadow_tex: Texture2D
+## Debug (main.gd --holo-debug=N; tuning only): 1 shows the foil's masks, 2 what the foil adds.
+static var holo_debug := 0
 
 
 ## Builds the sprite for `id` (a HeroData id). Unknown art falls back to a faction-tinted
@@ -88,7 +110,47 @@ func setup(id: String, skin_art: String = "") -> void:
 		rig.set_tint(&"map_light", fc.lightened(0.35))
 	rig.anim_event.connect(_on_event)
 	rig.anim_finished.connect(_on_finished)
+	holo = not is_fallback and str(def.get("rarity", "")) == "legendary"
 	play_idle()
+
+
+## Puts the foil shader on the rig (or takes it off) with her face ellipse and the per-bone weights.
+func _apply_holo() -> void:
+	var want := holo and rig != null and rig.rig != null and rig.rig.kind == "warp" and not is_fallback
+	if want == _holo_on:
+		return
+	if rig == null or not rig.set_warp_shader(HOLO_SHADER if want else null):
+		_holo_on = false
+		return
+	_holo_on = want
+	_holo_motion = -1.0
+	if not want:
+		return
+	var rd := rig.rig
+	var w := PackedFloat32Array()
+	w.resize(RigPlayer.MAX_WARP_BONES)
+	for i in w.size():
+		w[i] = 1.0
+		if i < rd.bone_names.size():
+			var n := rd.bone_names[i]
+			if HOLO_BONE_FOIL.has(n):
+				w[i] = float(HOLO_BONE_FOIL[n])
+			elif n.begins_with("hair") or n in ["ponytail", "braid", "bangs"]:
+				w[i] = HOLO_HAIR_FOIL
+			elif n.begins_with("wing"):
+				w[i] = HOLO_WING_FOIL
+	rig.set_warp_param(&"bone_foil", w)
+	rig.set_warp_param(&"face_ellipse", rd.face_ellipse())
+	rig.set_warp_param(&"debug_view", holo_debug)
+	_sync_holo_motion()
+
+
+## Reduce motion (the setting) holds the foil still and gentle; checked every frame (cheap).
+func _sync_holo_motion() -> void:
+	var m := 1.0 if Kit.motion_ok() else 0.0
+	if m != _holo_motion:
+		_holo_motion = m
+		rig.set_warp_param(&"motion", m)
 
 
 func _fx_color() -> Color:
@@ -327,6 +389,8 @@ func _process(delta: float) -> void:
 		return
 	_t += delta
 	_body.position = _lunge_vec * rig.lunge
+	if _holo_on:
+		_sync_holo_motion()
 	if _hit_flash > 0.0:
 		_hit_flash = maxf(0.0, _hit_flash - delta * 6.0)
 		rig.set_tint(&"flash", _hit_flash * 0.65)

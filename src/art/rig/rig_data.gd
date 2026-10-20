@@ -30,6 +30,8 @@ var bounds := Rect2(-512, -1240, 1024, 1280)
 var portrait_rect := Rect2()
 var still_path := ""
 var portrait_path := ""
+var _base := ""                          ## file base this rig was loaded from (load_rig)
+var _face := Vector4.ZERO                ## face_ellipse() cache
 
 # Bones, parents before children.
 var bone_names := PackedStringArray()
@@ -107,6 +109,7 @@ static func load_rig(hero_id: String, skin_art: String = "") -> RigData:
 		return null
 	var r := RigData.new()
 	r._load(d, hero_id, art_dir(hero_id, skin_art))
+	r._base = base
 	_cache[key] = r
 	return r
 
@@ -273,6 +276,42 @@ func _patch_mesh(r: Rect2) -> ArrayMesh:
 
 func bone(name: String) -> int:
 	return int(bone_index.get(name, -1))
+
+
+## Her face as an ellipse in rig space: (centre x, centre y, radius x, radius y). From the warp
+## source's "face" region (<base>.warp_src.json, the hand-drawn rig regions) when it has one, else
+## estimated from portrait_rect (portraits are framed on the face), else around the "face" bone.
+## For effects that must leave her face alone (the Legendary foil, HeroSprite.holo). Cached.
+func face_ellipse() -> Vector4:
+	if _face != Vector4.ZERO:
+		return _face
+	var src_path := _base + ".warp_src.json"
+	if _base != "" and FileAccess.file_exists(src_path):
+		var src: Variant = JSON.parse_string(FileAccess.get_file_as_string(src_path))
+		if src is Dictionary:
+			var og: Array = (src as Dictionary).get("origin", [origin.x, origin.y])
+			var k := 1.0
+			if (src as Dictionary).has("image_size"):
+				k = canvas.x / maxf(float(((src as Dictionary).image_size as Array)[0]), 1.0)
+			for reg: Variant in (src as Dictionary).get("regions", []):
+				if not (reg is Dictionary) or str((reg as Dictionary).get("name", "")) != "face":
+					continue
+				var rule: Dictionary = (reg as Dictionary).get("rule", {})
+				if str(rule.get("type", "")) == "ellipse":
+					var c: Array = rule.get("center", [0, 0])
+					var rr: Array = rule.get("radius", [60, 50])
+					_face = Vector4((float(c[0]) - float(og[0])) * k, (float(c[1]) - float(og[1])) * k,
+						float(rr[0]) * k, float(rr[1]) * k)
+					return _face
+	if portrait_rect.size.x > 0.0:
+		var s := portrait_rect.size.x
+		var pc := portrait_rect.get_center() - origin
+		_face = Vector4(pc.x, pc.y + s * 0.016, s * 0.175, s * 0.147)
+		return _face
+	var fb := bone("face")
+	var at := setup_world[fb] if fb >= 0 else Vector2(0.0, bounds.position.y * 0.82)
+	_face = Vector4(at.x, at.y + 10.0, 70.0, 60.0)
+	return _face
 
 
 ## Total pixels of part textures (memory estimate: x4 bytes, x1.33 with mipmaps).

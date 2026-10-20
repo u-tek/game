@@ -423,6 +423,40 @@ func set_tint(param: StringName, value: Variant) -> void:
 	_apply_tint_param(param, value)
 
 
+## Draws the warp mesh and its overlay patches with `sh` instead of the plain warp shader (null
+## restores it). `sh` must include rig_tint.gdshaderinc and warp_skin.gdshaderinc (the Legendary
+## foil, src/art/holo_foil.gdshader, does). Warp rigs only; returns false for cutout rigs.
+func set_warp_shader(sh: Shader) -> bool:
+	if _warp_mat == null:
+		return false
+	var want: Shader = sh if sh != null else WARP_SHADER
+	if _warp_mat.shader != want:
+		_warp_mat.shader = want
+		# Uniforms are set again for the new shader: the skinning, the tints, the pose.
+		_warp_mat.set_shader_parameter(&"body_bone", rig.body_bone)
+		for k: StringName in _tint:
+			_apply_tint_param(k, _tint[k])
+		_upload_warp()
+	return true
+
+
+## Sets a uniform of the warp material (the shader set_warp_shader chose); no-op on cutout rigs.
+func set_warp_param(param: StringName, value: Variant) -> void:
+	if _warp_mat != null:
+		_warp_mat.set_shader_parameter(param, value)
+
+
+## A uniform of the warp material as last set (null on cutout rigs or when never set).
+func get_warp_param(param: StringName) -> Variant:
+	return _warp_mat.get_shader_parameter(param) if _warp_mat != null else null
+
+
+## The shader drawing the warp mesh (WARP_SHADER unless set_warp_shader changed it); null on
+## cutout rigs.
+func warp_shader() -> Shader:
+	return _warp_mat.shader if _warp_mat != null else null
+
+
 func reset_physics() -> void:
 	_sp_ready = false
 

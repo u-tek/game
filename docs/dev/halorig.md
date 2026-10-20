@@ -248,6 +248,21 @@ fallback silhouette: dark #0d0a1c, mid = faction colour darkened 40 %, light = l
 a glow band in `dissolve_color` just above the threshold). N = value noise of `fract(sin(dot(p,
 (127.1, 311.7)))·43758.5453)`, smoothstep-interpolated; p = mesh-local position.
 
+### 6.6 Legendary holo foil (`src/art/holo_foil.gdshader`, owner 2026-10-20)
+Every look of the nine Legendary heroes wears a tilt-reactive holographic foil wherever she is
+shown large (`HeroSprite.holo`, on from her rarity in `setup()`; `unit_view.gd` turns it off for
+battle units). `RigPlayer.set_warp_shader()` swaps the warp material to the foil shader, which
+skins like `warp.gdshader` (shared `warp_skin.gdshaderinc`, same tint) and adds, on her glossy
+materials only: rainbow thin-film colour on the highlights, a faint sheen on the material, a glare
+band that crosses her as the phone tilts and sparse star glitter. Where: from the painting itself
+(highlights brighter than the texture on both sides at a 12-texel offset in the mips; contrast or
+saturation around them), minus skin (warm hue and skin-level saturation of the neighbourhood),
+fine detail, pale neutral surfaces, the face (`RigData.face_ellipse()`: the warp source's `face`
+region, else from `portrait_rect`) and, per vertex, low bone weights for face (0), head, hair and
+wings (`HeroSprite.HOLO_*`). The tilt is the `ui_tilt` global (main.gd: phone gravity, high-passed;
+on desktop the mouse over the window). Reduce motion holds it still and gentle. Tuning:
+`--tilt=x,y` holds the tilt, `--holo-debug=1` shows the masks, `=2` what the foil adds.
+
 ---------------------------------------------------------------------------------------------
 
 ## 7. HeroSprite (what screens use) - `src/art/hero_sprite.gd`
