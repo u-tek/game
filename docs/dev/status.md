@@ -204,14 +204,16 @@ this file says where things stand. Older logs are under "History" at the bottom.
       the owner.
     - **Owner's verdict on v1:** "i need the breast jiggle to be way better. i need everything to be
       better. can she actually move her limbs or not", and "make her breasts separate too".
-    - **v2 (`rigproto2`, same day):**
+    - **v2 (`rigproto2`, same day; local only, in `.git/info/exclude`):**
       - **Pipeline:** `make_rig2.py` builds it from SAM masks (`sam_cut.py`, ComfyUI venv python) for
         the breasts and hands.
       - **Pieces:** 13 layers. Each breast and each arm is its own layer, and a pendant piece sits over
         the cleavage.
       - **Painted-in parts:** the torso behind the breasts and the wing strip behind the stand were
         repainted with MOSS. `fill_hidden.py` runs a masked repaint at 0.72-0.9. Of the torso tries,
-        one painted a second pair of breasts and one painted hair; seed 22 was right.
+        one painted a second pair of breasts and one painted hair; seed 22 was right. Where the model
+        painted her narrower than the hole, its flat grey backdrop is cleared, so a lifted breast
+        shows the hair behind her.
       - **Bones and weights:** hand bones and two-bone hair and drape chains, 39 bones in all. Every
         layer is weighted only by its own bones.
       - **Breasts:** the new jiggle physics.
