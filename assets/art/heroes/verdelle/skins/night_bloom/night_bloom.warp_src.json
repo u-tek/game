@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for verdelle night_bloom, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s172002, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "night_bloom.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [650, 875, 354],
+  "look_px": [8, 5],
+  "meta": {"weapon": "watering_can", "attack": "attack_ranged", "fx_color": "#ffe9a8", "art": "comfy s172002 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [650, 1287]},
+    {"name": "torso", "parent": "hips", "pivot": [651, 1193]},
+    {"name": "chest", "parent": "torso", "pivot": [650, 1077]},
+    {"name": "neck", "parent": "chest", "pivot": [650, 972]},
+    {"name": "head", "parent": "neck", "pivot": [643, 944]},
+    {"name": "face", "parent": "head", "pivot": [650, 868]},
+    {"name": "hair_front", "parent": "head", "pivot": [650, 789]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [650, 882], "radius": [68, 58], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [650, 812], "radius": [81, 40], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [650, 855], "radius": [131, 125], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[567, 962], [733, 962], [801, 1017], [793, 1173], [756, 1203], [546, 1203], [507, 1173], [499, 1017]], "feather": 40}}
+  ],
+  "overlays": []
+}
