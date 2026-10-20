@@ -35,6 +35,7 @@ varying float v_foil;
 void vertex() {
 	vec2 p = VERTEX;
 	part_pos = p;
+	v_mod = COLOR;
 	VERTEX = warp_skin(p, CUSTOM0, CUSTOM1);
 	int b2;
 	float w2;
@@ -171,5 +172,5 @@ void fragment() {
 		// Kept in 0..1: on the HDR canvas anything brighter would bloom on desktop and not on iOS.
 		o.rgb = to_canvas(clamp(c, vec3(0.0), vec3(1.0)));
 	}
-	COLOR = o * COLOR;
+	COLOR = o * v_mod;
 }

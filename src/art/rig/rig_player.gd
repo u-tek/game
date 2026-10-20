@@ -106,7 +106,11 @@ var _sp_step_tg := PackedVector2Array()
 var _sp_off := PackedFloat32Array()   # last offset (rad), for debugging/previews
 var _sp_ready := false
 var _sp_pp := PackedVector2Array()     # position one physics step earlier: drawn between the two
-var _sp_mass := PackedByteArray()      # 1: a soft mass that shifts (breasts) instead of swinging
+var _sp_mass := PackedByteArray()      # 1: a soft mass that shifts (breasts) instead of swinging; 2: jiggle
+var _sp_tg2 := PackedVector2Array()    # jiggle: the attach point two physics steps back (its acceleration)
+var _sp_side := PackedFloat32Array()   # jiggle: -1 / +1, her right / left (the two sides never move as one)
+var _sp_kick := PackedVector2Array()   # jiggle: velocity kicks waiting for the next step (parent frame)
+var _kick_q: Array = []                # [[seconds left, spring index, kick]] delayed kicks (the far side)
 var _phys_acc := 0.0
 var _clock := 0.0
 # procedural idle state
@@ -122,6 +126,14 @@ var _side := PackedFloat32Array()     # per bone: -1 left of her centre, +1 righ
 var _rank := PackedFloat32Array()     # per bone: order in its group from the top (wings, tail)
 var _knees: Array = []                # [thigh, shin]: thighs turn so the knees stay on the planted shins
 var _seed := 0.0
+## Per-rig idle tuning (warp_src meta "idle"; docs/dev/halorig.md 11.6): every key scales or sets one
+## part of the procedural idle; a rig without it keeps the defaults below.
+var _ic := {}
+var _jig_on := PackedByteArray()      # per bone: 1 = a jiggle spring (the idle kicks it, no breath lag)
+var _br_u := 0.0                      # last frame's place in the breath (0..1)
+var _sw_last := 0.0                   # last frame's sway (-1..1), for its turns
+const IDLE_DEFAULTS := {"breath": 3.4, "noise": 1.0, "head": 1.0, "arms": 1.0, "wings": 1.0,
+	"sway": 0.0, "sway_period": 7.2, "sway_rot": 0.0, "sway_dip": 0.0, "kick_breath": 0.0, "kick_sway": 0.0}
 var _gaze := Vector2.ZERO             # idle look-around (packed rigs): where she looks now
 var _gaze_to := Vector2.ZERO          # ... and where she is turning to
 var _gaze_t := 1.0                    # seconds until she picks a new spot
@@ -160,8 +172,10 @@ var _blink_double := false
 # look + fx
 var look := Vector2.ZERO              ## final look this frame (read-only)
 var lunge := 0.0                      ## lunge channel this frame (read-only)
-var fx := {"glow": 0.0, "hand_glow": 0.0, "aura": 0.0, "flash": 0.0, "trail": 0.0, "fade": 0.0}
-var _fx_names := ["glow", "hand_glow", "aura", "flash", "trail", "fade"]
+var fx := {"glow": 0.0, "hand_glow": 0.0, "aura": 0.0, "flash": 0.0, "trail": 0.0, "fade": 0.0, "carry": 0.0}
+## fx channels blended across tracks; "carry" (0..1) is a held prop's grip mode: 0 planted (it
+## pivots on its base and leans to the hand), 1 carried (rigid in the hand).
+var _fx_names := ["glow", "hand_glow", "aura", "flash", "trail", "fade", "carry"]
 var _glow: Sprite2D
 var _hand_glow: Sprite2D
 var _aura: Sprite2D
@@ -226,8 +240,16 @@ func setup(r: RigData) -> void:
 	_sp_step_tg.resize(ns)
 	_sp_off.resize(ns)
 	_sp_mass.resize(ns)
+	_sp_tg2.resize(ns)
+	_sp_side.resize(ns)
+	_sp_kick.resize(ns)
+	_kick_q.clear()
+	var hb0 := r.bone("hips")
+	var cx0 := r.setup_world[hb0].x if hb0 >= 0 else 0.0
 	for k in ns:
-		_sp_mass[k] = 1 if float((r.spring[_sp_bones[k]] as Dictionary).get("m", 0.0)) > 0.0 else 0
+		_sp_mass[k] = clampi(int(float((r.spring[_sp_bones[k]] as Dictionary).get("m", 0.0))), 0, 2)
+		_sp_side[k] = -1.0 if r.setup_world[_sp_bones[k]].x < cx0 else 1.0
+		_sp_kick[k] = Vector2.ZERO
 	_sp_ready = false
 	_setup_idle(r)
 
@@ -382,13 +404,13 @@ func load_hero(id: String) -> bool:
 # ------------------------------------------------------------------ public API
 
 func has_anim(anim_name: String) -> bool:
-	return RigAnim.find(anim_name, hero_id, rig.anim_kind() if rig else "") != null
+	return RigAnim.find(anim_name, hero_id, rig.anim_kind() if rig else "", rig.dir if rig else "") != null
 
 
 ## Plays `anim_name` on `track` (0 = base/loops, 1+ = overlays). loop: -1 = anim default,
 ## 0 = once, 1 = loop. mix < 0 uses the animation's own "mix". Returns false if missing.
 func play(anim_name: String, track := 0, loop := -1, mix := -1.0) -> bool:
-	var a := RigAnim.find(anim_name, hero_id, rig.anim_kind() if rig else "")
+	var a := RigAnim.find(anim_name, hero_id, rig.anim_kind() if rig else "", rig.dir if rig else "")
 	if a == null:
 		push_warning("RigPlayer[%s]: no animation '%s'" % [hero_id, anim_name])
 		return false
@@ -524,6 +546,20 @@ func reset_physics() -> void:
 	_sp_ready = false
 
 
+## Kicks the jiggle springs (spring "m": 2, the breasts): `v` in rig px/s in her body's frame
+## (+y down, +x to the viewer's right). The far side follows 1-2 frames later and a little softer,
+## so the two never bounce as one block.
+func jiggle(v: Vector2, prefix := "") -> void:
+	for k in _sp_bones.size():
+		if _sp_mass[k] != 2 or (prefix != "" and not rig.bone_names[_sp_bones[k]].begins_with(prefix)):
+			continue
+		var amp := 1.0 + 0.06 * _sp_side[k]
+		if _sp_side[k] > 0.0:
+			_kick_q.append([0.025, k, v * amp * 0.92])
+		else:
+			_sp_kick[k] += v * amp
+
+
 # ------------------------------------------------------------------ procedural idle (format 2)
 
 ## Roles from the bone names (docs/dev/halorig.md 11.3), sides, the order of wings and tail links
@@ -540,6 +576,16 @@ func _setup_idle(r: RigData) -> void:
 	_lag.fill(0.0)
 	_knees.clear()
 	_idle_w = 0.0
+	_ic = IDLE_DEFAULTS.duplicate()
+	var mi: Variant = r.meta.get("idle", {})
+	if mi is Dictionary:
+		for k: String in mi:
+			_ic[k] = float(mi[k])
+	_jig_on.resize(_n)
+	_jig_on.fill(0)
+	for k in _sp_bones.size():
+		if _sp_mass[k] == 2:
+			_jig_on[_sp_bones[k]] = 1
 	if not _idle_on:
 		return
 	_seed = float(absi(hash(r.id)) % 1000) * 0.37
@@ -623,6 +669,21 @@ func _idle_drive() -> void:
 	var u := _br_t / _br_len
 	var b := smoothstep(0.0, 0.42, u) if u < 0.44 else 1.0 - smoothstep(0.46, 1.0, u)
 	_br = b * _br_amp
+	# weight shift from hip to hip (meta idle "sway"): the hips trace a shallow U, the chest
+	# counters; the breasts get a kick at the top of each breath and at each turn of the sway
+	var sw_ph := TAU * _clock / maxf(float(_ic.sway_period), 1.0) + _seed
+	var sw := sin(sw_ph)
+	var kb := float(_ic.kick_breath) * _idle_w * idle_amount
+	if kb > 0.0 and dt > 0.0:
+		if _br_u < 0.44 and u >= 0.44:
+			jiggle(Vector2(0.0, -kb * _br_amp))
+		elif u < _br_u:
+			jiggle(Vector2(0.0, kb * 0.6))
+	var ks := float(_ic.kick_sway) * _idle_w * idle_amount
+	if ks > 0.0 and dt > 0.0 and signf(cos(sw_ph)) != signf(_sw_last):
+		jiggle(Vector2(-ks * signf(sw), ks * 0.5))
+	_br_u = u
+	_sw_last = cos(sw_ph)
 	# look-around: every 1.5-4.5 s a new spot, turned to smoothly, with a slow drift on top
 	_gaze_t -= dt
 	if _gaze_t <= 0.0:
@@ -634,6 +695,8 @@ func _idle_drive() -> void:
 	var w := _idle_w * idle_amount
 	var t := _clock
 	var s := _seed
+	var nz := float(_ic.noise)
+	var sway := float(_ic.sway)
 	for i in _n:
 		var role := _role[i]
 		if role == ROLE_NONE:
@@ -657,30 +720,34 @@ func _idle_drive() -> void:
 		var lg := _lag[i]
 		match role:
 			ROLE_HIPS:
-				var nh := _noise(t, s, 0.055)
-				_pos[i] += Vector2(1.8 * nh, 0.5 * absf(nh)) * w
-				_rot[i] += 0.35 * _noise(t, s + 2.1, 0.05) * w
+				var nh := _noise(t, s, 0.055 * nz)
+				_pos[i] += Vector2(1.8 * nh + sway * sw, 0.5 * absf(nh) + float(_ic.sway_dip) * (1.0 - sw * sw)) * w
+				_rot[i] += (0.35 * _noise(t, s + 2.1, 0.05 * nz) + float(_ic.sway_rot) * sw) * w
 			ROLE_TORSO:
-				_rot[i] += (0.3 * _noise(t, s + 4.2, 0.045) - 0.25 * _noise(t, s + 2.1, 0.05)) * w
+				var swl := sin(sw_ph - TAU * 0.15 / maxf(float(_ic.sway_period), 1.0))   # 0.15 s behind the hips
+				_rot[i] += (0.3 * _noise(t, s + 4.2, 0.045 * nz) - 0.25 * _noise(t, s + 2.1, 0.05 * nz)
+					- 0.65 * float(_ic.sway_rot) * swl) * w
 			ROLE_CHEST:
-				_pos[i].y -= 3.4 * _br * w
+				_pos[i].y -= float(_ic.breath) * _br * w
 				_scl[i] *= Vector2(1.0 + 0.008 * _br * w, 1.0 + 0.012 * _br * w)
 			ROLE_NECK:
-				_rot[i] += 0.25 * _noise(t, s + 6.3, 0.07) * w
+				_rot[i] += 0.25 * _noise(t, s + 6.3, 0.07 * nz) * w
 			ROLE_HEAD:
 				_pos[i].y += 2.0 * (_br - lg) * w
-				_rot[i] += (0.9 * _noise(t, s + 8.4, 0.045) + 0.5 * (lg - 0.5)) * w
+				_rot[i] += float(_ic.head) * (0.9 * _noise(t, s + 8.4, 0.045 * nz) + 0.5 * (lg - 0.5)) * w
+				_rot[i] -= 0.35 * float(_ic.sway_rot) * sin(sw_ph - 0.6) * w
 			ROLE_ARM:
-				_rot[i] += _side[i] * (0.6 * lg + 0.35 * _noise(t, s + 1.3 * i, 0.06)) * w
+				_rot[i] += float(_ic.arms) * _side[i] * (0.6 * lg + 0.35 * _noise(t, s + 1.3 * i, 0.06 * nz)) * w
 			ROLE_FOREARM:
-				_rot[i] += _side[i] * (0.45 * lg + 0.3 * _noise(t, s + 1.7 * i, 0.08)) * w
+				_rot[i] += float(_ic.arms) * _side[i] * (0.45 * lg + 0.3 * _noise(t, s + 1.7 * i, 0.08 * nz)) * w
 			ROLE_WING:
 				var ax := rig.axis[i]
 				var lift := -signf(ax.x) if absf(ax.x) > 0.05 else -_side[i]
 				var k := 1.0 / (1.0 + 0.3 * _rank[i])
-				_rot[i] += lift * k * (2.2 * (lg - 0.5) + 0.9 * _noise(t, s + 0.9 * i, 0.08)) * w
+				_rot[i] += float(_ic.wings) * lift * k * (2.2 * (lg - 0.5) + 0.9 * _noise(t, s + 0.9 * i, 0.08 * nz)) * w
 			ROLE_BREAST:
-				_pos[i].y += 1.2 * (_br - lg) * w
+				if _jig_on[i] == 0:
+					_pos[i].y += 1.2 * (_br - lg) * w
 			ROLE_TAIL:
 				_rot[i] += 4.0 * sin(t * TAU * 0.3 - _rank[i] * 0.9 + s) * w
 
@@ -815,14 +882,25 @@ func _collect_events(e: Entry, t0: float, t1: float) -> void:
 	if t1 >= t0:
 		for ev in evs:
 			if ev[0] > t0 and ev[0] <= t1:
-				_queued_events.append([0, ev[1]])
+				_event(ev[1])
 	else:   # wrapped (loop)
 		for ev in evs:
 			if ev[0] > t0 and ev[0] <= e.anim.duration:
-				_queued_events.append([0, ev[1]])
+				_event(ev[1])
 		for ev in evs:
 			if ev[0] >= e.anim.loop_start and ev[0] <= t1:
-				_queued_events.append([0, ev[1]])
+				_event(ev[1])
+
+
+## An animation event: "jiggle:x,y" kicks the jiggle springs here (rig px/s, + = down / her left);
+## every other event goes out on anim_event.
+func _event(ev_name: String) -> void:
+	if ev_name.begins_with("jiggle:"):
+		var v := ev_name.substr(7).split(",")
+		if v.size() >= 2:
+			jiggle(Vector2(float(v[0]), float(v[1])))
+		return
+	_queued_events.append([0, ev_name])
 
 
 func _pose() -> void:
@@ -836,7 +914,7 @@ func _pose() -> void:
 		_att_want[si] = ""
 		_col_want[si] = Color.WHITE
 	var lk := Vector2.ZERO
-	var fxv := {"glow": 0.0, "hand_glow": 0.0, "aura": 0.0, "flash": 0.0, "trail": 0.0, "fade": 0.0}
+	var fxv := {"glow": 0.0, "hand_glow": 0.0, "aura": 0.0, "flash": 0.0, "trail": 0.0, "fade": 0.0, "carry": 0.0}
 	var lg := 0.0
 	for ti in TRACKS:
 		var e: Entry = _tracks[ti]
@@ -973,6 +1051,15 @@ func _solve(dt: float) -> void:
 		_phys_acc -= steps * PHYS_DT
 		if _phys_acc > PHYS_DT:
 			_phys_acc = 0.0
+	if not _kick_q.is_empty():
+		var waiting: Array = []
+		for q: Array in _kick_q:
+			q[0] = float(q[0]) - dt
+			if float(q[0]) <= 0.0:
+				_sp_kick[int(q[1])] += q[2] as Vector2
+			else:
+				waiting.append(q)
+		_kick_q = waiting
 	var si := 0
 	var nsp := _sp_bones.size()
 	for i in _n:
@@ -981,7 +1068,63 @@ func _solve(dt: float) -> void:
 		var pw: Transform2D = _world[p] if p >= 0 else Transform2D.IDENTITY
 		var bend := _bend_anim[i]
 		var rot_deg := _rot[i]
-		if si < nsp and _sp_bones[si] == i:
+		var scl := _scl[i]
+		if si < nsp and _sp_bones[si] == i and _sp_mass[si] == 2:
+			# jiggle (docs/dev/halorig.md 6.2b): a 2D damped spring in the parent's frame, driven by
+			# the acceleration of the attach point (the pivot, at the top of the breast) and by kicks;
+			# softer going up than coming down; shown as a sway about the pivot, a shift, and squash /
+			# stretch with the volume kept. Weights graded from the pivot carry it into the shape.
+			var sp: Dictionary = rig.spring[i]
+			var PG := G * pw
+			var att_g := G * (pw * lpos)
+			var reset_g := 600.0 * G.get_scale().length() * 0.7071
+			if not _sp_ready or (att_g - _sp_tg[si]).length() > reset_g:
+				_sp_tg[si] = att_g
+				_sp_step_tg[si] = att_g
+				_sp_tg2[si] = att_g
+				_sp_p[si] = Vector2.ZERO
+				_sp_pp[si] = Vector2.ZERO
+				_sp_v[si] = Vector2.ZERO
+			if steps > 0:
+				var inv := PG.affine_inverse()
+				var side := _sp_side[si]
+				var kx := float(sp.get("kx", 110.0)) * (1.0 + 0.05 * side)
+				var ku := float(sp.get("ky", 150.0)) * (1.0 - 0.04 * side)
+				var kd := float(sp.get("ky2", 400.0)) * (1.0 - 0.04 * side)
+				var z := float(sp.get("z", 0.25))
+				var gain := float(sp.get("gain", 1.0))
+				var gx := float(sp.get("gx", 0.6))
+				var x := _sp_p[si]
+				var v := _sp_v[si] + _sp_kick[si]
+				_sp_kick[si] = Vector2.ZERO
+				var tg0 := _sp_tg[si]
+				for s in steps:
+					if s == steps - 1:
+						_sp_pp[si] = x
+					var tg := tg0.lerp(att_g, float(s + 1) / float(steps))
+					var acc := inv.basis_xform((tg - 2.0 * _sp_step_tg[si] + _sp_tg2[si]) / (PHYS_DT * PHYS_DT))
+					_sp_tg2[si] = _sp_step_tg[si]
+					_sp_step_tg[si] = tg
+					var ky := ku if x.y < 0.0 else kd
+					v.x += (-kx * x.x - 2.0 * z * sqrt(kx) * v.x - acc.x * gain * gx) * PHYS_DT
+					v.y += (-ky * x.y - 2.0 * z * sqrt(ky) * v.y - acc.y * gain) * PHYS_DT
+					x += v * PHYS_DT
+				_sp_p[si] = x
+				_sp_v[si] = v
+			_sp_tg[si] = att_g
+			var xr := _sp_pp[si].lerp(_sp_p[si], clampf(_phys_acc / PHYS_DT, 0.0, 1.0)) if _sp_ready else _sp_p[si]
+			var lim := float(sp.get("limit", 24.0))
+			var xl := xr.length()
+			if xl > 0.001:
+				xr *= lim * tanh(xl / lim) / xl
+			var hh := maxf(rig.length[i], 1.0)
+			lpos += Vector2(xr.x * float(sp.get("tx", 0.35)), xr.y * float(sp.get("ty", 0.55)))
+			rot_deg -= rad_to_deg(float(sp.get("rot", 0.6)) * xr.x / hh)
+			var sy := clampf(1.0 + float(sp.get("sq", 0.5)) * xr.y / hh, 0.82, 1.2)
+			scl = scl * Vector2(1.0 / sqrt(sy), sy)
+			_sp_off[si] = xr.length()
+			si += 1
+		elif si < nsp and _sp_bones[si] == i:
 			var sp: Dictionary = rig.spring[i]
 			var lw := pw * Transform2D(deg_to_rad(rot_deg), _scl[i], 0.0, lpos)
 			var tip_local: Vector2 = rig.axis[i] * rig.length[i]
@@ -1048,10 +1191,30 @@ func _solve(dt: float) -> void:
 			si += 1
 		elif si < nsp and _sp_bones[si] < i:
 			si += 1
+		if rig.grip[i] != null:
+			# a held prop (the mic stand): planted, it pivots on its base and leans to where the hand
+			# holds it; carried (fx "carry"), it rides rigid in the hand and its rotate key turns it
+			# about the grip
+			var gr: Array = rig.grip[i]
+			var hi: int = gr[0]
+			var g_at: Vector2 = gr[1]
+			var pinv := pw.affine_inverse()
+			var hand_g := _world[hi] * (g_at - rig.setup_world[hi])
+			var cur := pinv.basis_xform(hand_g - pw * lpos)
+			var aim := clampf(rad_to_deg((g_at - rig.setup_world[i]).angle_to(cur)), -14.0, 14.0)
+			var carry := clampf(float(fx.get("carry", 0.0)), 0.0, 1.0)
+			var r_plant := rot_deg + aim
+			if carry > 0.001:
+				var held := pinv * (_world[hi] * Transform2D(0.0, g_at - rig.setup_world[hi])
+					* Transform2D(deg_to_rad(rot_deg), Vector2.ZERO) * Transform2D(0.0, rig.setup_world[i] - g_at))
+				lpos = lpos.lerp(held.origin, carry)
+				rot_deg = rad_to_deg(lerp_angle(deg_to_rad(r_plant), held.get_rotation(), carry))
+			else:
+				rot_deg = r_plant
 		_bend_out[i] = bend
-		_world[i] = pw * Transform2D(deg_to_rad(rot_deg), _scl[i], 0.0, lpos)
+		_world[i] = pw * Transform2D(deg_to_rad(rot_deg), scl, 0.0, lpos)
 		if _bones_live:
-			_bone_nodes[i].transform = Transform2D(deg_to_rad(rot_deg), _scl[i], 0.0, lpos) if p >= 0 else _world[i]
+			_bone_nodes[i].transform = Transform2D(deg_to_rad(rot_deg), scl, 0.0, lpos) if p >= 0 else _world[i]
 	if nsp > 0:
 		_sp_ready = true
 

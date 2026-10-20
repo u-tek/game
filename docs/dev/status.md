@@ -202,12 +202,42 @@ this file says where things stand. Older logs are under "History" at the bottom.
       - The rig is in `assets/art/heroes/seraphiel/skins/rigproto/`, local only (in `.git/info/exclude`).
     - **Video:** `seraphiel_rig_prototype.mp4` (idle, blink, talk, cast, generic attack, smile), sent to
       the owner.
-    - **Known issues:**
-      - The generic attack swings the mic stand from its base; she needs her own attack.
-      - Thin dark fringes on some feather tips.
-      - A small gap between hair and a head wing mid-cast.
-      - The cutout's hole step cut her pale latex; it was re-cut without it, and the MOSS grey is now a
-        mid grey.
+    - **Owner's verdict on v1:** "i need the breast jiggle to be way better. i need everything to be
+      better. can she actually move her limbs or not", and "make her breasts separate too".
+    - **v2 (`rigproto2`, same day):**
+      - **Pipeline:** `make_rig2.py` builds it from SAM masks (`sam_cut.py`, ComfyUI venv python) for
+        the breasts and hands.
+      - **Pieces:** 13 layers. Each breast and each arm is its own layer, and a pendant piece sits over
+        the cleavage.
+      - **Painted-in parts:** the torso behind the breasts and the wing strip behind the stand were
+        repainted with MOSS. `fill_hidden.py` runs a masked repaint at 0.72-0.9. Of the torso tries,
+        one painted a second pair of breasts and one painted hair; seed 22 was right.
+      - **Bones and weights:** hand bones and two-bone hair and drape chains, 39 bones in all. Every
+        layer is weighted only by its own bones.
+      - **Breasts:** the new jiggle physics.
+      - **Stand:** it stays in her hand (the grip).
+      - **Idle:** livelier: a deeper breath, a 7.2 s hip-to-hip sway, and bounce kicks.
+      - **Her own animations** (`anims_v2.py`, in the art's `anim/` folder):
+        - attack "Feedback Ring": she lifts the stand into a diagonal with the mic at her cheek;
+        - cast "Seraphic Aria": wings flare, free arm up, head back;
+        - a touch reaction.
+      - **Engine changes** (shared, committed; docs/dev/halorig.md 11.4): own weights, grey-level
+        masks, per-layer cells, jiggle `m: 2`, held props, per-art animations, `meta.idle`.
+    - **Colour bug, all heroes (fixed 2026-10-20):**
+      - The rig, warp and foil shaders squared the art's colours: darker and more saturated, so skin
+        looked orange and white latex grey.
+      - This was in the game on every platform, not only the previews.
+      - Heroes now show exactly their painted colours.
+    - **Findings behind v2:** four research and audit agents. The v1 belly was weighted to the hair and
+      breast springs. The idle breast motion was 0.1 px. The right elbow bent 80 px too high. The stand
+      left her hand.
+    - **Still open:**
+      - The arms are one piece from shoulder to hand, so bends past about 40° stretch. Joint caps or
+        painted raised-arm drawings would fix that.
+      - The legs are planted and can't bend at the knee.
+      - Hair has two segments per side; BD2-style 4-6 bone strands are next.
+      - The blink is a cross-fade with no half-lid frame, and the mouth has two shapes.
+      - The six wings share one layer.
     - **Disk:** C: and D: are both nearly full. See-through takes 26 GB on D:.
   - **Combat:** after a wall at stage 2-6 with five maxed heroes the owner said "don't bother i want to
     redo the whole combat system anyway ... it's going to be super intricate don't build it now".

@@ -97,7 +97,8 @@ def rule_mask(rule, img):
       {"type": "union"|"subtract", "rules": [...]} (subtract: first minus the rest)
       {"type": "sam", "points", "neg", "box", "pick", "clip"}   Segment Anything (tools/art_parts.py)
       {"type": "mask", "image": "<file>", "threshold": 128, "within": <rule>}  a mask image (alpha or L)
-                                                  in the art's pixels, relative to the rig folder
+                                                  in the art's pixels, relative to the rig folder;
+                                                  "levels": true keeps its grey levels as weights
     Common keys: "grow": px dilation, "feather": px blur radius."""
     size = img.size
     t = rule.get("type", "polygon")
@@ -136,8 +137,11 @@ def rule_mask(rule, img):
         src = src.split()[3] if src.mode == "RGBA" else src.convert("L")
         if src.size != size:
             raise ValueError("mask %s is %dx%d, the art is %dx%d" % (rule["image"], src.size[0], src.size[1], *size))
-        cut = int(rule.get("threshold", 128))
-        m = src.point(lambda v: 255 if v >= cut else 0)
+        if rule.get("levels"):
+            m = src                     # grey levels are weights (a breast fading into the chest)
+        else:
+            cut = int(rule.get("threshold", 128))
+            m = src.point(lambda v: 255 if v >= cut else 0)
         if "within" in rule:
             m = ImageChops.multiply(m, rule_mask(rule["within"], img))
     elif t == "union":
@@ -322,6 +326,34 @@ def compose_weights(regions, index, body, alpha):
             _, (iy, ix) = ndimage.distance_transform_edt(rem > 0.5, return_indices=True)
             stack[:, un] = stack[:, iy[un], ix[un]]
     return stack, keys, soft_of, a2
+
+
+def own_stack(regions, keys, index, a2, parts, rest=None):
+    """A layer's own weights (layer "weights": "own"): only the regions of its own parts (bone name
+    prefixes), in priority order, so no other layer's part reaches into it (hair behind an arm stays
+    on the hair). What none of them covers takes the weights of the nearest covered pixel, or goes
+    to the `rest` bone. Same keys as the shared stack (the turn maps line up). Returns the stack."""
+    from scipy import ndimage
+    S = MAP_SCALE
+    h2, w2 = a2.shape
+    st = np.zeros((len(keys), h2, w2), np.float32)
+    rem = np.ones((h2, w2), np.float32)
+    for reg in regions:
+        if not reg["bone"].startswith(tuple(parts)) or index[reg["bone"]] not in keys:
+            continue
+        m = reg["raw"][:h2 * S, :w2 * S].reshape(h2, S, w2, S).mean(axis=(1, 3))
+        w = np.clip(m, 0.0, 1.0) * rem
+        rem = rem - w
+        st[keys.index(index[reg["bone"]])] += w
+    if rest is not None:
+        st[keys.index(index[rest])] += rem
+    else:
+        cov = rem < 0.5
+        if cov.any() and not cov.all():
+            _, (iy, ix) = ndimage.distance_transform_edt(~cov, return_indices=True)
+            st[:, ~cov] = st[:, iy[~cov], ix[~cov]]
+    st /= np.maximum(st.sum(axis=0, keepdims=True), 1e-6)
+    return st
 
 
 def core_rect(stack, keys, a2, index, ox, oy):
@@ -553,13 +585,22 @@ def mesh_v2(hero, src, img, alpha, regions, index, body, ox, oy, image_name, hdi
             lay_alpha[:la.shape[0], :la.shape[1]] = la
         native = None
         p = ls.get("parts")
-        if p is not None:
+        lstack = stack
+        if ls.get("weights") == "own" and isinstance(p, list):
+            # only this layer's own parts weight it (see own_stack); every painted pixel is its own
+            rest = ls.get("rest_bone")
+            if rest is not None and (rest not in index or index[rest] not in keys):
+                err(hero, "layer %s: rest_bone %s has no region" % (ls["name"], rest))
+                return None, None, (0, 0, 0, 0), 0, 0
+            lstack = own_stack(regions, keys, index, a2, p, rest)
+        elif p is not None:
             if p == "rest":
                 native = ~np.isin(dom, [k for k in keys if names[k].startswith(tuple(claimed))])
             else:
                 native = np.isin(dom, [k for k in keys if names[k].startswith(tuple(p))])
             native &= a2 > 0.35
-        lj, (x0, y0, x1, y1), nv, nt = layer_mesh(hero, src, stack, keys, soft_of, index, body, lay_alpha,
+        lsrc = dict(src, cell=int(ls["cell"])) if "cell" in ls else src     # a layer may use a finer grid
+        lj, (x0, y0, x1, y1), nv, nt = layer_mesh(hero, lsrc, lstack, keys, soft_of, index, body, lay_alpha,
                                                   ir, ox, oy, ls["name"], ls["image"], ls.get("z", 0),
                                                   native=native, rigid=ls.get("bone"), turn=turn)
         if lj is None:
@@ -783,6 +824,13 @@ def build(hero, regen=False, check=False):
             bj["look"] = lk
         if "tip" in b:
             bj["tip"] = [r1(b["tip"][0] - piv[0]), r1(b["tip"][1] - piv[1])]
+        if "grip" in b:
+            # a held prop: RigPlayer keeps the point `at` (image px) in the hand bone's grip
+            g = b["grip"]
+            if g.get("bone") not in index:
+                err(hero, "bone %s: grip bone %s is not a bone" % (n, g.get("bone")))
+            else:
+                bj["grip"] = {"bone": g["bone"], "at": [r1(g["at"][0] - ox), r1(g["at"][1] - oy)]}
         bones_json.append(bj)
 
     # ---- overlays: variant images -> feathered patches where they differ from the base

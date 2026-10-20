@@ -14,6 +14,10 @@ uniform float dissolve = 0.0;          // 0..1: burns away into light
 uniform vec4 dissolve_color : source_color = vec4(1.0, 0.85, 0.45, 1.0);
 
 varying vec2 part_pos;
+// The vertex colour (modulate) alone. In fragment() Godot's COLOR is already the texture times it,
+// so tinting texture(TEXTURE, UV) and multiplying by COLOR again would square the art (darker,
+// more saturated than the painting); each vertex() stores it here instead.
+varying vec4 v_mod;
 
 float halo_hash(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);

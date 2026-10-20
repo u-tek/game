@@ -508,3 +508,41 @@ tints the face.
   (all rigs).
 - **Framing:** `HeroArt.fit_sprite(..., core = true)` sizes her by her body. The hero page and the
   Lobby use it ("take up the whole screen ... her wings can be off screen").
+
+### 11.4 Layered rigs v2 (2026-10-20, prototype: Seraphiel `rigproto2`)
+
+The Seraphiel prototype (`art_src/_review/rigproto/make_rig2.py`, local only) added these, all
+backwards compatible:
+- **Own weights per layer.** A layer with `"weights": "own"` and a `parts` list is weighted only by
+  the regions of its own parts (`own_stack` in the builder); what none of them covers takes the
+  nearest covered pixel, or `"rest_bone"`. Without it, the shared composition let amodal masks
+  (See-through's) reach across layers: v1's belly followed the hair and breast springs and its back
+  hair followed the arms.
+- **Grey-level weights.** Mask rule key `"levels": true` keeps the image's grey levels as weights
+  (a breast from 0 at its top edge to 1 seventy px down).
+- **Per-layer grid:** a layer's `"cell"` overrides the rig's (breasts 6, arms 8).
+- **Jiggle, spring `"m": 2`** (preset `jiggle`). Each breast is its own layer over a torso whose
+  hidden part is painted in. The spring is a 2D damped spring in the parent's frame, driven by
+  the acceleration of its pivot at the top of the breast, plus kicks:
+  - Stiffness: `kx` sideways, `ky` going up, `ky2` (firmer) coming down. `z` is the damping ratio.
+  - `limit` is a soft cap (tanh), not a clamp.
+  - Output: a shift (`tx`, `ty`), a sway about the pivot (`rot`), and squash/stretch with the
+    volume kept (`sq`).
+  - The two sides differ by about 5% in stiffness, and the far side's kicks land 25 ms later.
+  - `RigPlayer.jiggle(v)` kicks them. So does an animation event `"jiggle:x,y"` (rig px/s, + y down).
+- **Held props.** A bone `"grip": {"bone": "hand_r", "at": [x, y]}` makes it a held prop.
+  - Planted (fx `carry` 0): it pivots on its base and leans so the grip stays in the hand (±14°).
+  - Carried (`carry` 1): it rides rigid in the hand, and its own rotate key turns it about the grip.
+  - Animations key `carry` like any fx.
+- **Per-art animations.** `RigAnim.find(..., art_dir)` looks in the art's own `anim/` folder first.
+  A layered skin can then carry its own set without touching the base rig's.
+- **Idle tuning per rig.** `meta.idle` scales or adds to the procedural idle:
+  - Scales: `breath` (px), `noise` (drift speed), `head`, `arms`, `wings`.
+  - Hip-to-hip weight shift: `sway` (px), `sway_period`, `sway_rot`, `sway_dip`.
+  - Breast kicks at each breath and sway turn: `kick_breath`, `kick_sway`.
+  - Rigs without the block keep the old idle.
+- **Colour fix (all rigs).** In a canvas shader's `fragment()`, `COLOR` is already the texture times
+  the vertex colour. The rig, warp and foil shaders multiplied the texture in again, which squared
+  the art (darker, more saturated). They now keep the vertex colour in the varying `v_mod`.
+  `tools/art_preview.gd` renders with HDR 2D off and `ui_linear` 0, the iPhone's path, so previews
+  match the painting pixel for pixel.

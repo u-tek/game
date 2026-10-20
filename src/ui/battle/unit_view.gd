@@ -94,14 +94,15 @@ func _read_timing() -> void:
 	var rig_id := str((rp as Node).get("hero_id"))
 	var data: Variant = (rp as Node).get("rig")
 	var kind := str(data.get("kind")) if data is Object and "kind" in data else ""
-	var atk := RigAnim.find(attack_anim(), rig_id, kind)
+	var adir := str(data.get("dir")) if data is Object and "dir" in data else ""
+	var atk := RigAnim.find(attack_anim(), rig_id, kind, adir)
 	if atk:
 		var h := atk.event_time("hit")
 		hit_ms = h * 1000.0 if h >= 0.0 else -1.0
 		var r := atk.event_time("release")
 		release_ms = r * 1000.0 if r >= 0.0 else -1.0
 		has_swing_vfx = atk.event_time("vfx_slash") >= 0.0 or atk.event_time("vfx_thrust") >= 0.0
-	var ult := RigAnim.find("ultimate", rig_id, kind)
+	var ult := RigAnim.find("ultimate", rig_id, kind, adir)
 	if ult:
 		ult_hit_s = ult.event_time("hit")
 

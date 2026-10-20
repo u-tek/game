@@ -18,10 +18,11 @@ void vertex() {
 		VERTEX = vec2(c * VERTEX.x - s * VERTEX.y, s * VERTEX.x + c * VERTEX.y);
 	}
 	part_pos = VERTEX;
+	v_mod = COLOR;
 }
 
 void fragment() {
 	vec4 tex = texture(TEXTURE, UV);
-	vec4 o = halo_tint(tex, COLOR);
+	vec4 o = halo_tint(tex, v_mod);
 	COLOR = o;
 }

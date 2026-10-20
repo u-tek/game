@@ -17,6 +17,10 @@ var _vp: SubViewport
 
 func _init() -> void:
 	var args := OS.get_cmdline_user_args()
+	# render as the iPhone does (HDR 2D off) and tell the canvas shaders so, as main.gd does in the
+	# game: the foil on Legendary heroes otherwise converts for a linear canvas (a gamma too dark)
+	root.use_hdr_2d = false
+	RenderingServer.global_shader_parameter_set(&"ui_linear", 0.0)
 	if args.is_empty():
 		printerr("usage: art_preview.gd -- jobs.json")
 		quit(1)
@@ -44,12 +48,7 @@ func _run(jobs: Array) -> void:
 ## actions: attack | cast | ultimate | hit | death | victory | idle | blink | <any animation>
 func _timeline(j: Dictionary) -> void:
 	var size: Array = j.get("size", [600, 1000])
-	_vp = SubViewport.new()
-	_vp.size = Vector2i(int(size[0]), int(size[1]))
-	_vp.transparent_bg = true
-	_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	_vp.disable_3d = true
-	root.add_child(_vp)
+	_vp = _new_vp(size)
 	var feet: Array = j.get("feet", [size[0] * 0.5, size[1] * 0.96])
 	var sc := float(j.get("scale", 0.45))
 	var out := str(j.get("out", "/tmp/rigprev"))
@@ -102,7 +101,7 @@ func _timeline(j: Dictionary) -> void:
 			k += 1
 		_step(sprite, dt if i > 0 else 0.0)
 		await RenderingServer.frame_post_draw
-		_vp.get_texture().get_image().save_png(out.path_join("%04d.png" % i))
+		_save(_vp.get_texture().get_image(), out.path_join("%04d.png" % i))
 		t += dt
 	print("art_preview: %d frame(s) -> %s" % [n, out])
 	sprite.queue_free()
@@ -112,12 +111,7 @@ func _timeline(j: Dictionary) -> void:
 
 func _job(j: Dictionary) -> void:
 	var size: Array = j.get("size", [600, 1000])
-	_vp = SubViewport.new()
-	_vp.size = Vector2i(int(size[0]), int(size[1]))
-	_vp.transparent_bg = true
-	_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	_vp.disable_3d = true
-	root.add_child(_vp)
+	_vp = _new_vp(size)
 	var holder := Node2D.new()
 	_vp.add_child(holder)
 	var feet: Array = j.get("feet", [size[0] * 0.5, size[1] * 0.96])
@@ -192,9 +186,8 @@ func _job(j: Dictionary) -> void:
 				_step(sprite, dt)
 				tt2 += dt
 		await RenderingServer.frame_post_draw
-		var img := _vp.get_texture().get_image()
 		var label := str(fr.get("label", "%04d" % idx))
-		img.save_png(out.path_join(label + ".png"))
+		_save(_vp.get_texture().get_image(), out.path_join(label + ".png"))
 		idx += 1
 	print("art_preview: %d frame(s) -> %s" % [idx, out])
 	_vp.queue_free()
@@ -205,11 +198,31 @@ func _job(j: Dictionary) -> void:
 ## prototype that is not in data/skins.json; "skin": a catalogue skin id; neither: the base look.
 func _make(j: Dictionary) -> HeroSprite:
 	var hero := str(j.get("hero", "seraphiel"))
+	var s: HeroSprite
 	if j.has("art"):
-		var s := HeroSprite.new()
+		s = HeroSprite.new()
 		s.setup(hero, str(j["art"]))
-		return s
-	return HeroArt.make_sprite(hero, str(j.get("skin", ""))) as HeroSprite
+	else:
+		s = HeroArt.make_sprite(hero, str(j.get("skin", ""))) as HeroSprite
+	if j.has("holo"):          # "holo": false shows a Legendary hero without the foil
+		s.holo = bool(j["holo"])
+	return s
+
+
+## The preview viewport: HDR 2D off, as on the iPhone (ui_linear 0, see _init).
+func _new_vp(size: Array) -> SubViewport:
+	var vp := SubViewport.new()
+	vp.size = Vector2i(int(size[0]), int(size[1]))
+	vp.transparent_bg = true
+	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	vp.disable_3d = true
+	vp.use_hdr_2d = false
+	root.add_child(vp)
+	return vp
+
+
+func _save(img: Image, path: String) -> void:
+	img.save_png(path)
 
 
 func _step(s: HeroSprite, dt: float) -> void:

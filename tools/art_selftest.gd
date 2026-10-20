@@ -61,7 +61,7 @@ func _init() -> void:
 			var finished: Array[String] = []
 			p.anim_event.connect(func(n: String) -> void: events.append(n))
 			p.anim_finished.connect(func(n: String) -> void: finished.append(n))
-			var an := RigAnim.find(a, hero_id, r.kind)
+			var an := RigAnim.find(a, hero_id, r.kind, r.dir)
 			_ok(an != null, "%s/%s found" % [h, a])
 			if an == null:
 				p.free()

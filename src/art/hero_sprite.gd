@@ -243,7 +243,7 @@ func play(anim: String) -> void:
 		"victory":
 			play_victory()
 		_:
-			var a := RigAnim.find(_anim(anim), rig.hero_id, rig.rig.anim_kind())
+			var a := RigAnim.find(_anim(anim), rig.hero_id, rig.rig.anim_kind(), rig.rig.dir)
 			if a == null:
 				return
 			if a.loop:

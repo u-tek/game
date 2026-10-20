@@ -1,5 +1,5 @@
 {
-  "_doc": "HaloRig spring presets (docs/dev/halorig.md 6.2). k stiffness 1/s^2, c damping 1/s, g gravity (0..1 keep hanging in rig space), w wind (fraction of length), limit deg (m=1: px), i inertia (0..1 share of parent motion that lags), b bend share (0..1 of the swing realized as a curve), m 1 = a soft mass that shifts instead of swinging (breasts; RigPlayer._solve).",
+  "_doc": "HaloRig spring presets (docs/dev/halorig.md 6.2). k stiffness 1/s^2, c damping 1/s, g gravity (0..1 keep hanging in rig space), w wind (fraction of length), limit deg (m=1: px), i inertia (0..1 share of parent motion that lags), b bend share (0..1 of the swing realized as a curve), m 1 = a soft mass that shifts instead of swinging (breasts; RigPlayer._solve). m 2 = jiggle (layered breasts; RigPlayer._solve): kx/ky/ky2 stiffness sideways/up/down (1/s^2), z damping ratio, gain/gx response to the attach point's acceleration (gx: sideways share), limit soft cap (rig px), tx/ty shift share, rot sway share, sq squash share.",
   "hair":      {"k": 70.0,  "c": 8.0,  "g": 0.5, "w": 0.25, "limit": 26.0, "i": 0.55, "b": 0.5},
   "bangs":     {"k": 120.0, "c": 11.0, "g": 0.3, "w": 0.12, "limit": 12.0, "i": 0.6,  "b": 0.45},
   "hair_mass": {"k": 95.0,  "c": 11.0, "g": 0.4, "w": 0.08, "limit": 6.0,  "i": 0.65, "b": 0.6},
@@ -13,5 +13,6 @@
   "accessory": {"k": 90.0,  "c": 7.0,  "g": 0.3, "w": 0.1,  "limit": 10.0, "i": 0.6,  "b": 0.0},
   "weapon":    {"k": 80.0,  "c": 9.0,  "g": 0.0, "w": 0.05, "limit": 6.0,  "i": 0.75, "b": 0.0},
   "breast":    {"k": 120.0, "c": 9.0,  "g": 0.0, "w": 0.0,  "limit": 9.0,  "i": 0.55, "b": 0.0, "m": 1.0},
-  "bust":      {"k": 55.0,  "c": 3.6,  "g": 0.15, "w": 0.0,  "limit": 9.0,  "i": 0.3,  "b": 0.6}
+  "bust":      {"k": 55.0,  "c": 3.6,  "g": 0.15, "w": 0.0,  "limit": 9.0,  "i": 0.3,  "b": 0.6},
+  "jiggle":    {"m": 2, "kx": 110.0, "ky": 150.0, "ky2": 400.0, "z": 0.24, "gain": 1.0, "gx": 0.6, "limit": 24.0, "tx": 0.35, "ty": 0.55, "rot": 0.6, "sq": 0.5}
 }

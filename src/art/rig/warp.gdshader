@@ -8,10 +8,11 @@ shader_type canvas_item;
 void vertex() {
 	vec2 p = VERTEX;
 	part_pos = p;
+	v_mod = COLOR;
 	VERTEX = warp_skin(p, CUSTOM0, CUSTOM1);
 }
 
 void fragment() {
-	vec4 o = halo_tint(texture(TEXTURE, UV), COLOR);
+	vec4 o = halo_tint(texture(TEXTURE, UV), v_mod);
 	COLOR = o;
 }
