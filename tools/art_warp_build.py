@@ -251,6 +251,18 @@ SOFT_DEFAULT = [("face", 10), ("hair", 6), ("braid", 6), ("ponytail", 6), ("ahog
 # Parts a full-screen view may cut (the "core" rect leaves them out; RigData.core_rect).
 CROPPABLE = ("wing", "tail", "weapon", "cape", "ribbon")
 MAP_SCALE = 2          # weight maps at half resolution
+# Depth for turns (RigPlayer head_turn / body_turn, docs/dev/halorig.md 11.5): per bone name,
+# (base, bulge): a part sits at `base` (+ toward the viewer) and swells by `bulge` toward its middle
+# (a pillow from its mask), so a turn slides the bangs over the face, the face over the skull and
+# the back hair the other way. First match wins.
+DEPTH_DEFAULT = [("face", (0.55, 0.45)), ("hair_front", (1.1, 0.1)), ("bangs", (1.1, 0.1)), ("hair_side", (0.45, 0.2)),
+                 ("hair_back", (-0.6, 0.1)), ("hair_long", (-0.6, 0.1)), ("ponytail", (-0.5, 0.1)),
+                 ("braid", (-0.3, 0.1)), ("ahoge", (0.3, 0.0)), ("ear", (-0.2, 0.1)), ("halo", (-0.45, 0.0)),
+                 ("horn", (-0.1, 0.1)), ("head", (0.15, 0.5)), ("neck", (0.0, 0.2)), ("breast", (0.6, 0.5)),
+                 ("chest", (0.3, 0.3)), ("torso", (0.25, 0.3)), ("belly", (0.3, 0.3)), ("hips", (0.2, 0.3)),
+                 ("forearm", (0.15, 0.2)), ("arm", (0.1, 0.2)), ("hand", (0.15, 0.1)), ("thigh", (0.15, 0.25)),
+                 ("shin", (0.1, 0.2)), ("foot", (0.1, 0.1)), ("wing", (-0.9, 0.1)), ("tail", (-0.6, 0.1)),
+                 ("cape", (-0.7, 0.1)), ("skirt", (0.2, 0.2)), ("weapon", (0.0, 0.0)), ("earring", (-0.1, 0.0))]
 
 
 def soft_for(bone, reg):
@@ -318,8 +330,49 @@ def core_rect(stack, keys, a2, index, ox, oy):
     return [r1(qx0 - ox), r1(qy0 - oy), r1(qx1 - qx0 + S), r1(qy1 - qy0 + S)]
 
 
+def depth_for(bone):
+    for p, v in DEPTH_DEFAULT:
+        if bone.startswith(p):
+            return v
+    return (0.0, 0.2)
+
+
+def turn_maps(stack, keys, index, bones_parent, a2):
+    """Per bone at half resolution: its depth map (base + bulge * sqrt(distance into its own mask /
+    the mask's deepest point)) and whether it turns with the head (the head bone and every bone
+    below it) or with the body (the rest; legs fade out from the hips down, planted shins not at
+    all). Returns (depth stack, head flag per key, body flag per key)."""
+    from scipy import ndimage
+    names = {v: k for k, v in index.items()}
+
+    def under(n, top):
+        while n:
+            if n == top:
+                return True
+            n = bones_parent.get(n, "")
+        return False
+    dep = np.zeros_like(stack)
+    head_k = np.zeros(len(keys), np.float32)
+    body_k = np.zeros(len(keys), np.float32)
+    for k, b in enumerate(keys):
+        nm = names[b]
+        base, bulge = depth_for(nm)
+        m = stack[k] > 0.5
+        if m.any():
+            dist = ndimage.distance_transform_edt(m)
+            mx = max(float(dist.max()), 1.0)
+            dep[k] = base + bulge * np.sqrt(np.clip(dist / mx, 0, 1))
+        else:
+            dep[k] = base
+        if under(nm, "head"):
+            head_k[k] = 1.0
+        elif nm != "root" and not (bones_parent.get(nm, "") == "root" and nm != "hips"):
+            body_k[k] = 1.0              # planted bones (on root: shins, feet) stay out of turns
+    return dep, head_k, body_k
+
+
 def layer_mesh(hero, src, stack, keys, soft_of, index, body, lay_alpha, image_rect, ox, oy, name, image, z,
-               native=None, rigid=None):
+               native=None, rigid=None, turn=None):
     """One format 2 layer: a `cell` px grid (default 12) over the layer's paint, four influences per
     grid point. The layer's own painted pixels (`native`: painted in the original, not filled in)
     keep their weights; everything else in the layer (transparent margins, painted-in hidden parts
@@ -410,6 +463,31 @@ def layer_mesh(hero, src, stack, keys, soft_of, index, body, lay_alpha, image_re
           "mesh": {"cell": cell, "rect": [x0, y0, cols, rows], "n": int(nv),
                    "cells": base64.b64encode(zlib.compress(keep.astype(np.uint8).tobytes(), 9)).decode(),
                    "skin": base64.b64encode(zlib.compress(skin.tobytes(), 9)).decode()}}
+    if turn is not None:
+        # per grid point: depth (byte = depth * 100 + 128), share of the head turn, of the body turn
+        dep, head_k, body_k = turn[:3]
+        coords = np.array([np.clip(py / S - 0.5, 0, h2 - 1), np.clip(px / S - 0.5, 0, w2 - 1)])
+        if rigid is not None:
+            ki = keys.index(index[rigid])
+            dv = ndimage.map_coordinates(dep[ki], coords, order=1, mode="nearest")
+            th = np.full(nv, head_k[ki])
+            tb = np.full(nv, body_k[ki])
+        else:
+            wsum = np.maximum(wv.sum(axis=1), 1e-6)
+            dmap = np.stack([ndimage.map_coordinates(dep[k], coords, order=1, mode="nearest") for k in range(len(keys))], axis=1)
+            dv = (wv * dmap).sum(axis=1) / wsum
+            th = (wv * head_k[None, :]).sum(axis=1) / wsum
+            tb = (wv * body_k[None, :]).sum(axis=1) / wsum
+        # the body turn fades out down the legs (hips full, knees none)
+        hy = turn[3] if len(turn) > 3 else None
+        if hy is not None:
+            fade = np.clip(1.0 - (py - hy[0]) / max(hy[1] - hy[0], 1.0), 0.0, 1.0)
+            tb = tb * fade
+        tbytes = np.zeros((nv, 4), np.uint8)
+        tbytes[:, 0] = np.clip(np.round(dv * 100 + 128), 0, 255).astype(np.uint8)
+        tbytes[:, 1] = np.clip(np.round(th * 255), 0, 255).astype(np.uint8)
+        tbytes[:, 2] = np.clip(np.round(tb * 255), 0, 255).astype(np.uint8)
+        lj["mesh"]["turn"] = base64.b64encode(zlib.compress(tbytes.tobytes(), 9)).decode()
     if image_rect is not None:
         lj["image_rect"] = [int(v) for v in image_rect]
     return lj, (x0, y0, min(W, x0 + cols * cell), min(H, y0 + rows * cell)), int(nv), int(keep.sum()) * 2
@@ -424,6 +502,15 @@ def mesh_v2(hero, src, img, alpha, regions, index, body, ox, oy, image_name, hdi
     from scipy import ndimage
     stack, keys, soft_of, a2 = compose_weights(regions, index, body, alpha)
     core = core_rect(stack, keys, a2, index, ox, oy)
+    parents = {b["name"]: b.get("parent", "root") for b in src.get("bones", [])}
+    parents["root"] = ""
+    dep, head_k, body_k = turn_maps(stack, keys, index, parents, a2)
+    # where the body turn fades on the legs: from the hips' pivot down to the knees (shin pivots)
+    piv = {b["name"]: b["pivot"] for b in src.get("bones", []) if "pivot" in b}
+    hy0 = float(piv.get("hips", [0, oy - 700])[1])
+    knees = [float(v[1]) for k, v in piv.items() if k.startswith("shin")]
+    hy1 = min(knees) if knees else hy0 + 300.0
+    turn = (dep, head_k, body_k, (hy0, max(hy1, hy0 + 50.0)))
     names = {v: k for k, v in index.items()}
     dom = np.array(keys)[np.argmax(stack, axis=0)]
     specs = src.get("layers") or [{"name": "base", "image": image_name, "z": 0}]
@@ -460,7 +547,7 @@ def mesh_v2(hero, src, img, alpha, regions, index, body, ox, oy, image_name, hdi
             native &= a2 > 0.35
         lj, (x0, y0, x1, y1), nv, nt = layer_mesh(hero, src, stack, keys, soft_of, index, body, lay_alpha,
                                                   ir, ox, oy, ls["name"], ls["image"], ls.get("z", 0),
-                                                  native=native, rigid=ls.get("bone"))
+                                                  native=native, rigid=ls.get("bone"), turn=turn)
         if lj is None:
             return None, None, (0, 0, 0, 0), 0, 0
         out.append(lj)

@@ -84,6 +84,8 @@ def main(argv=None):
     ap.add_argument("--controlnet", help="ControlNet model name (core ControlNetLoader)")
     ap.add_argument("--control-image", help="prepared control image (pose/lineart) for --controlnet")
     ap.add_argument("--control-strength", type=float, default=0.6)
+    ap.add_argument("--control-type", help="union ControlNet mode (openpose, depth, canny/lineart/anime_lineart/mlsd ...)")
+    ap.add_argument("--control-end", type=float, default=0.8, help="stop the ControlNet at this share of the steps")
     ap.add_argument("--no-sheet", action="store_true")
     ap.add_argument("--no-cutout-check", action="store_true", help="skip the automatic cutout/framing check")
     ap.add_argument("--skin", help="skin id (bible 'skins', data/skins.json): the hero in that skin, written to "
@@ -139,7 +141,8 @@ def main(argv=None):
                 raise P.PipelineError("--controlnet needs --control-image")
             if disc and a.controlnet not in (disc.get("controlnets") or []):
                 raise P.PipelineError("ControlNet %r is not on the server" % a.controlnet)
-            controlnet = {"model": a.controlnet, "strength": a.control_strength, "start": 0.0, "end": 0.8,
+            controlnet = {"model": a.controlnet, "strength": a.control_strength, "start": 0.0, "end": a.control_end,
+                          "type": a.control_type,
                           "image": client.upload_image(a.control_image, name="%s_control.png" % a.hero,
                                                        subfolder=P.SERVER_SUBFOLDER)}
 

@@ -36,6 +36,10 @@ enum { ROLE_NONE, ROLE_HIPS, ROLE_TORSO, ROLE_CHEST, ROLE_NECK, ROLE_HEAD, ROLE_
 	ROLE_WING, ROLE_BREAST, ROLE_THIGH, ROLE_SHIN, ROLE_TAIL }
 ## Share of the procedural idle kept while an action plays over it.
 const IDLE_ACTION_SHARE := 0.35
+## Turns on packed format 2 rigs (rig px per unit of depth at look = 1): the head turns with `look`,
+## the body follows a third of it; each point shifts by its depth (warp_skin.gdshaderinc).
+const HEAD_TURN_PX := Vector2(30.0, 18.0)
+const BODY_TURN_PX := Vector2(14.0, 6.0)
 
 var rig: RigData
 var speed_scale := 1.0
@@ -118,6 +122,11 @@ var _side := PackedFloat32Array()     # per bone: -1 left of her centre, +1 righ
 var _rank := PackedFloat32Array()     # per bone: order in its group from the top (wings, tail)
 var _knees: Array = []                # [thigh, shin]: thighs turn so the knees stay on the planted shins
 var _seed := 0.0
+var _gaze := Vector2.ZERO             # idle look-around (packed rigs): where she looks now
+var _gaze_to := Vector2.ZERO          # ... and where she is turning to
+var _gaze_t := 1.0                    # seconds until she picks a new spot
+var _head_turn := Vector2.ZERO
+var _body_turn := Vector2.ZERO
 
 # slots
 var _slot_nodes: Array[Node2D] = []
@@ -263,6 +272,7 @@ func setup(r: RigData) -> void:
 		_warp_mat = ShaderMaterial.new()
 		_warp_mat.shader = WARP_SHADER
 		_warp_mat.set_shader_parameter(&"body_bone", r.body_bone)
+		_warp_mat.set_shader_parameter(&"packed_skin", r.packed)
 		_ua.resize(MAX_WARP_BONES)
 		_ub.resize(MAX_WARP_BONES)
 		_uc.resize(MAX_WARP_BONES)
@@ -486,6 +496,7 @@ func set_warp_shader(sh: Shader) -> bool:
 		_warp_mat.shader = want
 		# Uniforms are set again for the new shader: the skinning, the tints, the pose.
 		_warp_mat.set_shader_parameter(&"body_bone", rig.body_bone)
+		_warp_mat.set_shader_parameter(&"packed_skin", rig.packed)
 		for k: StringName in _tint:
 			_apply_tint_param(k, _tint[k])
 		_upload_warp()
@@ -612,6 +623,14 @@ func _idle_drive() -> void:
 	var u := _br_t / _br_len
 	var b := smoothstep(0.0, 0.42, u) if u < 0.44 else 1.0 - smoothstep(0.46, 1.0, u)
 	_br = b * _br_amp
+	# look-around: every 1.5-4.5 s a new spot, turned to smoothly, with a slow drift on top
+	_gaze_t -= dt
+	if _gaze_t <= 0.0:
+		_gaze_t = randf_range(1.5, 4.5)
+		_gaze_to = Vector2(randf_range(-0.45, 0.45), randf_range(-0.22, 0.18)) if randf() < 0.75 else Vector2.ZERO
+	if dt > 0.0:
+		_gaze += (_gaze_to - _gaze) * (1.0 - exp(-dt / 0.45))
+	_gaze += Vector2(0.04 * _noise(_clock, _seed + 3.3, 0.21), 0.03 * _noise(_clock, _seed + 5.1, 0.17)) * dt * 4.0
 	var w := _idle_w * idle_amount
 	var t := _clock
 	var s := _seed
@@ -928,6 +947,12 @@ func _pose() -> void:
 		_idle_drive()
 	if not _knees.is_empty():
 		_keep_knees()
+	if rig.packed:
+		# a real turn: every point shifts by its depth (the shader); no bone shifts
+		var lt := (look + _gaze * _idle_w * idle_amount).clamp(Vector2(-1, -1), Vector2(1, 1))
+		_head_turn = lt * HEAD_TURN_PX
+		_body_turn = lt * 0.33 * BODY_TURN_PX
+		return
 	# head turn: features shift with the turn, back hair counter-shifts, head narrows a bit
 	if look != Vector2.ZERO:
 		for i in _look_on:
@@ -1107,6 +1132,11 @@ func _upload_warp() -> void:
 	_warp_mat.set_shader_parameter(&"bone_a", _ua)
 	_warp_mat.set_shader_parameter(&"bone_b", _ub)
 	_warp_mat.set_shader_parameter(&"bone_c", _uc)
+	if rig.packed:
+		var gx := global_transform if is_inside_tree() else transform
+		var flip := -1.0 if gx.determinant() < 0.0 else 1.0
+		_warp_mat.set_shader_parameter(&"head_turn", Vector2(_head_turn.x * flip, _head_turn.y))
+		_warp_mat.set_shader_parameter(&"body_turn", Vector2(_body_turn.x * flip, _body_turn.y))
 
 
 func _apply_fx() -> void:

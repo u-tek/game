@@ -16,6 +16,10 @@ var mesh: ArrayMesh                        ## the base layer's mesh
 ## (the painting); format 2 rigs may add parts peeled off it (docs/dev/halorig.md section 11).
 var layers: Array = []
 var version := 1
+## Format 2 rigs built with turn data: vertices carry depth and turn shares, influences 2-3 are
+## packed (warp_skin.gdshaderinc; RigPlayer.set head/body turn).
+var packed := false
+var _mesh_turn := PackedVector3Array()    ## base layer, per vertex (depth, head share, body share)
 var body_bone := 0
 var _skin_n := 3                           ## influences per vertex in _mesh_skin (3: format 1, 4: format 2)
 var _mesh_skin := PackedFloat32Array()     ## base layer, per vertex b0,w0,b1,w1,b2,w2(,b3,w3)
@@ -240,6 +244,10 @@ func _load_layer(lj: Dictionary, base: bool) -> void:
 	var nv := int(m.get("n", 0))
 	var cells := Marshalls.base64_to_raw(str(m.get("cells", ""))).decompress(cols * rows, FileAccess.COMPRESSION_DEFLATE)
 	var sk := Marshalls.base64_to_raw(str(m.get("skin", ""))).decompress(nv * 8, FileAccess.COMPRESSION_DEFLATE)
+	var tn := PackedByteArray()
+	if m.has("turn"):
+		tn = Marshalls.base64_to_raw(str(m.turn)).decompress(nv * 4, FileAccess.COMPRESSION_DEFLATE)
+		packed = tn.size() == nv * 4
 	if cells.size() != cols * rows or sk.size() != nv * 8:
 		push_error("RigData[%s]: bad mesh in layer %s" % [id, str(lj.get("name", ""))])
 		return
@@ -272,10 +280,16 @@ func _load_layer(lj: Dictionary, base: bool) -> void:
 			c0[n * 4 + 1] = sk[o + 1] / 255.0
 			c0[n * 4 + 2] = sk[o + 2]
 			c0[n * 4 + 3] = sk[o + 3] / 255.0
-			c1[n * 4] = sk[o + 4]
-			c1[n * 4 + 1] = sk[o + 5] / 255.0
-			c1[n * 4 + 2] = sk[o + 6]
-			c1[n * 4 + 3] = sk[o + 7] / 255.0
+			if packed:
+				c1[n * 4] = sk[o + 4] + sk[o + 5] / 255.0 * 0.98
+				c1[n * 4 + 1] = sk[o + 6] + sk[o + 7] / 255.0 * 0.98
+				c1[n * 4 + 2] = (tn[n * 4] - 128) / 100.0
+				c1[n * 4 + 3] = tn[n * 4 + 1] + tn[n * 4 + 2] / 255.0 * 0.98
+			else:
+				c1[n * 4] = sk[o + 4]
+				c1[n * 4 + 1] = sk[o + 5] / 255.0
+				c1[n * 4 + 2] = sk[o + 6]
+				c1[n * 4 + 3] = sk[o + 7] / 255.0
 			n += 1
 	var idx := PackedInt32Array()
 	for j in rows:
@@ -298,6 +312,10 @@ func _load_layer(lj: Dictionary, base: bool) -> void:
 	_mesh_skin.resize(nv * 8)
 	for k in nv * 8:
 		_mesh_skin[k] = sk[k] if k % 2 == 0 else sk[k] / 255.0
+	if packed:
+		_mesh_turn.resize(nv)
+		for k in nv:
+			_mesh_turn[k] = Vector3((tn[k * 4] - 128) / 100.0, tn[k * 4 + 1] / 255.0, tn[k * 4 + 2] / 255.0)
 	_grid = Vector2i(cols, rows)
 	_grid_origin = Vector2(x0 - origin.x, y0 - origin.y)
 	_grid_cell = Vector2(cell, cell)
@@ -354,6 +372,27 @@ func skin_at(p: Vector2) -> Array:
 	return lst.slice(0, 4)
 
 
+## Depth and turn shares at a rig-space point (packed rigs), bilinear from the base layer's grid.
+func turn_at(p: Vector2) -> Vector3:
+	if _mesh_turn.is_empty():
+		return Vector3.ZERO
+	var fx := (p.x - _grid_origin.x) / _grid_cell.x
+	var fy := (p.y - _grid_origin.y) / _grid_cell.y
+	var i0 := clampi(floori(fx), 0, _grid.x - 1)
+	var j0 := clampi(floori(fy), 0, _grid.y - 1)
+	var tx := clampf(fx - i0, 0.0, 1.0)
+	var ty := clampf(fy - j0, 0.0, 1.0)
+	var acc := Vector3.ZERO
+	var wsum := 0.0
+	for c in [[0, 0, (1 - tx) * (1 - ty)], [1, 0, tx * (1 - ty)], [0, 1, (1 - tx) * ty], [1, 1, tx * ty]]:
+		var vi: Variant = _grid_vid.get(Vector2i(i0 + c[0], j0 + c[1]), null)
+		if vi == null:
+			continue
+		acc += _mesh_turn[int(vi)] * float(c[2])
+		wsum += float(c[2])
+	return acc / wsum if wsum > 0.0 else Vector3.ZERO
+
+
 ## Small skinned grid for an overlay patch (deforms exactly like the image under it).
 func _patch_mesh(r: Rect2) -> ArrayMesh:
 	var n := 4
@@ -369,7 +408,12 @@ func _patch_mesh(r: Rect2) -> ArrayMesh:
 			uvs.append(Vector2(float(i) / n, float(j) / n))
 			var sk := skin_at(p)
 			c0.append_array([sk[0][0], sk[0][1], sk[1][0], sk[1][1]])
-			c1.append_array([sk[2][0], sk[2][1], sk[3][0], sk[3][1]])
+			if packed:
+				var tv := turn_at(p)
+				c1.append_array([float(sk[2][0]) + clampf(sk[2][1], 0.0, 1.0) * 0.98, float(sk[3][0]) + clampf(sk[3][1], 0.0, 1.0) * 0.98,
+					tv.x, floorf(tv.y * 255.0 + 0.5) + clampf(tv.z, 0.0, 1.0) * 0.98])
+			else:
+				c1.append_array([sk[2][0], sk[2][1], sk[3][0], sk[3][1]])
 	for j in n:
 		for i in n:
 			var a := j * (n + 1) + i

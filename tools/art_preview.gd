@@ -55,7 +55,7 @@ func _timeline(j: Dictionary) -> void:
 	var out := str(j.get("out", "/tmp/rigprev"))
 	DirAccess.make_dir_recursive_absolute(out)
 	var dt := 1.0 / float(j.get("fps", 30.0))
-	var sprite := HeroArt.make_sprite(str(j.get("hero", "seraphiel")), str(j.get("skin", ""))) as HeroSprite
+	var sprite := _make(j)
 	sprite.position = Vector2(float(feet[0]), float(feet[1]))
 	sprite.scale = Vector2(sc / HeroSprite.BASE_SCALE, sc / HeroSprite.BASE_SCALE)
 	_vp.add_child(sprite)
@@ -142,7 +142,7 @@ func _job(j: Dictionary) -> void:
 			if sprite != null:
 				sprite.queue_free()
 				await process_frame
-			sprite = HeroArt.make_sprite(str(j.get("hero", "seraphiel")), str(j.get("skin", ""))) as HeroSprite
+			sprite = _make(j)
 			sprite.position = Vector2(float(feet[0]), float(feet[1]))
 			sprite.scale = Vector2(sc / HeroSprite.BASE_SCALE, sc / HeroSprite.BASE_SCALE)
 			holder.add_child(sprite)
@@ -214,7 +214,7 @@ func _bench(j: Dictionary) -> void:
 	root.add_child(vp)
 	var sprites: Array = []
 	for i in n:
-		var s := HeroArt.make_sprite(str(j.get("hero", "seraphiel")), str(j.get("skin", ""))) as HeroSprite
+		var s := _make(j)
 		s.position = Vector2(80 + (i % 5) * 140, 500 + (i / 5) * 420)
 		if i >= 5:
 			s.set_facing(-1)

@@ -36,10 +36,14 @@ void vertex() {
 	vec2 p = VERTEX;
 	part_pos = p;
 	VERTEX = warp_skin(p, CUSTOM0, CUSTOM1);
-	float wb = max(0.0, 1.0 - CUSTOM0.y - CUSTOM0.w - CUSTOM1.y - CUSTOM1.w);
+	int b2;
+	float w2;
+	int b3;
+	float w3;
+	skin_tail(CUSTOM1, b2, w2, b3, w3);
+	float wb = max(0.0, 1.0 - CUSTOM0.y - CUSTOM0.w - w2 - w3);
 	v_foil = bone_foil[int(CUSTOM0.x + 0.5)] * CUSTOM0.y + bone_foil[int(CUSTOM0.z + 0.5)] * CUSTOM0.w
-		+ bone_foil[int(CUSTOM1.x + 0.5)] * CUSTOM1.y + bone_foil[int(CUSTOM1.z + 0.5)] * CUSTOM1.w
-		+ bone_foil[body_bone] * wb;
+		+ bone_foil[b2] * w2 + bone_foil[b3] * w3 + bone_foil[body_bone] * wb;
 }
 
 vec3 to_srgb(vec3 c) {

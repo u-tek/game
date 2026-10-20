@@ -176,8 +176,11 @@ def apply_ipadapter(g, model, ip, object_info):
 
 def apply_controlnet(g, pos, neg, vae, cn, object_info=None):
     """Optional core ControlNet (e.g. an SDXL openpose/lineart model) from a prepared control image.
-    cn = {"model", "image" (uploaded name), "strength", "start", "end"}."""
+    cn = {"model", "image" (uploaded name), "strength", "start", "end", "type"}; "type" picks the mode of
+    a union model (xinsir controlnet-union: openpose, depth, canny/lineart/anime_lineart/mlsd ...)."""
     cl = g.add("ControlNetLoader", "ControlNet", control_net_name=cn["model"])
+    if cn.get("type"):
+        cl = g.add("SetUnionControlNetType", "ControlNet mode", control_net=L(cl), type=cn["type"])
     li = g.add("LoadImage", "Control image", image=cn["image"])
     kw = dict(positive=pos, negative=neg, control_net=L(cl), image=L(li), strength=float(cn.get("strength", 0.6)),
               start_percent=float(cn.get("start", 0.0)), end_percent=float(cn.get("end", 0.8)))

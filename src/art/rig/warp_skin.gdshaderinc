@@ -11,6 +11,27 @@ uniform vec4 bone_a[64];
 uniform vec4 bone_b[64];
 uniform vec4 bone_c[64];
 uniform int body_bone = 0;
+// Format 2 rigs with turn data (docs/dev/halorig.md 11.5): CUSTOM1 = (b2 + w2*0.98, b3 + w3*0.98,
+// depth, floor(head share*255) + body share*0.98). A turn shifts each point by its depth: the bangs
+// over the face, the face over the skull, the back hair and wings the other way.
+uniform bool packed_skin = false;
+uniform vec2 head_turn = vec2(0.0);     // rig px per unit of depth
+uniform vec2 body_turn = vec2(0.0);
+
+// Influences 2 and 3 (bone, weight) of a vertex, packed or not.
+void skin_tail(vec4 c1, out int b2, out float w2, out int b3, out float w3) {
+	if (packed_skin) {
+		b2 = int(floor(c1.x));
+		w2 = fract(c1.x) / 0.98;
+		b3 = int(floor(c1.y));
+		w3 = fract(c1.y) / 0.98;
+	} else {
+		b2 = int(c1.x + 0.5);
+		w2 = c1.y;
+		b3 = int(c1.z + 0.5);
+		w3 = c1.w;
+	}
+}
 
 vec2 deform(int b, vec2 p) {
 	vec4 A = bone_a[b];
@@ -31,13 +52,21 @@ vec2 deform(int b, vec2 p) {
 vec2 warp_skin(vec2 p, vec4 c0, vec4 c1) {
 	float w0 = c0.y;
 	float w1 = c0.w;
-	float w2 = c1.y;
-	float w3 = c1.w;
+	int b2;
+	float w2;
+	int b3;
+	float w3;
+	skin_tail(c1, b2, w2, b3, w3);
 	float wb = max(0.0, 1.0 - w0 - w1 - w2 - w3);
 	vec2 o = deform(int(c0.x + 0.5), p) * w0 + deform(int(c0.z + 0.5), p) * w1
-		+ deform(int(c1.x + 0.5), p) * w2 + deform(body_bone, p) * wb;
+		+ deform(b2, p) * w2 + deform(body_bone, p) * wb;
 	if (w3 > 0.0) {
-		o += deform(int(c1.z + 0.5), p) * w3;
+		o += deform(b3, p) * w3;
+	}
+	if (packed_skin) {
+		float th = floor(c1.w) / 255.0;
+		float tb = fract(c1.w) / 0.98;
+		o += (head_turn * th + body_turn * tb) * c1.z;
 	}
 	return o;
 }
