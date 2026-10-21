@@ -161,6 +161,7 @@
    "composition_natural": "The whole figure is in frame from the top of her head to both feet, with wings, weapon and hair fully inside the frame.",
   "composition_rig_natural": "She stands facing the viewer, upright and symmetrical, in a relaxed pose made for animation: both arms held a little away from her sides so nothing crosses her body, legs slightly apart with both feet flat and fully visible, hair falling behind her shoulders, wings spread wide and level, clear of her body, every limb, wing and prop fully visible and separate. The whole figure is in frame from the top of her head to both feet.",
    "age_natural": "in her mid-twenties",
+   "body_drop_natural": ["toned"],
    "quality": "",
    "quality_position": "start",
    "quality_negative": "bare breasts, genitals, photorealistic, 3d render, western comic style, heavy makeup, old, wrinkles, thick black outlines, blurry, lowres, watermark, text, signature, extra fingers, abs, six-pack, muscular, muscle definition, toned stomach, covered legs, long pants",

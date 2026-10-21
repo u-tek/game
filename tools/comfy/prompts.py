@@ -458,7 +458,9 @@ def _who(fam, h):
             who += " Her eyes: %s." % plain_tags(h["eyes"])     # 32 of 40 descriptions leave eye colour out
         return who
     eyes = "" if h.get("default_eyes") == "closed" else h["eyes"]
-    identity = plain_tags(join_tags(h["body"], h["hair"], eyes, h["head"], h["wings_tail"]))
+    drop = set(fam.get("body_drop_natural") or [])    # MOSS: "toned" drew abs (owner, 2026-10-21: "no abs")
+    body = ", ".join(t for t in split_tags(h["body"]) if t not in drop)
+    identity = plain_tags(join_tags(body, h["hair"], eyes, h["head"], h["wings_tail"]))
     look = plain_tags(join_tags(h["outfit"], h.get("footwear", ""), h["accessories"], h["weapon"]))
     pose = plain_tags(join_tags(h.get("pose", ""), h["expression"]))
     return " ".join(x for x in (
