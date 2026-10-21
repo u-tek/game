@@ -79,13 +79,11 @@ that the owner sideloads. The repo `u-tek/game` is public. The only code branch 
   plugin's loaders (SFT int8 DiT, Qwen3.5 9B int8 text encoder, FLUX.2 VAE), euler / sgm_uniform,
   **25 steps** (the owner's pick from 15/25/30/40/50), CFG 3, shift 5, negative-branch layer skip 22,
   896x1152. Prompts are sentences (the Korean-gacha style block plus each hero's own description),
-  never tag weights; the content rules still apply. **Style "variant A" (owner, 2026-10-21: "these are
-  all gold. this is perfect"):** the plain style block plus a revealing sentence (as much bare skin as
-  possible) and "a smooth soft stomach and no visible abs or muscle definition"; abs and muscle terms are
-  in the negative and out of the hero descriptions ("no abs"). A heavy cinematic-lighting version lost
-  to it ("the one on the left is better"). Candidates are base-only (about 2 min); finals add
-  hires 1.5x (4x-AnimeSharp, 0.4, 15 steps), the face pass and a plain 2x upscale-model pass (the MOSS
-  tiled 2x took 12-15 min and the owner cancelled it). The PC's ComfyUI is 0.39, so the plugin in
+  never tag weights; the content rules still apply. **Style "B+" (owner, 2026-10-22: "go for B and push further"):** variant A ("these are all gold", 2026-10-21)
+  pushed to more detail, lust and less clothing: a lustful seductress in a suggestive pin-up pose, a barely-there micro
+  version of her own outfit (coats and skirts open, bodysuits cut to strips), a voluptuous hourglass body with a soft
+  stomach and no abs ("no abs"); abs, muscle and modest-clothing terms are in the negative. Candidates are base-only (about 2 min); finals add the face pass and a plain 2x upscale-model pass,
+  with no hires repaint: at 0.4 it washed MOSS out (2026-10-22). The MOSS tiled 2x took 12-15 min and the owner cancelled it. The PC's ComfyUI is 0.39, so the plugin in
   `D:/comfyui/custom_nodes/moss-image` is patched locally for Comfy-Org's fused-qkv file (see status.md).
 - **Amanatsu render settings (the fallback; locked in by the owner, 2026-10-17: "2m karras. for sure. the face + hires &
   2x tile really works wonders"):** Amanatsu, family `illustrious`, dpmpp_2m/karras, 30 steps, CFG

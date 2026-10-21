@@ -155,7 +155,7 @@
     "text_encoder": "qwen3.5_9b_int8_convrot.safetensors",
     "vae": "flux2-vae.safetensors"
    },
-   "style_natural": "Official character splash art for a premium Korean mobile gacha game, polished 2D anime illustration. Smooth airbrushed soft shading with no hard cel steps, thin warm dark-brown line art, glossy highlights on her skin and on every latex surface, soft pink blush on her cheeks, nose, shoulders and knees, bright clean studio lighting with a soft rim light, rich saturated colours, crisp detail, hair painted in many fine strands with a bright sheen. Her outfit is as skimpy and revealing as possible, showing lots of bare skin: a bare midriff, bare shoulders and arms, bare thighs and deep cleavage. Her body is soft and feminine, with a smooth soft stomach and no visible abs or muscle definition.",
+   "style_natural": "Official character splash art for a premium Korean mobile gacha game, an extremely detailed, polished 2D anime illustration with intricate detail everywhere. Smooth airbrushed soft shading with no hard cel steps, fine thin warm dark-brown line art, detailed glossy oiled skin with soft highlights, a warm flush and a light sheen of sweat, glossy highlights on every latex and metal surface, finely detailed straps, buckles, chains and jewelry, soft pink blush on her cheeks, nose, shoulders and knees, bright clean studio lighting with a soft rim light, rich saturated colours, crisp sharp detail, hair painted in many fine strands with a bright sheen. She is a lustful, flirtatious seductress putting her body on display for the viewer: a hungry half-lidded bedroom gaze, deeply flushed cheeks, wet glossy parted lips and a teasing, inviting smile, in a provocative, suggestive pin-up pose with her back deeply arched and her chest and hips thrust out. She wears almost nothing: her outfit is a tiny, barely-there micro version of her design, just thin straps, strings and very small patches that barely cover the tips of her breasts and her crotch, with lots of underboob and sideboob spilling out, and her stomach, hips, thighs, butt, back, shoulders and arms all bare. Any coat, cape, jacket, robe, sarong or long skirt in her design hangs open or slips off her body and covers nothing, and any bodysuit or leotard is cut down to a few thin strips. Her body is extremely voluptuous: a curvy hourglass with huge heavy round breasts, a tiny narrow waist, a smooth soft stomach with no visible abs or muscle definition, very wide hips, thick soft thighs and a big round butt.",
    "face_natural": "A beautiful anime face: large glossy eyes with detailed gradient irises and sparkling highlights, long dark lashes, a small nose and small glossy lips.",
    "face_natural_closed": "A beautiful anime face with her eyes closed: both eyelids shut in soft curved lines, long dark lashes resting on her cheeks, no iris showing, a small nose and small glossy lips.",
    "composition_natural": "The whole figure is in frame from the top of her head to both feet, with wings, weapon and hair fully inside the frame.",
@@ -164,7 +164,7 @@
    "body_drop_natural": ["toned"],
    "quality": "",
    "quality_position": "start",
-   "quality_negative": "bare breasts, genitals, photorealistic, 3d render, western comic style, heavy makeup, old, wrinkles, thick black outlines, blurry, lowres, watermark, text, signature, extra fingers, abs, six-pack, muscular, muscle definition, toned stomach, covered legs, long pants",
+   "quality_negative": "bare breasts, genitals, photorealistic, 3d render, western comic style, heavy makeup, old, wrinkles, thick black outlines, blurry, lowres, watermark, text, signature, extra fingers, abs, six-pack, muscular, muscle definition, toned stomach, covered legs, long pants, modest clothing, conservative outfit, covered stomach, covered cleavage, long sleeves, coat, jacket, full bodysuit, innocent expression, shy",
    "rating": "",
    "rating_negative": "",
    "use_natural": true,
@@ -188,7 +188,7 @@
      "denoise_model": 0.4,
      "steps": 15
     },
-    "final_hires": true,
+    "final_hires": false,
     "final_upscale": "on"
    },
    "notes": "Owner, 2026-10-20: 'make moss the main generator in the pipeline at 25 steps, keep amanatsu as a fallback'. Settings are the model card's (euler / sgm_uniform, CFG 3, shift 5, negative-branch layer skip 22); 25 steps is the owner's pick from 15/25/30/40/50 (about 2 min per image on the 3070; 15 steps left hidden or doubled limbs in two of five heroes). Prompts are sentences (prompt_mode 'sentences': the Korean gacha style block above, the hero's own natural description with her age set to the mid-twenties, the background), never tag weights; the content rules still apply. Candidates are base-only (hires disabled here, about 2 min each); finalize does the hires 1.5x (4x-AnimeSharp, 0.4, 15 steps, about 3 min), the face polish and a plain 2x upscale-model pass (final_upscale 'on': the MOSS tiled 2x took an estimated 12-15 min and the owner cancelled it; --upscale tiled still works). Amanatsu (family illustrious) is the fallback: --fallback or --family illustrious."

@@ -1619,7 +1619,7 @@ class TestMoss(unittest.TestCase):
         self.assertEqual((s["width"], s["height"], s["shift"], s["slg_single_layers"]), (896, 1152, 5.0, "22"))
         self.assertEqual(s["checkpoint"], BIBLE["families"]["moss"]["loaders"]["unet"])
         self.assertFalse(s["hires"]["enabled"])               # candidates are base-only ...
-        self.assertTrue(s["final_hires"])                     # ... finalize does the hires
+        self.assertFalse(s["final_hires"])                    # no final hires: its repaint washed MOSS out (2026-10-22)
         self.assertEqual(s["final_upscale"], "on")            # and a plain 2x (the MOSS tiles were too slow)
         self.assertEqual(settings("moss", hero="noctaire")["width"], 832)    # a hero's own size still applies
         with self.assertRaises(P.PipelineError):
@@ -1747,7 +1747,7 @@ class TestMoss(unittest.TestCase):
         self.assertEqual(prompts.check_graph(BIBLE, body["prompt"]), [])
         fmeta = json.load(open(os.path.join(hdir, "final", hero + ".json")))
         steps = [st["step"] for st in fmeta["steps"]]
-        self.assertEqual(steps[:2], ["hires", "face_refine"], steps)      # hires first, from the inherited family
+        self.assertEqual(steps[:2], ["face_refine", "upscale"], steps)   # no hires repaint (it washed MOSS out)
         up = [st for st in fmeta["steps"] if st["step"] == "upscale"][0]
         self.assertNotIn("tiled", up)                          # the plain 2x, not the slow MOSS tiles
         self.assertEqual(fmeta["settings"]["family"], "moss")
