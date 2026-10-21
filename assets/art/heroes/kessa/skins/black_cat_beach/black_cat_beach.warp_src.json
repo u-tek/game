@@ -1,27 +1,27 @@
 {
-  "_doc": "HaloRig warp rig source for kessa black_cat_beach, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s206002, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "_doc": "HaloRig warp rig source for kessa black_cat_beach, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s207780, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
   "image": "black_cat_beach.png",
   "origin": [512, 1990],
   "grid": [24, 48],
   "texel_scale": 1.0,
-  "portrait": [603, 952, 840],
+  "portrait": [462, 930, 518],
   "look_px": [8, 5],
-  "meta": {"weapon": "sickle", "fx_color": "#ff8a3d", "art": "comfy s206002 quick"},
+  "meta": {"weapon": "sickle", "fx_color": "#ff8a3d", "art": "comfy s207780 quick"},
   "body_bone": "hips",
   "bones": [
-    {"name": "hips", "parent": "root", "pivot": [712, 1397]},
-    {"name": "torso", "parent": "hips", "pivot": [735, 1317]},
-    {"name": "chest", "parent": "torso", "pivot": [763, 1220]},
-    {"name": "neck", "parent": "chest", "pivot": [715, 1132]},
-    {"name": "head", "parent": "neck", "pivot": [781, 1111]},
-    {"name": "face", "parent": "head", "pivot": [796, 937]},
-    {"name": "hair_front", "parent": "head", "pivot": [796, 753]}
+    {"name": "hips", "parent": "root", "pivot": [487, 1342]},
+    {"name": "torso", "parent": "hips", "pivot": [480, 1255]},
+    {"name": "chest", "parent": "torso", "pivot": [472, 1149]},
+    {"name": "neck", "parent": "chest", "pivot": [464, 1052]},
+    {"name": "head", "parent": "neck", "pivot": [452, 1027]},
+    {"name": "face", "parent": "head", "pivot": [462, 921]},
+    {"name": "hair_front", "parent": "head", "pivot": [462, 809]}
   ],
   "regions": [
-    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [796, 967], "radius": [162, 135], "feather": 14}},
-    {"name": "hair_front", "rule": {"type": "ellipse", "center": [796, 805], "radius": [193, 92], "feather": 12}},
-    {"name": "head", "rule": {"type": "ellipse", "center": [796, 906], "radius": [311, 291], "feather": 22}},
-    {"name": "chest", "rule": {"type": "polygon", "points": [[518, 1122], [912, 1122], [1121, 1160], [1103, 1297], [985, 1327], [485, 1327], [423, 1297], [405, 1160]], "feather": 40}}
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [462, 939], "radius": [100, 82], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [462, 841], "radius": [119, 56], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [462, 902], "radius": [192, 177], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[343, 1042], [585, 1042], [693, 1089], [682, 1235], [635, 1265], [325, 1265], [262, 1235], [251, 1089]], "feather": 40}}
   ],
   "overlays": []
 }
