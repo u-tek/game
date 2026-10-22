@@ -140,6 +140,19 @@ this file says where things stand. Older logs are under "History" at the bottom.
   longer overprints two lines of micro type; the Bag lists currencies as ledger codes (GEM, SCR ...)
   instead of coloured icons; bulletin titles never break mid-word. Reward receipts and the Sanctum
   keep their currency icons on purpose (they are scanned, not read).
+- **The owner's list of 2026-10-23 (all done):** the bottom nav is HEROES, LOBBY, SHOP, SUMMON
+  (Gear lives in the Bag's armoury and on hero pages; Team is a TEAM plate on the Lobby beside
+  ENGAGE); the Lobby's side labels are about twice the size (FRONT, DISTRICT, SPIRE, RIVAL, BAG,
+  VIEW); the District is reachable from the Lobby (DISTRICT) and from the War screen (a YOUR QUARTER
+  plate with a live miniature); the intake form has no birthday question; Return or a tap elsewhere
+  closes the keyboard (`keyboard_dismiss.gd`); currencies are rendered objects
+  (`tools/blender/currency_objects.py`, `assets/art/ui/currency/`, shown by `Kit.icon` in colour,
+  back in the top bar); the Shop opens on TODAY'S LOOK (a heroine in a look the player doesn't own,
+  daily, her live figure) and shows each offer and gem pack as a rendered object
+  (`assets/art/ui/shop/`) with icon rows; the Bag shows icons, what each currency buys right now,
+  and the armoury as product shots; the gallery keeps a zoomed heroine on screen; the hero page's
+  stats, stars and power sit on a header above her; a Legendary's page is printed on gold foil (the
+  owner: "the gold sheet is awesome").
 - **Overnight 2026-10-22/23 summary for the owner:** `docs/dev/morning-2026-10-23.md`.
 - **Next:** keep refining every screen as a restrained poster; the server for the War (real sides,
   the Champion side-wide); check Live Light, the heartbeat haptics and the District's frame rate on
