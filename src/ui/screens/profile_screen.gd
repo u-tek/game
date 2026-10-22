@@ -25,6 +25,7 @@ extends Control
 ## main.gd shows ProfileScreen.avatar_hero() in the top bar when it is set.
 ## params: sheet "avatar" | "name" opens that sheet, scroll (px) scrolls the page (screenshots).
 
+const Signature := preload("res://src/ui/components/signature.gd")
 const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
 const Poster := preload("res://src/ui/v4/survey/poster.gd")
 const Bits := preload("res://src/ui/v4/profile/profile_bits.gd")
@@ -724,13 +725,22 @@ func _build_footer(ox: float, w: float) -> void:
 	sig_btn.size = Vector2(330, 88)
 	_drag_guard(sig_btn, _open_name_sheet)
 	_page.add_child(sig_btn)
-	var sl := PK.t(player_name_raw(), 40, INK, "serif_italic")
-	sl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	sl.mouse_filter = MOUSE_FILTER_IGNORE
-	sl.clip_text = true
-	sl.size = Vector2(330, 50)
-	sl.position = Vector2(0, 8)
-	sig_btn.add_child(sl)
+	if Signature.has_ink(Game.signature()):
+		# Her own hand from the intake form, right-aligned over the swash.
+		var sg := Signature.new()
+		sg.strokes = Game.signature()
+		sg.ink = INK
+		sg.size = Vector2(200, 58)
+		sg.position = Vector2(126, 2)
+		sig_btn.add_child(sg)
+	else:
+		var sl := PK.t(player_name_raw(), 40, INK, "serif_italic")
+		sl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		sl.mouse_filter = MOUSE_FILTER_IGNORE
+		sl.clip_text = true
+		sl.size = Vector2(330, 50)
+		sl.position = Vector2(0, 8)
+		sig_btn.add_child(sl)
 	var swash := ColorRect.new()
 	swash.color = INK
 	swash.mouse_filter = MOUSE_FILTER_IGNORE

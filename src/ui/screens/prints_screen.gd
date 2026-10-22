@@ -16,6 +16,7 @@ extends Control
 ## params: filter ("all" | "misprint" | "holo" | "top" | "rival"), open (a print uid: its sheet),
 ## hero (only that hero's prints, from the Heroes screen).
 
+const Signature := preload("res://src/ui/components/signature.gd")
 const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
 const Poster := preload("res://src/ui/v4/survey/poster.gd")
 const CK := preload("res://src/ui/v4/collect/collect_kit.gd")
@@ -357,10 +358,18 @@ func _fill_visible() -> void:
 func _build_footer(ox: float, w: float, pr: Rect2) -> void:
 	var fy := pr.end.y + 12.0
 	PK.at(_page, PK.t(Poster.date_long(), 22, INK, "regular"), Vector2(ox + 20, fy + 8))
-	var sl := PK.t(ProfileScreen.player_name_raw(), 40, INK, "serif_italic")
-	sl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	sl.size = Vector2(330, 50)
-	PK.at(_page, sl, Vector2(ox + w - 24 - 330, fy))
+	if Signature.has_ink(Game.signature()):
+		var sg := Signature.new()
+		sg.strokes = Game.signature()
+		sg.ink = INK
+		sg.size = Vector2(200, 56)
+		sg.position = Vector2(ox + w - 24 - 200, fy - 4)
+		_page.add_child(sg)
+	else:
+		var sl := PK.t(ProfileScreen.player_name_raw(), 40, INK, "serif_italic")
+		sl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		sl.size = Vector2(330, 50)
+		PK.at(_page, sl, Vector2(ox + w - 24 - 330, fy))
 
 
 # ------------------------------------------------------------------ the print sheet

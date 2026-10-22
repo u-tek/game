@@ -95,8 +95,13 @@ func _ready() -> void:
 					model.dev_set_awaken(kv[0], tier, 96 if tier < 3 else 40)
 				model.state.currencies.dust = maxi(int(model.state.currencies.dust), 12000)
 		save()
+		# Screenshots/testing: --away=<hours> pretends the player was away that long.
+		for a in args:
+			if a.begins_with("--away="):
+				last_away_ms = int(float(a.substr("--away=".length())) * 3600000.0)
 	else:
 		load_or_create()
+		_measure_away()
 
 
 func _process(delta: float) -> void:
@@ -116,13 +121,40 @@ func _exit_tree() -> void:
 		save()
 
 
+## How long the player was away before this session (or this resume), in ms (0 when unknown).
+## The Lobby's heroine notices long absences once (away_noticed).
+var last_away_ms := 0
+var away_noticed := false
+
+
+## Notes when the player leaves (kept in the settings: an adapter detail, not a rule).
+func _mark_seen() -> void:
+	if not state.is_empty() and state.get("settings") is Dictionary:
+		state.settings["last_seen_ms"] = _clock_ms()
+
+
+## How long since the player was last seen (and resets the "noticed" flag for a long absence).
+func _measure_away() -> void:
+	if state.is_empty() or not (state.get("settings") is Dictionary):
+		return
+	var seen := int((state.settings as Dictionary).get("last_seen_ms", 0))
+	if seen > 0:
+		var away := maxi(0, _clock_ms() - seen)
+		if away >= 3600000:
+			last_away_ms = away
+			away_noticed = false
+	_mark_seen()
+
+
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_WM_CLOSE_REQUEST:
 			if not state.is_empty():
+				_mark_seen()
 				save()
 		NOTIFICATION_APPLICATION_RESUMED, NOTIFICATION_APPLICATION_FOCUS_IN:
 			if not state.is_empty():
+				_measure_away()
 				model.refresh_daily()
 				model.check_idle_full()
 				_flush()
@@ -783,6 +815,26 @@ func war_claim() -> Dictionary:
 	var r := model.war_claim()
 	_flush()
 	return r
+
+
+## The intake form (the onboarding): done? the signature strokes; finishing it; replaying it.
+func onboarded() -> bool:
+	return model.onboarded()
+
+
+func signature() -> Array:
+	return model.signature()
+
+
+func complete_intake(player_name: String, strokes: Array) -> Dictionary:
+	var r := model.complete_intake(player_name, strokes)
+	_flush()
+	return r
+
+
+func reset_intake() -> void:
+	model.reset_intake()
+	_flush()
 
 
 ## The player's district (GameModel.district): buildings, keepers, the idle bonus.

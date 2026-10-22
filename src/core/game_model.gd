@@ -82,6 +82,9 @@ func default_state() -> Dictionary:
 		"version": SAVE_VERSION,
 		"created_at": now,
 		"player_name": EconomyData.START_PLAYER_NAME,
+		# The intake form (onboarding): done once; the signature as strokes (0..1000 pad coords).
+		"onboarded": false,
+		"signature": [],
 		"currencies": EconomyData.START_CURRENCIES.duplicate(),
 		"heroes": {},
 		"formation": ["", "", "", "", ""],
@@ -117,8 +120,14 @@ func migrate(loaded: Dictionary) -> Dictionary:
 		for c in CURRENCIES:
 			if not loaded.currencies.has(c):
 				loaded.currencies[c] = 0
+	# A save from before the intake form: a player with progress has been "onboarded" already.
+	if not loaded.has("onboarded"):
+		var cp: Variant = loaded.get("campaign", {})
+		loaded["onboarded"] = cp is Dictionary and int((cp as Dictionary).get("cleared", 0)) > 0
 	# Defaults that depend on "now" must not overwrite loaded values; merge fills gaps only.
 	_merge_defaults(loaded, defaults)
+	loaded.onboarded = bool(loaded.onboarded)
+	loaded.signature = _clean_signature(loaded.signature)
 	var heroes: Dictionary = {}
 	for id in loaded.heroes:
 		if HeroData.get_def(str(id)).is_empty() or not (loaded.heroes[id] is Dictionary):
@@ -2304,6 +2313,73 @@ func _migrate_war(ws: Dictionary) -> void:
 	c.tiers = tiers
 
 
+# ---------------------------------------------------------------- the intake form (onboarding)
+
+const SIGNATURE_MAX_STROKES := 24
+const SIGNATURE_MAX_POINTS := 400
+
+
+## Strokes as arrays of ints (x, y pairs clamped to 0..1000), bounded in count and length.
+static func _clean_signature(v: Variant) -> Array:
+	var out: Array = []
+	if not (v is Array):
+		return out
+	for st: Variant in v:
+		if not (st is Array or st is PackedInt32Array):
+			continue
+		var a: Array = Array(st)
+		var pts: Array = []
+		for i in range(0, mini(a.size() - 1, SIGNATURE_MAX_POINTS * 2 - 1), 2):
+			pts.append(clampi(int(a[i]), 0, 1000))
+			pts.append(clampi(int(a[i + 1]), 0, 1000))
+		if pts.size() >= 4:
+			out.append(pts)
+		if out.size() >= SIGNATURE_MAX_STROKES:
+			break
+	return out
+
+
+func signature() -> Array:
+	return state.get("signature", [])
+
+
+func onboarded() -> bool:
+	return bool(state.get("onboarded", true))
+
+
+## Finishes the intake form: the name (blank keeps the current one, 16 characters) and the
+## signature strokes. Result {ok, value: {name}, error}.
+func complete_intake(player_name: String, strokes: Array) -> Dictionary:
+	var n := player_name.strip_edges().left(16)
+	if n != "":
+		state.player_name = n
+	state.signature = _clean_signature(strokes)
+	state.onboarded = true
+	_changed()
+	return _ok({"name": str(state.player_name)})
+
+
+## A made-up signature for the rich test save: a looping cursive "Aria" with an underline swash.
+static func _demo_signature() -> Array:
+	var a: Array = []
+	for i in 60:
+		var t := float(i) / 59.0
+		a.append(int(60 + t * 520))
+		a.append(int(560 - sin(t * TAU * 3.2) * 210 * (1.0 - t * 0.4) - t * 120))
+	var swash: Array = []
+	for i in 24:
+		var t := float(i) / 23.0
+		swash.append(int(120 + t * 760))
+		swash.append(int(800 - sin(t * PI) * 60 - t * 90))
+	return [a, swash]
+
+
+## Debug and the Settings' "replay the opening": the intake form shows again.
+func reset_intake() -> void:
+	state.onboarded = false
+	_changed()
+
+
 func _migrate_rival(rs: Dictionary) -> void:
 	var heroes := {}
 	for id: Variant in rs.heroes:
@@ -2396,6 +2472,9 @@ func dev_add(currency_id: String, amount: int) -> void:
 ## Test state for --rich: every hero, lots of currency, mid-campaign progress.
 func make_rich_state() -> void:
 	new_game()
+	# A signed intake form (screenshots show the signature where the game signs for the player).
+	state.onboarded = true
+	state.signature = _demo_signature()
 	var now := now_ms()
 	var roster := {
 		"seraphiel": [46, 5, 20], "cassiel": [40, 4, 12], "liora": [38, 4, 30],

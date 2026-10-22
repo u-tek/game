@@ -45,6 +45,18 @@ this file says where things stand. Older logs are under "History" at the bottom.
   small idle bonus, heroines as keepers (the side's faction doubles). Next: the server (real sides,
   the Champion side-wide), more reference refinement. `tools/check` now compresses newly installed hero
   art itself (the PC art session installs 18+ looks while code work runs).
+- **Onboarding (2026-10-22; the owner: "fleshed out, but in a subtle way. like 'wow how did they
+  even think of that'"; "every part of the game to look like a poster ... with practiced restraint"):**
+  the first launch goes from the boot print run to the intake form (`calling_screen.gd`): name and a
+  finger signature, ANSWER stamps it, the lobby heroine greets the player by name for the real hour.
+  The signature (`signature.gd`, `state.signature`, strokes 0..1000) then signs the profile footer,
+  reward receipts, the oath on the front and the print album. Guide marks are red grease-pencil
+  proof marks. Subtle touches: the Lobby heroine notices an absence of 8 h or more, once ("14 hours.
+  Not that I was counting."); 22:00-05:00 the app warms like paper under a lamp. Old saves with
+  progress skip the form; Settings has "Replay the opening"; Reset Save starts there. Debug: shot
+  params `calling {"answer": true}`, flags `--away=<hours>`, `--lamp` / `--no-lamp`.
+- **Next (the owner, same day):** a novel feature for iPhone 15 Pro and newer that uses the on-device
+  power; keep refining every screen as a restrained poster.
 - **For the art session (18+ skins):** `HeroArt._built_art` shows the nude base look whatever skin
   is chosen when nudity is on (tested in `test_skins.gd test_nudity_mode_drops_skins`), so the 18+
   looks being installed under `skins/<art>/adult/` never show. When the per-skin nude set is in,

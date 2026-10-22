@@ -389,14 +389,19 @@ func _data_section() -> Control:
 	var b := Kit.danger_button("Reset Save", _confirm_reset, "refresh")
 	b.name = "ResetSave"
 	v.add_child(b)
+	# The intake form again (your name and signature can be redone; nothing else changes).
+	var rp := Kit.light_button("Replay the opening", func() -> void:
+		Game.reset_intake()
+		UI.go("calling"), "refresh")
+	rp.name = "ReplayOpening"
+	v.add_child(rp)
 	return _section("Save data", [v])
 
 
 func _confirm_reset() -> void:
 	UI.confirm("Delete all progress and start over? This can't be undone.", func() -> void:
 		Game.reset_save()
-		UI.toast("Save reset. A new journey begins.", "good")
-		UI.go("home"), Callable(), "Reset", "Cancel", true)
+		UI.go("calling"), Callable(), "Reset", "Cancel", true)
 
 
 func _dev_section() -> Control:

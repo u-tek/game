@@ -1,8 +1,10 @@
 class_name Guide
 extends Control
-## First-session guidance: a pulsing orange ring and a bobbing arrow on the one control a new
-## player should tap next. No dialogs, nothing blocks input; it simply goes quiet once the
-## player is past chapter 1.
+## First-session guidance: a printer's proof mark on the one control a new player should tap next
+## (style v4: the poster is a proof, the guide its editor): a loose loop in red grease pencil drawn
+## round it (it draws itself on, overshooting where it closes, a little different on every
+## control), and a hand-drawn arrow nudging toward it. No dialogs, nothing blocks input; it simply
+## goes quiet once the player is past chapter 1.
 ##
 ##   Guide.step()                              # "claim" | "summon" | "formation" | "battle"
 ##                                             # | "level" | "quests" | ""
@@ -27,15 +29,16 @@ const LEVEL_UPS_TAUGHT := 5
 ## Auto-fill is suggested when the best five heroes are this much stronger (percent).
 const BENCH_GAIN_PCT := 3
 
-const COLOR := Color("ff9a2e")
+## Grease pencil: the signal red, a touch darker, slightly translucent like wax on paper.
+const COLOR := Color(0.86, 0.2, 0.08)
 
 ## Show the bobbing arrow (the ring always shows).
 var arrow := true
 ## Arrow side: -1 above the target pointing down, 1 below it pointing up.
 var arrow_side := -1
 var _t := 0.0
-var _arrow: TextureRect
-var _box := StyleBoxFlat.new()
+## The loop's character (seeded by the target's name so each control gets its own hand).
+var _seed := 0.0
 
 
 ## The next suggested action for a new player ("" = no suggestion).
@@ -169,52 +172,70 @@ func _ready() -> void:
 	offset_bottom = 6
 	# No z_index: a raised mark would draw over popups. As the target's last child it
 	# already draws over the target itself.
-	_box.draw_center = false
-	_box.set_border_width_all(4)
-	_box.anti_aliasing = true
-	if arrow:
-		_arrow = Kit.icon("pointer", 58)
-		_arrow.size = Vector2(58, 58)
-		_arrow.pivot_offset = Vector2(29, 29)
-		if arrow_side > 0:
-			_arrow.rotation = PI
-		add_child(_arrow)
-	modulate.a = 0.0
-	create_tween().tween_property(self, "modulate:a", 1.0, 0.3)
+	var host := get_parent()
+	_seed = float(absi(hash(str(host.name) if host else "mark")) % 1000) / 1000.0
 
 
 func _process(delta: float) -> void:
 	_t += delta
 	var host := get_parent() as Control
 	if host is Container:
-		# Containers lay their children out; keep the ring around the whole target anyway.
+		# Containers lay their children out; keep the mark around the whole target anyway.
 		position = Vector2(-6, -6)
 		size = host.size + Vector2(12, 12)
 	queue_redraw()
-	if _arrow:
-		var bob := absf(sin(_t * 3.6)) * 14.0
-		# Below: leave room for a caption under the target (e.g. home's round shortcuts).
-		var y := (-62.0 - bob) if arrow_side < 0 else (size.y + 26.0 + bob)
-		_arrow.position = Vector2(size.x * 0.5 - 29.0, y)
 
 
 func _draw() -> void:
-	var k := 0.5 + 0.5 * sin(_t * 4.2)
+	# Drawn on over 0.45 s, then a slow breath (the wax catches the light).
+	var on := clampf(_t / 0.45, 0.0, 1.0) if Kit.motion_ok() else 1.0
+	var breathe := 0.82 + 0.18 * sin(_t * 2.6)
+	var col := Color(COLOR, 0.9 * breathe)
 	var host := get_parent() as Control
+	var c := size * 0.5
+	var r := size * 0.5 + Vector2(10, 9)
 	if host and host.has_meta("guide_hex"):
-		# A hexagon target (the raised Lobby tab): a hex ring around it instead of a box.
-		# meta guide_hex = Vector2(centre y in the host, radius); centred horizontally.
 		var hv: Vector2 = host.get_meta("guide_hex")
-		var c := Vector2(host.size.x * 0.5, hv.x) - position
-		var ci := get_canvas_item()
-		# Glow as widening translucent outlines only, so the hex face stays readable.
-		for i in 3:
-			KitBox.stroke_poly(ci, KitBox.hex_points(c, hv.y + 9.0 + i * 3.0), Color(COLOR, (0.22 - i * 0.06) * (0.5 + k)), 4.0)
-		KitBox.stroke_poly(ci, KitBox.hex_points(c, hv.y + 6.0), Color(COLOR.lightened(0.25), 0.55 + 0.45 * k), 4.0)
-		return
-	var r := minf(10.0, size.y * 0.5)
-	_box.set_corner_radius_all(int(r))
-	_box.border_color = Color(COLOR.lightened(0.25), 0.55 + 0.45 * k)
-	_box.shadow_color = Color(COLOR, 0.25 + 0.35 * k)
-	_box.shadow_size = int(6.0 + 10.0 * k)
-	draw_style_box(_box, Rect2(Vector2.ZERO, size))
+		c = Vector2(host.size.x * 0.5, hv.x) - position
+		r = Vector2(hv.y + 12.0, hv.y + 12.0)
+	_loop(c, r, on, col)
+	if arrow and on >= 1.0:
+		_pencil_arrow(c, r, col)
+
+
+## A loose pencil loop round c with radii r: a wobbly ellipse that starts a little inside, runs
+## round once and overshoots past where it began (as a hand draws it), the nib heavier mid-stroke.
+func _loop(c: Vector2, r: Vector2, on: float, col: Color) -> void:
+	var n := 64
+	var turns := 1.12
+	var a0 := -2.2 + _seed * 1.4
+	var pts := PackedVector2Array()
+	var last := int(n * on)
+	for i in last + 1:
+		var t := float(i) / n
+		var a := a0 + t * TAU * turns
+		var wob := 1.0 + 0.045 * sin(a * 3.0 + _seed * 9.0) + 0.03 * sin(a * 5.0 + _seed * 4.0)
+		var drift := 1.0 + 0.06 * t
+		pts.append(c + Vector2(cos(a) * r.x * wob * drift, sin(a) * r.y * wob * drift))
+	for i in pts.size() - 1:
+		var t := float(i) / n
+		var w := 2.2 + 2.2 * sin(PI * clampf(t / turns, 0.0, 1.0))
+		draw_line(pts[i], pts[i + 1], col, w, true)
+
+
+## A short hand-drawn arrow off the loop's top right (or bottom, for marks below), nudging in.
+func _pencil_arrow(c: Vector2, r: Vector2, col: Color) -> void:
+	var nudge := absf(sin(_t * 3.2)) * 6.0 if Kit.motion_ok() else 0.0
+	var dir := Vector2(-0.6, 1.0).normalized() if arrow_side < 0 else Vector2(-0.6, -1.0).normalized()
+	var tip := c + Vector2(r.x * 0.62, -r.y * 0.98 if arrow_side < 0 else r.y * 0.98) - dir * (6.0 + nudge)
+	var tail := tip - dir * 54.0 + Vector2(10, 0)
+	var mid := (tip + tail) * 0.5 + dir.orthogonal() * 8.0
+	var pts := PackedVector2Array()
+	for i in 13:
+		var t := float(i) / 12.0
+		pts.append(tail.lerp(mid, t).lerp(mid.lerp(tip, t), t))
+	for i in pts.size() - 1:
+		draw_line(pts[i], pts[i + 1], col, 3.0, true)
+	var back := -dir
+	draw_line(tip, tip + back.rotated(0.5) * 16.0, col, 3.4, true)
+	draw_line(tip, tip + back.rotated(-0.5) * 16.0, col, 3.4, true)

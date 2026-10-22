@@ -85,6 +85,9 @@ var _veil_tw: Tween
 var _chrome_shown := Vector2i(-1, -1)
 ## --no-boot: straight into the Lobby (dev runs), as test scripts that add main.tscn themselves do.
 var _no_boot := false
+## The night warmth (multiply) and its colour.
+var _lamp: ColorRect
+const LAMP := Color(1.0, 0.955, 0.88)
 
 
 ## Style v4 "Signal" lighting: HDR 2D bloom (WorldEnvironment glow over the canvas; emissive UI
@@ -236,7 +239,8 @@ func _boot(hold: bool = false, freeze: float = -1.0) -> void:
 		boot.set_progress(0.6 + 0.28 * float(i + 1) / float(steps.size()))
 		await get_tree().process_frame
 	if UI.current_name == "":
-		UI.go("home")
+		# A new player gets the intake form first (the onboarding); everyone else the Lobby.
+		UI.go("home" if Game.onboarded() else "calling")
 	boot.set_progress(0.92)
 	# The Lobby draws a few times under the sheet: its shaders compile now, not on the first look.
 	for i in 3:
@@ -248,6 +252,16 @@ func _boot(hold: bool = false, freeze: float = -1.0) -> void:
 		UI.play_intro()
 		return
 	boot.finish(func() -> void: UI.play_intro())
+
+
+## The lamp is on from 22:00 to 05:00 local time (screenshots: --lamp forces it, --no-lamp hides it).
+func _update_lamp() -> void:
+	if _lamp == null:
+		return
+	var args := OS.get_cmdline_user_args()
+	var h := int(Time.get_datetime_dict_from_system().hour)
+	var on := (h >= 22 or h < 5) and not args.has("--no-lamp") and not _shoot.has("screen")
+	_lamp.visible = on or args.has("--lamp")
 
 
 ## Desktop stand-in for tilting the phone: the mouse's offset from the window centre while it moves
@@ -333,6 +347,25 @@ func _build() -> void:
 	fx_layer.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	fx_layer.mouse_filter = MOUSE_FILTER_IGNORE
 	add_child(fx_layer)
+
+	# Lamplight: from 22:00 to 05:00 local time the whole sheet warms a little, as paper does under
+	# a desk lamp (a multiply over everything; nobody is told).
+	_lamp = ColorRect.new()
+	_lamp.name = "Lamp"
+	_lamp.mouse_filter = MOUSE_FILTER_IGNORE
+	_lamp.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	_lamp.z_index = 150
+	var mul := CanvasItemMaterial.new()
+	mul.blend_mode = CanvasItemMaterial.BLEND_MODE_MUL
+	_lamp.material = mul
+	_lamp.color = LAMP
+	add_child(_lamp)
+	_update_lamp()
+	var lt := Timer.new()
+	lt.wait_time = 60.0
+	lt.autostart = true
+	lt.timeout.connect(_update_lamp)
+	add_child(lt)
 
 
 func _build_top_bar() -> void:

@@ -1793,6 +1793,8 @@
 		"version": 1,
 		"created_at": 1702083600000,
 		"player_name": "Envoy",
+		"onboarded": false,
+		"signature": [],
 		"currencies": {"gold": 46411, "hero_exp": 22909, "gems": 11358, "scrolls": 0, "dust": 604},
 		"heroes": {
 			"uriela": {"id": "uriela", "level": 7, "stars": 1, "shards": 20, "gear": {"weapon": "g6"}, "awaken": 0},

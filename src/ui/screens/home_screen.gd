@@ -793,7 +793,22 @@ func _refresh_hero() -> void:
 	HeroArt.fit_sprite(_sprite, _anchor, Rect2(BAND - 140.0, _ph * 0.02, _pw - (BAND - 140.0), _ph * 0.98), BAND + 250.0, true)
 	var lines := LobbyLines.lines(id)
 	_line = int(Time.get_unix_time_from_system() / 60.0) % lines.size()
-	_typeset(lines[_line], false)
+	var back := _welcome_back()
+	_typeset(back if back != "" else lines[_line], false)
+
+
+## After a long absence (8 h or more) her line notices it, once: how long, roughly, in her words.
+func _welcome_back() -> String:
+	var away := int(Game.get("last_away_ms"))
+	if away < 8 * 3600000 or bool(Game.get("away_noticed")):
+		return ""
+	Game.set("away_noticed", true)
+	var h := away / 3600000
+	if h >= 72:
+		return "%d days. I stopped counting the hours after the second one." % (h / 24)
+	if h >= 24:
+		return "A whole day and then some. I kept your seat warm."
+	return "%d hours. Not that I was counting." % h
 
 
 ## The band's red halftone print of her (head to waist) and her blurred red echo on the paper.

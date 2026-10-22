@@ -23,6 +23,7 @@ extends Control
 const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
 const Poster := preload("res://src/ui/v4/survey/poster.gd")
 const CK := preload("res://src/ui/v4/collect/collect_kit.gd")
+const Signature := preload("res://src/ui/components/signature.gd")
 const PPK := preload("res://src/ui/v4/poster_kit.gd")
 
 const INK := Color("101113")
@@ -252,6 +253,15 @@ func _build_head(pw: float, war: Dictionary) -> void:
 	var x0 := gx + 22.0
 	var tw := pw - x0 - 18.0
 	PK.at(p, PK.t("YOU FIGHT FOR %s" % str(war.side_name).to_upper(), 12, SIG, "mono_bold"), Vector2(x0, 18))
+	if Signature.has_ink(Game.signature()):
+		# Sworn: the oath carries the player's signature.
+		var sg := Signature.new()
+		sg.strokes = Game.signature()
+		sg.ink = Color(INK, 0.8)
+		sg.weight = 2.4
+		sg.size = Vector2(110, 30)
+		sg.position = Vector2(x0 + 200, 4)
+		p.add_child(sg)
 	var wk := PK.t("WEEK %02d  ·  DAY %d / 7" % [int(war.week) + 1, int(war.day_in_week)], 12, INK, "mono_bold")
 	wk.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	wk.size = Vector2(tw, 16)

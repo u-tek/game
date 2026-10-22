@@ -51,6 +51,18 @@ func _run() -> void:
 ## The 2026-10-22 screens open and do their one main thing: the Bag lists currencies; the front asks
 ## for a side, then shows the map and moves the pin; the gallery shows a heroine and swipes on.
 func _new_screens() -> void:
+	# The intake form: type a name, answer, the greeting follows; the player is onboarded.
+	_game.reset_intake()
+	var cl := await _go("calling")
+	var ne := cl.find_child("Name", true, false) as LineEdit
+	_check(ne != null and cl.find_child("SignPad", true, false) != null, "the intake form has a name field and a signing pad")
+	if ne:
+		ne.text = "Tester"
+	cl.call("_answer")
+	await _frames(4)
+	_check(_game.onboarded() and str(_game.state.player_name) == "Tester", "answering keeps the name and onboards")
+	await get_tree_timer(1.2)
+	_check(cl.find_child("Greeting", true, false) != null, "her greeting follows")
 	var bag := await _go("bag")
 	_check(bag.find_child("Cur_gems", true, false) != null, "the Bag lists gems")
 	_game.model.state.campaign.cleared = maxi(int(_game.model.state.campaign.cleared), WarRules.UNLOCK_CLEARED)
@@ -80,6 +92,10 @@ func _new_screens() -> void:
 
 
 # ------------------------------------------------------------------ helpers
+
+func get_tree_timer(secs: float) -> void:
+	await create_timer(secs).timeout
+
 
 func _check(ok: bool, what: String) -> void:
 	_checks += 1
@@ -691,5 +707,7 @@ func _settings() -> void:
 		await _frames(2)
 		_check(_press_in_modal("Reset"), "reset asks first")
 		await _frames(4)
-		_check(_ui.current_name == "home", "reset returns home")
+		_check(_ui.current_name == "calling", "reset starts over at the intake form")
+		_ui.go("home")
+		await _frames(4)
 		_check(int(_game.owned_heroes().size()) == 3, "reset gives a new game")

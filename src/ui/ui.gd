@@ -31,6 +31,7 @@ extends Node
 ## over its art; it keeps its own controls inside content_top() / content_bottom().
 ## Style v4 (docs/dev/ui-style-v4.md): bottom nav Heroes, Team, Lobby (home), Gear, Summon.
 
+const Signature := preload("res://src/ui/components/signature.gd")
 const Sfx := preload("res://src/ui/components/sfx.gd")
 
 signal screen_changed(screen_name: String)
@@ -55,6 +56,7 @@ const SCREENS := {
 	"front": "res://src/ui/screens/front_screen.gd",
 	"gallery": "res://src/ui/screens/gallery_screen.gd",
 	"district": "res://src/ui/screens/district_screen.gd",
+	"calling": "res://src/ui/screens/calling_screen.gd",
 	# Style v4 Lobby mockup, the approved poster composition (debug builds only; docs/dev/ui-style-v4.md).
 	"lobby_v5": "res://src/ui/screens/lobby_v5_screen.gd",
 }
@@ -73,7 +75,7 @@ const TOP_CURRENCIES := {"summon": ["gems", "scrolls"], "heroes": ["gold", "hero
 ## Screens never kept in history (back from the next screen skips them).
 const NO_HISTORY: Array[String] = ["battle"]
 ## Screens with their own entrance (no automatic content stagger).
-const NO_STAGGER: Array[String] = ["battle", "summon", "gallery"]
+const NO_STAGGER: Array[String] = ["battle", "summon", "gallery", "calling"]
 ## Screens slow enough to build that a loading veil shows first (in the app, not in tests).
 const HEAVY: Array[String] = ["battle"]
 const FADE_TIME := 0.15
@@ -896,6 +898,16 @@ func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callab
 	var bcol := Kit.vbox(4)
 	bcol.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bcol.size_flags_vertical = Control.SIZE_SHRINK_END
+	var sig_strokes: Array = Game.signature()
+	if Signature.has_ink(sig_strokes):
+		# Received by: the player's own signature (from the intake form).
+		var sg := Signature.new()
+		sg.strokes = sig_strokes
+		sg.ink = Color(Kit.TEXT, 0.85)
+		sg.weight = 2.2
+		sg.custom_minimum_size = Vector2(150, 34)
+		sg.size = Vector2(150, 34)
+		bcol.add_child(sg)
 	bcol.add_child(SignalKit.barcode(Vector2(210, 34), Kit.TEXT, no % 997))
 	bcol.add_child(Kit.print_label("HH-%06d  ·  Keep this receipt" % no, 10, Color(Kit.TEXT, 0.6), "mono"))
 	foot.add_child(bcol)
