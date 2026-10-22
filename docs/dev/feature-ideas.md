@@ -64,7 +64,36 @@ like stamp errors. They never change stats. The print shaders already draw every
 
 Claude's suggested first loop: 1, 2, 6 and 13 (print, she competes, the map keeps score).
 
-## Your game is yours (open, pitched 2026-10-22)
+## Core loops (open, pitched 2026-10-22)
+
+After the batch below the owner said: "no i dont like these ideas. i want it more to do with what
+keeps players coming back, the core gameplay loop, etc. like no one has made a proper city building
+gacha. stuff like that". So: a different genre as the main loop, done properly, with gacha heroes
+at its centre. Still nothing that makes the game harder.
+
+- **Build Heaven and Hell (Claude's pick).** A real city builder, close to LucasArts' *Afterlife*
+  (1996, a PC sim about building Heaven and Hell) with gacha heroes running it. Souls arrive every
+  hour; you zone them into Celestial districts (virtues) and Infernal ones (sins), with the Fallen
+  in the neutral strip between; placement and adjacency set the output (an Islanders-style score,
+  no failure). Every hero is a landmark with her own ability (one opens a night club, one a
+  cathedral spa), so a pull adds a new thing to build, not just bigger numbers; a dupe levels her
+  landmark and a skin restyles it. Heroes live in the city and visit each other's places. The city
+  is the idle Sanctum: it earns while you are away and you come back to a bigger city. Battles stay
+  (mostly idle, manual ultimates) and win new land at the edges. No disasters, no raids. Closest
+  existing games: Cookie Run: Kingdom (a Hay Day-style production town) and the 4X games (Whiteout
+  Survival, Rise of Kingdoms: timer queues and PvP war); in neither do the heroes make up the city.
+  Buildings would be Blender Cycles renders like the UI objects.
+- **The heist crew.** Each day brings new targets (a Heaven vault, a Hell casino). Pick a crew of
+  five; each hero has heist roles (the face, the hacker, the safecracker, the getaway driver) and
+  combos. Plan on a dossier board in the poster style, then the heist plays out on its own as a
+  comic while you are away. A heist never fails; a better plan means a bigger haul. No known gacha
+  has heists as its core.
+- **The club.** Run Purgatory's hottest club with heroes as the staff; matching hero to guest sets
+  the night's takings, and the four skin packs (Aqua Resort, Bunny Lounge, Club Chrome, After Dark)
+  become rooms and uniforms with bonuses. Not new: Cabaking (iOS) and KLab's Koi Shite Kyaba Jo do
+  host-club management, and Yakuza's Cabaret Club Czar is a loved minigame version.
+
+## Your game is yours (rejected, 2026-10-22: "no i dont like these ideas")
 
 The owner asked for "something no one else has ever done" to stand out from thousands of gachas.
 The theme of this batch: no other player's game looks like yours. A web search found no shipped
