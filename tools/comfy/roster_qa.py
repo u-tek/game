@@ -58,6 +58,19 @@ def wanted(s0, rerolls):
     return [s0 + k for k in range(2 + 2 * int(rerolls))]
 
 
+LOW_POSES = ("sitting", "kneeling", "on her knees", "lying", "all fours")
+
+
+def nude_size(hero, sid):
+    """Sitting, kneeling and lying nude poses render square so knees, wings and feet fit (owner, 2026-10-22: "i dont
+    want the sitting down ones to be cropped"); None keeps the family size."""
+    import prompts as P
+    b = P.load_bible()
+    h = P.skin_view(b, hero, sid, adult=True) if sid else P.hero_view(b, hero, adult=True)
+    pose = P._nude_pose(b["families"]["moss"], h)
+    return "1024x1024" if any(w in pose for w in LOW_POSES) else None
+
+
 def is_adult(run):
     """<run>/qa/config.json {"adult": true, "after": "<other run dir>"} makes a run the nude set."""
     return bool(load(run, "config.json").get("adult"))
@@ -197,7 +210,8 @@ class Worker:
                 t0 = time.time()
                 try:
                     self.step(["tools/comfy/run_hero.py", hero, "--count", "1", "--seed", str(seed), "--no-sheet"]
-                              + (["--skin", sid] if sid else []) + (["--adult"] if self.adult else []), "render")
+                              + (["--skin", sid] if sid else []) + (["--adult"] if self.adult else [])
+                              + (["--size", size] if self.adult and (size := nude_size(hero, sid)) else []), "render")
                     self.log("CAND %03d/%d %s s%d %.0fs" % (i + 1, n, key_of(hero, art), seed, time.time() - t0))
                 except Exception as e:  # noqa: BLE001
                     self.log("FAIL render %s s%d: %s" % (key_of(hero, art), seed, e))
