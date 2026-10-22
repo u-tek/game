@@ -911,6 +911,25 @@ func reset_intake() -> void:
 	_flush()
 
 
+## Props (decor) in the quarter: buy and place, move, sell back (GameModel.district_decor_*).
+func district_decor_buy(kind: String, x: int, y: int) -> Dictionary:
+	var r := model.district_decor_buy(kind, x, y)
+	_flush()
+	return r
+
+
+func district_decor_move(index: int, x: int, y: int) -> Dictionary:
+	var r := model.district_decor_move(index, x, y)
+	_flush()
+	return r
+
+
+func district_decor_remove(index: int) -> Dictionary:
+	var r := model.district_decor_remove(index)
+	_flush()
+	return r
+
+
 ## Moves a building to another lot (GameModel.district_place).
 func district_place(building: int, x: int, y: int) -> Dictionary:
 	var r := model.district_place(building, x, y)
@@ -974,8 +993,10 @@ func dev_war(side: String) -> void:
 		ws.keepers["0"] = mine
 	if other != "":
 		ws.keepers["2"] = other
-	# Two raised buildings (the levels).
+	# Two raised buildings (the levels) and a few props.
 	ws["levels"] = {"0": 3, "2": 2}
+	ws["decor"] = [["fountain", 2, 4], ["tree", 1, 2], ["tree", 4, 2], ["lamp", 2, 6], ["cypress", 7, 4], ["obelisk", 6, 2],
+		["hedge", 4, 4], ["bench", 5, 4]]
 	_flush()
 
 

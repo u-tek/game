@@ -166,7 +166,8 @@ that the owner sideloads. The repo `u-tek/game` is public. The only code branch 
   renders in `assets/art/ui/objects/` from `tools/blender/ui_objects.py` + `finish_objects.py`; the 65 gear
   pieces (13 kinds x 5 tiers) in `assets/art/ui/gear/<noun>_<tier>.png` from `tools/blender/gear_objects.py`; the War map's relief
   in `assets/art/ui/front/` from `tools/blender/front_terrain.py` + `finish_front.py`; the district
-  maquette in `assets/art/ui/district/` from `tools/blender/district_models.py` + `finish_district.py`.
+  maquette in `assets/art/ui/district/` from `tools/blender/district_models.py` (+ `district_decor.py`, the
+  props) and `finish_district.py`.
 - **Farm output** goes to the orphan branch `art-gen-output`, written only by art-gen.yml's publish
   job. Fetch it; never push to it by hand.
 - **Godot runs go through `tools/gd`** (a flock on `/tmp/halo-godot.lock`, so parallel agents never
@@ -264,7 +265,7 @@ Ask the owner for approval (plan mode or a permission rule they add) instead.
 tools/check                 # import + 175 unit tests + headless boot (~20 s); must be green
 tools/check e2e             # plus 3 screen end-to-end scripts and the touch-scroll audit (~2 min)
 tools/gd --headless --path . -s tests/run_tests.gd -- test_playthrough   # one test file
-python3 -B tests/port_check/check_port.py        # independent Python rules check (104 checks)
+python3 -B tests/port_check/check_port.py        # independent Python rules check (106 checks)
 python3 tools/artgen/test_artgen.py              # art farm offline tests (81)
 python3 tools/comfy/test_pipeline.py             # ComfyUI pipeline tests (56, all pass)
 # On the owner's PC (Git Bash): export GODOT=<console exe> first; use python, not python3. Art:

@@ -193,9 +193,32 @@
 		{"layout": {"2": [5, 6]}, "i": 4, "x": 5, "y": 5},
 		{"layout": {"0": [6, 6]}, "i": 2, "x": 4, "y": 6},
 		{"layout": {}, "i": 5, "x": -1, "y": 0},
-		{"layout": {}, "i": 3, "x": 2, "y": 4}
+		{"layout": {}, "i": 3, "x": 2, "y": 4},
+		{"layout": {}, "i": 3, "x": 2, "y": 4, "decor": [["tree", 3, 4]]},
+		{"layout": {}, "i": 3, "x": 2, "y": 4, "decor": [["tree", 4, 4]]}
 	],
-	"place_out": [true, true, false, false, true, false, false, true, true, false, true],
+	"place_out": [true, true, false, false, true, false, false, true, true, false, true, false, true],
+	"decor_cases": [
+		{"layout": {}, "decor": [], "x": 1, "y": 2, "skip": -1},
+		{"layout": {}, "decor": [], "x": 1, "y": 3, "skip": -1},
+		{"layout": {}, "decor": [], "x": 3, "y": 6, "skip": -1},
+		{"layout": {}, "decor": [], "x": 8, "y": 0, "skip": -1},
+		{"layout": {}, "decor": [["lamp", 1, 2]], "x": 1, "y": 2, "skip": -1},
+		{"layout": {}, "decor": [["lamp", 1, 2]], "x": 1, "y": 2, "skip": 0},
+		{"layout": {"0": [6, 7]}, "decor": [], "x": 3, "y": 6, "skip": -1},
+		{"layout": {"0": [6, 7]}, "decor": [], "x": 7, "y": 7, "skip": -1}
+	],
+	"decor_out": [true, false, false, false, false, true, true, false],
+	"decor_prices": [
+		["tree", 15000],
+		["cypress", 15000],
+		["hedge", 10000],
+		["bench", 10000],
+		["lamp", 12000],
+		["fountain", 60000],
+		["statue", 80000],
+		["obelisk", 100000]
+	],
 	"district_levels": [[0, 1], [0, 4], [3, 2], [7, 1], [7, 4], [7, 5], [5, 3]],
 	"district_costs": [
 		{"gold": 20000},

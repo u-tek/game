@@ -117,6 +117,12 @@ this file says where things stand. Older logs are under "History" at the bottom.
   and it stays. Cosmetic. Rules `DistrictRules.spot / can_place` (data `grid` and each building's
   `spot`; port spec 9e; fixture war.json place cases; port check 104), GameModel
   `district_place`. Shot params `arrange`, `hold` [i, x, y], `move` [i, x, y].
+- **Props in the quarter (2026-10-23):** in ARRANGE a shelf of eight clay props (tree, cypress,
+  hedge, bench, lamp, fountain, angel, obelisk; 10K-100K gold, `data/district.json` `decor`): tap
+  one, then tap free lots (dots mark them) to buy and put it down; drag a prop to move it, off the
+  quarter to sell it back for half. Up to 24. Rendered like the buildings
+  (`tools/blender/district_decor.py`, `finish_district.py <dir> --decor`). Rules
+  `DistrictRules.can_decorate`, GameModel `district_decor_buy / move / remove` (port check 106).
 - **Wardrobe to gallery (2026-10-22):** every skin's print in the Shop's wardrobe carries a VIEW tag;
   tapping it opens her in that look full screen in the gallery (zoom, swipe the looks, BUY), also for
   a heroine not yet recruited (shown as a preview). The art sells the skin, not a thumbnail.

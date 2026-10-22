@@ -976,12 +976,19 @@ Offline: both sides' hosts are simulated; the player's souls are the only live i
   overlapping no other building's footprint at its spot (all buildings, built or not).
   GameModel `district_place(i, x, y)` (needs a side): stores `war.layout["<i>"] = [x, y]` (erased
   when it is the data spot). Save repair drops the whole layout if any moved building no longer fits.
+- Decor (data `decor`: max, refund_bp, kinds [{id, name, gold}]): `war.decor` is a list of
+  [kind, x, y], one lot each. `can_decorate(layout, decor, x, y, skip = -1)`: inside the quarter, not
+  on road_row, under no building's footprint, no other prop (index != skip) on the lot.
+  `can_place` also refuses a footprint over a prop. GameModel `district_decor_buy(kind, x, y)` (a
+  side, a known kind, fewer than max, the lot free, the gold; appends), `district_decor_move(k, x,
+  y)`, `district_decor_remove(k)` (grants price * refund_bp / 10000 gold). Save repair keeps known
+  kinds on free lots, in order, up to max.
 - GameModel: `souls` = `war.souls_total`; keepers in `war.keepers`. `idle_rates()` =
   `apply(IdleRules.per_hour(cleared), bonus(...))`, used by idle_status, claim_idle and quick_claim.
   `district_set_keeper(i, id)`: needs a side and an open building; "" clears; an owned heroine keeps
   one building (setting her moves her). Save repair drops bad indices, unknown heroes and duplicates.
 - Fixture: data/fixtures/war.json (district_open, district_out with levels, district_costs,
-  place_cases -> place_out).
+  place_cases -> place_out with decor, decor_cases -> decor_out, decor_prices).
 
 ## 9f. The calendar (`src/core/calendar_rules.gd`, data/calendar.json, GameModel `calendar*`)
 

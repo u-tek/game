@@ -920,7 +920,13 @@ static func _war_inputs() -> Dictionary:
 			{"layout": {}, "i": 7, "x": 3, "y": 2}, {"layout": {}, "i": 1, "x": 2, "y": 2},
 			{"layout": {}, "i": 4, "x": 5, "y": 5}, {"layout": {"2": [5, 6]}, "i": 4, "x": 5, "y": 5},
 			{"layout": {"0": [6, 6]}, "i": 2, "x": 4, "y": 6}, {"layout": {}, "i": 5, "x": -1, "y": 0},
-			{"layout": {}, "i": 3, "x": 2, "y": 4}],
+			{"layout": {}, "i": 3, "x": 2, "y": 4},
+			{"layout": {}, "i": 3, "x": 2, "y": 4, "decor": [["tree", 3, 4]]}, {"layout": {}, "i": 3, "x": 2, "y": 4, "decor": [["tree", 4, 4]]}],
+		"decor_cases": [
+			{"layout": {}, "decor": [], "x": 1, "y": 2, "skip": -1}, {"layout": {}, "decor": [], "x": 1, "y": 3, "skip": -1},
+			{"layout": {}, "decor": [], "x": 3, "y": 6, "skip": -1}, {"layout": {}, "decor": [], "x": 8, "y": 0, "skip": -1},
+			{"layout": {}, "decor": [["lamp", 1, 2]], "x": 1, "y": 2, "skip": -1}, {"layout": {}, "decor": [["lamp", 1, 2]], "x": 1, "y": 2, "skip": 0},
+			{"layout": {"0": [6, 7]}, "decor": [], "x": 3, "y": 6, "skip": -1}, {"layout": {"0": [6, 7]}, "decor": [], "x": 7, "y": 7, "skip": -1}],
 		"district_rates": {"gold": 6100, "hero_exp": 4150, "dust": 28, "gems": 15},
 	}
 
@@ -959,7 +965,10 @@ static func _war(f: Dictionary) -> Dictionary:
 		"district_open": (f.district_souls as Array).map(func(s: Variant) -> Array: return DistrictRules.open(int(s))),
 		"district_cases": f.district_cases, "district_rates": f.district_rates, "district_out": _district_out(f),
 		"place_cases": f.place_cases, "place_out": (f.place_cases as Array).map(
-			func(c: Dictionary) -> bool: return DistrictRules.can_place(c.layout, int(c.i), int(c.x), int(c.y))),
+			func(c: Dictionary) -> bool: return DistrictRules.can_place(c.layout, int(c.i), int(c.x), int(c.y), c.get("decor", []))),
+		"decor_cases": f.decor_cases, "decor_out": (f.decor_cases as Array).map(
+			func(c: Dictionary) -> bool: return DistrictRules.can_decorate(c.layout, c.decor, int(c.x), int(c.y), int(c.skip))),
+		"decor_prices": (DistrictRules.DECOR_KINDS as Array).map(func(k: Dictionary) -> Array: return [k.id, DistrictRules.decor_price(str(k.id))]),
 		"district_levels": f.district_levels, "district_costs": (f.district_levels as Array).map(
 			func(c: Array) -> Dictionary: return DistrictRules.upgrade_cost(int(c[0]), int(c[1])))}
 

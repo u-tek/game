@@ -2242,8 +2242,11 @@ func district() -> Dictionary:
 			"next_bonus_bp": DistrictRules.level_bonus(int(b.bonus_bp), lv + 1) * mult / 10000 if lv < DistrictRules.MAX_LEVEL else 0})
 		if nxt.is_empty() and not open.has(i):
 			nxt = {"souls": int(b.souls), "name": str(b.name)}
+	var decor: Array = []
+	for p: Array in ws.get("decor", []):
+		decor.append({"kind": str(p[0]), "x": int(p[1]), "y": int(p[2])})
 	return {"name": DistrictRules.quarter_name(side), "side": side, "souls": souls, "bonus": _district_bonus(),
-		"buildings": bl, "next": nxt}
+		"buildings": bl, "next": nxt, "decor": decor, "decor_max": DistrictRules.DECOR_MAX, "decor_kinds": DistrictRules.DECOR_KINDS}
 
 
 ## Puts an owned heroine in charge of an open building ("" clears it). A heroine keeps one building
@@ -2276,7 +2279,7 @@ func district_place(building: int, x: int, y: int) -> Dictionary:
 		return _err("Pick a side first")
 	if not (ws.get("layout") is Dictionary):
 		ws["layout"] = {}
-	if not DistrictRules.can_place(ws.layout, building, x, y):
+	if not DistrictRules.can_place(ws.layout, building, x, y, ws.get("decor", [])):
 		return _err("It doesn't fit there")
 	var def: Array = (DistrictRules.BUILDINGS[building] as Dictionary).spot
 	if x == int(def[0]) and y == int(def[1]):
@@ -2285,6 +2288,53 @@ func district_place(building: int, x: int, y: int) -> Dictionary:
 		ws.layout[str(building)] = [x, y]
 	_changed()
 	return _ok({"building": building, "spot": [x, y]})
+
+
+## Buys a prop (decor) for gold and puts it on a free lot. Result {ok, value: {index}, error}.
+func district_decor_buy(kind: String, x: int, y: int) -> Dictionary:
+	var ws: Dictionary = state.war
+	if str(ws.side) == "":
+		return _err("Pick a side first")
+	var price := DistrictRules.decor_price(kind)
+	if price <= 0:
+		return _err("Unknown piece")
+	if not (ws.get("decor") is Array):
+		ws["decor"] = []
+	if (ws.decor as Array).size() >= DistrictRules.DECOR_MAX:
+		return _err("The quarter is full")
+	if not DistrictRules.can_decorate(ws.get("layout", {}), ws.decor, x, y):
+		return _err("It doesn't fit there")
+	var cost := {"gold": price}
+	if not _can_afford(cost):
+		return _err("Not enough gold")
+	_pay(cost)
+	(ws.decor as Array).append([kind, x, y])
+	_changed()
+	return _ok({"index": (ws.decor as Array).size() - 1})
+
+
+## Moves a placed prop to another free lot.
+func district_decor_move(index: int, x: int, y: int) -> Dictionary:
+	var dc: Array = state.war.get("decor", [])
+	if index < 0 or index >= dc.size():
+		return _err("No such piece")
+	if not DistrictRules.can_decorate(state.war.get("layout", {}), dc, x, y, index):
+		return _err("It doesn't fit there")
+	dc[index] = [str(dc[index][0]), x, y]
+	_changed()
+	return _ok({"index": index})
+
+
+## Sells a prop back (refund_bp of its price in gold).
+func district_decor_remove(index: int) -> Dictionary:
+	var dc: Array = state.war.get("decor", [])
+	if index < 0 or index >= dc.size():
+		return _err("No such piece")
+	var back := DistrictRules.decor_price(str(dc[index][0])) * DistrictRules.DECOR_REFUND_BP / 10000
+	dc.remove_at(index)
+	var got := grant({"gold": back})
+	_changed()
+	return _ok({"reward": got})
 
 
 ## Raises an open building one level for gold. Result {ok, value: {building, level}, error}.
@@ -2371,6 +2421,14 @@ func _migrate_war(ws: Dictionary) -> void:
 			lay = {}
 			break
 	ws.layout = lay
+	# Props: known kinds on free lots, at most DECOR_MAX (later duplicates dropped).
+	var dc: Array = []
+	if ws.get("decor") is Array:
+		for p: Variant in ws.decor:
+			if p is Array and (p as Array).size() == 3 and DistrictRules.decor_price(str(p[0])) > 0 and dc.size() < DistrictRules.DECOR_MAX \
+					and DistrictRules.can_decorate(lay, dc, int(p[1]), int(p[2])):
+				dc.append([str(p[0]), int(p[1]), int(p[2])])
+	ws.decor = dc
 	var c: Dictionary = ws.champ
 	if HeroData.get_def(str(c.hero)).is_empty():
 		c.hero = ""

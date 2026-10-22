@@ -5,6 +5,16 @@
 	"keeper_factions": {"heaven": ["celestial", "fallen"], "hell": ["infernal", "fallen"]},
 	"keeper_mult_bp": 20000,
 	"grid": {"_doc": "The quarter is a grid x grid lots; the souls' road runs along row road_row (no building on it). Each building stands at its spot (grid x down-right, grid y down-left) unless the player moved it (war.layout).", "size": 8, "road_row": 3},
+	"decor": {"_doc": "Props the player buys with gold and puts on free lots (one lot each; not on the road, a building or another prop). Up to max; selling one back returns refund_bp of its price.", "max": 24, "refund_bp": 5000, "kinds": [
+		{"id": "tree", "name": "Tree", "gold": 15000},
+		{"id": "cypress", "name": "Cypress", "gold": 15000},
+		{"id": "hedge", "name": "Hedge", "gold": 10000},
+		{"id": "bench", "name": "Bench", "gold": 10000},
+		{"id": "lamp", "name": "Lamp", "gold": 12000},
+		{"id": "fountain", "name": "Fountain", "gold": 60000},
+		{"id": "statue", "name": "Angel", "gold": 80000},
+		{"id": "obelisk", "name": "Obelisk", "gold": 100000}
+	]},
 	"levels": {"_doc": "A built building is level 1; gold raises it to max. Bonus at level L = bonus_bp * (L + 1) / 2 (x1 .. x3 at 5). Going from L to L + 1 costs gold_base * L * L * (10000 + cost_step_bp * building index) / 10000 gold.", "max": 5, "gold_base": 20000, "cost_step_bp": 2500},
 	"buildings": [
 		{"id": "gate", "spot": [3, 6], "name": "The Gate", "souls": 0, "currency": "gold", "bonus_bp": 200, "w": 2, "d": 1, "h": 3},

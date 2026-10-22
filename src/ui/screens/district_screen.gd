@@ -34,6 +34,8 @@ var _built := Vector2.ZERO
 var _rebuild_queued := false
 var _sheet: Control
 var _arranging := false        ## ARRANGE: buildings can be dragged to other lots
+var _held_kind := ""           ## ARRANGE: the prop a tap on a free lot buys ("" = none)
+const SHELF_H := 300.0          ## the props shelf under the plan while arranging
 
 
 func setup(params: Dictionary) -> void:
@@ -47,6 +49,7 @@ func setup(params: Dictionary) -> void:
 	# Screenshots: arrange = true opens in ARRANGE; keeper = a building index opens its keeper sheet.
 	if bool(params.get("arrange", false)):
 		_arranging = true
+		_held_kind = str(params.get("prop", ""))
 		_on_changed()
 	# hold = [i, x, y]: building i held over that lot (ARRANGE, mid-drag); move = [i, x, y] places it.
 	if params.get("move") is Array:
@@ -116,7 +119,8 @@ func _build() -> void:
 	var pw := w - 32.0
 	var dist: Dictionary = Game.district()
 	var bl: Array = dist.buildings
-	var ph := maxf(HEAD + 30.0 + PLAN_H + 30.0 + bl.size() * ROW_H + 60.0, d.y - 14.0 - 84.0)
+	var shelf := SHELF_H if _arranging else 0.0
+	var ph := maxf(HEAD + 30.0 + PLAN_H + 30.0 + shelf + bl.size() * ROW_H + 60.0, d.y - 14.0 - 84.0)
 	PK.matte(self)
 	_page = Control.new()
 	_page.name = "Page"
@@ -135,15 +139,34 @@ func _build() -> void:
 	plan.size = Vector2(pw - 36, PLAN_H)
 	plan.set("dist", dist)
 	plan.set("arranging", _arranging)
+	plan.set("hold_kind", _held_kind if _arranging else "")
 	plan.connect("placed", func(i: int, x: int, y: int) -> void:
 		var r: Dictionary = Game.district_place(i, x, y)
 		if not bool(r.get("ok", false)):
 			UI.toast(str(r.get("error", "")), "bad"))
+	plan.connect("decor_moved", func(k: int, x: int, y: int) -> void:
+		var r: Dictionary = Game.district_decor_move(k, x, y)
+		if not bool(r.get("ok", false)):
+			UI.toast(str(r.get("error", "")), "bad"))
+	plan.connect("decor_removed", func(k: int) -> void:
+		var r: Dictionary = Game.district_decor_remove(k)
+		if bool(r.get("ok", false)):
+			Kit.sfx("coin")
+			UI.toast("Sold back: +%s gold" % Kit.format_num(int((r.value.reward as Dictionary).get("gold", 0))), "good"))
+	plan.connect("decor_bought", func(kind: String, x: int, y: int) -> void:
+		var r: Dictionary = Game.district_decor_buy(kind, x, y)
+		if not bool(r.get("ok", false)):
+			UI.toast(str(r.get("error", "")), "bad")
+			return
+		Kit.sfx("stamp", 1.4)
+		UI.haptic(16))
 	_poster.add_child(plan)
 	if not _arranging:
 		_keeper_prints(plan, dist)
 	_arrange_toggle(pw)
-	_build_ledger(pw, HEAD + 30.0 + PLAN_H + 30.0, dist)
+	if _arranging:
+		_decor_shelf(pw, HEAD + 30.0 + PLAN_H + 14.0, dist)
+	_build_ledger(pw, HEAD + 30.0 + PLAN_H + 30.0 + shelf, dist)
 	var fy := pr.end.y + 14.0
 	PK.at(_page, PK.t(Poster.date_long(), 22, INK, "regular"), Vector2(ox + 20, fy + 8))
 	var sig := PK.t("the Quarter", 40, INK, "serif_italic")
@@ -223,11 +246,65 @@ TO ANOTHER LOT", 9, SIG, "mono_bold")
 		PK.at(tag, h, Vector2(0, 36))
 	Kit.make_tappable(tag, func() -> void:
 		_arranging = not _arranging
+		_held_kind = ""
 		Kit.sfx("tap")
 		_on_changed())
 
 
 ## Each keeper's portrait framed over her building, on a leader line from its roof.
+## While arranging: the props shelf under the plan. Each prop a small print with its name and its
+## price in gold; tap one to hold it (signal border), then tap free lots on the plan to put it down
+## (each a purchase); tap it again to put it away. The count of props and how to sell one back.
+func _decor_shelf(pw: float, y: float, dist: Dictionary) -> void:
+	var p := _poster
+	var kinds: Array = dist.get("decor_kinds", [])
+	var have := (dist.get("decor", []) as Array).size()
+	PK.at(p, PK.t("THE PROPS  ·  %d / %d PLACED" % [have, int(dist.get("decor_max", 24))], 11, INK, "mono_bold"), Vector2(24, y))
+	var hint := PK.t("TAP ONE, THEN TAP FREE LOTS  ·  DRAG ONE OFF THE QUARTER TO SELL IT BACK FOR HALF", 9,
+		Color(INK, 0.6), "mono")
+	hint.size = Vector2(pw - 48, 14)
+	PK.at(p, hint, Vector2(24, y + 18))
+	var cw := floorf((pw - 48 - 3 * 10) / 4.0)
+	var ch := 112.0
+	var info: Dictionary = {}
+	var f := FileAccess.open("res://assets/art/ui/district/decor.json", FileAccess.READ)
+	if f:
+		var j: Variant = JSON.parse_string(f.get_as_text())
+		if j is Dictionary:
+			info = j
+	for n in kinds.size():
+		var k: Dictionary = kinds[n]
+		var kid := str(k.id)
+		var at := Vector2(24 + (n % 4) * (cw + 10), y + 40 + (n / 4) * (ch + 10))
+		var card := Control.new()
+		card.name = "Prop_" + kid
+		card.position = at
+		card.size = Vector2(cw, ch)
+		card.mouse_filter = MOUSE_FILTER_PASS
+		p.add_child(card)
+		var held := kid == _held_kind
+		PK.rect(card, Rect2(Vector2.ZERO, card.size), Color("f5f4f0"))
+		PosterKit.hairbox(card, Rect2(Vector2.ZERO, card.size), SIG if held else Color(INK, 0.4))
+		if held:
+			PosterKit.hairbox(card, Rect2(Vector2(1, 1), card.size - Vector2(2, 2)), SIG)
+		var tex: Texture2D = load("res://assets/art/ui/district/decor_%s.png" % kid)
+		if tex:
+			var pic := TextureRect.new()
+			pic.texture = tex
+			pic.mouse_filter = MOUSE_FILTER_IGNORE
+			pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			pic.position = Vector2(6, 4)
+			pic.size = Vector2(cw - 12, ch - 44)
+			card.add_child(pic)
+		PK.at(card, PK.t(str(k.name).to_upper(), 10, INK, "mono_bold"), Vector2(8, ch - 36))
+		PK.at(card, PK.t("%s GOLD" % Kit.format_num(int(k.gold)), 10, SIG if held else Color(INK, 0.65), "mono"), Vector2(8, ch - 20))
+		Kit.make_tappable(card, func() -> void:
+			_held_kind = "" if _held_kind == kid else kid
+			Kit.sfx("tap")
+			_on_changed())
+
+
 ## Each portrait clears the others: one that would cover another is lifted on a longer leader.
 func _keeper_prints(plan: Control, dist: Dictionary) -> void:
 	var taken: Array[Rect2] = []

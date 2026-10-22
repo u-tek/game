@@ -2024,7 +2024,8 @@
 			"champ": {"week": -1000000, "hero": "", "level": 0, "hp": 0, "damage": 0, "day": -1000000, "tries": 0, "tiers": []},
 			"keepers": {},
 			"levels": {},
-			"layout": {}
+			"layout": {},
+			"decor": []
 		},
 		"calendar": {"claimed": {}},
 		"counters": {"summons": 59, "battles_started": 10, "battles_won": 3, "stages_cleared": 3, "battles_lost": 3, "level_ups": 6, "idle_claims": 3, "quick_claims": 3, "daily_quests_done": 4},

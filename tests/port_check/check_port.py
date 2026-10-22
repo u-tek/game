@@ -1212,7 +1212,7 @@ GR = DIST["grid"]
 def d_spot(i, layout):
     v = layout.get(str(i))
     return (v[0], v[1]) if isinstance(v, list) and len(v) == 2 else tuple(DIST["buildings"][i]["spot"])
-def d_can_place(layout, i, x, y):
+def d_can_place(layout, i, x, y, decor=None):
     bs = DIST["buildings"]
     if i < 0 or i >= len(bs): return False
     w, d = bs[i]["w"], bs[i]["d"]
@@ -1222,8 +1222,18 @@ def d_can_place(layout, i, x, y):
         if j == i: continue
         sx, sy = d_spot(j, layout)
         if x < sx + o["w"] and sx < x + w and y < sy + o["d"] and sy < y + d: return False
+    for p in decor or []:
+        if x <= p[1] < x + w and y <= p[2] < y + d: return False
     return True
-check("district.place", f["place_out"], [d_can_place(c["layout"], c["i"], c["x"], c["y"]) for c in f["place_cases"]])
+def d_can_decorate(layout, decor, x, y, skip=-1):
+    if x < 0 or y < 0 or x >= GR["size"] or y >= GR["size"] or y == GR["road_row"]: return False
+    for j, o in enumerate(DIST["buildings"]):
+        sx, sy = d_spot(j, layout)
+        if sx <= x < sx + o["w"] and sy <= y < sy + o["d"]: return False
+    return not any(k != skip and p[1] == x and p[2] == y for k, p in enumerate(decor))
+check("district.decorate", f["decor_out"], [d_can_decorate(c["layout"], c["decor"], c["x"], c["y"], c["skip"]) for c in f["decor_cases"]])
+check("district.decor_prices", f["decor_prices"], [[k["id"], k["gold"]] for k in DIST["decor"]["kinds"]])
+check("district.place", f["place_out"], [d_can_place(c["layout"], c["i"], c["x"], c["y"], c.get("decor")) for c in f["place_cases"]])
 check("war.champ_tiers", f["champ_tiers_out"], [[i for i, t in enumerate(C["tiers"]) if c[1] * 100 >= c[0] * t["pct"]] for c in f["champ_tiers"]])
 
 # ---------------- the calendar (9f)

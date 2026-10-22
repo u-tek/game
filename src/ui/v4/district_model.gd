@@ -10,10 +10,16 @@ extends Control
 ## Arranging (arranging = true): the lots show as a faint grid; drag a building and it follows the
 ## finger lot by lot (the camera is orthographic, so a building on another lot is the same picture
 ## moved by a fixed offset), its footprint marked in ink where it fits and in signal where it doesn't;
-## let go on a lot that fits and placed(i, x, y) is emitted (the screen stores it).
+## let go on a lot that fits and placed(i, x, y) is emitted (the screen stores it). Props (decor, the
+## same clay, rendered on lot 0, 0 and shifted) stand among the buildings; while arranging they drag
+## the same way (decor_moved), dragged off the quarter they are sold back (decor_removed), and with
+## hold_kind set a tap on a free lot buys that prop there (decor_bought).
 ##   dist  the Game.district() dictionary (side, buildings [{i, open, keeper, doubled, souls, spot}], next)
 
 signal placed(building: int, x: int, y: int)
+signal decor_moved(index: int, x: int, y: int)
+signal decor_removed(index: int)
+signal decor_bought(kind: String, x: int, y: int)
 
 const DIR := "res://assets/art/ui/district/"
 const SHADER := preload("res://src/ui/v4/district_model.gdshader")
@@ -47,6 +53,16 @@ var _sprites: Dictionary = {}    ## building index -> its TextureRect
 var _drag := -1                  ## the building being dragged (-1: none)
 var _drag_from := Vector2.ZERO
 var _drag_spot := Vector2i.ZERO  ## where it would land
+var _decor_info: Dictionary = {}  ## decor.json: kind -> {rect, foot} at lot 0, 0
+var _props: Dictionary = {}      ## decor index -> its TextureRect
+## The building index being dragged is _drag; a dragged prop is DECOR_BASE + its index.
+const DECOR_BASE := 1000
+## While arranging: the prop kind a tap on a free lot buys ("" = none).
+var hold_kind := "":
+	set(v):
+		hold_kind = v
+		if _lots_layer:
+			_lots_layer.queue_redraw()
 
 
 func _init() -> void:
@@ -59,6 +75,11 @@ func _ready() -> void:
 		var j: Variant = JSON.parse_string(f.get_as_text())
 		if j is Dictionary:
 			_layout = j
+	var fd := FileAccess.open(DIR + "decor.json", FileAccess.READ)
+	if fd:
+		var jd: Variant = JSON.parse_string(fd.get_as_text())
+		if jd is Dictionary:
+			_decor_info = jd
 	_rebuild()
 	resized.connect(_rebuild)
 
@@ -93,6 +114,25 @@ func _spot(i: int) -> Vector2i:
 			return Vector2i(int(s[0]), int(s[1]))
 	var d: Array = _info(i).get("spot", [0, 0])
 	return Vector2i(int(d[0]), int(d[1]))
+
+
+## A prop's lot (index k): the lot it is being dragged to, else its place in dist.
+func _decor_spot(k: int) -> Vector2i:
+	if _drag == DECOR_BASE + k:
+		return _drag_spot
+	var dc: Array = dist.get("decor", [])
+	if k < dc.size():
+		return Vector2i(int(dc[k].x), int(dc[k].y))
+	return Vector2i.ZERO
+
+
+func _decor_layout() -> Array:
+	var out: Array = []
+	var dc: Array = dist.get("decor", [])
+	for k in dc.size():
+		var s := _decor_spot(k)
+		out.append([str(dc[k].kind), s.x, s.y])
+	return out
 
 
 ## How far building i's picture moves from where it was rendered (its data spot).
@@ -142,6 +182,7 @@ func _rebuild() -> void:
 			c.queue_free()
 	_made.clear()
 	_sprites.clear()
+	_props.clear()
 	if _layout.is_empty() or size.x <= 0.0:
 		return
 	var ground := TextureRect.new()
@@ -200,6 +241,34 @@ func _rebuild() -> void:
 		add_child(tr)
 		_sprites[i] = tr
 		_made.append(tr)
+	var dc: Array = dist.get("decor", [])
+	for k in dc.size():
+		var kind := str(dc[k].kind)
+		var di: Dictionary = _decor_info.get(kind, {})
+		if di.is_empty():
+			continue
+		var rc: Array = di.rect
+		var tr := TextureRect.new()
+		tr.name = "D_%d" % k
+		tr.mouse_filter = MOUSE_FILTER_IGNORE
+		tr.texture = load(DIR + "decor_%s.png" % kind)
+		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tr.stretch_mode = TextureRect.STRETCH_SCALE
+		tr.size = Vector2(float(rc[2]) * size.x, float(rc[3]) * size.y)
+		var m := ShaderMaterial.new()
+		m.shader = SHADER
+		m.set_shader_parameter("state", 0)
+		m.set_shader_parameter("rect_px", tr.size)
+		m.set_shader_parameter("obsidian", str(dist.get("side", "")) == "hell")
+		var np := DIR + "decor_%s_n.png" % kind
+		if ResourceLoader.exists(np):
+			m.set_shader_parameter("normal_tex", load(np))
+			m.set_shader_parameter("has_normals", true)
+		tr.material = m
+		tr.set_meta("rect", rc)
+		add_child(tr)
+		_props[k] = tr
+		_made.append(tr)
 	_place_sprites()
 	if _overlay == null or not is_instance_valid(_overlay):
 		_overlay = Control.new()
@@ -212,23 +281,43 @@ func _rebuild() -> void:
 	_overlay.queue_redraw()
 
 
-## Puts every building's picture on its lot and restacks them back to front.
+## Where a thing stands, back to front: buildings by their lots' middle, props by their lot's.
+func _depth(key: int) -> float:
+	if key >= DECOR_BASE:
+		var s := _decor_spot(key - DECOR_BASE)
+		return s.x + s.y + 1.0
+	var sp := _spot(key)
+	var wd := _wd(key)
+	return sp.x + sp.y + (wd.x + wd.y) * 0.5
+
+
+## Puts every building's and prop's picture on its lot and restacks them back to front.
 func _place_sprites() -> void:
 	var order: Array = _sprites.keys()
-	order.sort_custom(func(a: int, b: int) -> bool:
-		var sa := _spot(a)
-		var sb := _spot(b)
-		var wa := _wd(a)
-		var wb := _wd(b)
-		return sa.x + sa.y + (wa.x + wa.y) * 0.5 < sb.x + sb.y + (wb.x + wb.y) * 0.5)
-	var k := 2
-	for i: int in order:
-		var tr: TextureRect = _sprites[i]
+	for k: int in _props:
+		order.append(DECOR_BASE + k)
+	order.sort_custom(func(a: int, b: int) -> bool: return _depth(a) < _depth(b))
+	var n := 2
+	for key: int in order:
+		var tr: TextureRect
+		var shift: Vector2
+		if key >= DECOR_BASE:
+			tr = _props[key - DECOR_BASE]
+			var s := _decor_spot(key - DECOR_BASE)
+			shift = _ground(s.x, s.y) - _ground(0, 0)
+			tr.modulate.a = 0.45 if _drag == key and not _lot_in_quarter(_drag_spot) else 1.0
+		else:
+			tr = _sprites[key]
+			shift = _shift(key)
 		var rc: Array = tr.get_meta("rect")
-		tr.position = Vector2(float(rc[0]) * size.x, float(rc[1]) * size.y) + _shift(i)
+		tr.position = Vector2(float(rc[0]) * size.x, float(rc[1]) * size.y) + shift
 		(tr.material as ShaderMaterial).set_shader_parameter("offset_px", tr.position)
-		move_child(tr, k)
-		k += 1
+		move_child(tr, n)
+		n += 1
+
+
+func _lot_in_quarter(s: Vector2i) -> bool:
+	return s.x >= 0 and s.y >= 0 and s.x < DistrictRules.GRID and s.y < DistrictRules.GRID
 
 
 # ------------------------------------------------------------------ arranging
@@ -245,12 +334,34 @@ func _building_at(p: Vector2) -> int:
 			r = r.expand(q)
 			r = r.expand(q + Vector2(0, lift))
 		if r.has_point(p):
-			var s := _spot(i)
-			var dpt := float(s.x + s.y)
+			var dpt := _depth(i)
 			if dpt > best_depth:
 				best_depth = dpt
 				best = i
+	for k: int in _props:
+		var s := _decor_spot(k)
+		var fp := PackedVector2Array([_ground(s.x, s.y), _ground(s.x + 1, s.y), _ground(s.x + 1, s.y + 1), _ground(s.x, s.y + 1)])
+		var tr: TextureRect = _props[k]
+		var r := Rect2(fp[0], Vector2.ZERO)
+		for q in fp:
+			r = r.expand(q)
+		r = r.expand(Vector2(r.position.x, tr.position.y + 6.0))
+		if r.has_point(p) and _depth(DECOR_BASE + k) >= best_depth:
+			best_depth = _depth(DECOR_BASE + k)
+			best = DECOR_BASE + k
 	return best
+
+
+## The lot under a point on the ground (local px).
+func _lot_at(p: Vector2) -> Vector2i:
+	var g0 := _ground(0, 0)
+	var ax := _ground(1, 0) - g0
+	var ay := _ground(0, 1) - g0
+	var det := ax.x * ay.y - ax.y * ay.x
+	if absf(det) < 1e-6:
+		return Vector2i(-1, -1)
+	var d := p - g0
+	return Vector2i(floori((d.x * ay.y - d.y * ay.x) / det), floori((ax.x * d.y - ax.y * d.x) / det))
 
 
 ## The lot offset for a drag of `delta` px (the inverse of the grid's axes), rounded to whole lots.
@@ -271,18 +382,43 @@ func _gui_input(event: InputEvent) -> void:
 	var mb := event as InputEventMouseButton
 	if mb and mb.button_index == MOUSE_BUTTON_LEFT:
 		if mb.pressed:
+			if hold_kind != "":
+				var lot := _lot_at(mb.position)
+				if DistrictRules.can_decorate(_current_layout(), _decor_layout(), lot.x, lot.y):
+					decor_bought.emit(hold_kind, lot.x, lot.y)
+				else:
+					Kit.haptic(8, 0.3)
+				accept_event()
+				return
 			var i := _building_at(mb.position)
 			if i >= 0:
 				_drag = -1
-				_drag_spot = _spot(i)
+				_drag_spot = _decor_spot(i - DECOR_BASE) if i >= DECOR_BASE else _spot(i)
 				_drag = i
 				_drag_from = mb.position
 				Kit.haptic(10)
 				accept_event()
+		elif _drag >= DECOR_BASE:
+			var k := _drag - DECOR_BASE
+			var to := _drag_spot
+			var dc: Array = dist.get("decor", [])
+			var from := Vector2i(int(dc[k].x), int(dc[k].y))
+			_drag = -1
+			_lots_layer.queue_redraw()
+			if not _lot_in_quarter(to):
+				decor_removed.emit(k)
+			elif to != from and DistrictRules.can_decorate(_current_layout(), _decor_layout(), to.x, to.y, k):
+				Kit.sfx("stamp", 1.5)
+				Kit.haptic(14)
+				decor_moved.emit(k, to.x, to.y)
+			else:
+				_place_sprites()
+				_overlay.queue_redraw()
+			accept_event()
 		elif _drag >= 0:
 			var i := _drag
 			var to := _drag_spot
-			var ok := DistrictRules.can_place(_current_layout(), i, to.x, to.y)
+			var ok := DistrictRules.can_place(_current_layout(), i, to.x, to.y, _decor_layout())
 			var bl: Array = dist.get("buildings", [])
 			var from: Array = (bl[i] as Dictionary).get("spot", [to.x, to.y]) if i < bl.size() else [to.x, to.y]
 			_drag = -1
@@ -300,9 +436,15 @@ func _gui_input(event: InputEvent) -> void:
 		return
 	var mm := event as InputEventMouseMotion
 	if mm and _drag >= 0:
-		var bl: Array = dist.get("buildings", [])
-		var from: Array = (bl[_drag] as Dictionary).get("spot", [0, 0])
-		var to := Vector2i(int(from[0]), int(from[1])) + _lots(mm.position - _drag_from)
+		var to: Vector2i
+		if _drag >= DECOR_BASE:
+			var dc: Array = dist.get("decor", [])
+			var dk: Dictionary = dc[_drag - DECOR_BASE]
+			to = Vector2i(int(dk.x), int(dk.y)) + _lots(mm.position - _drag_from)
+		else:
+			var bl: Array = dist.get("buildings", [])
+			var from: Array = (bl[_drag] as Dictionary).get("spot", [0, 0])
+			to = Vector2i(int(from[0]), int(from[1])) + _lots(mm.position - _drag_from)
 		if to != _drag_spot:
 			_drag_spot = to
 			_place_sprites()
@@ -322,16 +464,32 @@ func _draw_lots() -> void:
 	for k in n + 1:
 		_lots_layer.draw_line(_ground(k, 0), _ground(k, n), Color(SIG, 0.3), 1.0, true)
 		_lots_layer.draw_line(_ground(0, k), _ground(n, k), Color(SIG, 0.3), 1.0, true)
-	if _drag >= 0:
+	if _drag >= DECOR_BASE:
+		var s := _drag_spot
+		if _lot_in_quarter(s):
+			var fp := PackedVector2Array([_ground(s.x, s.y), _ground(s.x + 1, s.y), _ground(s.x + 1, s.y + 1), _ground(s.x, s.y + 1)])
+			var ok := DistrictRules.can_decorate(_current_layout(), _decor_layout(), s.x, s.y, _drag - DECOR_BASE)
+			_lots_layer.draw_colored_polygon(fp, Color(INK if ok else SIG, 0.22))
+			_lots_layer.draw_polyline(fp + PackedVector2Array([fp[0]]), INK if ok else SIG, 2.0, true)
+	elif _drag >= 0:
 		var fp := _footprint(_drag, _drag_spot)
-		var ok := DistrictRules.can_place(_current_layout(), _drag, _drag_spot.x, _drag_spot.y)
+		var ok := DistrictRules.can_place(_current_layout(), _drag, _drag_spot.x, _drag_spot.y, _decor_layout())
 		_lots_layer.draw_colored_polygon(fp, Color(INK if ok else SIG, 0.22))
 		_lots_layer.draw_polyline(fp + PackedVector2Array([fp[0]]), INK if ok else SIG, 2.0, true)
+	elif hold_kind != "":
+		# Holding a prop to put down: every free lot gets a small ink dot.
+		var lay := _current_layout()
+		var dl := _decor_layout()
+		for y in n:
+			for x in n:
+				if DistrictRules.can_decorate(lay, dl, x, y):
+					_lots_layer.draw_circle((_ground(x, y) + _ground(x + 1, y + 1)) * 0.5, 2.5, Color(INK, 0.55))
 
 
 ## Screenshots: building i held over lot (x, y), as if mid-drag.
 func debug_hold(i: int, x: int, y: int) -> void:
 	arranging = true
+	_drag_spot = Vector2i(x, y)
 	_drag = i
 	_drag_spot = Vector2i(x, y)
 	_place_sprites()

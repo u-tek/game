@@ -216,4 +216,17 @@ func test_district_buildings_keepers_and_idle(t: TestCtx) -> void:
 	st.war.layout["1"] = [3, 2]
 	g.model.migrate(st)
 	t.eq((g.model.state.war.layout as Dictionary).size(), 0, "a layout that no longer fits goes back to the plan")
+	# Decor: bought onto a free lot, moved, refused on the road and on buildings, sold back for half.
+	g.model.state.currencies.gold = 1000000
+	t.ok(bool(g.district_decor_buy("fountain", 1, 2).ok))
+	t.eq(int(g.model.state.currencies.gold), 1000000 - 60000)
+	t.ok(not bool(g.district_decor_buy("tree", 1, 2).ok), "one prop a lot")
+	t.ok(not bool(g.district_decor_buy("tree", 1, 3).ok), "not on the road")
+	t.ok(not bool(g.district_decor_buy("tree", 3, 6).ok), "not on the gate")
+	t.ok(not bool(g.district_decor_buy("castle", 1, 4).ok), "unknown kind")
+	t.ok(bool(g.district_decor_move(0, 2, 4).ok))
+	t.ok(not bool(g.district_place(3, 2, 4).ok), "a building can't stand on a prop")
+	t.ok(bool(g.district_decor_remove(0).ok))
+	t.eq(int(g.model.state.currencies.gold), 1000000 - 30000, "half back")
+	t.eq((g.district().decor as Array).size(), 0)
 	_done()

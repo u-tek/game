@@ -20,7 +20,11 @@ extends RefCounted
 ##   spot(i, layout)      = layout["<i>"] ([x, y]) if the player moved it, else the building's data spot
 ##   can_place(layout, i, x, y) = building i's w x d footprint at lot (x, y) lies inside the GRID x GRID
 ##                          quarter, off the road row (ROAD_ROW) and on no other building's footprint
-##                          (every building holds its lot, built or not)
+##                          (every building holds its lot, built or not) and on no prop (decor)
+##   can_decorate(layout, decor, x, y, skip = -1) = lot (x, y) is inside the quarter, off the road
+##                          row, under no building and holds no other prop (decor[k] = [kind, x, y];
+##                          skip: the prop being moved)
+##   decor_price(kind)    = its gold price (0 when unknown)
 
 static var _d: Dictionary = GameData.file("district")
 static var BUILDINGS: Array = _d.buildings
@@ -40,7 +44,34 @@ static func spot(i: int, layout: Dictionary) -> Vector2i:
 	return Vector2i(int(s[0]), int(s[1]))
 
 
-static func can_place(layout: Dictionary, i: int, x: int, y: int) -> bool:
+static var DECOR_MAX: int = int(_d.decor.max)
+static var DECOR_REFUND_BP: int = int(_d.decor.refund_bp)
+static var DECOR_KINDS: Array = _d.decor.kinds
+
+
+static func decor_price(kind: String) -> int:
+	for k: Dictionary in DECOR_KINDS:
+		if str(k.id) == kind:
+			return int(k.gold)
+	return 0
+
+
+static func can_decorate(layout: Dictionary, decor: Array, x: int, y: int, skip: int = -1) -> bool:
+	if x < 0 or y < 0 or x >= GRID or y >= GRID or y == ROAD_ROW:
+		return false
+	for j in BUILDINGS.size():
+		var o: Dictionary = BUILDINGS[j]
+		var s := spot(j, layout)
+		if x >= s.x and x < s.x + int(o.w) and y >= s.y and y < s.y + int(o.d):
+			return false
+	for k in decor.size():
+		var p: Array = decor[k]
+		if k != skip and int(p[1]) == x and int(p[2]) == y:
+			return false
+	return true
+
+
+static func can_place(layout: Dictionary, i: int, x: int, y: int, decor: Array = []) -> bool:
 	if i < 0 or i >= BUILDINGS.size():
 		return false
 	var b: Dictionary = BUILDINGS[i]
@@ -56,6 +87,9 @@ static func can_place(layout: Dictionary, i: int, x: int, y: int) -> bool:
 		var o: Dictionary = BUILDINGS[j]
 		var s := spot(j, layout)
 		if x < s.x + int(o.w) and s.x < x + w and y < s.y + int(o.d) and s.y < y + d:
+			return false
+	for p: Array in decor:
+		if int(p[1]) >= x and int(p[1]) < x + w and int(p[2]) >= y and int(p[2]) < y + d:
 			return false
 	return true
 
