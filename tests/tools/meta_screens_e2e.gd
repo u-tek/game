@@ -170,8 +170,8 @@ func _skins() -> void:
 	_game.set_setting("nudity", true)
 	await _frames(2)
 	_check(_card_atlas(s, id) == HeroArt.texture(id, sid), "nudity on: the card follows at once")
-	if HeroArt.has_adult_art(id, sid):
-		_check(HeroArt.texture(id, sid) != tame, "nudity on: the skin's adult art")
+	# 18+ mode drops skins: the equipped skin shows her nude base look (or her base art)
+	_check(HeroArt.texture(id, sid) != tame and HeroArt.art_key(id, sid) == HeroArt.art_key(id), "nudity on: skins off")
 	_check(av.texture == Kit.art_crop(lead, 1.0, 1.7, _game.equipped_skin(lead)), "nudity on: the avatar follows")
 	_game.set_setting("lobby_hero", id)
 	var h := await _go("home")

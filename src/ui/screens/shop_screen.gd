@@ -111,7 +111,9 @@ func _build_tabs() -> void:
 	for c in _tabs_box.get_children():
 		_tabs_box.remove_child(c)
 		c.queue_free()
-	var row := PK.index_tabs(TABS, _tab, func(i: int) -> void:
+	if _tab >= _tab_names().size():
+		_tab = 0
+	var row := PK.index_tabs(_tab_names(), _tab, func(i: int) -> void:
 		_tab = i
 		_build_tabs.call_deferred()
 		_show_page(), _w - 36)
@@ -123,8 +125,14 @@ func _show_page() -> void:
 		_pages[i].visible = i == _tab
 
 
+## The tabs on show: 18+ mode (nudity) has no Wardrobe, since every hero shows her nude look and
+## skins are off (owner, 2026-10-22).
+func _tab_names() -> Array[String]:
+	return TABS.slice(0, 2) if HeroArt.nudity else TABS
+
+
 func _select_tab(i: int) -> void:
-	if i < 0 or i >= TABS.size():
+	if i < 0 or i >= _tab_names().size():
 		return
 	_tab = i
 	_build_tabs()

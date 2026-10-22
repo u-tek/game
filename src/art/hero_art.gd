@@ -5,10 +5,11 @@ class_name HeroArt
 ## Heroes without built art fall back to a faction-tinted silhouette (rig, still, portrait).
 ## Skins (data/skins.json, docs/dev/skins.md): every call takes an optional skin id; its art lives
 ## in assets/art/heroes/<id>/skins/<art>/ with the same layout. A skin whose art is not built
-## falls back to the base look, and "" always means the base look. With `nudity` on (the
-## "nudity" setting, synced by Game), every look shows its adult (nude) art where it is built:
-## a skin's in skins/<art>/adult/, the base look's in <id>/adult/ (files <id>.*). A look without
-## adult art keeps its normal art. Screens pass the player's equipped skin for her own heroes
+## falls back to the base look, and "" always means the base look. With `nudity` on (18+ mode,
+## the "nudity" setting, synced by Game) skins are ignored and every hero shows her nude base look
+## from <id>/adult/ (files <id>.*) where it is built, else her base art (owner, 2026-10-22: "have
+## 18+ mode remove skins across the board and just make everything the nude skin"). Screens pass
+## the player's equipped skin for her own heroes
 ## (Game.equipped_skin, Kit.hero_look) and "" for enemies; art_key() names what a call shows.
 
 const FACTION_COLORS := {
@@ -54,18 +55,15 @@ static func has_adult_art(hero_id: String, skin_id: String = "") -> bool:
 	return art != "" and RigData.exists(hero_id, RigData.adult_art(art))
 
 
-## The built art to use (a RigData art string): the skin's adult art when nudity is on and it
-## exists, else the skin's art if its rig exists; otherwise the base look: its adult art
-## ("/adult") when nudity is on and it exists, else "" (the base art or the silhouette).
+## The built art to use (a RigData art string). Nudity on: the nude base look ("/adult") when it
+## is built, else "" (the base art), whatever skin is equipped. Nudity off: the skin's art if its
+## rig exists, else "" (the base art or the silhouette).
 static func _built_art(hero_id: String, skin_id: String) -> String:
+	if nudity:
+		return RigData.adult_art() if RigData.exists(hero_id, RigData.adult_art()) else ""
 	var art := _skin_art(hero_id, skin_id)
-	if art != "":
-		if nudity and RigData.exists(hero_id, RigData.adult_art(art)):
-			return RigData.adult_art(art)
-		if RigData.exists(hero_id, art):
-			return art
-	if nudity and RigData.exists(hero_id, RigData.adult_art()):
-		return RigData.adult_art()
+	if art != "" and RigData.exists(hero_id, art):
+		return art
 	return ""
 
 

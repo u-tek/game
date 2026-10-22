@@ -28,13 +28,13 @@ def qa_dir(run):
 
 def items(adult=False, offset=None):
     """[(hero, skin id or None, art or None, first seed)]: the 40 heroes, then the skins in bible order. adult: the
-    nude set (only looks with an "adult" prompt block; seeds +5000 like pipeline.art_target)."""
+    nude set: the 40 base looks only, each with an "adult" prompt block; seeds +5000 like pipeline.art_target)."""
     b = json.load(open(os.path.join(ROOT, "data", "art_prompts.json"), encoding="utf-8"))
     off = (OFFSET if offset is None else int(offset)) + (5000 if adult else 0)
     out = [(h, None, None, v.get("seed_base", 100) + off) for h, v in b["heroes"].items()
            if not adult or isinstance(v.get("adult"), dict)]
-    out += [(s["hero"], sid, s["art"], s.get("seed_base", 100) + off) for sid, s in b["skins"].items()
-            if not adult or isinstance(s.get("adult"), dict)]
+    if not adult:   # the nude set is one look per character (owner, 2026-10-22: "no need to do 200, just do one for each")
+        out += [(s["hero"], sid, s["art"], s.get("seed_base", 100) + off) for sid, s in b["skins"].items()]
     return out
 
 

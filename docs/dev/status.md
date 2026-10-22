@@ -74,7 +74,10 @@ this file says where things stand. Older logs are under "History" at the bottom.
   **Age (2026-10-22):** normal art now reads as about twenty (`age_natural`, owner: "this is much better"); the nude
   set stays mid-twenties (`age_natural_adult`). **Next:** `art_src/_review/v20_run` (seed offset 1800) re-renders
   all 200 normal looks at the new age as soon as the nude worker is idle (owner: "finish the nude set first"); the vB
-  run is paused for good. `picker.bat` opens v20. The
+  run is paused for good. `picker.bat` opens v20. **18+ mode (owner, 2026-10-22: "have 18+ mode remove skins across the
+  board and just make everything the nude skin"):** with nudity on, skins are off (no wardrobe on the hero screen,
+  no Wardrobe tab in the shop) and every hero shows her nude base look, or her base art until it is built. So the
+  nude set is one look per character: 40 base looks, not 200 (`roster_qa.items(adult=True)`). The
   nude finals install under `adult/` and need Claude's pick review before they're committed.
 - **UI v4 "Signal" redesign (started 2026-10-19):** the owner sent 22 reference images and asked for
   a full redesign; brief, screen map and kit in `docs/dev/ui-style-v4.md`. Done: the Mobile

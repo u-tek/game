@@ -279,21 +279,17 @@ func _set_nudity(on: bool, state: Label) -> void:
 	_nudity_notice(on)
 
 
-## "NUDITY MODE ON" in signal, plus how much nude art the build has (skins with adult art, heroes
-## with an adult base look), so it is clear what the mode covers.
+## "NUDITY MODE ON" in signal, plus how many heroes have a nude look built, so it is clear what
+## the mode covers (it turns skins off: every hero shows her nude look).
 func _show_nudity_state(state: Label) -> void:
 	var on: bool = Game.setting("nudity") == true
-	var skins := 0
-	for s: Dictionary in SkinData.all():
-		if HeroArt.has_adult_art(str(s["hero"]), str(s["id"])):
-			skins += 1
 	var bases := 0
 	var ids := HeroData.ids()
 	for id in ids:
 		if HeroArt.has_adult_art(str(id)):
 			bases += 1
-	state.text = "%s  ·  NUDE ART: %d SKINS, %d OF %d BASE LOOKS" % [
-		"NUDITY MODE ON" if on else "NUDITY MODE OFF", skins, bases, ids.size()]
+	state.text = "%s  ·  NUDE LOOKS: %d OF %d HEROES  ·  SKINS OFF" % [
+		"NUDITY MODE ON" if on else "NUDITY MODE OFF", bases, ids.size()]
 	state.add_theme_color_override("font_color", Kit.ACCENT_DEEP if on else Color(INK, 0.6))
 
 

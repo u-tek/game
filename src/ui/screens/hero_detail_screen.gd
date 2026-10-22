@@ -1016,7 +1016,8 @@ func _refresh_file() -> void:
 	if _owned:
 		_build_armament()
 	_build_abilities()
-	_build_wardrobe()
+	if not HeroArt.nudity:     # 18+ mode has no skins: every hero shows her nude look
+		_build_wardrobe()
 	var end := HBoxContainer.new()
 	end.add_theme_constant_override("separation", 14)
 	end.add_child(SignalKit.barcode(Vector2(150, 34), INK, (_id + "end").hash() & 0xffff))

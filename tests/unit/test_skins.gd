@@ -153,28 +153,27 @@ func test_installed_skin_art_loads(t: TestCtx) -> void:
 	t.ok(built > 0, "some skin art is installed (assets/art/heroes/<id>/skins/)")
 
 
-func test_nudity_setting_swaps_skin_art(t: TestCtx) -> void:
+func test_nudity_mode_drops_skins(t: TestCtx) -> void:
 	var g := _game()
 	g.new_game()
 	t.eq(g.setting("nudity"), false, "off for a new player")
 	t.eq(HeroArt.nudity, false)
-	var sid := ""
-	for s: Dictionary in SkinData.all():
-		if HeroArt.has_skin_art(str(s["hero"]), str(s["id"])) and HeroArt.has_adult_art(str(s["hero"]), str(s["id"])):
-			sid = str(s["id"])
-			break
-	t.ok(sid != "", "some skin has adult art (assets/art/heroes/<id>/skins/<art>/adult/)")
+	var sid := _starter_skin()
+	t.ok(sid != "", "kessa has an installed skin")
 	if sid != "":
-		var hero := str(SkinData.get_def(sid)["hero"])
-		var tame := HeroArt.texture(hero, sid)
+		var tame := HeroArt.texture("kessa", sid)
+		var base := HeroArt.texture("kessa")
 		g.set_setting("nudity", true)
 		t.ok(HeroArt.nudity, "Game syncs the setting to HeroArt")
-		var nude := HeroArt.texture(hero, sid)
-		t.ok(nude != tame, "nudity on: the skin shows its adult art")
-		t.ok(HeroArt.portrait_region(hero, sid).size.x > 0, "adult art has a portrait")
-		t.eq(HeroArt.texture(hero), HeroArt.texture(hero), "the base look never changes")
+		# 18+ mode (owner, 2026-10-22): skins are off; every hero shows her nude base look where built
+		t.eq(HeroArt.art_key("kessa", sid), HeroArt.art_key("kessa"), "nudity on: the skin is ignored")
+		t.eq(HeroArt.texture("kessa", sid), HeroArt.texture("kessa"), "nudity on: skin and base look match")
+		t.ok(HeroArt.texture("kessa", sid) != tame, "nudity on: not the skin's art")
+		if HeroArt.has_adult_art("kessa"):
+			t.ok(HeroArt.texture("kessa") != base, "nudity on: her nude base look")
+			t.eq(HeroArt.art_key("kessa"), "kessa@/adult")
 		g.set_setting("nudity", false)
-		t.eq(HeroArt.texture(hero, sid), tame, "nudity off: back to the normal skin art")
+		t.eq(HeroArt.texture("kessa", sid), tame, "nudity off: back to the skin's art")
 	t.eq(HeroArt.has_adult_art("uriela", "kessa_card_shark"), false, "another hero's skin never resolves")
 	var s: Dictionary = g.model.state.duplicate(true)
 	s.settings.erase("nudity")
@@ -211,10 +210,10 @@ func test_art_crop_follows_the_skin(t: TestCtx) -> void:
 	t.eq(Kit.hero_look("kessa", {"skin": ""}), "", "an enemy keeps the base look")
 
 
-func test_equipped_skin_and_nudity_show_adult_skin_art(t: TestCtx) -> void:
+func test_equipped_skin_and_nudity_show_the_nude_base_look(t: TestCtx) -> void:
 	var sid := _starter_skin()
-	if sid == "" or not HeroArt.has_adult_art("kessa", sid):
-		t.ok(true, "no adult art for a kessa skin; nothing to check")
+	if sid == "":
+		t.ok(true, "no installed kessa skin; nothing to check")
 		return
 	var g := _game()
 	g.new_game()
@@ -223,21 +222,16 @@ func test_equipped_skin_and_nudity_show_adult_skin_art(t: TestCtx) -> void:
 	t.ok(bool(g.equip_skin("kessa", sid).ok), "equipped")
 	var worn: String = g.equipped_skin("kessa")
 	t.eq(worn, sid)
-	var art := str(SkinData.get_def(sid)["art"])
-	var tame := HeroArt.texture("kessa", worn)
 	var tame_crop := Kit.art_crop("kessa", 0.6, 1.3, worn) as AtlasTexture
-	t.eq(tame_crop.atlas, tame)
 	g.set_setting("nudity", true)
-	var nude_still: Texture2D = load(RigData.load_rig("kessa", RigData.adult_art(art)).still_path)
-	t.eq(HeroArt.texture("kessa", worn), nude_still, "nudity on: the equipped skin shows her adult art")
-	t.eq(HeroArt.art_key("kessa", worn), "kessa@" + art + "/adult")
-	var nude_crop := Kit.art_crop("kessa", 0.6, 1.3, worn) as AtlasTexture
-	t.eq(nude_crop.atlas, nude_still, "the card crop follows the nudity toggle (new cache key)")
-	t.ok(nude_crop != tame_crop)
-	var pt := HeroArt._portrait_tex("kessa", worn)
-	t.eq(pt.resource_path, RigData.file_base("kessa", RigData.adult_art(art)) + "_portrait.png", "adult portrait")
+	var crop := Kit.art_crop("kessa", 0.6, 1.3, worn) as AtlasTexture
+	t.eq(crop.atlas, HeroArt.texture("kessa"), "nudity on: the card crop shows her base (nude) look")
+	t.ok(crop != tame_crop, "the crop follows the toggle (new cache key)")
+	if HeroArt.has_adult_art("kessa"):
+		var pt := HeroArt._portrait_tex("kessa", worn)
+		t.eq(pt.resource_path, RigData.file_base("kessa", RigData.adult_art()) + "_portrait.png", "nude portrait")
 	g.set_setting("nudity", false)
-	t.eq(Kit.art_crop("kessa", 0.6, 1.3, worn), tame_crop, "nudity off: the normal skin crop again")
+	t.eq(Kit.art_crop("kessa", 0.6, 1.3, worn), tame_crop, "nudity off: the skin crop again")
 	Kit.art_crop("kessa", 0.6, 1.3)
 	t.ok((Kit._crop_looks.get("kessa", []) as Array).size() <= Kit.CROP_LOOKS, "the crop cache keeps two looks per hero")
 	g.free()
