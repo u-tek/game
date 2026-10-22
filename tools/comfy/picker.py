@@ -69,7 +69,7 @@ class App:
         out = []
         for i, (hero, sid, art, s0) in enumerate(self.items):
             key = Q.key_of(hero, art)
-            seeds = Q.wanted(s0, rerolls.get(key, 0))
+            seeds = Q.wanted(s0, rerolls.get(key, 0), Q.per_look(self.run))
             have = [s for s in seeds if Q.candidate(hero, art, s, self.adult)]
             done = Q.done_info(self.run, key) or {}
             pick = picks.get(key)

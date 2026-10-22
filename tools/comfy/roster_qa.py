@@ -54,8 +54,34 @@ def candidate(hero, art, seed, adult=False):
     return None
 
 
-def wanted(s0, rerolls):
-    return [s0 + k for k in range(2 + 2 * int(rerolls))]
+def wanted(s0, rerolls, n=2):
+    """The seeds a look should have: n per round (the first round plus one per regenerate)."""
+    return [s0 + k for k in range(n + n * int(rerolls))]
+
+
+def per_look(run):
+    """Candidates per look and round: <run>/qa/config.json "per_look" (default 2). With 1 the worker picks the single
+    candidate itself (owner, 2026-10-22, the nude set: "do one render per character")."""
+    return max(1, int(load(run, "config.json").get("per_look", 2)))
+
+
+def auto_pick(run):
+    """per_look 1: pick each look's newest candidate once it exists (a regenerate replaces the pick). Returns the
+    number of new picks."""
+    if per_look(run) != 1:
+        return 0
+    picks, rerolls, adult, new = load(run, "picks.json"), load(run, "rerolls.json"), is_adult(run), 0
+    for hero, sid, art, s0 in items(adult, run_offset(run)):
+        key = key_of(hero, art)
+        if key in picks:
+            continue
+        s = wanted(s0, rerolls.get(key, 0), 1)[-1]
+        if candidate(hero, art, s, adult):
+            picks[key] = s
+            new += 1
+    if new:
+        save(run, "picks.json", picks)
+    return new
 
 
 WIDE_POSES = ("sitting", "lying")                       # landscape (owner: "for the sitting/lying ones, just make it landscape")
@@ -140,7 +166,7 @@ def pending(run):
             if done_info(run, key) is None:
                 fin.append((i, hero, sid, art, int(picks[key])))
             continue
-        for s in wanted(s0, rerolls.get(key, 0)):
+        for s in wanted(s0, rerolls.get(key, 0), per_look(run)):
             if not candidate(hero, art, s, adult):
                 ren.append((i, hero, sid, art, s))
     ren.sort(key=lambda r: int(rerolls.get(key_of(r[1], r[3]), 0)) > 0)     # stable: first-run renders first
@@ -204,6 +230,7 @@ class Worker:
                     waited = True
                 time.sleep(30)
                 continue
+            auto_pick(self.run)
             fin, ren = pending(self.run)
             if fin:
                 i, hero, sid, art, seed = fin[0]
