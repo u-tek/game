@@ -26,11 +26,11 @@ def qa_dir(run):
     return os.path.join(run, "qa")
 
 
-def items(adult=False):
+def items(adult=False, offset=None):
     """[(hero, skin id or None, art or None, first seed)]: the 40 heroes, then the skins in bible order. adult: the
     nude set (only looks with an "adult" prompt block; seeds +5000 like pipeline.art_target)."""
     b = json.load(open(os.path.join(ROOT, "data", "art_prompts.json"), encoding="utf-8"))
-    off = OFFSET + (5000 if adult else 0)
+    off = (OFFSET if offset is None else int(offset)) + (5000 if adult else 0)
     out = [(h, None, None, v.get("seed_base", 100) + off) for h, v in b["heroes"].items()
            if not adult or isinstance(v.get("adult"), dict)]
     out += [(s["hero"], sid, s["art"], s.get("seed_base", 100) + off) for sid, s in b["skins"].items()
@@ -72,6 +72,12 @@ def nude_size(hero, sid):
     if any(w in pose for w in WIDE_POSES):
         return "1152x896"
     return "1024x1024" if any(w in pose for w in LOW_POSES) else None
+
+
+def run_offset(run):
+    """<run>/qa/config.json "offset": the run's seed offset (default OFFSET; the early-twenties re-render uses 1800 so
+    it never overwrites the vB run's candidates)."""
+    return load(run, "config.json").get("offset")
 
 
 def is_adult(run):
@@ -128,7 +134,7 @@ def pending(run):
     picks, rerolls = load(run, "picks.json"), load(run, "rerolls.json")
     adult = is_adult(run)
     fin, ren = [], []
-    for i, (hero, sid, art, s0) in enumerate(items(adult)):
+    for i, (hero, sid, art, s0) in enumerate(items(adult, run_offset(run))):
         key = key_of(hero, art)
         if key in picks:
             if done_info(run, key) is None:
@@ -186,7 +192,7 @@ class Worker:
         self.log("FINISHED %03d/%d %s s%d %.0fs" % (i + 1, n, key, seed, time.time() - t0))
 
     def loop(self):
-        n = len(items(self.adult))
+        n = len(items(self.adult, run_offset(self.run)))
         waited = False
         while True:
             if os.path.exists(os.path.join(self.run, "pause")):

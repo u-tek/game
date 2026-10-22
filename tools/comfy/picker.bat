@@ -1,6 +1,6 @@
 @echo off
-rem Art picker: double-click to open. Close this window to stop the page (renders already started keep going).
+rem Art picker for the early-twenties re-render (v20_run): double-click to open. Close this window to stop the page (renders already started keep going).
 cd /d "%~dp0..\.."
 start "" http://127.0.0.1:8765
-python tools\comfy\picker.py
+python tools\comfy\picker.py --run art_src\_review\v20_run
 pause

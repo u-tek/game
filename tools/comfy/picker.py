@@ -40,7 +40,7 @@ class App:
         self.spawn = spawn
         self.heroes, self.skins = names()
         self.adult = Q.is_adult(run)
-        self.items = Q.items(self.adult)
+        self.items = Q.items(self.adult, Q.run_offset(run))
         self.thumbs = os.path.join(Q.qa_dir(run), "thumbs")
         os.makedirs(self.thumbs, exist_ok=True)
         self.started = 0.0
