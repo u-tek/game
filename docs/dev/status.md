@@ -96,6 +96,7 @@ this file says where things stand. Older logs are under "History" at the bottom.
   a slab of land rendered in Blender (white clay: Heaven's terraced cliffs, cratered no-man's-land,
   Hell's cracked basin) with a data pass, painted live in the game with each sector's control
   (paper and gold for Heaven, ink, red and lava for Hell, the trench between), clouds over Heaven.
+  Your souls stream as small wisps from your side's end of the slab down your sector to its front.
   Re-render: `blender --background --factory-startup --python tools/blender/front_terrain.py --
   <dir>` (about 15 s), then `python tools/blender/finish_front.py <dir>`.
 - **The district is a maquette (2026-10-22):** the block plan is now an architect's model: eight

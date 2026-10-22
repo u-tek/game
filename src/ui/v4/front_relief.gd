@@ -37,6 +37,8 @@ var _data: Image
 var _points: Array = []
 var _down := Vector2.INF
 var _clouds: Array[Control] = []
+var _souls: Control              ## the player's souls streaming to their sector's front
+var _t := 0.0
 
 
 func _init() -> void:
@@ -72,7 +74,15 @@ func _ready() -> void:
 		if j is Dictionary:
 			_points = (j as Dictionary).get("points", [])
 	_add_clouds()
+	_souls = Control.new()
+	_souls.name = "Souls"
+	_souls.mouse_filter = MOUSE_FILTER_IGNORE
+	_souls.size = size
+	_souls.draw.connect(_draw_souls)
+	add_child(_souls)
 	resized.connect(func() -> void:
+		if _souls:
+			_souls.size = size
 		if _img:
 			_img.size = size
 			_mat.set_shader_parameter("rect_px", size)
@@ -105,16 +115,43 @@ func _add_clouds() -> void:
 		_clouds.append(tr)
 
 
-## The clouds drift to the right over Heaven's end and come round again (still with Reduce motion).
+## The clouds drift to the right over Heaven's end and come round again (still with Reduce motion);
+## the souls stream on.
 func _process(delta: float) -> void:
-	if _clouds.is_empty() or not Kit.motion_ok() or _points.is_empty():
+	if not Kit.motion_ok() or _points.is_empty():
 		return
+	_t += delta
+	if _souls:
+		_souls.queue_redraw()
 	var x0 := _at(0, 0.0).x - 90.0
 	var x1 := _at(6, 0.0).x + 40.0
 	for c in _clouds:
 		c.position.x += float(c.get_meta("speed")) * delta
 		if c.position.x > x1:
 			c.position.x = x0 - c.size.x * 0.5
+
+
+## The player's souls: small wisps running up their sector's centre line from their side's end of
+## the slab (Heaven's far end, Hell's near end) to the front, gold for Heaven, ember for Hell.
+func _draw_souls() -> void:
+	var fo := int(war.get("focus", -1))
+	var secs: Array = war.get("sectors", [])
+	var side := str(war.get("side", ""))
+	if side == "" or fo < 0 or fo >= mini(secs.size(), _points.size()):
+		return
+	var line_t := 0.5 + float(int((secs[fo] as Dictionary).control)) / 10000.0 * 0.44 * grow
+	var from := 0.03 if side == "heaven" else 0.97
+	var col := Color(0.92, 0.6, 0.16) if side == "heaven" else Color(1.0, 0.45, 0.16)
+	for k in 7:
+		var u := fposmod(_t * 0.18 + float(k) / 7.0, 1.0)
+		var tt := lerpf(from, line_t, u)
+		var p := _at(fo, tt) + Vector2(sin(_t * 1.7 + float(k) * 2.3) * 7.0, -8.0 - sin(_t * 2.4 + float(k)) * 2.0)
+		var fade := clampf(minf(u, 1.0 - u) / 0.2, 0.0, 1.0)
+		# A soft halo, a bright core and a thin ink ring, so it reads on paper and on ink alike.
+		_souls.draw_circle(p, 9.0, Color(col, 0.22 * fade))
+		_souls.draw_circle(p, 4.2, Color(col, 0.75 * fade))
+		_souls.draw_arc(p, 4.6, 0.0, TAU, 16, Color(INK, 0.55 * fade), 1.0, true)
+		_souls.draw_circle(p, 1.8, Color(1.0, 0.97, 0.9, fade))
 
 
 func _sync() -> void:
