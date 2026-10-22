@@ -102,6 +102,7 @@ var _day_layer: Control        ## the calendar's stamps and line beside the date
 var _day_sig := "-"
 var _day_key := ""             ## the day still waiting to be stamped ("" when none)
 var _age_override := -1        ## debug: the poster's age in days (shot param "age")
+var _quiet_stamp := false      ## debug: the calendar stamp without its receipt (motion captures)
 ## The heartbeat (hold a thumb on her): how long the press has lasted (-1: none), where it landed,
 ## the monitor strip once it starts, and whether the release was a hold (not a tap).
 var _press_t := -1.0
@@ -117,8 +118,8 @@ var _tick := 0.0
 var _rue_tag: Control
 
 
-## params: sheet (bool) opens the Sanctum sheet, bulletin (page) shows that bulletin, stamp (bool)
-## stamps today's waiting real day (screenshots);
+## params: sheet (bool) opens the Sanctum sheet, bulletin (page) shows that bulletin, stamp (true, or a
+## delay in seconds) stamps today's waiting real day (screenshots);
 ## debug builds: hero / skin show a
 ## given hero and look (framing checks).
 func setup(params: Dictionary) -> void:
@@ -134,8 +135,12 @@ func setup(params: Dictionary) -> void:
 		_open_sanctum.call_deferred()
 	if params.has("bulletin"):
 		_show_bulletin.call_deferred(int(params.bulletin), false)
-	if bool(params.get("stamp", false)):
-		_stamp_day.call_deferred()
+	var sp: Variant = params.get("stamp", false)
+	if (sp is bool and sp) or sp is float or sp is int:
+		# true: now; a number: after that many seconds (motion captures).
+		var delay := 0.0 if sp is bool else float(sp)
+		_quiet_stamp = OS.is_debug_build() and bool(params.get("no_receipt", false))
+		get_tree().create_timer(maxf(delay, 0.0)).timeout.connect(_stamp_day)
 	if OS.is_debug_build() and params.has("pulse"):
 		debug_pulse.call_deferred(float(params.pulse))
 
@@ -937,6 +942,8 @@ func _stamp_day() -> void:
 	elif str(e.kind) == "player":
 		title = "Happy birthday" 
 	var reward: Dictionary = r.value.reward
+	if _quiet_stamp:
+		return
 	get_tree().create_timer(0.5).timeout.connect(func() -> void:
 		UI.show_reward(title, reward))
 
