@@ -27,6 +27,13 @@ this file says where things stand. Older logs are under "History" at the bottom.
 
 ## Where things stand
 
+- **Combat v1, the war version (started 2026-10-22, PC chat; the owner: "yeah see what you can come
+  up with").** Built and committed the same day: charm (the Infernal signature, rules + port check
+  + fixtures), the front view (the team big in the foreground, a camera gliding along the line,
+  swipe to look), the souls crowd (40 red and gold flame wisps in the sky, display only) and the
+  ultimate close-up (her live rig full screen). Details and next steps at the top of
+  `docs/dev/combat-v1.md`. Next: Encore / Spotlight / Mark, the balance pass, then the front map
+  and districts (offline first), then the server.
 - **App cleanup (2026-10-22, PC chat; the owner: "i want the clean the app up first", then "i'm happy
   for you to go ahead with all of those changes").** An audit of every screen (`tools/shoot`, rich
   save) and of the code, then:
@@ -517,7 +524,7 @@ this file says where things stand. Older logs are under "History" at the bottom.
 - **Inventory (2026-10-22):** the owner asked "do we have an inventory yet??". Only gear has one
   (the Gear tab). Offered: a Bag screen (currencies, shards, skins, links to gear and prints) from a
   top-bar icon, or a real item system (EXP potions, chests, tickets). Waiting for the pick.
-0. **Direction pinned (2026-10-22): the War for Souls.** The players split into Heaven and Hell, and
+0. **Direction (2026-10-22): the War for Souls** (pinned, then started with combat the same day). The players split into Heaven and Hell, and
    combat, a district per player and clans all feed one shared front (`docs/dev/feature-ideas.md`;
    the combat for it is at the top of `docs/dev/combat-v1.md`). The owner: "lets put a pin in this
    for now. i like this direction but i want the clean the app up first". Nothing built yet.
