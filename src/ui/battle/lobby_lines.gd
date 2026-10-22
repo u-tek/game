@@ -29,6 +29,19 @@ static func lines(hero_id: String) -> Array[String]:
 	return out
 
 
+## What she says after a long hold on her (the heartbeat).
+static func pulse_lines() -> Array[String]:
+	_load()
+	var out: Array[String] = []
+	var p: Variant = _data.get("pulse", [])
+	if p is Array:
+		for l: Variant in p:
+			out.append(str(l))
+	if out.is_empty():
+		out.append("...")
+	return out
+
+
 static func _load() -> void:
 	if not _data.is_empty():
 		return

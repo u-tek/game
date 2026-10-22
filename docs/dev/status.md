@@ -77,6 +77,10 @@ this file says where things stand. Older logs are under "History" at the bottom.
 - **The Lobby poster ages with the account (2026-10-22):** from a month a fold across it, from 100
   days a second fold and sun-warmed edges, after a year pin holes (`paper_relief.gdshader`
   `age_days`). Never mentioned in the game: found, not announced. Shot param `age`.
+- **Her heartbeat (2026-10-22):** hold a thumb on the Lobby heroine and the phone beats with her
+  heart (lub-dub haptics), a printed monitor strip beside the thumb counts it, climbing from about
+  70 to 118 BPM the longer the thumb stays; her face follows; a long hold earns a line. Not tried on
+  a real phone yet: check the haptic strength on the owner's iPhone. Shot param `pulse`.
 - **Restraint pass, continued:** Settings' title no longer runs through Back; Summon's left edge no
   longer overprints two lines of micro type.
 - **Next:** keep refining every screen as a restrained poster.

@@ -23,6 +23,7 @@ extends Control
 
 const DeviceTier := preload("res://src/art/device_tier.gd")
 const DayStamp := preload("res://src/ui/components/day_stamp.gd")
+const Heartbeat := preload("res://src/ui/components/heartbeat.gd")
 const HUD := preload("res://src/ui/components/hud.gd")
 const LobbyLines := preload("res://src/ui/battle/lobby_lines.gd")
 
@@ -101,6 +102,13 @@ var _day_layer: Control        ## the calendar's stamps and line beside the date
 var _day_sig := "-"
 var _day_key := ""             ## the day still waiting to be stamped ("" when none)
 var _age_override := -1        ## debug: the poster's age in days (shot param "age")
+## The heartbeat (hold a thumb on her): how long the press has lasted (-1: none), where it landed,
+## the monitor strip once it starts, and whether the release was a hold (not a tap).
+var _press_t := -1.0
+var _press_at := Vector2.ZERO
+var _pulse: Control
+var _press_was_hold := false
+var _pulses := 0
 var _sheet: Control
 var _sheet_refs: Dictionary = {}
 var _t := 0.0
@@ -128,6 +136,8 @@ func setup(params: Dictionary) -> void:
 		_show_bulletin.call_deferred(int(params.bulletin), false)
 	if bool(params.get("stamp", false)):
 		_stamp_day.call_deferred()
+	if OS.is_debug_build() and params.has("pulse"):
+		debug_pulse.call_deferred(float(params.pulse))
 
 
 func _exit_tree() -> void:
@@ -229,6 +239,8 @@ func _build() -> void:
 	_hero_hit.position = Vector2(BAND + 60, _ph * 0.05)
 	_hero_hit.size = Vector2(_pw - 49 - BAND - 100, _ph * 0.62)
 	_hero_hit.pressed.connect(_on_hero_tap)
+	_hero_hit.button_down.connect(_on_hero_down)
+	_hero_hit.button_up.connect(_on_hero_up)
 	_poster.add_child(_hero_hit)
 	var rule := ColorRect.new()
 	rule.color = Color(INK, 0.55)
@@ -1089,6 +1101,9 @@ func _fit_size(text: String, length: float, depth: float) -> int:
 
 
 func _on_hero_tap() -> void:
+	if _press_was_hold:
+		_press_was_hold = false
+		return
 	if _hero_id == "":
 		return
 	var lines := LobbyLines.lines(_hero_id)
@@ -1105,6 +1120,109 @@ func _react_at(at: Vector2) -> void:
 	_cheer_left = HeroReact.react(_poster, _sprite, _anchor, at, _tap_n, _poster)
 	if _tap_n >= 4:
 		_tap_n = 0
+
+
+# ------------------------------------------------------------------ the heartbeat
+
+## Hold a thumb on her (0.6 s, without sliding) and the phone beats with her heart (Heartbeat): a
+## printed monitor strip by the thumb, the count climbing the longer it stays, her face following
+## it (a smile past 92, eyes closed past 106). A long hold (6 s or more) earns a line when it lifts.
+const PULSE_AFTER := 0.6
+const PULSE_SLIDE := 26.0
+
+
+func _on_hero_down() -> void:
+	if _hero_id == "" or _sprite == null:
+		return
+	_press_t = 0.0
+	_press_at = _hero_hit.get_local_mouse_position()
+	_press_was_hold = false
+
+
+func _on_hero_up() -> void:
+	_press_t = -1.0
+	if _pulse == null or not is_instance_valid(_pulse):
+		_pulse = null
+		return
+	var held: float = _pulse.call("held_seconds")
+	_pulse.call("release")
+	_pulse = null
+	_press_was_hold = true
+	var wr: WeakRef = weakref(_sprite)
+	get_tree().create_timer(1.1).timeout.connect(func() -> void:
+		var s: Variant = wr.get_ref()
+		if s:
+			(s as Node2D).call("set_expression", "eyes", "")
+			(s as Node2D).call("set_expression", "mouth", ""))
+	if held >= 6.0:
+		var pl := LobbyLines.pulse_lines()
+		_typeset(pl[(_hero_id.hash() + _pulses) % pl.size()], true)
+		_misregister()
+		_pulses += 1
+
+
+func _tick_pulse(delta: float) -> void:
+	if _press_t < 0.0:
+		return
+	_press_t += delta
+	if _pulse == null:
+		if _hero_hit.get_local_mouse_position().distance_to(_press_at) > PULSE_SLIDE:
+			_press_t = -1.0
+			return
+		if _press_t >= PULSE_AFTER:
+			_start_pulse()
+		return
+	if not is_instance_valid(_pulse):
+		_pulse = null
+		return
+	_pulse.call("hold", delta)
+
+
+func _start_pulse() -> void:
+	var hb := Heartbeat.new()
+	hb.name = "Heartbeat"
+	hb.seed_value = _hero_id.hash() & 0xffff
+	# Beside the thumb, at its height (above it would sit on her face): left of it, or right when
+	# there is no room on the left.
+	var thumb := _hero_hit.position + _press_at
+	var at := thumb + Vector2(-hb.size.x - 56.0, -hb.size.y * 0.5 - 24.0)
+	if at.x < 12.0:
+		at.x = thumb.x + 56.0
+	hb.position = at.clamp(Vector2(12, 12), _poster.size - hb.size - Vector2(12, 12))
+	hb.beat.connect(_on_pulse_beat)
+	_poster.add_child(hb)
+	_pulse = hb
+	_press_was_hold = true
+	if Kit.motion_ok():
+		hb.modulate.a = 0.0
+		hb.create_tween().tween_property(hb, "modulate:a", 1.0, 0.25)
+
+
+func _on_pulse_beat(bpm: int) -> void:
+	if _sprite == null or not is_instance_valid(_sprite):
+		return
+	if bpm >= 106:
+		_sprite.call("set_expression", "eyes", "closed")
+		_sprite.call("set_expression", "mouth", "smile")
+	elif bpm >= 92:
+		_sprite.call("set_expression", "eyes", "smile")
+	# A breath of a pulse in her: the figure swells by a hair on the beat.
+	if Kit.motion_ok() and _anchor and is_instance_valid(_anchor):
+		if not _anchor.has_meta("react_base"):
+			_anchor.set_meta("react_base", _anchor.scale)
+		var base: Vector2 = _anchor.get_meta("react_base")
+		_anchor.scale = base * 1.006
+		_anchor.create_tween().tween_property(_anchor, "scale", base, 0.22).set_trans(Tween.TRANS_SINE)
+
+
+## Screenshots: a held thumb on her chest for `seconds` (the strip, her face), still held.
+func debug_pulse(seconds: float) -> void:
+	_press_t = 0.0
+	_press_at = _hero_hit.size * Vector2(0.55, 0.35)
+	_start_pulse()
+	var steps := int(seconds * 30.0)
+	for i in steps:
+		_pulse.call("hold", 1.0 / 30.0)
 
 
 ## Screenshots (--shoot-do=poke / poke4): taps her `times` times at her chest.
@@ -1614,6 +1732,7 @@ func _process(delta: float) -> void:
 		_cheer_left -= delta
 		if _cheer_left <= 0.0 and _sprite and is_instance_valid(_sprite):
 			_sprite.call("play_idle")
+	_tick_pulse(delta)
 	# A full Sanctum's stamp breathes.
 	if _stamp_btn and _full and Kit.motion_ok():
 		var k := 1.0 + 0.035 * (0.5 + 0.5 * sin(_t * 3.2))
