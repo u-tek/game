@@ -6,15 +6,18 @@ extends Control
 ## The poster: a dark band down the left with the avatar hero as a red halftone and BAG set huge down
 ## it; the ledger head (the issue line, a tick rule, the gem count debossed big); then four sections,
 ## each a numbered rule ("01 CURRENCY"):
-##   01 CURRENCY  one row per currency: its icon, name and what it is for in mono, a dotted leader,
-##                the amount in compressed type between brackets, and a printed link (GET, SUMMON,
-##                LEVEL UP, STAR UP) to where it is spent or found.
-##   02 SHARDS    every owned hero holding shards as a small framed print with "12 / 30" and a progress
+##   01 CURRENCY  one row per currency (owner, 2026-10-23: "make the bag worth having and also include
+##                icons"): its real object, its name, what it buys you right now in signal (ten-pulls,
+##                team level-ups, star-ups ready), the amount between brackets and a link to spend it.
+##   02 ARMOURY   the gear as product shots (the rendered pieces), worn ones with their wearer's
+##                face, the count and a link to the armoury (the Gear screen left the nav bar).
+##   03 SHARDS    every owned hero holding shards as a small framed print with "12 / 30" and a progress
 ##                rule to her next star (signal when she can star up); tap for her page.
-##   03 WARDROBE  the skins owned as framed prints (tap: the hero's wardrobe), or a line to the Shop.
-##   04 ARMOURY · ALBUM  two printed slips: the gear (pieces, worn, spare) and the print album.
+##   04 WARDROBE  the skins owned as framed prints (tap: the hero's wardrobe), or a line to the Shop.
+##   05 ALBUM     a printed slip: the print album.
 ## params: scroll (px, screenshots).
 
+const PPK := preload("res://src/ui/v4/poster_kit.gd")
 const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
 const Poster := preload("res://src/ui/v4/survey/poster.gd")
 const CK := preload("res://src/ui/v4/collect/collect_kit.gd")
@@ -109,10 +112,12 @@ func _build() -> void:
 	var cell := floorf((pw - 40.0 - 3.0 * 12.0) / 4.0)
 	var shard_rows := maxi(1, ceili(shards.size() / 4.0))
 	var skin_rows := maxi(1, ceili(mini(skins.size(), 8) / 4.0))
-	var cur_h := 34.0 + CURRENCIES.size() * 76.0
+	var cur_h := 34.0 + CURRENCIES.size() * ROW_H
+	var gear_n := mini(Game.gear_items().size(), 8)
+	var gear_h := 48.0 + (ceilf(gear_n / 4.0) * (cell + 34.0) if gear_n > 0 else 70.0)
 	var sh_h := 48.0 + shard_rows * (cell + 52.0)
 	var sk_h := 48.0 + (skin_rows * (cell + 40.0) if not skins.is_empty() else 70.0)
-	var ph := maxf(HEAD + 24.0 + cur_h + sh_h + sk_h + 210.0, d.y - 14.0 - 84.0)
+	var ph := maxf(HEAD + 24.0 + cur_h + gear_h + sh_h + sk_h + 210.0, d.y - 14.0 - 84.0)
 	PK.matte(self)
 	_page = Control.new()
 	_page.name = "Page"
@@ -127,6 +132,7 @@ func _build() -> void:
 	_build_head(pw)
 	var y := HEAD + 24.0
 	y = _build_currency(pw, y)
+	y = _build_gear(pw, y, cell)
 	y = _build_shards(pw, y, shards, cell)
 	y = _build_skins(pw, y, skins, cell)
 	_build_links(pw, y)
@@ -198,41 +204,120 @@ func _build_currency(pw: float, y: float) -> float:
 		row.name = "Cur_" + id
 		row.mouse_filter = MOUSE_FILTER_PASS
 		row.position = Vector2(20, y)
-		row.size = Vector2(pw - 40, 70)
+		row.size = Vector2(pw - 40, ROW_H - 6)
 		p.add_child(row)
-		# The currency's code in a small ruled box, like a ledger (restraint: no coloured glyphs on
-		# paper, as the masthead).
-		var code := str({"gems": "GEM", "scrolls": "SCR", "gold": "GLD", "hero_exp": "EXP", "dust": "DST"}.get(id, id.left(3).to_upper()))
-		var bx0 := Rect2(4, 14, 44, 40)
-		PK.rect(row, Rect2(bx0.position, Vector2(bx0.size.x, 1.5)), INK)
-		PK.rect(row, Rect2(bx0.position + Vector2(0, bx0.size.y - 1.0), Vector2(bx0.size.x, 1.0)), Color(INK, 0.5))
-		var cl := PK.t(code, 13, INK, "mono_bold")
-		cl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		cl.size = Vector2(bx0.size.x, 18)
-		PK.at(row, cl, bx0.position + Vector2(0, 11))
-		PK.at(row, PK.t(str(c[1]), 15, INK, "mono_bold"), Vector2(62, 8))
-		PK.at(row, PK.t(str(c[2]), 10, Color(INK, 0.62), "mono"), Vector2(62, 30))
-		var link := PK.t(str(c[3]), 11, SIG, "mono_bold")
-		PK.at(row, link, Vector2(62, 46))
+		# The currency's real object (rendered), big.
+		var ic := Kit.currency_icon(id, 64)
+		ic.position = Vector2(0, 8)
+		ic.size = Vector2(64, 64)
+		row.add_child(ic)
+		PK.at(row, PK.t(str(c[1]), 15, INK, "mono_bold"), Vector2(78, 8))
+		PK.at(row, PK.t(str(c[2]), 10, Color(INK, 0.62), "mono"), Vector2(78, 30))
+		# What it buys right now.
+		var now := _what_now(id)
+		if now != "":
+			PK.at(row, PK.t(now, 11, SIG, "mono_bold"), Vector2(78, 48))
+		var link := PK.t(str(c[3]), 11, INK, "mono_bold")
+		PK.at(row, link, Vector2(78, 66))
 		# The amount between brackets, right-aligned; a dotted leader runs to it.
 		var amt := Kit.format_full(int(Game.currency(id)))
 		var fs := 40
 		var aw := PK.text_w(amt, fs, "compressed")
 		var bx := row.size.x - aw - 30.0
 		var lead := Kit.PrintBits.Leader.new()
-		lead.position = Vector2(62 + PK.text_w(str(c[1]), 15, "mono_bold") + 12.0, 14)
+		lead.position = Vector2(78 + PK.text_w(str(c[1]), 15, "mono_bold") + 12.0, 14)
 		lead.size = Vector2(maxf(bx - lead.position.x - 18.0, 0.0), 14)
 		row.add_child(lead)
 		PK.at(row, PK.t("[", 40, Color(INK, 0.4), "compressed_light"), Vector2(bx - 14.0, 4))
 		var al := PK.t(amt, fs, INK, "compressed")
 		PK.at(row, al, Vector2(bx, 4))
 		PK.at(row, PK.t("]", 40, Color(INK, 0.4), "compressed_light"), Vector2(bx + aw + 4.0, 4))
-		PK.rule(row, Vector2(0, 68), Vector2(row.size.x, 1), Color(INK, 0.18))
+		PK.rule(row, Vector2(0, ROW_H - 8), Vector2(row.size.x, 1), Color(INK, 0.18))
 		var scr: String = c[4]
 		var prm: Dictionary = c[5]
 		Kit.make_tappable(row, func() -> void: UI.go(scr, prm))
-		y += 76.0
+		y += ROW_H
 	return y + 10.0
+
+
+const ROW_H := 96.0
+
+
+## What a currency buys right now, in a few words ("" when nothing useful to say).
+func _what_now(id: String) -> String:
+	var n := int(Game.currency(id))
+	match id:
+		"gems":
+			var ten := maxi(1, int(Game.banner("standard").get("cost_ten", 2700)))
+			return "= %d TEN-PULLS" % (n / ten) if n >= ten else "%s MORE FOR A TEN-PULL" % Kit.format_full(ten - n)
+		"scrolls":
+			if n >= 10:
+				return "= %d TEN-PULL%s%s" % [n / 10, "" if n / 10 == 1 else "S", " + %d SINGLE" % (n % 10) if n % 10 > 0 else ""]
+			return "= %d SINGLE PULL%s" % [n, "" if n == 1 else "S"] if n > 0 else ""
+		"gold", "hero_exp":
+			var lv := 0
+			for hid: Variant in Game.formation():
+				if str(hid) != "":
+					lv += int(Game.affordable_levels(str(hid)))
+			return "TEAM LEVEL-UPS READY: %d" % lv if lv > 0 else ""
+		"dust":
+			var ready := 0
+			for h: Dictionary in Game.owned_heroes():
+				if bool(Game.can_star_up(str(h.id))):
+					ready += 1
+			return "%d HERO%s CAN STAR UP NOW" % [ready, "" if ready == 1 else "ES"] if ready > 0 else ""
+	return ""
+
+
+## 02 ARMOURY: the gear as product shots (best first), worn ones with their wearer's face; the count
+## and a link to the armoury.
+func _build_gear(pw: float, y: float, cell: float) -> float:
+	var p := _poster
+	var items: Array[Dictionary] = Game.gear_items()
+	items.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return int(Game.gear_score(str(a.uid))) > int(Game.gear_score(str(b.uid))))
+	var worn := 0
+	for it: Dictionary in items:
+		if str(it.get("equipped_by", "")) != "":
+			worn += 1
+	_section(pw, y, 2, "ARMOURY", "%d PIECES  ·  %d WORN  ·  OPEN THE ARMOURY  ↗" % [items.size(), worn])
+	var head := Control.new()
+	head.name = "Link_gear"
+	head.mouse_filter = MOUSE_FILTER_PASS
+	head.position = Vector2(20, y - 10)
+	head.size = Vector2(pw - 40, 44)
+	p.add_child(head)
+	Kit.make_tappable(head, func() -> void: UI.go("gear"))
+	y += 44.0
+	if items.is_empty():
+		PK.at(p, PK.t("No gear yet: the campaign and the Sanctum drop it.", 14, Color(INK, 0.7), "serif_italic"), Vector2(24, y + 8))
+		return y + 70.0
+	for i in mini(items.size(), 8):
+		var it: Dictionary = items[i]
+		var fr := Control.new()
+		fr.name = "Gear_%s" % str(it.uid)
+		fr.mouse_filter = MOUSE_FILTER_PASS
+		fr.position = Vector2(20 + (i % 4) * (cell + 12.0), y + (i / 4) * (cell + 34.0))
+		fr.size = Vector2(cell, cell + 30)
+		p.add_child(fr)
+		PK.rect(fr, Rect2(0, 0, cell, cell), Color("f5f4f0"))
+		PK.rule(fr, Vector2(0, cell - 1), Vector2(cell, 1), Color(INK, 0.3))
+		PPK.gear_object(str(it.slot), cell - 16, fr, Vector2(8, 6), str(it.get("name", "")), int(it.get("tier", 1)))
+		var by := str(it.get("equipped_by", ""))
+		if by != "":
+			var face := HeroArt.make_portrait(by, 30, Game.equipped_skin(by))
+			face.mouse_filter = MOUSE_FILTER_IGNORE
+			face.position = Vector2(cell - 34, cell - 34)
+			face.size = Vector2(30, 30)
+			fr.add_child(face)
+		var nm := PK.t(str(it.get("name", "")).to_upper(), 9, INK, "mono_bold")
+		nm.size = Vector2(cell, 13)
+		nm.clip_text = true
+		PK.at(fr, nm, Vector2(0, cell + 4))
+		var tier := int(it.get("tier", 1))
+		PK.at(fr, PK.t("T%d  ·  %s" % [tier, str(it.slot).to_upper()], 9, SIG if tier >= 4 else Color(INK, 0.6), "mono"), Vector2(0, cell + 17))
+		Kit.make_tappable(fr, func() -> void: UI.go("gear"))
+	return y + ceilf(mini(items.size(), 8) / 4.0) * (cell + 34.0) + 8.0
 
 
 ## Owned heroes holding shards, most first.
@@ -248,7 +333,7 @@ func _shard_heroes() -> Array[Dictionary]:
 
 func _build_shards(pw: float, y: float, list: Array[Dictionary], cell: float) -> float:
 	var p := _poster
-	_section(pw, y, 2, "SHARDS", "DUPLICATES BECOME SHARDS  ·  SHARDS RAISE STARS")
+	_section(pw, y, 3, "SHARDS", "DUPLICATES BECOME SHARDS  ·  SHARDS RAISE STARS")
 	y += 46.0
 	if list.is_empty():
 		PK.at(p, PK.t("No shards yet. Summon a hero you already have and her copy turns into shards.", 13, Color(INK, 0.7), "serif_italic"), Vector2(24, y + 6))
@@ -309,7 +394,7 @@ func _owned_skins() -> Array[Dictionary]:
 
 func _build_skins(pw: float, y: float, list: Array[Dictionary], cell: float) -> float:
 	var p := _poster
-	_section(pw, y, 3, "WARDROBE", ("%d OWNED" % list.size()) if not list.is_empty() else "")
+	_section(pw, y, 4, "WARDROBE", ("%d OWNED" % list.size()) if not list.is_empty() else "")
 	y += 46.0
 	if list.is_empty():
 		PK.at(p, PK.t("No skins yet. The Shop's Wardrobe has four packs for every hero.", 13, Color(INK, 0.7), "serif_italic"), Vector2(24, y + 6))
@@ -345,20 +430,14 @@ func _build_skins(pw: float, y: float, list: Array[Dictionary], cell: float) -> 
 	return y + ceilf(mini(list.size(), 8) / 4.0) * (cell + 40.0) + 8.0
 
 
-## 04: two printed slips side by side: the armoury (gear) and the album (prints).
+## 05: a printed slip to the album (prints).
 func _build_links(pw: float, y: float) -> void:
 	var p := _poster
-	_section(pw, y, 4, "ARMOURY  ·  ALBUM")
+	_section(pw, y, 5, "ALBUM")
 	y += 46.0
-	var items := Game.gear_items()
-	var worn := 0
-	for it: Dictionary in items:
-		if str(it.get("hero", "")) != "":
-			worn += 1
 	var stats: Dictionary = Game.print_stats()
 	var sw := floorf((pw - 40.0 - 12.0) / 2.0)
 	var slips := [
-		["GEAR", "%d PIECES" % items.size(), "%d WORN  ·  %d SPARE" % [worn, items.size() - worn], "gear", {}],
 		["PRINTS", "%d IN THE ALBUM" % int(stats.get("kept", 0)), "%d MISPRINTS  ·  %d HOLO" % [int(stats.get("misprints", 0)), int(stats.get("holo", 0))], "prints", {}],
 	]
 	for i in slips.size():
