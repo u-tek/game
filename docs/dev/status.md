@@ -30,10 +30,11 @@ this file says where things stand. Older logs are under "History" at the bottom.
 - **Combat v1, the war version (started 2026-10-22, PC chat; the owner: "yeah see what you can come
   up with").** Built and committed the same day: charm (the Infernal signature, rules + port check
   + fixtures), the front view (the team big in the foreground, a camera gliding along the line,
-  swipe to look), the souls crowd (40 red and gold flame wisps in the sky, display only) and the
-  ultimate close-up (her live rig full screen). Details and next steps at the top of
-  `docs/dev/combat-v1.md`. Next: Encore / Spotlight / Mark, the balance pass, then the front map
-  and districts (offline first), then the server.
+  swipe to look), the souls crowd (40 red and gold flame wisps in the sky, display only), the
+  ultimate close-up (her live rig full screen) and Encore (chained ultimates: +15% per step by hand,
+  a duo close-up). Details and next steps at the top of `docs/dev/combat-v1.md`. Next: Spotlight /
+  Mark (the owner never answered whether these inputs feel right: ask after they play the build),
+  the balance pass, then the front map and districts (offline first), then the server.
 - **App cleanup (2026-10-22, PC chat; the owner: "i want the clean the app up first", then "i'm happy
   for you to go ahead with all of those changes").** An audit of every screen (`tools/shoot`, rich
   save) and of the code, then:
