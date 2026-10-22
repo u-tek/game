@@ -40,7 +40,7 @@ const DISC_PAD := 23.0
 const DISC_OBJ := 300.0
 const STAMP := 140.0
 ## The side menu. Heroes and Team are only in the bottom nav (her hero page: tap her signature).
-const MENU := [["daily", "DAILY"], ["spire", "SPIRE"], ["rival", "RIVAL"], ["shop", "SHOP"], ["view", "VIEW"]]
+const MENU := [["daily", "DAILY"], ["spire", "SPIRE"], ["rival", "RIVAL"], ["bag", "BAG"], ["shop", "SHOP"], ["view", "VIEW"]]
 const CK := preload("res://src/ui/v4/collect/collect_kit.gd")
 
 ## Blurred red echoes of hero art, by art key (an Image resize per hero is not free).
@@ -451,6 +451,8 @@ func _on_menu(id: String) -> void:
 			UI.go("tower")
 		"rival":
 			UI.go("rival")
+		"bag":
+			UI.go("bag")
 		"shop":
 			UI.go("shop")
 		"view":
