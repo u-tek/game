@@ -26,11 +26,15 @@ def qa_dir(run):
     return os.path.join(run, "qa")
 
 
-def items():
-    """[(hero, skin id or None, art or None, first seed)]: the 40 heroes, then the skins in bible order."""
+def items(adult=False):
+    """[(hero, skin id or None, art or None, first seed)]: the 40 heroes, then the skins in bible order. adult: the
+    nude set (only looks with an "adult" prompt block; seeds +5000 like pipeline.art_target)."""
     b = json.load(open(os.path.join(ROOT, "data", "art_prompts.json"), encoding="utf-8"))
-    out = [(h, None, None, b["heroes"][h].get("seed_base", 100) + OFFSET) for h in b["heroes"]]
-    out += [(s["hero"], sid, s["art"], s.get("seed_base", 100) + OFFSET) for sid, s in b["skins"].items()]
+    off = OFFSET + (5000 if adult else 0)
+    out = [(h, None, None, v.get("seed_base", 100) + off) for h, v in b["heroes"].items()
+           if not adult or isinstance(v.get("adult"), dict)]
+    out += [(s["hero"], sid, s["art"], s.get("seed_base", 100) + off) for sid, s in b["skins"].items()
+            if not adult or isinstance(s.get("adult"), dict)]
     return out
 
 
@@ -38,12 +42,13 @@ def key_of(hero, art):
     return "%s@%s" % (hero, art) if art else hero
 
 
-def cdir(hero, art):
-    return os.path.join(ROOT, "art_src", hero, "skins", art) if art else os.path.join(ROOT, "art_src", hero)
+def cdir(hero, art, adult=False):
+    d = os.path.join(ROOT, "art_src", hero, "skins", art) if art else os.path.join(ROOT, "art_src", hero)
+    return os.path.join(d, "adult") if adult else d
 
 
-def candidate(hero, art, seed):
-    for p in glob.glob(os.path.join(cdir(hero, art), "candidates", "*_s%d.png" % seed)):
+def candidate(hero, art, seed, adult=False):
+    for p in glob.glob(os.path.join(cdir(hero, art, adult), "candidates", "*_s%d.png" % seed)):
         if not p.endswith("_cut.png"):
             return p
     return None
@@ -51,6 +56,11 @@ def candidate(hero, art, seed):
 
 def wanted(s0, rerolls):
     return [s0 + k for k in range(2 + 2 * int(rerolls))]
+
+
+def is_adult(run):
+    """<run>/qa/config.json {"adult": true, "after": "<other run dir>"} makes a run the nude set."""
+    return bool(load(run, "config.json").get("adult"))
 
 
 def load(run, name):
@@ -100,15 +110,16 @@ def pending(run):
     """(picks to finish, candidates to render) as lists of (index, hero, skin, art, seed). Renders for items the
     owner asked to regenerate come last (owner: "i want it saved and regenerated later")."""
     picks, rerolls = load(run, "picks.json"), load(run, "rerolls.json")
+    adult = is_adult(run)
     fin, ren = [], []
-    for i, (hero, sid, art, s0) in enumerate(items()):
+    for i, (hero, sid, art, s0) in enumerate(items(adult)):
         key = key_of(hero, art)
         if key in picks:
             if done_info(run, key) is None:
                 fin.append((i, hero, sid, art, int(picks[key])))
             continue
         for s in wanted(s0, rerolls.get(key, 0)):
-            if not candidate(hero, art, s):
+            if not candidate(hero, art, s, adult):
                 ren.append((i, hero, sid, art, s))
     ren.sort(key=lambda r: int(rerolls.get(key_of(r[1], r[3]), 0)) > 0)     # stable: first-run renders first
     return fin, ren
@@ -121,6 +132,9 @@ class Worker:
         for d in ("done", "review"):
             os.makedirs(os.path.join(self.qa, d), exist_ok=True)
         self.logf = open(os.path.join(self.qa, "log.txt"), "a", encoding="utf-8")
+        self.adult = is_adult(run)
+        after = load(run, "config.json").get("after")
+        self.after = os.path.join(ROOT, after) if after else None
         os.environ.setdefault("COMFYUI_URL", "http://127.0.0.1:8188")
 
     def log(self, msg):
@@ -138,14 +152,15 @@ class Worker:
         from PIL import Image
         key = key_of(hero, art)
         t0 = time.time()
-        sk = ["--skin", sid] if sid else []
-        tdir = cdir(hero, art)
+        sk = (["--skin", sid] if sid else []) + (["--adult"] if self.adult else [])
+        tdir = cdir(hero, art, self.adult)
+        rig = key + (("@adult" if art else "@@adult") if self.adult else "")
         self.step(["tools/comfy/finalize.py", hero, str(seed), "--force"] + sk, "finalize")
         meta = json.load(open(os.path.join(tdir, "final", (art or hero) + ".json"), encoding="utf-8"))
         self.step(["tools/comfy/install.py", hero, "--partial", "--force"] + sk, "install")
-        self.step(["tools/art_quick_rig.py", key, "--face", ",".join(map(str, meta["face_box"])), "--seed", str(seed)],
+        self.step(["tools/art_quick_rig.py", rig, "--face", ",".join(map(str, meta["face_box"])), "--seed", str(seed)],
                   "quick rig")
-        self.step(["tools/art_warp_build.py", key, "--regen-masks"], "warp build")
+        self.step(["tools/art_warp_build.py", rig, "--regen-masks"], "warp build")
         ups = sorted(glob.glob(os.path.join(tdir, "work", "*_up.png")), key=os.path.getmtime)
         src = ups[-1] if ups else os.path.join(tdir, "final", (art or hero) + ".png")
         Image.open(src).convert("RGB").save(
@@ -155,11 +170,18 @@ class Worker:
         self.log("FINISHED %03d/%d %s s%d %.0fs" % (i + 1, n, key, seed, time.time() - t0))
 
     def loop(self):
-        n = len(items())
+        n = len(items(self.adult))
+        waited = False
         while True:
             if os.path.exists(os.path.join(self.run, "pause")):
                 self.log("paused")
                 return
+            if self.after and worker_pid(self.after):       # the other run (the normal art) goes first
+                if not waited:
+                    self.log("waiting for the %s worker to finish" % os.path.basename(self.after))
+                    waited = True
+                time.sleep(30)
+                continue
             fin, ren = pending(self.run)
             if fin:
                 i, hero, sid, art, seed = fin[0]
@@ -175,7 +197,7 @@ class Worker:
                 t0 = time.time()
                 try:
                     self.step(["tools/comfy/run_hero.py", hero, "--count", "1", "--seed", str(seed), "--no-sheet"]
-                              + (["--skin", sid] if sid else []), "render")
+                              + (["--skin", sid] if sid else []) + (["--adult"] if self.adult else []), "render")
                     self.log("CAND %03d/%d %s s%d %.0fs" % (i + 1, n, key_of(hero, art), seed, time.time() - t0))
                 except Exception as e:  # noqa: BLE001
                     self.log("FAIL render %s s%d: %s" % (key_of(hero, art), seed, e))

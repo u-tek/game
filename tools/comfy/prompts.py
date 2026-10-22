@@ -516,6 +516,8 @@ def _sentence_full_body(bible, fam, h, hero_id, bg, extra_tags, adult, pose=None
         # nipples"): no micro top; the skin's hands, arm or hair cover her completely
         cover = (fam.get("cover_natural") or {}).get(h["cover"], "")
         style = style.replace(fam["outfit_natural"], fam["topless_natural"].format(cover=cover))
+    if adult and fam.get("outfit_natural") and fam.get("nude_natural"):    # the nude set (owner, 2026-10-22)
+        style = style.replace(fam["outfit_natural"], fam["nude_natural"])
     parts = ["%s, full body." % subj, style,
              _face_sentence(fam, h.get("default_eyes") == "closed"), composition,
              _who(fam, h), _prose(plain_tags(extra_tags)) if extra_tags else "",

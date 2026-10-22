@@ -163,6 +163,7 @@
    "age_natural": "in her mid-twenties",
    "body_drop_natural": ["toned", "muscular female", "muscular"],
    "outfit_natural": "She wears almost nothing: her outfit is a tiny, barely-there micro version of her design, just thin straps, strings and very small patches that barely cover the tips of her breasts and her crotch, with lots of underboob and sideboob spilling out, and her stomach, hips, thighs, butt, back, shoulders and arms all bare. Any coat, cape, jacket, robe, sarong or long skirt in her design hangs open or slips off her body and covers nothing, and any bodysuit or leotard is cut down to a few thin strips.",
+   "nude_natural": "She is completely nude, with no clothing of any kind on her body, only the accessories listed below; her breasts, nipples and hips are fully bare.",
    "topless_natural": "Above the waist she wears nothing at all, not even a bikini top, only the lower half of her outfit; her chest is bare and {cover}, so the tips of her breasts are completely hidden. Everything else about her body is bare too.",
    "cover_natural": {"hands": "her own hands are cupped over the front of her breasts, palms and fingers pressed flat over them", "arm": "one forearm is pressed across the front of her breasts with her hand cupping the far side", "hair": "her long hair falls in thick locks over the front of her breasts"},
    "quality": "",
@@ -533,7 +534,7 @@
     "Crystal blades are left to the model ('crystal' alone pulls crystal effects)."
    ]
   },
-  "argentiel": {
+  "argentiel": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, armored boots, thigh boots", "natural": "Adult. Argentiel completely nude but for her armored boots."}, 
    "name": "Argentiel",
    "faction": "celestial",
    "role": "striker",
@@ -580,7 +581,7 @@
     "Mirror-chrome lips, chrome braid cuffs and the hip flask are not tagged (token budget)."
    ]
   },
-  "sanariel": {
+  "sanariel": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, garter straps, stethoscope, elbow gloves, white thighhighs, high heels", "natural": "Adult. Sanariel completely nude but for her garter straps, stethoscope, elbow gloves and white thighhighs."}, 
    "name": "Sanariel",
    "faction": "celestial",
    "role": "support",
@@ -623,7 +624,7 @@
     "Mirrored aqua lip gloss and the cape-like wing fold are not tagged (token budget)."
    ]
   },
-  "rimelle": {
+  "rimelle": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, rhinestones, ice skates", "natural": "Adult. Rimelle completely nude but for her rhinestones and ice skates."}, 
    "name": "Rimelle",
    "faction": "celestial",
    "role": "caster",
@@ -665,7 +666,7 @@
     "Youth negatives as on Liora and Uriela: figure skating art skews young on the booru, so the adult face cues and the loli/child/teenage/petite weights stay."
    ]
   },
-  "avienne": {
+  "avienne": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, flight attendant, white thighhighs, platform heels", "natural": "Adult. Avienne completely nude but for her flight attendant and white thighhighs."}, 
    "name": "Avienne",
    "faction": "celestial",
    "role": "guardian",
@@ -707,7 +708,7 @@
     "The safety-demonstration gesture is 'pointing'; the French twist is 'updo'."
    ]
   },
-  "cirella": {
+  "cirella": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, center opening, armlet, anklet", "natural": "Adult. Cirella completely nude but for her center opening, armlet and anklet."}, 
    "name": "Cirella",
    "faction": "celestial",
    "role": "assassin",
@@ -749,7 +750,7 @@
     "Youth negatives as on Liora and Uriela: gymnastics art skews young on the booru. 'One knee turned in' is dropped (a knock-kneed stance reads young); she stands on her toes instead."
    ]
   },
-  "ferrael": {
+  "ferrael": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, gauntlets, chain belt, white boots, platform boots", "natural": "Adult. Ferrael completely nude but for her gauntlets, chain belt and white boots."}, 
    "name": "Ferrael",
    "faction": "celestial",
    "role": "striker",
@@ -791,7 +792,7 @@
     "'muscular female' with 'broad shoulders' and no 'tall female' or 'abs' keeps her strong but not Brakka's bodybuilder build."
    ]
   },
-  "verdelle": {
+  "verdelle": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, rubber boots, white footwear", "natural": "Adult. Verdelle completely nude but for her rubber boots."}, 
    "name": "Verdelle",
    "faction": "celestial",
    "role": "support",
@@ -833,7 +834,7 @@
     "The halter monokini is 'green one-piece swimsuit, highleg swimsuit, halterneck' with 'side cutout' for the waist windows."
    ]
   },
-  "isobel": {
+  "isobel": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, lightning bolt symbol, white boots, cross-laced footwear", "natural": "Adult. Isobel completely nude but for her lightning bolt symbol and white boots."}, 
    "name": "Isobel",
    "faction": "celestial",
    "role": "caster",
@@ -875,7 +876,7 @@
     "The single white streak is 'streaked hair'; its colour is not forced."
    ]
   },
-  "halcia": {
+  "halcia": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, harness, thigh strap, wristwatch, white boots", "natural": "Adult. Halcia completely nude but for her harness, thigh strap, wristwatch and white boots."}, 
    "name": "Halcia",
    "faction": "celestial",
    "role": "assassin",
@@ -1128,7 +1129,7 @@
     "Cat ears are now headphones; real cat ears may still appear (the tail keeps the cat read)."
    ]
   },
-  "drezza": {
+  "drezza": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, harness, leg warmers, choker, platform footwear, black boots", "natural": "Adult. Drezza completely nude but for her harness, leg warmers, choker and platform footwear."}, 
    "name": "Drezza",
    "faction": "infernal",
    "role": "support",
@@ -1173,7 +1174,7 @@
     "Faux-fur leg warmers are 'leg warmers' (fur not tagged: token budget). 'twintails' is negated so the single ponytail never splits into a youth-coded pair."
    ]
   },
-  "zecchina": {
+  "zecchina": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, rhinestones, underbust, red bandeau, fishnet thighhighs, elbow gloves, detached collar, bowtie, red high heels", "natural": "Adult. Zecchina completely nude but for her rhinestones, underbust, red bandeau, fishnet thighhighs, elbow gloves and red high heels."}, 
    "name": "Zecchina",
    "faction": "infernal",
    "role": "assassin",
@@ -1216,7 +1217,7 @@
     "Fishnets are thigh-highs on garters (legwear only); the thong bottom stays opaque in front."
    ]
   },
-  "torqua": {
+  "torqua": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, race queen, hoop earrings, red thigh boots, platform footwear", "natural": "Adult. Torqua completely nude but for her race queen, hoop earrings and red thigh boots."}, 
    "name": "Torqua",
    "faction": "infernal",
    "role": "guardian",
@@ -1260,7 +1261,7 @@
     "Hood-ornament horns are 'curved horns'; the chrome finish is left to the model."
    ]
   },
-  "sigilla": {
+  "sigilla": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, garter belt, platform footwear, black shoes", "natural": "Adult. Sigilla completely nude but for her garter belt and platform footwear."}, 
    "name": "Sigilla",
    "faction": "infernal",
    "role": "caster",
@@ -1303,7 +1304,7 @@
     "Tattoos are 'full-body tattoo'; flash art on the wings and shrug decals are left to the model."
    ]
   },
-  "carmesa": {
+  "carmesa": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, matador, red bolero, epaulettes, rhinestones, black bandeau, pink thighhighs, black high heels", "natural": "Adult. Carmesa completely nude but for her matador, red bolero, epaulettes, rhinestones, black bandeau and black high heels."}, 
    "name": "Carmesa",
    "faction": "infernal",
    "role": "assassin",
@@ -1345,7 +1346,7 @@
     "Olive skin is 'tan'; deep burgundy is 'dark red hair'. The shorts are high-waisted on purpose (never low-rise)."
    ]
   },
-  "thrasha": {
+  "thrasha": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, safety pin, chain, fishnet thighhighs, torn thighhighs, spiked choker, combat boots, platform footwear", "natural": "Adult. Thrasha completely nude but for her safety pin, chain, fishnet thighhighs, torn thighhighs, spiked choker and combat boots."}, 
    "name": "Thrasha",
    "faction": "infernal",
    "role": "striker",
@@ -1388,7 +1389,7 @@
     "The flying-V guitar-axe is 'electric guitar'; the V shape, flame decals and axe-blade edge are left to the model. 'fang' is negated (no fanged-grin youth cue)."
    ]
   },
-  "kindra": {
+  "kindra": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, firefighter, red helmet, horns through headwear, red bandeau, suspenders, black thigh boots", "natural": "Adult. Kindra completely nude but for her firefighter, red helmet, horns through headwear, red bandeau, suspenders and black thigh boots."}, 
    "name": "Kindra",
    "faction": "infernal",
    "role": "guardian",
@@ -1431,7 +1432,7 @@
     "'fire' is negated so no flames spill into the backdrop; soot is 'dirty'."
    ]
   },
-  "cordia": {
+  "cordia": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, detached collar, red bowtie, thigh strap, hip flask, black high heels, platform footwear", "natural": "Adult. Cordia completely nude but for her detached collar, red bowtie, thigh strap, hip flask and black high heels."}, 
    "name": "Cordia",
    "faction": "infernal",
    "role": "support",
@@ -1683,7 +1684,7 @@
     "The bottoms are micro shorts (a 'panties' tag is a forbidden positive)."
    ]
   },
-  "nadira": {
+  "nadira": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, partially unzipped, holding helmet, space helmet, white boots, platform footwear", "natural": "Adult. Nadira completely nude but for her partially unzipped, space helmet and white boots."}, 
    "name": "Nadira",
    "faction": "fallen",
    "role": "caster",
@@ -1730,7 +1731,7 @@
     "Wide wingspan: size 896x1152."
    ]
   },
-  "gantra": {
+  "gantra": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, partially unzipped, high collar, black boots, platform footwear", "natural": "Adult. Gantra completely nude but for her partially unzipped, high collar and black boots."}, 
    "name": "Gantra",
    "faction": "fallen",
    "role": "guardian",
@@ -1772,7 +1773,7 @@
     "'plugsuit' is avoided on purpose: it pulls one famous franchise's pilots. 'wings' is negated (she has none)."
    ]
   },
-  "severine": {
+  "severine": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, sarashi, obi, black thighhighs, platform heels", "natural": "Adult. Severine completely nude but for her sarashi, obi and black thighhighs."}, 
    "name": "Severine",
    "faction": "fallen",
    "role": "striker",
@@ -1815,7 +1816,7 @@
     "The low ready stance is 'fighting stance': check both feet stay on the ground line."
    ]
   },
-  "benthe": {
+  "benthe": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, center opening, gorget, belt, chain, armored boots", "natural": "Adult. Benthe completely nude but for her center opening, gorget, belt, chain and armored boots."}, 
    "name": "Benthe",
    "faction": "fallen",
    "role": "guardian",
@@ -1857,7 +1858,7 @@
     "The wings are not forced folded (no reliable tag). 'underwater' and 'wet clothes' are negated so the wet look stays on her hair and the backdrop stays flat."
    ]
   },
-  "seyra": {
+  "seyra": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, center opening, backless outfit, high heels, platform footwear", "natural": "Adult. Seyra completely nude but for her center opening, backless outfit and high heels."}, 
    "name": "Seyra",
    "faction": "fallen",
    "role": "support",
@@ -1898,7 +1899,7 @@
     "The scan-line pattern on the drape and the eye-shaped wing spots are not tagged; the drape is 'purple cape' (opaque vinyl), the diadem 'circlet, forehead jewel'."
    ]
   },
-  "rivette": {
+  "rivette": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, black thighhighs, garter straps, knee pads, elbow pads, roller skates, platform footwear", "natural": "Adult. Rivette completely nude but for her black thighhighs, garter straps, knee pads, elbow pads and roller skates."}, 
    "name": "Rivette",
    "faction": "fallen",
    "role": "striker",
@@ -1940,7 +1941,7 @@
     "Skates and pads read sporty: adult face styling and the youth negatives (as on Uriela) stay; 'gym uniform' is upweighted."
    ]
   },
-  "vandra": {
+  "vandra": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, hood down, mask around neck, aqua thighhighs, sneakers, platform footwear", "natural": "Adult. Vandra completely nude but for her hood down, mask around neck and aqua thighhighs."}, 
    "name": "Vandra",
    "faction": "fallen",
    "role": "caster",
@@ -1982,7 +1983,7 @@
     "Hoodie and sneakers read casual: adult face styling and the youth negatives (as on Uriela) stay."
    ]
   },
-  "ombre": {
+  "ombre": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, bandeau, chest harness, thigh holster, elbow gloves, combat boots, platform footwear", "natural": "Adult. Ombre completely nude but for her bandeau, chest harness, thigh holster, elbow gloves and combat boots."}, 
    "name": "Ombre",
    "faction": "fallen",
    "role": "assassin",
@@ -2112,7 +2113,7 @@
    "natural": "Adult. Nuriel nude under her open cropped white rash jacket, visor pushed up, crystal dagger in hand."
   }
   },
-  "argentiel_mercury_pool": {
+  "argentiel_mercury_pool": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, body chain, water drop, shiny skin, sunglasses, eyewear on head, high heels", "natural": "Adult. Argentiel completely nude but for her body chain, sunglasses and high heels."}, 
    "hero": "argentiel",
    "pack": "aqua_resort",
    "art": "mercury_pool",
@@ -2124,7 +2125,7 @@
    "pose": "hand on own hip, arched back, wind",
    "natural": "Adult. Argentiel in a liquid-chrome micro bikini linked by chrome rings and body chains, mirrored shades pushed into her braids, wet skin, her glaive over one shoulder."
   },
-  "sanariel_tide_ward": {
+  "sanariel_tide_ward": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, aqua trim, water drop, shiny skin, stethoscope, high heels", "natural": "Adult. Sanariel completely nude but for her aqua trim, stethoscope and high heels."}, 
    "hero": "sanariel",
    "pack": "aqua_resort",
    "art": "tide_ward",
@@ -2136,7 +2137,7 @@
    "pose": "hand on own hip, finger to mouth",
    "natural": "Adult. Sanariel in a white latex micro bikini with aqua piping, her chrome nurse cap and stethoscope, wet skin, the giant chrome syringe staff at her side."
   },
-  "rimelle_polar_plunge": {
+  "rimelle_polar_plunge": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, rhinestones, water drop, shiny skin, sunglasses, eyewear on head", "natural": "Adult. Rimelle completely nude but for her rhinestones and sunglasses."}, 
    "hero": "rimelle",
    "pack": "aqua_resort",
    "art": "polar_plunge",
@@ -2148,7 +2149,7 @@
    "pose": "arm up, hand on own hip",
    "natural": "Adult. Rimelle in a pearl holographic micro bikini on rhinestone straps, frosted shades pushed up, wet skin, her ice-crystal scepter raised."
   },
-  "avienne_layover_lagoon": {
+  "avienne_layover_lagoon": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, water drop, shiny skin, sunglasses, eyewear on head, high heels", "natural": "Adult. Avienne completely nude but for her sunglasses and high heels."}, 
    "hero": "avienne",
    "pack": "aqua_resort",
    "art": "layover_lagoon",
@@ -2160,7 +2161,7 @@
    "pose": "pointing, hand on own hip",
    "natural": "Adult. Avienne in an aqua-and-white striped micro bikini in her airline's livery, the knotted aqua scarf and chrome pillbox hat, shades pushed up, wet skin."
   },
-  "cirella_high_dive": {
+  "cirella_high_dive": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, armlet, water drop, shiny skin, anklet", "natural": "Adult. Cirella completely nude but for her armlet and anklet."}, 
    "hero": "cirella",
    "pack": "aqua_resort",
    "art": "high_dive",
@@ -2172,7 +2173,7 @@
    "pose": "arm up, tiptoes, arched back",
    "natural": "Adult. Cirella in a metallic sky-blue sport micro bikini with chrome arm and ankle bands, wet skin, a bladed hoop raised overhead."
   },
-  "ferrael_quench_pool": {
+  "ferrael_quench_pool": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, water drop, shiny skin", "natural": "Adult. Ferrael completely nude."}, 
    "hero": "ferrael",
    "pack": "aqua_resort",
    "art": "quench_pool",
@@ -2184,7 +2185,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Ferrael in a white micro bikini on chrome rings, welding goggles in her hair, wet skin, her forge hammer over one shoulder."
   },
-  "verdelle_rain_garden": {
+  "verdelle_rain_garden": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, water drop, shiny skin, sandals", "natural": "Adult. Verdelle completely nude but for her sandals."}, 
    "hero": "verdelle",
    "pack": "aqua_resort",
    "art": "rain_garden",
@@ -2196,7 +2197,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Verdelle in a lime metallic micro bikini with water-droplet decals, her white vinyl sun hat, wet skin, the chrome watering can."
   },
-  "isobel_rain_check": {
+  "isobel_rain_check": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, lightning bolt symbol, water drop, shiny skin", "natural": "Adult. Isobel completely nude but for her lightning bolt symbol."}, 
    "hero": "isobel",
    "pack": "aqua_resort",
    "art": "rain_check",
@@ -2208,7 +2209,7 @@
    "pose": "arm up, wind, floating hair",
    "natural": "Adult. Isobel in a sky-blue micro bikini with lightning-bolt decals, her white raincoat tied around her hips, wet hair, the chrome anemometer staff raised."
   },
-  "halcia_splash_down": {
+  "halcia_splash_down": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, harness, water drop, shiny skin, wristwatch", "natural": "Adult. Halcia completely nude but for her harness and wristwatch."}, 
    "hero": "halcia",
    "pack": "aqua_resort",
    "art": "splash_down",
@@ -2305,7 +2306,7 @@
    "natural": "Adult. Kessa nude on the beach: red chrome O-rings, cat-ear headphones, a cat-eye sun visor."
   }
   },
-  "drezza_poolside_set": {
+  "drezza_poolside_set": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, water drop, wet hair, sandals, platform footwear", "natural": "Adult. Drezza completely nude but for her wet hair and sandals."}, 
    "hero": "drezza",
    "pack": "aqua_resort",
    "art": "poolside_set",
@@ -2317,7 +2318,7 @@
    "pose": "arm up, hand in own hair, arched back",
    "natural": "Adult. Drezza in a hot-pink latex micro bikini with chrome O-rings, cyber goggles on her forehead and headphones on, playing the pool set."
   },
-  "zecchina_cabana_stakes": {
+  "zecchina_cabana_stakes": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, gold trim, water drop, sunglasses, eyewear on head, anklet, high heels", "natural": "Adult. Zecchina completely nude but for her gold trim, sunglasses, anklet and high heels."}, 
    "hero": "zecchina",
    "pack": "aqua_resort",
    "art": "cabana_stakes",
@@ -2329,7 +2330,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Zecchina by the casino pool in a black micro bikini on gold-chrome rings, a poker-chip anklet and gold shades pushed into her blonde waves."
   },
-  "torqua_hot_lap": {
+  "torqua_hot_lap": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, white trim, water drop, sunglasses, eyewear on head, hoop earrings, sandals, platform footwear", "natural": "Adult. Torqua completely nude but for her white trim, sunglasses, hoop earrings and sandals."}, 
    "hero": "torqua",
    "pack": "aqua_resort",
    "art": "hot_lap",
@@ -2341,7 +2342,7 @@
    "pose": "hand on own hip, arm up, arched back",
    "natural": "Adult. Torqua in a candy-red and white highleg micro bikini with a checkered sarong at her hip, chrome shades in her curls."
   },
-  "sigilla_saltwater_ink": {
+  "sigilla_saltwater_ink": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, water drop, wet hair, sunglasses, eyewear on head, sandals", "natural": "Adult. Sigilla completely nude but for her wet hair, sunglasses and sandals."}, 
    "hero": "sigilla",
    "pack": "aqua_resort",
    "art": "saltwater_ink",
@@ -2353,7 +2354,7 @@
    "pose": "arms behind head, arched back",
    "natural": "Adult. Sigilla in a red string micro bikini cut to show every tattoo, wet curls, black cat-eye shades pushed up."
   },
-  "carmesa_red_sands": {
+  "carmesa_red_sands": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, rhinestones, water drop, hair flower, high heels", "natural": "Adult. Carmesa completely nude but for her rhinestones, hair flower and high heels."}, 
    "hero": "carmesa",
    "pack": "aqua_resort",
    "art": "red_sands",
@@ -2365,7 +2366,7 @@
    "pose": "arched back, hand on own hip",
    "natural": "Adult. Carmesa in a red micro bikini studded with rhinestones, a red vinyl sarong at her hip worn like a cape, a red rose in her chignon."
   },
-  "thrasha_stage_dive": {
+  "thrasha_stage_dive": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, safety pin, chain, water drop, wet hair, sunglasses, spiked choker, sandals, platform footwear", "natural": "Adult. Thrasha completely nude but for her safety pin, chain, wet hair, sunglasses, spiked choker and sandals."}, 
    "hero": "thrasha",
    "pack": "aqua_resort",
    "art": "stage_dive",
@@ -2377,7 +2378,7 @@
    "pose": "legs apart, arms up",
    "natural": "Adult. Thrasha in a black micro bikini held together with chrome safety pins and chains, wet pink hair, black shades and a spiked choker."
   },
-  "kindra_heat_wave": {
+  "kindra_heat_wave": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, towel around neck, water drop, sweat, sunglasses, eyewear on head, sandals", "natural": "Adult. Kindra completely nude but for her towel around neck, sunglasses and sandals."}, 
    "hero": "kindra",
    "pack": "aqua_resort",
    "art": "heat_wave",
@@ -2389,7 +2390,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Kindra in a red sport micro bikini with chrome reflective trim, a firehouse towel around her neck, chrome shades pushed up."
   },
-  "cordia_happy_hour": {
+  "cordia_happy_hour": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, detached collar, red bowtie, water drop, sunglasses, eyewear on head, high heels", "natural": "Adult. Cordia completely nude but for her detached collar, red bowtie, sunglasses and high heels."}, 
    "hero": "cordia",
    "pack": "aqua_resort",
    "art": "happy_hour",
@@ -2486,7 +2487,7 @@
    "natural": "Adult. Ashra nude on the lazy river: a holographic sun hat, headphones around her neck, a sleepy stretch."
   }
   },
-  "nadira_soft_splashdown": {
+  "nadira_soft_splashdown": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, water drop, shiny skin, holding helmet, space helmet", "natural": "Adult. Nadira completely nude but for her space helmet."}, 
    "hero": "nadira",
    "pack": "aqua_resort",
    "art": "soft_splashdown",
@@ -2498,7 +2499,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Nadira in a black-and-violet oil-slick micro bikini with chrome ring links, water on her dark skin, wet silver locs, her mirrored space helmet held under one arm."
   },
-  "gantra_sea_sortie": {
+  "gantra_sea_sortie": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, aqua trim, choker, water drop, shiny skin, sandals", "natural": "Adult. Gantra completely nude but for her aqua trim, choker and sandals."}, 
    "hero": "gantra",
    "pack": "aqua_resort",
    "art": "sea_sortie",
@@ -2510,7 +2511,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Gantra in a black-and-teal sport micro bikini with a chrome pilot-collar choker and her cracked headset, wet skin, the giant mech arm propped on her shoulder."
   },
-  "severine_riptide_ronin": {
+  "severine_riptide_ronin": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, bandeau, water drop, sandals", "natural": "Adult. Severine completely nude but for her bandeau and sandals."}, 
    "hero": "severine",
    "pack": "aqua_resort",
    "art": "riptide_ronin",
@@ -2522,7 +2523,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Severine in a black latex bandeau micro bikini with an oil-slick holographic sarong tied at the hip, wet skin, her chrome katana resting over one shoulder."
   },
-  "benthe_deep_end": {
+  "benthe_deep_end": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, gorget, chain belt, water drop, shiny skin", "natural": "Adult. Benthe completely nude but for her gorget and chain belt."}, 
    "hero": "benthe",
    "pack": "aqua_resort",
    "art": "deep_end",
@@ -2534,7 +2535,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Benthe in a black-and-teal micro bikini with chrome rivet rings, her chrome diving collar, an anchor chain worn as a belt, water on her blue-grey skin."
   },
-  "seyra_tide_reading": {
+  "seyra_tide_reading": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, water drop, sandals", "natural": "Adult. Seyra completely nude but for her sandals."}, 
    "hero": "seyra",
    "pack": "aqua_resort",
    "art": "tide_reading",
@@ -2546,7 +2547,7 @@
    "pose": "head tilt, arched back",
    "natural": "Adult. Seyra in a violet holographic micro bikini with a long violet vinyl wrap at the hip, her chrome third-eye diadem, a static-filled crystal ball in one hand."
   },
-  "rivette_pool_skater": {
+  "rivette_pool_skater": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, water drop, shiny skin, knee pads, roller skates", "natural": "Adult. Rivette completely nude but for her knee pads and roller skates."}, 
    "hero": "rivette",
    "pack": "aqua_resort",
    "art": "pool_skater",
@@ -2558,7 +2559,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Rivette in a violet sport micro bikini with chrome knee pads and platform roller skates, wet skin, her stop-sign poleaxe slung over her shoulder."
   },
-  "vandra_splash_tag": {
+  "vandra_splash_tag": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, water drop, mask around neck, sandals", "natural": "Adult. Vandra completely nude but for her mask around neck and sandals."}, 
    "hero": "vandra",
    "pack": "aqua_resort",
    "art": "splash_tag",
@@ -2570,7 +2571,7 @@
    "pose": "arm up, hand on own hip",
    "natural": "Adult. Vandra in a teal latex micro bikini with violet tag prints under her open cropped black hoodie, wet skin, a chrome spray can raised."
   },
-  "ombre_low_profile": {
+  "ombre_low_profile": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, thigh holster, water drop, shiny skin, sandals", "natural": "Adult. Ombre completely nude but for her thigh holster and sandals."}, 
    "hero": "ombre",
    "pack": "aqua_resort",
    "art": "low_profile",
@@ -2672,7 +2673,7 @@
    "natural": "Adult. Nuriel with her visor down: nude under an open white jacket off her shoulders."
   }
   },
-  "argentiel_at_ease": {"cover": "arm", 
+  "argentiel_at_ease": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, body chain, armored boots, thigh boots", "natural": "Adult. Argentiel completely nude but for her body chain and armored boots."}, "cover": "arm", 
    "hero": "argentiel",
    "pack": "after_dark",
    "art": "at_ease",
@@ -2685,7 +2686,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Argentiel at ease: one forearm across her bare chest, chrome cuffs in her braids, a chrome bikini bottom, her thigh-high greaves."
   },
-  "sanariel_house_call": {"cover": "hands", 
+  "sanariel_house_call": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, elbow gloves, garter straps, white thighhighs, high heels", "natural": "Adult. Sanariel completely nude but for her elbow gloves, garter straps and white thighhighs."}, "cover": "hands", 
    "hero": "sanariel",
    "pack": "after_dark",
    "art": "house_call",
@@ -2698,7 +2699,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Sanariel on a house call: her white latex opera gloves over her bare chest, nurse cap, a white bottom, garters and latex stockings."
   },
-  "rimelle_free_skate": {"cover": "hair", 
+  "rimelle_free_skate": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, body chain, rhinestones, ice skates", "natural": "Adult. Rimelle completely nude but for her body chain, rhinestones and ice skates."}, "cover": "hair", 
    "hero": "rimelle",
    "pack": "after_dark",
    "art": "free_skate",
@@ -2711,7 +2712,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Rimelle after the free skate: her waist-length lavender hair falling over her bare chest, a rhinestone body chain, a lavender bottom, her blade skates."
   },
-  "avienne_final_approach": {"cover": "hands", 
+  "avienne_final_approach": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, white thighhighs, platform heels", "natural": "Adult. Avienne completely nude but for her white thighhighs."}, "cover": "hands", 
    "hero": "avienne",
    "pack": "after_dark",
    "art": "final_approach",
@@ -2724,7 +2725,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Avienne on final approach: hands over her bare chest, her chrome pillbox hat and aqua scarf, a white bottom, latex stockings."
   },
-  "cirella_last_stretch": {"cover": "arm", 
+  "cirella_last_stretch": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, armlet, anklet", "natural": "Adult. Cirella completely nude but for her armlet and anklet."}, "cover": "arm", 
    "hero": "cirella",
    "pack": "after_dark",
    "art": "last_stretch",
@@ -2737,7 +2738,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Cirella's last stretch: one arm across her bare chest, chrome arm and ankle bands, a sky-blue bottom, barefoot."
   },
-  "ferrael_forge_heat": {"cover": "arm", 
+  "ferrael_forge_heat": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, gauntlets, sweat, white boots, platform boots", "natural": "Adult. Ferrael completely nude but for her gauntlets and white boots."}, "cover": "arm", 
    "hero": "ferrael",
    "pack": "after_dark",
    "art": "forge_heat",
@@ -2750,7 +2751,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Ferrael in the forge heat: a gauntleted forearm across her bare chest, goggles in her hair, sweat, a white bottom, platform work boots."
   },
-  "verdelle_night_bloom": {"cover": "hair", 
+  "verdelle_night_bloom": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, rubber boots, white footwear", "natural": "Adult. Verdelle completely nude but for her rubber boots."}, "cover": "hair", 
    "hero": "verdelle",
    "pack": "after_dark",
    "art": "night_bloom",
@@ -2763,7 +2764,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Verdelle after closing time: her long wavy hair over her bare chest, her sun hat, a lime bottom, white rain boots."
   },
-  "isobel_low_pressure": {"cover": "hands", 
+  "isobel_low_pressure": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, white boots, cross-laced footwear", "natural": "Adult. Isobel completely nude but for her white boots."}, "cover": "hands", 
    "hero": "isobel",
    "pack": "after_dark",
    "art": "low_pressure",
@@ -2776,7 +2777,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Isobel at low pressure: hands over her bare chest, her open white raincoat off her shoulders, a sky-blue bottom, platform boots."
   },
-  "halcia_open_chute": {"cover": "arm", 
+  "halcia_open_chute": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, harness, wristwatch, white boots", "natural": "Adult. Halcia completely nude but for her harness, wristwatch and white boots."}, "cover": "arm", 
    "hero": "halcia",
    "pack": "after_dark",
    "art": "open_chute",
@@ -2879,7 +2880,7 @@
    "natural": "Adult. Kessa caught napping: nude with a chrome collar, red O-rings, thigh boots."
   }
   },
-  "drezza_last_track": {"cover": "arm", 
+  "drezza_last_track": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, leg warmers, platform footwear, black boots", "natural": "Adult. Drezza completely nude but for her leg warmers and platform footwear."}, "cover": "arm", 
    "hero": "drezza",
    "pack": "after_dark",
    "art": "last_track",
@@ -2892,7 +2893,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Drezza after the last track: one arm across her bare chest, headphones still on, a hot-pink bikini bottom, fur leg warmers and platform boots."
   },
-  "zecchina_private_table": {"cover": "hands", 
+  "zecchina_private_table": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, rhinestones, fishnet thighhighs, garter straps, detached collar, bowtie, red high heels", "natural": "Adult. Zecchina completely nude but for her rhinestones, fishnet thighhighs, garter straps, detached collar, bowtie and red high heels."}, "cover": "hands", 
    "hero": "zecchina",
    "pack": "after_dark",
    "art": "private_table",
@@ -2905,7 +2906,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Zecchina at the private table: her rhinestone tailcoat open, hands over her bare chest, a black bikini bottom, fishnet thigh-highs on garters, red heels."
   },
-  "torqua_pit_garage": {"cover": "hair", 
+  "torqua_pit_garage": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, hoop earrings, red thigh boots, platform footwear", "natural": "Adult. Torqua completely nude but for her hoop earrings and red thigh boots."}, "cover": "hair", 
    "hero": "torqua",
    "pack": "after_dark",
    "art": "pit_garage",
@@ -2918,7 +2919,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Torqua in the garage after the race: her long red curls and one arm over her bare chest, a red bikini bottom, red thigh boots, chrome hoop earrings."
   },
-  "sigilla_night_session": {"cover": "hands", 
+  "sigilla_night_session": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, garter belt, platform footwear, black shoes", "natural": "Adult. Sigilla completely nude but for her garter belt and platform footwear."}, "cover": "hands", 
    "hero": "sigilla",
    "pack": "after_dark",
    "art": "night_session",
@@ -2931,7 +2932,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Sigilla after hours at the parlor: hands over her bare chest, her tattoos on full show, a red bikini bottom, a chrome garter belt, platform creepers."
   },
-  "carmesa_cape_drop": {"cover": "arm", 
+  "carmesa_cape_drop": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, pink thighhighs, black high heels", "natural": "Adult. Carmesa completely nude but for her pink thighhighs and black high heels."}, "cover": "arm", 
    "hero": "carmesa",
    "pack": "after_dark",
    "art": "cape_drop",
@@ -2944,7 +2945,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Carmesa after the bullfight: an arm across her bare chest, the red capote in her other hand, a black bikini bottom, hot-pink stockings, black pumps."
   },
-  "thrasha_green_room": {"cover": "arm", 
+  "thrasha_green_room": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fishnet thighhighs, torn thighhighs, spiked choker, combat boots, platform footwear", "natural": "Adult. Thrasha completely nude but for her fishnet thighhighs, torn thighhighs, spiked choker and combat boots."}, "cover": "arm", 
    "hero": "thrasha",
    "pack": "after_dark",
    "art": "green_room",
@@ -2957,7 +2958,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Thrasha backstage: an arm across her bare chest, her biker jacket off her shoulders, a black bikini bottom, torn fishnet thigh-highs, combat boots."
   },
-  "kindra_off_duty": {"cover": "arm", 
+  "kindra_off_duty": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, suspenders, sweat, black thigh boots", "natural": "Adult. Kindra completely nude but for her suspenders and black thigh boots."}, "cover": "arm", 
    "hero": "kindra",
    "pack": "after_dark",
    "art": "off_duty",
@@ -2970,7 +2971,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Kindra off duty: one forearm across her bare chest, red suspenders hanging at her hips, a black bikini bottom, turnout boots."
   },
-  "cordia_top_shelf": {"cover": "hands", 
+  "cordia_top_shelf": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, detached collar, red bowtie, wrist cuffs, black high heels", "natural": "Adult. Cordia completely nude but for her detached collar, red bowtie, wrist cuffs and black high heels."}, "cover": "hands", 
    "hero": "cordia",
    "pack": "after_dark",
    "art": "top_shelf",
@@ -3073,7 +3074,7 @@
    "natural": "Adult. Ashra overslept: nude with her witch hat, robes slipping off."
   }
   },
-  "nadira_radio_silence": {"cover": "hair", 
+  "nadira_radio_silence": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, white boots, platform footwear", "natural": "Adult. Nadira completely nude but for her white boots."}, "cover": "hair", 
    "hero": "nadira",
    "pack": "after_dark",
    "art": "radio_silence",
@@ -3086,7 +3087,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Nadira off the air: her long silver locs falling over her bare chest, a cropped oil-slick space jacket open off her shoulders, a black bottom, moon boots."
   },
-  "gantra_cockpit_open": {"cover": "arm", 
+  "gantra_cockpit_open": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, sweat, black boots, platform footwear", "natural": "Adult. Gantra completely nude but for her black boots."}, "cover": "arm", 
    "hero": "gantra",
    "pack": "after_dark",
    "art": "cockpit_open",
@@ -3099,7 +3100,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Gantra out of the cockpit: one forearm across her bare chest, sweat on her skin, her cracked headset on, a black bottom, black platform pilot boots."
   },
-  "severine_blade_down": {"cover": "hands", 
+  "severine_blade_down": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, obi, black thighhighs, high heels", "natural": "Adult. Severine completely nude but for her obi, black thighhighs and high heels."}, "cover": "hands", 
    "hero": "severine",
    "pack": "after_dark",
    "art": "blade_down",
@@ -3112,7 +3113,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Severine with her blade down: hands over her bare chest, her black kimono jacket slipping off her shoulders, an oil-slick obi, a black bottom, black thigh-highs."
   },
-  "benthe_low_tide": {"cover": "arm", 
+  "benthe_low_tide": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, gorget, water drop, armored boots", "natural": "Adult. Benthe completely nude but for her gorget and armored boots."}, "cover": "arm", 
    "hero": "benthe",
    "pack": "after_dark",
    "art": "low_tide",
@@ -3125,7 +3126,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Benthe at low tide: one heavy arm across her bare chest, her chrome diving collar, wet teal hair, a black bottom, chunky chrome diving boots."
   },
-  "seyra_inner_eye": {"cover": "hands", 
+  "seyra_inner_eye": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, high heels", "natural": "Adult. Seyra completely nude but for her high heels."}, "cover": "hands", 
    "hero": "seyra",
    "pack": "after_dark",
    "art": "inner_eye",
@@ -3138,7 +3139,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Seyra listening inward: hands over her bare chest, her violet vinyl drape slipping off her shoulders, the chrome third-eye diadem, a black bottom, platform heels."
   },
-  "rivette_penalty_box": {"cover": "arm", 
+  "rivette_penalty_box": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, black thighhighs, garter straps, knee pads, roller skates", "natural": "Adult. Rivette completely nude but for her black thighhighs, garter straps, knee pads and roller skates."}, "cover": "arm", 
    "hero": "rivette",
    "pack": "after_dark",
    "art": "penalty_box",
@@ -3151,7 +3152,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Rivette in the penalty box: one forearm across her bare chest, a violet bottom, black latex thigh-highs with chrome garter rings, knee pads and roller skates."
   },
-  "vandra_clean_slate": {"cover": "hands", 
+  "vandra_clean_slate": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, aqua thighhighs, sneakers", "natural": "Adult. Vandra completely nude but for her aqua thighhighs and sneakers."}, "cover": "hands", 
    "hero": "vandra",
    "pack": "after_dark",
    "art": "clean_slate",
@@ -3164,7 +3165,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Vandra with a clean slate: hands over her bare chest, her cropped black hoodie open off her shoulders, a teal bottom, teal latex thigh-highs, platform sneakers."
   },
-  "ombre_last_chapter": {"cover": "arm", 
+  "ombre_last_chapter": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, knee boots", "natural": "Adult. Ombre completely nude but for her knee boots."}, "cover": "arm", 
    "hero": "ombre",
    "pack": "after_dark",
    "art": "last_chapter",
@@ -3262,7 +3263,7 @@
    "natural": "Adult. Nuriel the courier bunny: nude in white sneakers, an aqua bow tie, a bunny-ear visor."
   }
   },
-  "argentiel_marshal_bunny": {
+  "argentiel_marshal_bunny": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, wrist cuffs, aqua bowtie, high heels", "natural": "Adult. Argentiel completely nude but for her fake animal ears, rabbit ears, wrist cuffs, aqua bowtie and high heels."}, 
    "hero": "argentiel",
    "pack": "bunny_lounge",
    "art": "marshal_bunny",
@@ -3274,7 +3275,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Mirror-chrome latex bunny leotard, chrome cuffs and collar, black fishnets, an aqua bow tie, chrome cuffs in her braids."
   },
-  "sanariel_bedside_bunny": {
+  "sanariel_bedside_bunny": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, wrist cuffs, detached collar, aqua bowtie, stethoscope, high heels", "natural": "Adult. Sanariel completely nude but for her fake animal ears, rabbit ears, wrist cuffs, detached collar, aqua bowtie and high heels."}, 
    "hero": "sanariel",
    "pack": "bunny_lounge",
    "art": "bedside_bunny",
@@ -3286,7 +3287,7 @@
    "pose": "hand on own hip, finger to mouth",
    "natural": "Adult. White latex bunny leotard, her chrome nurse cap between the ears, an aqua bow tie, chrome cuffs, white fishnets, a chrome stethoscope."
   },
-  "rimelle_rink_bunny": {
+  "rimelle_rink_bunny": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, rhinestones, fake animal ears, rabbit ears, wrist cuffs, ice skates", "natural": "Adult. Rimelle completely nude but for her rhinestones, fake animal ears, rabbit ears, wrist cuffs and ice skates."}, 
    "hero": "rimelle",
    "pack": "bunny_lounge",
    "art": "rink_bunny",
@@ -3298,7 +3299,7 @@
    "pose": "arm up, hand on own hip",
    "natural": "Adult. Lavender holographic bunny leotard crusted with rhinestones, chrome cuffs, white fishnets, chrome blade skates."
   },
-  "avienne_first_class": {
+  "avienne_first_class": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, wrist cuffs, platform heels", "natural": "Adult. Avienne completely nude but for her fake animal ears, rabbit ears, wrist cuffs and platform heels."}, 
    "hero": "avienne",
    "pack": "bunny_lounge",
    "art": "first_class",
@@ -3310,7 +3311,7 @@
    "pose": "pointing, arched back",
    "natural": "Adult. White latex bunny leotard, the knotted aqua scarf, chrome cuffs, white fishnets, the chrome pillbox hat between her ears."
   },
-  "cirella_ring_toss": {
+  "cirella_ring_toss": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, wrist cuffs, bowtie, high heels", "natural": "Adult. Cirella completely nude but for her fake animal ears, rabbit ears, wrist cuffs, bowtie and high heels."}, 
    "hero": "cirella",
    "pack": "bunny_lounge",
    "art": "ring_toss",
@@ -3322,7 +3323,7 @@
    "pose": "arm up, hand on own hip",
    "natural": "Adult. Sky-blue metallic bunny leotard, chrome cuffs, a bow tie, white fishnets, one bladed hoop held up."
   },
-  "ferrael_forge_bunny": {
+  "ferrael_forge_bunny": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, gauntlets, detached collar, bowtie, high heels", "natural": "Adult. Ferrael completely nude but for her fake animal ears, rabbit ears, gauntlets, detached collar, bowtie and high heels."}, 
    "hero": "ferrael",
    "pack": "bunny_lounge",
    "art": "forge_bunny",
@@ -3334,7 +3335,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. White latex bunny leotard, chrome forge gauntlets, a collar and bow tie, white fishnets, welding goggles between her ears."
   },
-  "verdelle_clover_bunny": {
+  "verdelle_clover_bunny": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, wrist cuffs, bowtie, high heels", "natural": "Adult. Verdelle completely nude but for her fake animal ears, rabbit ears, wrist cuffs, bowtie and high heels."}, 
    "hero": "verdelle",
    "pack": "bunny_lounge",
    "art": "clover_bunny",
@@ -3346,7 +3347,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Lime latex bunny leotard with a four-leaf-clover bow tie, chrome cuffs, white fishnets."
   },
-  "isobel_lightning_round": {
+  "isobel_lightning_round": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, bowtie, lightning bolt symbol, high heels", "natural": "Adult. Isobel completely nude but for her fake animal ears, rabbit ears, bowtie, lightning bolt symbol and high heels."}, 
    "hero": "isobel",
    "pack": "bunny_lounge",
    "art": "lightning_round",
@@ -3358,7 +3359,7 @@
    "pose": "arm up, hand on own hip",
    "natural": "Adult. Storm-grey latex bunny leotard with a lightning-bolt bow tie, chrome cuffs, black fishnets."
   },
-  "halcia_high_stakes": {
+  "halcia_high_stakes": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, wrist cuffs, harness, aqua bowtie, high heels", "natural": "Adult. Halcia completely nude but for her fake animal ears, rabbit ears, wrist cuffs, harness, aqua bowtie and high heels."}, 
    "hero": "halcia",
    "pack": "bunny_lounge",
    "art": "high_stakes",
@@ -3455,7 +3456,7 @@
    "natural": "Adult. Kessa the card shark: nude with a chrome collar, red O-rings, a red bow tie, fishnets, bunny ears over her cat-ear headphones."
   }
   },
-  "drezza_bunny_remix": {
+  "drezza_bunny_remix": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, wrist cuffs, pink bowtie, high heels, platform footwear", "natural": "Adult. Drezza completely nude but for her fake animal ears, rabbit ears, wrist cuffs, pink bowtie and high heels."}, 
    "hero": "drezza",
    "pack": "bunny_lounge",
    "art": "bunny_remix",
@@ -3467,7 +3468,7 @@
    "pose": "arm up, arched back",
    "natural": "Adult. Drezza in a black latex bunny leotard with hot-pink trim, pink fishnets, headphones on and a red vinyl record raised high."
   },
-  "zecchina_royal_flush": {
+  "zecchina_royal_flush": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, wrist cuffs, red bowtie, detached collar, red high heels", "natural": "Adult. Zecchina completely nude but for her fake animal ears, rabbit ears, wrist cuffs, red bowtie, detached collar and red high heels."}, 
    "hero": "zecchina",
    "pack": "bunny_lounge",
    "art": "royal_flush",
@@ -3479,7 +3480,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Zecchina in a black latex bunny leotard under her rhinestone tailcoat, a red bow tie, black fishnets and a royal flush fanned in her hand."
   },
-  "torqua_grid_bunny": {
+  "torqua_grid_bunny": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, white trim, wrist cuffs, white bowtie, hoop earrings, high heels, platform footwear", "natural": "Adult. Torqua completely nude but for her fake animal ears, rabbit ears, white trim, wrist cuffs, white bowtie and high heels."}, 
    "hero": "torqua",
    "pack": "bunny_lounge",
    "art": "grid_bunny",
@@ -3491,7 +3492,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Torqua in a red latex bunny leotard with white checkered trim, white cuffs and fishnets, her red race parasol held high."
   },
-  "sigilla_flash_bunny": {
+  "sigilla_flash_bunny": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, wrist cuffs, red bowtie, ear piercing, high heels, platform footwear", "natural": "Adult. Sigilla completely nude but for her fake animal ears, rabbit ears, wrist cuffs, red bowtie, ear piercing and high heels."}, 
    "hero": "sigilla",
    "pack": "bunny_lounge",
    "art": "flash_bunny",
@@ -3504,7 +3505,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (cameltoe:1.3)",
    "natural": "Adult. Sigilla in a black latex bunny leotard cut high to show her hip tattoos, red fishnets, chrome ear studs."
   },
-  "carmesa_matador_bunny": {
+  "carmesa_matador_bunny": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, bolero, epaulettes, black high heels", "natural": "Adult. Carmesa completely nude but for her fake animal ears, rabbit ears, bolero, epaulettes and black high heels."}, 
    "hero": "carmesa",
    "pack": "bunny_lounge",
    "art": "matador_bunny",
@@ -3516,7 +3517,7 @@
    "pose": "arched back, hand on own hip",
    "natural": "Adult. Carmesa in a red latex bunny leotard under a cropped rhinestone bolero with epaulettes, hot-pink fishnets, bunny ears between her bull horns."
   },
-  "thrasha_punk_bunny": {
+  "thrasha_punk_bunny": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, safety pin, spiked collar, combat boots, platform footwear", "natural": "Adult. Thrasha completely nude but for her fake animal ears, rabbit ears, safety pin, spiked collar and combat boots."}, 
    "hero": "thrasha",
    "pack": "bunny_lounge",
    "art": "punk_bunny",
@@ -3528,7 +3529,7 @@
    "pose": "legs apart, hand up",
    "natural": "Adult. Thrasha in a black latex bunny leotard fastened with safety pins, torn fishnets, a spiked collar and one bent bunny ear."
   },
-  "kindra_five_alarm": {
+  "kindra_five_alarm": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, suspenders, wrist cuffs, high heels", "natural": "Adult. Kindra completely nude but for her fake animal ears, rabbit ears, suspenders, wrist cuffs and high heels."}, 
    "hero": "kindra",
    "pack": "bunny_lounge",
    "art": "five_alarm",
@@ -3540,7 +3541,7 @@
    "pose": "strap pull, arched back",
    "natural": "Adult. Kindra in a red latex bunny leotard with chrome reflective stripes, red suspenders, bunny ears between her horns, her fire axe in hand."
   },
-  "cordia_cocktail_bunny": {
+  "cordia_cocktail_bunny": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, detached collar, red bowtie, wrist cuffs, high heels", "natural": "Adult. Cordia completely nude but for her fake animal ears, rabbit ears, detached collar, red bowtie, wrist cuffs and high heels."}, 
    "hero": "cordia",
    "pack": "bunny_lounge",
    "art": "cocktail_bunny",
@@ -3637,7 +3638,7 @@
    "natural": "Adult. Ashra the sleepy bunny: nude with floppy oversized ears, headphones around her neck."
   }
   },
-  "nadira_orbit_bunny": {
+  "nadira_orbit_bunny": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, wrist cuffs, detached collar, high heels", "natural": "Adult. Nadira completely nude but for her fake animal ears, rabbit ears, wrist cuffs, detached collar and high heels."}, 
    "hero": "nadira",
    "pack": "bunny_lounge",
    "art": "orbit_bunny",
@@ -3649,7 +3650,7 @@
    "pose": "arm up, arched back",
    "natural": "Adult. Nadira in an oil-slick holographic bunny leotard with chrome antenna-tipped ears, silver fishnets, chrome cuffs and collar."
   },
-  "gantra_ace_bunny": {
+  "gantra_ace_bunny": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, aqua trim, fake animal ears, rabbit ears, detached collar, wrist cuffs, high heels", "natural": "Adult. Gantra completely nude but for her aqua trim, fake animal ears, rabbit ears, detached collar, wrist cuffs and high heels."}, 
    "hero": "gantra",
    "pack": "bunny_lounge",
    "art": "ace_bunny",
@@ -3661,7 +3662,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Gantra in a black latex bunny leotard with teal flight seams, a chrome pilot collar and cuffs, fishnets, her cracked headset between the bunny ears."
   },
-  "severine_ronin_bunny": {
+  "severine_ronin_bunny": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, obi, wrist cuffs, high heels", "natural": "Adult. Severine completely nude but for her fake animal ears, rabbit ears, obi, wrist cuffs and high heels."}, 
    "hero": "severine",
    "pack": "bunny_lounge",
    "art": "ronin_bunny",
@@ -3673,7 +3674,7 @@
    "pose": "hand on hilt, arched back",
    "natural": "Adult. Severine in a black latex bunny leotard with an oil-slick holographic obi sash, black fishnets, chrome cuffs, her sheathed katana at her hip."
   },
-  "benthe_sunken_bunny": {
+  "benthe_sunken_bunny": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, detached collar, bowtie, high heels", "natural": "Adult. Benthe completely nude but for her fake animal ears, rabbit ears, detached collar, bowtie and high heels."}, 
    "hero": "benthe",
    "pack": "bunny_lounge",
    "art": "sunken_bunny",
@@ -3685,7 +3686,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Benthe in a teal latex bunny leotard with chrome rivet cuffs and collar, black fishnets, a chrome anchor pin on her bow tie."
   },
-  "seyra_fortune_bunny": {
+  "seyra_fortune_bunny": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, high heels", "natural": "Adult. Seyra completely nude but for her fake animal ears, rabbit ears and high heels."}, 
    "hero": "seyra",
    "pack": "bunny_lounge",
    "art": "fortune_bunny",
@@ -3697,7 +3698,7 @@
    "pose": "head tilt, arched back",
    "natural": "Adult. Seyra in a black latex bunny leotard with her chrome diadem, violet fishnets and chrome cuffs, a static-filled crystal ball on her palm."
   },
-  "rivette_jammer_bunny": {
+  "rivette_jammer_bunny": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, purple trim, fake animal ears, rabbit ears, wrist cuffs, knee pads, roller skates", "natural": "Adult. Rivette completely nude but for her purple trim, fake animal ears, rabbit ears, wrist cuffs, knee pads and roller skates."}, 
    "hero": "rivette",
    "pack": "bunny_lounge",
    "art": "jammer_bunny",
@@ -3709,7 +3710,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Rivette in a black-and-violet vinyl bunny leotard with chrome knee pads, fishnets and platform roller skates."
   },
-  "vandra_graffiti_bunny": {
+  "vandra_graffiti_bunny": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, wrist cuffs, high heels", "natural": "Adult. Vandra completely nude but for her fake animal ears, rabbit ears, wrist cuffs and high heels."}, 
    "hero": "vandra",
    "pack": "bunny_lounge",
    "art": "graffiti_bunny",
@@ -3721,7 +3722,7 @@
    "pose": "arm up, arched back",
    "natural": "Adult. Vandra in a teal latex bunny leotard tagged with violet wildstyle letters, aqua fishnets, chrome cuffs, a chrome spray can in hand."
   },
-  "ombre_noir_bunny": {
+  "ombre_noir_bunny": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, fake animal ears, rabbit ears, chest harness, high heels", "natural": "Adult. Ombre completely nude but for her fake animal ears, rabbit ears, chest harness and high heels."}, 
    "hero": "ombre",
    "pack": "bunny_lounge",
    "art": "noir_bunny",
@@ -3818,7 +3819,7 @@
    "natural": "Adult. Nuriel the night courier: nude in an open cropped white jacket, a mirrored visor, platform sneakers."
   }
   },
-  "argentiel_chrome_command": {
+  "argentiel_chrome_command": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, rhinestones, body chain, high heels, platform footwear", "natural": "Adult. Argentiel completely nude but for her rhinestones, body chain and high heels."}, 
    "hero": "argentiel",
    "pack": "club_chrome",
    "art": "chrome_command",
@@ -3830,7 +3831,7 @@
    "pose": "hand in own hair, hand on own hip",
    "natural": "Adult. Mirror-chrome latex micro dress plunging to the navel and slit to the hip over opaque shorts, rhinestones, body chains, platform heels."
   },
-  "sanariel_night_shift": {
+  "sanariel_night_shift": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, elbow gloves, stethoscope, white thighhighs, high heels", "natural": "Adult. Sanariel completely nude but for her elbow gloves, stethoscope and white thighhighs."}, 
    "hero": "sanariel",
    "pack": "club_chrome",
    "art": "night_shift",
@@ -3842,7 +3843,7 @@
    "pose": "contrapposto, hand on own hip",
    "natural": "Adult. White latex micro dress zipped open to the navel on a chrome ring, slit to the hip over opaque shorts; white opera gloves, a chrome stethoscope, latex stockings."
   },
-  "rimelle_podium_night": {
+  "rimelle_podium_night": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, choker, rhinestones, medal, high heels", "natural": "Adult. Rimelle completely nude but for her choker, rhinestones, medal and high heels."}, 
    "hero": "rimelle",
    "pack": "club_chrome",
    "art": "podium_night",
@@ -3854,7 +3855,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Icy lavender sequin micro dress slit to the hip over opaque shorts, a rhinestone choker, her gold medal, high heels."
   },
-  "avienne_red_eye": {
+  "avienne_red_eye": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, white thighhighs, platform heels", "natural": "Adult. Avienne completely nude but for her white thighhighs."}, 
    "hero": "avienne",
    "pack": "club_chrome",
    "art": "red_eye",
@@ -3866,7 +3867,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Aqua latex micro dress with livery stripes, slit to the hip over opaque shorts, a cropped white vinyl jacket worn open, latex stockings, platform pumps."
   },
-  "cirella_floor_show": {
+  "cirella_floor_show": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, armlet, high heels, platform footwear", "natural": "Adult. Cirella completely nude but for her armlet and high heels."}, 
    "hero": "cirella",
    "pack": "club_chrome",
    "art": "floor_show",
@@ -3878,7 +3879,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Sky-blue sequin micro dress slit to the hip over opaque shorts, chrome arm bands, platform heels."
   },
-  "ferrael_hot_metal": {
+  "ferrael_hot_metal": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, gauntlets, chain belt, white boots, platform boots", "natural": "Adult. Ferrael completely nude but for her gauntlets, chain belt and white boots."}, 
    "hero": "ferrael",
    "pack": "club_chrome",
    "art": "hot_metal",
@@ -3890,7 +3891,7 @@
    "pose": "flexing, hand on own hip",
    "natural": "Adult. White latex micro dress slit to the hip over opaque shorts, a chrome chain belt, chrome forge gauntlets, platform boots, flexing."
   },
-  "verdelle_garden_party": {
+  "verdelle_garden_party": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, leaf hair ornament, high heels, platform footwear", "natural": "Adult. Verdelle completely nude but for her leaf hair ornament and high heels."}, 
    "hero": "verdelle",
    "pack": "club_chrome",
    "art": "garden_party",
@@ -3902,7 +3903,7 @@
    "pose": "hand in own hair, contrapposto",
    "natural": "Adult. Lime latex micro dress slit to the hip over opaque shorts, chrome leaf hair pins, platform heels."
   },
-  "isobel_storm_front": {
+  "isobel_storm_front": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, white boots, cross-laced footwear", "natural": "Adult. Isobel completely nude but for her white boots."}, 
    "hero": "isobel",
    "pack": "club_chrome",
    "art": "storm_front",
@@ -3914,7 +3915,7 @@
    "pose": "hand on own hip, wind, floating hair",
    "natural": "Adult. Silver sequin micro dress slit to the hip over opaque shorts, her cropped white raincoat worn open in the wind, platform boots."
   },
-  "halcia_night_jump": {
+  "halcia_night_jump": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, harness, wristwatch, white boots, platform footwear", "natural": "Adult. Halcia completely nude but for her harness, wristwatch and white boots."}, 
    "hero": "halcia",
    "pack": "club_chrome",
    "art": "night_jump",
@@ -4011,7 +4012,7 @@
    "natural": "Adult. Kessa on heist night: nude with a red chrome harness, a cat-eye visor, a stolen diamond."
   }
   },
-  "drezza_main_stage": {
+  "drezza_main_stage": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, rhinestones, body chain, platform footwear, black boots", "natural": "Adult. Drezza completely nude but for her rhinestones, body chain and platform footwear."}, 
    "hero": "drezza",
    "pack": "club_chrome",
    "art": "main_stage",
@@ -4023,7 +4024,7 @@
    "pose": "arm up, hand on headphones",
    "natural": "Adult. Drezza on the main stage in a hot-pink latex micro dress plunging to the navel, a rhinestone body chain and platform boots, one hand on her headphones."
   },
-  "zecchina_jackpot_night": {
+  "zecchina_jackpot_night": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, elbow gloves, black gloves, earrings, red high heels", "natural": "Adult. Zecchina completely nude but for her elbow gloves, black gloves, earrings and red high heels."}, 
    "hero": "zecchina",
    "pack": "club_chrome",
    "art": "jackpot_night",
@@ -4035,7 +4036,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Zecchina in a gold sequin micro dress plunging to the navel, black opera gloves and red stilettos, a pair of gold dice in her hand."
   },
-  "torqua_victory_lap": {
+  "torqua_victory_lap": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, hoop earrings, red thigh boots, platform footwear", "natural": "Adult. Torqua completely nude but for her hoop earrings and red thigh boots."}, 
    "hero": "torqua",
    "pack": "club_chrome",
    "art": "victory_lap",
@@ -4047,7 +4048,7 @@
    "pose": "arm up, hand on own hip",
    "natural": "Adult. Torqua at the victory party in a red latex micro dress with cut-out sides and a cropped white racing jacket, a chrome trophy raised."
   },
-  "sigilla_black_light": {
+  "sigilla_black_light": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, choker, platform footwear, black boots", "natural": "Adult. Sigilla completely nude but for her choker and platform footwear."}, 
    "hero": "sigilla",
    "pack": "club_chrome",
    "art": "black_light",
@@ -4059,7 +4060,7 @@
    "pose": "leaning forward, hand on own hip",
    "natural": "Adult. Sigilla at a black-light club night in a backless black latex micro dress with a cleavage window and platform boots, her tattoos on show."
   },
-  "carmesa_tango_red": {
+  "carmesa_tango_red": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, rhinestones, black high heels", "natural": "Adult. Carmesa completely nude but for her rhinestones and black high heels."}, 
    "hero": "carmesa",
    "pack": "club_chrome",
    "art": "tango_red",
@@ -4071,7 +4072,7 @@
    "pose": "arched back, hand on own hip",
    "natural": "Adult. Carmesa in a red latex micro dress plunging to the navel with a rhinestone hem, black pumps, a red rose in her hand."
   },
-  "thrasha_riot_night": {
+  "thrasha_riot_night": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, chain, spiked choker, combat boots, platform footwear", "natural": "Adult. Thrasha completely nude but for her chain, spiked choker and combat boots."}, 
    "hero": "thrasha",
    "pack": "club_chrome",
    "art": "riot_night",
@@ -4083,7 +4084,7 @@
    "pose": "legs apart, hand up",
    "natural": "Adult. Thrasha in a black latex micro dress on O-ring straps and chains, a cropped studded jacket, platform combat boots, her guitar in hand."
   },
-  "kindra_smoke_show": {
+  "kindra_smoke_show": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, black thigh boots", "natural": "Adult. Kindra completely nude but for her black thigh boots."}, 
    "hero": "kindra",
    "pack": "club_chrome",
    "art": "smoke_show",
@@ -4095,7 +4096,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Kindra on a night out in a red latex micro dress with chrome reflective bands, her turnout jacket over her shoulders, black thigh boots."
   },
-  "cordia_black_velvet": {
+  "cordia_black_velvet": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, elbow gloves, red gloves, black high heels", "natural": "Adult. Cordia completely nude but for her elbow gloves, red gloves and black high heels."}, 
    "hero": "cordia",
    "pack": "club_chrome",
    "art": "black_velvet",
@@ -4192,7 +4193,7 @@
    "natural": "Adult. Ashra the night owl: nude with her witch hat, headphones, platform boots."
   }
   },
-  "nadira_zero_gravity": {
+  "nadira_zero_gravity": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, purple trim, zipper, white boots, platform footwear", "natural": "Adult. Nadira completely nude but for her purple trim, zipper and white boots."}, 
    "hero": "nadira",
    "pack": "club_chrome",
    "art": "zero_gravity",
@@ -4204,7 +4205,7 @@
    "pose": "hand in own hair, arched back",
    "natural": "Adult. Nadira in a silver latex micro dress with a chrome zip plunge over a black leotard, violet trim, white platform moon boots."
   },
-  "gantra_flight_deck": {
+  "gantra_flight_deck": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, partially unzipped, high collar, black boots, platform footwear", "natural": "Adult. Gantra completely nude but for her partially unzipped, high collar and black boots."}, 
    "hero": "gantra",
    "pack": "club_chrome",
    "art": "flight_deck",
@@ -4216,7 +4217,7 @@
    "pose": "hand on own hip, legs apart",
    "natural": "Adult. Gantra in a teal metallic latex micro dress zipped open at the chest over a black leotard, a chrome pilot collar, black platform boots, the giant mech arm resting on her shoulder."
   },
-  "severine_cold_steel": {
+  "severine_cold_steel": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, obi, high heels, platform footwear", "natural": "Adult. Severine completely nude but for her obi and high heels."}, 
    "hero": "severine",
    "pack": "club_chrome",
    "art": "cold_steel",
@@ -4228,7 +4229,7 @@
    "pose": "hand on hilt, standing",
    "natural": "Adult. Severine in a black latex kimono-cut micro dress slit to the hip over opaque shorts, an oil-slick holographic obi belt, platform heels, her sheathed katana."
   },
-  "benthe_abyss_lounge": {
+  "benthe_abyss_lounge": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, gorget, chain, high heels, platform footwear", "natural": "Adult. Benthe completely nude but for her gorget, chain and high heels."}, 
    "hero": "benthe",
    "pack": "club_chrome",
    "art": "abyss_lounge",
@@ -4240,7 +4241,7 @@
    "pose": "arm under breasts, standing",
    "natural": "Adult. Benthe in a black latex micro dress with a deep keyhole over a leotard, a chrome diving-collar choker and anchor-chain jewelry, platform heels."
   },
-  "seyra_dead_channel": {
+  "seyra_dead_channel": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, high heels, platform footwear", "natural": "Adult. Seyra completely nude but for her high heels."}, 
    "hero": "seyra",
    "pack": "club_chrome",
    "art": "dead_channel",
@@ -4252,7 +4253,7 @@
    "pose": "head tilt, hand on own chest",
    "natural": "Adult. Seyra in a violet latex halter micro dress printed with TV static over opaque shorts, an open back, platform sandals, her chrome diadem."
   },
-  "rivette_roller_disco": {
+  "rivette_roller_disco": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, elbow pads, roller skates, platform footwear", "natural": "Adult. Rivette completely nude but for her elbow pads and roller skates."}, 
    "hero": "rivette",
    "pack": "club_chrome",
    "art": "roller_disco",
@@ -4264,7 +4265,7 @@
    "pose": "dancing, arm up",
    "natural": "Adult. Rivette in a violet sequin micro dress over opaque shorts, chrome elbow pads, dancing on platform roller skates."
   },
-  "vandra_gallery_night": {
+  "vandra_gallery_night": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, sneakers, platform footwear", "natural": "Adult. Vandra completely nude but for her sneakers."}, 
    "hero": "vandra",
    "pack": "club_chrome",
    "art": "gallery_night",
@@ -4276,7 +4277,7 @@
    "pose": "hand on own hip, arched back",
    "natural": "Adult. Vandra at her own gallery night: an oil-slick holographic latex micro dress over opaque shorts, a cropped black vinyl bomber jacket, platform sneakers."
   },
-  "ombre_silent_partner": {
+  "ombre_silent_partner": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, thigh holster, high heels", "natural": "Adult. Ombre completely nude but for her thigh holster and high heels."}, 
    "hero": "ombre",
    "pack": "club_chrome",
    "art": "silent_partner",

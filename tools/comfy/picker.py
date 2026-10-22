@@ -39,7 +39,8 @@ class App:
         self.run = run
         self.spawn = spawn
         self.heroes, self.skins = names()
-        self.items = Q.items()
+        self.adult = Q.is_adult(run)
+        self.items = Q.items(self.adult)
         self.thumbs = os.path.join(Q.qa_dir(run), "thumbs")
         os.makedirs(self.thumbs, exist_ok=True)
         self.started = 0.0
@@ -69,7 +70,7 @@ class App:
         for i, (hero, sid, art, s0) in enumerate(self.items):
             key = Q.key_of(hero, art)
             seeds = Q.wanted(s0, rerolls.get(key, 0))
-            have = [s for s in seeds if Q.candidate(hero, art, s)]
+            have = [s for s in seeds if Q.candidate(hero, art, s, self.adult)]
             done = Q.done_info(self.run, key) or {}
             pick = picks.get(key)
             if pick is not None and done.get("seed") == int(pick):
@@ -94,7 +95,7 @@ class App:
                 log = [x.strip() for x in f.readlines()[-6:]]
         except OSError:
             pass
-        return {"items": out, "worker": bool(Q.worker_pid(self.run)), "to_finish": len(fin), "to_render": len(ren),
+        return {"items": out, "adult": self.adult, "worker": bool(Q.worker_pid(self.run)), "to_finish": len(fin), "to_render": len(ren),
                 "eta_min": round((len(fin) * FINISH_S + len(ren) * RENDER_S) / 60), "log": log}
 
     def pick(self, key, seed):
@@ -102,7 +103,7 @@ class App:
         if not f:
             return "unknown item"
         i, hero, sid, art, s0 = f
-        if not Q.candidate(hero, art, seed):
+        if not Q.candidate(hero, art, seed, self.adult):
             return "no such candidate"
         with LOCK:
             picks, owner = Q.load(self.run, "picks.json"), Q.load(self.run, "owner_picks.json")
@@ -132,7 +133,7 @@ class App:
 
     def image(self, key, seed, thumb):
         f = self.find(key)
-        p = f and Q.candidate(f[1], f[3], seed)
+        p = f and Q.candidate(f[1], f[3], seed, self.adult)
         if not p:
             return None, None
         if not thumb:
@@ -262,7 +263,7 @@ function draw(force){const it=item();if(!it){$("#stage").innerHTML='<div id="emp
   :`<div class="ph">${it.status=="later"?"new option: renders after everything else":"rendering "+s+"…"}</div>`).join("")}
 function stat(){const c=k=>S.items.filter(i=>i.status==k).length;
  $("#stat").textContent=`${c("in_game")} in game · ${c("waiting")} waiting for a pick · ${c("finishing")} finishing · ${c("rendering")} rendering · ${c("later")} regenerates saved for later · worker ${S.worker?"running":"idle"}${S.eta_min?` · about ${S.eta_min} min of GPU work queued`:""}`}
-async function load(){S=await (await fetch("/api/state")).json();
+async function load(){S=await (await fetch("/api/state")).json();if(S.adult)document.title="Art Picker · nude set";
  if(!$("#pack").children.length){$("#pack").innerHTML=["all",...new Set(S.items.map(i=>i.pack))].map(p=>`<option value="${p}">${p=="all"?"All packs":pn(p)}</option>`).join("")}
  if(!cur){const L=list();cur=(L.find(i=>i.status=="waiting")||L[0]||{}).key}
  draw(false);stat()}

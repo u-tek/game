@@ -14,6 +14,7 @@ import email.policy
 import hashlib
 import http.server
 import importlib.util
+import copy
 import io
 import json
 import os
@@ -619,10 +620,14 @@ class TestBible(unittest.TestCase):
         calls = []
         keep = run_hero.main
         run_hero.main = lambda argv: calls.append(argv[0]) or 0
+        bib = copy.deepcopy(BIBLE)                  # every hero has an adult block since 2026-10-22: take one away
+        bib["heroes"]["argentiel"].pop("adult", None)
+        keep_lb = prompts.load_bible
+        prompts.load_bible = lambda path=None: copy.deepcopy(bib)
         try:
             with redirect_stdout(io.StringIO()) as out:
                 self.assertEqual(roster.main(["candidates", "--count", "1", "--dry-run", "--adult"]), 0)
-            have = [h for h in roster.roster(BIBLE) if isinstance(BIBLE["heroes"][h].get("adult"), dict)]
+            have = [h for h in roster.roster(bib) if isinstance(bib["heroes"][h].get("adult"), dict)]
             self.assertEqual(calls, have)
             self.assertGreaterEqual(len(have), 15)
             self.assertIn("argentiel", out.getvalue())
@@ -638,6 +643,7 @@ class TestBible(unittest.TestCase):
             self.assertEqual(len(calls), 40)
         finally:
             run_hero.main = keep
+            prompts.load_bible = keep_lb
 
     def test_young_end_heroes_get_adult_styling(self):
         # skaters, gymnasts, derby and street-art looks skew young in anime models: adult makeup and youth negatives
