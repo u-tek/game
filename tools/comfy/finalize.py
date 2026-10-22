@@ -122,6 +122,15 @@ def main(argv=None):
         steps_done = []
         log("finalize %s from %s (%dx%d), checkpoint %s" % (t["label"], P.rel(src_path), img.width, img.height, s["checkpoint"]))
 
+        # 0. a cropped figure (feet, wings or hair past the edge): extend the canvas there and paint the rest
+        if getattr(a, "outpaint", False):
+            pr0 = prompts.full_body(bible, a.hero, s["family"], background_key=bg_key, skin=t["skin"], adult=a.adult,
+                                    pose=cmeta.get("pose"))
+            img, info = P.outpaint(client, s, img, pr0, seed, "%s/outpaint_s%d" % (job, seed), work, timeout=a.timeout,
+                                   log=log)
+            if info:
+                steps_done.append(info)
+
         # 1. optional full-image polish
         if a.refine_denoise and a.refine_denoise > 0:
             pr = prompts.full_body(bible, a.hero, s["family"], background_key=bg_key, skin=t["skin"], adult=a.adult,

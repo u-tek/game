@@ -143,6 +143,9 @@ def add_common_args(ap):
     g.add_argument("--vae", help="separate VAE file (default: the checkpoint's own)")
     g.add_argument("--upscale-model", help="upscale model file (default: best anime upscaler found)")
     g.add_argument("--no-hires", action="store_true", help="skip the hires-fix second pass")
+    g.add_argument("--outpaint", action="store_true",
+                   help="finalize: extend and paint the sides a cropped figure touches (experimental: the first test "
+                        "left a seam and faint strips, 2026-10-22)")
     g.add_argument("--hires-mode", choices=["auto", "latent", "model"], default="auto")
     g.add_argument("--hires-denoise", type=float)
     g.add_argument("--zsnr", dest="zsnr", action="store_true", default=None,
@@ -460,6 +463,47 @@ def crop_inpaint(client, s, image, crop, mask, positive, negative, seed, denoise
     out.paste(back, (x0, y0), m_back)
     return out, {"crop": [x0, y0, side, side], "job": job, "denoise": denoise, "seed": seed,
                  "server_output": paths[0] if paths else None, "graph": graph}
+
+
+def outpaint(client, s, image, pr, seed, job, work_dir, pad=0.16, band=32, max_px=1400000, steps=None, timeout=900,
+             log=print):
+    """Finish a cropped figure (owner, 2026-10-22: "is there any way to stop them from cropping?"): extend the canvas on
+    every side the figure touches (post.candidate_report) by `pad` of that side, filled with the border colour, and
+    repaint only the new strip plus a `band` of the old edge with the look's own prompt (noise mask, denoise 1.0), so
+    cut-off feet, wings and hair are painted to the end. Returns (image, step info or None). Dry run: flat padding."""
+    import post
+    _, rep = post.candidate_report(image)
+    touches = rep.get("touches") or []
+    if not touches:
+        return image, None
+    bg = tuple(int(round(c)) for c in (rep.get("bg_rgb") or (128, 128, 128)))
+    w, h = image.size
+    px, py = 16 * max(1, int(round(pad * w / 16))), 16 * max(1, int(round(pad * h / 16)))
+    l, r = (px if "left" in touches else 0), (px if "right" in touches else 0)
+    t, b = (py if "top" in touches else 0), (py if "bottom" in touches else 0)
+    W, H = w + l + r, h + t + b
+    big = Image.new("RGB", (W, H), bg)
+    big.paste(image, (l, t))
+    mask = Image.new("L", (W, H), 255)
+    mask.paste(0, (l + (band if l else 0), t + (band if t else 0), l + w - (band if r else 0), t + h - (band if b else 0)))
+    f = min(1.0, (max_px / float(W * H)) ** 0.5)
+    jw, jh = max(16, int(W * f) // 16 * 16), max(16, int(H * f) // 16 * 16)
+    os.makedirs(work_dir, exist_ok=True)
+    stem = job.replace("/", "_")
+    sp, mp = os.path.join(work_dir, stem + "_src.png"), os.path.join(work_dir, stem + "_mask.png")
+    big.resize((jw, jh), Image.LANCZOS).save(sp)
+    Image.merge("RGB", [mask.resize((jw, jh), Image.BILINEAR)] * 3).save(mp)
+    name_src = client.upload_image(sp, name=stem + "_src.png", subfolder=SERVER_SUBFOLDER)
+    name_mask = client.upload_image(mp, name=stem + "_mask.png", subfolder=SERVER_SUBFOLDER)
+    graph = workflows.inpaint(s, name_src, name_mask, pr["positive"], pr["negative"], seed, 1.0,
+                              "%s/%s" % (SERVER_SUBFOLDER, job), mode="noise_mask", grow=8, steps=steps)
+    paths = client.run(graph, job, work_dir, timeout=timeout, names=[stem + "_out.png"])
+    if paths:
+        res = Image.open(paths[0]).convert("RGB").resize((W, H), Image.LANCZOS)
+        big.paste(res, (0, 0), mask.filter(ImageFilter.GaussianBlur(6)))
+    log("  outpaint: the figure touched %s; canvas %dx%d -> %dx%d" % (",".join(touches), w, h, W, H))
+    return big, {"step": "outpaint", "touches": touches, "pad": [l, t, r, b], "seed": seed, "denoise": 1.0,
+                 "server_output": paths[0] if paths else None}
 
 
 def skin_profile(bible, hero_id):
