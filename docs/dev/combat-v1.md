@@ -14,8 +14,11 @@
   winner takes them all (+40 SOULS on a victory). Display only: nothing is saved yet (the front and
   the economy come later).
 - **Charm**: see Faction signatures below.
-- Next: the full-screen ultimate close-up of her front rig, Encore / Spotlight / Mark, the balance
-  pass, then the front map.
+- **Ultimate close-up** (`ult_cinematic.gd`, the player's heroines; foes keep the band): the screen
+  cuts to ink with her red halftone print and speed lines, her live rig in her skin fills it framed
+  on her face (portrait rect, in rig units) playing her ultimate while the camera pushes in, the
+  skill name lands huge across the foot; at least 1.5 s at 1x before the hit.
+- Next: Encore / Spotlight / Mark, the balance pass, then the front map.
 
 
 The owner liked the War for Souls (`docs/dev/feature-ideas.md`: "this is better yes") and asked

@@ -1234,6 +1234,9 @@ func _start_ult(ev: Dictionary) -> void:
 	var cs := minf(float(_speed), 2.0) * (1.0 if ally else 1.6)
 	var hit_s: float = float(v.get("ult_hit_s"))
 	var d := (hit_s if hit_s > 0.0 else ULT_HIT_S) / cs
+	if ally:
+		# The player's close-up (UltCinematic) gets at least 1.5 s at 1x before the hit lands.
+		d = maxf(d, 1.5 / cs)
 	_hold = d
 	_hold_view = v
 	for uid: String in _views:
