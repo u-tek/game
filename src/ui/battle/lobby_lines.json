@@ -9,6 +9,19 @@
 		"early": "You're up before the sun. So am I, now.",
 		"visits": "Ten times today. I'm starting to think you like me."
 	},
+	"team_note": "Now and then (one visit in four, by the minute) the Lobby heroine says where she stands in the team: lead (slot 01), benched (not in it), by faction.",
+	"team": {
+		"lead": {
+			"celestial": "Front and centre. I like it here.",
+			"infernal": "First in line. Where I belong.",
+			"fallen": "You put me first. Nobody does that."
+		},
+		"benched": {
+			"celestial": "You never take me to the front. I'm not fragile.",
+			"infernal": "Benched? Bold of you. I'll remember it.",
+			"fallen": "Leave me out again. See if I wait."
+		}
+	},
 	"pulse_note": "Her line after a long hold on her (the heartbeat, home_screen.gd): what she says when the thumb finally lifts.",
 	"pulse": [
 		"...You can let go now. Or don't.",

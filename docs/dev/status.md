@@ -86,7 +86,9 @@ this file says where things stand. Older logs are under "History" at the bottom.
   says once each: a time zone change ("Your clock jumped 3 hours. Where did you take me?"; the day
   now follows the device's zone after travel too), the small hours (01-05), an early start (05-07)
   and the tenth visit in a day (`Game.notices`, `lobby_lines.json` `notice`). Shots:
-  `--notice=tz:3|late:3|early:6|visits:10`.
+  `--notice=tz:3|late:3|early:6|visits:10`. Now and then (one minute in four) she also says where
+  she stands in the team: leading it ("Front and centre. I like it here.") or left out ("You never
+  take me to the front."), by faction (`lobby_lines.json` `team`).
 - **Dated commendations (2026-10-22):** each commendation stamp on the profile carries the day it
   was earned round its rim ("FIRST SUMMON · 22.10.26"), and earning one says so in a toast
   (setting `commend_days`; the first check dates an old save's stamps quietly).

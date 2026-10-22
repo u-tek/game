@@ -831,6 +831,8 @@ func _refresh_hero() -> void:
 	var back := _welcome_back()
 	if back == "":
 		back = _day_line(id)
+	if back == "":
+		back = _team_line(id)
 	_typeset(back if back != "" else lines[_line], false)
 
 
@@ -937,6 +939,21 @@ func _stamp_day() -> void:
 	var reward: Dictionary = r.value.reward
 	get_tree().create_timer(0.5).timeout.connect(func() -> void:
 		UI.show_reward(title, reward))
+
+
+## Now and then (one minute in four) she says where she stands in the team: leading it or left out.
+func _team_line(id: String) -> String:
+	if int(Time.get_unix_time_from_system() / 60.0) % 4 != 0 or not Game.owns(id):
+		return ""
+	var f: Variant = Game.formation()
+	if not (f is Array) or (f as Array).is_empty():
+		return ""
+	var fac := str(Game.hero_def(id).get("faction", ""))
+	if str((f as Array)[0]) == id:
+		return LobbyLines.team("lead", fac)
+	if not (f as Array).has(id):
+		return LobbyLines.team("benched", fac)
+	return ""
 
 
 ## Her line on a real day: the player's birthday first, then her own, else the first of today's.

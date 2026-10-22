@@ -40,6 +40,16 @@ static func notice(key: String, fill: Dictionary = {}) -> String:
 	return s
 
 
+## Her line about her place in the team: kind "lead" or "benched", by faction ("" when none).
+static func team(kind: String, faction: String) -> String:
+	_load()
+	var t: Variant = _data.get("team", {})
+	if not (t is Dictionary):
+		return ""
+	var k: Variant = (t as Dictionary).get(kind, {})
+	return str((k as Dictionary).get(faction, "")) if k is Dictionary else ""
+
+
 ## What she says after a long hold on her (the heartbeat).
 static func pulse_lines() -> Array[String]:
 	_load()
