@@ -322,34 +322,34 @@ func _lot_in_quarter(s: Vector2i) -> bool:
 
 # ------------------------------------------------------------------ arranging
 
-## The building under a point (local px): the frontmost whose footprint, raised to its roof, holds it.
+## The building or prop under a point (local px): the frontmost whose picture is solid there.
 func _building_at(p: Vector2) -> int:
-	var best := -1
-	var best_depth := -1.0e9
-	for i: int in _sprites:
-		var fp := _footprint(i, _spot(i))
-		var lift := minf(roof_point(i).y - _foot(i).y, 0.0)
-		var r := Rect2(fp[0], Vector2.ZERO)
-		for q in fp:
-			r = r.expand(q)
-			r = r.expand(q + Vector2(0, lift))
-		if r.has_point(p):
-			var dpt := _depth(i)
-			if dpt > best_depth:
-				best_depth = dpt
-				best = i
+	var keys: Array = _sprites.keys()
 	for k: int in _props:
-		var s := _decor_spot(k)
-		var fp := PackedVector2Array([_ground(s.x, s.y), _ground(s.x + 1, s.y), _ground(s.x + 1, s.y + 1), _ground(s.x, s.y + 1)])
-		var tr: TextureRect = _props[k]
-		var r := Rect2(fp[0], Vector2.ZERO)
-		for q in fp:
-			r = r.expand(q)
-		r = r.expand(Vector2(r.position.x, tr.position.y + 6.0))
-		if r.has_point(p) and _depth(DECOR_BASE + k) >= best_depth:
-			best_depth = _depth(DECOR_BASE + k)
-			best = DECOR_BASE + k
-	return best
+		keys.append(DECOR_BASE + k)
+	keys.sort_custom(func(a: int, b: int) -> bool: return _depth(a) > _depth(b))
+	for key: int in keys:
+		var tr: TextureRect = _props[key - DECOR_BASE] if key >= DECOR_BASE else _sprites[key]
+		if _solid_at(tr, p):
+			return key
+	return -1
+
+
+## Whether a building's or prop's picture is solid at a point (local px): opaque and not its shadow.
+func _solid_at(tr: TextureRect, p: Vector2) -> bool:
+	if not Rect2(tr.position, tr.size).has_point(p) or tr.texture == null:
+		return false
+	var img: Image = tr.get_meta("img") if tr.has_meta("img") else null
+	if img == null:
+		img = tr.texture.get_image()
+		if img == null:
+			return false
+		if img.is_compressed():
+			img.decompress()
+		tr.set_meta("img", img)
+	var uv := (p - tr.position) / tr.size
+	var c := img.get_pixel(clampi(int(uv.x * img.get_width()), 0, img.get_width() - 1), clampi(int(uv.y * img.get_height()), 0, img.get_height() - 1))
+	return c.a > 0.5 and maxf(c.r, maxf(c.g, c.b)) > 0.08
 
 
 ## The lot under a point on the ground (local px).
