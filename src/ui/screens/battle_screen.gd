@@ -1619,7 +1619,7 @@ func _finish(outcome: Dictionary) -> void:
 			"team_size": _team_size, "mvp": _mvp(outcome), "has_next": has_next,
 			"next_text": next_text, "back_text": "Spire" if _mode == "tower" else "Campaign",
 			"safe_top": UI.safe_top(), "safe_bottom": UI.safe_bottom(),
-			"mode": _mode, "floor": _floor, "report_no": _report_no(),
+			"mode": _mode, "floor": _floor, "report_no": _report_no(), "souls": int(val.get("souls", 0)),
 		})
 	else:
 		UI.sfx("defeat")

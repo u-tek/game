@@ -280,11 +280,24 @@ func show_victory(data: Dictionary) -> void:
 	BP.rect(rcol, Rect2(-6, 0, 1, 210), Color(BP.INK, 0.35))
 	var reward: Dictionary = data.get("reward", {})
 	var rows := _reward_rows(reward) if first else []
+	# The souls this win sent to the front (every win, first clear or not).
+	var souls := int(data.get("souls", 0))
+	var souls_to := ""
+	if souls > 0:
+		var war: Dictionary = Game.war()
+		if str(war.side) != "":
+			souls_to = "SOULS TO " + str(((war.sectors as Array)[int(war.focus)] as Dictionary).name).to_upper()
+		rows.append(["SOULS", "+%d" % souls, true])
 	if not rows.is_empty():
 		BP.at(rcol, BP.t("REWARDS", 11, BP.INK, "mono_bold"), Vector2(4, 0))
 		var table := PK.data_table(rows, rw, {"size": 12, "row_h": 25, "bar": Color(BP.SIG, 0.14)})
 		BP.at(rcol, table, Vector2(-6, 20))
 		BP.at(rcol, SignalKit.barcode(Vector2(minf(rw - 10.0, 140.0), 22), BP.INK, 404), Vector2(4, 30 + rows.size() * 25))
+		if souls_to != "":
+			var sl := BP.t(souls_to, 9, BP.SIG, "mono_bold")
+			sl.size = Vector2(rw, 12)
+			sl.clip_text = true
+			BP.at(rcol, sl, Vector2(4, 58 + rows.size() * 25))
 	else:
 		BP.at(rcol, BP.t("REWARDS", 11, BP.INK, "mono_bold"), Vector2(4, 0))
 		var t2 := PK.data_table([["1ST CLEAR", "CLAIMED", true], ["THIS RUN", "PRACTICE"]], rw, {"size": 12, "row_h": 25, "bar": Color(BP.INK, 0.06)})
