@@ -804,6 +804,11 @@ func equipped_skin(hero_id: String) -> String:
 
 
 ## Buy a skin with gems. Skins whose art is not in the build yet are "Coming soon".
+## A skin's price in gems today (her birthday discount).
+func skin_price(skin_id: String) -> int:
+	return model.skin_price(skin_id)
+
+
 func buy_skin(skin_id: String) -> Dictionary:
 	var sd := SkinData.get_def(skin_id)
 	if not sd.is_empty() and not HeroArt.has_skin_art(sd.hero, skin_id):

@@ -1016,6 +1016,9 @@ Day numbers are GameModel's (days since 1970-01-01 on the player's local clock).
   for today and the owned heroines, each with `claimed`. `claim_calendar(key)`: the key must be one
   of today's and not claimed; grants the gift. Claims older than 400 days are dropped (on a claim
   and on save repair), so the same day next year (a new key) is open again.
+- `skin_price(p, day, hero) = p * (10000 - d) / 10000`, d = `birthday.skin_discount_bp` when md(day)
+  is the heroine's birthday, else 0. GameModel `skin_price(skin)` (today), used by `buy_skin`;
+  `skins_for` gives `price_gems` (today's), `full_price_gems` and `sale`.
 - UI only (not rules): her Lobby line on the day (`lines[faction]`, or for a birthday
   `birthday.mine` / `birthday.other` with `{her}`), the stamp's word.
 - Fixture: data/fixtures/calendar.json (civil with day_number back, events).

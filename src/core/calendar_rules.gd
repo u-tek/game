@@ -19,6 +19,8 @@ extends RefCounted
 ##                         A key is claimable once, so each gift comes once a year. A 02-29
 ##                         birthday only comes in leap years.
 ##   clean_md(s)         = s as "MM-DD" when it is a real date (02-29 allowed), else "".
+##   skin_price(p, day, hero) = p * (10000 - skin_discount_bp(day, hero)) / 10000: her skins are
+##                         birthday.skin_discount_bp off on her birthday
 
 static var _d: Dictionary = GameData.file("calendar")
 
@@ -80,6 +82,17 @@ static func clean_md(s: String) -> String:
 	if m < 1 or m > 12 or d < 1 or d > MONTH_DAYS[m - 1]:
 		return ""
 	return "%02d-%02d" % [m, d]
+
+
+## Her skins' discount on her birthday (bp; 0 on any other day).
+static func skin_discount_bp(day: int, hero_id: String) -> int:
+	var b := birthday(hero_id)
+	return int(_d.birthday.get("skin_discount_bp", 0)) if b != "" and b == md(day) else 0
+
+
+## A skin's price in gems on `day`: its tier price, less her birthday discount.
+static func skin_price(price_gems: int, day: int, hero_id: String) -> int:
+	return price_gems * (10000 - skin_discount_bp(day, hero_id)) / 10000
 
 
 ## A heroine's birthday as "MM-DD" ("" if she has none).

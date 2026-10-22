@@ -1,6 +1,6 @@
 {
 	"version": 1,
-	"about": "Real days the game notices (CalendarRules, docs/dev/unity-port.md section 9f). md is MM-DD on the player's local calendar. On a day: a stamp on the Lobby (tap it: the gift, once a year) and her line, by her faction. player_birthday: the player's own day, if they gave it on the intake form ({name} is theirs). Birthdays: each heroine's day, for owned heroines only; the Lobby heroine says 'mine' on her own and names the other one ({her}) on someone else's. Lines are short: the Lobby sets them huge. ink (optional, hex): the Lobby's halftone band prints in it that day.",
+	"about": "Real days the game notices (CalendarRules, docs/dev/unity-port.md section 9f). md is MM-DD on the player's local calendar. On a day: a stamp on the Lobby (tap it: the gift, once a year) and her line, by her faction. player_birthday: the player's own day, if they gave it on the intake form ({name} is theirs). Birthdays: each heroine's day, for owned heroines only; the Lobby heroine says 'mine' on her own and names the other one ({her}) on someone else's; her skins are skin_discount_bp off that day. Lines are short: the Lobby sets them huge. ink (optional, hex): the Lobby's halftone band prints in it that day.",
 	"days": [
 		{
 			"id": "new_year", "md": "01-01", "name": "New Year", "stamp": "NEW YEAR", "ink": "e0a33a",
@@ -69,6 +69,7 @@
 	"birthday": {
 		"stamp": "BIRTHDAY",
 		"gift": {"gems": 100, "hero_exp": 2000},
+		"skin_discount_bp": 2000,
 		"mine": {
 			"celestial": "It's my birthday. You came. That's the gift.",
 			"infernal": "My birthday, envoy. I expect to be spoiled.",

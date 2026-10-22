@@ -89,6 +89,26 @@ func test_claim_once_a_year(t: TestCtx) -> void:
 	_done()
 
 
+func test_birthday_skin_sale(t: TestCtx) -> void:
+	var g := _game(2026, 11, 5)
+	g.new_game()
+	var skins: Array = SkinData.for_hero("vesper")
+	if skins.is_empty():
+		t.ok(true, "no skins for vesper")
+		_done()
+		return
+	var sid := str(skins[0].id)
+	var full := int(skins[0].price_gems)
+	t.eq(g.model.skin_price(sid), full * 8000 / 10000, "20% off on her birthday")
+	t.ok(bool((g.model.skins_for("vesper")[0] as Dictionary).sale))
+	g.model.state.currencies.gems = full
+	t.ok(bool(g.model.buy_skin(sid).ok))
+	t.eq(int(g.model.state.currencies.gems), full - full * 8000 / 10000, "charged the sale price")
+	g.now_override_ms += 86400000
+	t.eq(g.model.skin_price(str(skins[1].id) if skins.size() > 1 else sid), int(skins[1].price_gems) if skins.size() > 1 else full, "full price the next day")
+	_done()
+
+
 func test_birthday_claim(t: TestCtx) -> void:
 	var g := _game(2026, 11, 5)
 	g.new_game()

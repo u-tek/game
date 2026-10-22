@@ -1550,8 +1550,20 @@ func skins_for(hero_id: String) -> Array[Dictionary]:
 		var s := sd.duplicate()
 		s["owned"] = owns_skin(sd.id)
 		s["equipped"] = sd.id == eq
+		# Her birthday: the price today, the full one and whether it's on sale.
+		s["full_price_gems"] = int(sd.price_gems)
+		s["price_gems"] = skin_price(str(sd.id))
+		s["sale"] = int(s.price_gems) < int(sd.price_gems)
 		out.append(s)
 	return out
+
+
+## A skin's price in gems today (her birthday takes CalendarRules' discount off).
+func skin_price(skin_id: String) -> int:
+	var sd := SkinData.get_def(skin_id)
+	if sd.is_empty():
+		return 0
+	return CalendarRules.skin_price(int(sd.price_gems), today(), str(sd.hero))
 
 
 func owns_skin(skin_id: String) -> bool:
@@ -1570,7 +1582,7 @@ func buy_skin(skin_id: String) -> Dictionary:
 		return _err("Unknown skin")
 	if owns_skin(skin_id):
 		return _err("Already owned")
-	var cost := {"gems": int(sd.price_gems)}
+	var cost := {"gems": skin_price(skin_id)}
 	if not _can_afford(cost):
 		return _err("Not enough gems")
 	_pay(cost)

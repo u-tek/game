@@ -501,8 +501,9 @@ func _skin_button(s: Dictionary, width: float) -> Button:
 		b = PK.plate_button("Coming soon", Callable(), {"size": sz, "kicker": "NOT PRINTED", "text_size": 15, "disabled": true})
 	else:
 		var ok := Game.currency("gems") >= price
+		var kick := "BIRTHDAY  −%d%%" % roundi(100.0 - 100.0 * price / maxf(float(s.get("full_price_gems", price)), 1.0)) if bool(s.get("sale", false)) else "GEMS"
 		b = PK.plate_button("Buy %s" % Kit.format_full(price), func() -> void: _buy_skin(sid), {"size": sz, "preset": "signal",
-			"kicker": "GEMS", "icon": "gems", "text_size": 18, "disabled": not ok})
+			"kicker": kick, "icon": "gems", "text_size": 18, "disabled": not ok})
 	b.name = "SkinBtn_" + sid
 	return b
 
@@ -511,7 +512,7 @@ func _buy_skin(sid: String) -> void:
 	var sd := SkinData.get_def(sid)
 	if sd.is_empty():
 		return
-	UI.confirm("Buy %s for %s gems? Skins are cosmetic: no stat changes." % [sd.name, Kit.format_full(int(sd.price_gems))],
+	UI.confirm("Buy %s for %s gems? Skins are cosmetic: no stat changes." % [sd.name, Kit.format_full(Game.skin_price(sid))],
 		func() -> void:
 			var r := Game.buy_skin(sid)
 			if not bool(r.get("ok", false)):

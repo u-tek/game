@@ -308,7 +308,9 @@ func _build_buy() -> void:
 	var spec := {}
 	var cb := Callable()
 	if not bool(lk.owned):
-		spec = {"width": 380.0, "kicker": "WARDROBE  //  PREVIEW", "title": "BUY", "sub": "%d GEMS" % int(lk.get("price_gems", 0)),
+		var sale := bool(lk.get("sale", false))
+		spec = {"width": 380.0, "kicker": "HER BIRTHDAY  //  ON SALE" if sale else "WARDROBE  //  PREVIEW", "title": "BUY",
+			"sub": ("%d GEMS  (WAS %d)" % [int(lk.get("price_gems", 0)), int(lk.get("full_price_gems", 0))]) if sale else "%d GEMS" % int(lk.get("price_gems", 0)),
 			"action": "MAKE IT HERS  >>>", "icon": "gems"}
 		cb = func() -> void:
 			var r: Dictionary = Game.buy_skin(sid)

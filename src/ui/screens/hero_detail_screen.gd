@@ -1354,7 +1354,7 @@ func _buy_skin(sid: String) -> void:
 	var sd := SkinData.get_def(sid)
 	if sd.is_empty():
 		return
-	UI.confirm("Buy %s for %s gems? Skins are cosmetic: no stat changes." % [sd.name, Kit.format_full(int(sd.price_gems))],
+	UI.confirm("Buy %s for %s gems? Skins are cosmetic: no stat changes." % [sd.name, Kit.format_full(Game.skin_price(sid))],
 		func() -> void:
 			var r := Game.buy_skin(sid)
 			if not bool(r.get("ok", false)):
