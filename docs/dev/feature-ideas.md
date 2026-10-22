@@ -64,6 +64,30 @@ like stamp errors. They never change stats. The print shaders already draw every
 
 Claude's suggested first loop: 1, 2, 6 and 13 (print, she competes, the map keeps score).
 
+## Your game is yours (open, pitched 2026-10-22)
+
+The owner asked for "something no one else has ever done" to stand out from thousands of gachas.
+The theme of this batch: no other player's game looks like yours. A web search found no shipped
+gacha RPG doing the first two.
+
+- **One-of-one heroes (Claude's pick).** Every copy of a hero you pull is its own original painting:
+  the same woman, a different pose, outfit cut, lighting and backdrop, numbered like a print. A
+  duplicate is no longer a let-down: it is a new painting of her (and still counts as a dupe for
+  stars). Players can show off a version nobody else owns. A studio that pays artists can't paint
+  dozens of versions of every hero; our MOSS pipeline can, so rivals can't copy it cheaply. Costs:
+  about 4 GPU minutes per finished painting (25 per hero for all 40 is roughly 65 hours, over many
+  nights), the owner reviews every one, and the paintings are too many for the IPA, so the app
+  downloads each one when it is pulled. Battles keep the rigged base art; a painting can get a
+  quick rig (`tools/art_quick_rig.py`) to blink and breathe on the Lobby poster.
+- **Your pulls write the story.** The story's cast is whoever you pulled, in the order you pulled
+  them: the first hero is your lead, each new one enters at the current chapter, a dupe deepens her
+  arc, and the Rival goes after the one you use most. Printed as a pulp serial in the poster style
+  from the existing art. Every pull, a dupe included, moves the story on. No GPU needed.
+- **She lives on the phone, not in the app.** The lead hero on the Lock Screen and in StandBy (the
+  bedside clock while charging on its side), showing the idle haul and a line of hers. Needs a
+  WidgetKit extension added to the Xcode project on the macOS runner; widgets in sideloaded apps
+  can be unreliable depending on how the IPA is signed, so this is the riskiest of the three.
+
 ## Pure upside (open)
 
 Pitched after the owner's "these all make the game more difficult". None of these adds difficulty.
