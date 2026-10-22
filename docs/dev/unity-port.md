@@ -970,11 +970,18 @@ Offline: both sides' hosts are simulated; the player's souls are the only live i
   L + 1, `{}` at max. GameModel `district_upgrade(i)`: a side, an open building, below max, enough
   gold; spends it and stores `war.levels["<i>"] = L + 1`. Save repair keeps valid indices with levels
   2..max.
+- Layout (data `grid`: size, road_row; each building's `spot` [x, y]): `spot(i, layout)` is
+  `layout["<i>"]` when present, else the data spot. `can_place(layout, i, x, y)`: the w x d footprint
+  at (x, y) inside 0..size on both axes, not covering road_row (`y <= road_row < y + d` is refused),
+  overlapping no other building's footprint at its spot (all buildings, built or not).
+  GameModel `district_place(i, x, y)` (needs a side): stores `war.layout["<i>"] = [x, y]` (erased
+  when it is the data spot). Save repair drops the whole layout if any moved building no longer fits.
 - GameModel: `souls` = `war.souls_total`; keepers in `war.keepers`. `idle_rates()` =
   `apply(IdleRules.per_hour(cleared), bonus(...))`, used by idle_status, claim_idle and quick_claim.
   `district_set_keeper(i, id)`: needs a side and an open building; "" clears; an owned heroine keeps
   one building (setting her moves her). Save repair drops bad indices, unknown heroes and duplicates.
-- Fixture: data/fixtures/war.json (district_open, district_out with levels, district_costs).
+- Fixture: data/fixtures/war.json (district_open, district_out with levels, district_costs,
+  place_cases -> place_out).
 
 ## 9f. The calendar (`src/core/calendar_rules.gd`, data/calendar.json, GameModel `calendar*`)
 

@@ -17,6 +17,10 @@ extends RefCounted
 ##                          L to L + 1, {} at MAX_LEVEL
 ##   bonus(side, souls, keepers, levels) uses level_bonus(bonus_bp, levels["<i>"] or 1) before the
 ##                          keeper's multiplier
+##   spot(i, layout)      = layout["<i>"] ([x, y]) if the player moved it, else the building's data spot
+##   can_place(layout, i, x, y) = building i's w x d footprint at lot (x, y) lies inside the GRID x GRID
+##                          quarter, off the road row (ROAD_ROW) and on no other building's footprint
+##                          (every building holds its lot, built or not)
 
 static var _d: Dictionary = GameData.file("district")
 static var BUILDINGS: Array = _d.buildings
@@ -24,6 +28,36 @@ static var KEEPER_MULT_BP: int = int(_d.keeper_mult_bp)
 static var MAX_LEVEL: int = int(_d.levels.max)
 static var GOLD_BASE: int = int(_d.levels.gold_base)
 static var COST_STEP_BP: int = int(_d.levels.cost_step_bp)
+static var GRID: int = int(_d.grid.size)
+static var ROAD_ROW: int = int(_d.grid.road_row)
+
+
+static func spot(i: int, layout: Dictionary) -> Vector2i:
+	var v: Variant = layout.get(str(i), null)
+	if v is Array and (v as Array).size() == 2:
+		return Vector2i(int(v[0]), int(v[1]))
+	var s: Array = (BUILDINGS[i] as Dictionary).spot
+	return Vector2i(int(s[0]), int(s[1]))
+
+
+static func can_place(layout: Dictionary, i: int, x: int, y: int) -> bool:
+	if i < 0 or i >= BUILDINGS.size():
+		return false
+	var b: Dictionary = BUILDINGS[i]
+	var w := int(b.w)
+	var d := int(b.d)
+	if x < 0 or y < 0 or x + w > GRID or y + d > GRID:
+		return false
+	if y <= ROAD_ROW and ROAD_ROW < y + d:
+		return false
+	for j in BUILDINGS.size():
+		if j == i:
+			continue
+		var o: Dictionary = BUILDINGS[j]
+		var s := spot(j, layout)
+		if x < s.x + int(o.w) and s.x < x + w and y < s.y + int(o.d) and s.y < y + d:
+			return false
+	return true
 
 
 static func level_bonus(bonus_bp: int, level: int) -> int:

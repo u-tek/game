@@ -264,7 +264,7 @@ Ask the owner for approval (plan mode or a permission rule they add) instead.
 tools/check                 # import + 175 unit tests + headless boot (~20 s); must be green
 tools/check e2e             # plus 3 screen end-to-end scripts and the touch-scroll audit (~2 min)
 tools/gd --headless --path . -s tests/run_tests.gd -- test_playthrough   # one test file
-python3 -B tests/port_check/check_port.py        # independent Python rules check (103 checks)
+python3 -B tests/port_check/check_port.py        # independent Python rules check (104 checks)
 python3 tools/artgen/test_artgen.py              # art farm offline tests (81)
 python3 tools/comfy/test_pipeline.py             # ComfyUI pipeline tests (56, all pass)
 # On the owner's PC (Git Bash): export GODOT=<console exe> first; use python, not python3. Art:

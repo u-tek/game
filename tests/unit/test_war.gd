@@ -205,4 +205,15 @@ func test_district_buildings_keepers_and_idle(t: TestCtx) -> void:
 	t.eq(int(top.bonus_bp), DistrictRules.level_bonus(int(DistrictRules.BUILDINGS[0].bonus_bp), DistrictRules.MAX_LEVEL), "x3 at the top")
 	t.ok(not bool(g.district_upgrade(0).ok), "no higher")
 	t.ok(not bool(g.district_upgrade(7).ok), "a closed building can't be raised")
+	# Arranging the quarter: a free lot takes the building; the road, the edge and others refuse.
+	t.ok(bool(g.district_place(0, 3, 6).ok), "its own lot")
+	t.ok(not bool(g.district_place(0, 7, 6).ok), "past the edge")
+	t.ok(not bool(g.district_place(7, 3, 3).ok), "on the road")
+	t.ok(not bool(g.district_place(4, 5, 5).ok), "on the market")
+	t.ok(bool(g.district_place(7, 3, 2).ok), "a free lot")
+	t.eq((g.district().buildings as Array)[7].spot, [3, 2])
+	var st: Dictionary = g.model.state.duplicate(true)
+	st.war.layout["1"] = [3, 2]
+	g.model.migrate(st)
+	t.eq((g.model.state.war.layout as Dictionary).size(), 0, "a layout that no longer fits goes back to the plan")
 	_done()

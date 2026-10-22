@@ -1208,6 +1208,22 @@ def d_apply(rates, bonus): return {k: idiv(v * (10000 + bonus.get(k, 0)), 10000)
 check("district.open", f["district_open"], [d_open(s) for s in f["district_souls"]])
 check("district.bonus", f["district_out"], [{"bonus": (b := d_bonus(c["side"], c["souls"], c["keepers"], c.get("levels"))), "rates": d_apply(f["district_rates"], b)} for c in f["district_cases"]])
 check("district.costs", f["district_costs"], [d_cost(c[0], c[1]) for c in f["district_levels"]])
+GR = DIST["grid"]
+def d_spot(i, layout):
+    v = layout.get(str(i))
+    return (v[0], v[1]) if isinstance(v, list) and len(v) == 2 else tuple(DIST["buildings"][i]["spot"])
+def d_can_place(layout, i, x, y):
+    bs = DIST["buildings"]
+    if i < 0 or i >= len(bs): return False
+    w, d = bs[i]["w"], bs[i]["d"]
+    if x < 0 or y < 0 or x + w > GR["size"] or y + d > GR["size"]: return False
+    if y <= GR["road_row"] < y + d: return False
+    for j, o in enumerate(bs):
+        if j == i: continue
+        sx, sy = d_spot(j, layout)
+        if x < sx + o["w"] and sx < x + w and y < sy + o["d"] and sy < y + d: return False
+    return True
+check("district.place", f["place_out"], [d_can_place(c["layout"], c["i"], c["x"], c["y"]) for c in f["place_cases"]])
 check("war.champ_tiers", f["champ_tiers_out"], [[i for i, t in enumerate(C["tiers"]) if c[1] * 100 >= c[0] * t["pct"]] for c in f["champ_tiers"]])
 
 # ---------------- the calendar (9f)

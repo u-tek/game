@@ -58,7 +58,8 @@
 					"seen_week": -1000000,
 					"champ": {"week": -1000000, "hero": "", "level": 0, "hp": 0, "damage": 0, "day": -1000000, "tries": 0, "tiers": []},
 					"keepers": {},
-					"levels": {}
+					"levels": {},
+					"layout": {}
 				},
 				"calendar": {"claimed": {}},
 				"counters": {},
@@ -143,7 +144,8 @@
 					"seen_week": -1000000,
 					"champ": {"week": -1000000, "hero": "", "level": 0, "hp": 0, "damage": 0, "day": -1000000, "tries": 0, "tiers": []},
 					"keepers": {},
-					"levels": {}
+					"levels": {},
+					"layout": {}
 				},
 				"calendar": {"claimed": {}},
 				"counters": {},
@@ -202,7 +204,8 @@
 					"seen_week": -1000000,
 					"champ": {"week": -1000000, "hero": "", "level": 0, "hp": 0, "damage": 0, "day": -1000000, "tries": 0, "tiers": []},
 					"keepers": {},
-					"levels": {}
+					"levels": {},
+					"layout": {}
 				},
 				"calendar": {"claimed": {}},
 				"counters": {},
@@ -271,7 +274,8 @@
 					"seen_week": -1000000,
 					"champ": {"week": -1000000, "hero": "", "level": 0, "hp": 0, "damage": 0, "day": -1000000, "tries": 0, "tiers": []},
 					"keepers": {},
-					"levels": {}
+					"levels": {},
+					"layout": {}
 				},
 				"calendar": {"claimed": {}},
 				"counters": {},
@@ -379,7 +383,8 @@
 					"seen_week": -1000000,
 					"champ": {"week": -1000000, "hero": "", "level": 0, "hp": 0, "damage": 0, "day": -1000000, "tries": 0, "tiers": []},
 					"keepers": {},
-					"levels": {}
+					"levels": {},
+					"layout": {}
 				},
 				"calendar": {"claimed": {}},
 				"counters": {"summons": 11, "idle_claims": 1},
@@ -483,7 +488,8 @@
 					"seen_week": -1000000,
 					"champ": {"week": -1000000, "hero": "", "level": 0, "hp": 0, "damage": 0, "day": -1000000, "tries": 0, "tiers": []},
 					"keepers": {},
-					"levels": {}
+					"levels": {},
+					"layout": {}
 				},
 				"calendar": {"claimed": {}},
 				"counters": {"summons": 11, "idle_claims": 1},

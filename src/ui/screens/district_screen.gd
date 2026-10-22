@@ -10,6 +10,7 @@ extends Control
 ## lifetime souls debossed, the idle bonus per currency, the next building and the souls it needs.
 ## params: keeper (a building index: opens its keeper sheet; screenshots).
 
+const PosterKit := preload("res://src/ui/v4/poster_kit.gd")
 const DistrictModel := preload("res://src/ui/v4/district_model.gd")
 const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
 const Poster := preload("res://src/ui/v4/survey/poster.gd")
@@ -32,6 +33,7 @@ var _poster: Control
 var _built := Vector2.ZERO
 var _rebuild_queued := false
 var _sheet: Control
+var _arranging := false        ## ARRANGE: buildings can be dragged to other lots
 
 
 func setup(params: Dictionary) -> void:
@@ -42,7 +44,25 @@ func setup(params: Dictionary) -> void:
 	_build()
 	Game.changed.connect(_on_changed)
 	resized.connect(_on_resized)
-	# Screenshots: keeper = a building index opens its keeper sheet.
+	# Screenshots: arrange = true opens in ARRANGE; keeper = a building index opens its keeper sheet.
+	if bool(params.get("arrange", false)):
+		_arranging = true
+		_on_changed()
+	# hold = [i, x, y]: building i held over that lot (ARRANGE, mid-drag); move = [i, x, y] places it.
+	if params.get("move") is Array:
+		var mv: Array = params.move
+		Game.district_place(int(mv[0]), int(mv[1]), int(mv[2]))
+	if params.get("hold") is Array:
+		var hv: Array = params.hold
+		_arranging = true
+		_on_changed()
+		(func() -> void:
+			await get_tree().process_frame
+			await get_tree().process_frame
+			await get_tree().process_frame
+			var plan := find_child("Plan", true, false)
+			if plan:
+				plan.call("debug_hold", int(hv[0]), int(hv[1]), int(hv[2]))).call_deferred()
 	if params.has("keeper"):
 		_pick_keeper.call_deferred(int(params.keeper))
 
@@ -114,8 +134,15 @@ func _build() -> void:
 	plan.position = Vector2(18, HEAD + 30.0)
 	plan.size = Vector2(pw - 36, PLAN_H)
 	plan.set("dist", dist)
+	plan.set("arranging", _arranging)
+	plan.connect("placed", func(i: int, x: int, y: int) -> void:
+		var r: Dictionary = Game.district_place(i, x, y)
+		if not bool(r.get("ok", false)):
+			UI.toast(str(r.get("error", "")), "bad"))
 	_poster.add_child(plan)
-	_keeper_prints(plan, dist)
+	if not _arranging:
+		_keeper_prints(plan, dist)
+	_arrange_toggle(pw)
 	_build_ledger(pw, HEAD + 30.0 + PLAN_H + 30.0, dist)
 	var fy := pr.end.y + 14.0
 	PK.at(_page, PK.t(Poster.date_long(), 22, INK, "regular"), Vector2(ox + 20, fy + 8))
@@ -169,6 +196,35 @@ func _build_head(pw: float, dist: Dictionary) -> void:
 
 static func _pct(bp: int) -> String:
 	return ("%d" % (bp / 100)) if bp % 100 == 0 else ("%.1f" % (bp / 100.0))
+
+
+## ARRANGE (top right of the plan): a paper tag that turns the plan into a board you rearrange by
+## dragging; DONE in signal while it is on, with the hint under it.
+func _arrange_toggle(pw: float) -> void:
+	var at := Vector2(pw - 18 - 150, HEAD + 40)
+	var tag := Control.new()
+	tag.name = "Arrange"
+	tag.position = at
+	tag.size = Vector2(150, 88)
+	tag.mouse_filter = MOUSE_FILTER_PASS
+	_poster.add_child(tag)
+	var box := Rect2(Vector2(20, 0), Vector2(130, 30))
+	PK.rect(tag, box, SIG if _arranging else Color("f5f4f0"))
+	PosterKit.hairbox(tag, box, SIG if _arranging else INK)
+	var l := PK.t("DONE" if _arranging else "ARRANGE", 12, Color("f5f4f0") if _arranging else INK, "mono_bold")
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.size = Vector2(box.size.x, 16)
+	PK.at(tag, l, box.position + Vector2(0, 7))
+	if _arranging:
+		var h := PK.t("DRAG A BUILDING
+TO ANOTHER LOT", 9, SIG, "mono_bold")
+		h.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		h.size = Vector2(150, 30)
+		PK.at(tag, h, Vector2(0, 36))
+	Kit.make_tappable(tag, func() -> void:
+		_arranging = not _arranging
+		Kit.sfx("tap")
+		_on_changed())
 
 
 ## Each keeper's portrait framed over her building, on a leader line from its roof.

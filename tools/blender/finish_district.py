@@ -7,7 +7,8 @@ Writes assets/art/ui/district/ground.png (the whole frame) and <id>.png per buil
 what it draws, with its cast shadow at about half strength (the shadow catcher's shadows are pitch black, and
 its faint ambient veil over the whole ground is dropped),
 8-bit RGBA, its normals over the same rect at half size (<id>_n.png), and layout.json: the frame size and per building its crop rect, roof and foot points
-(all 0..1 of the frame, y down) and its depth (back to front order).
+(all 0..1 of the frame, y down), its depth (back to front order) and its data spot; and the grid's
+image axes (o, x, y: a ground point at lot coordinates (gx, gy) is o + gx * x + gy * y).
 """
 import json
 import os
@@ -56,6 +57,21 @@ for bid, info in lay["buildings"].items():
         nm.save(os.path.join(dst, bid + "_n.png"), optimize=True)
     out["buildings"][bid] = {"rect": [x0 / fw, y0 / fh, (x1 - x0) / fw, (y1 - y0) / fh], "roof": info["roof"],
         "foot": info["foot"], "depth": info["depth"]}
+# The ground grid's axes in the image (an orthographic camera: a lot's offset is a fixed image
+# offset), fitted from each building's foot point and its lot's centre: image = o + gx * x + gy * y.
+data = json.load(open(os.path.join(os.path.dirname(__file__), "..", "..", "data", "district.json"), encoding="utf-8"))
+rows, rhs = [], []
+for b in data["buildings"]:
+    info = lay["buildings"].get(b["id"])
+    if not info:
+        continue
+    cx, cy = b["spot"][0] + b["w"] / 2.0, b["spot"][1] + b["d"] / 2.0
+    rows.append([1.0, cx, cy])
+    rhs.append(info["foot"])
+    out["buildings"][b["id"]]["spot"] = b["spot"]
+sol, *_ = np.linalg.lstsq(np.array(rows), np.array(rhs), rcond=None)
+out["grid"] = {"o": [round(float(v), 6) for v in sol[0]], "x": [round(float(v), 6) for v in sol[1]],
+    "y": [round(float(v), 6) for v in sol[2]]}
 with open(os.path.join(dst, "layout.json"), "w") as f:
     json.dump(out, f, separators=(",", ":"))
 for n in sorted(os.listdir(dst)):

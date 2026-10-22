@@ -4,15 +4,16 @@
 	"names": {"heaven": "The Halo Quarter", "hell": "The Horn Quarter"},
 	"keeper_factions": {"heaven": ["celestial", "fallen"], "hell": ["infernal", "fallen"]},
 	"keeper_mult_bp": 20000,
+	"grid": {"_doc": "The quarter is a grid x grid lots; the souls' road runs along row road_row (no building on it). Each building stands at its spot (grid x down-right, grid y down-left) unless the player moved it (war.layout).", "size": 8, "road_row": 3},
 	"levels": {"_doc": "A built building is level 1; gold raises it to max. Bonus at level L = bonus_bp * (L + 1) / 2 (x1 .. x3 at 5). Going from L to L + 1 costs gold_base * L * L * (10000 + cost_step_bp * building index) / 10000 gold.", "max": 5, "gold_base": 20000, "cost_step_bp": 2500},
 	"buildings": [
-		{"id": "gate", "name": "The Gate", "souls": 0, "currency": "gold", "bonus_bp": 200, "w": 2, "d": 1, "h": 3},
-		{"id": "chapel", "name": "The Chapel", "souls": 400, "currency": "hero_exp", "bonus_bp": 200, "w": 1, "d": 2, "h": 4},
-		{"id": "market", "name": "The Soul Market", "souls": 1200, "currency": "gold", "bonus_bp": 300, "w": 2, "d": 2, "h": 2},
-		{"id": "baths", "name": "The Baths", "souls": 2500, "currency": "hero_exp", "bonus_bp": 300, "w": 2, "d": 1, "h": 2},
-		{"id": "forge", "name": "The Forge", "souls": 4500, "currency": "dust", "bonus_bp": 400, "w": 1, "d": 1, "h": 5},
-		{"id": "lounge", "name": "The Lounge", "souls": 7000, "currency": "gold", "bonus_bp": 400, "w": 2, "d": 2, "h": 3},
-		{"id": "archive", "name": "The Archive", "souls": 10000, "currency": "dust", "bonus_bp": 400, "w": 1, "d": 2, "h": 4},
-		{"id": "spire", "name": "The High Spire", "souls": 15000, "currency": "gems", "bonus_bp": 500, "w": 1, "d": 1, "h": 7}
+		{"id": "gate", "spot": [3, 6], "name": "The Gate", "souls": 0, "currency": "gold", "bonus_bp": 200, "w": 2, "d": 1, "h": 3},
+		{"id": "chapel", "spot": [0, 5], "name": "The Chapel", "souls": 400, "currency": "hero_exp", "bonus_bp": 200, "w": 1, "d": 2, "h": 4},
+		{"id": "market", "spot": [5, 5], "name": "The Soul Market", "souls": 1200, "currency": "gold", "bonus_bp": 300, "w": 2, "d": 2, "h": 2},
+		{"id": "baths", "spot": [0, 1], "name": "The Baths", "souls": 2500, "currency": "hero_exp", "bonus_bp": 300, "w": 2, "d": 1, "h": 2},
+		{"id": "forge", "spot": [6, 1], "name": "The Forge", "souls": 4500, "currency": "dust", "bonus_bp": 400, "w": 1, "d": 1, "h": 5},
+		{"id": "lounge", "spot": [2, 0], "name": "The Lounge", "souls": 7000, "currency": "gold", "bonus_bp": 400, "w": 2, "d": 2, "h": 3},
+		{"id": "archive", "spot": [5, 0], "name": "The Archive", "souls": 10000, "currency": "dust", "bonus_bp": 400, "w": 1, "d": 2, "h": 4},
+		{"id": "spire", "spot": [7, 0], "name": "The High Spire", "souls": 15000, "currency": "gems", "bonus_bp": 500, "w": 1, "d": 1, "h": 7}
 	]
 }

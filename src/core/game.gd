@@ -911,6 +911,13 @@ func reset_intake() -> void:
 	_flush()
 
 
+## Moves a building to another lot (GameModel.district_place).
+func district_place(building: int, x: int, y: int) -> Dictionary:
+	var r := model.district_place(building, x, y)
+	_flush()
+	return r
+
+
 ## Raises an open building one level for gold (GameModel.district_upgrade).
 func district_upgrade(building: int) -> Dictionary:
 	var r := model.district_upgrade(building)

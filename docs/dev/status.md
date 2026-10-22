@@ -110,6 +110,13 @@ this file says where things stand. Older logs are under "History" at the bottom.
   `district_rules.gd` (port spec 9e, fixture war.json, port check 103); the sheet of a building
   (tap its ledger row) shows LEVEL n / 5 and an UPGRADE stamp; the ledger and the maquette's tags
   show the level.
+- **Arrange the quarter (2026-10-23, the city-building side):** ARRANGE over the District's model
+  turns it into a board: the lots show as a faint grid, drag a building and it follows lot by lot
+  (the camera is orthographic, so a moved building is the same render shifted), its footprint in ink
+  where it fits and in signal where it doesn't (the edge, the souls' road, another building); let go
+  and it stays. Cosmetic. Rules `DistrictRules.spot / can_place` (data `grid` and each building's
+  `spot`; port spec 9e; fixture war.json place cases; port check 104), GameModel
+  `district_place`. Shot params `arrange`, `hold` [i, x, y], `move` [i, x, y].
 - **Wardrobe to gallery (2026-10-22):** every skin's print in the Shop's wardrobe carries a VIEW tag;
   tapping it opens her in that look full screen in the gallery (zoom, swipe the looks, BUY), also for
   a heroine not yet recruited (shown as a preview). The art sells the skin, not a thumbnail.

@@ -914,6 +914,13 @@ static func _war_inputs() -> Dictionary:
 			{"side": "hell", "souls": 20000, "keepers": {"7": "kessa"}, "levels": {"7": 4, "2": 2, "6": 9}},
 		],
 		"district_levels": [[0, 1], [0, 4], [3, 2], [7, 1], [7, 4], [7, 5], [5, 3]],
+		"place_cases": [
+			{"layout": {}, "i": 0, "x": 3, "y": 6}, {"layout": {}, "i": 0, "x": 6, "y": 7},
+			{"layout": {}, "i": 0, "x": 7, "y": 6}, {"layout": {}, "i": 7, "x": 3, "y": 3},
+			{"layout": {}, "i": 7, "x": 3, "y": 2}, {"layout": {}, "i": 1, "x": 2, "y": 2},
+			{"layout": {}, "i": 4, "x": 5, "y": 5}, {"layout": {"2": [5, 6]}, "i": 4, "x": 5, "y": 5},
+			{"layout": {"0": [6, 6]}, "i": 2, "x": 4, "y": 6}, {"layout": {}, "i": 5, "x": -1, "y": 0},
+			{"layout": {}, "i": 3, "x": 2, "y": 4}],
 		"district_rates": {"gold": 6100, "hero_exp": 4150, "dust": 28, "gems": 15},
 	}
 
@@ -951,6 +958,8 @@ static func _war(f: Dictionary) -> Dictionary:
 		"champ_tiers": f.champ_tiers, "champ_tiers_out": ctiers, "district_souls": f.district_souls,
 		"district_open": (f.district_souls as Array).map(func(s: Variant) -> Array: return DistrictRules.open(int(s))),
 		"district_cases": f.district_cases, "district_rates": f.district_rates, "district_out": _district_out(f),
+		"place_cases": f.place_cases, "place_out": (f.place_cases as Array).map(
+			func(c: Dictionary) -> bool: return DistrictRules.can_place(c.layout, int(c.i), int(c.x), int(c.y))),
 		"district_levels": f.district_levels, "district_costs": (f.district_levels as Array).map(
 			func(c: Array) -> Dictionary: return DistrictRules.upgrade_cost(int(c[0]), int(c[1])))}
 

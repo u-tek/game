@@ -2234,7 +2234,8 @@ func district() -> Dictionary:
 		var hid := str(keepers.get(str(i), ""))
 		var mult := DistrictRules.kept_mult(side, str(hero_def(hid).get("faction", ""))) if hid != "" else 10000
 		var lv := clampi(int(levels.get(str(i), 1)), 1, DistrictRules.MAX_LEVEL)
-		bl.append({"i": i, "id": str(b.id), "name": str(b.name), "souls": int(b.souls), "open": open.has(i),
+		var sp := DistrictRules.spot(i, ws.get("layout", {}))
+		bl.append({"spot": [sp.x, sp.y], "i": i, "id": str(b.id), "name": str(b.name), "souls": int(b.souls), "open": open.has(i),
 			"currency": str(b.currency), "bonus_bp": DistrictRules.level_bonus(int(b.bonus_bp), lv) * mult / 10000, "keeper": hid,
 			"doubled": mult > 10000, "w": int(b.w), "d": int(b.d), "h": int(b.h), "level": lv, "max_level": DistrictRules.MAX_LEVEL,
 			"upgrade_cost": DistrictRules.upgrade_cost(i, lv) if open.has(i) else {},
@@ -2265,6 +2266,25 @@ func district_set_keeper(building: int, hero_id: String) -> Dictionary:
 		keepers[str(building)] = hero_id
 	_changed()
 	return _ok({"building": building, "keeper": hero_id})
+
+
+## Moves a building (built or not) to another lot of the quarter (cosmetic: the player arranges their
+## quarter). Result {ok, value: {building, spot}, error}.
+func district_place(building: int, x: int, y: int) -> Dictionary:
+	var ws: Dictionary = state.war
+	if str(ws.side) == "":
+		return _err("Pick a side first")
+	if not (ws.get("layout") is Dictionary):
+		ws["layout"] = {}
+	if not DistrictRules.can_place(ws.layout, building, x, y):
+		return _err("It doesn't fit there")
+	var def: Array = (DistrictRules.BUILDINGS[building] as Dictionary).spot
+	if x == int(def[0]) and y == int(def[1]):
+		ws.layout.erase(str(building))
+	else:
+		ws.layout[str(building)] = [x, y]
+	_changed()
+	return _ok({"building": building, "spot": [x, y]})
 
 
 ## Raises an open building one level for gold. Result {ok, value: {building, level}, error}.
@@ -2337,6 +2357,20 @@ func _migrate_war(ws: Dictionary) -> void:
 				if lv > 1:
 					lvs[str(i)] = lv
 	ws.levels = lvs
+	# The arranged quarter: kept only if every moved building still fits (else back to the plan).
+	var lay := {}
+	if ws.get("layout") is Dictionary:
+		for k: Variant in ws.layout:
+			var i := int(str(k))
+			var v: Variant = ws.layout[k]
+			if str(k).is_valid_int() and i >= 0 and i < DistrictRules.BUILDINGS.size() and v is Array and (v as Array).size() == 2:
+				lay[str(i)] = [int(v[0]), int(v[1])]
+	for k: Variant in lay.keys():
+		var p: Array = lay[k]
+		if not DistrictRules.can_place(lay, int(str(k)), int(p[0]), int(p[1])):
+			lay = {}
+			break
+	ws.layout = lay
 	var c: Dictionary = ws.champ
 	if HeroData.get_def(str(c.hero)).is_empty():
 		c.hero = ""
