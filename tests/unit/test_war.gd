@@ -105,3 +105,45 @@ func test_save_round_trip_and_repair(t: TestCtx) -> void:
 	t.ok(not (ws.log as Dictionary).has("x"), "bad day keys dropped")
 	t.ok(not (ws.log[str(g2.model.today())] as Dictionary).has("99"), "bad sectors dropped")
 	_done()
+
+
+func test_champion_week(t: TestCtx) -> void:
+	var g := _open()
+	t.ok((g.war().champion as Dictionary).is_empty(), "no champion without a side")
+	t.ok(g.war_champion_setup().is_empty(), "no fight without a side")
+	g.war_choose_side("heaven")
+	var ch: Dictionary = g.war().champion
+	var week := WarRules.week_of(g.model.today())
+	t.eq(str(ch.hero), WarRules.champion_for(week, "heaven"), "Heaven meets Hell's champion")
+	t.ok(str(HeroData.get_def(str(ch.hero)).faction) == "infernal", "Hell's champions are Infernal")
+	t.eq(int(ch.tries_left), WarRules.CHAMP_TRIES)
+	var setup: Dictionary = g.war_champion_setup()
+	t.eq((setup.enemies as Array).size(), 1, "she fights alone")
+	t.ok(bool((setup.enemies as Array)[0].is_boss), "as a boss")
+	t.eq(int(setup.max_ms), WarRules.CHAMP_MAX_MS)
+	# The battle's max HP for her matches the view's hp.
+	var sim := BattleSim.new(setup)
+	t.eq(int(sim.unit("e0").max_hp), int(ch.hp), "champion_hp matches the battle")
+	# Damage adds up; tiers pay once as they are reached.
+	var hp := int(ch.hp)
+	var gems := int(g.currency("gems"))
+	var r: Dictionary = g.complete_champion({"damage_dealt": {"a0": hp * 12 / 100, "e0": 999999}})
+	t.ok(bool(r.ok))
+	t.eq(int(r.value.damage), hp * 12 / 100, "only the team's damage counts")
+	t.eq(r.value.tiers, [0], "the 10% tier is reached")
+	t.ok(int(g.currency("gems")) > gems, "the tier pays")
+	r = g.complete_champion({"damage_dealt": {"a1": hp * 40 / 100}})
+	t.eq(r.value.tiers, [1, 2], "25% and 50% reached together")
+	r = g.complete_champion({"damage_dealt": {"a1": 1}})
+	t.eq(r.value.tiers, [], "nothing new")
+	t.ok(not bool(g.complete_champion({"damage_dealt": {}}).ok), "three tries a day")
+	t.ok(g.war_champion_setup().is_empty(), "no setup with no tries left")
+	# The next day: tries back, the week's damage kept.
+	g.now_override_ms = BASE_MS + DAY if WarRules.week_of(g.model.day_of(BASE_MS + DAY)) == week else BASE_MS
+	if WarRules.week_of(g.model.today()) == week:
+		g.now_override_ms = BASE_MS + DAY
+		ch = g.war().champion
+		if WarRules.week_of(g.model.today()) == week:
+			t.eq(int(ch.tries_left), WarRules.CHAMP_TRIES, "tries reset each day")
+			t.ok(int(ch.damage) > 0, "damage kept for the week")
+	_done()

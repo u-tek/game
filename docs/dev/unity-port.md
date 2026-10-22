@@ -940,7 +940,20 @@ Offline: both sides' hosts are simulated; the player's souls are the only live i
   last week (`week_of(today) - 1`) when `claimed_week < last`, a side is chosen and the log has a day
   in that week: `control` for that whole week, won = winner == side, held = the side's count;
   `war_claim()` grants `reward(won, held)` and sets `claimed_week = last`.
-- Fixture: data/fixtures/war.json (weeks, pushes, control cases, rewards).
+- **The Champion** (`champion` in war.json): `champion_for(week, side)` = the other side's pool
+  [`posmod(week, size)`] ("" without a side); `champion_level(avg) = max(min_level, avg +
+  level_over)` (avg: the formation's average level, integer division, 1 with no team);
+  `champion_stats(id, level)` = StatCalc stats at `stars`, `hp * hp_bp / 10000`, `atk * atk_bp /
+  10000`; `tiers_reached(hp, damage)` = indices with `damage * 100 >= hp * pct`. GameModel keeps
+  `war.champ {week, hero, level, hp, damage, day, tries, tiers}`: on the first look of a week (or a
+  new champion) it sets hero and level, `hp` = the max_hp of e0 in a BattleSim with her alone (boss
+  multipliers and passives), damage 0, tiers []; tries reset each day. `war_champion_setup()`:
+  allies vs `[e0 = her, slot 0, is_boss]`, `max_ms` = champion.max_ms, only with tries left
+  (`tries_per_day`). `complete_champion(outcome)`: tries + 1; damage = the sum of
+  `outcome.damage_dealt` over ally uids ("a" prefix); every newly reached tier grants its reward
+  once. Leaving a fight early still reports the damage so far.
+- Fixture: data/fixtures/war.json (weeks, pushes, control cases, rewards, champions, levels, stats,
+  tiers).
 
 ## 10. Golden fixtures (`data/fixtures/`)
 

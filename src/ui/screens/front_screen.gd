@@ -13,6 +13,9 @@ extends Control
 ##         its side and its control in mono at the line; the player's sector carries a signal pin and
 ##         a light stripe; tap a column to send your souls there; the line rises from neutral when the
 ##         screen opens;
+##   champ the week's enemy Champion (GameModel champion): her figure in full colour over her red
+##         print in a dark panel, her name huge, the week's bar (the share worn down, tier ticks with
+##         their rewards), tries left today and a FIGHT HER pass (battle mode champion);
 ##   claim last week's result as a stuck-on slip with a CLAIM pass (when there is one);
 ##   foot  the FIGHT pass to the campaign (every win sends souls_per_win souls), the date, a signature.
 ## params: scroll (px, screenshots).
@@ -30,6 +33,7 @@ const BAND_C := Color("141517")
 const BAND := 132.0
 const HEAD := 330.0
 const CHART_H := 640.0
+const CHAMP_H := 520.0
 const MAX_W := 760.0
 ## Heroines printed on the Oath's two halves.
 const HALO_FACE := "seraphiel"
@@ -120,7 +124,7 @@ func _build(animate: bool = true) -> void:
 		_build_oath(pw, ph)
 	else:
 		var claim: Dictionary = war.claim
-		ph = HEAD + 30.0 + CHART_H + 40.0 + (190.0 if not claim.is_empty() else 0.0) + 300.0
+		ph = HEAD + 30.0 + CHART_H + 40.0 + CHAMP_H + 30.0 + (190.0 if not claim.is_empty() else 0.0) + 300.0
 		ph = maxf(ph, d.y - 14.0 - 84.0)
 		_page.custom_minimum_size = Vector2(d.x, 14.0 + ph + 84.0)
 		_poster = PK.poster(_page, Rect2(ox + 16, 14, pw, ph))
@@ -138,6 +142,10 @@ func _build(animate: bool = true) -> void:
 			var tw := _chart.create_tween()
 			tw.tween_property(_chart, "grow", 1.0, 0.9).set_delay(0.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		y += CHART_H + 40.0
+		var ch: Dictionary = war.get("champion", {})
+		if not ch.is_empty():
+			_build_champion(pw, y, ch)
+			y += CHAMP_H + 30.0
 		if not claim.is_empty():
 			_build_claim(pw, y, claim)
 			y += 190.0
@@ -286,6 +294,63 @@ func _on_pick(sector: int) -> void:
 		UI.haptic(14)
 
 
+## The enemy Champion: a dark panel, her red print, her figure in front, her name and the week's bar.
+func _build_champion(pw: float, y: float, ch: Dictionary) -> void:
+	var p := _poster
+	var panel := Control.new()
+	panel.name = "Champion"
+	panel.mouse_filter = MOUSE_FILTER_IGNORE
+	panel.position = Vector2(18, y)
+	panel.size = Vector2(pw - 36, CHAMP_H)
+	p.add_child(panel)
+	PK.rect(panel, Rect2(Vector2.ZERO, panel.size), BAND_C)
+	var hero := str(ch.hero)
+	var fig_w := floorf(panel.size.x * 0.48)
+	var ht := PK.halftone_print(hero, "", Vector2(fig_w, CHAMP_H), 6.0)
+	panel.add_child(ht)
+	var box := Control.new()
+	box.name = "HeroBox"
+	box.clip_contents = true
+	box.mouse_filter = MOUSE_FILTER_IGNORE
+	box.size = Vector2(fig_w, CHAMP_H)
+	panel.add_child(box)
+	PPK.hero_fig(box, hero, "", Vector2(fig_w * 0.5, CHAMP_H + 40.0), CHAMP_H * 1.05)
+	var x0 := fig_w + 18.0
+	var tw := panel.size.x - x0 - 18.0
+	PK.at(panel, PK.t("THE ENEMY CHAMPION  ·  THIS WEEK", 11, SIG, "mono_bold"), Vector2(x0, 18))
+	var nm := str(ch.name).to_upper()
+	var fs := 92
+	while fs > 40 and PK.text_w(nm, fs) > tw:
+		fs -= 4
+	PK.at(panel, PK.t(nm, fs, PAPER, "compressed"), Vector2(x0 - 2, 34))
+	PK.at(panel, PK.t("%s  ·  LV %d  ·  ★6  ·  BOSS" % [str(ch.title).to_upper(), int(ch.level)], 10, Color(PAPER, 0.7), "mono"), Vector2(x0, 36 + fs * 1.05))
+	var yy := 60.0 + fs * 1.05
+	PK.at(panel, PK.t("WORN DOWN THIS WEEK", 10, Color(PAPER, 0.7), "mono_bold"), Vector2(x0, yy))
+	var pct := PK.t("%d%%" % int(ch.pct), 64, SIG, "compressed")
+	PK.at(panel, pct, Vector2(x0 - 2, yy + 12))
+	PK.at(panel, PK.t("%s / %s DAMAGE" % [Kit.format_num(int(ch.damage)), Kit.format_num(int(ch.hp))], 10, Color(PAPER, 0.7), "mono"), Vector2(x0, yy + 84))
+	# The tiers as a list with their rewards, reached ones ticked in signal.
+	var ty := yy + 110.0
+	for t: Variant in ch.tiers:
+		var td := t as Dictionary
+		var on := bool(td.done)
+		var parts: Array[String] = []
+		for k: Variant in (td.reward as Dictionary):
+			parts.append("%s %s" % [Kit.format_num(int(td.reward[k])), str(Kit.CURRENCY_SHORT.get(str(k), str(k))).to_upper()])
+		var row := PK.t(("✓ " if on else "· ") + "%d%%   " % int(td.pct) + "  ".join(parts), 10, SIG if on else Color(PAPER, 0.8), "mono_bold" if on else "mono")
+		row.size = Vector2(tw, 14)
+		row.clip_text = true
+		PK.at(panel, row, Vector2(x0, ty))
+		ty += 18.0
+	var left := int(ch.tries_left)
+	PK.at(panel, PK.t("%d / 3 TRIES LEFT TODAY" % left, 11, PAPER if left > 0 else Color(PAPER, 0.5), "mono_bold"), Vector2(x0, CHAMP_H - 176.0))
+	var spec := {"width": tw + 10.0, "kicker": "BOSS  //  45 S  //  DAMAGE COUNTS", "title": "FIGHT" if left > 0 else "RESTING",
+		"sub": "THE CHAMPION  ·  %d LEFT" % left, "action": "ENGAGE  >>>" if left > 0 else "RESTS  ·  BACK AT MIDNIGHT", "icon": "sword", "disabled": left <= 0}
+	Poster.pass_on(panel, spec, Vector2(x0 - 6.0, CHAMP_H - 150.0), func() -> void:
+		if left > 0:
+			UI.go("battle", {"mode": "champion"}), "Fight", "FightChampion")
+
+
 func _build_claim(pw: float, y: float, claim: Dictionary) -> void:
 	var p := _poster
 	var won := bool(claim.won)
@@ -308,12 +373,11 @@ func _build_claim(pw: float, y: float, claim: Dictionary) -> void:
 		parts.append("%s %s" % [Kit.format_full(int(claim.reward[k])), str(Kit.CURRENCY_SHORT.get(str(k), str(k))).to_upper()])
 	var rl := PK.t("  ·  ".join(parts) + "
 %d SECTOR%s HELD" % [int(claim.held), "" if int(claim.held) == 1 else "S"], 11, Color(INK, 0.72), "mono")
-	rl.size = Vector2(slip.size.x - 260.0, 40)
+	rl.size = Vector2(slip.size.x - 300.0, 40)
 	rl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	PK.at(slip, rl, Vector2(24, 104))
-	var pass_root := Poster.pass_on(slip, {"width": 230.0, "kicker": "REWARD", "title": "CLAIM", "sub": "", "action": "TAKE  >>>", "icon": "gift"},
-		Vector2(slip.size.x - 246.0, 40.0), _claim, "Claim", "ClaimWar", 0.03)
-	pass_root.scale = Vector2(0.8, 0.8)
+	Poster.pass_on(slip, {"width": 270.0, "kicker": "REWARD", "title": "CLAIM", "sub": "LAST WEEK", "action": "TAKE  >>>", "icon": "gift"},
+		Vector2(slip.size.x - 280.0, 18.0), _claim, "Claim", "ClaimWar", 0.03)
 
 
 func _claim() -> void:

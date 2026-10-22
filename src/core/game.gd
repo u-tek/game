@@ -785,6 +785,20 @@ func war_claim() -> Dictionary:
 	return r
 
 
+## The Champion fight's BattleSetup ({} without a side or with no tries left today).
+func war_champion_setup() -> Dictionary:
+	var r := model.war_champion_setup()
+	_flush()
+	return r
+
+
+## Call after a Champion fight. Result {ok, value: {damage, total, pct, reward, tiers}, error}.
+func complete_champion(outcome: Dictionary) -> Dictionary:
+	var r := model.complete_champion(outcome)
+	_flush()
+	return r
+
+
 ## Debug (throwaway saves): the player fights for `side` with souls logged over this week and last.
 func dev_war(side: String) -> void:
 	var ws: Dictionary = model.state.war

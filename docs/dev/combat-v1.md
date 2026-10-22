@@ -37,7 +37,19 @@
   the souls table, last week's claim (both sides rewarded, winners and sectors held more), a FIGHT
   pass. Every campaign or Spire win sends 40 souls to the pinned sector (the battle says where). The
   other side's hosts are simulated (seeded per day and sector), so it works with no server.
-- Next: the balance pass; the player's district; the weekly Champion boss; the server (real sides).
+- **The weekly Champion** (built 2026-10-22; `champion` in `data/war.json`, port spec 9d): the
+  other side fields one heroine a week (Heaven players meet Hell's Infernal champions and the
+  reverse), shown big in the Front's Champion panel (her figure in full colour over her print, the
+  week's bar, the five tiers and their rewards). FIGHT: battle mode `champion`, her alone as a boss
+  in her own colours, towering behind the team, 45 s, three tries a day; the team's damage adds up
+  over the week and each tier (10/25/50/75/100% of her HP) pays once; leaving early still counts the
+  damage. A printed result sheet shows the damage, the bar and any tier reached. Crits don't flash
+  the screen in this fight, and bosses take a softer hit flash.
+- **Balance** (checked 2026-10-22): the stages were calibrated to the economy on 2026-10-18 by the
+  pacing bots; a no-spend bot clears 30 stages in 90-168 h; the hands-on inputs and Encore add no
+  auto bonus, so idle pacing is unchanged. No change needed now.
+- Next: the player's district (the souls settle); the server (real sides, the Champion as a
+  side-wide boss).
 
 
 The owner liked the War for Souls (`docs/dev/feature-ideas.md`: "this is better yes") and asked

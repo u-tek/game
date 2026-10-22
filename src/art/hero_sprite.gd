@@ -407,7 +407,8 @@ func _process(delta: float) -> void:
 		_sync_holo_motion()
 	if _hit_flash > 0.0:
 		_hit_flash = maxf(0.0, _hit_flash - delta * 6.0)
-		rig.set_tint(&"flash", _hit_flash * 0.65)
+		# Bosses take hits from the whole team at once: a softer flash keeps her colours.
+		rig.set_tint(&"flash", _hit_flash * (0.22 if _boss else 0.65))
 		rig.set_tint(&"flash_color", Color(1, 1, 1))
 	if _boss:
 		var k := 0.5 + 0.5 * sin(_t * 2.6)

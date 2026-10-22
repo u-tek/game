@@ -2063,7 +2063,109 @@ func war() -> Dictionary:
 		"focus": int(ws.focus), "sectors": sectors, "standing": WarRules.standing(c), "week": week,
 		"day_in_week": day - WarRules.week_start(week) + 1, "days_left": WarRules.week_start(week) + WarRules.WEEK_DAYS - day,
 		"souls_today": today_souls, "souls_week": _war_week_souls(), "souls_total": int(ws.souls_total),
-		"souls_per_win": WarRules.SOULS_PER_WIN, "claim": _war_claimable()}
+		"souls_per_win": WarRules.SOULS_PER_WIN, "claim": _war_claimable(), "champion": _champ_view()}
+
+
+## This week's Champion for the player's side: set up on the first look of a week (her level from
+## the formation then, so it holds all week); the day's tries reset at midnight.
+func _champ_sync() -> Dictionary:
+	var ws: Dictionary = state.war
+	var side := str(ws.side)
+	var c: Dictionary = ws.champ
+	if side == "":
+		return c
+	var day := today()
+	var week := WarRules.week_of(day)
+	var hero := WarRules.champion_for(week, side)
+	if int(c.week) != week or str(c.hero) != hero:
+		var lv := WarRules.champion_level(int(_rival_ctx().avg))
+		c.week = week
+		c.hero = hero
+		c.level = lv
+		# Her max HP as the battle builds her (passives included): a sim with her alone.
+		c.hp = int(BattleSim.new({"allies": [], "enemies": [_champ_enemy(hero, lv)], "seed": 1}).unit("e0").max_hp)
+		c.damage = 0
+		c.tiers = []
+		c.day = day
+		c.tries = 0
+	if int(c.day) != day:
+		c.day = day
+		c.tries = 0
+	return c
+
+
+## The Champion's UnitSetup: alone in slot 0 as a boss, StatCalc's stats with HP and ATK scaled.
+func _champ_enemy(hero: String, level: int) -> Dictionary:
+	return {"uid": "e0", "hero_id": hero, "side": "enemy", "slot": 0, "level": level,
+		"stars": WarRules.CHAMP_STARS, "stats": WarRules.champion_stats(hero, level), "is_boss": true}
+
+
+## {hero, name, title, level, hp, damage, pct (0-100), tries_left, tiers [{pct, reward, done}]} or {}.
+func _champ_view() -> Dictionary:
+	if str(state.war.side) == "":
+		return {}
+	var c := _champ_sync()
+	var tiers: Array = []
+	for i in WarRules.CHAMP_TIERS.size():
+		var t: Dictionary = WarRules.CHAMP_TIERS[i]
+		tiers.append({"pct": int(t.pct), "reward": t.reward, "done": (c.tiers as Array).has(i)})
+	var d := hero_def(str(c.hero))
+	return {"hero": str(c.hero), "name": str(d.get("name", c.hero)), "title": str(d.get("title", "")), "level": int(c.level),
+		"hp": int(c.hp), "damage": int(c.damage), "pct": mini(100, int(c.damage) * 100 / maxi(1, int(c.hp))),
+		"tries_left": maxi(0, WarRules.CHAMP_TRIES - int(c.tries)), "tiers": tiers}
+
+
+## BattleSetup against the Champion ({} without a side or tries left today): the formation vs her
+## alone as a boss, her HP and ATK scaled, max_ms the champion's.
+func war_champion_setup() -> Dictionary:
+	if str(state.war.side) == "" or not war_unlocked():
+		return {}
+	var c := _champ_sync()
+	if int(c.tries) >= WarRules.CHAMP_TRIES:
+		return {}
+	var attempt := counter("battles_started")
+	state.counters["battles_started"] = attempt + 1
+	var hero := str(c.hero)
+	return {
+		"allies": _ally_setups(),
+		"enemies": [_champ_enemy(hero, int(c.level))],
+		"seed": SeededRng.mix(int(state.rng_seed) + 700001, attempt),
+		"max_ms": WarRules.CHAMP_MAX_MS,
+		"champion": true,
+		"is_boss": true,
+		"background": "chapter-5",
+	}
+
+
+## After a Champion fight: one try used, the damage the team dealt is added to the week's total and
+## every tier newly reached pays at once. Result {ok, value: {damage, total, pct, reward, tiers}, error}.
+func complete_champion(outcome: Dictionary) -> Dictionary:
+	if str(state.war.side) == "":
+		return _err("Pick a side first")
+	var c := _champ_sync()
+	if int(c.tries) >= WarRules.CHAMP_TRIES:
+		return _err("No tries left today")
+	c.tries = int(c.tries) + 1
+	var dmg := 0
+	var dd: Variant = outcome.get("damage_dealt", {})
+	if dd is Dictionary:
+		for uid: Variant in dd:
+			if str(uid).begins_with("a"):
+				dmg += maxi(0, int(dd[uid]))
+	c.damage = int(c.damage) + dmg
+	var got := {}
+	var reached: Array[int] = []
+	for i in WarRules.tiers_reached(int(c.hp), int(c.damage)):
+		if not (c.tiers as Array).has(i):
+			(c.tiers as Array).append(i)
+			reached.append(i)
+			var r := grant((WarRules.CHAMP_TIERS[i] as Dictionary).reward)
+			for k: Variant in r:
+				got[k] = int(got.get(k, 0)) + int(r[k])
+	_bump("champion_fights")
+	_changed()
+	return _ok({"damage": dmg, "total": int(c.damage), "pct": mini(100, int(c.damage) * 100 / maxi(1, int(c.hp))),
+		"reward": got, "tiers": reached})
 
 
 ## Last week's result for the player, when they fought in it and haven't claimed it.
@@ -2119,6 +2221,19 @@ func _migrate_war(ws: Dictionary) -> void:
 	ws.claimed_week = int(ws.claimed_week)
 	ws.souls_total = maxi(0, int(ws.souls_total))
 	ws.seen_week = int(ws.seen_week)
+	var c: Dictionary = ws.champ
+	if HeroData.get_def(str(c.hero)).is_empty():
+		c.hero = ""
+		c.week = -1000000
+	for k: String in ["level", "hp", "damage", "tries"]:
+		c[k] = maxi(0, int(c[k]))
+	var tiers: Array = []
+	if c.tiers is Array:
+		for v: Variant in c.tiers:
+			var i := int(v)
+			if i >= 0 and i < WarRules.CHAMP_TIERS.size() and not tiers.has(i):
+				tiers.append(i)
+	c.tiers = tiers
 
 
 func _migrate_rival(rs: Dictionary) -> void:

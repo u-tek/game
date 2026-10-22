@@ -1176,6 +1176,19 @@ check("war.pushes", f["pushes"], [[w_push(d, s, "heaven"), w_push(d, s, "hell")]
 check("war.control", f["cases"], [{"week": c["week"], "upto_day": c["upto_day"], "side": c["side"],
     "control": (cc := w_control(c["week"], c["upto_day"], f["log"], c["side"])), "standing": w_standing(cc)} for c in f["cases"]])
 check("war.rewards", f["rewards"], [w_reward(r[0], r[1]) for r in f["reward_cases"]])
+C = WAR["champion"]
+def w_other(side): return "hell" if side == "heaven" else ("heaven" if side == "hell" else "")
+def w_champion(week, side):
+    pool = C["pools"].get(w_other(side), [])
+    return pool[week % len(pool)] if pool else ""
+def w_champ_stats(hid, level):
+    st = dict(stats(hid, level, C["stars"]))
+    st["hp"] = idiv(st["hp"] * C["hp_bp"], 10000); st["atk"] = idiv(st["atk"] * C["atk_bp"], 10000)
+    return st
+check("war.champions", f["champions"], [[w_champion(w, "heaven"), w_champion(w, "hell"), w_champion(w, "")] for w in f["champ_weeks"]])
+check("war.champ_levels", f["champ_levels"], [max(C["min_level"], a + C["level_over"]) for a in f["champ_avgs"]])
+check("war.champ_stats", f["champ_stats_out"], [w_champ_stats(c[0], c[1]) for c in f["champ_stats"]])
+check("war.champ_tiers", f["champ_tiers_out"], [[i for i, t in enumerate(C["tiers"]) if c[1] * 100 >= c[0] * t["pct"]] for c in f["champ_tiers"]])
 
 bad = [k for k, v in results.items() if v]
 print("\n%d checks, %d differ" % (len(results), len(bad)))

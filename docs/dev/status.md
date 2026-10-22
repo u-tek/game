@@ -36,8 +36,10 @@ this file says where things stand. Older logs are under "History" at the bottom.
   **the front** (the War for Souls offline: the Oath, the war map, souls from every win, the weekly
   claim; `src/core/war_rules.gd`, screen `front`). Details at the top of `docs/dev/combat-v1.md`.
   The owner (2026-10-22): "just keep working and adding features and refining the app based on the
-  visual references". Next: the balance pass, the player's district, the weekly Champion boss, then
-  the server (real sides).
+  visual references". Since: **the weekly Champion** (the other side's heroine as a big boss on the
+  Front, three tries a day, damage tiers pay). The balance was checked (already calibrated to the
+  economy). Next: the player's district, then the server (real sides). `tools/check` now compresses
+  newly installed hero art itself (the PC art session installs 18+ looks while code work runs).
 - **App cleanup (2026-10-22, PC chat; the owner: "i want the clean the app up first", then "i'm happy
   for you to go ahead with all of those changes").** An audit of every screen (`tools/shoot`, rich
   save) and of the code, then:

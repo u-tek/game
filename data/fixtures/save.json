@@ -46,7 +46,15 @@
 				"skins": {"owned": [], "equipped": {}},
 				"prints": {"seed": 1417960604, "seq": 0, "ed": {}, "list": [], "total": 0, "showcase": []},
 				"rival": {"seed": 845043984, "met": false, "day": -1, "heroes": {}, "pulls": 0, "pity": {}, "lost": false, "ed": {}, "print_seq": 0, "prints": [], "feed": [], "feed_seq": 0, "seen": 0, "wins": 0, "losses": 0, "fights": 0, "haul_day": -1, "tag_you": false, "tag_her": false, "tag_v": 0},
-				"war": {"side": "", "focus": 3, "log": {}, "claimed_week": -1000000, "souls_total": 0, "seen_week": -1000000},
+				"war": {
+					"side": "",
+					"focus": 3,
+					"log": {},
+					"claimed_week": -1000000,
+					"souls_total": 0,
+					"seen_week": -1000000,
+					"champ": {"week": -1000000, "hero": "", "level": 0, "hp": 0, "damage": 0, "day": -1000000, "tries": 0, "tiers": []}
+				},
 				"counters": {},
 				"dev_time_offset": 0,
 				"rng_seed": 1055219407
@@ -117,7 +125,15 @@
 				"skins": {"owned": [], "equipped": {}},
 				"prints": {"seed": 2023190264, "seq": 0, "ed": {}, "list": [], "total": 0, "showcase": []},
 				"rival": {"seed": 2125292450, "met": false, "day": -1, "heroes": {}, "pulls": 0, "pity": {}, "lost": false, "ed": {}, "print_seq": 0, "prints": [], "feed": [], "feed_seq": 0, "seen": 0, "wins": 0, "losses": 0, "fights": 0, "haul_day": -1, "tag_you": false, "tag_her": false, "tag_v": 0},
-				"war": {"side": "", "focus": 3, "log": {}, "claimed_week": -1000000, "souls_total": 0, "seen_week": -1000000},
+				"war": {
+					"side": "",
+					"focus": 3,
+					"log": {},
+					"claimed_week": -1000000,
+					"souls_total": 0,
+					"seen_week": -1000000,
+					"champ": {"week": -1000000, "hero": "", "level": 0, "hp": 0, "damage": 0, "day": -1000000, "tries": 0, "tiers": []}
+				},
 				"counters": {},
 				"dev_time_offset": 0,
 				"rng_seed": 5422372
@@ -162,7 +178,15 @@
 				"skins": {"owned": [], "equipped": {}},
 				"prints": {"seed": 1417960604, "seq": 0, "ed": {}, "list": [], "total": 0, "showcase": []},
 				"rival": {"seed": 845043984, "met": false, "day": -1, "heroes": {}, "pulls": 0, "pity": {}, "lost": false, "ed": {}, "print_seq": 0, "prints": [], "feed": [], "feed_seq": 0, "seen": 0, "wins": 0, "losses": 0, "fights": 0, "haul_day": -1, "tag_you": false, "tag_her": false, "tag_v": 0},
-				"war": {"side": "", "focus": 3, "log": {}, "claimed_week": -1000000, "souls_total": 0, "seen_week": -1000000},
+				"war": {
+					"side": "",
+					"focus": 3,
+					"log": {},
+					"claimed_week": -1000000,
+					"souls_total": 0,
+					"seen_week": -1000000,
+					"champ": {"week": -1000000, "hero": "", "level": 0, "hp": 0, "damage": 0, "day": -1000000, "tries": 0, "tiers": []}
+				},
 				"counters": {},
 				"dev_time_offset": 0,
 				"rng_seed": 1055219407
@@ -217,7 +241,15 @@
 				"skins": {"owned": [], "equipped": {}},
 				"prints": {"seed": 2023190264, "seq": 0, "ed": {}, "list": [], "total": 0, "showcase": []},
 				"rival": {"seed": 2125292450, "met": false, "day": -1, "heroes": {}, "pulls": 0, "pity": {}, "lost": false, "ed": {}, "print_seq": 0, "prints": [], "feed": [], "feed_seq": 0, "seen": 0, "wins": 0, "losses": 0, "fights": 0, "haul_day": -1, "tag_you": false, "tag_her": false, "tag_v": 0},
-				"war": {"side": "", "focus": 3, "log": {}, "claimed_week": -1000000, "souls_total": 0, "seen_week": -1000000},
+				"war": {
+					"side": "",
+					"focus": 3,
+					"log": {},
+					"claimed_week": -1000000,
+					"souls_total": 0,
+					"seen_week": -1000000,
+					"champ": {"week": -1000000, "hero": "", "level": 0, "hp": 0, "damage": 0, "day": -1000000, "tries": 0, "tiers": []}
+				},
 				"counters": {},
 				"dev_time_offset": 0,
 				"rng_seed": 5422372
@@ -311,7 +343,15 @@
 					"showcase": []
 				},
 				"rival": {"seed": 2125292450, "met": false, "day": -1, "heroes": {}, "pulls": 0, "pity": {}, "lost": false, "ed": {}, "print_seq": 0, "prints": [], "feed": [], "feed_seq": 0, "seen": 0, "wins": 0, "losses": 0, "fights": 0, "haul_day": -1, "tag_you": false, "tag_her": false, "tag_v": 0},
-				"war": {"side": "", "focus": 3, "log": {}, "claimed_week": -1000000, "souls_total": 0, "seen_week": -1000000},
+				"war": {
+					"side": "",
+					"focus": 3,
+					"log": {},
+					"claimed_week": -1000000,
+					"souls_total": 0,
+					"seen_week": -1000000,
+					"champ": {"week": -1000000, "hero": "", "level": 0, "hp": 0, "damage": 0, "day": -1000000, "tries": 0, "tiers": []}
+				},
 				"counters": {"summons": 11, "idle_claims": 1},
 				"dev_time_offset": 0,
 				"rng_seed": 5422372
@@ -401,7 +441,15 @@
 					"showcase": []
 				},
 				"rival": {"seed": 2125292450, "met": false, "day": -1, "heroes": {}, "pulls": 0, "pity": {}, "lost": false, "ed": {}, "print_seq": 0, "prints": [], "feed": [], "feed_seq": 0, "seen": 0, "wins": 0, "losses": 0, "fights": 0, "haul_day": -1, "tag_you": false, "tag_her": false, "tag_v": 0},
-				"war": {"side": "", "focus": 3, "log": {}, "claimed_week": -1000000, "souls_total": 0, "seen_week": -1000000},
+				"war": {
+					"side": "",
+					"focus": 3,
+					"log": {},
+					"claimed_week": -1000000,
+					"souls_total": 0,
+					"seen_week": -1000000,
+					"champ": {"week": -1000000, "hero": "", "level": 0, "hp": 0, "damage": 0, "day": -1000000, "tries": 0, "tiers": []}
+				},
 				"counters": {"summons": 11, "idle_claims": 1},
 				"dev_time_offset": 0,
 				"rng_seed": 5422372

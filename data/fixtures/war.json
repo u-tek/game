@@ -117,5 +117,33 @@
 		{"gems": 290, "gold": 20000, "scrolls": 1},
 		{"gems": 130, "gold": 20000},
 		{"gems": 320, "gold": 20000, "scrolls": 1}
-	]
+	],
+	"champ_weeks": [-3, -1, 0, 1, 2, 7, 8, 15],
+	"champions": [
+		["sigilla", "rimelle", ""],
+		["brakka", "cirella", ""],
+		["mordessa", "seraphiel", ""],
+		["zecchina", "argentiel", ""],
+		["drezza", "cassiel", ""],
+		["brakka", "cirella", ""],
+		["mordessa", "seraphiel", ""],
+		["brakka", "cirella", ""]
+	],
+	"champ_avgs": [1, 2, 9, 30, 64],
+	"champ_levels": [10, 10, 17, 38, 72],
+	"champ_stats": [["mordessa", 50], ["seraphiel", 18], ["brakka", 72]],
+	"champ_stats_out": [
+		{"hp": 435870, "atk": 603, "def": 382, "spd": 109, "crit": 2800},
+		{"hp": 197670, "atk": 329, "def": 145, "spd": 101, "crit": 1200},
+		{"hp": 1060230, "atk": 414, "def": 724, "spd": 91, "crit": 500}
+	],
+	"champ_tiers": [
+		[1000000, 0],
+		[1000000, 99999],
+		[1000000, 100000],
+		[1000000, 520000],
+		[371625, 371625],
+		[371625, 9999999]
+	],
+	"champ_tiers_out": [[], [], [0], [0, 1, 2], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]]
 }

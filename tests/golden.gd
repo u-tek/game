@@ -896,6 +896,10 @@ static func _war_inputs() -> Dictionary:
 		"log": log,
 		"cases": cases,
 		"reward_cases": [[false, 0], [true, 4], [false, 3], [true, 7]],
+		"champ_weeks": [-3, -1, 0, 1, 2, 7, 8, 15],
+		"champ_avgs": [1, 2, 9, 30, 64],
+		"champ_stats": [["mordessa", 50], ["seraphiel", 18], ["brakka", 72]],
+		"champ_tiers": [[1000000, 0], [1000000, 99999], [1000000, 100000], [1000000, 520000], [371625, 371625], [371625, 9999999]],
 	}
 
 
@@ -914,8 +918,22 @@ static func _war(f: Dictionary) -> Dictionary:
 	var rewards: Array = []
 	for r: Array in f.reward_cases:
 		rewards.append(WarRules.reward(bool(r[0]), int(r[1])))
+	var champs: Array = []
+	for w: Variant in f.champ_weeks:
+		champs.append([WarRules.champion_for(int(w), "heaven"), WarRules.champion_for(int(w), "hell"), WarRules.champion_for(int(w), "")])
+	var levels: Array = []
+	for a: Variant in f.champ_avgs:
+		levels.append(WarRules.champion_level(int(a)))
+	var cstats: Array = []
+	for c: Array in f.champ_stats:
+		cstats.append(WarRules.champion_stats(str(c[0]), int(c[1])))
+	var ctiers: Array = []
+	for c: Array in f.champ_tiers:
+		ctiers.append(WarRules.tiers_reached(int(c[0]), int(c[1])))
 	return {"days": f.days, "weeks": weeks, "push_days": f.push_days, "pushes": pushes, "log": f.log, "cases": cases,
-		"reward_cases": f.reward_cases, "rewards": rewards}
+		"reward_cases": f.reward_cases, "rewards": rewards, "champ_weeks": f.champ_weeks, "champions": champs,
+		"champ_avgs": f.champ_avgs, "champ_levels": levels, "champ_stats": f.champ_stats, "champ_stats_out": cstats,
+		"champ_tiers": f.champ_tiers, "champ_tiers_out": ctiers}
 
 
 static func _rival_inputs() -> Dictionary:

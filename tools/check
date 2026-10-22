@@ -8,6 +8,13 @@ cd "$(dirname "$0")/.." || exit 1
 NOISE='ALSA|audio_driver_alsa|All audio drivers failed|audio_server.cpp|init_output_device|Condition "status < 0" is true|^\s*at: (init_output_device|initialize) '
 status=0
 imp=$(tools/gd --headless --path . --import 2>&1 | grep -vE "$NOISE")
+# New hero art arrives with Godot's lossless import: set it lossy (tools/art_lossy.py) and import
+# again, so a freshly installed look never fails test_art_import or bloats the IPA.
+PY=$(command -v python3 || command -v python)
+if [ -n "$PY" ] && "$PY" tools/art_lossy.py | grep -qv "set lossy on 0 "; then
+  imp="$imp
+$(tools/gd --headless --path . --import 2>&1 | grep -vE "$NOISE")"
+fi
 if echo "$imp" | grep -qE "SCRIPT ERROR|Parse Error|ERROR:"; then
   echo "IMPORT: errors"; echo "$imp" | grep -E -A2 "SCRIPT ERROR|Parse Error|ERROR:" | head -40; status=1
 else echo "IMPORT: ok"; fi

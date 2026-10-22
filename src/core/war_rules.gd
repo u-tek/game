@@ -22,6 +22,13 @@ extends RefCounted
 ##   standing(c) = {heaven: sectors > 0, hell: sectors < 0, winner: the side with more ("" on a tie)}
 ##   reward(won, held) = rewards.all, plus rewards.won when the player's side won, plus
 ##                       rewards.held_per_sector times the sectors their side held (summed per key)
+## The Champion: each week the other side fields one heroine as a giant boss everyone on the player's
+## side wears down (offline: the player's own damage). champion_for(week, side) = the OTHER side's
+## pool [posmod(week, size)] (the heaven pool is Heaven's champions, so a heaven player meets the
+## hell pool); champion_level(avg) = max(min_level, avg + level_over); her stats are
+## StatCalc.stats(id, level, stars) with hp * hp_bp / 10000 and atk * atk_bp / 10000 (then the
+## battle's boss multipliers and her passives: GameModel reads her max HP from a BattleSim with her
+## alone); tiers_reached(hp, damage) = the indices of tiers with damage * 100 >= hp * pct, in order.
 ## The log: {"<day>": {"<sector>": souls}} (string keys, as saved).
 
 static var _d: Dictionary = GameData.file("war")
@@ -38,6 +45,15 @@ static var SIM_SPREAD: int = int(_d.sim.spread)
 static var CONTROL_PER_SOUL_BP: int = int(_d.control_per_soul_bp)
 static var CONTROL_MAX_BP: int = int(_d.control_max_bp)
 static var LOG_DAYS: int = int(_d.log_days)
+static var _C: Dictionary = _d.champion
+static var CHAMP_LEVEL_OVER: int = int(_C.level_over)
+static var CHAMP_MIN_LEVEL: int = int(_C.min_level)
+static var CHAMP_STARS: int = int(_C.stars)
+static var CHAMP_HP_BP: int = int(_C.hp_bp)
+static var CHAMP_ATK_BP: int = int(_C.atk_bp)
+static var CHAMP_MAX_MS: int = int(_C.max_ms)
+static var CHAMP_TRIES: int = int(_C.tries_per_day)
+static var CHAMP_TIERS: Array = _C.tiers
 
 
 static func sector_count() -> int:
@@ -117,6 +133,42 @@ static func _add(into: Dictionary, more: Dictionary) -> void:
 		into[str(k)] = int(into.get(str(k), 0)) + int(more[k])
 
 
-## A fresh save block: no side chosen, focus on the middle sector, nothing logged or claimed.
+## The side the player fights against.
+static func other_side(side: String) -> String:
+	return "hell" if side == "heaven" else ("heaven" if side == "hell" else "")
+
+
+## This week's enemy Champion for a player on `side` ("" without a side).
+static func champion_for(week: int, side: String) -> String:
+	var pool: Array = (_C.pools as Dictionary).get(other_side(side), [])
+	if pool.is_empty():
+		return ""
+	return str(pool[posmod(week, pool.size())])
+
+
+static func champion_level(avg_level: int) -> int:
+	return maxi(CHAMP_MIN_LEVEL, avg_level + CHAMP_LEVEL_OVER)
+
+
+## Her stats before the battle's boss multipliers: StatCalc's at level/stars, HP and ATK scaled.
+static func champion_stats(hero_id: String, level: int) -> Dictionary:
+	var st: Dictionary = StatCalc.stats(hero_id, level, CHAMP_STARS)
+	st.hp = int(st.hp) * CHAMP_HP_BP / 10000
+	st.atk = int(st.atk) * CHAMP_ATK_BP / 10000
+	return st
+
+
+## The tier indices reached by `damage` against `hp`.
+static func tiers_reached(hp: int, damage: int) -> Array[int]:
+	var out: Array[int] = []
+	for i in CHAMP_TIERS.size():
+		if damage * 100 >= hp * int((CHAMP_TIERS[i] as Dictionary).pct):
+			out.append(i)
+	return out
+
+
+## A fresh save block: no side chosen, focus on the middle sector, nothing logged or claimed, no
+## champion yet (she is set up on the first look of a week).
 static func new_state() -> Dictionary:
-	return {"side": "", "focus": sector_count() / 2, "log": {}, "claimed_week": -1000000, "souls_total": 0, "seen_week": -1000000}
+	return {"side": "", "focus": sector_count() / 2, "log": {}, "claimed_week": -1000000, "souls_total": 0, "seen_week": -1000000,
+		"champ": {"week": -1000000, "hero": "", "level": 0, "hp": 0, "damage": 0, "day": -1000000, "tries": 0, "tiers": []}}

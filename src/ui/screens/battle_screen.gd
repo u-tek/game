@@ -2,6 +2,8 @@ extends Control
 ## Screen "battle": plays a campaign stage. params: stage_index (int); skip (bool, for
 ## screenshots: skips to the result right away). params mode = "tower" and floor (int) play a
 ## floor of the Spire instead (the floor is stage-shaped, so the rest of the screen is shared).
+## params mode = "champion" fights the war's enemy Champion (Game.war_champion_setup: her alone as a
+## boss, 45 s; the damage counts, the week's tiers pay; a printed result sheet, then the front).
 ## params mode = "rival" fights Rue's team today (Game.rival_battle_setup; a result poster of its own,
 ## src/ui/rival/rival_result.gd: YOU BEAT RUE with the haul and her print, or RUE WINS, which costs
 ## nothing).
@@ -173,7 +175,19 @@ var _shown_secs := -1
 
 func setup(params: Dictionary) -> void:
 	UI.set_chrome(false, false)
-	if str(params.get("mode", "")) == "rival":
+	if str(params.get("mode", "")) == "champion":
+		_mode = "champion"
+		_setup = Game.war_champion_setup()
+		var ch: Dictionary = (Game.war() as Dictionary).get("champion", {})
+		if _setup.is_empty() or ch.is_empty():
+			_completed = true
+			UI.toast("No tries left against the Champion today", "bad")
+			UI.go("front")
+			return
+		_index = 0
+		_stage = {"index": 0, "id": "CHAMP", "chapter": 4, "name": str(ch.name), "is_boss": true,
+			"background": str(_setup.get("background", "")), "enemies": _setup.get("enemies", []), "recommended_power": 0}
+	elif str(params.get("mode", "")) == "rival":
 		_mode = "rival"
 		if not Game.rival_unlocked():
 			_completed = true
@@ -269,6 +283,11 @@ func _exit_tree() -> void:
 		var out := {"victory": false, "winner": "enemy", "retreat": true}
 		if _mode == "tower":
 			Game.complete_tower.call_deferred(_floor, out)
+		elif _mode == "champion":
+			# The damage dealt before leaving still counts.
+			var co := _sim.outcome()
+			co["retreat"] = true
+			Game.complete_champion.call_deferred(co)
 		elif _mode == "rival":
 			Game.complete_rival.call_deferred(out)
 		else:
@@ -281,6 +300,8 @@ func _report(outcome: Dictionary) -> Dictionary:
 		return Game.complete_tower(_floor, outcome)
 	if _mode == "rival":
 		return Game.complete_rival(outcome)
+	if _mode == "champion":
+		return Game.complete_champion(outcome)
 	return Game.complete_stage(_index, outcome)
 
 
@@ -311,6 +332,7 @@ func _build() -> void:
 
 	_souls = SoulsCrowd.new()
 	_souls.name = "Souls"
+	_souls.visible = _mode != "champion"
 	_world.add_child(_souls)
 	_units = Node2D.new()
 	_units.name = "Units"
@@ -337,7 +359,8 @@ func _build() -> void:
 	for u: Dictionary in _sim.units:
 		var v: Node2D = UnitView.new()
 		_units.add_child(v)
-		v.call("setup", u, 1.0, 1 if u.side == "ally" else -1, u.side == "enemy", _bars)
+		# The Champion stands in her own colours (not an echo): she is the show.
+		v.call("setup", u, 1.0, 1 if u.side == "ally" else -1, u.side == "enemy" and _mode != "champion", _bars)
 		_views[str(u.uid)] = v
 		var spr: Node2D = v.get("sprite")
 		if spr and spr.has_signal("vfx_requested"):
@@ -396,10 +419,15 @@ func _layout_units() -> void:
 			v.set("bars_off", true)
 			v.call("bars_visible", false)
 		else:
-			# The foes: smaller, in the mid-ground; bosses 30% bigger with the crown on screen.
+			# The foes: smaller, in the mid-ground; bosses 30% bigger with the crown on screen. The
+			# war's Champion towers over the field, centred behind the team.
 			k = f.size.y * FOE_H * (0.86 if back else 1.0) * (1.3 if boss else 1.0) / maxf(base_h, 1.0)
 			var x := w * (float(BACK_X[clampi(slot - 2, 0, 2)]) if back else float(FRONT_X[clampi(slot, 0, 1)]))
 			var y := f.position.y + f.size.y * (0.36 if back else 0.45)
+			if _mode == "champion":
+				k = f.size.y * 0.62 / maxf(base_h, 1.0)
+				x = w * 0.5
+				y = f.position.y + f.size.y * 0.66
 			if boss:
 				y = maxf(y, f.position.y + base_h * k + 40.0)
 			_home[uid] = Vector2(x, y)
@@ -989,6 +1017,8 @@ func _start_intro() -> void:
 	var kick := ("SPIRE  ·  FLOOR %02d" % _floor) if _mode == "tower" else ("STAGE %s  ·  CH.%02d" % [str(_stage.get("id", "")), int(_stage.get("chapter", 0)) + 1])
 	if _mode == "rival":
 		kick = "RIVAL  ·  SHE CHOSE THIS TEAM FOR YOU"
+	elif _mode == "champion":
+		kick = "THE ENEMY CHAMPION  ·  WEAR HER DOWN"
 	col.add_child(BP.t(kick, 12, BP.SIG, "mono_bold"))
 	var nm := BP.t(str(_stage.get("name", "")).to_upper(), 44, BP.INK, "compressed")
 	col.add_child(nm)
@@ -1231,7 +1261,9 @@ func _on_damage(ev: Dictionary) -> void:
 		elif crit:
 			_shake(7.0)
 			_hit_stop(0.07)
-			_screen_flash(Color(1, 0.95, 0.8), 0.22)
+			# Against the Champion the whole team crits all the time: no flash, or the screen strobes.
+			if _mode != "champion":
+				_screen_flash(Color(1, 0.95, 0.8), 0.22)
 		else:
 			_shake(2.5)
 	if str(ev.target) == _boss_uid and _boss_band:
@@ -1521,6 +1553,8 @@ func _on_end(winner: String) -> void:
 	_phase = "ending"
 	_phase_t = 0.0
 	_manual_hint.visible = false
+	if _mode == "champion":
+		_souls_won = 0
 	if _souls and _souls_won < 0:
 		_souls_won = int(_souls.call("finish", winner == "ally"))
 		if winner == "ally":
@@ -1560,6 +1594,9 @@ func _finish(outcome: Dictionary) -> void:
 	if _mode == "rival":
 		_finish_rival(outcome, val)
 		return
+	if _mode == "champion":
+		_finish_champion(val)
+		return
 	var r: Control = BattleResult.new()
 	r.set("on_action", _on_result_action)
 	_overlay.add_child(r)
@@ -1592,6 +1629,52 @@ func _finish(outcome: Dictionary) -> void:
 			"mvp": _mvp(outcome), "foe": _foe_mvp(outcome), "team_size": _team_size,
 			"mode": _mode, "floor": _floor, "report_no": _report_no(),
 		})
+
+
+## The Champion's result: a printed sheet with the damage huge, the week's bar with its tiers, any
+## tier rewards just reached; OK goes back to the front.
+func _finish_champion(val: Dictionary) -> void:
+	UI.sfx("victory")
+	UI.haptic(30)
+	var ch: Dictionary = (Game.war() as Dictionary).get("champion", {})
+	var col := Kit.vbox(8)
+	col.custom_minimum_size.x = 560
+	col.add_child(BP.t("THE ENEMY CHAMPION  ·  %s" % str(ch.get("name", "")).to_upper(), 12, BP.SIG, "mono_bold"))
+	var big := BP.t(Kit.format_full(int(val.get("damage", 0))), 96, BP.INK, "compressed")
+	col.add_child(big)
+	col.add_child(BP.t("DAMAGE THIS FIGHT  ·  %d%% OF HER WORN DOWN THIS WEEK" % int(val.get("pct", 0)), 12, BP.INK, "mono_bold"))
+	var bar := ChampBar.new()
+	bar.custom_minimum_size = Vector2(560, 46)
+	bar.set("champ", ch)
+	col.add_child(bar)
+	var rw: Dictionary = val.get("reward", {})
+	if not rw.is_empty():
+		col.add_child(BP.t("TIER REACHED", 11, BP.SIG, "mono_bold"))
+		col.add_child(Kit.reward_receipt(rw, 560.0, {"compact": true}))
+	col.add_child(BP.t("%d TR%s LEFT TODAY" % [int(ch.get("tries_left", 0)), "Y" if int(ch.get("tries_left", 0)) == 1 else "IES"], 11, Color(BP.INK, 0.6), "mono"))
+	UI.popup("Champion", col, func() -> void: UI.go("front"), 640.0, true)
+
+
+## The Champion's week as a bar: the share worn down in ink, the tiers as ticks (signal once reached).
+class ChampBar:
+	extends Control
+	var champ: Dictionary = {}
+
+	func _draw() -> void:
+		var w := size.x
+		var y := 8.0
+		var h := 16.0
+		draw_rect(Rect2(0, y, w, h), Color(0.063, 0.067, 0.075, 0.12))
+		var pct := clampf(float(champ.get("pct", 0)) / 100.0, 0.0, 1.0)
+		draw_rect(Rect2(0, y, w * pct, h), Color(0.063, 0.067, 0.075))
+		var f := Kit.font("mono_bold")
+		for t: Variant in champ.get("tiers", []):
+			var td := t as Dictionary
+			var x := w * float(td.pct) / 100.0
+			var on := bool(td.done)
+			draw_line(Vector2(x, y - 4), Vector2(x, y + h + 4), Color("ff4b1f") if on else Color(0.063, 0.067, 0.075, 0.6), 2.0)
+			draw_string(f, Vector2(x - 30, y + h + 18), "%d%%" % int(td.pct), HORIZONTAL_ALIGNMENT_CENTER, 60, 10,
+				Color("ff4b1f") if on else Color(0.063, 0.067, 0.075, 0.7))
 
 
 ## The Rival's result poster: YOU BEAT RUE (the haul, her print, your tag) or RUE WINS (costs nothing).

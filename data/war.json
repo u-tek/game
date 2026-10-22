@@ -21,6 +21,26 @@
 	"control_per_soul_bp": 4,
 	"control_max_bp": 10000,
 	"log_days": 14,
+	"champion": {
+		"pools": {
+			"heaven": ["seraphiel", "argentiel", "cassiel", "sanariel", "liora", "rimelle", "avienne", "cirella"],
+			"hell": ["mordessa", "zecchina", "drezza", "vesper", "carmesa", "sigilla", "torqua", "brakka"]
+		},
+		"level_over": 8,
+		"min_level": 10,
+		"stars": 6,
+		"hp_bp": 300000,
+		"atk_bp": 7000,
+		"max_ms": 45000,
+		"tries_per_day": 3,
+		"tiers": [
+			{"pct": 10, "reward": {"gems": 30, "gold": 10000}},
+			{"pct": 25, "reward": {"dust": 300}},
+			{"pct": 50, "reward": {"gems": 60, "scrolls": 1}},
+			{"pct": 75, "reward": {"dust": 600, "gold": 30000}},
+			{"pct": 100, "reward": {"gems": 120, "scrolls": 2}}
+		]
+	},
 	"rewards": {
 		"all": {"gems": 100, "gold": 20000},
 		"won": {"gems": 150, "scrolls": 1},

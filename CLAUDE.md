@@ -160,8 +160,8 @@ that the owner sideloads. The repo `u-tek/game` is public. The only code branch 
   `assets/art/heroes/<id>/`: `<id>.png` (1024x2048 RGBA, soles at 512,1990), `variants/*.png`
   (same alpha as the base, only the face changes) and the `tools/art_warp` outputs. Every hero,
   skin and adult painting and its portrait import lossy (WebP 90%; 2026-10-22, the IPA had reached
-  471 MB): after installing art and importing, run `python tools/art_lossy.py` and import again (a
-  unit test fails otherwise). UI icons are
+  471 MB): `tools/check` does it for new art (import, `tools/art_lossy.py`, import again); outside it,
+  run `python tools/art_lossy.py` and import again (a unit test fails otherwise). UI icons are
   SVGs from `assets/art/ui/src/make_icons.py`. UI collage objects (stamp disc ...) are Cycles
   renders in `assets/art/ui/objects/` from `tools/blender/ui_objects.py` + `finish_objects.py`; the 65 gear
   pieces (13 kinds x 5 tiers) in `assets/art/ui/gear/<noun>_<tier>.png` from `tools/blender/gear_objects.py`.
