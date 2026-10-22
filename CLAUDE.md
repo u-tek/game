@@ -70,7 +70,7 @@ that the owner sideloads. The repo `u-tek/game` is public. The only code branch 
   generator is MOSS-Image** (owner, 2026-10-20: "make moss the main generator in the pipeline at 25
   steps, keep amanatsu as a fallback"); **Amanatsu Illustrious v2**, the owner's pick from 8 SDXL
   models (2026-10-17), is the fallback (`--fallback`). The art style target is the NIKKE / Brown Dust
-  2 Korean-gacha anime look, and heroes read as mid-twenties adults: never prompt `mature female` or
+  2 Korean-gacha anime look, and heroes read as adults of about twenty in the normal art (owner, 2026-10-22: "around 20 than 30"; `age_natural`) and mid-twenties in the nude set (`age_natural_adult`): never prompt `mature female` or
   30s ages (owner, 2026-10-20). The first 15 heroes' art in `assets/` today still comes from the old art farm
   (Animagine XL 4.0 on GitHub Actions CPU runners, `docs/dev/art-farm.md`) and is being replaced.
 - **Animation:** HaloRig, our own replacement for Spine: a warp rig on the painted PNG with eye

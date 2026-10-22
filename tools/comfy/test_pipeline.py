@@ -1655,13 +1655,13 @@ class TestMoss(unittest.TestCase):
         with self.assertRaises(workflows.WorkflowError):
             workflows.txt2img(s, "p", "n", 1, "x", controlnet={"name": "x"})
 
-    def test_prompts_read_as_mid_twenties_and_keep_the_rules(self):
+    def test_prompts_read_as_early_twenties_and_keep_the_rules(self):
         for hid, h in BIBLE["heroes"].items():
             pr = prompts.full_body(BIBLE, hid, "moss")
             pos = pr["positive"]
             self.assertIn("She is %s, " % h["name"], pos)
             self.assertNotRegex(pos, r"in her (early|mid|late)[ -]?(20s|30s)", hid)     # owner: no 30-40+ look
-            self.assertIn("mid-twenties", pos, hid)
+            self.assertIn("early twenties", pos, hid)     # owner 2026-10-22: "around 20"; the nude set stays mid-twenties
             self.assertNotIn("mature", pos.lower(), hid)
             self.assertIn(BIBLE["families"]["moss"]["style_natural"], pos)
             _, bg = prompts.background(BIBLE, hid)

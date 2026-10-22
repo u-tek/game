@@ -445,6 +445,12 @@ def _prose(text):
     return t if not t or t[-1] in ".!?" else t + "."
 
 
+def _age_fam(fam, adult):
+    """Normal art reads as about twenty (owner, 2026-10-22: "make the age hover more around 20 than 30"); the nude
+    set keeps age_natural_adult (mid-twenties)."""
+    return dict(fam, age_natural=fam["age_natural_adult"]) if adult and fam.get("age_natural_adult") else fam
+
+
 def _with_age(text, fam):
     return _AGE_RE.sub(fam.get("age_natural", "in her mid-twenties"), text or "")
 
@@ -539,7 +545,7 @@ def _sentence_full_body(bible, fam, h, hero_id, bg, extra_tags, adult, pose=None
             h = dict(h, pose="")
     parts = ["%s, full body." % subj, style,
              _face_sentence(fam, h.get("default_eyes") == "closed"), composition,
-             _who(fam, h), _prose(plain_tags(extra_tags)) if extra_tags else "",
+             _who(_age_fam(fam, adult), h), _prose(plain_tags(extra_tags)) if extra_tags else "",
              bg.get("natural") or "Plain flat background, no scenery."]
     return " ".join(p.strip() for p in parts if p and p.strip())
 
@@ -548,7 +554,7 @@ def _sentence_close_up(bible, fam, h, tags, bg, adult, what="close-up of her fac
     """Tags first (so variant_conflicts reads them as clean tags), then the style and who she is. A
     variant's expression is said again as a sentence: MOSS barely moved an eyes_closed or mouth_open
     region from the tags alone (2026-10-20)."""
-    age = fam.get("age_natural", "in her mid-twenties")
+    age = _age_fam(fam, adult).get("age_natural", "in her mid-twenties")
     head = "%s." % plain_tags(join_tags(_sentence_subject(bible, h, adult), what, tags))
     closed = "closed eyes" in tag_weights(plain_tags(tags))
     parts = [head, fam.get("style_natural", ""), _face_sentence(fam, closed),
