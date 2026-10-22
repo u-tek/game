@@ -412,7 +412,7 @@ func _district_bonus() -> Dictionary:
 	var ws: Dictionary = state.get("war", {})
 	if ws.is_empty() or str(ws.get("side", "")) == "":
 		return {}
-	return DistrictRules.bonus(str(ws.side), int(ws.souls_total), ws.get("keepers", {}))
+	return DistrictRules.bonus(str(ws.side), int(ws.souls_total), ws.get("keepers", {}), ws.get("levels", {}))
 
 
 ## Grants pending idle rewards; returns the Reward granted.
@@ -2225,6 +2225,7 @@ func district() -> Dictionary:
 	var side := str(ws.side)
 	var souls := int(ws.souls_total)
 	var keepers: Dictionary = ws.keepers
+	var levels: Dictionary = ws.get("levels", {})
 	var open := DistrictRules.open(souls)
 	var bl: Array = []
 	var nxt := {}
@@ -2232,9 +2233,12 @@ func district() -> Dictionary:
 		var b: Dictionary = DistrictRules.BUILDINGS[i]
 		var hid := str(keepers.get(str(i), ""))
 		var mult := DistrictRules.kept_mult(side, str(hero_def(hid).get("faction", ""))) if hid != "" else 10000
+		var lv := clampi(int(levels.get(str(i), 1)), 1, DistrictRules.MAX_LEVEL)
 		bl.append({"i": i, "id": str(b.id), "name": str(b.name), "souls": int(b.souls), "open": open.has(i),
-			"currency": str(b.currency), "bonus_bp": int(b.bonus_bp) * mult / 10000, "keeper": hid,
-			"doubled": mult > 10000, "w": int(b.w), "d": int(b.d), "h": int(b.h)})
+			"currency": str(b.currency), "bonus_bp": DistrictRules.level_bonus(int(b.bonus_bp), lv) * mult / 10000, "keeper": hid,
+			"doubled": mult > 10000, "w": int(b.w), "d": int(b.d), "h": int(b.h), "level": lv, "max_level": DistrictRules.MAX_LEVEL,
+			"upgrade_cost": DistrictRules.upgrade_cost(i, lv) if open.has(i) else {},
+			"next_bonus_bp": DistrictRules.level_bonus(int(b.bonus_bp), lv + 1) * mult / 10000 if lv < DistrictRules.MAX_LEVEL else 0})
 		if nxt.is_empty() and not open.has(i):
 			nxt = {"souls": int(b.souls), "name": str(b.name)}
 	return {"name": DistrictRules.quarter_name(side), "side": side, "souls": souls, "bonus": _district_bonus(),
@@ -2261,6 +2265,27 @@ func district_set_keeper(building: int, hero_id: String) -> Dictionary:
 		keepers[str(building)] = hero_id
 	_changed()
 	return _ok({"building": building, "keeper": hero_id})
+
+
+## Raises an open building one level for gold. Result {ok, value: {building, level}, error}.
+func district_upgrade(building: int) -> Dictionary:
+	var ws: Dictionary = state.war
+	if str(ws.side) == "":
+		return _err("Pick a side first")
+	if building < 0 or building >= DistrictRules.BUILDINGS.size() or not DistrictRules.open(int(ws.souls_total)).has(building):
+		return _err("That building isn't open yet")
+	if not (ws.get("levels") is Dictionary):
+		ws["levels"] = {}
+	var lv := clampi(int(ws.levels.get(str(building), 1)), 1, DistrictRules.MAX_LEVEL)
+	var cost := DistrictRules.upgrade_cost(building, lv)
+	if cost.is_empty():
+		return _err("Already at its highest level")
+	if not _can_afford(cost):
+		return _err("Not enough gold")
+	_pay(cost)
+	ws.levels[str(building)] = lv + 1
+	_changed()
+	return _ok({"building": building, "level": lv + 1, "cost": cost})
 
 
 ## Claims last week's war reward. Result {ok, value: {reward, won, held}, error}.
@@ -2303,6 +2328,15 @@ func _migrate_war(ws: Dictionary) -> void:
 				kp[str(i)] = hid
 				seen[hid] = true
 	ws.keepers = kp
+	var lvs := {}
+	if ws.get("levels") is Dictionary:
+		for k: Variant in ws.levels:
+			var i := int(str(k))
+			if str(k).is_valid_int() and i >= 0 and i < DistrictRules.BUILDINGS.size():
+				var lv := clampi(int(ws.levels[k]), 1, DistrictRules.MAX_LEVEL)
+				if lv > 1:
+					lvs[str(i)] = lv
+	ws.levels = lvs
 	var c: Dictionary = ws.champ
 	if HeroData.get_def(str(c.hero)).is_empty():
 		c.hero = ""

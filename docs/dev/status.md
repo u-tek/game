@@ -100,6 +100,13 @@ this file says where things stand. Older logs are under "History" at the bottom.
   yet built, kept ones in their keeper's ink. Re-render: `blender --background --factory-startup
   --python tools/blender/district_models.py -- <dir>` (about 90 s), then `python
   tools/blender/finish_district.py <dir>`.
+- **District levels (2026-10-22, the city-building side):** gold raises a built building from level 1
+  to 5; its idle bonus grows from x1 to x3 (before the keeper's doubling). L to L + 1 costs
+  20,000 x L x L gold, +25% per building down the list (the Gate's last step 320K, the Spire's
+  600K; about 9M gold for the whole quarter): a long, optional use for idle gold. Rules in
+  `district_rules.gd` (port spec 9e, fixture war.json, port check 103); the sheet of a building
+  (tap its ledger row) shows LEVEL n / 5 and an UPGRADE stamp; the ledger and the maquette's tags
+  show the level.
 - **Restraint pass, continued:** Settings' title no longer runs through Back; Summon's left edge no
   longer overprints two lines of micro type.
 - **Next:** keep refining every screen as a restrained poster.

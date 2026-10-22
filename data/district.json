@@ -4,6 +4,7 @@
 	"names": {"heaven": "The Halo Quarter", "hell": "The Horn Quarter"},
 	"keeper_factions": {"heaven": ["celestial", "fallen"], "hell": ["infernal", "fallen"]},
 	"keeper_mult_bp": 20000,
+	"levels": {"_doc": "A built building is level 1; gold raises it to max. Bonus at level L = bonus_bp * (L + 1) / 2 (x1 .. x3 at 5). Going from L to L + 1 costs gold_base * L * L * (10000 + cost_step_bp * building index) / 10000 gold.", "max": 5, "gold_base": 20000, "cost_step_bp": 2500},
 	"buildings": [
 		{"id": "gate", "name": "The Gate", "souls": 0, "currency": "gold", "bonus_bp": 200, "w": 2, "d": 1, "h": 3},
 		{"id": "chapel", "name": "The Chapel", "souls": 400, "currency": "hero_exp", "bonus_bp": 200, "w": 1, "d": 2, "h": 4},

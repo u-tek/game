@@ -1192,17 +1192,22 @@ check("war.champ_stats", f["champ_stats_out"], [w_champ_stats(c[0], c[1]) for c 
 DIST = load("district")
 def d_open(souls): return [i for i, b in enumerate(DIST["buildings"]) if souls >= b["souls"]]
 def d_mult(side, faction): return DIST["keeper_mult_bp"] if faction in DIST["keeper_factions"].get(side, []) else 10000
-def d_bonus(side, souls, keepers):
+LV = DIST["levels"]
+def d_level_bonus(bp, lv): return idiv(bp * (min(max(lv, 1), LV["max"]) + 1), 2)
+def d_cost(i, lv): return {} if lv >= LV["max"] else {"gold": idiv(LV["gold_base"] * lv * lv * (10000 + LV["cost_step_bp"] * i), 10000)}
+def d_bonus(side, souls, keepers, levels=None):
     out = {}
+    levels = levels or {}
     if side == "": return out
     for i in d_open(souls):
-        b = DIST["buildings"][i]; bp = b["bonus_bp"]; hid = keepers.get(str(i), "")
+        b = DIST["buildings"][i]; bp = d_level_bonus(b["bonus_bp"], levels.get(str(i), 1)); hid = keepers.get(str(i), "")
         if hid: bp = idiv(bp * d_mult(side, HERO[hid]["faction"]), 10000)
         out[b["currency"]] = out.get(b["currency"], 0) + bp
     return out
 def d_apply(rates, bonus): return {k: idiv(v * (10000 + bonus.get(k, 0)), 10000) for k, v in rates.items()}
 check("district.open", f["district_open"], [d_open(s) for s in f["district_souls"]])
-check("district.bonus", f["district_out"], [{"bonus": (b := d_bonus(c["side"], c["souls"], c["keepers"])), "rates": d_apply(f["district_rates"], b)} for c in f["district_cases"]])
+check("district.bonus", f["district_out"], [{"bonus": (b := d_bonus(c["side"], c["souls"], c["keepers"], c.get("levels"))), "rates": d_apply(f["district_rates"], b)} for c in f["district_cases"]])
+check("district.costs", f["district_costs"], [d_cost(c[0], c[1]) for c in f["district_levels"]])
 check("war.champ_tiers", f["champ_tiers_out"], [[i for i, t in enumerate(C["tiers"]) if c[1] * 100 >= c[0] * t["pct"]] for c in f["champ_tiers"]])
 
 # ---------------- the calendar (9f)

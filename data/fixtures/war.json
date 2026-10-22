@@ -153,7 +153,9 @@
 		{"side": "heaven", "souls": 4500, "keepers": {"0": "seraphiel", "1": "mordessa", "4": "noctaire"}},
 		{"side": "hell", "souls": 4500, "keepers": {"0": "seraphiel", "1": "mordessa", "4": "noctaire"}},
 		{"side": "hell", "souls": 20000, "keepers": {"7": "kessa", "2": "brakka", "9": "kessa"}},
-		{"side": "", "souls": 20000, "keepers": {}}
+		{"side": "", "souls": 20000, "keepers": {}},
+		{"side": "heaven", "souls": 4500, "keepers": {"0": "seraphiel"}, "levels": {"0": 5, "1": 3, "4": 2}},
+		{"side": "hell", "souls": 20000, "keepers": {"7": "kessa"}, "levels": {"7": 4, "2": 2, "6": 9}}
 	],
 	"district_rates": {"gold": 6100, "hero_exp": 4150, "dust": 28, "gems": 15},
 	"district_out": [
@@ -170,6 +172,24 @@
 			"bonus": {"gold": 1200, "hero_exp": 500, "dust": 800, "gems": 1000},
 			"rates": {"gold": 6832, "hero_exp": 4357, "dust": 30, "gems": 16}
 		},
-		{"bonus": {}, "rates": {"gold": 6100, "hero_exp": 4150, "dust": 28, "gems": 15}}
+		{"bonus": {}, "rates": {"gold": 6100, "hero_exp": 4150, "dust": 28, "gems": 15}},
+		{
+			"bonus": {"gold": 1500, "hero_exp": 700, "dust": 600},
+			"rates": {"gold": 7015, "hero_exp": 4440, "dust": 29, "gems": 15}
+		},
+		{
+			"bonus": {"gold": 1050, "hero_exp": 500, "dust": 1600, "gems": 2500},
+			"rates": {"gold": 6740, "hero_exp": 4357, "dust": 32, "gems": 18}
+		}
+	],
+	"district_levels": [[0, 1], [0, 4], [3, 2], [7, 1], [7, 4], [7, 5], [5, 3]],
+	"district_costs": [
+		{"gold": 20000},
+		{"gold": 320000},
+		{"gold": 140000},
+		{"gold": 55000},
+		{"gold": 880000},
+		{},
+		{"gold": 405000}
 	]
 }

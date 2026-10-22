@@ -195,7 +195,7 @@ func _keeper_prints(plan: Control, dist: Dictionary) -> void:
 
 func _build_ledger(pw: float, y: float, dist: Dictionary) -> void:
 	var p := _poster
-	PK.at(p, PK.t("THE LEDGER  ·  TAP A BUILDING TO CHOOSE ITS KEEPER", 11, INK, "mono_bold"), Vector2(24, y - 22))
+	PK.at(p, PK.t("THE LEDGER  ·  TAP A BUILDING: ITS KEEPER, ITS LEVEL", 11, INK, "mono_bold"), Vector2(24, y - 22))
 	for b: Variant in dist.buildings:
 		var bd := b as Dictionary
 		var open := bool(bd.open)
@@ -208,7 +208,12 @@ func _build_ledger(pw: float, y: float, dist: Dictionary) -> void:
 		PK.rect(row, Rect2(Vector2.ZERO, row.size), Color("f5f4f0") if open else Color(INK, 0.04))
 		PK.rect(row, Rect2(0, 0, 5, row.size.y), (SIG if bool(bd.doubled) else INK) if open else Color(INK, 0.2))
 		PK.at(row, PK.t("%02d" % (int(bd.i) + 1), 24, INK if open else Color(INK, 0.35), "compressed"), Vector2(16, 14))
-		PK.at(row, PK.t(str(bd.name).to_upper(), 15, INK if open else Color(INK, 0.45), "mono_bold"), Vector2(60, 12))
+		var nm_t := str(bd.name).to_upper()
+		PK.at(row, PK.t(nm_t, 15, INK if open else Color(INK, 0.45), "mono_bold"), Vector2(60, 12))
+		if open:
+			var lv_x := 60.0 + Kit.font("mono_bold").get_string_size(nm_t, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x + 10.0
+			var lvl := int(bd.get("level", 1))
+			PK.at(row, PK.t("LV %d" % lvl, 11, SIG if lvl >= int(bd.get("max_level", 5)) else Color(INK, 0.6), "mono_bold"), Vector2(lv_x, 15))
 		var cur := str(Kit.CURRENCY_SHORT.get(str(bd.currency), str(bd.currency))).to_upper()
 		var sub := ("+%s%% %s IDLE" % [_pct(int(bd.bonus_bp)), cur]) + ("  ·  DOUBLED" if bool(bd.doubled) else "") if open \
 			else "OPENS AT %s SOULS  ·  +%s%% %s" % [Kit.format_num(int(bd.souls)), _pct(int(bd.bonus_bp)), cur]
@@ -231,7 +236,49 @@ func _build_ledger(pw: float, y: float, dist: Dictionary) -> void:
 		y += ROW_H
 
 
-## The keeper sheet: owned heroines, the side's faction first (they double), tap one to place her.
+## The building's level in the sheet: LEVEL 2 / 5 as filled pips, its bonus now and at the next level,
+## and an UPGRADE stamp for the gold (pressed: the level rises, the sheet shows the new one).
+func _level_block(building: int, b: Dictionary, modal_ref: Array[Control]) -> Control:
+	var box := Control.new()
+	box.custom_minimum_size = Vector2(560, 120)
+	var lvl := int(b.get("level", 1))
+	var mx := int(b.get("max_level", 5))
+	var cur := str(Kit.CURRENCY_SHORT.get(str(b.currency), "")).to_upper()
+	PK.at(box, PK.t("LEVEL %d / %d" % [lvl, mx], 22, INK, "compressed"), Vector2(0, 4))
+	for k in mx:
+		var pip := ColorRect.new()
+		pip.mouse_filter = MOUSE_FILTER_IGNORE
+		pip.color = SIG if k < lvl else Color(INK, 0.15)
+		pip.position = Vector2(k * 22.0, 40)
+		pip.size = Vector2(16, 8)
+		box.add_child(pip)
+	var cost: Dictionary = b.get("upgrade_cost", {})
+	if cost.is_empty():
+		PK.at(box, PK.t("AT ITS HIGHEST  ·  +%s%% %s IDLE" % [_pct(int(b.bonus_bp)), cur], 11, SIG, "mono_bold"), Vector2(0, 62))
+		return box
+	PK.at(box, PK.t("+%s%%  →  +%s%% %s IDLE" % [_pct(int(b.bonus_bp)), _pct(int(b.next_bonus_bp)), cur], 11, INK, "mono_bold"),
+		Vector2(0, 62))
+	var gold := int(cost.get("gold", 0))
+	var can := int(Game.currency("gold")) >= gold
+	var st := SignalKit.stamp_button({"width": 250.0, "height": 104.0, "word": "UPGRADE", "kicker": "LEVEL %d" % (lvl + 1),
+		"sub": "%s GOLD" % Kit.format_num(gold), "button_text": "Upgrade", "disabled": not can}, func() -> void:
+			var r: Dictionary = Game.district_upgrade(building)
+			if not bool(r.get("ok", false)):
+				UI.toast(str(r.get("error", "")), "bad")
+				return
+			UI.haptic(24)
+			UI.toast("%s: level %d" % [str(b.name), int(r.value.level)], "good")
+			if not modal_ref.is_empty():
+				UI.close_modal(modal_ref[0])
+			_pick_keeper.call_deferred(building))
+	st.name = "Upgrade"
+	st.position = Vector2(560 - 250, 6)
+	box.add_child(st)
+	return box
+
+
+## The keeper sheet: the building's level and its upgrade, then owned heroines, the side's faction
+## first (they double), tap one to place her.
 func _pick_keeper(building: int) -> void:
 	var dist: Dictionary = Game.district()
 	var side := str(dist.side)
@@ -245,8 +292,11 @@ func _pick_keeper(building: int) -> void:
 		return ma and not mc if ma != mc else a < c)
 	var col := Kit.vbox(10)
 	col.custom_minimum_size.x = 560
-	col.add_child(PK.t("%s  ·  +%s%% %s IDLE" % [str(b.name).to_upper(), _pct(int(DistrictRules.BUILDINGS[building].bonus_bp)),
+	col.add_child(PK.t("%s  ·  +%s%% %s IDLE" % [str(b.name).to_upper(), _pct(int(b.bonus_bp)),
 		str(Kit.CURRENCY_SHORT.get(str(b.currency), "")).to_upper()], 12, INK, "mono_bold"))
+	var modal_ref: Array[Control] = []
+	if bool(b.open):
+		col.add_child(_level_block(building, b, modal_ref))
 	col.add_child(PK.t("Heroines marked x2 double it.", 13, Color(INK, 0.7), "serif_italic"))
 	var sc := ScrollContainer.new()
 	sc.custom_minimum_size = Vector2(560, 520)
@@ -259,7 +309,6 @@ func _pick_keeper(building: int) -> void:
 	grid.add_theme_constant_override("h_separation", 10)
 	grid.add_theme_constant_override("v_separation", 10)
 	sc.add_child(grid)
-	var modal_ref: Array[Control] = []
 	if str(b.keeper) != "":
 		var clear := Kit.light_button("No keeper", func() -> void:
 			Game.district_set_keeper(building, "")

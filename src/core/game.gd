@@ -911,6 +911,13 @@ func reset_intake() -> void:
 	_flush()
 
 
+## Raises an open building one level for gold (GameModel.district_upgrade).
+func district_upgrade(building: int) -> Dictionary:
+	var r := model.district_upgrade(building)
+	_flush()
+	return r
+
+
 ## The player's district (GameModel.district): buildings, keepers, the idle bonus.
 func district() -> Dictionary:
 	return model.district()
@@ -960,6 +967,8 @@ func dev_war(side: String) -> void:
 		ws.keepers["0"] = mine
 	if other != "":
 		ws.keepers["2"] = other
+	# Two raised buildings (the levels).
+	ws["levels"] = {"0": 3, "2": 2}
 	_flush()
 
 

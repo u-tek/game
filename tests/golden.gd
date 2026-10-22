@@ -910,7 +910,10 @@ static func _war_inputs() -> Dictionary:
 			{"side": "hell", "souls": 4500, "keepers": {"0": "seraphiel", "1": "mordessa", "4": "noctaire"}},
 			{"side": "hell", "souls": 20000, "keepers": {"7": "kessa", "2": "brakka", "9": "kessa"}},
 			{"side": "", "souls": 20000, "keepers": {}},
+			{"side": "heaven", "souls": 4500, "keepers": {"0": "seraphiel"}, "levels": {"0": 5, "1": 3, "4": 2}},
+			{"side": "hell", "souls": 20000, "keepers": {"7": "kessa"}, "levels": {"7": 4, "2": 2, "6": 9}},
 		],
+		"district_levels": [[0, 1], [0, 4], [3, 2], [7, 1], [7, 4], [7, 5], [5, 3]],
 		"district_rates": {"gold": 6100, "hero_exp": 4150, "dust": 28, "gems": 15},
 	}
 
@@ -947,7 +950,9 @@ static func _war(f: Dictionary) -> Dictionary:
 		"champ_avgs": f.champ_avgs, "champ_levels": levels, "champ_stats": f.champ_stats, "champ_stats_out": cstats,
 		"champ_tiers": f.champ_tiers, "champ_tiers_out": ctiers, "district_souls": f.district_souls,
 		"district_open": (f.district_souls as Array).map(func(s: Variant) -> Array: return DistrictRules.open(int(s))),
-		"district_cases": f.district_cases, "district_rates": f.district_rates, "district_out": _district_out(f)}
+		"district_cases": f.district_cases, "district_rates": f.district_rates, "district_out": _district_out(f),
+		"district_levels": f.district_levels, "district_costs": (f.district_levels as Array).map(
+			func(c: Array) -> Dictionary: return DistrictRules.upgrade_cost(int(c[0]), int(c[1])))}
 
 
 # ---------------------------------------------------------------- the calendar
@@ -984,7 +989,7 @@ static func _calendar(f: Dictionary) -> Dictionary:
 static func _district_out(f: Dictionary) -> Array:
 	var out: Array = []
 	for c: Dictionary in f.district_cases:
-		var b := DistrictRules.bonus(str(c.side), int(c.souls), c.keepers)
+		var b := DistrictRules.bonus(str(c.side), int(c.souls), c.keepers, c.get("levels", {}))
 		out.append({"bonus": b, "rates": DistrictRules.apply(f.district_rates, b)})
 	return out
 

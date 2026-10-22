@@ -172,4 +172,4 @@ static func tiers_reached(hp: int, damage: int) -> Array[int]:
 static func new_state() -> Dictionary:
 	return {"side": "", "focus": sector_count() / 2, "log": {}, "claimed_week": -1000000, "souls_total": 0, "seen_week": -1000000,
 		"champ": {"week": -1000000, "hero": "", "level": 0, "hp": 0, "damage": 0, "day": -1000000, "tries": 0, "tiers": []},
-		"keepers": {}}
+		"keepers": {}, "levels": {}}

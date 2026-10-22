@@ -187,4 +187,22 @@ func test_district_buildings_keepers_and_idle(t: TestCtx) -> void:
 	t.ok(bool(g.district_set_keeper(0, cel).ok))
 	t.ok(not bool((g.district().buildings as Array)[0].doubled), "a Celestial keeper doesn't double for Hell")
 	t.ok(not bool(g.district_set_keeper(0, "nobody").ok), "unknown hero refused")
+	# Levels: gold raises an open building; its bonus grows to x3 at the top.
+	var lv0: Dictionary = (g.district().buildings as Array)[0]
+	t.eq(int(lv0.level), 1)
+	var cost := int((lv0.upgrade_cost as Dictionary).gold)
+	g.model.state.currencies.gold = cost - 1
+	t.ok(not bool(g.district_upgrade(0).ok), "not enough gold")
+	g.model.state.currencies.gold = 100000000
+	var r0 := int(g.model.idle_rates().gold)
+	t.ok(bool(g.district_upgrade(0).ok))
+	t.eq(int(g.model.state.currencies.gold), 100000000 - cost, "the gold is spent")
+	t.ok(int(g.model.idle_rates().gold) > r0, "a level raises the rate")
+	for k in 3:
+		t.ok(bool(g.district_upgrade(0).ok))
+	var top: Dictionary = (g.district().buildings as Array)[0]
+	t.eq(int(top.level), DistrictRules.MAX_LEVEL)
+	t.eq(int(top.bonus_bp), DistrictRules.level_bonus(int(DistrictRules.BUILDINGS[0].bonus_bp), DistrictRules.MAX_LEVEL), "x3 at the top")
+	t.ok(not bool(g.district_upgrade(0).ok), "no higher")
+	t.ok(not bool(g.district_upgrade(7).ok), "a closed building can't be raised")
 	_done()

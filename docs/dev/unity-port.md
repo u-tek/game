@@ -963,11 +963,18 @@ Offline: both sides' hosts are simulated; the player's souls are the only live i
   a keeper (`keepers["<i>"]` = hero id) `bp = bp * kept_mult(side, her faction) / 10000`; summed per
   `currency`.
 - `apply(rates, bonus)`: each rate `* (10000 + bonus[currency]) / 10000`.
+- Levels (data `levels`): a built building is level 1. `level_bonus(bp, L) = bp * (L + 1) / 2`
+  (L clamped to 1..max); in `bonus()` each open building's `bonus_bp` is first
+  `level_bonus(bonus_bp, levels["<i>"] or 1)`, then the keeper's multiplier.
+  `upgrade_cost(i, L) = {gold: gold_base * L * L * (10000 + cost_step_bp * i) / 10000}` from L to
+  L + 1, `{}` at max. GameModel `district_upgrade(i)`: a side, an open building, below max, enough
+  gold; spends it and stores `war.levels["<i>"] = L + 1`. Save repair keeps valid indices with levels
+  2..max.
 - GameModel: `souls` = `war.souls_total`; keepers in `war.keepers`. `idle_rates()` =
   `apply(IdleRules.per_hour(cleared), bonus(...))`, used by idle_status, claim_idle and quick_claim.
   `district_set_keeper(i, id)`: needs a side and an open building; "" clears; an owned heroine keeps
   one building (setting her moves her). Save repair drops bad indices, unknown heroes and duplicates.
-- Fixture: data/fixtures/war.json (district_open, district_out).
+- Fixture: data/fixtures/war.json (district_open, district_out with levels, district_costs).
 
 ## 9f. The calendar (`src/core/calendar_rules.gd`, data/calendar.json, GameModel `calendar*`)
 

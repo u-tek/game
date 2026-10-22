@@ -142,6 +142,13 @@ func _draw_labels() -> void:
 		_overlay.draw_rect(tag, Color(INK, 0.6) if open else Color(INK, 0.25), false, 1.0)
 		_overlay.draw_string(f, tag.position + Vector2(0, 12), "%02d" % (i + 1), HORIZONTAL_ALIGNMENT_CENTER, tag.size.x, 10,
 			INK if open else Color(INK, 0.45))
+		# Its level as pips under the tag (from level 2).
+		var lvl := int(bd.get("level", 1))
+		if open and lvl > 1:
+			var mx := int(bd.get("max_level", 5))
+			var px := tag.position.x + tag.size.x * 0.5 - (mx * 6.0 - 2.0) * 0.5
+			for k in mx:
+				_overlay.draw_rect(Rect2(px + k * 6.0, tag.end.y + 3.0, 4.0, 4.0), SIG if k < lvl else Color(INK, 0.2))
 		if not open:
 			var nx := int(bd.souls) == next_souls
 			var lab := "%s SOULS" % Kit.format_num(int(bd.souls))
