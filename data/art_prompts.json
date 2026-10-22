@@ -162,6 +162,9 @@
   "composition_rig_natural": "She stands facing the viewer, upright and symmetrical, in a relaxed pose made for animation: both arms held a little away from her sides so nothing crosses her body, legs slightly apart with both feet flat and fully visible, hair falling behind her shoulders, wings spread wide and level, clear of her body, every limb, wing and prop fully visible and separate. The whole figure is in frame from the top of her head to both feet.",
    "age_natural": "in her mid-twenties",
    "body_drop_natural": ["toned", "muscular female", "muscular"],
+   "outfit_natural": "She wears almost nothing: her outfit is a tiny, barely-there micro version of her design, just thin straps, strings and very small patches that barely cover the tips of her breasts and her crotch, with lots of underboob and sideboob spilling out, and her stomach, hips, thighs, butt, back, shoulders and arms all bare. Any coat, cape, jacket, robe, sarong or long skirt in her design hangs open or slips off her body and covers nothing, and any bodysuit or leotard is cut down to a few thin strips.",
+   "topless_natural": "Above the waist she wears nothing at all, not even a bikini top, only the lower half of her outfit; her chest is bare and {cover}, so the tips of her breasts are completely hidden. Everything else about her body is bare too.",
+   "cover_natural": {"hands": "her own hands are cupped over the front of her breasts, palms and fingers pressed flat over them", "arm": "one forearm is pressed across the front of her breasts with her hand cupping the far side", "hair": "her long hair falls in thick locks over the front of her breasts"},
    "quality": "",
    "quality_position": "start",
    "quality_negative": "bare breasts, genitals, photorealistic, 3d render, western comic style, heavy makeup, old, wrinkles, thick black outlines, blurry, lowres, watermark, text, signature, extra fingers, abs, six-pack, muscular, muscle definition, toned stomach, covered legs, long pants, modest clothing, conservative outfit, covered stomach, covered cleavage, long sleeves, coat, jacket, full bodysuit, innocent expression, shy, extra arms, extra limbs, extra fingers, fused fingers, broken weapon, floating weapon, duplicated weapon, disconnected wings, mismatched wings",
@@ -2579,7 +2582,7 @@
    "pose": "adjusting eyewear, hand on own hip",
    "natural": "Adult. Ombre in a black micro bikini fading to silver, a chrome thigh holster, wet skin, lowering her tiny oval sunglasses to look over them."
   },
-  "seraphiel_unplugged": {
+  "seraphiel_unplugged": {"cover": "hair", 
    "hero": "seraphiel",
    "pack": "after_dark",
    "art": "unplugged",
@@ -2597,7 +2600,7 @@
    "natural": "Adult. Seraphiel unplugged: nude with a pearl body chain, white stockings, her very long hair loose."
   }
   },
-  "cassiel_armor_off": {
+  "cassiel_armor_off": {"cover": "hands", 
    "hero": "cassiel",
    "pack": "after_dark",
    "art": "armor_off",
@@ -2615,7 +2618,7 @@
    "natural": "Adult. Cassiel with her armor off: nude but for her gauntlets and greaves."
   }
   },
-  "liora_pearl_bath": {
+  "liora_pearl_bath": {"cover": "hands", 
    "hero": "liora",
    "pack": "after_dark",
    "art": "pearl_bath",
@@ -2633,7 +2636,7 @@
    "natural": "Adult. Liora after the bath: nude, pearls, water on her skin."
   }
   },
-  "uriela_cool_down": {
+  "uriela_cool_down": {"cover": "arm", 
    "hero": "uriela",
    "pack": "after_dark",
    "art": "cool_down",
@@ -2651,7 +2654,7 @@
    "natural": "Adult. Uriela cooling down: nude with racing gloves, sweat, platform boots, shades."
   }
   },
-  "nuriel_visor_down": {
+  "nuriel_visor_down": {"cover": "hands", 
    "hero": "nuriel",
    "pack": "after_dark",
    "art": "visor_down",
@@ -2669,7 +2672,7 @@
    "natural": "Adult. Nuriel with her visor down: nude under an open white jacket off her shoulders."
   }
   },
-  "argentiel_at_ease": {
+  "argentiel_at_ease": {"cover": "arm", 
    "hero": "argentiel",
    "pack": "after_dark",
    "art": "at_ease",
@@ -2682,7 +2685,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Argentiel at ease: one forearm across her bare chest, chrome cuffs in her braids, a chrome bikini bottom, her thigh-high greaves."
   },
-  "sanariel_house_call": {
+  "sanariel_house_call": {"cover": "hands", 
    "hero": "sanariel",
    "pack": "after_dark",
    "art": "house_call",
@@ -2695,7 +2698,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Sanariel on a house call: her white latex opera gloves over her bare chest, nurse cap, a white bottom, garters and latex stockings."
   },
-  "rimelle_free_skate": {
+  "rimelle_free_skate": {"cover": "hair", 
    "hero": "rimelle",
    "pack": "after_dark",
    "art": "free_skate",
@@ -2708,7 +2711,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Rimelle after the free skate: her waist-length lavender hair falling over her bare chest, a rhinestone body chain, a lavender bottom, her blade skates."
   },
-  "avienne_final_approach": {
+  "avienne_final_approach": {"cover": "hands", 
    "hero": "avienne",
    "pack": "after_dark",
    "art": "final_approach",
@@ -2721,7 +2724,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Avienne on final approach: hands over her bare chest, her chrome pillbox hat and aqua scarf, a white bottom, latex stockings."
   },
-  "cirella_last_stretch": {
+  "cirella_last_stretch": {"cover": "arm", 
    "hero": "cirella",
    "pack": "after_dark",
    "art": "last_stretch",
@@ -2734,7 +2737,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Cirella's last stretch: one arm across her bare chest, chrome arm and ankle bands, a sky-blue bottom, barefoot."
   },
-  "ferrael_forge_heat": {
+  "ferrael_forge_heat": {"cover": "arm", 
    "hero": "ferrael",
    "pack": "after_dark",
    "art": "forge_heat",
@@ -2747,7 +2750,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Ferrael in the forge heat: a gauntleted forearm across her bare chest, goggles in her hair, sweat, a white bottom, platform work boots."
   },
-  "verdelle_night_bloom": {
+  "verdelle_night_bloom": {"cover": "hair", 
    "hero": "verdelle",
    "pack": "after_dark",
    "art": "night_bloom",
@@ -2760,7 +2763,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Verdelle after closing time: her long wavy hair over her bare chest, her sun hat, a lime bottom, white rain boots."
   },
-  "isobel_low_pressure": {
+  "isobel_low_pressure": {"cover": "hands", 
    "hero": "isobel",
    "pack": "after_dark",
    "art": "low_pressure",
@@ -2773,7 +2776,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Isobel at low pressure: hands over her bare chest, her open white raincoat off her shoulders, a sky-blue bottom, platform boots."
   },
-  "halcia_open_chute": {
+  "halcia_open_chute": {"cover": "arm", 
    "hero": "halcia",
    "pack": "after_dark",
    "art": "open_chute",
@@ -2786,7 +2789,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Halcia with her chute open: one arm across her bare chest, chrome harness straps, her jumpsuit knotted around her hips over an aqua bottom."
   },
-  "mordessa_queens_chamber": {
+  "mordessa_queens_chamber": {"cover": "hands", 
    "hero": "mordessa",
    "pack": "after_dark",
    "art": "queens_chamber",
@@ -2804,7 +2807,7 @@
    "natural": "Adult. Mordessa in the queen's chamber: nude under a fur-trimmed coat off her shoulders, thigh boots, her crown."
   }
   },
-  "brakka_locker_room": {
+  "brakka_locker_room": {"cover": "arm", 
    "hero": "brakka",
    "pack": "after_dark",
    "art": "locker_room",
@@ -2822,7 +2825,7 @@
    "natural": "Adult. Brakka in the locker room: nude with her championship belt, a towel around her neck."
   }
   },
-  "vesper_last_login": {
+  "vesper_last_login": {"cover": "hands", 
    "hero": "vesper",
    "pack": "after_dark",
    "art": "last_login",
@@ -2840,7 +2843,7 @@
    "natural": "Adult. Vesper's last login: nude with latex opera gloves, her cape, tinted glasses."
   }
   },
-  "imra_ember_bath": {
+  "imra_ember_bath": {"cover": "hands", 
    "hero": "imra",
    "pack": "after_dark",
    "art": "ember_bath",
@@ -2858,7 +2861,7 @@
    "natural": "Adult. Imra after the fire dance: nude with chrome body jewelry and glowing paint."
   }
   },
-  "kessa_cat_nap": {
+  "kessa_cat_nap": {"cover": "hands", 
    "hero": "kessa",
    "pack": "after_dark",
    "art": "cat_nap",
@@ -2876,7 +2879,7 @@
    "natural": "Adult. Kessa caught napping: nude with a chrome collar, red O-rings, thigh boots."
   }
   },
-  "drezza_last_track": {
+  "drezza_last_track": {"cover": "arm", 
    "hero": "drezza",
    "pack": "after_dark",
    "art": "last_track",
@@ -2889,7 +2892,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Drezza after the last track: one arm across her bare chest, headphones still on, a hot-pink bikini bottom, fur leg warmers and platform boots."
   },
-  "zecchina_private_table": {
+  "zecchina_private_table": {"cover": "hands", 
    "hero": "zecchina",
    "pack": "after_dark",
    "art": "private_table",
@@ -2902,7 +2905,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Zecchina at the private table: her rhinestone tailcoat open, hands over her bare chest, a black bikini bottom, fishnet thigh-highs on garters, red heels."
   },
-  "torqua_pit_garage": {
+  "torqua_pit_garage": {"cover": "hair", 
    "hero": "torqua",
    "pack": "after_dark",
    "art": "pit_garage",
@@ -2915,7 +2918,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Torqua in the garage after the race: her long red curls and one arm over her bare chest, a red bikini bottom, red thigh boots, chrome hoop earrings."
   },
-  "sigilla_night_session": {
+  "sigilla_night_session": {"cover": "hands", 
    "hero": "sigilla",
    "pack": "after_dark",
    "art": "night_session",
@@ -2928,7 +2931,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Sigilla after hours at the parlor: hands over her bare chest, her tattoos on full show, a red bikini bottom, a chrome garter belt, platform creepers."
   },
-  "carmesa_cape_drop": {
+  "carmesa_cape_drop": {"cover": "arm", 
    "hero": "carmesa",
    "pack": "after_dark",
    "art": "cape_drop",
@@ -2941,7 +2944,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Carmesa after the bullfight: an arm across her bare chest, the red capote in her other hand, a black bikini bottom, hot-pink stockings, black pumps."
   },
-  "thrasha_green_room": {
+  "thrasha_green_room": {"cover": "arm", 
    "hero": "thrasha",
    "pack": "after_dark",
    "art": "green_room",
@@ -2954,7 +2957,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Thrasha backstage: an arm across her bare chest, her biker jacket off her shoulders, a black bikini bottom, torn fishnet thigh-highs, combat boots."
   },
-  "kindra_off_duty": {
+  "kindra_off_duty": {"cover": "arm", 
    "hero": "kindra",
    "pack": "after_dark",
    "art": "off_duty",
@@ -2967,7 +2970,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Kindra off duty: one forearm across her bare chest, red suspenders hanging at her hips, a black bikini bottom, turnout boots."
   },
-  "cordia_top_shelf": {
+  "cordia_top_shelf": {"cover": "hands", 
    "hero": "cordia",
    "pack": "after_dark",
    "art": "top_shelf",
@@ -2980,7 +2983,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Cordia after closing: her waistcoat gone, hands over her bare chest, a red bow-tie collar and cuffs, a black bikini bottom, heels."
   },
-  "noctaire_last_rites": {
+  "noctaire_last_rites": {"cover": "hair", 
    "hero": "noctaire",
    "pack": "after_dark",
    "art": "last_rites",
@@ -2998,7 +3001,7 @@
    "natural": "Adult. Noctaire's last rites: nude with opera gloves, long silver hair loose."
   }
   },
-  "orrin_stand_down": {
+  "orrin_stand_down": {"cover": "arm", 
    "hero": "orrin",
    "pack": "after_dark",
    "art": "stand_down",
@@ -3016,7 +3019,7 @@
    "natural": "Adult. Orrin standing down: nude with one gauntlet, a single pauldron, her cables loose."
   }
   },
-  "sable_confession": {
+  "sable_confession": {"cover": "hands", 
    "hero": "sable",
    "pack": "after_dark",
    "art": "confession",
@@ -3034,7 +3037,7 @@
    "natural": "Adult. Sable at confession: nude with her veil and cross, garters and stockings."
   }
   },
-  "lucen_half_dressed": {
+  "lucen_half_dressed": {"cover": "hands", 
    "hero": "lucen",
    "pack": "after_dark",
    "art": "half_dressed",
@@ -3052,7 +3055,7 @@
    "natural": "Adult. Lucen half dressed: nude with one white sleeve of her jacket on, one white boot."
   }
   },
-  "ashra_overslept": {
+  "ashra_overslept": {"cover": "hands", 
    "hero": "ashra",
    "pack": "after_dark",
    "art": "overslept",
@@ -3070,7 +3073,7 @@
    "natural": "Adult. Ashra overslept: nude with her witch hat, robes slipping off."
   }
   },
-  "nadira_radio_silence": {
+  "nadira_radio_silence": {"cover": "hair", 
    "hero": "nadira",
    "pack": "after_dark",
    "art": "radio_silence",
@@ -3083,7 +3086,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Nadira off the air: her long silver locs falling over her bare chest, a cropped oil-slick space jacket open off her shoulders, a black bottom, moon boots."
   },
-  "gantra_cockpit_open": {
+  "gantra_cockpit_open": {"cover": "arm", 
    "hero": "gantra",
    "pack": "after_dark",
    "art": "cockpit_open",
@@ -3096,7 +3099,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Gantra out of the cockpit: one forearm across her bare chest, sweat on her skin, her cracked headset on, a black bottom, black platform pilot boots."
   },
-  "severine_blade_down": {
+  "severine_blade_down": {"cover": "hands", 
    "hero": "severine",
    "pack": "after_dark",
    "art": "blade_down",
@@ -3109,7 +3112,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Severine with her blade down: hands over her bare chest, her black kimono jacket slipping off her shoulders, an oil-slick obi, a black bottom, black thigh-highs."
   },
-  "benthe_low_tide": {
+  "benthe_low_tide": {"cover": "arm", 
    "hero": "benthe",
    "pack": "after_dark",
    "art": "low_tide",
@@ -3122,7 +3125,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Benthe at low tide: one heavy arm across her bare chest, her chrome diving collar, wet teal hair, a black bottom, chunky chrome diving boots."
   },
-  "seyra_inner_eye": {
+  "seyra_inner_eye": {"cover": "hands", 
    "hero": "seyra",
    "pack": "after_dark",
    "art": "inner_eye",
@@ -3135,7 +3138,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Seyra listening inward: hands over her bare chest, her violet vinyl drape slipping off her shoulders, the chrome third-eye diadem, a black bottom, platform heels."
   },
-  "rivette_penalty_box": {
+  "rivette_penalty_box": {"cover": "arm", 
    "hero": "rivette",
    "pack": "after_dark",
    "art": "penalty_box",
@@ -3148,7 +3151,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Rivette in the penalty box: one forearm across her bare chest, a violet bottom, black latex thigh-highs with chrome garter rings, knee pads and roller skates."
   },
-  "vandra_clean_slate": {
+  "vandra_clean_slate": {"cover": "hands", 
    "hero": "vandra",
    "pack": "after_dark",
    "art": "clean_slate",
@@ -3161,7 +3164,7 @@
    "negative_extra": "(nipples:1.4), (areolae:1.4), (nipple slip:1.4), (areola slip:1.4), (covered nipples:1.3), (nude:1.3), (completely nude:1.4), (pussy:1.4), (pubic hair:1.4), (cameltoe:1.3)",
    "natural": "Adult. Vandra with a clean slate: hands over her bare chest, her cropped black hoodie open off her shoulders, a teal bottom, teal latex thigh-highs, platform sneakers."
   },
-  "ombre_last_chapter": {
+  "ombre_last_chapter": {"cover": "arm", 
    "hero": "ombre",
    "pack": "after_dark",
    "art": "last_chapter",

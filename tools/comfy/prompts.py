@@ -341,6 +341,8 @@ def skin_view(bible, hero_id, skin_id, adult=False):
                 v[k] = av[k]
     if s.get("negative_extra"):
         v["negative_extra"] = join_tags(s["negative_extra"], h.get("negative_extra", ""))
+    if s.get("cover") and not adult:
+        v["cover"] = s["cover"]     # implied topless: hands / arm / hair cover her (sentence families)
     return v
 
 
@@ -479,8 +481,10 @@ def _sentence_negative(bible, fam, h, extra="", adult=False):
     for g, blocks in (rules.get("required_negative_by_gender") or {}).items():
         if g == h["gender"]:
             req += [t for terms in blocks.values() for t in terms]
-    parts = [", ".join(req), n["explicit_adult" if adult else "explicit"], n["childlike"],
-             bible["gender"][h["gender"]]["negative_adult" if adult else "negative"],
+    gneg = bible["gender"][h["gender"]]["negative_adult" if adult else "negative"]
+    if h.get("cover"):      # implied topless: "topless" in the negative put a micro top back on
+        gneg = ", ".join(t for t in split_tags(gneg) if t != "topless")
+    parts = [", ".join(req), n["explicit_adult" if adult else "explicit"], n["childlike"], gneg,
              h.get("negative_extra", ""), extra, fam.get("quality_negative", ""),
              rules.get("family_rating_negative") if adult else fam.get("rating_negative", "")]
     neg = plain_tags(join_tags(*parts))
@@ -506,7 +510,13 @@ def _face_sentence(fam, closed):
 def _sentence_full_body(bible, fam, h, hero_id, bg, extra_tags, adult, pose=None):
     subj = _sentence_subject(bible, h, adult)
     composition = fam.get("composition_rig_natural" if pose == "rig" else "composition_natural", "")
-    parts = ["%s, full body." % subj, fam.get("style_natural", ""),
+    style = fam.get("style_natural", "")
+    if h.get("cover") and fam.get("outfit_natural") and fam.get("topless_natural"):
+        # implied topless (After Dark pack, owner 2026-10-22: "no bra at all. and the hand/s would be covering the
+        # nipples"): no micro top; the skin's hands, arm or hair cover her completely
+        cover = (fam.get("cover_natural") or {}).get(h["cover"], "")
+        style = style.replace(fam["outfit_natural"], fam["topless_natural"].format(cover=cover))
+    parts = ["%s, full body." % subj, style,
              _face_sentence(fam, h.get("default_eyes") == "closed"), composition,
              _who(fam, h), _prose(plain_tags(extra_tags)) if extra_tags else "",
              bg.get("natural") or "Plain flat background, no scenery."]
