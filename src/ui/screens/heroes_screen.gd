@@ -429,6 +429,22 @@ func _card(id: String, browse: Array[String]) -> PosterCard:
 		# Over the art's bottom-right corner, just above the label strip (62 * k tall).
 		mk.position = Vector2(_card_w - side - 6.0 * k, roundf(_card_w * 1.52) - 62.0 * k - side + 6.0 * k)
 		card.add_child(mk)
+	# Her birthday (the calendar): a small red tag over the art's top edge, today only.
+	if own and CalendarRules.birthday(id) != "" and CalendarRules.birthday(id) == CalendarRules.md(Game.today()):
+		var k2 := _card_w / 218.0
+		var tag := ColorRect.new()
+		tag.mouse_filter = MOUSE_FILTER_IGNORE
+		tag.color = Color("ff4b1f")
+		tag.size = Vector2(roundf(96.0 * k2), roundf(20.0 * k2))
+		tag.position = Vector2(_card_w - tag.size.x - 8.0 * k2, 8.0 * k2)
+		tag.rotation = 0.04
+		card.add_child(tag)
+		var tl := Kit.label("BIRTHDAY", int(roundf(10.0 * k2)), Color("f5f4f0"), "mono_bold")
+		tl.mouse_filter = MOUSE_FILTER_IGNORE
+		tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		tl.size = tag.size
+		tl.position = Vector2(0, roundf(2.0 * k2))
+		tag.add_child(tl)
 	return card
 
 

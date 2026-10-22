@@ -69,7 +69,7 @@ this file says where things stand. Older logs are under "History" at the bottom.
   Cordia on Repeal Day, Noctaire on the 2026 eclipse ...). On the day the Lobby's date waits for a
   stamp ("HALLOWEEN · STAMP IT"); tap it and a red rubber stamp comes down on the date, then the
   gift (once a year). Her Lobby line is the day's, by faction; on another heroine's birthday she
-  names her. The hero page prints her birthday under the print date. The Lobby date is now the
+  names her. The hero page prints her birthday under the print date, and her roster card wears a red BIRTHDAY tag that day. The Lobby date is now the
   model's day. The intake form asks for the player's birthday too (02 BORN, day and month,
   optional; signature is 03): on that day the Lobby says "Happy birthday, <name>" and the date waits
   for its stamp (YOUR BIRTHDAY). Shots: `--date=MM-DD`, `--born=MM-DD`, Lobby param `stamp`, form
