@@ -391,6 +391,7 @@ def _negative(bible, fam, h, framing=True, extra="", positive="", adult=False):
     # hero/variant extras first: join_tags keeps the first occurrence, so "(loli:1.3)" beats "loli"
     parts = [fam.get("quality_negative", ""),
              rules.get("family_rating_negative") if adult else fam.get("rating_negative", ""),
+             fam.get("nude_negative", "") if adult else "",
              neg_extra, extra,
              n["quality"], n["anatomy"]]
     if framing:
@@ -487,7 +488,8 @@ def _sentence_negative(bible, fam, h, extra="", adult=False):
         gneg = ", ".join(t for t in split_tags(gneg) if t != "topless")
     parts = [", ".join(req), n["explicit_adult" if adult else "explicit"], n["childlike"], gneg,
              h.get("negative_extra", ""), extra, fam.get("quality_negative", ""),
-             rules.get("family_rating_negative") if adult else fam.get("rating_negative", "")]
+             rules.get("family_rating_negative") if adult else fam.get("rating_negative", ""),
+             fam.get("nude_negative", "") if adult else ""]
     neg = plain_tags(join_tags(*parts))
     if adult:      # no nudity-fighting terms in a nude render (as _negative does for the hero's extras)
         tame = bible["content_rules"]
@@ -527,6 +529,10 @@ def _sentence_full_body(bible, fam, h, hero_id, bg, extra_tags, adult, pose=None
         style = style.replace(fam["outfit_natural"], fam["topless_natural"].format(cover=cover))
     if adult and fam.get("outfit_natural") and fam.get("nude_natural"):    # the nude set (owner, 2026-10-22)
         style = style.replace(fam["outfit_natural"], fam["nude_natural"])
+        # no weapons or held props in the nude set (owner, 2026-10-22: "remove their weapons in all generations")
+        h = dict(h, weapon="", outfit=", ".join(t for t in split_tags(h["outfit"])
+                                                 if "holding" not in t and "in hand" not in t))
+        composition = fam.get("composition_nude_natural") or composition
         nude_pose = _nude_pose(fam, h)
         if nude_pose:   # owner: "way more sexual, rather than just the regular character with no clothes"
             style = style.replace(fam["pin_up_natural"], nude_pose)

@@ -164,6 +164,8 @@
    "body_drop_natural": ["toned", "muscular female", "muscular"],
    "outfit_natural": "She wears almost nothing: her outfit is a tiny, barely-there micro version of her design, just thin straps, strings and very small patches that barely cover the tips of her breasts and her crotch, with lots of underboob and sideboob spilling out, and her stomach, hips, thighs, butt, back, shoulders and arms all bare. Any coat, cape, jacket, robe, sarong or long skirt in her design hangs open or slips off her body and covers nothing, and any bodysuit or leotard is cut down to a few thin strips.",
    "nude_natural": "She is completely nude, with no clothing of any kind on her body, only the accessories listed below; her breasts, nipples and hips are fully bare. The camera is pulled far back for a zoomed-out wide shot that shows all of her even when she sits, kneels or lies down: from the top of her head, halo and wings down to her feet and toes, her whole body is small enough to fit inside the frame with plenty of empty background on every side, and nothing is cut off at any edge.",
+   "composition_nude_natural": "The whole figure is in frame from the top of her head to both feet, with her wings and hair fully inside the frame. Her anatomy is correct: two arms, two hands with five fingers each, two legs. Her wings grow cleanly from her upper back and match each other. Her hands are empty: she holds no weapon, shield, staff, microphone, instrument or other object.",
+   "nude_negative": "weapon, sword, blade, dagger, knife, spear, lance, polearm, shield, bow and arrow, staff, wand, gun, pistol, rifle, axe, hammer, scythe, whip, microphone, musical instrument, holding weapon, holding object, object in hand",
    "pin_up_natural": "in a provocative, suggestive pin-up pose with her back deeply arched and her chest and hips thrust out.",
    "_nude_poses_doc": "The nude set (owner, 2026-10-22: \"i want the poses to be way more sexual, rather than just the regular character with no clothes\"): one of these replaces pin_up_natural and the look's own pose, picked by the look (prompts._nude_pose). Solo, no sex acts or toys.",
    "nude_poses_natural": [
@@ -171,24 +173,28 @@
     "in an openly erotic, lewd pose: bent forward toward the viewer with her legs apart and her hands on her knees, her heavy bare breasts hanging down and pressed together between her arms, her bare butt pushed up high behind her.",
     "in an openly erotic, lewd pose: standing turned three-quarters away and bent at the hips, her bare butt pushed back toward the viewer, looking back over her shoulder and biting her lip, one hand squeezing her own butt cheek.",
     "in an openly erotic, lewd pose: standing with her legs apart and her hips cocked, both arms raised behind her head, her back arched hard to thrust her bare breasts forward, licking her lips.",
-    "in an openly erotic, lewd pose: sitting on the floor leaning back on her hands with her legs spread wide in an M shape, knees up and thighs wide open, her bare breasts pushed up.",
+    "in an openly erotic, lewd pose: sitting on the floor leaning back on her hands with her legs spread wide in an M shape, knees up and thighs wide open, her pussy on show and her bare breasts pushed up.",
     "in an openly erotic, lewd pose: standing on one leg with the other knee lifted high and out to the side, her thighs wide open, one hand cupping her bare breast and the other gripping her raised thigh.",
-    "in an openly erotic, lewd pose: on her knees with her thighs apart, leaning forward on all fours toward the viewer, her heavy bare breasts hanging down, her bare butt raised behind her, looking up with a hungry gaze.",
     "in an openly erotic, lewd pose: kneeling upright with her thighs wide apart, leaning back on one hand, the other hand lifting her hair, her back arched so her bare breasts thrust up toward the viewer.",
     "in an openly erotic, lewd pose: standing in profile with her back arched in an extreme S-curve, her bare breasts and big bare butt both thrust out, one hand on her butt, looking at the viewer over her shoulder.",
-    "in an openly erotic, lewd pose: kneeling on one knee with the other leg raised and spread out to the side, one hand cupping her bare breast, her tongue out.",
-    "in an openly erotic, lewd pose: on her knees with her chest pressed down low and her bare butt raised high in the air, her back deeply arched, looking back at the viewer over her shoulder.",
     "in an openly erotic, lewd pose: sitting on the floor with her knees pulled up and spread apart, her arms wrapped under her bare breasts lifting them up, her head tilted with a sultry look.",
-    "in an openly erotic, lewd pose: standing pulling her hair up with both hands, her hips swayed to one side and one knee bent inward, biting her lip, her nipples stiff.",
     "in an openly erotic, lewd pose: kneeling and leaning back on both hands behind her with her knees apart, her hips pushed up toward the viewer, her head tilted back, mouth open and panting.",
     "in an openly erotic, lewd pose: standing with her legs apart, pinching both of her own nipples, her tongue out and her eyes half-closed with pleasure.",
     "in an openly erotic, lewd pose: lying on her side on the floor propped up on one elbow, her top leg lifted high in the air, her free hand resting on her raised thigh.",
-    "in an openly erotic, lewd pose: standing with her back to the viewer, bent all the way forward with her legs apart, looking back at the viewer upside down between her legs.",
+    "in an openly erotic, lewd pose: standing with her back to the viewer, bent all the way forward with her legs apart, looking back at the viewer upside down between her legs, her pussy showing from behind.",
     "in an openly erotic, lewd pose: kneeling with her knees apart and both hands behind her head, her bare breasts thrust forward, her tongue out, looking up at the viewer.",
     "in an openly erotic, lewd pose: leaning forward with her arms pressed together in front of her, squeezing her bare breasts up and together, blowing the viewer a kiss.",
-    "in an openly erotic, lewd pose: standing with one foot up on a low step and her thighs wide open, leaning forward over her raised knee with her bare breasts pressed against it.",
-    "in an openly erotic, lewd pose: lying on her back with her shoulders raised on her elbows, her legs lifted and spread in the air, looking down her body at the viewer.",
-    "in an openly erotic, lewd pose: standing with her legs crossed tightly at the knees, bending slightly forward, one finger on her wet lower lip, her bare breasts squeezed between her arms."
+    "in an openly erotic, lewd pose: lying on her back with her shoulders raised on her elbows, her legs lifted and spread wide in the air, looking down her body at the viewer.",
+    "in an openly erotic, lewd pose: sitting on the floor leaning back on one hand with her legs spread wide open, using two fingers of her other hand to spread her pussy open for the viewer, biting her lip.",
+    "in an openly erotic, lewd pose: standing with her legs wide apart and her hips pushed forward, reaching down with both hands to spread her pussy open with her fingers, looking at the viewer with a lustful smile.",
+    "in an openly erotic, lewd pose: lying back propped up on one elbow with her knees up and her thighs spread wide, her other hand between her legs spreading her pussy open with two fingers, her tongue out.",
+    "in an openly erotic, lewd pose: kneeling upright with her knees spread wide apart, both hands between her thighs spreading her pussy open, her bare breasts squeezed together between her arms.",
+    "in an openly erotic, lewd pose: standing turned away and bent forward at the hips, looking back over her shoulder, reaching back with both hands to spread her butt cheeks apart so her pussy shows from behind.",
+    "in an openly erotic, lewd pose: sitting with her legs raised and spread in a wide V, holding her ankles apart with her hands, her pussy fully on show, blushing with a lewd smile.",
+    "in an openly erotic, lewd pose: lying on her back with her knees pulled back toward her chest and held wide apart by her hands behind her knees, her pussy and butt fully on show to the viewer.",
+    "in an openly erotic, lewd pose: standing on one leg in a standing split, holding her other leg up by the ankle beside her head, her thighs split wide open and her pussy fully on show.",
+    "in an openly erotic, lewd pose: kneeling with her thighs wide apart, spreading her pussy open with two fingers of one hand while the other hand squeezes her bare breast, mouth open and panting.",
+    "in an openly erotic, lewd pose: standing with one knee raised high and out to the side, one hand holding her thigh up and the other spreading her pussy open with two fingers, winking at the viewer."
    ],
    "topless_natural": "Above the waist she wears nothing at all, not even a bikini top, only the lower half of her outfit; her chest is bare and {cover}, so the tips of her breasts are completely hidden. Everything else about her body is bare too.",
    "cover_natural": {"hands": "her own hands are cupped over the front of her breasts, palms and fingers pressed flat over them", "arm": "one forearm is pressed across the front of her breasts with her hand cupping the far side", "hair": "her long hair falls in thick locks over the front of her breasts"},
@@ -2068,7 +2074,7 @@
    "adult": {
    "pose": "arm up, hair flip, floating hair, wind, contrapposto",
     "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin, body chain",
-   "natural": "Adult. Seraphiel nude on the lagoon stage: a pearl body chain on wet skin, mirrored shades pushed into her platinum hair, a chrome mic in hand."
+   "natural": "Adult. Seraphiel nude on the lagoon stage: a pearl body chain on wet skin, mirrored shades pushed into her platinum hair."
   }
   },
   "cassiel_lifeguard_unit": {
@@ -2102,7 +2108,7 @@
    "adult": {
    "pose": "arms up, hair flip, wind, contrapposto",
     "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin, pearl necklace",
-   "natural": "Adult. Liora nude in the lagoon: pearls and an anklet, water beading on her skin, her glass lyre."
+   "natural": "Adult. Liora nude in the lagoon: pearls and an anklet, water beading on her skin."
   }
   },
   "uriela_surf_racer": {
@@ -2119,7 +2125,7 @@
    "adult": {
    "pose": "walking, mid-stride, arm up, floating hair, wind",
     "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin",
-   "natural": "Adult. Uriela nude after the race: visor shades up, wet skin, platform boots, her lance as a surf spear."
+   "natural": "Adult. Uriela nude after the race: visor shades up, wet skin, platform boots."
   }
   },
   "nuriel_jet_stream": {
@@ -2136,7 +2142,7 @@
    "adult": {
    "pose": "walking, mid-stride, adjusting eyewear, floating hair, wind",
     "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin, white jacket, cropped jacket, open jacket, off shoulder",
-   "natural": "Adult. Nuriel nude under her open cropped white rash jacket, visor pushed up, crystal dagger in hand."
+   "natural": "Adult. Nuriel nude under her open cropped white rash jacket, visor pushed up."
   }
   },
   "argentiel_mercury_pool": {"adult": {"outfit": "nude, completely nude, bottomless, nipples, body chain, water drop, shiny skin, sunglasses, eyewear on head, high heels", "natural": "Adult. Argentiel completely nude but for her body chain, sunglasses and high heels."}, 
@@ -2312,7 +2318,7 @@
    "adult": {
    "pose": "dancing, arms up, dynamic pose, floating hair",
     "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin, waist chain, armlet, navel piercing",
-   "natural": "Adult. Imra nude by the fire lagoon: chrome waist chain, armlet and navel jewel, a flower in her hair, her tiki-torch staff."
+   "natural": "Adult. Imra nude by the fire lagoon: chrome waist chain, armlet and navel jewel, a flower in her hair."
   }
   },
   "kessa_black_cat_beach": {
@@ -2459,7 +2465,7 @@
    "adult": {
    "pose": "walking, mid-stride, arm up, dynamic pose, wind",
     "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin, single pauldron",
-   "natural": "Adult. Orrin nude at the riot beach: one chrome pauldron, smoked shades, her shield as a surfboard."
+   "natural": "Adult. Orrin nude at the riot beach: one chrome pauldron, smoked shades."
   }
   },
   "sable_holy_water": {
@@ -2493,7 +2499,7 @@
    "adult": {
    "pose": "arm up, hair flip, one eye closed, contrapposto, dynamic pose",
     "outfit": "nude, completely nude, bottomless, nipples, water drop, wet skin, shiny skin",
-   "natural": "Adult. Lucen nude in the split tide: half-and-half shades, rapier at her side, wet skin."
+   "natural": "Adult. Lucen nude in the split tide: half-and-half shades, wet skin."
   }
   },
   "ashra_lazy_river": {
@@ -3218,7 +3224,7 @@
    "adult": {
    "pose": "arm up, hair flip, floating hair, contrapposto",
     "outfit": "nude, completely nude, bottomless, nipples, playboy bunny, fake animal ears, rabbit ears, wrist cuffs, detached collar, fishnet pantyhose, aqua bowtie",
-   "natural": "Adult. Seraphiel on the encore stage: nude with pearl bunny ears, chrome cuffs and collar, an aqua bow tie, white fishnets, a chrome mic."
+   "natural": "Adult. Seraphiel on the encore stage: nude with pearl bunny ears, chrome cuffs and collar, an aqua bow tie, white fishnets."
   }
   },
   "cassiel_bulwark_bunny": {
@@ -3445,7 +3451,7 @@
    "adult": {
    "pose": "leaning forward, adjusting eyewear, hair flip, contrapposto",
     "outfit": "nude, completely nude, bottomless, nipples, playboy bunny, fake animal ears, rabbit ears, wrist cuffs, bowtie, black fishnet pantyhose",
-   "natural": "Adult. Vesper's dealer's choice: nude with black fishnets, tinted glasses, a fan of cards."
+   "natural": "Adult. Vesper's dealer's choice: nude with black fishnets, tinted glasses."
   }
   },
   "imra_lucky_ember": {
@@ -3462,7 +3468,7 @@
    "adult": {
    "pose": "dancing, arm up, dynamic pose, floating hair",
     "outfit": "nude, completely nude, bottomless, nipples, playboy bunny, fake animal ears, rabbit ears, gold wrist cuffs, fishnet pantyhose",
-   "natural": "Adult. Imra the lucky ember: nude with gold cuffs, fishnets, a lantern-shaped chip."
+   "natural": "Adult. Imra the lucky ember: nude with gold cuffs, fishnets."
   }
   },
   "kessa_card_shark": {
@@ -3774,7 +3780,7 @@
    "adult": {
    "pose": "arm up, hair flip, floating hair, dynamic pose",
     "outfit": "nude, completely nude, bottomless, nipples, rhinestones, body chain",
-   "natural": "Adult. Seraphiel at the diva night: nude in platform heels, rhinestones and a chrome body chain, a chrome mic."
+   "natural": "Adult. Seraphiel at the diva night: nude in platform heels, rhinestones and a chrome body chain."
   }
   },
   "cassiel_vip_guard": {
@@ -3808,7 +3814,7 @@
    "adult": {
    "pose": "arm up, hair flip, contrapposto, dynamic pose",
     "outfit": "nude, completely nude, bottomless, nipples, elbow gloves, pearl necklace",
-   "natural": "Adult. Liora the lounge singer: nude with long satin gloves and pearls, a chrome mic."
+   "natural": "Adult. Liora the lounge singer: nude with long satin gloves and pearls."
   }
   },
   "uriela_afterparty": {
