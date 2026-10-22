@@ -474,6 +474,10 @@ this file says where things stand. Older logs are under "History" at the bottom.
 
 ## Waiting on the owner
 
+0. **Direction pinned (2026-10-22): the War for Souls.** The players split into Heaven and Hell, and
+   combat, a district per player and clans all feed one shared front (`docs/dev/feature-ideas.md`;
+   the combat for it is at the top of `docs/dev/combat-v1.md`). The owner: "lets put a pin in this
+   for now. i like this direction but i want the clean the app up first". Nothing built yet.
 1. **Base art:** Claude picked and installed one per hero (above); the owner can swap any
    ("use s<seed> for <hero>") or ask for the face-variant pass (blinks, talking).
 2. **The adult-site version (EroLabs):** the owner named EroLabs. It is a browser-game portal,
