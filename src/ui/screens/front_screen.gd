@@ -8,11 +8,11 @@ extends Control
 ## under each half. After, the front:
 ##   head  the dark band with WAR. down it, the side's name, the week (day, days left), the
 ##         standing "HEAVEN 4 · 3 HELL" big, the souls data table;
-##   chart the seven sectors as columns between HEAVEN (paper, gold dots) and HELL (ink, red dots), the
-##         front line a jagged trench running across at each sector's control, each sector's name on
-##         its side and its control in mono at the line; the player's sector carries a signal pin and
-##         a light stripe; tap a column to send your souls there; the line rises from neutral when the
-##         screen opens;
+##   chart the relief map (src/ui/v4/front_relief.gd): the seven sectors as one slab of land, Heaven's
+##         cliffs far, Hell's basin near; Heaven's ground paper with gold dots, Hell's ink with red
+##         dots and lava; the trench at each sector's control, its name down its column and its
+##         control on a tag at the line; the player's sector ruled in signal with the flag; tap a
+##         sector to send your souls there; the lines rise from neutral when the screen opens;
 ##   champ the week's enemy Champion (GameModel champion): her figure in full colour over her red
 ##         print in a dark panel, her name huge, the week's bar (the share worn down, tier ticks with
 ##         their rewards), tries left today and a FIGHT HER pass (battle mode champion);
@@ -20,6 +20,7 @@ extends Control
 ##   foot  the FIGHT pass to the campaign (every win sends souls_per_win souls), the date, a signature.
 ## params: scroll (px, screenshots).
 
+const FrontRelief := preload("res://src/ui/v4/front_relief.gd")
 const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
 const Poster := preload("res://src/ui/v4/survey/poster.gd")
 const CK := preload("res://src/ui/v4/collect/collect_kit.gd")
@@ -131,7 +132,7 @@ func _build(animate: bool = true) -> void:
 		_poster = PK.poster(_page, Rect2(ox + 16, 14, pw, ph))
 		_build_head(pw, war)
 		var y := HEAD + 30.0
-		_chart = FrontChart.new()
+		_chart = FrontRelief.new()
 		_chart.name = "Chart"
 		_chart.position = Vector2(18, y)
 		_chart.size = Vector2(pw - 36, CHART_H)
@@ -419,141 +420,3 @@ func _build_foot(pw: float, y: float, war: Dictionary) -> void:
 	var spec := {"width": 420.0, "kicker": "CAMPAIGN  //  +%d SOULS A WIN" % int(war.souls_per_win), "title": "FIGHT",
 		"sub": "TO %s" % str(focus.name).to_upper(), "action": "ENGAGE  >>>", "icon": "sword"}
 	Poster.pass_on(p, spec, Vector2(pw - 450.0, y + 110.0), func() -> void: UI.go("campaign"), "Fight", "FrontFight")
-
-
-# ------------------------------------------------------------------ the chart
-
-## The war map: seven sector columns between HEAVEN (top) and HELL (bottom); the front line at each
-## sector's control (positive pushes it down into Hell's half). Tap a column: picked(sector).
-class FrontChart:
-	extends Control
-	signal picked(sector: int)
-
-	const INK := Color("101113")
-	const PAPER := Color("e9e8e2")
-	const SIG := Color("ff4b1f")
-	const GOLD := Color(0.86, 0.66, 0.24)
-	const BAND_C := Color("141517")
-	const TOP := 54.0
-	const FOOT := 40.0
-
-	var war: Dictionary = {}
-	## 0..1: how far the line has risen from neutral (the opening animation).
-	var grow := 1.0:
-		set(v):
-			grow = v
-			queue_redraw()
-
-	var _down := Vector2.INF
-
-	func _init() -> void:
-		# PASS: a drag over the map still scrolls the page; only a tap (little movement) picks.
-		mouse_filter = MOUSE_FILTER_PASS
-
-	func _gui_input(event: InputEvent) -> void:
-		var mb := event as InputEventMouseButton
-		if mb == null or mb.button_index != MOUSE_BUTTON_LEFT:
-			return
-		if mb.pressed:
-			_down = mb.position
-			return
-		if _down != Vector2.INF and mb.position.distance_to(_down) < 14.0:
-			var n := (war.get("sectors", []) as Array).size()
-			if n > 0:
-				picked.emit(clampi(int(mb.position.x / (size.x / n)), 0, n - 1))
-		_down = Vector2.INF
-
-	## The line's y for a control value (bp): the middle at 0, pushed down by Heaven, up by Hell.
-	func _line_y(c: int) -> float:
-		var mid := TOP + (size.y - TOP - FOOT) * 0.5
-		return mid + float(c) / 10000.0 * (size.y - TOP - FOOT) * 0.44 * grow
-
-	func _draw() -> void:
-		var secs: Array = war.get("sectors", [])
-		var n := secs.size()
-		if n == 0:
-			return
-		var cw := size.x / n
-		var y0 := TOP
-		var y1 := size.y - FOOT
-		var f := Kit.font("mono_bold")
-		var fc := Kit.font("compressed")
-		# Paper above (Heaven), ink below (Hell), split at the line, with dots of each side's ink.
-		var pts := PackedVector2Array()
-		for i in n:
-			var c := int((secs[i] as Dictionary).control)
-			pts.append(Vector2(i * cw, _line_y(c)))
-			pts.append(Vector2((i + 1) * cw, _line_y(c)))
-		draw_rect(Rect2(0, y0, size.x, y1 - y0), Color("f5f4f0"))
-		var hell := PackedVector2Array(pts)
-		hell.append(Vector2(size.x, y1))
-		hell.append(Vector2(0, y1))
-		draw_colored_polygon(hell, BAND_C)
-		var step := 11.0
-		var yy := y0 + 6.0
-		while yy < y1:
-			var xx := fmod(yy * 0.5, step)
-			while xx < size.x:
-				var i := clampi(int(xx / cw), 0, n - 1)
-				var ly := _line_y(int((secs[i] as Dictionary).control))
-				var k := clampf(absf(yy - ly) / ((y1 - y0) * 0.5), 0.0, 1.0)
-				var r := 1.0 + 2.6 * (1.0 - k)
-				if yy < ly - 3.0:
-					draw_circle(Vector2(xx, yy), r, Color(GOLD, 0.55), true, -1.0, true)
-				elif yy > ly + 3.0:
-					draw_circle(Vector2(xx, yy), r, Color(SIG, 0.75), true, -1.0, true)
-				xx += step
-			yy += step
-		# The player's sector: a light stripe down its column.
-		var fo := int(war.get("focus", -1))
-		if fo >= 0 and fo < n:
-			draw_rect(Rect2(fo * cw + 4, y0, cw - 8, y1 - y0), Color(SIG, 0.12))
-			draw_rect(Rect2(fo * cw + 4, y0, 2, y1 - y0), Color(SIG, 0.8))
-			draw_rect(Rect2((fo + 1) * cw - 6, y0, 2, y1 - y0), Color(SIG, 0.8))
-		# Column rules and the trench line (jagged, with ticks toward Hell).
-		for i in range(1, n):
-			draw_line(Vector2(i * cw, y0), Vector2(i * cw, y1), Color(INK, 0.25), 1.0)
-		var prev := Vector2.INF
-		for i in n:
-			var ly := _line_y(int((secs[i] as Dictionary).control))
-			var a := Vector2(i * cw, ly)
-			if prev != Vector2.INF:
-				draw_line(prev, a, INK, 3.0, true)
-			var x := i * cw
-			var j := 0
-			while x < (i + 1) * cw:
-				var dy := 5.0 if j % 2 == 0 else -5.0
-				var nx := minf(x + 9.0, (i + 1) * cw)
-				draw_line(Vector2(x, ly + (0.0 if j == 0 else -dy)), Vector2(nx, ly + dy), INK, 3.0, true)
-				x = nx
-				j += 1
-			prev = Vector2((i + 1) * cw, ly)
-		# Headings: HEAVEN at the top, HELL at the foot; each sector's name turned on its side.
-		draw_string(fc, Vector2(6, 40), "HEAVEN", HORIZONTAL_ALIGNMENT_LEFT, -1, 40, INK)
-		draw_string(f, Vector2(size.x - 200, 30), "↓ HEAVEN PUSHES DOWN", HORIZONTAL_ALIGNMENT_RIGHT, 194, 10, Color(INK, 0.6))
-		draw_string(fc, Vector2(6, size.y - 6), "HELL", HORIZONTAL_ALIGNMENT_LEFT, -1, 40, SIG)
-		draw_string(f, Vector2(size.x - 200, size.y - 14), "↑ HELL PUSHES UP", HORIZONTAL_ALIGNMENT_RIGHT, 194, 10, Color(INK, 0.6))
-		for i in n:
-			var s: Dictionary = secs[i]
-			var c := int(s.control)
-			var ly := _line_y(c)
-			# The control in mono on a paper tag just under the line.
-			var pct := "%+d%%" % roundi(float(c) / 100.0) if c != 0 else "0%"
-			var tag := Rect2(i * cw + cw * 0.5 - 26, minf(ly + 10.0, y1 - 22.0), 52, 18)
-			draw_rect(tag, Color(PAPER, 0.96))
-			draw_rect(Rect2(tag.position, Vector2(3, tag.size.y)), GOLD if c > 0 else (SIG if c < 0 else INK))
-			draw_string(f, tag.position + Vector2(6, 13), pct, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, INK)
-			# The name, turned, in the Heaven half (ink) above the tag.
-			draw_set_transform(Vector2(i * cw + cw * 0.5 + 5, y0 + 10), PI * 0.5, Vector2.ONE)
-			draw_string(f, Vector2.ZERO, str(s.name).to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(INK, 0.85))
-			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		# The pin on the player's sector: a signal flag standing on the line, in the Heaven half.
-		if fo >= 0 and fo < n:
-			var ly := _line_y(int((secs[fo] as Dictionary).control))
-			var px := fo * cw + cw * 0.5
-			var top := maxf(ly - 74.0, y0 + 150.0)
-			draw_line(Vector2(px, ly - 6), Vector2(px, top), SIG, 3.0, true)
-			draw_colored_polygon(PackedVector2Array([Vector2(px, top), Vector2(px + 34, top + 10), Vector2(px, top + 20)]), SIG)
-			draw_rect(Rect2(px - 44, top - 26, 88, 18), Color(PAPER, 0.96))
-			draw_string(f, Vector2(px - 44, top - 12), "YOUR SOULS", HORIZONTAL_ALIGNMENT_CENTER, 88, 10, SIG)
-		draw_rect(Rect2(0, y0, size.x, y1 - y0), Color(INK, 0.8), false, 2.0)

@@ -89,6 +89,12 @@ this file says where things stand. Older logs are under "History" at the bottom.
 - **Dated commendations (2026-10-22):** each commendation stamp on the profile carries the day it
   was earned round its rim ("FIRST SUMMON · 22.10.26"), and earning one says so in a toast
   (setting `commend_days`; the first check dates an old save's stamps quietly).
+- **The War map is a relief (2026-10-22, the terrain-slab reference):** the Front's bar chart is now
+  a slab of land rendered in Blender (white clay: Heaven's terraced cliffs, cratered no-man's-land,
+  Hell's cracked basin) with a data pass, painted live in the game with each sector's control
+  (paper and gold for Heaven, ink, red and lava for Hell, the trench between), clouds over Heaven.
+  Re-render: `blender --background --factory-startup --python tools/blender/front_terrain.py --
+  <dir>` (about 15 s), then `python tools/blender/finish_front.py <dir>`.
 - **Restraint pass, continued:** Settings' title no longer runs through Back; Summon's left edge no
   longer overprints two lines of micro type.
 - **Next:** keep refining every screen as a restrained poster.
