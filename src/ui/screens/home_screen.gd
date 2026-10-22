@@ -43,7 +43,10 @@ const DISC_PAD := 23.0
 const DISC_OBJ := 300.0
 const STAMP := 140.0
 ## The side menu. Heroes and Team are only in the bottom nav (her hero page: tap her signature).
-const MENU := [["daily", "DAILY"], ["front", "FRONT"], ["spire", "SPIRE"], ["rival", "RIVAL"], ["bag", "BAG"], ["shop", "SHOP"], ["view", "VIEW"]]
+## (DAILY left the side menu 2026-10-23: the top bar's quests button opens the same screen, and the
+## labels needed the room to grow.)
+const MENU := [["front", "FRONT"], ["district", "DISTRICT"], ["spire", "SPIRE"], ["rival", "RIVAL"], ["bag", "BAG"],
+	["view", "VIEW"]]
 const CK := preload("res://src/ui/v4/collect/collect_kit.gd")
 
 ## Blurred red echoes of hero art, by art key (an Image resize per hero is not free).
@@ -286,6 +289,7 @@ func _build() -> void:
 	_build_menu()
 	_build_tape()
 	_build_stamp()
+	_build_team()
 
 	# The Campaign pass, over the poster's bottom edge.
 	_pass_slot = Control.new()
@@ -443,35 +447,50 @@ func _build_growth(faction: String) -> void:
 	PhysicalKit.growth(faction, "bl", _growth_layer, Vector2(inset * 0.6, _ph - inset), ppu)
 
 
-## The side menu: small vertical labels with ticks down the right-hand rule, each an 88 px target
-## with a status light.
+## The side menu: vertical labels with ticks down the right-hand rule (owner, 2026-10-23: "make the
+## poster navigation buttons bigger"), each a full-pitch target with a status light.
 func _build_menu() -> void:
-	var y0 := 64.0
-	var y1 := _ph - 200.0
-	var pitch := maxf((y1 - y0) / MENU.size(), 72.0)
+	var y0 := 52.0
+	var y1 := _ph - 196.0
+	# One size for every label, in the poster's compressed type: the largest at which every label,
+	# each in a slot as long as it is (and never under an 88 px target), fits down the rule.
+	var f := Kit.font("compressed")
+	var gap := 30.0
+	var fs := 40
+	while fs > 18:
+		var total := 0.0
+		for m: Array in MENU:
+			total += maxf(f.get_string_size(str(m[1]), HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x + gap, 88.0)
+		if total <= y1 - y0:
+			break
+		fs -= 1
+	var y := y0
 	var i := 0
 	for m: Array in MENU:
 		var id: String = m[0]
+		var slot := maxf(f.get_string_size(str(m[1]), HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x + gap, 88.0)
 		var b := Button.new()
 		b.name = "Side" + id.capitalize()
 		b.theme_type_variation = &"BareButton"
 		b.focus_mode = FOCUS_NONE
-		b.position = Vector2(_pw - 88, y0 + i * pitch)
-		b.size = Vector2(88, maxf(pitch, 88.0))
+		b.position = Vector2(_pw - 100, y)
+		b.size = Vector2(100, slot)
+		y += slot
 		b.pressed.connect(_on_menu.bind(id))
-		var l := Kit.label(str(m[1]), 15, INK, "mono_bold")
+		var l := Kit.label(str(m[1]), fs, INK, "compressed")
 		l.mouse_filter = MOUSE_FILTER_IGNORE
 		l.rotation = PI * 0.5
-		l.position = Vector2(72, 22)
+		l.position = Vector2(94, 20)
 		b.add_child(l)
 		var tick := ColorRect.new()
 		tick.color = INK
 		tick.mouse_filter = MOUSE_FILTER_IGNORE
-		tick.position = Vector2(36, 24)
-		tick.size = Vector2(9, 1)
+		tick.position = Vector2(40, 22)
+		tick.size = Vector2(12, 1.5)
 		b.add_child(tick)
+		# The status light beside the tick, clear of the label.
 		var led := PhysicalKit.Led.new("red", "breathe", 17.0)
-		led.position = Vector2(56, 2)
+		led.position = Vector2(16, 14)
 		led.visible = false
 		b.add_child(led)
 		_over.add_child(b)
@@ -496,8 +515,14 @@ func _on_menu(id: String) -> void:
 				UI.go("front")
 			else:
 				UI.toast("The front opens after stage %s" % str(Game.stage(WarRules.UNLOCK_CLEARED - 1).get("id", "")), "info")
-		"shop":
-			UI.go("shop")
+		"district":
+			if not Game.war_unlocked():
+				UI.toast("Your district opens with the front, after stage %s" % str(Game.stage(WarRules.UNLOCK_CLEARED - 1).get("id", "")), "info")
+			elif str(Game.war().side) == "":
+				UI.toast("Swear to a side on the front: your district is on that side", "info")
+				UI.go("front")
+			else:
+				UI.go("district")
 		"view":
 			# The gallery: her (and everyone) full screen, every look.
 			UI.go("gallery", {"hero_id": _hero_id})
@@ -509,7 +534,8 @@ func _build_tape() -> void:
 	_tape.name = "Objective"
 	_tape.theme_type_variation = &"BareButton"
 	_tape.focus_mode = FOCUS_NONE
-	_tape.position = Vector2(10, _ph - 112)
+	# Above the TEAM plate at the band's foot.
+	_tape.position = Vector2(10, _ph - 228)
 	_tape.size = Vector2(240, 88)
 	_tape.rotation = -0.03
 	_tape.pressed.connect(func() -> void:
@@ -543,6 +569,88 @@ func _build_tape() -> void:
 	_over.add_child(_tape)
 
 
+## TEAM (owner, 2026-10-23: a Lobby button near the battle button, "do not make it look out of
+## place"): a machined silver plate like the campaign pass's, at the band's foot left of it, with the
+## formation's five faces in small frames and the team's power; tap: the formation.
+const TEAM_W := 252.0
+const TEAM_H := 104.0
+var _team_btn: Control
+var _team_faces: Control
+var _team_sig := "-"
+
+
+func _build_team() -> void:
+	var root := Control.new()
+	root.name = "TeamPlate"
+	root.mouse_filter = MOUSE_FILTER_IGNORE
+	root.position = Vector2(12, _ph - TEAM_H - 18)
+	root.size = Vector2(TEAM_W, TEAM_H)
+	root.rotation = 0.03
+	root.pivot_offset = root.size * 0.5
+	var silver := SignalKit.plate("silver", Vector2.ZERO, root.size, {"topo": 0.5, "cuts": [12, 0, 0, 12],
+		"screws": [Vector2(12, 12), Vector2(TEAM_W - 12, 12), Vector2(12, TEAM_H - 12), Vector2(TEAM_W - 12, TEAM_H - 12)]}, root)
+	var kick := SignalKit.etch("TEAM  //  FORMATION", 10, "mono_bold")
+	kick.position = Vector2(24, 10)
+	silver.add_child(kick)
+	_team_faces = Control.new()
+	_team_faces.mouse_filter = MOUSE_FILTER_IGNORE
+	_team_faces.position = Vector2(22, 30)
+	_team_faces.size = Vector2(TEAM_W - 44, 60)
+	silver.add_child(_team_faces)
+	var hit := Button.new()
+	hit.name = "Team"
+	hit.text = "Team"
+	hit.add_theme_color_override("font_color", Color.TRANSPARENT)
+	hit.add_theme_color_override("font_hover_color", Color.TRANSPARENT)
+	hit.add_theme_color_override("font_pressed_color", Color.TRANSPARENT)
+	hit.theme_type_variation = &"BareButton"
+	hit.focus_mode = FOCUS_NONE
+	hit.position = Vector2(-4, -4)
+	hit.size = root.size + Vector2(8, 8)
+	hit.button_down.connect(func() -> void:
+		(silver as SignalKit.Plate).set_pressed_look(true)
+		Kit.haptic(12))
+	hit.button_up.connect(func() -> void: (silver as SignalKit.Plate).set_pressed_look(false))
+	hit.pressed.connect(func() -> void:
+		Kit.sfx("tap")
+		UI.go("formation"))
+	root.add_child(hit)
+	_team_btn = root
+	_over.add_child(root)
+
+
+## The plate's faces and power, rebuilt when the formation changes.
+func _refresh_team() -> void:
+	if _team_faces == null or not is_instance_valid(_team_faces):
+		return
+	var f: Array = Game.formation()
+	var sig := "%s|%d" % [str(f), int(Game.team_power())]
+	if sig == _team_sig:
+		return
+	_team_sig = sig
+	for c in _team_faces.get_children():
+		c.queue_free()
+	var side := 34.0
+	for k in 5:
+		var id := str(f[k]) if k < f.size() else ""
+		var at := Vector2(k * (side + 6.0), 0)
+		var frame := ColorRect.new()
+		frame.mouse_filter = MOUSE_FILTER_IGNORE
+		frame.color = Color(INK, 0.85) if id != "" else Color(INK, 0.18)
+		frame.position = at - Vector2(1.5, 1.5)
+		frame.size = Vector2(side + 3, side + 3)
+		_team_faces.add_child(frame)
+		if id != "":
+			var pic := HeroArt.make_portrait(id, side, Kit.hero_look(id))
+			pic.mouse_filter = MOUSE_FILTER_IGNORE
+			pic.position = at
+			pic.size = Vector2(side, side)
+			_team_faces.add_child(pic)
+	var pw := SignalKit.etch("PWR %s" % Kit.format_num(int(Game.team_power())), 12, "mono_bold")
+	pw.position = Vector2(0, side + 6)
+	_team_faces.add_child(pw)
+
+
 ## The Sanctum stamp: printed ink on a rendered, machined disc.
 func _build_stamp() -> void:
 	_stamp_btn = Button.new()
@@ -550,7 +658,7 @@ func _build_stamp() -> void:
 	_stamp_btn.theme_type_variation = &"BareButton"
 	_stamp_btn.focus_mode = FOCUS_NONE
 	# Across the band's edge, clear of the pass below it.
-	_stamp_btn.position = Vector2(BAND - 74, _ph - 336)
+	_stamp_btn.position = Vector2(BAND - 74, _ph - 372)
 	_stamp_btn.size = Vector2(STAMP, STAMP)
 	_stamp_btn.pivot_offset = Vector2(STAMP, STAMP) * 0.5
 	_stamp_btn.rotation = -0.12
@@ -619,6 +727,8 @@ func _refresh_guide() -> void:
 	Guide.mark(_stamp_btn, step == "claim", 0)
 	if _pass_root and is_instance_valid(_pass_root):
 		Guide.mark(_pass_root, step == "battle", 0)
+	if _team_btn and is_instance_valid(_team_btn):
+		Guide.mark(_team_btn, step == "formation", 0)
 	var q: Variant = _sheet_refs.get("quick", null)
 	if q is Control and is_instance_valid(q):
 		Guide.mark(q as Control, step == "claim", 0)
@@ -630,7 +740,17 @@ func _refresh_badges() -> void:
 	for o: Dictionary in Game.offers():
 		if str(o.get("price_label", "")) == "Free" and bool(o.get("available", false)):
 			gift = true
-	_set_led("shop", gift)
+	# The district: a building opened since the last visit is waiting to rise.
+	var dist_new := false
+	if Game.war_unlocked() and str(Game.war().side) != "":
+		var seen: Variant = Game.setting("district_seen")
+		var open_n := 0
+		for b: Variant in Game.district().buildings:
+			if bool((b as Dictionary).open):
+				open_n += 1
+		dist_new = seen is Array and (seen as Array).size() < open_n
+	_set_led("district", dist_new)
+	_refresh_team()
 	_set_led("rival", Game.rival_alert())
 	var war: Dictionary = Game.war() if Game.war_unlocked() else {}
 	_set_led("front", not war.is_empty() and (str(war.side) == "" or not (war.claim as Dictionary).is_empty()))

@@ -20,6 +20,7 @@ extends Control
 ##   foot  the FIGHT pass to the campaign (every win sends souls_per_win souls), the date, a signature.
 ## params: scroll (px, screenshots).
 
+const DistrictModel := preload("res://src/ui/v4/district_model.gd")
 const FrontRelief := preload("res://src/ui/v4/front_relief.gd")
 const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
 const Poster := preload("res://src/ui/v4/survey/poster.gd")
@@ -399,6 +400,48 @@ func _claim() -> void:
 	UI.show_reward("Week claimed!", r.value.reward)
 
 
+func _district_plate(at: Vector2, sz: Vector2, war: Dictionary) -> void:
+	var root := Control.new()
+	root.name = "District"
+	root.position = at
+	root.size = sz
+	root.rotation = 0.025
+	root.pivot_offset = sz * 0.5
+	root.mouse_filter = MOUSE_FILTER_IGNORE
+	_poster.add_child(root)
+	var silver := SignalKit.plate("silver", Vector2.ZERO, sz, {"topo": 0.5, "cuts": [12, 0, 12, 0],
+		"screws": [Vector2(12, 12), Vector2(sz.x - 12, 12), Vector2(12, sz.y - 12), Vector2(sz.x - 12, sz.y - 12)]}, root)
+	var kick := SignalKit.etch("YOUR QUARTER", 10, "mono_bold")
+	kick.position = Vector2(22, 12)
+	silver.add_child(kick)
+	var m := DistrictModel.new()
+	m.mini = true
+	m.position = Vector2(8, 26)
+	m.size = Vector2(sz.x - 16, (sz.x - 16) * 530.0 / 652.0)
+	silver.add_child(m)
+	m.set("dist", Game.district())
+	var souls := SignalKit.etch("%s SOULS  ›" % Kit.format_num(int(war.souls_total)), 12, "mono_bold")
+	souls.position = Vector2(22, sz.y - 30)
+	silver.add_child(souls)
+	var hit := Button.new()
+	hit.name = "DistrictLink"
+	hit.text = "District"
+	hit.add_theme_color_override("font_color", Color.TRANSPARENT)
+	hit.add_theme_color_override("font_hover_color", Color.TRANSPARENT)
+	hit.add_theme_color_override("font_pressed_color", Color.TRANSPARENT)
+	hit.theme_type_variation = &"BareButton"
+	hit.focus_mode = FOCUS_NONE
+	hit.mouse_filter = MOUSE_FILTER_PASS
+	hit.position = Vector2(-4, -4)
+	hit.size = sz + Vector2(8, 8)
+	hit.button_down.connect(func() -> void: (silver as SignalKit.Plate).set_pressed_look(true))
+	hit.button_up.connect(func() -> void: (silver as SignalKit.Plate).set_pressed_look(false))
+	hit.pressed.connect(func() -> void:
+		Kit.sfx("tap")
+		UI.go("district"))
+	root.add_child(hit)
+
+
 func _build_foot(pw: float, y: float, war: Dictionary) -> void:
 	var p := _poster
 	var focus: Dictionary = (war.sectors as Array)[int(war.focus)]
@@ -407,16 +450,9 @@ func _build_foot(pw: float, y: float, war: Dictionary) -> void:
 	line.size = Vector2(pw - 60, 50)
 	line.custom_minimum_size.x = pw - 60
 	PK.at(p, line, Vector2(26, y))
-	# The district: where the souls settle (a printed link above the FIGHT pass).
-	var dl := PK.t("YOUR DISTRICT  ›   %s SOULS SETTLED" % Kit.format_num(int(war.souls_total)), 13, SIG, "mono_bold")
-	PK.at(p, dl, Vector2(26, y + 50))
-	var dh := Control.new()
-	dh.name = "District"
-	dh.mouse_filter = MOUSE_FILTER_PASS
-	dh.position = Vector2(16, y + 30)
-	dh.size = Vector2(pw - 32, 60)
-	p.add_child(dh)
-	Kit.make_tappable(dh, func() -> void: UI.go("district"))
+	# The district: where the souls settle. A machined plate left of the FIGHT pass with a live
+	# miniature of the quarter's model (owner, 2026-10-23: it was not obvious how to get there).
+	_district_plate(Vector2(18, y + 66), Vector2(pw - 450.0 - 30.0, 220.0), war)
 	var spec := {"width": 420.0, "kicker": "CAMPAIGN  //  +%d SOULS A WIN" % int(war.souls_per_win), "title": "FIGHT",
 		"sub": "TO %s" % str(focus.name).to_upper(), "action": "ENGAGE  >>>", "icon": "sword"}
 	Poster.pass_on(p, spec, Vector2(pw - 450.0, y + 110.0), func() -> void: UI.go("campaign"), "Fight", "FrontFight")

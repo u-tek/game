@@ -64,6 +64,8 @@ var _decor_info: Dictionary = {}  ## decor.json: kind -> {rect, foot} at lot 0, 
 var _props: Dictionary = {}      ## decor index -> its TextureRect
 ## The building index being dragged is _drag; a dragged prop is DECOR_BASE + its index.
 const DECOR_BASE := 1000
+## A miniature (the War screen's link): no tags, no souls, no taps.
+var mini := false
 ## While arranging: the prop kind a tap on a free lot buys ("" = none).
 var hold_kind := "":
 	set(v):
@@ -302,6 +304,10 @@ func _rebuild() -> void:
 		_overlay.draw.connect(_draw_labels)
 		add_child(_overlay)
 	_overlay.size = size
+	_overlay.visible = not mini
+	if mini:
+		mouse_filter = MOUSE_FILTER_IGNORE
+		_souls_layer.visible = false
 	move_child(_overlay, _made.size())
 	_overlay.queue_redraw()
 

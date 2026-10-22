@@ -38,10 +38,11 @@ const NAV_H := 120.0
 const NAV_RISE := 0.0
 ## Toasts start this far below the top of the content area (clear of screen headers).
 const TOAST_GAP := 112.0
-## [screen id, label, icon]; the middle one is the raised Lobby hexagon.
+## [screen id, label, icon]. The owner (2026-10-23): the Shop replaces Gear in the bar and Team moves
+## to the Lobby (a plate beside ENGAGE); Gear lives in the Bag and on each hero page.
 const TABS := [
-	["heroes", "Heroes", "nav_heroes"], ["formation", "Team", "nav_team"], ["home", "Lobby", "nav_lobby"],
-	["gear", "Gear", "nav_gear"], ["summon", "Summon", "nav_summon"],
+	["heroes", "Heroes", "nav_heroes"], ["home", "Lobby", "nav_lobby"], ["shop", "Shop", "shop"],
+	["summon", "Summon", "nav_summon"],
 ]
 const DEFAULT_CURRENCIES: Array[String] = ["gems", "gold"]
 
@@ -824,7 +825,11 @@ func _refresh_dots() -> void:
 			lvl = true
 			break
 	(_tabs["heroes"] as NavTab).set_dot(lvl)
-	(_tabs["formation"] as NavTab).set_dot(Guide.formation_can_improve())
+	var gift := false
+	for o: Dictionary in Game.offers():
+		if str(o.get("price_label", "")) == "Free" and bool(o.get("available", false)):
+			gift = true
+	(_tabs["shop"] as NavTab).set_dot(gift)
 	Kit.set_dot(_quests_btn, int(Game.quests_ready_count()) > 0, 18.0, Vector2(12, 14))
 	Kit.set_dot(_bell_btn, not _notices().is_empty(), 18.0, Vector2(12, 14))
 	_refresh_guide()
@@ -843,8 +848,8 @@ func _refresh_guide() -> void:
 		"summon":
 			tab = "" if here == "summon" else "summon"
 		"formation":
-			# The Lobby has no Team label any more (only the nav has it): point at the tab there too.
-			tab = "" if here == "formation" else "formation"
+			# Team is a plate on the Lobby now: point at the Lobby tab from elsewhere.
+			tab = "" if here in ["home", "formation"] else "home"
 		"level":
 			tab = "" if here in ["heroes", "hero_detail"] else "heroes"
 		"battle":
