@@ -259,7 +259,7 @@ Ask the owner for approval (plan mode or a permission rule they add) instead.
 ## Commands (Linux)
 
 ```bash
-tools/check                 # import + 172 unit tests + headless boot (~20 s); must be green
+tools/check                 # import + 173 unit tests + headless boot (~20 s); must be green
 tools/check e2e             # plus 3 screen end-to-end scripts and the touch-scroll audit (~2 min)
 tools/gd --headless --path . -s tests/run_tests.gd -- test_playthrough   # one test file
 python3 -B tests/port_check/check_port.py        # independent Python rules check (102 checks)

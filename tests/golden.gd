@@ -960,10 +960,11 @@ static func _calendar_inputs() -> Dictionary:
 	var ev_cases: Array = []
 	for c: Array in [[2026, 10, 31, []], [2026, 12, 25, ["cassiel"]], [2027, 1, 1, []], [2027, 11, 5, []],
 			[2027, 11, 5, ["seraphiel", "vesper"]], [2028, 2, 29, ["vesper"]], [2026, 3, 21, ["seraphiel", "cassiel"]],
-			[2026, 12, 31, ["ombre"]], [1999, 2, 14, ["noctaire"]], [2026, 10, 22, []]]:
-		ev_cases.append({"day": CalendarRules.day_number(int(c[0]), int(c[1]), int(c[2])), "owned": c[3]})
+			[2026, 12, 31, ["ombre"]], [1999, 2, 14, ["noctaire"]], [2026, 10, 22, []],
+			[2026, 10, 31, ["vesper"], "10-31"], [2027, 11, 5, ["vesper"], "11-05"], [2028, 2, 29, [], "02-29"], [2026, 3, 1, [], "02-29"]]:
+		ev_cases.append({"day": CalendarRules.day_number(int(c[0]), int(c[1]), int(c[2])), "owned": c[3], "player_md": c[4] if c.size() > 4 else ""})
 	return {
-		"about": "CalendarRules (src/core/calendar_rules.gd) on data/calendar.json: civil(day) for day numbers (days since 1970-01-01), day_number(civil) back, and events(day, owned).",
+		"about": "CalendarRules (src/core/calendar_rules.gd) on data/calendar.json: civil(day) for day numbers (days since 1970-01-01), day_number(civil) back, and events(day, owned, player_md).",
 		"days": days,
 		"event_cases": ev_cases,
 	}
@@ -976,7 +977,7 @@ static func _calendar(f: Dictionary) -> Dictionary:
 		civ.append([c[0], c[1], c[2], CalendarRules.day_number(c[0], c[1], c[2])])
 	var evs: Array = []
 	for c: Dictionary in f.event_cases:
-		evs.append(CalendarRules.events(int(c.day), c.owned))
+		evs.append(CalendarRules.events(int(c.day), c.owned, str(c.player_md)))
 	return {"days": f.days, "civil": civ, "event_cases": f.event_cases, "events": evs}
 
 

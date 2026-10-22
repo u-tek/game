@@ -898,6 +898,8 @@ func _refresh_days(pressed_key: String = "") -> void:
 
 ## The word on a day's stamp: the holiday's, or the birthday heroine's name.
 func _day_word(e: Dictionary) -> String:
+	if str(e.kind) == "player":
+		return CalendarRules.stamp(e)
 	if str(e.kind) == "birthday":
 		return "%s'S BIRTHDAY" % str(Game.hero_def(str(e.id)).get("name", e.id)).to_upper()
 	return CalendarRules.stamp(e)
@@ -915,24 +917,29 @@ func _stamp_day() -> void:
 	Kit.sfx("hit", 0.7)
 	_refresh_days(key)
 	var e: Dictionary = r.value.event
-	var title := "%s's birthday" % str(Game.hero_def(str(e.id)).get("name", e.id)) if str(e.kind) == "birthday" \
-		else str(CalendarRules.holiday(str(e.id)).get("name", "A gift"))
+	var title := str(CalendarRules.holiday(str(e.id)).get("name", "A gift"))
+	if str(e.kind) == "birthday":
+		title = "%s's birthday" % str(Game.hero_def(str(e.id)).get("name", e.id))
+	elif str(e.kind) == "player":
+		title = "Happy birthday" 
 	var reward: Dictionary = r.value.reward
 	get_tree().create_timer(0.5).timeout.connect(func() -> void:
 		UI.show_reward(title, reward))
 
 
-## Her line on a real day: her own birthday first, else the first of today's days.
+## Her line on a real day: the player's birthday first, then her own, else the first of today's.
 func _day_line(id: String) -> String:
 	var evs: Array = Game.calendar_today()
 	if evs.is_empty():
 		return ""
 	var ev: Dictionary = evs[0]
-	for e: Dictionary in evs:
-		if str(e.kind) == "birthday" and str(e.id) == id:
-			ev = e
+	if str(ev.kind) != "player":
+		for e: Dictionary in evs:
+			if str(e.kind) == "birthday" and str(e.id) == id:
+				ev = e
 	var def := Game.hero_def(id)
-	return CalendarRules.line(ev, id, str(def.get("faction", "")), str(Game.hero_def(str(ev.id)).get("name", ev.id)))
+	var who := str(Game.state.get("player_name", "")) if str(ev.kind) == "player" else str(Game.hero_def(str(ev.id)).get("name", ev.id))
+	return CalendarRules.line(ev, id, str(def.get("faction", "")), who)
 
 
 ## Days since the intake form when she remembers it, once each, and what she says.

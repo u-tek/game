@@ -9,12 +9,16 @@ extends RefCounted
 ##                         (truncating division, valid for any day number)
 ##   day_number(y, m, d) = the day number of a date (the inverse of civil)
 ##   md(day)             = "MM-DD"
-##   events(day, owned)  = the day's events in order: every holiday whose md matches (data order),
-##                         then the birthday of every owned heroine whose md matches (in the order of
-##                         data birthdays). Each {"kind": "day" | "birthday", "id": holiday or hero id,
-##                         "key": "<id>-<year>" | "bday-<hero>-<year>", "gift": {currency: n}}.
-##                         A key is claimable once, so each gift comes once a year. 02-29 birthdays
-##                         would only come in leap years (none are set there).
+##   events(day, owned, player_md = "")
+##                       = the day's events in order: the player's own birthday when player_md (MM-DD,
+##                         from the intake form) matches, then every holiday whose md matches (data
+##                         order), then the birthday of every owned heroine whose md matches (in the
+##                         order of data birthdays). Each {"kind": "player" | "day" | "birthday",
+##                         "id": "player" | holiday id | hero id, "key": "you-<year>" | "<id>-<year>" |
+##                         "bday-<hero>-<year>", "gift": {currency: n}}.
+##                         A key is claimable once, so each gift comes once a year. A 02-29
+##                         birthday only comes in leap years.
+##   clean_md(s)         = s as "MM-DD" when it is a real date (02-29 allowed), else "".
 
 static var _d: Dictionary = GameData.file("calendar")
 
@@ -46,10 +50,12 @@ static func md(day: int) -> String:
 	return "%02d-%02d" % [c[1], c[2]]
 
 
-static func events(day: int, owned: Array) -> Array:
+static func events(day: int, owned: Array, player_md: String = "") -> Array:
 	var c := civil(day)
 	var key_md := "%02d-%02d" % [c[1], c[2]]
 	var out: Array = []
+	if player_md != "" and player_md == key_md:
+		out.append({"kind": "player", "id": "player", "key": "you-%d" % c[0], "gift": (_d.player_birthday.gift as Dictionary).duplicate()})
 	for h: Dictionary in _d.days:
 		if str(h.md) == key_md:
 			out.append({"kind": "day", "id": str(h.id), "key": "%s-%d" % [str(h.id), c[0]], "gift": (h.gift as Dictionary).duplicate()})
@@ -59,6 +65,21 @@ static func events(day: int, owned: Array) -> Array:
 			out.append({"kind": "birthday", "id": str(id), "key": "bday-%s-%d" % [str(id), c[0]],
 				"gift": (_d.birthday.gift as Dictionary).duplicate()})
 	return out
+
+
+const MONTH_DAYS: Array[int] = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+
+## A month-day as "MM-DD" if it is a real date (02-29 allowed), else "".
+static func clean_md(s: String) -> String:
+	var parts := s.split("-")
+	if parts.size() != 2 or not parts[0].is_valid_int() or not parts[1].is_valid_int():
+		return ""
+	var m := int(parts[0])
+	var d := int(parts[1])
+	if m < 1 or m > 12 or d < 1 or d > MONTH_DAYS[m - 1]:
+		return ""
+	return "%02d-%02d" % [m, d]
 
 
 ## A heroine's birthday as "MM-DD" ("" if she has none).
@@ -74,9 +95,12 @@ static func holiday(id: String) -> Dictionary:
 	return {}
 
 
-## Her line for an event, by her faction: a holiday's own line, or for a birthday "mine" when it is
-## hers and "other" (with {her} as the birthday heroine's name) when it is someone else's.
+## Her line for an event, by her faction: a holiday's own line; for a birthday "mine" when it is
+## hers and "other" (with {her} as the birthday heroine's name) when it is someone else's; for the
+## player's birthday its line with {name} (pass the player's name as her_name).
 static func line(ev: Dictionary, speaker_id: String, speaker_faction: String, her_name: String) -> String:
+	if str(ev.get("kind", "")) == "player":
+		return str((_d.player_birthday.lines as Dictionary).get(speaker_faction, "")).replace("{name}", her_name)
 	if str(ev.get("kind", "")) == "birthday":
 		var b: Dictionary = _d.birthday
 		if str(ev.id) == speaker_id:
@@ -87,6 +111,8 @@ static func line(ev: Dictionary, speaker_id: String, speaker_faction: String, he
 
 ## The stamp's word for an event.
 static func stamp(ev: Dictionary) -> String:
+	if str(ev.get("kind", "")) == "player":
+		return str(_d.player_birthday.stamp)
 	if str(ev.get("kind", "")) == "birthday":
 		return str(_d.birthday.stamp)
 	return str(holiday(str(ev.get("id", ""))).get("stamp", ""))

@@ -1223,16 +1223,17 @@ def c_day_number(y, m, d):
     yoe = y - era * 400
     doy = idiv(153 * (m - 3 if m > 2 else m + 9) + 2, 5) + d - 1
     return era * 146097 + yoe * 365 + idiv(yoe, 4) - idiv(yoe, 100) + doy - 719468
-def c_events(day, owned):
+def c_events(day, owned, player_md=""):
     y, m, d = c_civil(day)
     md = "%02d-%02d" % (m, d)
-    out = [{"kind": "day", "id": h["id"], "key": "%s-%d" % (h["id"], y), "gift": h["gift"]} for h in CAL["days"] if h["md"] == md]
+    out = [{"kind": "player", "id": "player", "key": "you-%d" % y, "gift": CAL["player_birthday"]["gift"]}] if player_md != "" and player_md == md else []
+    out += [{"kind": "day", "id": h["id"], "key": "%s-%d" % (h["id"], y), "gift": h["gift"]} for h in CAL["days"] if h["md"] == md]
     out += [{"kind": "birthday", "id": hid, "key": "bday-%s-%d" % (hid, y), "gift": CAL["birthday"]["gift"]}
         for hid, b in CAL["birthdays"].items() if b == md and hid in owned]
     return out
 f = fx("calendar")
 check("calendar.civil", f["civil"], [(c := c_civil(d)) + [c_day_number(*c)] for d in f["days"]])
-check("calendar.events", f["events"], [c_events(c["day"], c["owned"]) for c in f["event_cases"]])
+check("calendar.events", f["events"], [c_events(c["day"], c["owned"], c["player_md"]) for c in f["event_cases"]])
 
 bad = [k for k, v in results.items() if v]
 print("\n%d checks, %d differ" % (len(results), len(bad)))

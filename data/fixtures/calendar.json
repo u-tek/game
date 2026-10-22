@@ -1,6 +1,6 @@
 {
 	"version": 1,
-	"about": "CalendarRules (src/core/calendar_rules.gd) on data/calendar.json: civil(day) for day numbers (days since 1970-01-01), day_number(civil) back, and events(day, owned).",
+	"about": "CalendarRules (src/core/calendar_rules.gd) on data/calendar.json: civil(day) for day numbers (days since 1970-01-01), day_number(civil) back, and events(day, owned, player_md).",
 	"regenerate": "tools/gd --headless --path . -s tests/tools/make_fixtures.gd",
 	"days": [0, -1, 1, 59, 60, 365, -365, -719468, -719469, 11016, 11017, 19782, 20392, 20393, 20453, 20454, 30000, 47541, 47542, 100000, -100000],
 	"civil": [
@@ -27,16 +27,20 @@
 		[1696, 3, 17, -100000]
 	],
 	"event_cases": [
-		{"day": 20757, "owned": []},
-		{"day": 20812, "owned": ["cassiel"]},
-		{"day": 20819, "owned": []},
-		{"day": 21127, "owned": []},
-		{"day": 21127, "owned": ["seraphiel", "vesper"]},
-		{"day": 21243, "owned": ["vesper"]},
-		{"day": 20533, "owned": ["seraphiel", "cassiel"]},
-		{"day": 20818, "owned": ["ombre"]},
-		{"day": 10636, "owned": ["noctaire"]},
-		{"day": 20748, "owned": []}
+		{"day": 20757, "owned": [], "player_md": ""},
+		{"day": 20812, "owned": ["cassiel"], "player_md": ""},
+		{"day": 20819, "owned": [], "player_md": ""},
+		{"day": 21127, "owned": [], "player_md": ""},
+		{"day": 21127, "owned": ["seraphiel", "vesper"], "player_md": ""},
+		{"day": 21243, "owned": ["vesper"], "player_md": ""},
+		{"day": 20533, "owned": ["seraphiel", "cassiel"], "player_md": ""},
+		{"day": 20818, "owned": ["ombre"], "player_md": ""},
+		{"day": 10636, "owned": ["noctaire"], "player_md": ""},
+		{"day": 20748, "owned": [], "player_md": ""},
+		{"day": 20757, "owned": ["vesper"], "player_md": "10-31"},
+		{"day": 21127, "owned": ["vesper"], "player_md": "11-05"},
+		{"day": 21243, "owned": [], "player_md": "02-29"},
+		{"day": 20513, "owned": [], "player_md": "02-29"}
 	],
 	"events": [
 		[{"kind": "day", "id": "halloween", "key": "halloween-2026", "gift": {"gems": 200, "dust": 300}}],
@@ -62,6 +66,21 @@
 		],
 		[{"kind": "day", "id": "new_years_eve", "key": "new_years_eve-2026", "gift": {"gems": 150}}],
 		[{"kind": "day", "id": "valentine", "key": "valentine-1999", "gift": {"gems": 200}}],
+		[],
+		[
+			{"kind": "player", "id": "player", "key": "you-2026", "gift": {"gems": 300, "scrolls": 1}},
+			{"kind": "day", "id": "halloween", "key": "halloween-2026", "gift": {"gems": 200, "dust": 300}}
+		],
+		[
+			{"kind": "player", "id": "player", "key": "you-2027", "gift": {"gems": 300, "scrolls": 1}},
+			{
+				"kind": "birthday",
+				"id": "vesper",
+				"key": "bday-vesper-2027",
+				"gift": {"gems": 100, "hero_exp": 2000}
+			}
+		],
+		[{"kind": "player", "id": "player", "key": "you-2028", "gift": {"gems": 300, "scrolls": 1}}],
 		[]
 	]
 }

@@ -100,3 +100,28 @@ func test_birthday_claim(t: TestCtx) -> void:
 	t.ok(bool(g.claim_calendar("bday-vesper-2026").ok))
 	t.eq(int(g.model.state.currencies.hero_exp), exp + 2000)
 	_done()
+
+
+func test_player_birthday(t: TestCtx) -> void:
+	t.eq(CalendarRules.clean_md("2-29"), "02-29")
+	t.eq(CalendarRules.clean_md("04-31"), "", "April has 30 days")
+	t.eq(CalendarRules.clean_md("13-01"), "")
+	t.eq(CalendarRules.clean_md("x-1"), "")
+	var g := _game(2026, 12, 3)
+	g.new_game()
+	g.complete_intake("Aria", [], "12-03")
+	t.eq(str(g.model.state.player_birthday), "12-03")
+	var today: Array = g.calendar_today()
+	t.eq(today.size(), 1)
+	t.eq(str(today[0].kind), "player")
+	t.eq(str(today[0].key), "you-2026")
+	t.ok(CalendarRules.line(today[0], "seraphiel", "celestial", "Aria").begins_with("Happy birthday, Aria."))
+	t.ok(bool(g.claim_calendar("you-2026").ok))
+	# A bad date never overwrites a good one; save repair drops a bad one.
+	g.complete_intake("Aria", [], "02-30")
+	t.eq(str(g.model.state.player_birthday), "12-03")
+	var st: Dictionary = g.model.state.duplicate(true)
+	st.player_birthday = "99-99"
+	g.model.migrate(st)
+	t.eq(str(g.model.state.player_birthday), "")
+	_done()

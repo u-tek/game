@@ -1,6 +1,6 @@
 {
 	"version": 1,
-	"about": "Real days the game notices (CalendarRules, docs/dev/unity-port.md section 9f). md is MM-DD on the player's local calendar. On a day: a stamp on the Lobby (tap it: the gift, once a year) and her line, by her faction. Birthdays: each heroine's day, for owned heroines only; the Lobby heroine says 'mine' on her own and names the other one ({her}) on someone else's. Lines are short: the Lobby sets them huge.",
+	"about": "Real days the game notices (CalendarRules, docs/dev/unity-port.md section 9f). md is MM-DD on the player's local calendar. On a day: a stamp on the Lobby (tap it: the gift, once a year) and her line, by her faction. player_birthday: the player's own day, if they gave it on the intake form ({name} is theirs). Birthdays: each heroine's day, for owned heroines only; the Lobby heroine says 'mine' on her own and names the other one ({her}) on someone else's. Lines are short: the Lobby sets them huge.",
 	"days": [
 		{
 			"id": "new_year", "md": "01-01", "name": "New Year", "stamp": "NEW YEAR",
@@ -57,6 +57,15 @@
 			}
 		}
 	],
+	"player_birthday": {
+		"stamp": "YOUR BIRTHDAY",
+		"gift": {"gems": 300, "scrolls": 1},
+		"lines": {
+			"celestial": "Happy birthday, {name}. I asked heaven to sing this morning.",
+			"infernal": "Happy birthday, {name}. Make a wish. I'll handle the wicked ones.",
+			"fallen": "Happy birthday, {name}. I kept your form. I knew today was coming."
+		}
+	},
 	"birthday": {
 		"stamp": "BIRTHDAY",
 		"gift": {"gems": 100, "hero_exp": 2000},

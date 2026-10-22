@@ -85,6 +85,7 @@ func default_state() -> Dictionary:
 		# The intake form (onboarding): done once; the signature as strokes (0..1000 pad coords).
 		"onboarded": false,
 		"signature": [],
+		"player_birthday": "",          # "MM-DD" from the intake form ("" = not given)
 		"currencies": EconomyData.START_CURRENCIES.duplicate(),
 		"heroes": {},
 		"formation": ["", "", "", "", ""],
@@ -130,6 +131,7 @@ func migrate(loaded: Dictionary) -> Dictionary:
 	_merge_defaults(loaded, defaults)
 	loaded.onboarded = bool(loaded.onboarded)
 	loaded.signature = _clean_signature(loaded.signature)
+	loaded.player_birthday = CalendarRules.clean_md(str(loaded.player_birthday))
 	var heroes: Dictionary = {}
 	for id in loaded.heroes:
 		if HeroData.get_def(str(id)).is_empty() or not (loaded.heroes[id] is Dictionary):
@@ -2352,7 +2354,7 @@ const CALENDAR_KEEP_DAYS := 400
 func calendar_today() -> Array:
 	var cl: Dictionary = state.calendar.claimed
 	var out: Array = []
-	for e: Dictionary in CalendarRules.events(today(), state.heroes.keys()):
+	for e: Dictionary in CalendarRules.events(today(), state.heroes.keys(), str(state.get("player_birthday", ""))):
 		var e2 := e.duplicate(true)
 		e2["claimed"] = cl.has(str(e.key))
 		out.append(e2)
@@ -2395,10 +2397,13 @@ func onboarded() -> bool:
 
 ## Finishes the intake form: the name (blank keeps the current one, 16 characters) and the
 ## signature strokes. Result {ok, value: {name}, error}.
-func complete_intake(player_name: String, strokes: Array) -> Dictionary:
+func complete_intake(player_name: String, strokes: Array, born: String = "") -> Dictionary:
 	var n := player_name.strip_edges().left(16)
 	if n != "":
 		state.player_name = n
+	var md := CalendarRules.clean_md(born)
+	if md != "":
+		state.player_birthday = md
 	state.signature = _clean_signature(strokes)
 	state.onboarded = true
 	_changed()

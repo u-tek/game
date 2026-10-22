@@ -84,6 +84,9 @@ func _ready() -> void:
 			# screenshots/testing: --date=MM-DD moves the clock to that day this year (the calendar).
 			if a.begins_with("--date="):
 				dev_date(a.substr("--date=".length()))
+			# --born=MM-DD: the player's birthday, as if given on the intake form.
+			if a.begins_with("--born="):
+				model.state.player_birthday = CalendarRules.clean_md(a.substr("--born=".length()))
 		for a in args:
 			# screenshots/testing: --war=heaven|hell picks the side and logs a few days of souls in two
 			# sectors (and last week's, so a claim waits).
@@ -853,8 +856,8 @@ func signature() -> Array:
 	return model.signature()
 
 
-func complete_intake(player_name: String, strokes: Array) -> Dictionary:
-	var r := model.complete_intake(player_name, strokes)
+func complete_intake(player_name: String, strokes: Array, born: String = "") -> Dictionary:
+	var r := model.complete_intake(player_name, strokes, born)
 	_flush()
 	return r
 

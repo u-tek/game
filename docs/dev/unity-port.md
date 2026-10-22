@@ -982,11 +982,16 @@ Day numbers are GameModel's (days since 1970-01-01 on the player's local clock).
 - `day_number(y, m, d)` is the inverse: `y -= (m <= 2); era = (y >= 0 ? y : y - 399) / 400;
   yoe = y - era*400; doy = (153*(m > 2 ? m - 3 : m + 9) + 2)/5 + d - 1;
   return era*146097 + yoe*365 + yoe/4 - yoe/100 + doy - 719468`.
-- `events(day, owned)`: every holiday whose `md` matches, in data order, as `{kind: "day", id,
-  key: "<id>-<year>", gift}`; then every birthday (in the order of `birthdays`) whose MM-DD matches
+- `events(day, owned, player_md = "")`: first the player's own birthday when `player_md` (MM-DD from
+  the intake form) equals the day's MM-DD, as `{kind: "player", id: "player", key: "you-<year>",
+  gift: player_birthday.gift}`; then every holiday whose `md` matches, in data order, as
+  `{kind: "day", id, key: "<id>-<year>", gift}`; then every birthday (in the order of `birthdays`) whose MM-DD matches
   and whose heroine is in `owned`, as `{kind: "birthday", id: hero id, key: "bday-<id>-<year>",
   gift: birthday.gift}`.
-- GameModel: `calendar.claimed` maps a key to the day it was taken. `calendar_today()` = the events
+- `clean_md(s)`: "MM-DD" when it names a real date (month 1-12, day 1 to 31/29/31/30/31/30/31/31/30/
+  31/30/31; 02-29 allowed), else "".
+- GameModel: `player_birthday` ("MM-DD" or "", set by `complete_intake(name, strokes, born)` when
+  `clean_md(born)` is not empty; save repair cleans it). `calendar.claimed` maps a key to the day it was taken. `calendar_today()` = the events
   for today and the owned heroines, each with `claimed`. `claim_calendar(key)`: the key must be one
   of today's and not claimed; grants the gift. Claims older than 400 days are dropped (on a claim
   and on save repair), so the same day next year (a new key) is open again.
@@ -1011,7 +1016,7 @@ Each file: `{version, about, regenerate, ...}`. Inputs and expected outputs sit 
 | `session.json` | GameModel: `start_ms`, `tz_bias_ms`, `steps [{advance_ms, call, args}]` -> `results [{value, notify}]`, `final_state`. Each step advances the clock, then calls the method; `"battle"` = `stage_battle_setup(i)` + `run_to_end` + `complete_stage(i, outcome)`, value `{seed, victory, duration_ms, complete}`. |
 | `save.json` | `cases []`: `now_ms`, `input` (a save) -> `out` (`migrate(input)`). |
 | `prints.json` | `editions[]` (banner, day, epoch_day -> out); `flaw_rolls` -> `flaws`, `grade_rolls` -> `grades`; `make_prints[]` (inputs -> `out {prints, ed}`, a long run covers every flaw and holo); `samples[]` (print -> notable, score); `trim` (list, keep_plain -> `out`, `out_default`). |
-| `calendar.json` | `days[]` -> `civil[]` ([y, m, d, day_number(y, m, d)]); `event_cases[]` (day, owned) -> `events[]`. |
+| `calendar.json` | `days[]` -> `civil[]` ([y, m, d, day_number(y, m, d)]); `event_cases[]` (day, owned, player_md) -> `events[]`. |
 | `rival.json` | `banner_days` -> `banners`; `factions` -> `counters`; `stars[]`, `levels[]`, `teams[]` -> out; `sims[]`: `new_state(seed)` then each step `catch_up(state, today, epoch_day, owns)` -> `{days, state, best_untaken}`; `hauls` -> `haul_out`; `leads` ([cleared, Spire best, day]) -> `lead_out`; `lines` ([kind, seed, day, salt, fills]) -> `line_out`. |
 
 **Checking (NUnit sketch):** load each file with Newtonsoft, run the inputs through your port,
