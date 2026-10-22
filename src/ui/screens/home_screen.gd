@@ -926,7 +926,7 @@ func _stamp_day() -> void:
 		UI.toast(str(r.get("error", "")), "bad")
 		return
 	Kit.haptic(28, 0.9)
-	Kit.sfx("hit", 0.7)
+	Kit.sfx("stamp")
 	_refresh_days(key)
 	var e: Dictionary = r.value.event
 	var title := str(CalendarRules.holiday(str(e.id)).get("name", "A gift"))
@@ -1214,6 +1214,7 @@ func _start_pulse() -> void:
 func _on_pulse_beat(bpm: int) -> void:
 	if _sprite == null or not is_instance_valid(_sprite):
 		return
+	Kit.sfx("pulse")
 	if bpm >= 106:
 		_sprite.call("set_expression", "eyes", "closed")
 		_sprite.call("set_expression", "mouth", "smile")

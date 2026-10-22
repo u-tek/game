@@ -10,7 +10,7 @@ extends RefCounted
 const RATE := 22050
 const NAMES: Array[String] = ["tap", "tab", "pop", "deny", "toggle", "coin", "sparkle", "close", "hit", "reward",
 	"ult", "summon", "victory", "defeat", "legendary",
-	"portal", "tell", "tell_big", "burst", "reveal", "riser", "beat", "slam"]
+	"portal", "tell", "tell_big", "burst", "reveal", "riser", "beat", "slam", "stamp", "pulse"]
 
 
 ## Builds the stream for `sound_name` (null if unknown).
@@ -63,6 +63,10 @@ static func make(sound_name: String) -> AudioStreamWAV:
 			s = _beat()
 		"slam":
 			s = _slam()
+		"stamp":
+			s = _stamp()
+		"pulse":
+			s = _pulse()
 		_:
 			return null
 	return _to_wav(s)
@@ -468,6 +472,34 @@ static func _beat() -> PackedFloat32Array:
 			var t := float(i) / RATE
 			phase += TAU * (48.0 + 40.0 * exp(-t * 30.0)) / RATE
 			b[i0 + i] += sin(phase) * exp(-t * 16.0) * amp * minf(1.0, t * 300.0)
+	return b
+
+
+## A rubber stamp coming down on paper: a dull low thud and the paper's short slap.
+static func _stamp() -> PackedFloat32Array:
+	var b := _buf(0.28)
+	var phase := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		phase += TAU * (64.0 + 60.0 * exp(-t * 45.0)) / RATE
+		# (harmonics so a phone's small speaker still hears the thud)
+		b[i] += (sin(phase) + 0.35 * sin(phase * 2.0) + 0.18 * sin(phase * 3.0)) * exp(-t * 30.0) * 0.65 * minf(1.0, t * 600.0)
+	_noise_into(b, 0.0, 0.045, 0.5, 211, 0.55, 0.12, 3.0, false)
+	_noise_into(b, 0.012, 0.06, 0.18, 223, 0.08, 0.04, 2.0, false)
+	return b
+
+
+## Her pulse under a thumb: a soft, low lub-dub, felt more than heard.
+static func _pulse() -> PackedFloat32Array:
+	var b := _buf(0.36)
+	for start: float in [0.0, 0.15]:
+		var i0 := int(start * RATE)
+		var phase := 0.0
+		var amp := 0.7 if start == 0.0 else 0.4
+		for i in mini(int(0.2 * RATE), b.size() - i0):
+			var t := float(i) / RATE
+			phase += TAU * (40.0 + 22.0 * exp(-t * 35.0)) / RATE
+			b[i0 + i] += (sin(phase) + 0.3 * sin(phase * 3.0) + 0.12 * sin(phase * 5.0)) * exp(-t * 20.0) * amp * minf(1.0, t * 200.0)
 	return b
 
 
