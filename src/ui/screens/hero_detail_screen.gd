@@ -325,6 +325,11 @@ func _build_poster() -> void:
 	var pw := pr.size.x
 	var ph := pr.size.y
 
+	# ---- A Legendary's poster is printed on gold foil (owner, 2026-10-23: "there used to be a gold
+	# background now it's white"): brushed holo gold under her name and figure, catching the tilt.
+	if _legend:
+		LegendKit.foil_rect(p, Rect2(BAND, 0, pw - BAND, ph), 0, {"band_px": 620.0, "strength": 0.92, "holo": 0.16,
+			"sparkle": 0.35, "seed": float(_id.hash() % 97)}).name = "GoldSheet"
 	# ---- The band: her red halftone print, brand marks, title and bio in paper type.
 	PK.rect(p, Rect2(0, 0, BAND, ph), PK.BAND)
 	var ht := PK.halftone_print(_id, skin, Vector2(BAND, ph * 0.58), 7.0, LegendKit.GOLD_PRINT if _legend else PK.PRINT, 1.25)
@@ -383,6 +388,9 @@ func _build_poster() -> void:
 	_fig_h = ph * 0.82
 	var feet := Vector2(BAND + 262, ph + 10)
 	var echo := PK.echo(_id, skin, _fig_h * 1.14, 0.36 if _owned else 0.16)
+	if _legend:
+		# On the gold sheet her echo is a deep burnt gold, not red.
+		(echo.material as ShaderMaterial).set_shader_parameter("tint", Color(0.42, 0.24, 0.04, 0.42 if _owned else 0.2))
 	echo.position = Vector2(feet.x - echo.size.x * 0.5 + 96, feet.y - echo.size.y - 30)
 	_box.add_child(echo)
 	if _legend:
