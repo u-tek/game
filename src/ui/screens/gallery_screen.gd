@@ -72,6 +72,9 @@ func setup(params: Dictionary) -> void:
 		UI.go("summon")
 		return
 	var want := str(params.get("hero_id", ""))
+	# A heroine not yet recruited can still be looked at (the shop's wardrobe opens her looks here).
+	if want != "" and not _ids.has(want) and not Game.hero_def(want).is_empty():
+		_ids.insert(0, want)
 	_i = maxi(0, _ids.find(want))
 	_build()
 	_show_hero(_i, str(params.get("skin", "*")))

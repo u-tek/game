@@ -107,6 +107,9 @@ this file says where things stand. Older logs are under "History" at the bottom.
   `district_rules.gd` (port spec 9e, fixture war.json, port check 103); the sheet of a building
   (tap its ledger row) shows LEVEL n / 5 and an UPGRADE stamp; the ledger and the maquette's tags
   show the level.
+- **Wardrobe to gallery (2026-10-22):** every skin's print in the Shop's wardrobe carries a VIEW tag;
+  tapping it opens her in that look full screen in the gallery (zoom, swipe the looks, BUY), also for
+  a heroine not yet recruited (shown as a preview). The art sells the skin, not a thumbnail.
 - **Restraint pass, continued:** Settings' title no longer runs through Back; Summon's left edge no
   longer overprints two lines of micro type.
 - **Next:** keep refining every screen as a restrained poster.

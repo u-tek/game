@@ -437,6 +437,29 @@ func _skin_row(s: Dictionary, lines: Dictionary, r: Rect2) -> Control:
 		pic.position = fr.position
 		pic.size = fr.size
 		row.add_child(pic)
+		# Tap the print: her in this look, full screen in the gallery (zoom, swipe, buy).
+		var view := PK.t("VIEW", 9, PAPER, "mono_bold")
+		var vt := ColorRect.new()
+		vt.color = Color(INK, 0.85)
+		vt.mouse_filter = MOUSE_FILTER_IGNORE
+		vt.position = fr.position + Vector2(0, fr.size.y - 16)
+		vt.size = Vector2(40, 16)
+		row.add_child(vt)
+		view.position = vt.position + Vector2(7, 1)
+		row.add_child(view)
+		var hit := Button.new()
+		hit.name = "View_" + str(s.id)
+		hit.theme_type_variation = &"BareButton"
+		hit.focus_mode = FOCUS_NONE
+		hit.mouse_filter = MOUSE_FILTER_PASS
+		hit.position = fr.position
+		hit.size = fr.size
+		var hid := str(s.hero)
+		var sid := str(s.id)
+		hit.pressed.connect(func() -> void:
+			Kit.sfx("tap")
+			UI.go("gallery", {"hero_id": hid, "skin": sid}))
+		row.add_child(hit)
 	else:
 		var np := PK.t("NOT\nPRINTED\nYET", 11, Color(INK, 0.55), "mono_bold")
 		np.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
