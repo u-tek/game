@@ -5,8 +5,9 @@ show the unbuilt ones as frosted placeholders and colour the kept ones (src/ui/v
 
     blender --background --factory-startup --python tools/blender/district_models.py -- <out_dir> [samples] [gpu|cpu]
 
-Writes <out_dir>/ground.png and <out_dir>/<building id>.png (16-bit RGBA, transparent, full frame)
-and layout.json (frame size; per building its roof point and its foot point in the image, 0..1, y
+Writes <out_dir>/ground.png and <out_dir>/<building id>.png (16-bit RGBA, transparent, full frame),
+<building id>_n.png (its surface normal in the camera's frame, for relighting with the tilt) and
+layout.json (frame size; per building its roof point and its foot point in the image, 0..1, y
 down). tools/blender/finish_district.py crops them and writes assets/art/ui/district/.
 The grid follows DistrictPlan's: 8 x 8 cells, grid x running down-right, grid y down-left; the spots
 are DistrictPlan.SPOTS. Seconds per render on an RTX 3070 (OptiX).
@@ -369,6 +370,58 @@ for bid, objs in groups.items():
     show(objs + [ground, road])
     sc.render.filepath = os.path.join(OUT, "%s.png" % bid)
     bpy.ops.render.render(write_still=True)
+
+# Each building's surface normal in the camera's frame (R right, G up, B toward the viewer;
+# 0.5 + 0.5 * n), for relighting with the phone's tilt: emission only, a few samples, no ground.
+nmat = bpy.data.materials.new("normal")
+nmat.use_nodes = True
+nt = nmat.node_tree
+for nd in list(nt.nodes):
+    nt.nodes.remove(nd)
+n_out = nt.nodes.new("ShaderNodeOutputMaterial")
+n_em = nt.nodes.new("ShaderNodeEmission")
+n_geo = nt.nodes.new("ShaderNodeNewGeometry")
+n_vt = nt.nodes.new("ShaderNodeVectorTransform")
+n_vt.vector_type = "NORMAL"
+n_vt.convert_from = "WORLD"
+n_vt.convert_to = "CAMERA"
+nt.links.new(n_geo.outputs["Normal"], n_vt.inputs[0])
+n_sep = nt.nodes.new("ShaderNodeSeparateXYZ")
+nt.links.new(n_vt.outputs[0], n_sep.inputs[0])
+n_neg = nt.nodes.new("ShaderNodeMath")
+n_neg.operation = "MULTIPLY"
+n_neg.inputs[1].default_value = -1.0
+nt.links.new(n_sep.outputs["Z"], n_neg.inputs[0])
+n_comb = nt.nodes.new("ShaderNodeCombineXYZ")
+nt.links.new(n_sep.outputs["X"], n_comb.inputs[0])
+nt.links.new(n_sep.outputs["Y"], n_comb.inputs[1])
+nt.links.new(n_neg.outputs[0], n_comb.inputs[2])
+n_half = nt.nodes.new("ShaderNodeVectorMath")
+n_half.operation = "MULTIPLY_ADD"
+n_half.inputs[1].default_value = (0.5, 0.5, 0.5)
+n_half.inputs[2].default_value = (0.5, 0.5, 0.5)
+nt.links.new(n_comb.outputs[0], n_half.inputs[0])
+nt.links.new(n_half.outputs[0], n_em.inputs["Color"])
+nt.links.new(n_em.outputs[0], n_out.inputs["Surface"])
+ground.is_shadow_catcher = False
+road.is_shadow_catcher = False
+sc.cycles.samples = 8
+sc.cycles.use_denoising = False
+sc.view_settings.view_transform = "Raw"
+sc.view_settings.exposure = 0.0
+sc.render.image_settings.color_depth = "8"
+for bid, objs in groups.items():
+    show(objs)
+    keep = {}
+    for o in objs:
+        keep[o.name] = list(o.data.materials)
+        for k in range(len(o.data.materials)):
+            o.data.materials[k] = nmat
+    sc.render.filepath = os.path.join(OUT, "%s_n.png" % bid)
+    bpy.ops.render.render(write_still=True)
+    for o in objs:
+        for k, m in enumerate(keep[o.name]):
+            o.data.materials[k] = m
 
 with open(os.path.join(OUT, "layout.json"), "w") as f:
     json.dump(layout, f)

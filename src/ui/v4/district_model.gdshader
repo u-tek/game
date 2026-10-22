@@ -4,8 +4,12 @@
 // next to open (frosted, warmed with signal). The halftone grid runs in plan px (offset_px is this
 // sprite's place) so it lines up across buildings. RGBA textures arrive in canvas space (linear on the
 // HDR 2D canvas), so the work is done in sRGB and converted back by ui_linear.
+// Each building catches the tilting light (ui_tilt, as the War map): normal_tex is its surface
+// normal in the camera's frame; the shading rises or falls by how much more or less each face meets
+// the tilted light than the resting one.
 shader_type canvas_item;
 global uniform float ui_linear;
+global uniform vec2 ui_tilt;
 
 uniform int state = 0;
 uniform vec3 tint = vec3(0.86, 0.66, 0.24);
@@ -13,6 +17,8 @@ uniform vec3 sig = vec3(1.0, 0.294, 0.122);
 uniform vec2 rect_px = vec2(100.0, 100.0);
 uniform vec2 offset_px = vec2(0.0);
 uniform float cell = 5.0;
+uniform sampler2D normal_tex : filter_linear, hint_default_white;
+uniform bool has_normals = false;
 // The Horn Quarter's model is cast in black: obsidian with the light kept as soft grey highlights.
 uniform bool obsidian = false;
 
@@ -23,6 +29,10 @@ float dots(vec2 p, float v, float c) {
 	return 1.0 - smoothstep(rad - 0.6, rad + 0.6, length(f) * c);
 }
 
+vec3 tilt_light_dir(vec2 tilt) {
+	return normalize(vec3(-0.5 + tilt.x * 1.5, 0.6 - tilt.y * 1.5, 0.75));
+}
+
 void fragment() {
 	vec4 t = texture(TEXTURE, UV);
 	// TEXTURE arrives in canvas space (linear on the HDR 2D canvas): work in sRGB.
@@ -30,6 +40,13 @@ void fragment() {
 	float a = t.a;
 	float lum = dot(c, vec3(0.3333));
 	bool shadow = max(c.r, max(c.g, c.b)) < 0.07;
+	float relight = 0.0;
+	if (has_normals && !shadow) {
+		vec3 n = normalize(texture(normal_tex, UV).rgb * 2.0 - 1.0);
+		relight = dot(n, tilt_light_dir(ui_tilt)) - dot(n, tilt_light_dir(vec2(0.0)));
+		c = clamp(c * (1.0 + relight * 0.5), vec3(0.0), vec3(1.0));
+		lum = dot(c, vec3(0.3333));
+	}
 	if (state >= 3) {
 		c = mix(vec3(0.975, 0.97, 0.955), vec3(0.8, 0.79, 0.77), clamp((0.85 - lum) * 1.6, 0.0, 1.0));
 		if (state == 4) {

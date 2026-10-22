@@ -6,7 +6,7 @@ numpy + Pillow).
 Writes assets/art/ui/district/ground.png (the whole frame) and <id>.png per building, cropped to
 what it draws, with its cast shadow at about half strength (the shadow catcher's shadows are pitch black, and
 its faint ambient veil over the whole ground is dropped),
-8-bit RGBA, and layout.json: the frame size and per building its crop rect, roof and foot points
+8-bit RGBA, its normals over the same rect at half size (<id>_n.png), and layout.json: the frame size and per building its crop rect, roof and foot points
 (all 0..1 of the frame, y down) and its depth (back to front order).
 """
 import json
@@ -44,6 +44,16 @@ for bid, info in lay["buildings"].items():
     x0, x1, y0, y1 = max(xs.min() - 2, 0), min(xs.max() + 3, fw), max(ys.min() - 2, 0), min(ys.max() + 3, fh)
     crop = np.clip(a[y0:y1, x0:x1] + 0.5, 0, 255).astype(np.uint8)
     Image.fromarray(crop, "RGBA").save(os.path.join(dst, bid + ".png"), optimize=True)
+    # Its normals over the same rect (flat toward the viewer where it has none), half size.
+    npath = os.path.join(src, bid + "_n.png")
+    if os.path.exists(npath):
+        nimg = load8(npath)
+        rgb = nimg[y0:y1, x0:x1, :3]
+        al = nimg[y0:y1, x0:x1, 3:4] / 255.0
+        rgb = rgb * al + np.array([127.5, 127.5, 255.0]) * (1.0 - al)
+        nm = Image.fromarray(np.clip(rgb + 0.5, 0, 255).astype(np.uint8), "RGB")
+        nm = nm.resize((max(1, nm.width // 2), max(1, nm.height // 2)), Image.LANCZOS)
+        nm.save(os.path.join(dst, bid + "_n.png"), optimize=True)
     out["buildings"][bid] = {"rect": [x0 / fw, y0 / fh, (x1 - x0) / fw, (y1 - y0) / fh], "roof": info["roof"],
         "foot": info["foot"], "depth": info["depth"]}
 with open(os.path.join(dst, "layout.json"), "w") as f:

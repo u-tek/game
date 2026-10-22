@@ -108,6 +108,10 @@ func _rebuild() -> void:
 		m.set_shader_parameter("rect_px", tr.size)
 		m.set_shader_parameter("offset_px", tr.position)
 		m.set_shader_parameter("obsidian", str(dist.get("side", "")) == "hell")
+		var np := DIR + IDS[i] + "_n.png"
+		if ResourceLoader.exists(np):
+			m.set_shader_parameter("normal_tex", load(np))
+			m.set_shader_parameter("has_normals", true)
 		tr.material = m
 		tr.set_meta("state", st)
 		add_child(tr)
