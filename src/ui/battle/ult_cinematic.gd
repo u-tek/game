@@ -11,6 +11,7 @@ extends Control
 ## huge across the foot, then a quick cut back to the field as the hit lands.
 ##   var c := UltCinematic.new(); add_child(c); c.play(hero_id, "Hymn of Judgment", true, 1.0)
 
+const DeviceTier := preload("res://src/art/device_tier.gd")
 const BP := preload("res://src/ui/v4/battle/battle_print.gd")
 
 var hero_id := ""
@@ -292,6 +293,7 @@ func _framed_rig(parent: Control, id: String, skin: String, face_px: float, at: 
 	parent.add_child(anchor)
 	var sp := HeroArt.make_sprite(id, skin)
 	anchor.add_child(sp)
+	DeviceTier.light(sp)
 	var face := Vector2(0, -1500)
 	var face_w := 460.0
 	var rp: Variant = sp.get("rig")

@@ -55,8 +55,13 @@ this file says where things stand. Older logs are under "History" at the bottom.
   Not that I was counting."); 22:00-05:00 the app warms like paper under a lamp. Old saves with
   progress skip the form; Settings has "Replay the opening"; Reset Save starts there. Debug: shot
   params `calling {"answer": true}`, flags `--away=<hours>`, `--lamp` / `--no-lamp`.
-- **Next (the owner, same day):** a novel feature for iPhone 15 Pro and newer that uses the on-device
-  power; keep refining every screen as a restrained poster.
+- **Live Light (iPhone 15 Pro and newer, 2026-10-22; the owner: "do something to take advantage of
+  the processing power available on device, something cool and novel"):** on those devices the big
+  hero views relight the painting every frame from the phone's tilt (a relief from her silhouette
+  and shading, sheen on gloss, rim light) and throw her soft shadow on the paper. Detection by model
+  identifier (`device_tier.gd`, tested); a Settings switch there; older phones unchanged. Not yet
+  tried on a real iPhone 15 Pro: check the frame rate and the look when the owner has one.
+- **Next:** keep refining every screen as a restrained poster.
 - **For the art session (18+ skins):** `HeroArt._built_art` shows the nude base look whatever skin
   is chosen when nudity is on (tested in `test_skins.gd test_nudity_mode_drops_skins`), so the 18+
   looks being installed under `skins/<art>/adult/` never show. When the per-skin nude set is in,

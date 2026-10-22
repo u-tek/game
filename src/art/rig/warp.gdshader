@@ -4,6 +4,9 @@ shader_type canvas_item;
 // large draw with src/art/holo_foil.gdshader instead (the same skinning plus the holographic foil).
 #include "res://src/art/rig/rig_tint.gdshaderinc"
 #include "res://src/art/rig/warp_skin.gdshaderinc"
+global uniform float ui_linear;
+global uniform vec2 ui_tilt;
+#include "res://src/art/live_light.gdshaderinc"
 
 void vertex() {
 	vec2 p = VERTEX;
@@ -14,5 +17,6 @@ void vertex() {
 
 void fragment() {
 	vec4 o = halo_tint(texture(TEXTURE, UV), v_mod);
+	#include "res://src/art/live_light_body.gdshaderinc"
 	COLOR = o;
 }

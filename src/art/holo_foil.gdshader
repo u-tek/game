@@ -23,6 +23,7 @@ shader_type canvas_item;
 
 global uniform float ui_linear;
 global uniform vec2 ui_tilt;
+#include "res://src/art/live_light.gdshaderinc"
 
 uniform float strength = 1.0;          // 0..1 master
 uniform float motion = 1.0;            // 1: tilt and time move it; 0: Reduce motion (still, gentle)
@@ -172,5 +173,6 @@ void fragment() {
 		// Kept in 0..1: on the HDR canvas anything brighter would bloom on desktop and not on iOS.
 		o.rgb = to_canvas(clamp(c, vec3(0.0), vec3(1.0)));
 	}
+	#include "res://src/art/live_light_body.gdshaderinc"
 	COLOR = o * v_mod;
 }

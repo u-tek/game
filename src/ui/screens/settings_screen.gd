@@ -15,6 +15,7 @@ extends Control
 ## - switches are printed toggles (Kit.toggle: ON / OFF in an ink-ruled box, a signal status light);
 ## - a footer with a barcode, a matrix code, the date and the signature; still grain over it all.
 
+const DeviceTier := preload("res://src/art/device_tier.gd")
 const DEV_GRANTS: Array[Array] = [
 	["gems", 3000, "+3,000 Gems"],
 	["gold", 100000, "+100K Gold"],
@@ -58,9 +59,11 @@ func setup(params: Dictionary) -> void:
 		_toggle_row("music", "Music", "The lobby theme", "music", true),
 		_toggle_row("vibrate", "Vibration", "Haptics on phones", "haptics", true),
 	]))
-	body.add_child(_section("Display", [
-		_toggle_row("refresh", "Reduce motion", "Calmer screens: no slides, sweeps or bounces.", "reduce_motion", false),
-	]))
+	var display: Array = [_toggle_row("refresh", "Reduce motion", "Calmer screens: no slides, sweeps or bounces.", "reduce_motion", false)]
+	if DeviceTier.pro():
+		# iPhone 15 Pro and newer: the heroines relit live from the phone's tilt, their shadows on the paper.
+		display.append(_toggle_row("power", "Live Light", "Your phone lights the heroines as you tilt it and casts their shadows on the page.", "live_light", true))
+	body.add_child(_section("Display", display))
 	body.add_child(_section("Battle", [
 		_speed_row(),
 		_toggle_row("auto", "Auto ultimates", "Heroes fire ultimates when ready. Turn off to time them yourself.", "auto_ultimates", true),

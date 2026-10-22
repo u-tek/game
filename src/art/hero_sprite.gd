@@ -23,6 +23,7 @@ const FALLBACK_RIG := "_silhouette"
 const LUNGE_STOP := 120.0       ## px (node space) a melee lunge stops short of the target
 const BOSS_SCALE := 1.3
 const HOLO_SHADER := preload("res://src/art/holo_foil.gdshader")
+const LIVE_SHADOW := preload("res://src/art/live_shadow.gdshader")
 ## Foil weight per bone (by name; others 1.0): never the face, little on hair and the head (hair,
 ## not headgear, is most of it), softer on big feathered wings, so the foil sits on her outfit,
 ## armour and weapon.
@@ -48,6 +49,15 @@ var _t := 0.0
 var _hit_flash := 0.0
 var _holo_on := false          ## the foil shader is on the rig
 var _holo_motion := -1.0       ## motion uniform last sent (Reduce motion holds it at 0)
+
+## Live Light (iPhone 15 Pro and newer; DeviceTier.light sets it on the big views): the warp shaders
+## relight her per pixel from the phone's tilt (src/art/live_light.gdshaderinc) and her soft shadow
+## falls on the paper behind her (live_shadow.gdshader).
+var live := false:
+	set(v):
+		live = v
+		_apply_live()
+var _live_shadow: Sprite2D
 
 ## Holographic foil on her art (holo_foil.gdshader). setup() turns it on for Legendary heroes, in
 ## every look; set it false where she is small or busy (battle units). Warp rigs only.
@@ -149,6 +159,33 @@ func _apply_holo() -> void:
 	rig.set_warp_param(&"face_ellipse", rd.face_ellipse())
 	rig.set_warp_param(&"debug_view", holo_debug)
 	_sync_holo_motion()
+	_apply_live()
+
+
+## Live Light's uniforms on the warp material and the shadow sprite under her (rest pose still).
+func _apply_live() -> void:
+	if rig == null or rig.rig == null or rig.rig.kind != "warp" or is_fallback:
+		return
+	var rd := rig.rig
+	rig.set_warp_param(&"live_light", 1.0 if live else 0.0)
+	rig.set_warp_param(&"live_face", rd.face_ellipse())
+	if live and _live_shadow == null:
+		var tex: Texture2D = load(rd.still_path) if rd.still_path != "" and ResourceLoader.exists(rd.still_path) else rd.image
+		if tex:
+			_live_shadow = Sprite2D.new()
+			_live_shadow.name = "LiveShadow"
+			_live_shadow.texture = tex
+			_live_shadow.centered = false
+			# The still is drawn in canvas px with the feet at the origin (rd.origin), like the rig.
+			_live_shadow.scale = rd.canvas / Vector2(tex.get_size()) if tex.get_width() > 0 else Vector2.ONE
+			_live_shadow.position = -rd.origin
+			var m := ShaderMaterial.new()
+			m.shader = LIVE_SHADOW
+			_live_shadow.material = m
+			_body.add_child(_live_shadow)
+			_body.move_child(_live_shadow, rig.get_index())
+	if _live_shadow:
+		_live_shadow.visible = live
 
 
 ## Reduce motion (the setting) holds the foil still and gentle; checked every frame (cheap).

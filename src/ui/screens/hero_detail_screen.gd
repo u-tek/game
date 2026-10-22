@@ -36,6 +36,7 @@ extends Control
 ## fx_at (s) freezes it at that moment (screenshots).
 
 ## The matte line above the poster: the big Back and the publication line.
+const DeviceTier := preload("res://src/art/device_tier.gd")
 const TOP_LINE := 100.0
 const Roster := preload("res://src/ui/screens/heroes_screen.gd")
 const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
@@ -389,6 +390,7 @@ func _build_poster() -> void:
 	_sprite_key = HeroArt.art_key(_id, skin)
 	_sprite = HeroArt.make_sprite(_id, skin)
 	_anchor.add_child(_sprite)
+	DeviceTier.light(_sprite)
 	_fit_sprite()
 	_poke = Button.new()
 	_poke.name = "Poke"
@@ -1369,6 +1371,7 @@ func _rebuild_sprite() -> void:
 	_sprite_key = HeroArt.art_key(_id, _sprite_skin)
 	_sprite = HeroArt.make_sprite(_id, _sprite_skin)
 	_anchor.add_child(_sprite)
+	DeviceTier.light(_sprite)
 	_fit_sprite()
 
 

@@ -13,6 +13,7 @@ extends Control
 ## Mono type in the poster style: her name, title, the look's name and pack, "07 / 40".
 ## params: hero_id (start on her), skin (start on that look).
 
+const DeviceTier := preload("res://src/art/device_tier.gd")
 const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
 const INK := Color("101113")
 const PAPER := Color("e9e8e2")
@@ -207,6 +208,7 @@ func _show_look() -> void:
 	_stage.add_child(_anchor)
 	_sprite = HeroArt.make_sprite(id, skin)
 	_anchor.add_child(_sprite)
+	DeviceTier.light(_sprite)
 	var d := Game.hero_def(id)
 	_name_l.text = str(d.get("name", id)).to_upper()
 	_title_l.text = "%s  ·  %s  ·  %s" % [str(d.get("title", "")).to_upper(), str(Kit.FACTION_NAMES.get(str(d.get("faction", "")), "")).to_upper(),

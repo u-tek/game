@@ -21,6 +21,7 @@ extends Control
 ## pass); the menu's status lights are real LEDs; the bulletin's index is a clear frosted acrylic tab
 ## clipped over the band's edge (tap it: the next bulletin).
 
+const DeviceTier := preload("res://src/art/device_tier.gd")
 const HUD := preload("res://src/ui/components/hud.gd")
 const LobbyLines := preload("res://src/ui/battle/lobby_lines.gd")
 
@@ -788,6 +789,7 @@ func _refresh_hero() -> void:
 	_build_print(id, skin, key)
 	_sprite = HeroArt.make_sprite(id, skin)
 	_anchor.add_child(_sprite)
+	DeviceTier.light(_sprite)
 	# Framed by her body as tall as the poster (owner 2026-10-20: "take up the whole screen ... her
 	# wings can be off screen"): wings, weapon, tail and cape may run past the band and the rule.
 	HeroArt.fit_sprite(_sprite, _anchor, Rect2(BAND - 140.0, _ph * 0.02, _pw - (BAND - 140.0), _ph * 0.98), BAND + 250.0, true)
