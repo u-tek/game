@@ -57,6 +57,8 @@ const RULE_IN := 48.0
 ## Her body's height on the poster (share of the poster) and how far her feet sit below its bottom
 ## edge: the plate and the star disc cover her feet anyway (_fit_sprite).
 const FIG_FILL := 0.95
+## The paper header across the top of the poster (name, stats, ID, stars, power): she stands below it.
+const HEADER_H := 174.0
 const FIG_SINK := 0.06
 const FOOT_H := 112.0
 const INK := Color("101113")
@@ -325,11 +327,6 @@ func _build_poster() -> void:
 	var pw := pr.size.x
 	var ph := pr.size.y
 
-	# ---- A Legendary's poster is printed on gold foil (owner, 2026-10-23: "there used to be a gold
-	# background now it's white"): brushed holo gold under her name and figure, catching the tilt.
-	if _legend:
-		LegendKit.foil_rect(p, Rect2(BAND, 0, pw - BAND, ph), 0, {"band_px": 620.0, "strength": 0.92, "holo": 0.16,
-			"sparkle": 0.35, "seed": float(_id.hash() % 97)}).name = "GoldSheet"
 	# ---- The band: her red halftone print, brand marks, title and bio in paper type.
 	PK.rect(p, Rect2(0, 0, BAND, ph), PK.BAND)
 	var ht := PK.halftone_print(_id, skin, Vector2(BAND, ph * 0.58), 7.0, LegendKit.GOLD_PRINT if _legend else PK.PRINT, 1.25)
@@ -388,9 +385,6 @@ func _build_poster() -> void:
 	_fig_h = ph * 0.82
 	var feet := Vector2(BAND + 262, ph + 10)
 	var echo := PK.echo(_id, skin, _fig_h * 1.14, 0.36 if _owned else 0.16)
-	if _legend:
-		# On the gold sheet her echo is a deep burnt gold, not red.
-		(echo.material as ShaderMaterial).set_shader_parameter("tint", Color(0.42, 0.24, 0.04, 0.42 if _owned else 0.2))
 	echo.position = Vector2(feet.x - echo.size.x * 0.5 + 96, feet.y - echo.size.y - 30)
 	_box.add_child(echo)
 	if _legend:
@@ -433,21 +427,35 @@ func _build_poster() -> void:
 		var view := _edge_label(p, pr, "VIEW", 0.6, func() -> void: UI.go("gallery", {"hero_id": _id}))
 		view.name = "View"
 
-	# ---- The dossier data, top right (ink, in front of her).
+	# ---- The dossier data: one paper header across the top of the poster (owner, 2026-10-23: the
+	# stats, stars and power must not cover her). Name and level, the stat row, then the ID line with
+	# the stars, power and IN TEAM; she stands below it (_fit_sprite starts her under HEADER_H).
 	var x1 := BAND + 34.0
 	var xr := pw - RULE_IN - 14.0
-	PK.at(p, PK.t("%s  HH©" % nm, 14, INK, "mono_bold"), Vector2(x1, 16))
+	var hdr := Control.new()
+	hdr.name = "Header"
+	hdr.z_index = 2
+	hdr.mouse_filter = MOUSE_FILTER_IGNORE
+	p.add_child(hdr)
+	var paper := ColorRect.new()
+	paper.color = Color(MATTE, 0.96)
+	paper.mouse_filter = MOUSE_FILTER_IGNORE
+	paper.position = Vector2(BAND, 0)
+	paper.size = Vector2(pw - RULE_IN - BAND, HEADER_H)
+	hdr.add_child(paper)
+	PK.rule(hdr, Vector2(BAND, HEADER_H - 1.5), Vector2(pw - RULE_IN - BAND, 1.5), INK)
+	PK.at(hdr, PK.t("%s  HH©" % nm, 14, INK, "mono_bold"), Vector2(x1, 16))
 	_level_l = PK.t("", 14, INK, "mono_bold")
 	_level_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_level_l.size = Vector2(200, 18)
-	PK.at(p, _level_l, Vector2(xr - 200, 16))
-	PK.rule(p, Vector2(x1, 40), Vector2(xr - x1, 1), Color(INK, 0.35))
+	PK.at(hdr, _level_l, Vector2(xr - 200, 16))
+	PK.rule(hdr, Vector2(x1, 40), Vector2(xr - x1, 1), Color(INK, 0.35))
 	var cw := (xr - x1) / 5.0
 	_stat_cells.clear()
 	for k in STAT_ORDER.size():
 		var stat := STAT_ORDER[k]
 		var cx := x1 + k * cw
-		PK.at(p, PK.t(str(Kit.STAT_SHORT.get(stat, stat.to_upper())), 11, INK, "mono_bold"), Vector2(cx, 48))
+		PK.at(hdr, PK.t(str(Kit.STAT_SHORT.get(stat, stat.to_upper())), 11, INK, "mono_bold"), Vector2(cx, 48))
 		var dots := HUD.Dots.new()
 		dots.count = 5
 		dots.filled = _rating(stat)
@@ -455,53 +463,32 @@ func _build_poster() -> void:
 		dots.empty = Color(INK, 0.3)
 		dots.gap = 2.0
 		dots.size = Vector2(5 * 9 + 4 * 2, 9)
-		PK.at(p, dots, Vector2(cx, 67))
+		PK.at(hdr, dots, Vector2(cx, 67))
 		var val := PK.t("", 13, INK, "mono_bold")
-		PK.at(p, val, Vector2(cx, 82))
+		PK.at(hdr, val, Vector2(cx, 82))
 		var dl := PK.t("", 10, Color(INK, 0.55), "mono")
-		PK.at(p, dl, Vector2(cx, 100))
+		PK.at(hdr, dl, Vector2(cx, 100))
 		_stat_cells.append({"value": val, "delta": dl})
-	var lines := [
-		"%s  /  No.%02d" % [_code(), _number()],
-		"%s  —  %s" % [str(Kit.FACTION_NAMES.get(str(_def.faction), "")).to_upper(), str(Kit.ROLE_NAMES.get(str(_def.role), "")).to_upper()],
-		str(Kit.RARITY_NAMES.get(str(_def.rarity), "")).to_upper(),
-	]
-	# The ID lines, stars, power and IN TEAM: a paper label stuck over her (raised above the rig,
-	# which draws over plain print; her wings used to cover these).
-	var idb := Control.new()
-	idb.name = "IdLabel"
-	idb.z_index = 2
-	idb.mouse_filter = MOUSE_FILTER_IGNORE
-	p.add_child(idb)
-	var ly := 126.0
-	var idw := 0.0
-	for l: String in lines:
-		idw = maxf(idw, PK.text_w(l, 13, "mono"))
-	idw = maxf(idw + 96.0, 250.0)
-	var back := ColorRect.new()
-	back.color = Color(MATTE, 0.92)
-	back.mouse_filter = MOUSE_FILTER_IGNORE
-	back.position = Vector2(xr - idw - 8.0, ly - 6.0)
-	back.size = Vector2(idw + 14.0, lines.size() * 18.0 + 30.0)
-	idb.add_child(back)
-	PK.rule(idb, Vector2(back.position.x, back.position.y), Vector2(back.size.x, 1), Color(INK, 0.5))
-	for l: String in lines:
-		var lab := PK.t(l, 13, INK, "mono")
-		lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		lab.size = Vector2(320, 17)
-		PK.at(idb, lab, Vector2(xr - 320, ly))
-		ly += 18.0
+	PK.rule(hdr, Vector2(x1, 120), Vector2(xr - x1, 1), Color(INK, 0.35))
+	# The ID line: code and number, faction and role, rarity.
+	var idl := PK.t("%s  /  No.%02d   ·   %s  —  %s   ·   %s" % [_code(), _number(),
+		str(Kit.FACTION_NAMES.get(str(_def.faction), "")).to_upper(), str(Kit.ROLE_NAMES.get(str(_def.role), "")).to_upper(),
+		str(Kit.RARITY_NAMES.get(str(_def.rarity), "")).to_upper()], 11, INK, "mono")
+	idl.size = Vector2(xr - x1, 15)
+	idl.clip_text = true
+	PK.at(hdr, idl, Vector2(x1, 128))
+	# Stars left, power and IN TEAM right.
 	_stars = PK.Stars.new()
-	_stars.size = Vector2(6 * 11 + 5 * 3, 11)
-	PK.at(idb, _stars, Vector2(xr - _stars.size.x - PK.text_w(lines[2], 13, "mono") - 12, ly - 15))
+	_stars.size = Vector2(6 * 13 + 5 * 3, 13)
+	PK.at(hdr, _stars, Vector2(x1, 150))
 	_power_l = PK.t("", 13, INK, "mono_bold")
 	_power_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_power_l.size = Vector2(240, 17)
-	PK.at(idb, _power_l, Vector2(xr - 240 - 78, ly))
+	PK.at(hdr, _power_l, Vector2(xr - 240 - 84, 147))
 	_team_l = PK.t("IN TEAM", 13, SIG, "mono_bold")
 	_team_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_team_l.size = Vector2(72, 17)
-	PK.at(idb, _team_l, Vector2(xr - 72, ly))
+	_team_l.size = Vector2(76, 17)
+	PK.at(hdr, _team_l, Vector2(xr - 76, 147))
 
 	# ---- Collage at the bottom: the abilities capsule, the Star Up stamp, barcode and signature.
 	_capsule = Control.new()
@@ -751,8 +738,9 @@ func _fit_sprite() -> void:
 	# Full screen (owner 2026-10-20: "i want the characters to take up the whole screen ... her wings
 	# can be off screen"): her body (HeroArt.fit_sprite, core) as tall as the poster, feet just under
 	# its bottom edge behind the level-up plate; wings, weapon, tail and cape may run off the poster.
-	var fig := _box.size.y * FIG_FILL
+	# Her body starts under the paper header (owner, 2026-10-23: the stats must not cover her).
 	var feet_y := _box.size.y * (1.0 + FIG_SINK)
+	var fig := minf(_box.size.y * FIG_FILL, feet_y - HEADER_H - 14.0)
 	HeroArt.fit_sprite(_sprite, _anchor, Rect2(BAND - 150.0, feet_y - fig, _box.size.x - (BAND - 150.0), fig), BAND + 262.0, true)
 	if not _owned:
 		_sprite.modulate = Color(0.5, 0.5, 0.52, 0.9)
