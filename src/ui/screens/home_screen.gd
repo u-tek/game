@@ -64,7 +64,6 @@ var _built := Vector2.ZERO
 var _pw := 0.0
 var _ph := 0.0
 var _page: Control
-var _page_anchor := Vector2.ZERO
 var _poster: Control
 var _print_layer: Control
 var _type_layer: Control
@@ -96,8 +95,6 @@ var _pass_root: Control
 var _pass_led: Control
 var _pass_sig := "-"
 var _sig_label: Label
-var _viewing := false
-var _restore: Button
 var _sheet: Control
 var _sheet_refs: Dictionary = {}
 var _t := 0.0
@@ -461,7 +458,8 @@ func _on_menu(id: String) -> void:
 		"shop":
 			UI.go("shop")
 		"view":
-			_hide_ui()
+			# The gallery: her (and everyone) full screen, every look.
+			UI.go("gallery", {"hero_id": _hero_id})
 
 
 ## The next objective as a paper label stuck across the foot of the band.
@@ -538,17 +536,14 @@ func _build_stamp() -> void:
 func _on_resized() -> void:
 	if _page == null:
 		return
-	if _viewing:
-		# The chrome went away and the screen grew: keep the poster where it was.
-		_page.global_position = _page_anchor
-	elif absf(size.x - _built.x) > 1.0 or absf(size.y - _built.y) > 1.0:
+	if absf(size.x - _built.x) > 1.0 or absf(size.y - _built.y) > 1.0:
 		_rebuild.call_deferred()
 	else:
 		_page.position = Vector2.ZERO
 
 
 func _rebuild() -> void:
-	if _viewing or (absf(size.x - _built.x) <= 1.0 and absf(size.y - _built.y) <= 1.0):
+	if absf(size.x - _built.x) <= 1.0 and absf(size.y - _built.y) <= 1.0:
 		return
 	for c in get_children():
 		c.queue_free()
@@ -966,31 +961,6 @@ func _open_hero() -> void:
 		UI.go("hero_detail", {"hero_id": _hero_id, "browse": _hero_order()})
 
 
-## Hides the stuck-on pieces, fades her line and hides the chrome to look at the hero; any tap
-## brings them back.
-func _hide_ui() -> void:
-	_viewing = true
-	_page_anchor = _page.global_position
-	_over.visible = false
-	_pass_slot.visible = false
-	_growth_layer.visible = false
-	_type_layer.create_tween().tween_property(_type_layer, "modulate:a", 0.12, 0.3)
-	UI.set_chrome(false, false)
-	_restore = Button.new()
-	_restore.name = "ShowUI"
-	_restore.theme_type_variation = &"BareButton"
-	_restore.focus_mode = FOCUS_NONE
-	_restore.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	add_child(_restore)
-	_restore.pressed.connect(func() -> void:
-		_restore.queue_free()
-		_restore = null
-		_viewing = false
-		_over.visible = true
-		_pass_slot.visible = true
-		_growth_layer.visible = true
-		_type_layer.create_tween().tween_property(_type_layer, "modulate:a", 1.0, 0.3)
-		UI.set_chrome(true, true))
 
 
 ## The hero celebrates for a moment (claims, taps).

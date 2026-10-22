@@ -38,8 +38,16 @@ this file says where things stand. Older logs are under "History" at the bottom.
   The owner (2026-10-22): "just keep working and adding features and refining the app based on the
   visual references". Since: **the weekly Champion** (the other side's heroine as a big boss on the
   Front, three tries a day, damage tiers pay). The balance was checked (already calibrated to the
-  economy). Next: the player's district, then the server (real sides). `tools/check` now compresses
-  newly installed hero art itself (the PC art session installs 18+ looks while code work runs).
+  economy). **The gallery** (screen `gallery`: the Lobby's VIEW label and a VIEW label on each hero
+  page): every owned heroine full screen, swipe between them, every look in a strip (unowned skins
+  as a PREVIEW with BUY, owned ones WEAR), double tap or pinch to zoom, tap her to react. Next: the
+  player's district, then the server (real sides). `tools/check` now compresses newly installed hero
+  art itself (the PC art session installs 18+ looks while code work runs).
+- **For the art session (18+ skins):** `HeroArt._built_art` shows the nude base look whatever skin
+  is chosen when nudity is on (tested in `test_skins.gd test_nudity_mode_drops_skins`), so the 18+
+  looks being installed under `skins/<art>/adult/` never show. When the per-skin nude set is in,
+  switch `_built_art` to the skin's adult art when it exists (fall back to the base nude) and update
+  that test; the gallery's look strip will then show every skin's 18+ version.
 - **App cleanup (2026-10-22, PC chat; the owner: "i want the clean the app up first", then "i'm happy
   for you to go ahead with all of those changes").** An audit of every screen (`tools/shoot`, rich
   save) and of the code, then:

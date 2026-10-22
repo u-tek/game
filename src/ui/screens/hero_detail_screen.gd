@@ -413,6 +413,10 @@ func _build_poster() -> void:
 		var nxt := _edge_label(p, pr, "NEXT ->", 0.45, func() -> void: _browse_step(1))
 		nxt.name = "Next"
 		_arrows = [prev, nxt]
+	if _owned:
+		# Full screen, every look (the gallery).
+		var view := _edge_label(p, pr, "VIEW", 0.6, func() -> void: UI.go("gallery", {"hero_id": _id}))
+		view.name = "View"
 
 	# ---- The dossier data, top right (ink, in front of her).
 	var x1 := BAND + 34.0

@@ -53,6 +53,7 @@ const SCREENS := {
 	"rival": "res://src/ui/screens/rival_screen.gd",
 	"bag": "res://src/ui/screens/bag_screen.gd",
 	"front": "res://src/ui/screens/front_screen.gd",
+	"gallery": "res://src/ui/screens/gallery_screen.gd",
 	# Style v4 Lobby mockup, the approved poster composition (debug builds only; docs/dev/ui-style-v4.md).
 	"lobby_v5": "res://src/ui/screens/lobby_v5_screen.gd",
 }
@@ -64,14 +65,14 @@ const NAV_ROOTS: Array[String] = ["heroes", "formation", "home", "gear", "summon
 ## Which nav tab is highlighted for non-tab screens.
 const NAV_PARENT := {"campaign": "home", "tower": "home", "battle": "home", "hero_detail": "heroes",
 	"quests": "home", "shop": "home", "settings": "home", "profile": "home", "prints": "profile", "rival": "home",
-	"bag": "home", "front": "home"}
+	"bag": "home", "front": "home", "gallery": "heroes"}
 ## Currencies shown in the top-bar resource pill per screen (default: gems, gold).
 const TOP_CURRENCIES := {"summon": ["gems", "scrolls"], "heroes": ["gold", "hero_exp"],
 	"hero_detail": ["gold", "hero_exp"], "gear": ["gold", "dust"]}
 ## Screens never kept in history (back from the next screen skips them).
 const NO_HISTORY: Array[String] = ["battle"]
 ## Screens with their own entrance (no automatic content stagger).
-const NO_STAGGER: Array[String] = ["battle", "summon"]
+const NO_STAGGER: Array[String] = ["battle", "summon", "gallery"]
 ## Screens slow enough to build that a loading veil shows first (in the app, not in tests).
 const HEAVY: Array[String] = ["battle"]
 const FADE_TIME := 0.15

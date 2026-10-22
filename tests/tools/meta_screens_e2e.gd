@@ -39,10 +39,39 @@ func _run() -> void:
 	await _quests()
 	await _shop()
 	await _settings()
+	await _new_screens()
 	for f in _fails:
 		printerr("E2E FAIL ", f)
 	print("E2E meta screens: %d checks, %d failures" % [_checks, _fails.size()])
 	quit(1 if _fails.size() > 0 else 0)
+
+
+# ------------------------------------------------------------------ the Bag, the front, the gallery
+
+## The 2026-10-22 screens open and do their one main thing: the Bag lists currencies; the front asks
+## for a side, then shows the map and moves the pin; the gallery shows a heroine and swipes on.
+func _new_screens() -> void:
+	var bag := await _go("bag")
+	_check(bag.find_child("Cur_gems", true, false) != null, "the Bag lists gems")
+	_game.model.state.campaign.cleared = maxi(int(_game.model.state.campaign.cleared), WarRules.UNLOCK_CLEARED)
+	var front := await _go("front")
+	_check(front.find_child("Swear_heaven", true, false) != null, "the front asks for a side first")
+	_check(bool(_game.war_choose_side("heaven").ok), "pick Heaven")
+	await _frames(6)
+	front = _ui.current
+	_check(front.find_child("Chart", true, false) != null, "the war map after the oath")
+	_check(bool(_game.war_set_focus(5).ok) and int(_game.war().focus) == 5, "move the pin")
+	_check(not (_game.war().champion as Dictionary).is_empty(), "a champion this week")
+	if _game.owned_heroes().is_empty():
+		_game.model.add_hero("seraphiel")
+	var gal := await _go("gallery")
+	_check(gal.find_child("HeroAnchor", true, false) != null, "the gallery shows a heroine")
+	var first := str(gal.get("_i"))
+	gal.call("_show_hero", int(gal.get("_i")) + 1)
+	await _frames(3)
+	_check(_game.owned_heroes().size() < 2 or str(gal.get("_i")) != first, "the gallery moves to the next heroine")
+	_ui.go("home")
+	await _frames(4)
 
 
 # ------------------------------------------------------------------ helpers
