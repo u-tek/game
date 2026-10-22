@@ -25,6 +25,7 @@ extends Control
 ## main.gd shows ProfileScreen.avatar_hero() in the top bar when it is set.
 ## params: sheet "avatar" | "name" opens that sheet, scroll (px) scrolls the page (screenshots).
 
+const KeyboardDismiss := preload("res://src/ui/components/keyboard_dismiss.gd")
 const Signature := preload("res://src/ui/components/signature.gd")
 const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
 const Poster := preload("res://src/ui/v4/survey/poster.gd")
@@ -1035,6 +1036,7 @@ func _open_name_sheet() -> void:
 	upd.call(le.text)
 	le.text_changed.connect(upd)
 	le.text_submitted.connect(func(t: String) -> void: _save_name(t))
+	KeyboardDismiss.attach(le)
 	col.add_child(Kit.spacer(0, 4))
 	var save := Kit.sheet_pass({"width": 584.0, "kicker": "REGISTRY  //  SIGN", "title": "SAVE CALL SIGN", "action": "SIGN  >>>",
 		"icon": "check", "text": "Save", "info": "SHOWN ON YOUR ID CARD AND YOUR SIGNATURE"}, func() -> void: _save_name(le.text))

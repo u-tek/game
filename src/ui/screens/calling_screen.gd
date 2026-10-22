@@ -4,15 +4,15 @@ extends Control
 ## Settings. A single printed poster, restrained: the dark band carries the lobby heroine's red print
 ## and CALLED. down it; beside it the form: its number (the player's ID, the same one printed later
 ## on their profile card), today's date and the local time, one line in the serif, 01 NAME (typed,
-## optional), 02 BORN (day and month in two printed boxes, optional: on that day the Lobby remembers)
-## and 03 SIGNATURE (signed with a finger on a dotted line, an X at its start). Fine print
+## optional; Return or a tap elsewhere puts the keyboard away) and 02 SIGNATURE (signed with a finger on a dotted line, an X at its start). Fine print
 ## that agrees to nothing. ANSWER stamps the form ACCEPTED with the date; then the heroine, in full
 ## colour on ink, greets the player by name with a line for the hour it really is (late night,
 ## morning, afternoon, evening), and the Lobby prints in. The signature is kept (Game.signature) and
 ## the game signs with it afterwards: the profile card, reward receipts, the oath on the front, the
 ## print album.
-## params: answer (debug shots: fill and answer the form), born ("DD.MM": fill the birthday boxes).
+## params: answer (debug shots: fill and answer the form).
 
+const KeyboardDismiss := preload("res://src/ui/components/keyboard_dismiss.gd")
 const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
 const PPK := preload("res://src/ui/v4/poster_kit.gd")
 const Poster := preload("res://src/ui/v4/survey/poster.gd")
@@ -28,10 +28,6 @@ const BAND := 132.0
 var _hero := ""
 var _poster: Control
 var _name: LineEdit
-var _born_d: LineEdit
-var _born_m: LineEdit
-var _born_rule: ColorRect
-var _born_note: Label
 var _pad: SignPad
 var _done := false
 
@@ -40,13 +36,7 @@ func setup(params: Dictionary) -> void:
 	UI.set_chrome(false, false)
 	_hero = HomeScreen.lobby_hero()
 	_build()
-	# Screenshots (debug): born = "DD.MM" fills the birthday boxes; answer = true fills the form with a
-	# made-up name and signature and answers.
-	if OS.is_debug_build() and params.has("born"):
-		var bp := str(params.born).split(".")
-		_born_d.text = bp[0]
-		_born_m.text = bp[1] if bp.size() > 1 else ""
-		_born_ok()
+	# Screenshots (debug): answer = true fills the form with a made-up name and signature and answers.
 	if OS.is_debug_build() and bool(params.get("answer", false)):
 		get_tree().create_timer(0.3).timeout.connect(func() -> void:
 			_name.text = "Aria"
@@ -115,39 +105,10 @@ func _build() -> void:
 	_name.position = Vector2(x0, y + 26)
 	_name.size = Vector2(tw, 52)
 	p.add_child(_name)
+	KeyboardDismiss.attach(_name)
 	PK.rule(p, Vector2(x0, y + 80), Vector2(tw, 1.5), INK)
 	y += 120.0
-	# 02 BORN: day and month, printed boxes; optional (the game remembers it, quietly).
 	PK.at(p, PK.t("02", 22, INK, "compressed"), Vector2(x0, y - 4))
-	PK.at(p, PK.t("BORN", 11, INK, "mono_bold"), Vector2(x0 + 34, y + 4))
-	var opt := PK.t("DAY  ·  MONTH  ·  OPTIONAL", 9, Color(INK, 0.45), "mono")
-	opt.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	opt.size = Vector2(tw, 12)
-	PK.at(p, opt, Vector2(x0, y + 6))
-	_born_d = _date_box("DD", Vector2(x0, y + 26))
-	_born_d.name = "BornDay"
-	p.add_child(_born_d)
-	var dot := PK.t(".", 28, INK, "mono_bold")
-	PK.at(p, dot, Vector2(x0 + 66, y + 32))
-	_born_m = _date_box("MM", Vector2(x0 + 92, y + 26))
-	_born_m.name = "BornMonth"
-	p.add_child(_born_m)
-	_born_d.text_changed.connect(func(t: String) -> void:
-		_born_ok()
-		if t.length() >= 2:
-			_born_m.grab_focus())
-	_born_m.text_changed.connect(func(_t: String) -> void: _born_ok())
-	_born_note = PK.t("", 10, SIG, "mono_bold")
-	_born_note.position = Vector2(x0 + 190, y + 46)
-	p.add_child(_born_note)
-	_born_rule = ColorRect.new()
-	_born_rule.mouse_filter = MOUSE_FILTER_IGNORE
-	_born_rule.color = INK
-	_born_rule.position = Vector2(x0, y + 80)
-	_born_rule.size = Vector2(176, 1.5)
-	p.add_child(_born_rule)
-	y += 120.0
-	PK.at(p, PK.t("03", 22, INK, "compressed"), Vector2(x0, y - 4))
 	PK.at(p, PK.t("SIGNATURE", 11, INK, "mono_bold"), Vector2(x0, y + 4) + Vector2(34, 0))
 	_pad = SignPad.new()
 	_pad.name = "SignPad"
@@ -184,60 +145,18 @@ func _build() -> void:
 	add_child(SignalKit.grain(0.05, true))
 
 
-## A two-digit box on the form (DD, MM): mono, numbers only, the number pad on phones.
-func _date_box(ph_text: String, at: Vector2) -> LineEdit:
-	var e := LineEdit.new()
-	e.placeholder_text = ph_text
-	e.max_length = 2
-	e.flat = true
-	e.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_NUMBER
-	e.alignment = HORIZONTAL_ALIGNMENT_CENTER
-	e.add_theme_font_override("font", Kit.font("mono_bold"))
-	e.add_theme_font_size_override("font_size", 28)
-	e.add_theme_color_override("font_color", INK)
-	e.add_theme_color_override("font_placeholder_color", Color(INK, 0.28))
-	e.add_theme_color_override("caret_color", SIG)
-	for st: String in ["normal", "focus", "read_only"]:
-		e.add_theme_stylebox_override(st, StyleBoxEmpty.new())
-	e.position = at
-	e.size = Vector2(76, 52)
-	return e
-
-
-## The birthday as "MM-DD", "" when both boxes are empty, or "?" when it is not a date.
-func _born() -> String:
-	var d := _born_d.text.strip_edges()
-	var m := _born_m.text.strip_edges()
-	if d == "" and m == "":
-		return ""
-	var md := CalendarRules.clean_md("%s-%s" % [m, d])
-	return md if md != "" else "?"
-
-
-## Marks the birthday line red with a note while it is half filled or not a date.
-func _born_ok(strict: bool = false) -> bool:
-	var b := _born()
-	var bad := b == "?" and (strict or (_born_d.text.length() >= 2 and _born_m.text.length() >= 1))
-	_born_rule.color = SIG if bad else INK
-	_born_note.text = "CHECK THE DATE" if bad else ""
-	return b != "?"
-
-
 func _answer() -> void:
 	if _done:
 		return
 	_name.release_focus()
-	if not _born_ok(true):
-		Kit.haptic(12)
-		return
-	_finish(_name.text, _pad.strokes(), _born())
+	_finish(_name.text, _pad.strokes())
 
 
-func _finish(player_name: String, strokes: Array, born: String = "") -> void:
+func _finish(player_name: String, strokes: Array) -> void:
 	if _done:
 		return
 	_done = true
-	Game.complete_intake(player_name, strokes, born)
+	Game.complete_intake(player_name, strokes)
 	UI.haptic(30)
 	Kit.sfx("tap")
 	# The signature as filed: the pad's ink (or the given strokes) set in ink on the dotted line.
