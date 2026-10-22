@@ -10,6 +10,8 @@ Writes, at the same camera:
   <out_dir>/data.png    per pixel on the slab's top: R = (sector + 0.5) / 7, G = how far from
                         Heaven's end (0) to Hell's end (1), B = height (0 low .. 1 high); walls and
                         background are 0 (8-bit, Raw view: the numbers as written)
+  <out_dir>/normal.png  the slab's surface normal in the camera's frame (R right, G up, B toward the
+                        viewer; 0.5 + 0.5 * n), so the game can relight it as the phone tilts
   <out_dir>/points.json the slab's sector centre lines projected to the image (0..1, y down):
                         points[sector][k] at t = k / 10, for the labels and the flags
 tools/blender/finish_front.py (system Python) trims and writes assets/art/ui/front/.
@@ -243,6 +245,42 @@ def mat_data(hmin, hmax):
     return m
 
 
+def mat_normal(cam_obj):
+    """Emission of the surface normal in camera space (0.5 + 0.5 * n)."""
+    m = bpy.data.materials.new("normal")
+    m.use_nodes = True
+    nt = m.node_tree
+    for nd in list(nt.nodes):
+        nt.nodes.remove(nd)
+    out = nt.nodes.new("ShaderNodeOutputMaterial")
+    em = nt.nodes.new("ShaderNodeEmission")
+    geo = nt.nodes.new("ShaderNodeNewGeometry")
+    vt = nt.nodes.new("ShaderNodeVectorTransform")
+    vt.vector_type = "NORMAL"
+    vt.convert_from = "WORLD"
+    vt.convert_to = "CAMERA"
+    nt.links.new(geo.outputs["Normal"], vt.inputs[0])
+    # Blender's camera space looks down -Z with +Y up: flip Z so B is toward the viewer.
+    sep = nt.nodes.new("ShaderNodeSeparateXYZ")
+    nt.links.new(vt.outputs[0], sep.inputs[0])
+    negz = nt.nodes.new("ShaderNodeMath")
+    negz.operation = "MULTIPLY"
+    negz.inputs[1].default_value = -1.0
+    nt.links.new(sep.outputs["Z"], negz.inputs[0])
+    comb = nt.nodes.new("ShaderNodeCombineXYZ")
+    nt.links.new(sep.outputs["X"], comb.inputs[0])
+    nt.links.new(sep.outputs["Y"], comb.inputs[1])
+    nt.links.new(negz.outputs[0], comb.inputs[2])
+    half = nt.nodes.new("ShaderNodeVectorMath")
+    half.operation = "MULTIPLY_ADD"
+    half.inputs[1].default_value = (0.5, 0.5, 0.5)
+    half.inputs[2].default_value = (0.5, 0.5, 0.5)
+    nt.links.new(comb.outputs[0], half.inputs[0])
+    nt.links.new(half.outputs[0], em.inputs["Color"])
+    nt.links.new(em.outputs[0], out.inputs["Surface"])
+    return m
+
+
 def mat_black():
     m = bpy.data.materials.new("black")
     m.use_nodes = True
@@ -323,6 +361,13 @@ sc.cycles.filter_width = 0.01
 sc.world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.0
 sun.hide_render = True
 render(os.path.join(OUT, "data.png"), 1, "Raw", "8")
+
+# Normals: the surface's facing, for relighting with the tilt (smooth, a few samples).
+nm = mat_normal(cam)
+me.materials[0] = nm
+me.materials[1] = nm
+sc.cycles.filter_width = 1.5
+render(os.path.join(OUT, "normal.png"), 8, "Raw", "8")
 
 # The sector centre lines in image space.
 pts = []

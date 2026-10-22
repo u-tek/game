@@ -7,11 +7,17 @@
 //                  breathing in the low cracks;
 //   the front: an ink trench line with teeth, a thin red glow on Hell's side;
 //   the player's sector: its borders ruled in signal.
+// The clay's light leans with the phone (ui_tilt, as the paper's): normal_tex holds the slab's surface
+// normal (camera frame, y up), and the baked shading is raised or lowered by how much more or less
+// each slope faces the tilted light than the resting one. At rest it is the render as baked.
 // Worked in sRGB (texture values as stored), converted for the HDR 2D canvas by ui_linear.
 shader_type canvas_item;
 global uniform float ui_linear;
+global uniform vec2 ui_tilt;
 
 uniform sampler2D data_tex : filter_nearest;
+uniform sampler2D normal_tex : filter_linear;
+uniform float tilt_light = 0.6;
 uniform float control[7];
 uniform int focus = -1;
 uniform float grow = 1.0;
@@ -32,6 +38,11 @@ float dots(vec2 p, float v, float c, float ang) {
 	return 1.0 - smoothstep(rad - 0.7, rad + 0.7, d);
 }
 
+// Toward the light (y up), from the upper left, swung by the tilt (the same lean as live_light).
+vec3 tilt_light_dir(vec2 tilt) {
+	return normalize(vec3(-0.5 + tilt.x * 1.5, 0.6 - tilt.y * 1.5, 0.75));
+}
+
 int sector_at(vec2 uv) {
 	vec4 d = texture(data_tex, uv);
 	return d.r > 0.02 ? clamp(int(floor(d.r * 7.0)), 0, 6) : -1;
@@ -44,6 +55,9 @@ void fragment() {
 	vec3 c = tex.rgb;
 	// The clay's light, stretched to its real range (about 0.43 to 0.81 as rendered).
 	float lum = smoothstep(0.42, 0.83, tex.r);
+	vec3 n = normalize(texture(normal_tex, UV).rgb * 2.0 - 1.0);
+	float relight = dot(n, tilt_light_dir(ui_tilt)) - dot(n, tilt_light_dir(vec2(0.0)));
+	lum = clamp(lum + relight * tilt_light, 0.0, 1.0);
 	vec4 d = texture(data_tex, UV);
 	vec2 p = UV * rect_px;
 	if (d.r > 0.02 && tex.a > 0.5) {
@@ -81,8 +95,8 @@ void fragment() {
 			}
 		}
 	} else if (tex.a > 0.01) {
-		// The cut walls: ink and paper strata, as rendered, a little warmer.
-		c = c * vec3(1.0, 0.97, 0.93);
+		// The cut walls: ink and paper strata, as rendered, a little warmer, catching the tilt too.
+		c = c * vec3(1.0, 0.97, 0.93) * (1.0 + relight * 0.5);
 	}
 	COLOR = vec4(mix(c, pow(max(c, vec3(0.0)), vec3(2.2)), ui_linear), tex.a);
 }

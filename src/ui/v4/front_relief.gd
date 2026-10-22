@@ -57,6 +57,7 @@ func _ready() -> void:
 	_mat.shader = SHADER
 	var dt: Texture2D = load(DIR + "data.png")
 	_mat.set_shader_parameter("data_tex", dt)
+	_mat.set_shader_parameter("normal_tex", load(DIR + "normal.png"))
 	_mat.set_shader_parameter("rect_px", size)
 	_img.material = _mat
 	# Under this control's own drawing (the names, tags and flag).
