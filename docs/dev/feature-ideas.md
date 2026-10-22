@@ -64,7 +64,44 @@ like stamp errors. They never change stats. The print shaders already draw every
 
 Claude's suggested first loop: 1, 2, 6 and 13 (print, she competes, the map keeps score).
 
-## Twenty core loops (open, 2026-10-22)
+## The War for Souls (pitched 2026-10-22)
+
+The owner on the list below: "none of these are anything like combat, city building, clans, etc.
+and they all suck. i need you to think bigger rather than just spewing out ideas". So, one
+pillar-scale system with its reasoning.
+
+**The reasoning.** Every idle gacha shares one skeleton: auto-battles, idle rewards, pulls to break
+walls, a guild as the social glue. It works, and copying it is why they all feel the same. They
+also all put every player on one side against the computer. Our theme has two sides. Two-sided
+player bases make some of the stickiest communities in games (Ingress's two factions, running for
+more than a decade; Pokémon GO's teams; Splatoon's Splatfests): "I'm Hell" brings people back
+better than a login calendar. No gacha has built itself around that.
+
+**The design.**
+- **You join a side,** Heaven or Hell, at the start, and can switch each season. Heroes of both
+  factions still fight for you; the Fallen are mercenaries.
+- **Combat feeds the front.** Every win, idle or hands-on (combat v1 as drafted), wins souls, and
+  souls push your side's line on one shared map of the afterlife. The idle game is the war effort;
+  nothing extra to do.
+- **Your city is your district.** The souls you win settle in your own district on your side's
+  ground and build it up while you are away (the Sanctum, made visible). Each hero has a residence
+  there, where you visit her full-screen.
+- **Clans are Choirs (Heaven) and Legions (Hell):** small squads holding a stretch of the front
+  together. No schedules or boss times; contribution is automatic.
+- **The art is the face of the war.** Each week a side's Champion is the hero and skin its players
+  fielded most, shown as the giant poster over the front (the v4 poster UI already reads as war
+  propaganda). The skin you field is the one your side sees.
+- **Corruption.** Every hero has a turned form: an angel's fall is darker and more revealing, a
+  demon's rise is radiant. Your side's wins unlock them. Progression you see as art.
+- **Nobody loses.** Each week both sides get rewards; the winners get a celebration (bonus haul, a
+  free pull, their Champion's skin on sale). Nothing is taken from the other side.
+
+**Costs.** The game's first server: today it is fully offline, and the war needs a small backend to
+count souls and move the front. It brings what a commercial launch needs anyway (accounts, cloud
+saves, payments outside the App Store). Offline, the war keeps simulating, as the Rival does. Turned
+forms are 40 new paintings (GPU, the owner's review). Combat v1 fits in unchanged.
+
+## Twenty core loops (rejected, 2026-10-22: "they all suck")
 
 The owner turned down the cover shoot ("no i dont like that idea either. give me a list of like
 20"). Each loop keeps the art on screen, sessions short and nothing harder. Starred: Claude's picks.
