@@ -494,8 +494,8 @@ func _rebuild_pill(ids: Array) -> void:
 	psb.content_margin_top = 12
 	psb.content_margin_bottom = 12
 	_pill.add_theme_stylebox_override("panel", psb)
-	# Printed readouts (style v4, restraint): no coloured glyph, a mono caption over the amount in
-	# ink, a faint plus mark, hairline separators.
+	# Printed readouts: the currency's real object (owner, 2026-10-23: "return icons to gems and
+	# gold"), a mono caption over the amount in ink, a faint plus mark, hairline separators.
 	var map: Dictionary = _pill.get_meta("entries", {})
 	for cid: Variant in map:
 		var cell := map[cid] as Control
@@ -506,8 +506,6 @@ func _rebuild_pill(ids: Array) -> void:
 		amt.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		amt.size_flags_horizontal = SIZE_FILL
 		var icons := cell.find_children("*", "TextureRect", true, false)
-		if not icons.is_empty():
-			(icons[0] as CanvasItem).visible = false
 		for k in range(1, icons.size()):
 			(icons[k] as CanvasItem).modulate = Color(SignalKit.INK, 0.45)
 		var row := amt.get_parent()

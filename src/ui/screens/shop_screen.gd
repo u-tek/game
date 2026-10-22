@@ -29,6 +29,12 @@ const OFFER_MODELS := {
 	"gems_s": "liora", "gems_m": "vesper", "gems_l": "seraphiel",
 }
 const MODELS: Array[String] = ["kessa", "imra", "ashra", "sable", "nuriel", "lucen", "brakka", "orrin"]
+## What each offer is, as a real object (owner, 2026-10-23: "make the shop more exciting and have
+## actual icons"): rendered in Blender (tools/blender/currency_objects.py shop, assets/art/ui/shop/).
+const SHOP_OBJECTS := {
+	"daily_gift": "gift", "starter_pack": "crate", "monthly_card": "moon", "scroll_bundle": "satchel",
+	"gems_s": "pouch", "gems_m": "chest", "gems_l": "reliquary",
+}
 
 static var _tab := 0
 
@@ -145,7 +151,7 @@ func _process(delta: float) -> void:
 		_tick = 0.0
 		for l in _reset_labels:
 			if is_instance_valid(l):
-				l.text = "BACK IN %s" % Kit.format_time(Game.ms_until_reset()).to_upper()
+				l.text = "%s%s" % [str(l.get_meta("prefix", "BACK IN ")), Kit.format_time(Game.ms_until_reset()).to_upper()]
 
 
 # ------------------------------------------------------------------ refresh
@@ -176,6 +182,11 @@ func _refresh() -> void:
 		else:
 			n += 1
 			_offers_list.add_child(_offer_card(o, n))
+	if not HeroArt.nudity:
+		var fl := _featured_look()
+		if fl:
+			_offers_list.add_child(fl)
+			_offers_list.move_child(fl, 0)
 	var lines := SkinData.lines()
 	var k := 0
 	for h in HeroData.all():
@@ -244,7 +255,7 @@ func _offer_card(o: Dictionary, n: int) -> Control:
 	var y_info := 10.0 + name_h + 14.0 + fs * 0.2
 	var y_desc := y_info + 30.0
 	var y_tab := y_desc + 46.0
-	var tab_end := y_tab + rows.size() * 22.0
+	var tab_end := y_tab + rows.size() * ROW_H
 	var ph := maxf(330.0, tab_end + 132.0)
 	var wrap := Control.new()
 	wrap.name = "Offer_" + id
@@ -272,14 +283,19 @@ func _offer_card(o: Dictionary, n: int) -> Control:
 		lim_txt += "  ·  " + ("ACTIVE: %d DAYS LEFT" % days if days > 0 else "NOT ACTIVE YET")
 	var lim := PK.t(lim_txt, 11, INK, "mono_bold")
 	PK.at(p, lim, Vector2(ix, y_info + 2))
+	# What it is, as a real object, on the paper's right (clear of the pass below).
+	var obj_side := clampf(ph - 120.0 - y_info, 120.0, 190.0)
+	var obj := _object(id, obj_side)
+	if obj:
+		obj.position = Vector2(pw - obj_side - 14.0, y_info - 6.0)
+		p.add_child(obj)
 	var d := PK.t(str(o.get("description", "")), 12, INK, "mono")
 	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	d.size = Vector2(pw - x - 20, 40)
-	d.custom_minimum_size.x = pw - x - 20
+	d.size = Vector2(pw - x - 20 - (obj_side if obj else 0.0), 40)
+	d.custom_minimum_size.x = d.size.x
 	d.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	PK.at(p, d, Vector2(x, y_desc))
-	var tb := PK.data_table(rows, 250.0, {"size": 12, "row_h": 22.0, "bar": Color(1, 1, 1, 0.65)})
-	PK.at(p, tb, Vector2(x, y_tab))
+	_reward_rows(p, reward, Vector2(x, y_tab), 270.0, id == "monthly_card")
 	if id == "monthly_card":
 		var st := PK.stamp_disc(wrap, Vector2(bw - 70, ph - 150), 112, "MOONLIT · PASS · DAYS · ", "%d" % days if days > 0 else "—", 0.1)
 		st.name = "Days"
@@ -295,6 +311,47 @@ func _offer_card(o: Dictionary, n: int) -> Control:
 	if not available:
 		p.modulate = Color(1, 1, 1, 0.82)
 	return wrap
+
+
+const ROW_H := 34.0
+
+
+## An offer's contents: each currency's real object, its name and the amount, on ruled lines.
+func _reward_rows(p: Control, reward: Dictionary, at: Vector2, width: float, monthly: bool) -> void:
+	var y := at.y
+	var first := true
+	for c: String in ["gems", "scrolls", "gold", "hero_exp", "dust"]:
+		if not reward.has(c):
+			continue
+		var ic := Kit.currency_icon(c, 30)
+		ic.position = Vector2(at.x, y)
+		ic.size = Vector2(30, 30)
+		p.add_child(ic)
+		PK.at(p, PK.t(str(Kit.CURRENCY_NAMES.get(c, c)).to_upper(), 11, Color(INK, 0.7), "mono_bold"), Vector2(at.x + 38, y + 8))
+		var amt := PK.t("+%s" % Kit.format_full(int(reward[c])), 18 if first else 15, SIG if first else INK, "mono_bold")
+		amt.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		amt.size = Vector2(120, 24)
+		PK.at(p, amt, Vector2(at.x + width - 120, y + 3))
+		PK.rule(p, Rect2(at.x, y + ROW_H - 3, width, 1), Color(INK, 0.15))
+		y += ROW_H
+		first = false
+	if monthly:
+		PK.at(p, PK.t("THEN EACH DAY  ·  +100 GEMS FOR 30 DAYS", 11, SIG, "mono_bold"), Vector2(at.x, y + 6))
+
+
+## An offer's real object (or null): a TextureRect `side` px square.
+static func _object(id: String, side: float) -> TextureRect:
+	var path := "res://assets/art/ui/shop/%s.png" % str(SHOP_OBJECTS.get(id, ""))
+	if not SHOP_OBJECTS.has(id) or not ResourceLoader.exists(path):
+		return null
+	var t := TextureRect.new()
+	t.name = "Object"
+	t.texture = load(path)
+	t.mouse_filter = MOUSE_FILTER_IGNORE
+	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	t.size = Vector2(side, side)
+	return t
 
 
 ## The buy pass (named Buy_<id>): "Claim free" for the daily gift, the price and "Test purchase:
@@ -341,6 +398,106 @@ static func _main_currency(o: Dictionary) -> String:
 	return "gift"
 
 
+# ------------------------------------------------------------------ today's look
+
+## TODAY'S LOOK, the first poster in the offers: one heroine in a look the player doesn't own yet
+## (installed art), a new one each day, in full colour across the poster; her name huge, the look's
+## line and tier, its price (her birthday sale when it applies) and the time it stays; a tap opens
+## her in that look full screen (the gallery, where BUY is).
+func _featured_look() -> Control:
+	var pool: Array = []
+	for h in HeroData.all():
+		for s: Dictionary in Game.skins_for(str(h.id)):
+			if bool(s.get("installed", false)) and not bool(s.owned):
+				pool.append(s)
+	if pool.is_empty():
+		return null
+	pool.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return str(a.id) < str(b.id))
+	var s: Dictionary = pool[posmod(Game.today() * 7, pool.size())]
+	var hid := str(s.hero)
+	var sid := str(s.id)
+	var pw := _w - 36
+	var ph := 560.0
+	var wrap := Control.new()
+	wrap.name = "TodaysLook"
+	wrap.mouse_filter = MOUSE_FILTER_PASS
+	wrap.custom_minimum_size = Vector2(pw, ph + 60)
+	var p := PK.poster(wrap, Rect2(0, 0, pw, ph))
+	var bw := 168.0
+	var band := PK.band(p, Rect2(0, 0, bw, ph), hid, sid, {"from": 0.2, "cell": 6.0, "crop": "portrait"})
+	PK.at(band, PK.t("TODAY'S\nLOOK", 22, PAPER, "compressed"), Vector2(14, 14))
+	PK.vt(band, "©2026 HH · WARDROBE · ONE DAY ONLY", 10, Color(PAPER, 0.7), Vector2(bw - 8, 90))
+	var name_up := str(Game.hero_def(hid).get("name", hid)).to_upper()
+	var f := Kit.font("compressed")
+	var fs := 120
+	while fs > 60 and f.get_string_size(name_up, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > pw - bw - 30.0:
+		fs -= 4
+	var cp := PK.caps(f, fs)
+	# Her name huge behind her (two-tone across the band).
+	PK.giant(p, name_up, fs, [[0.0, bw, PAPER], [bw, pw - bw, INK]], Vector2(bw - 50, 70.0 - cp.x), Vector2(pw + 100, fs * 1.4), 0.0)
+	# Her, full colour, big on the paper's right, in front of her name.
+	# (her live figure, the rig, as on her page: she breathes)
+	var box := Control.new()
+	box.name = "Figure"
+	box.mouse_filter = MOUSE_FILTER_IGNORE
+	box.clip_contents = true
+	box.position = Vector2(bw, 0)
+	box.size = Vector2(pw - bw, ph)
+	p.add_child(box)
+	var anchor := Node2D.new()
+	box.add_child(anchor)
+	var sprite := HeroArt.make_sprite(hid, sid)
+	anchor.add_child(sprite)
+	HeroArt.fit_sprite(sprite, anchor, Rect2(pw * 0.46 - bw, 40.0, pw - pw * 0.46, ph * 0.96), pw * 0.77 - bw, true)
+	# The look, its line, its description, down the left column under her name.
+	var x := bw + 18.0
+	var col_w := 220.0
+	var y := 70.0 + (cp.y - cp.x) + 18.0
+	var ln := PK.t(str(s.name).to_upper(), 22, INK, "wide_black")
+	Kit.fit_label(ln, col_w, 22, 14)
+	PK.at(p, ln, Vector2(x, y))
+	var line_name := str(SkinData.lines().get(str(s.line), str(s.line)))
+	PK.at(p, PK.t(("%s  ·  %s" % [line_name, SkinData.tier_name(str(s.tier))]).to_upper(), 11, SIG, "mono_bold"), Vector2(x, y + 34))
+	var d := PK.t(str(s.description), 12, INK, "mono")
+	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	d.size = Vector2(col_w, 110)
+	d.custom_minimum_size.x = col_w
+	PK.at(p, d, Vector2(x, y + 58))
+	# The price (her birthday sale when it applies) and how long the look stays.
+	var price := int(s.price_gems)
+	var gi := Kit.currency_icon("gems", 44)
+	gi.position = Vector2(x, ph - 236)
+	gi.size = Vector2(44, 44)
+	p.add_child(gi)
+	PK.at(p, PK.t(Kit.format_full(price), 46, INK, "compressed"), Vector2(x + 50, ph - 246))
+	if bool(s.get("sale", false)):
+		PK.at(p, PK.t("HER BIRTHDAY  ·  WAS %s" % Kit.format_full(int(s.full_price_gems)), 11, SIG, "mono_bold"), Vector2(x, ph - 186))
+	var rl := PK.t("CHANGES IN %s" % Kit.format_time(Game.ms_until_reset()).to_upper(), 11, Color(INK, 0.7), "mono_bold")
+	_reset_labels.append(rl)
+	rl.set_meta("prefix", "CHANGES IN ")
+	PK.at(p, rl, Vector2(x, ph - 168))
+	var spec := {"width": 330.0, "kicker": "TODAY'S LOOK", "title": "VIEW", "sub": "FULL SCREEN · BUY",
+		"action": "SEE HER  >>>", "icon": "gems"}
+	var look_pass := SignalKit.pass_button(spec, func() -> void: UI.go("gallery", {"hero_id": hid, "skin": sid}))
+	look_pass.name = "LookPass"
+	look_pass.position = Vector2(bw - 8, ph - 136)
+	look_pass.rotation = -0.02
+	wrap.add_child(look_pass)
+	# The whole poster opens her too.
+	var hit := Button.new()
+	hit.name = "LookHit"
+	hit.theme_type_variation = &"BareButton"
+	hit.focus_mode = FOCUS_NONE
+	hit.mouse_filter = MOUSE_FILTER_PASS
+	hit.position = Vector2(pw * 0.48, 0)
+	hit.size = Vector2(pw * 0.52, ph)
+	hit.pressed.connect(func() -> void:
+		Kit.sfx("tap")
+		UI.go("gallery", {"hero_id": hid, "skin": sid}))
+	wrap.add_child(hit)
+	return wrap
+
+
 # ------------------------------------------------------------------ gems
 
 ## A gem pack as a small poster: a narrow band with a model's halftone, the amount set huge and
@@ -350,7 +507,7 @@ func _pack_tile(o: Dictionary, n: int) -> Control:
 	var tag := str(o.get("tag", ""))
 	var gems := int(o.get("reward", {}).get("gems", 0))
 	var pw := floorf((_w - 36 - 14) * 0.5)
-	var ph := 300.0
+	var ph := 430.0
 	var bw := 74.0
 	var wrap := Control.new()
 	wrap.name = "Pack_" + id
@@ -373,6 +530,12 @@ func _pack_tile(o: Dictionary, n: int) -> Control:
 	PK.at(p, PK.t(_limit_text(o).to_upper(), 10, Color(INK, 0.7), "mono"), Vector2(bw + 14, y + 60))
 	if tag != "":
 		PK.at(p, SignalKit.pill(tag.to_upper(), 12, SIG, "mono_bold"), Vector2(bw + 14, y + 82))
+	# The pack itself (a pouch, a chest, a reliquary), bigger as the pack grows.
+	var side := minf(pw - bw - 10.0, ph - 52.0 - (y + 112.0))
+	var obj := _object(id, side)
+	if obj:
+		obj.position = Vector2(bw + (pw - bw - side) * 0.5, y + 108.0)
+		p.add_child(obj)
 	var b := _buy_button(o, pw - 4)
 	b.position = Vector2(2, ph - 52)
 	b.rotation = 0.012 if n % 2 == 0 else -0.012

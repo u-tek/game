@@ -212,8 +212,16 @@ static func font(weight: String = "bold") -> Font:
 
 
 ## Texture of a UI icon in assets/art/ui/<name>.svg (null if missing, never crashes).
+## Currencies are real objects (owner, 2026-10-23: "i want it to feel real"): rendered in Blender
+## (tools/blender/currency_objects.py, assets/art/ui/currency/), shown in their own colours.
+const REAL_ICONS: Array[String] = ["gems", "gold", "scrolls", "hero_exp", "dust"]
+
+
 static func icon_texture(name: String) -> Texture2D:
 	if _icons.has(name):
+		return _icons[name]
+	if name in REAL_ICONS and ResourceLoader.exists("res://assets/art/ui/currency/%s.png" % name):
+		_icons[name] = load("res://assets/art/ui/currency/%s.png" % name)
 		return _icons[name]
 	var path := "res://assets/art/ui/%s.svg" % name
 	var tex: Texture2D = null
@@ -235,7 +243,8 @@ static func icon(name: String, size: float = 40.0, color: Color = Color.WHITE) -
 	t.custom_minimum_size = Vector2(size, size)
 	t.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	t.modulate = color
+	# A real object keeps its colours (a tint would flatten it into a glyph).
+	t.modulate = Color.WHITE if name in REAL_ICONS else color
 	return t
 
 
@@ -702,7 +711,7 @@ static func resource_pill(entries: Array, entry_width: float = 150.0) -> PanelCo
 		cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var h := hbox(4)
 		h.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		h.add_child(currency_icon(id, 40))
+		h.add_child(currency_icon(id, 48))
 		var n := label(format_num(int(d.get("amount", 0))), 26, Color.WHITE, "black")
 		n.name = "Amount"
 		n.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
