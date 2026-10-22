@@ -35,11 +35,15 @@ var _built := Vector2.ZERO
 var _rebuild_queued := false
 var _sheet: Control
 var _arranging := false        ## ARRANGE: buildings can be dragged to other lots
+var _quiet := false            ## a change this screen made that needs no rebuild
+var _force_rise: Array = []    ## debug: buildings to raise (shot param rise)
 var _held_kind := ""           ## ARRANGE: the prop a tap on a free lot buys ("" = none)
 const SHELF_H := 300.0          ## the props shelf under the plan while arranging
 
 
 func setup(params: Dictionary) -> void:
+	if OS.is_debug_build() and params.get("rise") is Array:
+		_force_rise = params.rise
 	if str(Game.war().side) == "":
 		UI.toast("Swear to a side on the front first", "info")
 		UI.go("front")
@@ -79,7 +83,7 @@ func _exit_tree() -> void:
 
 
 func _on_changed() -> void:
-	if _rebuild_queued or not is_inside_tree():
+	if _quiet or _rebuild_queued or not is_inside_tree():
 		return
 	_rebuild_queued = true
 	_rebuild.call_deferred()
@@ -138,6 +142,26 @@ func _build() -> void:
 	plan.name = "Plan"
 	plan.position = Vector2(18, HEAD + 30.0)
 	plan.size = Vector2(pw - 36, PLAN_H)
+	# Buildings opened since the last visit rise into place (setting district_seen: open indices).
+	var seen: Variant = Game.setting("district_seen")
+	var now_open: Array = []
+	for b: Variant in dist.buildings:
+		if bool((b as Dictionary).open):
+			now_open.append(int((b as Dictionary).i))
+	if seen is Array:
+		var fresh: Array = []
+		for i: Variant in now_open:
+			if not (seen as Array).has(i):
+				fresh.append(i)
+		plan.set("rise", fresh)
+	if not _force_rise.is_empty():
+		plan.set("rise", _force_rise)
+		_force_rise = []
+	if not (seen is Array) or (seen as Array).size() != now_open.size():
+		# (noting it must not rebuild the screen under the rising buildings)
+		_quiet = true
+		Game.set_setting("district_seen", now_open)
+		_quiet = false
 	plan.set("dist", dist)
 	plan.set("arranging", _arranging)
 	plan.set("hold_kind", _held_kind if _arranging else "")

@@ -73,6 +73,8 @@ var hold_kind := "":
 
 
 var _tap_down := Vector2.INF
+## Buildings to raise out of the ground when the model is first shown (newly opened ones).
+var rise: Array = []
 
 
 func _init() -> void:
@@ -288,6 +290,9 @@ func _rebuild() -> void:
 		_props[k] = tr
 		_made.append(tr)
 	_place_sprites()
+	if not rise.is_empty():
+		_raise.call_deferred(rise.duplicate())
+		rise = []
 	if _overlay == null or not is_instance_valid(_overlay):
 		_overlay = Control.new()
 		_overlay.name = "Labels"
@@ -297,6 +302,55 @@ func _rebuild() -> void:
 	_overlay.size = size
 	move_child(_overlay, _made.size())
 	_overlay.queue_redraw()
+
+
+## Newly opened buildings rise out of the ground, one after another, with a thud and a little dust.
+func _raise(which: Array) -> void:
+	var k := 0
+	for i: Variant in which:
+		var tr: TextureRect = _sprites.get(int(i))
+		if tr == null:
+			continue
+		tr.pivot_offset = _foot(int(i)) - tr.position
+		if not Kit.motion_ok():
+			continue
+		tr.scale = Vector2(1.0, 0.02)
+		var tw := tr.create_tween()
+		tw.tween_interval(0.35 + 0.45 * k)
+		tw.tween_callback(func() -> void:
+			Kit.sfx("stamp", 0.8)
+			Kit.haptic(22))
+		tw.tween_property(tr, "scale", Vector2.ONE, 0.7).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		var dust := _Dust.new()
+		dust.at = _foot(int(i))
+		dust.size = size
+		dust.mouse_filter = MOUSE_FILTER_IGNORE
+		dust.modulate.a = 0.0
+		add_child(dust)
+		move_child(dust, tr.get_index())
+		var dt := dust.create_tween()
+		dt.tween_interval(0.35 + 0.45 * k)
+		dt.tween_property(dust, "modulate:a", 1.0, 0.05)
+		dt.tween_property(dust, "t", 1.0, 0.9).set_ease(Tween.EASE_OUT)
+		dt.tween_callback(dust.queue_free)
+		k += 1
+
+
+## A puff of paper dust round a building's foot as it rises (t 0 -> 1: spreads and fades).
+class _Dust:
+	extends Control
+	var at := Vector2.ZERO
+	var t := 0.0:
+		set(v):
+			t = v
+			queue_redraw()
+
+	func _draw() -> void:
+		for k in 14:
+			var a := TAU * k / 14.0 + 0.3
+			var r := 18.0 + 46.0 * t
+			var p := at + Vector2(cos(a) * r, sin(a) * r * 0.55)
+			draw_circle(p, 5.0 * (1.0 - t) + 1.0, Color(0.55, 0.53, 0.5, 0.45 * (1.0 - t)))
 
 
 ## Where a thing stands, back to front: buildings by their lots' middle, props by their lot's.
