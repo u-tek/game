@@ -29,6 +29,17 @@ static func lines(hero_id: String) -> Array[String]:
 	return out
 
 
+## A notice line (lobby_lines.json "notice": tz_ahead, tz_behind, late, early, visits) with its
+## {h} / {hour} filled.
+static func notice(key: String, fill: Dictionary = {}) -> String:
+	_load()
+	var n: Variant = _data.get("notice", {})
+	var s := str((n as Dictionary).get(key, "")) if n is Dictionary else ""
+	for k: Variant in fill:
+		s = s.replace("{%s}" % str(k), str(fill[k]))
+	return s
+
+
 ## What she says after a long hold on her (the heartbeat).
 static func pulse_lines() -> Array[String]:
 	_load()

@@ -1,6 +1,14 @@
 {
 	"version": 1,
 	"note": "Lobby speech-bubble lines, 2-3 per hero (home screen). Short: two lines in a 500 px bubble at 24 px.",
+	"notice_note": "What the Lobby heroine notices about a visit, once each (Game.notices, home_screen.gd _welcome_back): {h} hours, {hour} the hour.",
+	"notice": {
+		"tz_ahead": "Your clock jumped {h} hours. Where did you take me?",
+		"tz_behind": "You lost {h} hours somewhere. I'll help you find them.",
+		"late": "It's past {hour}. You should be asleep. ...Stay a minute.",
+		"early": "You're up before the sun. So am I, now.",
+		"visits": "Ten times today. I'm starting to think you like me."
+	},
 	"pulse_note": "Her line after a long hold on her (the heartbeat, home_screen.gd): what she says when the thumb finally lifts.",
 	"pulse": [
 		"...You can let go now. Or don't.",

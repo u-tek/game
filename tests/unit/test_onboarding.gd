@@ -58,3 +58,15 @@ func test_old_saves(t: TestCtx) -> void:
 	st3.signature = "scribble"
 	t.eq(g.model.migrate(GameData.intify(JSON.parse_string(JSON.stringify(st3)))).signature, [], "a bad signature is dropped")
 	_done()
+
+
+func test_notices_are_said_once(t: TestCtx) -> void:
+	var g := _game()
+	g.new_game()
+	g.notices = {"tz": -3, "late": 2}
+	t.eq(g.take_notice("tz"), -3)
+	t.eq(g.take_notice("tz"), null, "once")
+	t.eq(g.take_notice("late"), 2)
+	t.eq(int(g.state.settings.late_seen_day), g.today(), "the small hours are noticed once a night")
+	t.eq(g.take_notice("visits"), null)
+	_done()

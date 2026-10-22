@@ -81,6 +81,11 @@ this file says where things stand. Older logs are under "History" at the bottom.
   heart (lub-dub haptics), a printed monitor strip beside the thumb counts it, climbing from about
   70 to 118 BPM the longer the thumb stays; her face follows; a long hold earns a line. Not tried on
   a real phone yet: check the haptic strength on the owner's iPhone. Shot param `pulse`.
+- **She notices (2026-10-22):** besides absences and the signing anniversaries, the Lobby heroine
+  says once each: a time zone change ("Your clock jumped 3 hours. Where did you take me?"; the day
+  now follows the device's zone after travel too), the small hours (01-05), an early start (05-07)
+  and the tenth visit in a day (`Game.notices`, `lobby_lines.json` `notice`). Shots:
+  `--notice=tz:3|late:3|early:6|visits:10`.
 - **Restraint pass, continued:** Settings' title no longer runs through Back; Summon's left edge no
   longer overprints two lines of micro type.
 - **Next:** keep refining every screen as a restrained poster.

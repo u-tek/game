@@ -102,10 +102,14 @@ func _ready() -> void:
 					model.dev_set_awaken(kv[0], tier, 96 if tier < 3 else 40)
 				model.state.currencies.dust = maxi(int(model.state.currencies.dust), 12000)
 		save()
-		# Screenshots/testing: --away=<hours> pretends the player was away that long.
+		# Screenshots/testing: --away=<hours> pretends the player was away that long; --notice=tz:3,
+		# late:3, early:6 or visits:10 queues what she notices.
 		for a in args:
 			if a.begins_with("--away="):
 				last_away_ms = int(float(a.substr("--away=".length())) * 3600000.0)
+			if a.begins_with("--notice="):
+				var kv := a.substr("--notice=".length()).split(":")
+				notices[kv[0]] = int(kv[1]) if kv.size() > 1 else 1
 	else:
 		load_or_create()
 		_measure_away()
@@ -132,6 +136,10 @@ func _exit_tree() -> void:
 ## The Lobby's heroine notices long absences once (away_noticed).
 var last_away_ms := 0
 var away_noticed := false
+## What else she may notice about this visit, each said once (take_notice): "tz" (the clock moved
+## across time zones: hours, + = ahead), "late" (opened 01:00-04:59: the hour), "early" (05:00-06:59),
+## "visits" (the tenth visit today).
+var notices: Dictionary = {}
 
 
 ## Notes when the player leaves (kept in the settings: an adapter detail, not a rule).
@@ -145,12 +153,48 @@ func _measure_away() -> void:
 	if state.is_empty() or not (state.get("settings") is Dictionary):
 		return
 	var seen := int((state.settings as Dictionary).get("last_seen_ms", 0))
-	if seen > 0:
-		var away := maxi(0, _clock_ms() - seen)
-		if away >= 3600000:
-			last_away_ms = away
-			away_noticed = false
+	var away := maxi(0, _clock_ms() - seen) if seen > 0 else -1
+	if away >= 3600000:
+		last_away_ms = away
+		away_noticed = false
+	_notice_visit(away)
 	_mark_seen()
+
+
+## A visit (launch or return after 5 min or more): the time zone, the hour, the count today.
+func _notice_visit(away: int) -> void:
+	var st: Dictionary = state.settings
+	var tz := int(Time.get_time_zone_from_system().get("bias", 0))
+	# The day follows the device's zone even after travelling while the app was in the background.
+	model.tz_bias_ms = tz * 60000
+	if st.has("tz_bias") and int(st.tz_bias) != tz and absi(tz - int(st.tz_bias)) >= 60:
+		notices["tz"] = (tz - int(st.tz_bias)) / 60
+	st["tz_bias"] = tz
+	if away >= 0 and away < 300000:
+		return
+	var hour := int(Time.get_datetime_dict_from_system().hour)
+	var day := today()
+	if hour >= 1 and hour < 5 and int(st.get("late_seen_day", -1)) != day:
+		notices["late"] = hour
+	elif hour >= 5 and hour < 7 and int(st.get("early_seen_day", -1)) != day:
+		notices["early"] = hour
+	if int(st.get("visits_day", -1)) != day:
+		st["visits_day"] = day
+		st["visits_n"] = 0
+	st["visits_n"] = int(st.get("visits_n", 0)) + 1
+	if int(st.visits_n) == 10:
+		notices["visits"] = 10
+
+
+## Takes one notice (null when there is none) and marks it said.
+func take_notice(key: String) -> Variant:
+	if not notices.has(key):
+		return null
+	var v: Variant = notices[key]
+	notices.erase(key)
+	if key == "late" or key == "early":
+		state.settings[key + "_seen_day"] = today()
+	return v
 
 
 func _notification(what: int) -> void:

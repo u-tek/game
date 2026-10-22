@@ -965,7 +965,8 @@ const MILESTONES := {
 
 ## After a long absence (8 h or more) her line notices it, once: how long, roughly, in her words. On
 ## the days that matter since the intake form (a week, a month, a hundred days, a year) she remembers
-## that instead, once each (setting "milestone_seen").
+## that instead, once each (setting "milestone_seen"). She also notices, once each: a change of time
+## zone, the small hours (01-05), an early start (05-07) and a tenth visit in a day (Game.notices).
 func _welcome_back() -> String:
 	var created := int(Game.state.get("created_at", 0))
 	if created > 0 and Game.onboarded():
@@ -975,16 +976,28 @@ func _welcome_back() -> String:
 			if days >= d and days < d + 3 and seen < d:
 				Game.set_setting("milestone_seen", d)
 				return str(MILESTONES[d])
+	# She notices a time zone change first (it is rare), then a long absence, then the hour, then
+	# a tenth visit today (Game.notices; each once).
+	var tz: Variant = Game.take_notice("tz")
+	if tz != null:
+		return LobbyLines.notice("tz_ahead" if int(tz) > 0 else "tz_behind", {"h": absi(int(tz))})
 	var away := int(Game.get("last_away_ms"))
-	if away < 8 * 3600000 or bool(Game.get("away_noticed")):
-		return ""
-	Game.set("away_noticed", true)
-	var h := away / 3600000
-	if h >= 72:
-		return "%d days. I stopped counting the hours after the second one." % (h / 24)
-	if h >= 24:
-		return "A whole day and then some. I kept your seat warm."
-	return "%d hours. Not that I was counting." % h
+	if away >= 8 * 3600000 and not bool(Game.get("away_noticed")):
+		Game.set("away_noticed", true)
+		var h := away / 3600000
+		if h >= 72:
+			return "%d days. I stopped counting the hours after the second one." % (h / 24)
+		if h >= 24:
+			return "A whole day and then some. I kept your seat warm."
+		return "%d hours. Not that I was counting." % h
+	var late: Variant = Game.take_notice("late")
+	if late != null:
+		return LobbyLines.notice("late", {"hour": int(late)})
+	if Game.take_notice("early") != null:
+		return LobbyLines.notice("early")
+	if Game.take_notice("visits") != null:
+		return LobbyLines.notice("visits")
+	return ""
 
 
 ## The band's red halftone print of her (head to waist) and her blurred red echo on the paper.
