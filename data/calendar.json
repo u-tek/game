@@ -1,9 +1,9 @@
 {
 	"version": 1,
-	"about": "Real days the game notices (CalendarRules, docs/dev/unity-port.md section 9f). md is MM-DD on the player's local calendar. On a day: a stamp on the Lobby (tap it: the gift, once a year) and her line, by her faction. player_birthday: the player's own day, if they gave it on the intake form ({name} is theirs). Birthdays: each heroine's day, for owned heroines only; the Lobby heroine says 'mine' on her own and names the other one ({her}) on someone else's. Lines are short: the Lobby sets them huge.",
+	"about": "Real days the game notices (CalendarRules, docs/dev/unity-port.md section 9f). md is MM-DD on the player's local calendar. On a day: a stamp on the Lobby (tap it: the gift, once a year) and her line, by her faction. player_birthday: the player's own day, if they gave it on the intake form ({name} is theirs). Birthdays: each heroine's day, for owned heroines only; the Lobby heroine says 'mine' on her own and names the other one ({her}) on someone else's. Lines are short: the Lobby sets them huge. ink (optional, hex): the Lobby's halftone band prints in it that day.",
 	"days": [
 		{
-			"id": "new_year", "md": "01-01", "name": "New Year", "stamp": "NEW YEAR",
+			"id": "new_year", "md": "01-01", "name": "New Year", "stamp": "NEW YEAR", "ink": "e0a33a",
 			"gift": {"gems": 300, "scrolls": 1},
 			"lines": {
 				"celestial": "A new year. I wrote you into every page of it.",
@@ -12,7 +12,7 @@
 			}
 		},
 		{
-			"id": "valentine", "md": "02-14", "name": "Valentine's Day", "stamp": "VALENTINE",
+			"id": "valentine", "md": "02-14", "name": "Valentine's Day", "stamp": "VALENTINE", "ink": "ff4f8b",
 			"gift": {"gems": 200},
 			"lines": {
 				"celestial": "I wrote you a hymn. Please don't read it aloud.",
@@ -21,7 +21,7 @@
 			}
 		},
 		{
-			"id": "halloween", "md": "10-31", "name": "Halloween", "stamp": "HALLOWEEN",
+			"id": "halloween", "md": "10-31", "name": "Halloween", "stamp": "HALLOWEEN", "ink": "ff8a1c",
 			"gift": {"gems": 200, "dust": 300},
 			"lines": {
 				"celestial": "I came as an angel. Nobody believes it's a costume.",

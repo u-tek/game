@@ -109,6 +109,15 @@ static func line(ev: Dictionary, speaker_id: String, speaker_faction: String, he
 	return str((holiday(str(ev.get("id", ""))).get("lines", {}) as Dictionary).get(speaker_faction, ""))
 
 
+## The Lobby band's ink on a holiday that has one ("" otherwise): the first of the day's holidays.
+static func ink(day: int) -> String:
+	var key_md := md(day)
+	for h: Dictionary in _d.days:
+		if str(h.md) == key_md and str(h.get("ink", "")) != "":
+			return str(h.ink)
+	return ""
+
+
 ## The stamp's word for an event.
 static func stamp(ev: Dictionary) -> String:
 	if str(ev.get("kind", "")) == "player":

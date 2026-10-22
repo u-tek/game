@@ -1017,7 +1017,10 @@ func _build_print(id: String, skin: String, key: String) -> void:
 	ht.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	ht.position = Vector2(0, _ph * 0.24)
 	ht.size = Vector2(BAND, _ph * 0.76)
-	ht.material = SignalKit.halftone_material(7.0, Color(1.0, 0.36, 0.16, 0.95))
+	# On a holiday with its own ink (data/calendar.json) the print shop runs that ink instead.
+	var hol := CalendarRules.ink(Game.today())
+	var ink := Color(hol) if hol != "" else Color(1.0, 0.36, 0.16)
+	ht.material = SignalKit.halftone_material(7.0, Color(ink, 0.95))
 	_print_layer.add_child(ht)
 	var echo_tex := echo_texture(key, tex)
 	if echo_tex:
@@ -1028,7 +1031,7 @@ func _build_print(id: String, skin: String, key: String) -> void:
 		echo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT
 		echo.size = Vector2(640, 1280)
 		echo.position = Vector2(150, _ph * 0.08)
-		echo.modulate = Color(1.0, 0.3, 0.12, 0.38)
+		echo.modulate = Color(ink.r, ink.g * 0.85, ink.b * 0.75, 0.38)
 		_print_layer.add_child(echo)
 
 
