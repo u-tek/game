@@ -49,6 +49,9 @@ const FOOT := 84.0
 const MIN_PH := 930.0
 ## The print showcase under the commendations (added to the poster's height).
 const SHOW_H := 290.0
+## 04 THE RECORD under the showcase (added to the poster's height): up to LOG_N dated lines.
+const LOG_N := 6
+const LOG_H := 64.0 + LOG_N * 30.0 + 30.0
 const MAX_W := 760.0
 const PORTRAIT := Vector2(220, 260)
 const STAMP := 74.0
@@ -282,13 +285,13 @@ func _build() -> void:
 	_page = Control.new()
 	_page.name = "Page"
 	_page.mouse_filter = MOUSE_FILTER_IGNORE
-	_page.custom_minimum_size = Vector2(d.x, 14.0 + ph + SHOW_H + FOOT)
+	_page.custom_minimum_size = Vector2(d.x, 14.0 + ph + SHOW_H + LOG_H + FOOT)
 	_scroll = Kit.scroll(_page)
 	_scroll.name = "IdCard"
 	_scroll.position = Vector2.ZERO
 	_scroll.size = d
 	add_child(_scroll)
-	_pr = Rect2(ox + 16, 14, w - 32, ph + SHOW_H)
+	_pr = Rect2(ox + 16, 14, w - 32, ph + SHOW_H + LOG_H)
 	_poster = PK.poster(_page, _pr)
 	_tw = _pr.size.x - RULE_IN - 12.0 - X0
 	# A taller poster (a 19.5:9 phone) gives the portrait more height first, then opens the gaps.
@@ -306,6 +309,7 @@ func _build() -> void:
 	_build_record()
 	_build_badges()
 	_build_showcase()
+	_build_log()
 	_build_menu()
 	_build_footer(ox, w)
 	# BACK at the top of the band, over everything printed there.
@@ -729,6 +733,73 @@ func _build_showcase() -> void:
 			PK.at(p, el, pos + Vector2(0, ch * 0.5 - 40.0))
 			_hit(p, Rect2(pos, Vector2(cw, ch)), func() -> void: UI.go("prints"), "ShowcaseEmpty_%d" % i)
 	_hit(p, Rect2(X0 + tw - 280, y - 34, 280, 88), func() -> void: UI.go("prints"), "OpenAlbum", "Open album")
+
+
+## 04 THE RECORD: what the game has noted, dated, most recent first: the day the form was signed,
+## each commendation (setting commend_days), each real day stamped (state.calendar.claimed). Up to
+## LOG_N lines; older ones counted.
+func _build_log() -> void:
+	var p := _poster
+	var tw := _tw
+	var cw := floorf((tw - 24.0) / 3.0)
+	var y := _y_badges + 40.0 + 2.0 * (STAMP + 10.0) + 26.0 + 40.0 + roundf(cw * 1.5) + 34.0
+	var lines := record_lines()
+	PK.at(p, PK.t("04  THE RECORD", 12, INK, "mono_bold"), Vector2(X0, y))
+	var kept := PK.t("KEPT BY THE GAME", 12, Color(INK, 0.5), "mono_bold")
+	kept.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	kept.size = Vector2(tw, 16)
+	PK.at(p, kept, Vector2(X0, y))
+	PK.at(p, Kit.tick_rule(tw, Color(INK, 0.55), {"lead": SIG}), Vector2(X0, y + 20))
+	var ly := y + 40.0
+	for i in mini(lines.size(), LOG_N):
+		var e: Array = lines[i]
+		PK.at(p, PK.t(_ddmmyy(int(e[0])), 11, SIG if i == 0 else INK, "mono_bold"), Vector2(X0, ly + 6))
+		var t := PK.t(str(e[1]), 19, INK, "serif_italic")
+		t.size = Vector2(tw - 92, 26)
+		t.clip_text = true
+		PK.at(p, t, Vector2(X0 + 92, ly))
+		PK.rule(p, Vector2(X0, ly + 28), Vector2(tw, 1), Color(INK, 0.15))
+		ly += 30.0
+	if lines.size() > LOG_N:
+		PK.at(p, PK.t("+%d EARLIER" % (lines.size() - LOG_N), 10, Color(INK, 0.55), "mono_bold"), Vector2(X0, ly + 6))
+
+
+## The record's lines: [day, text], newest first (same day: the order they were noted).
+static func record_lines() -> Array:
+	var out: Array = []
+	var created := int(Game.state.get("created_at", 0))
+	if created > 0:
+		out.append([Game.day_of(created), "Signed the intake form." if Game.onboarded() else "Arrived at the front.", 0])
+	var names := {}
+	var rank := {}
+	var bl := badges()
+	for k in bl.size():
+		names[str(bl[k].id)] = str(bl[k].ring).capitalize()
+		rank[str(bl[k].id)] = k
+	var cd: Variant = Game.setting(COMMEND_KEY)
+	if cd is Dictionary:
+		for id: Variant in cd:
+			# Same day: the harder commendation (later in the list) reads as the newer.
+			out.append([int(cd[id]), "Commended: %s." % str(names.get(str(id), str(id))), 1.0 + 0.01 * float(rank.get(str(id), 0))])
+	var cal: Variant = (Game.state.get("calendar", {}) as Dictionary).get("claimed", {})
+	if cal is Dictionary:
+		for key: Variant in cal:
+			out.append([int(cal[key]), _calendar_line(str(key)), 2])
+	out.sort_custom(func(a: Array, b: Array) -> bool:
+		return int(a[0]) > int(b[0]) if int(a[0]) != int(b[0]) else float(a[2]) > float(b[2]))
+	return out
+
+
+## A stamped day as the record says it: "you-2026" (the player's birthday), "bday-<hero>-<year>",
+## or "<holiday id>-<year>".
+static func _calendar_line(key: String) -> String:
+	if key.begins_with("you-"):
+		return "Your birthday. She remembered."
+	if key.begins_with("bday-"):
+		var hid := key.trim_prefix("bday-").rsplit("-", true, 1)[0]
+		return "%s's birthday, stamped." % str(Game.hero_def(hid).get("name", hid))
+	var hol := key.rsplit("-", true, 1)[0]
+	return "%s, stamped." % str(CalendarRules.holiday(hol).get("name", hol))
 
 
 ## The menu down the right-hand rule: AVATAR, NAME, TEAM, SETTINGS.

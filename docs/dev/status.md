@@ -89,6 +89,9 @@ this file says where things stand. Older logs are under "History" at the bottom.
   `--notice=tz:3|late:3|early:6|visits:10`. Now and then (one minute in four) she also says where
   she stands in the team: leading it ("Front and centre. I like it here.") or left out ("You never
   take me to the front."), by faction (`lobby_lines.json` `team`).
+- **The record (2026-10-23):** the profile's 04 THE RECORD, "kept by the game": dated lines, newest
+  first, from what the save already holds: the day the form was signed, each commendation, each real
+  day stamped (a holiday, a heroine's birthday, "Your birthday. She remembered.").
 - **Dated commendations (2026-10-22):** each commendation stamp on the profile carries the day it
   was earned round its rim ("FIRST SUMMON · 22.10.26"), and earning one says so in a toast
   (setting `commend_days`; the first check dates an old save's stamps quietly).
