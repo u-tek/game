@@ -145,6 +145,13 @@ func _build() -> void:
 		var r: Dictionary = Game.district_place(i, x, y)
 		if not bool(r.get("ok", false)):
 			UI.toast(str(r.get("error", "")), "bad"))
+	plan.connect("tapped", func(i: int) -> void:
+		var b: Dictionary = (Game.district().buildings as Array)[i]
+		if bool(b.open):
+			Kit.sfx("tap")
+			_pick_keeper(i)
+		else:
+			UI.toast("%s opens at %s souls" % [str(b.name), Kit.format_num(int(b.souls))], "info"))
 	plan.connect("decor_moved", func(k: int, x: int, y: int) -> void:
 		var r: Dictionary = Game.district_decor_move(k, x, y)
 		if not bool(r.get("ok", false)):
@@ -365,7 +372,7 @@ func _keeper_prints(plan: Control, dist: Dictionary) -> void:
 
 func _build_ledger(pw: float, y: float, dist: Dictionary) -> void:
 	var p := _poster
-	PK.at(p, PK.t("THE LEDGER  ·  TAP A BUILDING: ITS KEEPER, ITS LEVEL", 11, INK, "mono_bold"), Vector2(24, y - 22))
+	PK.at(p, PK.t("THE LEDGER  ·  TAP A BUILDING (HERE OR ON THE MODEL): ITS KEEPER, ITS LEVEL", 11, INK, "mono_bold"), Vector2(24, y - 22))
 	for b: Variant in dist.buildings:
 		var bd := b as Dictionary
 		var open := bool(bd.open)

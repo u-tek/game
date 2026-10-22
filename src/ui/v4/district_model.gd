@@ -17,6 +17,8 @@ extends Control
 ##   dist  the Game.district() dictionary (side, buildings [{i, open, keeper, doubled, souls, spot}], next)
 
 signal placed(building: int, x: int, y: int)
+## Not arranging: a tap (not a drag: the page scrolls) on a building.
+signal tapped(building: int)
 signal decor_moved(index: int, x: int, y: int)
 signal decor_removed(index: int)
 signal decor_bought(kind: String, x: int, y: int)
@@ -38,7 +40,7 @@ var dist: Dictionary = {}:
 var arranging := false:
 	set(v):
 		arranging = v
-		mouse_filter = MOUSE_FILTER_STOP if v else MOUSE_FILTER_IGNORE
+		mouse_filter = MOUSE_FILTER_STOP if v else MOUSE_FILTER_PASS
 		_drag = -1
 		if _overlay:
 			_overlay.queue_redraw()
@@ -70,8 +72,11 @@ var hold_kind := "":
 			_lots_layer.queue_redraw()
 
 
+var _tap_down := Vector2.INF
+
+
 func _init() -> void:
-	mouse_filter = MOUSE_FILTER_IGNORE
+	mouse_filter = MOUSE_FILTER_PASS
 
 
 func _ready() -> void:
@@ -416,6 +421,15 @@ func _lots(delta: Vector2) -> Vector2i:
 
 func _gui_input(event: InputEvent) -> void:
 	if not arranging:
+		var tb := event as InputEventMouseButton
+		if tb and tb.button_index == MOUSE_BUTTON_LEFT:
+			if tb.pressed:
+				_tap_down = tb.position
+			elif _tap_down != Vector2.INF and tb.position.distance_to(_tap_down) < 14.0:
+				var hit := _building_at(tb.position)
+				if hit >= 0 and hit < DECOR_BASE:
+					tapped.emit(hit)
+				_tap_down = Vector2.INF
 		return
 	var mb := event as InputEventMouseButton
 	if mb and mb.button_index == MOUSE_BUTTON_LEFT:
