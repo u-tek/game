@@ -40,7 +40,7 @@ const DISC_PAD := 23.0
 const DISC_OBJ := 300.0
 const STAMP := 140.0
 ## The side menu. Heroes and Team are only in the bottom nav (her hero page: tap her signature).
-const MENU := [["daily", "DAILY"], ["spire", "SPIRE"], ["rival", "RIVAL"], ["bag", "BAG"], ["shop", "SHOP"], ["view", "VIEW"]]
+const MENU := [["daily", "DAILY"], ["front", "FRONT"], ["spire", "SPIRE"], ["rival", "RIVAL"], ["bag", "BAG"], ["shop", "SHOP"], ["view", "VIEW"]]
 const CK := preload("res://src/ui/v4/collect/collect_kit.gd")
 
 ## Blurred red echoes of hero art, by art key (an Image resize per hero is not free).
@@ -453,6 +453,11 @@ func _on_menu(id: String) -> void:
 			UI.go("rival")
 		"bag":
 			UI.go("bag")
+		"front":
+			if Game.war_unlocked():
+				UI.go("front")
+			else:
+				UI.toast("The front opens after stage %s" % str(Game.stage(WarRules.UNLOCK_CLEARED - 1).get("id", "")), "info")
 		"shop":
 			UI.go("shop")
 		"view":
@@ -590,6 +595,8 @@ func _refresh_badges() -> void:
 			gift = true
 	_set_led("shop", gift)
 	_set_led("rival", Game.rival_alert())
+	var war: Dictionary = Game.war() if Game.war_unlocked() else {}
+	_set_led("front", not war.is_empty() and (str(war.side) == "" or not (war.claim as Dictionary).is_empty()))
 	_refresh_objective()
 	_refresh_rue_tag()
 

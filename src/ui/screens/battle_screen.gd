@@ -1524,9 +1524,17 @@ func _on_end(winner: String) -> void:
 	if _souls and _souls_won < 0:
 		_souls_won = int(_souls.call("finish", winner == "ally"))
 		if winner == "ally":
-			var slip := BP.t("+%d SOULS" % _souls_won, 40, Color(1.0, 0.82, 0.42), "compressed")
-			slip.position = Vector2((_width() - 260.0) * 0.5, _field_rect().position.y + _field_rect().size.y * 0.5)
-			slip.size = Vector2(260, 60)
+			# Where they go: the player's sector on the front (WarRules), or a nudge to pick a side.
+			var to := ""
+			if _mode != "rival" and Game.war_unlocked():
+				var war: Dictionary = Game.war()
+				if str(war.side) == "":
+					to = "  ·  PICK A SIDE ON THE FRONT"
+				else:
+					to = "  →  " + str(((war.sectors as Array)[int(war.focus)] as Dictionary).name).to_upper()
+			var slip := BP.t("+%d SOULS%s" % [_souls_won, to], 40 if to == "" else 30, Color(1.0, 0.82, 0.42), "compressed")
+			slip.position = Vector2(20.0, _field_rect().position.y + _field_rect().size.y * 0.5)
+			slip.size = Vector2(_width() - 40.0, 60)
 			slip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			_overlay.add_child(slip)
 			var tw := slip.create_tween()

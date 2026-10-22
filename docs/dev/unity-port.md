@@ -916,6 +916,32 @@ pity (clamped below their pity limit) and editions, dict prints with a known her
 most `feed_max` dict feed entries, counters >= 0 and `seen <= feed_seq`. Fixture: `rival.json`.
 Tuning: `tests/tools/rival_bench.gd` (strength_bp sweep).
 
+## 9d. The War for Souls (`src/core/war_rules.gd`, data/war.json, GameModel `war*`)
+
+Offline: both sides' hosts are simulated; the player's souls are the only live input.
+
+- `week_of(day) = floor((day - epoch_day) / week_days)` (floor division, also before the epoch);
+  `week_start(w) = epoch_day + w * week_days`.
+- `sim_push(day, sector, side) = sim.base + SeededRng(mix(mix(seed, day), sector * 2 + k)).range_int(0,
+  sim.spread)`, k = 0 heaven, 1 hell (one draw).
+- `control(week, upto_day, log, side)`: c[s] = 0; for d = week_start .. min(upto_day, week_start +
+  week_days - 1), for s = 0 .. sectors - 1: `diff = sim_push(d, s, heaven) - sim_push(d, s, hell) +
+  log[d][s] * sign` (sign +1 heaven, -1 hell, 0 no side; a missing entry is 0); `c[s] = clamp(c[s] +
+  diff * control_per_soul_bp, -control_max_bp, control_max_bp)`. The log's keys are strings (day,
+  then sector).
+- `standing(c) = {heaven: count(c > 0), hell: count(c < 0), winner: the larger ("" on a tie)}`.
+- `reward(won, held)`: `rewards.all`, plus `rewards.won` if won, plus `rewards.held_per_sector`
+  `held` times (summed per key).
+- GameModel: `war_unlocked()` = cleared >= unlock_cleared. `war_choose_side(side)`: heaven/hell
+  only, once unlocked; switching needs 0 souls logged this week. `war_set_focus(s)`: 0..sectors-1.
+  A campaign or Spire **victory** adds `souls_per_win` to `log[today][focus]` and `souls_total`
+  (nothing without a side), then drops log days older than `today - log_days`; its result carries
+  `souls`. `war()` builds the view from `control(week_of(today), today, log, side)`. The claim:
+  last week (`week_of(today) - 1`) when `claimed_week < last`, a side is chosen and the log has a day
+  in that week: `control` for that whole week, won = winner == side, held = the side's count;
+  `war_claim()` grants `reward(won, held)` and sets `claimed_week = last`.
+- Fixture: data/fixtures/war.json (weeks, pushes, control cases, rewards).
+
 ## 10. Golden fixtures (`data/fixtures/`)
 
 Each file: `{version, about, regenerate, ...}`. Inputs and expected outputs sit side by side.

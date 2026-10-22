@@ -1,0 +1,29 @@
+{
+	"version": 1,
+	"name": "The War for Souls",
+	"unlock_cleared": 3,
+	"epoch_day": 20745,
+	"seed": 6661,
+	"week_days": 7,
+	"sides": ["heaven", "hell"],
+	"side_names": {"heaven": "Heaven", "hell": "Hell"},
+	"sectors": [
+		{"id": "pearl_gate", "name": "Pearl Gate"},
+		{"id": "choir_steps", "name": "Choir Steps"},
+		{"id": "ash_meadow", "name": "Ash Meadow"},
+		{"id": "the_crossing", "name": "The Crossing"},
+		{"id": "brimstone_ridge", "name": "Brimstone Ridge"},
+		{"id": "ember_market", "name": "Ember Market"},
+		{"id": "ninth_door", "name": "The Ninth Door"}
+	],
+	"souls_per_win": 40,
+	"sim": {"base": 700, "spread": 500},
+	"control_per_soul_bp": 4,
+	"control_max_bp": 10000,
+	"log_days": 14,
+	"rewards": {
+		"all": {"gems": 100, "gold": 20000},
+		"won": {"gems": 150, "scrolls": 1},
+		"held_per_sector": {"gems": 10}
+	}
+}

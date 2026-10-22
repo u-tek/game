@@ -151,6 +151,20 @@ func test_fixture_prints(t: TestCtx) -> void:
 		t.ok(seen.has(k), "print fixtures cover '%s'" % k)
 
 
+func test_fixture_war(t: TestCtx) -> void:
+	var f := _check(t, "war")
+	if f.is_empty():
+		return
+	var held := {"heaven": false, "hell": false}
+	for c in f.cases:
+		for v in c.control:
+			if int(v) > 0:
+				held.heaven = true
+			elif int(v) < 0:
+				held.hell = true
+	t.ok(bool(held.heaven) and bool(held.hell), "war fixtures have sectors held by both sides")
+
+
 func test_fixture_rival(t: TestCtx) -> void:
 	var f := _check(t, "rival")
 	if f.is_empty():

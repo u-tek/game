@@ -1,6 +1,6 @@
 """Independent second implementation of the pure rules, written from docs/dev/unity-port.md
 (sections 4-8: RNG, stats, battle, summon, idle, progression and awakening (8.6), gear), checked against
-data/fixtures/*.json (also 8.5 prints and 9c the Rival). It proves the port document is precise enough, and is a compact
+data/fixtures/*.json (also 8.5 prints, 9c the Rival and 9d the war). It proves the port document is precise enough, and is a compact
 reference for a C# port. GameModel (session.json, save.json) is not covered here.
 
     python3 -B tests/port_check/check_port.py       # exit 1 if any fixture differs
@@ -1138,6 +1138,44 @@ for c in f["sims"]:
 check("rival.haul", f["haul_out"], [r_haul(c) for c in f["hauls"]])
 check("rival.leads", f["lead_out"], [[r_cleared_on(c[0], c[2]), r_tower_on(c[1], c[2])] for c in f["leads"]])
 check("rival.lines", f["line_out"], [r_line(c[0], c[1], c[2], c[3], c[4]) for c in f["lines"]])
+
+# ---------------- the war (9d)
+WAR = load("war")
+def w_week_of(day):
+    x = day - WAR["epoch_day"]
+    return x // WAR["week_days"]
+def w_week_start(w): return WAR["epoch_day"] + w * WAR["week_days"]
+def w_push(day, sector, side):
+    k = 0 if side == "heaven" else 1
+    return WAR["sim"]["base"] + Rng(mix(mix(WAR["seed"], day), sector * 2 + k)).range_int(0, WAR["sim"]["spread"])
+def w_logged(log, day, sector): return int(log.get(str(day), {}).get(str(sector), 0))
+def w_control(week, upto, log, side):
+    n = len(WAR["sectors"]); c = [0] * n
+    sign = 1 if side == "heaven" else (-1 if side == "hell" else 0)
+    d0 = w_week_start(week); d1 = min(upto, d0 + WAR["week_days"] - 1)
+    M = WAR["control_max_bp"]
+    for d in range(d0, d1 + 1):
+        for s in range(n):
+            diff = w_push(d, s, "heaven") - w_push(d, s, "hell") + w_logged(log, d, s) * sign
+            c[s] = max(-M, min(M, c[s] + diff * WAR["control_per_soul_bp"]))
+    return c
+def w_standing(c):
+    h = sum(1 for v in c if v > 0); e = sum(1 for v in c if v < 0)
+    return {"heaven": h, "hell": e, "winner": "heaven" if h > e else ("hell" if e > h else "")}
+def w_reward(won, held):
+    R = WAR["rewards"]; r = dict(R["all"])
+    def add(m):
+        for k, v in m.items(): r[k] = r.get(k, 0) + v
+    if won: add(R["won"])
+    for _ in range(max(0, held)): add(R["held_per_sector"])
+    return r
+
+f = fx("war")
+check("war.weeks", f["weeks"], [[w_week_of(d), w_week_start(w_week_of(d))] for d in f["days"]])
+check("war.pushes", f["pushes"], [[w_push(d, s, "heaven"), w_push(d, s, "hell")] for d in f["push_days"] for s in range(len(WAR["sectors"]))])
+check("war.control", f["cases"], [{"week": c["week"], "upto_day": c["upto_day"], "side": c["side"],
+    "control": (cc := w_control(c["week"], c["upto_day"], f["log"], c["side"])), "standing": w_standing(cc)} for c in f["cases"]])
+check("war.rewards", f["rewards"], [w_reward(r[0], r[1]) for r in f["reward_cases"]])
 
 bad = [k for k, v in results.items() if v]
 print("\n%d checks, %d differ" % (len(results), len(bad)))

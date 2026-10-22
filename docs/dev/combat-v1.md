@@ -30,7 +30,14 @@
   attacks go to it; Taunt still wins): a signal crosshair. A one-time sticker teaches the taps
   (setting `seen_tap_hint`). The camera swipe and the taps share the field (a drag is not a tap).
   Debug shot: battle `{"tap_demo": true}`.
-- Next: the balance pass, then the front map.
+- **The front** (built 2026-10-22, offline: `src/core/war_rules.gd`, `data/war.json`, GameModel
+  `war*`, screen `front` from the Lobby's FRONT label, port spec 9d): the Oath (pick Heaven or Hell;
+  switch only at a week's start), then the war map: seven sectors between HEAVEN and HELL, the front
+  line at each sector's control, the player's sector pinned (tap a column to move it), the standing,
+  the souls table, last week's claim (both sides rewarded, winners and sectors held more), a FIGHT
+  pass. Every campaign or Spire win sends 40 souls to the pinned sector (the battle says where). The
+  other side's hosts are simulated (seeded per day and sector), so it works with no server.
+- Next: the balance pass; the player's district; the weekly Champion boss; the server (real sides).
 
 
 The owner liked the War for Souls (`docs/dev/feature-ideas.md`: "this is better yes") and asked

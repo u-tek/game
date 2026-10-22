@@ -101,6 +101,7 @@ func default_state() -> Dictionary:
 		"prints": {"seed": SeededRng.mix(now & 0x7FFFFFFF, PrintRules.SEED), "seq": 0, "ed": {}, "list": [], "total": 0,
 			"showcase": []},
 		"rival": RivalRules.new_state(now & 0x7FFFFFFF),
+		"war": WarRules.new_state(),
 		"counters": {},
 		"dev_time_offset": 0,
 		"rng_seed": SeededRng.mix(now & 0x7FFFFFFF, 104729),
@@ -191,6 +192,7 @@ func migrate(loaded: Dictionary) -> Dictionary:
 	_migrate_summon(loaded.summon)
 	_migrate_prints(loaded.prints)
 	_migrate_rival(loaded.rival)
+	_migrate_war(loaded.war)
 	loaded.campaign.cleared = clampi(int(loaded.campaign.cleared), 0, StageData.count())
 	loaded.tower.best = clampi(int(loaded.tower.best), 0, TowerData.FLOORS)
 	loaded.version = SAVE_VERSION
@@ -559,8 +561,9 @@ func complete_stage(stage_index: int, outcome: Dictionary) -> Dictionary:
 		state.campaign.cleared = stage_index + 1
 		_bump("stages_cleared")
 		reward = grant(st.first_clear_reward)
+	var souls := _war_add_souls(WarRules.SOULS_PER_WIN)
 	_changed()
-	return _ok({"reward": reward, "first_clear": first, "victory": true})
+	return _ok({"reward": reward, "first_clear": first, "victory": true, "souls": souls})
 
 
 # ---------------------------------------------------------------- the Spire (tower)
@@ -613,8 +616,9 @@ func complete_tower(f: int, outcome: Dictionary) -> Dictionary:
 	_bump("tower_floors")
 	state.tower.best = f
 	var reward := grant(fl.first_clear_reward)
+	var souls := _war_add_souls(WarRules.SOULS_PER_WIN)
 	_changed()
-	return _ok({"reward": reward, "first_clear": true, "victory": true})
+	return _ok({"reward": reward, "first_clear": true, "victory": true, "souls": souls})
 
 
 # ---------------------------------------------------------------- heroes
@@ -1974,6 +1978,149 @@ func complete_rival(outcome: Dictionary) -> Dictionary:
 
 ## Save repair for the rival block (after the defaults merge): known heroes only, sane numbers,
 ## lists of the right shape.
+# ---------------------------------------------------------------- the War for Souls (the front)
+
+## Open once the campaign has `unlock_cleared` stages cleared (data/war.json).
+func war_unlocked() -> bool:
+	return cleared_count() >= WarRules.UNLOCK_CLEARED
+
+
+## Picks the player's side ("heaven" | "hell"). Allowed once; afterwards only at a week's start
+## (no souls logged this week yet), so a side can't be switched mid-week.
+func war_choose_side(side: String) -> Dictionary:
+	if not WarRules.SIDES.has(side):
+		return _err("Unknown side")
+	if not war_unlocked():
+		return _err("The front opens later in the campaign")
+	var ws: Dictionary = state.war
+	if str(ws.side) == side:
+		return _ok({"side": side})
+	if str(ws.side) != "" and _war_week_souls() > 0:
+		return _err("You can change sides when the next week starts")
+	ws.side = side
+	_changed()
+	return _ok({"side": side})
+
+
+## The sector the player's souls go to.
+func war_set_focus(sector: int) -> Dictionary:
+	if sector < 0 or sector >= WarRules.sector_count():
+		return _err("Unknown sector")
+	state.war.focus = sector
+	_changed()
+	return _ok({"focus": sector})
+
+
+## Souls into the focused sector today (only with a side chosen). Returns the souls sent (0 = none).
+func _war_add_souls(n: int) -> int:
+	var ws: Dictionary = state.war
+	if str(ws.side) == "" or n <= 0 or not war_unlocked():
+		return 0
+	var day := today()
+	var dk := str(day)
+	if not (ws.log as Dictionary).has(dk):
+		ws.log[dk] = {}
+	var sk := str(int(ws.focus))
+	ws.log[dk][sk] = int((ws.log[dk] as Dictionary).get(sk, 0)) + n
+	ws.souls_total = int(ws.souls_total) + n
+	# Keep only the days a claim can still read (this week and the last).
+	var keep_from := day - WarRules.LOG_DAYS
+	for k: Variant in (ws.log as Dictionary).keys():
+		if int(str(k)) < keep_from:
+			ws.log.erase(k)
+	return n
+
+
+## Souls the player sent this week.
+func _war_week_souls() -> int:
+	var ws: Dictionary = state.war
+	var d0 := WarRules.week_start(WarRules.week_of(today()))
+	var n := 0
+	for k: Variant in (ws.log as Dictionary).keys():
+		if int(str(k)) >= d0:
+			for s: Variant in (ws.log[k] as Dictionary).values():
+				n += int(s)
+	return n
+
+
+## The front view: {unlocked, name, side, side_name, focus, sectors [{id, name, control}], standing,
+## week, day_in_week (1-7), days_left, souls_today, souls_week, souls_total, souls_per_win,
+## claim: {week, won, held, reward} or {} (last week's result, unclaimed)}.
+func war() -> Dictionary:
+	var ws: Dictionary = state.war
+	var day := today()
+	var week := WarRules.week_of(day)
+	var side := str(ws.side)
+	var c := WarRules.control(week, day, ws.log, side)
+	var sectors: Array = []
+	for i in WarRules.sector_count():
+		var sd: Dictionary = WarRules.SECTORS[i]
+		sectors.append({"id": str(sd.id), "name": str(sd.name), "control": c[i]})
+	var today_souls := 0
+	for s: Variant in (ws.log.get(str(day), {}) as Dictionary).values():
+		today_souls += int(s)
+	return {"unlocked": war_unlocked(), "name": WarRules.NAME, "side": side, "side_name": WarRules.side_name(side),
+		"focus": int(ws.focus), "sectors": sectors, "standing": WarRules.standing(c), "week": week,
+		"day_in_week": day - WarRules.week_start(week) + 1, "days_left": WarRules.week_start(week) + WarRules.WEEK_DAYS - day,
+		"souls_today": today_souls, "souls_week": _war_week_souls(), "souls_total": int(ws.souls_total),
+		"souls_per_win": WarRules.SOULS_PER_WIN, "claim": _war_claimable()}
+
+
+## Last week's result for the player, when they fought in it and haven't claimed it.
+func _war_claimable() -> Dictionary:
+	var ws: Dictionary = state.war
+	var side := str(ws.side)
+	if side == "":
+		return {}
+	var last := WarRules.week_of(today()) - 1
+	if int(ws.claimed_week) >= last:
+		return {}
+	var d0 := WarRules.week_start(last)
+	var fought := false
+	for k: Variant in (ws.log as Dictionary).keys():
+		var d := int(str(k))
+		if d >= d0 and d < d0 + WarRules.WEEK_DAYS:
+			fought = true
+	if not fought:
+		return {}
+	var c := WarRules.control(last, d0 + WarRules.WEEK_DAYS - 1, ws.log, side)
+	var st := WarRules.standing(c)
+	var won := str(st.winner) == side
+	var held := int(st[side])
+	return {"week": last, "won": won, "held": held, "winner": str(st.winner), "reward": WarRules.reward(won, held)}
+
+
+## Claims last week's war reward. Result {ok, value: {reward, won, held}, error}.
+func war_claim() -> Dictionary:
+	var cl := _war_claimable()
+	if cl.is_empty():
+		return _err("Nothing to claim")
+	state.war.claimed_week = int(cl.week)
+	var got := grant(cl.reward)
+	_changed()
+	return _ok({"reward": got, "won": cl.won, "held": cl.held, "winner": cl.winner})
+
+
+func _migrate_war(ws: Dictionary) -> void:
+	if not WarRules.SIDES.has(str(ws.side)):
+		ws.side = ""
+	ws.focus = clampi(int(ws.focus), 0, WarRules.sector_count() - 1)
+	var log := {}
+	if ws.log is Dictionary:
+		for k: Variant in ws.log:
+			if str(k).is_valid_int() and ws.log[k] is Dictionary:
+				var dl := {}
+				for s: Variant in ws.log[k]:
+					var si := int(str(s))
+					if str(s).is_valid_int() and si >= 0 and si < WarRules.sector_count():
+						dl[str(si)] = maxi(0, int(ws.log[k][s]))
+				log[str(int(str(k)))] = dl
+	ws.log = log
+	ws.claimed_week = int(ws.claimed_week)
+	ws.souls_total = maxi(0, int(ws.souls_total))
+	ws.seen_week = int(ws.seen_week)
+
+
 func _migrate_rival(rs: Dictionary) -> void:
 	var heroes := {}
 	for id: Variant in rs.heroes:

@@ -81,6 +81,11 @@ func _ready() -> void:
 		if args.has("--rival-tag"):   # screenshots/testing: Rue won the last fight (her tag on the Lobby)
 			dev_rival_tag(true)
 		for a in args:
+			# screenshots/testing: --war=heaven|hell picks the side and logs a few days of souls in two
+			# sectors (and last week's, so a claim waits).
+			if a.begins_with("--war="):
+				dev_war(a.substr("--war=".length()))
+		for a in args:
 			# screenshots/testing: --awaken=seraphiel:3,noctaire:1 sets Legendaries to max stars at
 			# those awakening tiers (tier 0: ready to awaken, shards and dust for the next one).
 			if a.begins_with("--awaken="):
@@ -752,6 +757,46 @@ func showcase() -> Array[Dictionary]:
 
 
 # ---------------------------------------------------------------- the Rival (Rue)
+
+func war_unlocked() -> bool:
+	return model.war_unlocked()
+
+
+## The front (GameModel.war): side, focus, sectors with control, standing, week, souls, claim.
+func war() -> Dictionary:
+	return model.war()
+
+
+func war_choose_side(side: String) -> Dictionary:
+	var r := model.war_choose_side(side)
+	_flush()
+	return r
+
+
+func war_set_focus(sector: int) -> Dictionary:
+	var r := model.war_set_focus(sector)
+	_flush()
+	return r
+
+
+func war_claim() -> Dictionary:
+	var r := model.war_claim()
+	_flush()
+	return r
+
+
+## Debug (throwaway saves): the player fights for `side` with souls logged over this week and last.
+func dev_war(side: String) -> void:
+	var ws: Dictionary = model.state.war
+	ws.side = side
+	ws.focus = 3
+	var today := model.today()
+	var w0 := WarRules.week_start(WarRules.week_of(today))
+	for d in range(w0 - 7, today + 1):
+		ws.log[str(d)] = {"3": 600 + (d % 3) * 200, "1": 240}
+		ws.souls_total = int(ws.souls_total) + 840 + (d % 3) * 200
+	_flush()
+
 
 func rival_unlocked() -> bool:
 	return model.rival_unlocked()

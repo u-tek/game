@@ -363,7 +363,12 @@
 				"duration_ms": 8500,
 				"complete": {
 					"ok": true,
-					"value": {"reward": {"gold": 500, "hero_exp": 300}, "first_clear": true, "victory": true},
+					"value": {
+						"reward": {"gold": 500, "hero_exp": 300},
+						"first_clear": true,
+						"victory": true,
+						"souls": 0
+					},
 					"error": ""
 				}
 			},
@@ -380,7 +385,8 @@
 					"value": {
 						"reward": {"gold": 650, "hero_exp": 390, "gear": ["g1"]},
 						"first_clear": true,
-						"victory": true
+						"victory": true,
+						"souls": 0
 					},
 					"error": ""
 				}
@@ -398,7 +404,8 @@
 					"value": {
 						"reward": {"gold": 800, "hero_exp": 480, "gems": 100},
 						"first_clear": true,
-						"victory": true
+						"victory": true,
+						"souls": 0
 					},
 					"error": ""
 				}
@@ -2004,6 +2011,7 @@
 			"showcase": ["p1", "p12"]
 		},
 		"rival": {"seed": 2125292450, "met": false, "day": -1, "heroes": {}, "pulls": 0, "pity": {}, "lost": false, "ed": {}, "print_seq": 0, "prints": [], "feed": [], "feed_seq": 0, "seen": 0, "wins": 0, "losses": 0, "fights": 0, "haul_day": -1, "tag_you": false, "tag_her": false, "tag_v": 0},
+		"war": {"side": "", "focus": 3, "log": {}, "claimed_week": -1000000, "souls_total": 0, "seen_week": -1000000},
 		"counters": {"summons": 59, "battles_started": 10, "battles_won": 3, "stages_cleared": 3, "battles_lost": 3, "level_ups": 6, "idle_claims": 3, "quick_claims": 3, "daily_quests_done": 4},
 		"dev_time_offset": 0,
 		"rng_seed": 5422372

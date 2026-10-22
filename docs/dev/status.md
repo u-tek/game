@@ -32,9 +32,12 @@ this file says where things stand. Older logs are under "History" at the bottom.
   + fixtures), the front view (the team big in the foreground, a camera gliding along the line,
   swipe to look), the souls crowd (40 red and gold flame wisps in the sky, display only), the
   ultimate close-up (her live rig full screen) and Encore (chained ultimates: +15% per step by hand,
-  a duo close-up). Details and next steps at the top of `docs/dev/combat-v1.md`. Next: Spotlight /
-  Mark (the owner never answered whether these inputs feel right: ask after they play the build),
-  the balance pass, then the front map and districts (offline first), then the server.
+  a duo close-up), Spotlight / Mark (tap a heroine / a foe), **the Bag** (inventory screen) and
+  **the front** (the War for Souls offline: the Oath, the war map, souls from every win, the weekly
+  claim; `src/core/war_rules.gd`, screen `front`). Details at the top of `docs/dev/combat-v1.md`.
+  The owner (2026-10-22): "just keep working and adding features and refining the app based on the
+  visual references". Next: the balance pass, the player's district, the weekly Champion boss, then
+  the server (real sides).
 - **App cleanup (2026-10-22, PC chat; the owner: "i want the clean the app up first", then "i'm happy
   for you to go ahead with all of those changes").** An audit of every screen (`tools/shoot`, rich
   save) and of the code, then:

@@ -10,7 +10,7 @@ extends RefCounted
 ##
 ## Outputs are compared as JSON values: objects by key (order-free), arrays in order.
 
-const FILES: Array[String] = ["rng", "progression", "idle", "gear", "stats", "summon", "battles", "session", "save", "prints", "rival"]
+const FILES: Array[String] = ["rng", "progression", "idle", "gear", "stats", "summon", "battles", "session", "save", "prints", "rival", "war"]
 const REGENERATE := "tools/gd --headless --path . -s tests/tools/make_fixtures.gd"
 ## Fixed clock for model-driven fixtures: 2023-12-09 01:00 UTC.
 const BASE_MS := 1_702_083_600_000
@@ -36,6 +36,7 @@ static func compute(name: String, f: Dictionary) -> Dictionary:
 		"save": out = _save(f)
 		"prints": out = _prints(f)
 		"rival": out = _rival(f)
+		"war": out = _war(f)
 		_: return {}
 	var head := {"version": 1, "about": str(f.get("about", "")), "regenerate": REGENERATE}
 	head.merge(out)
@@ -240,6 +241,8 @@ static func inputs(name: String) -> Dictionary:
 			return _prints_inputs()
 		"rival":
 			return _rival_inputs()
+		"war":
+			return _war_inputs()
 	return {}
 
 
@@ -873,6 +876,47 @@ static func _prints(f: Dictionary) -> Dictionary:
 
 
 # ---------------------------------------------------------------- the Rival
+
+static func _war_inputs() -> Dictionary:
+	var e := WarRules.EPOCH_DAY
+	var days: Array = []
+	for k in [-9, -8, -1, 0, 1, 6, 7, 13, 14, 40]:
+		days.append(e + k)
+	# A player's log over two weeks: a few sectors, one huge push to show the clamp.
+	var log := {str(e + 7): {"3": 400, "1": 80}, str(e + 8): {"3": 1200}, str(e + 9): {"0": 40, "6": 3000},
+		str(e + 13): {"3": 200}, str(e + 15): {"2": 120}}
+	var cases: Array = []
+	for c: Array in [[1, e + 7, "heaven"], [1, e + 9, "heaven"], [1, e + 13, "heaven"], [1, e + 13, "hell"], [1, e + 13, ""],
+			[1, e + 30, "hell"], [2, e + 15, "heaven"], [0, e + 6, "heaven"], [-1, e - 1, "hell"]]:
+		cases.append({"week": c[0], "upto_day": c[1], "side": c[2]})
+	return {
+		"about": "WarRules (src/core/war_rules.gd) on data/war.json: week_of / week_start, sim_push for each day x sector x side, control(week, upto_day, log, side) with the standing, and reward(won, held).",
+		"days": days,
+		"push_days": [e, e + 1, e + 8],
+		"log": log,
+		"cases": cases,
+		"reward_cases": [[false, 0], [true, 4], [false, 3], [true, 7]],
+	}
+
+
+static func _war(f: Dictionary) -> Dictionary:
+	var weeks: Array = []
+	for d: Variant in f.days:
+		weeks.append([WarRules.week_of(int(d)), WarRules.week_start(WarRules.week_of(int(d)))])
+	var pushes: Array = []
+	for d: Variant in f.push_days:
+		for s in WarRules.sector_count():
+			pushes.append([WarRules.sim_push(int(d), s, "heaven"), WarRules.sim_push(int(d), s, "hell")])
+	var cases: Array = []
+	for c: Dictionary in f.cases:
+		var ctl := WarRules.control(int(c.week), int(c.upto_day), f.log, str(c.side))
+		cases.append({"week": c.week, "upto_day": c.upto_day, "side": c.side, "control": ctl, "standing": WarRules.standing(ctl)})
+	var rewards: Array = []
+	for r: Array in f.reward_cases:
+		rewards.append(WarRules.reward(bool(r[0]), int(r[1])))
+	return {"days": f.days, "weeks": weeks, "push_days": f.push_days, "pushes": pushes, "log": f.log, "cases": cases,
+		"reward_cases": f.reward_cases, "rewards": rewards}
+
 
 static func _rival_inputs() -> Dictionary:
 	var e := EconomyData.BANNER_EPOCH_DAY

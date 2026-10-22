@@ -1,0 +1,121 @@
+{
+	"version": 1,
+	"about": "WarRules (src/core/war_rules.gd) on data/war.json: week_of / week_start, sim_push for each day x sector x side, control(week, upto_day, log, side) with the standing, and reward(won, held).",
+	"regenerate": "tools/gd --headless --path . -s tests/tools/make_fixtures.gd",
+	"days": [20736, 20737, 20744, 20745, 20746, 20751, 20752, 20758, 20759, 20785],
+	"weeks": [
+		[-2, 20731],
+		[-2, 20731],
+		[-1, 20738],
+		[0, 20745],
+		[0, 20745],
+		[0, 20745],
+		[1, 20752],
+		[1, 20752],
+		[2, 20759],
+		[5, 20780]
+	],
+	"push_days": [20745, 20746, 20753],
+	"pushes": [
+		[913, 812],
+		[995, 1050],
+		[1146, 1018],
+		[846, 720],
+		[878, 1096],
+		[1200, 894],
+		[765, 1086],
+		[1106, 997],
+		[807, 1116],
+		[998, 1141],
+		[1019, 1136],
+		[736, 965],
+		[902, 1039],
+		[872, 782],
+		[942, 952],
+		[891, 828],
+		[1003, 1120],
+		[877, 889],
+		[792, 1165],
+		[970, 1000],
+		[702, 785]
+	],
+	"log": {
+		"20752": {"3": 400, "1": 80},
+		"20753": {"3": 1200},
+		"20754": {"0": 40, "6": 3000},
+		"20758": {"3": 200},
+		"20760": {"2": 120}
+	},
+	"cases": [
+		{
+			"week": 1,
+			"upto_day": 20752,
+			"side": "heaven",
+			"control": [-584, -1180, 368, 2276, -672, -1536, 1480],
+			"standing": {"heaven": 3, "hell": 4, "winner": "hell"}
+		},
+		{
+			"week": 1,
+			"upto_day": 20754,
+			"side": "heaven",
+			"control": [-196, -1076, -636, 8164, -2112, -1580, 10000],
+			"standing": {"heaven": 2, "hell": 5, "winner": "hell"}
+		},
+		{
+			"week": 1,
+			"upto_day": 20758,
+			"side": "heaven",
+			"control": [-2108, 772, 2024, 9380, -676, 392, 8420],
+			"standing": {"heaven": 5, "hell": 2, "winner": "heaven"}
+		},
+		{
+			"week": 1,
+			"upto_day": 20758,
+			"side": "hell",
+			"control": [-2428, 132, 2024, -5020, -676, 392, -10000],
+			"standing": {"heaven": 3, "hell": 4, "winner": "hell"}
+		},
+		{
+			"week": 1,
+			"upto_day": 20758,
+			"side": "",
+			"control": [-2268, 452, 2024, 2180, -676, 392, -760],
+			"standing": {"heaven": 4, "hell": 3, "winner": "heaven"}
+		},
+		{
+			"week": 1,
+			"upto_day": 20775,
+			"side": "hell",
+			"control": [-2428, 132, 2024, -5020, -676, 392, -10000],
+			"standing": {"heaven": 3, "hell": 4, "winner": "hell"}
+		},
+		{
+			"week": 2,
+			"upto_day": 20760,
+			"side": "heaven",
+			"control": [-628, -716, -624, 116, -684, -1632, -112],
+			"standing": {"heaven": 1, "hell": 6, "winner": "hell"}
+		},
+		{
+			"week": 0,
+			"upto_day": 20751,
+			"side": "heaven",
+			"control": [-832, 3068, 232, 1720, -3048, -3156, -408],
+			"standing": {"heaven": 3, "hell": 4, "winner": "hell"}
+		},
+		{
+			"week": -1,
+			"upto_day": 20744,
+			"side": "hell",
+			"control": [-1088, -372, 1516, -2116, 1148, 316, 1028],
+			"standing": {"heaven": 4, "hell": 3, "winner": "heaven"}
+		}
+	],
+	"reward_cases": [[false, 0], [true, 4], [false, 3], [true, 7]],
+	"rewards": [
+		{"gems": 100, "gold": 20000},
+		{"gems": 290, "gold": 20000, "scrolls": 1},
+		{"gems": 130, "gold": 20000},
+		{"gems": 320, "gold": 20000, "scrolls": 1}
+	]
+}
