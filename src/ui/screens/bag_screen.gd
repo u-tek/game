@@ -200,9 +200,16 @@ func _build_currency(pw: float, y: float) -> float:
 		row.position = Vector2(20, y)
 		row.size = Vector2(pw - 40, 70)
 		p.add_child(row)
-		var ic := Kit.currency_icon(id, 44)
-		ic.position = Vector2(4, 10)
-		row.add_child(ic)
+		# The currency's code in a small ruled box, like a ledger (restraint: no coloured glyphs on
+		# paper, as the masthead).
+		var code := str({"gems": "GEM", "scrolls": "SCR", "gold": "GLD", "hero_exp": "EXP", "dust": "DST"}.get(id, id.left(3).to_upper()))
+		var bx0 := Rect2(4, 14, 44, 40)
+		PK.rect(row, Rect2(bx0.position, Vector2(bx0.size.x, 1.5)), INK)
+		PK.rect(row, Rect2(bx0.position + Vector2(0, bx0.size.y - 1.0), Vector2(bx0.size.x, 1.0)), Color(INK, 0.5))
+		var cl := PK.t(code, 13, INK, "mono_bold")
+		cl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cl.size = Vector2(bx0.size.x, 18)
+		PK.at(row, cl, bx0.position + Vector2(0, 11))
 		PK.at(row, PK.t(str(c[1]), 15, INK, "mono_bold"), Vector2(62, 8))
 		PK.at(row, PK.t(str(c[2]), 10, Color(INK, 0.62), "mono"), Vector2(62, 30))
 		var link := PK.t(str(c[3]), 11, SIG, "mono_bold")
