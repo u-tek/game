@@ -726,8 +726,9 @@ last cloud run (2026-10-17 00:15 UTC).
   better). The dissolve effect looks speckled. One flat painting can't swing limbs, so big attacks
   rely on body motion plus effects.
 - **Tools are Linux-only** bash scripts (flock, xvfb-run). Untested on Windows.
-- **No background art:** `assets/art/backgrounds` is empty; `src/ui/battle/scene_backdrop.gd` draws
-  the backdrops in code.
+- **Battle backdrops** are painted JPEGs, one per chapter (`assets/art/backgrounds/chapter-1..6.jpg`,
+  `HeroArt.background`); `src/ui/battle/scene_backdrop.gd` paints a place in code only where one is
+  missing.
 - **Stale docs:** `docs/game-design.md` (draft v0.1), `docs/tech-plan.md` and `docs/roadmap.md`
   (Unity era) are background reading only. `docs/dev/art-style.md` section 2 (figure about
   1900 px, 24 px margins) is met by no final, pending decision 2. `docs/dev/art-generation.md` and
