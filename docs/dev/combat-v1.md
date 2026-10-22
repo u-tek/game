@@ -14,7 +14,9 @@ for ultimates); the war gives it its enemies, its score and its weekly fight:
   lose nothing and get a note and a small reward when their team holds. Before the server exists,
   simulated teams fill the front (the Rival's way).
 - **Faction signatures.** Infernal heroines charm (a new status: the enemy fights for you for a few
-  seconds), Celestials inspire (heal, shield, win souls faster), the Fallen mix both.
+  seconds), Celestials inspire (heal, shield, win souls faster), the Fallen mix both. **Built
+  2026-10-22:** `charm` in `battle_sim.gd` and the port check; every Infernal ultimate except
+  Brakka's (a taunt: charm would pull a foe off her) charms its target for 2.5 s.
 - **Hands-on stays optional:** ultimates and Encore chains, Spotlight, Mark, as drafted below.
 - **Play time.** Away: your team keeps fighting the front (the idle haul is souls). Daily: a few
   charges, 2-3 minutes, cleared fights skippable. Weekly: **the Champion**, the other side's

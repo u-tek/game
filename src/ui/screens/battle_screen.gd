@@ -64,6 +64,7 @@ const STATUS_TEXT := {
 	"stun": ["STUNNED", Color("ff4b1f")], "burn": ["BURN", Color("ff8a62")], "regen": ["REGEN", Color("9fe0bf")],
 	"taunt": ["TAUNT", Color("f5f4f0")], "atk_up": ["ATK UP", Color("f5f4f0")], "atk_down": ["ATK DOWN", Color("ff4b1f")],
 	"def_up": ["DEF UP", Color("f5f4f0")], "def_down": ["DEF DOWN", Color("ff4b1f")], "spd_up": ["HASTE", Color("f5f4f0")],
+	"charm": ["CHARMED", Color("ff6fae")],
 }
 ## Floating numbers (style v4): damage in compressed type, paper on ink for hits on echoes, ink on
 ## paper for hits on the team, signal for crits and executes; heals and shields in mono.

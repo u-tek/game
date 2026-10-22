@@ -417,6 +417,9 @@ class Sim:
     def living(self, side): return [u for u in self.units if u.alive and u.side == side]
     def foe(self, side): return "enemy" if side == "ally" else "ally"
     def stunned(self, u): return "stun" in u.st_end
+
+    # stunned or charmed: no ultimate (charm: battle_sim.gd _silenced)
+    def silenced(self, u): return "stun" in u.st_end or "charm" in u.st_end
     def lowest(self, lst):
         best, br = None, None
         for u in lst:
@@ -466,7 +469,7 @@ class Sim:
 
     def request(self, uid):
         u = self.by.get(uid)
-        if self.winner or u is None or u.side != "ally" or not u.alive or u.energy < EMAX or self.stunned(u) or uid in self.queue:
+        if self.winner or u is None or u.side != "ally" or not u.alive or u.energy < EMAX or self.silenced(u) or uid in self.queue:
             return False
         self.queue.append(uid); return True
 
@@ -497,12 +500,12 @@ class Sim:
         q = self.queue; self.queue = []
         for uid in q:
             u = self.by[uid]
-            if u.alive and u.energy >= EMAX and not self.stunned(u):
+            if u.alive and u.energy >= EMAX and not self.silenced(u):
                 self.cast(u)
                 if self.check_end(): return
         for uid in list(self.full):
             u = self.by[uid]
-            if not u.alive or u.energy < EMAX or self.stunned(u): continue
+            if not u.alive or u.energy < EMAX or self.silenced(u): continue
             if u.side == "ally" and not self.auto: continue
             self.cast(u)
             if self.check_end(): return
@@ -521,7 +524,18 @@ class Sim:
                 self.check_end(); return
 
     # ---------------- actions
+    def charmed_target(self, u):
+        lane = u.slot % 2; first = None
+        for m in self.living(u.side):
+            if m is u: continue
+            if m.slot % 2 == lane: return m
+            if first is None: first = m
+        return first
+
     def basic_target(self, u):
+        if "charm" in u.st_end:
+            turned = self.charmed_target(u)
+            if turned is not None: return turned
         foes = self.living(self.foe(u.side))
         if not foes: return None
         for f in foes:
@@ -643,7 +657,7 @@ class Sim:
 
     def apply_status(self, src, dst, status, dur, vbp, dot):
         if not dst.alive or dur <= 0: return
-        if status == "stun" and dst.boss: dur = idiv(dur, B["boss"]["stun_divisor"])
+        if status in ("stun", "charm") and dst.boss: dur = idiv(dur, B["boss"]["stun_divisor"])
         prev = dst.st_end[status] - self.t if status in dst.st_end else 0
         dst.st_end[status] = max(dst.st_end.get(status, 0), self.t + dur)
         if vbp > 0: dst.mods[status] = max(dst.mods.get(status, 0), vbp)

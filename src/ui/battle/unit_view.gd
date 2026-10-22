@@ -8,9 +8,9 @@ const BattleFxRef := preload("res://src/ui/battle/battle_fx.gd")
 const STATUS_ICONS := {
 	"stun": "star", "burn": "faction_infernal", "regen": "stat_hp", "taunt": "role_guardian",
 	"atk_up": "stat_atk", "atk_down": "stat_atk", "def_up": "stat_def", "def_down": "stat_def",
-	"spd_up": "stat_spd",
+	"spd_up": "stat_spd", "charm": "faction_infernal",
 }
-const DEBUFFS := ["stun", "burn", "atk_down", "def_down"]
+const DEBUFFS := ["stun", "burn", "atk_down", "def_down", "charm"]
 const BAR_W := 108.0
 ## Style v4 print colours (paper tag, ink, signal) and the ground ring colours.
 const PAPER := Color("e9e8e2")

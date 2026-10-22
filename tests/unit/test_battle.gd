@@ -297,6 +297,46 @@ func test_execute_and_taunt(t: TestCtx) -> void:
 	t.eq(others, 0, "taunted enemies attack Brakka")
 
 
+func test_charm_turns_a_foe_on_its_own_side(t: TestCtx) -> void:
+	# Infernal ultimates charm their target for 2.5 s: its basic attacks hit its own side and it
+	# can't cast; afterwards it fights the player's team again.
+	var sim := BattleSim.new({"seed": 7, "allies": [_unit("a0", "mordessa", 0, 10, 1)],
+		"enemies": [_unit("e0", "uriela", 0, 45, 1), _unit("e1", "ashra", 1, 45, 1), _unit("e2", "lucen", 2, 45, 1)]})
+	sim.auto_ultimates = false
+	sim.unit("a0").energy = BattleSim.ENERGY_MAX
+	sim.request_ultimate("a0")
+	var charmed := ""
+	for e in sim.step():
+		if e.type == "status" and e.status == "charm":
+			charmed = str(e.target)
+	t.ok(charmed.begins_with("e"), "Mordessa's ultimate charms an enemy")
+	if charmed == "":
+		return
+	sim.unit(charmed).energy = BattleSim.ENERGY_MAX
+	var turned := 0
+	var wrong := 0
+	var cast := 0
+	var until: int = sim.t_ms + 2400
+	while sim.t_ms < until and not sim.is_over():
+		for e in sim.step():
+			if e.type == "attack" and str(e.src) == charmed:
+				if str(e.target).begins_with("e"):
+					turned += 1
+				else:
+					wrong += 1
+			if e.type == "ultimate" and str(e.get("src", "")) == charmed:
+				cast += 1
+	t.ok(turned > 0, "the charmed enemy attacks its own side (%d)" % turned)
+	t.eq(wrong, 0, "while charmed it never attacks the team")
+	t.eq(cast, 0, "no ultimate while charmed")
+	var back := 0
+	for i in 40:
+		for e in sim.step():
+			if e.type == "attack" and str(e.src) == charmed and str(e.target).begins_with("a"):
+				back += 1
+	t.ok(back > 0 or sim.is_over(), "after the charm it fights the team again")
+
+
 func test_passives_unlock_by_stars(t: TestCtx) -> void:
 	# Noctaire 5 stars: on kill energy. Rare 1 star: no passives.
 	t.eq(HeroKits.active_passives("uriela", 1).size(), 0)

@@ -11,6 +11,8 @@ extends RefCounted
 ## - Attack interval = 100000 / spd ms (spd 100 = 1.0 s). Stunned units do nothing.
 ## - Targeting: Taunt first; assassins hit the weakest back-row enemy; casters hit any enemy
 ##   (ranged, random); everyone else hits the front row first (same lane when possible).
+##   Charmed units (the Infernal signature) hit their own side instead (a teammate in their lane,
+##   else the first one) and can't cast their ultimate; alone, they fight on as usual.
 ## - Damage = ATK * mult * ATK / (ATK + DEF), +20% vs the faction you beat, crits x1.5,
 ##   +/-5% variance. Shields absorb first.
 ## - Energy: +100 per basic attack, + up to 500 for losing a full health bar (min 15 per
@@ -27,7 +29,7 @@ extends RefCounted
 const TICK_MS := 100
 const ENERGY_MAX := 1000
 const NO_EXPIRY := 1 << 40
-const STATUSES: Array[String] = ["stun", "burn", "regen", "taunt", "atk_up", "atk_down", "def_up", "def_down", "spd_up"]
+const STATUSES: Array[String] = ["stun", "burn", "regen", "taunt", "atk_up", "atk_down", "def_up", "def_down", "spd_up", "charm"]
 
 static var _B: Dictionary = GameData.battle()
 static var MAX_MS: int = int(_B.max_ms)
@@ -158,7 +160,7 @@ func can_ultimate(uid: String) -> bool:
 	if winner != "" or not _by_uid.has(uid):
 		return false
 	var u: Dictionary = _by_uid[uid]
-	return u.side == "ally" and u.alive and int(u.energy) >= ENERGY_MAX and not u.statuses.has("stun")
+	return u.side == "ally" and u.alive and int(u.energy) >= ENERGY_MAX and not _silenced(u)
 
 
 func is_over() -> bool:
@@ -398,7 +400,7 @@ func _tick_ultimates() -> void:
 	_queued.clear()
 	for uid in queue:
 		var u: Dictionary = _by_uid[uid]
-		if u.alive and int(u.energy) >= ENERGY_MAX and not u.statuses.has("stun"):
+		if u.alive and int(u.energy) >= ENERGY_MAX and not _silenced(u):
 			_cast_ultimate(u)
 			if _check_end():
 				return
@@ -407,7 +409,7 @@ func _tick_ultimates() -> void:
 	var ready := _full_energy.duplicate()
 	for ruid in ready:
 		var u: Dictionary = _by_uid[ruid]
-		if not u.alive or int(u.energy) < ENERGY_MAX or u.statuses.has("stun"):
+		if not u.alive or int(u.energy) < ENERGY_MAX or _silenced(u):
 			continue
 		if u.side == "ally" and not auto_ultimates:
 			continue
@@ -593,6 +595,10 @@ func _row(list: Array, back: bool) -> Array:
 
 
 func _basic_target(u: Dictionary) -> Dictionary:
+	if not u.statuses.is_empty() and u.statuses.has("charm"):
+		var turned := _charmed_target(u)
+		if not turned.is_empty():
+			return turned
 	var foes := _alive_of(_enemy_side(u.side))
 	if foes.is_empty():
 		return {}
@@ -614,6 +620,26 @@ func _basic_target(u: Dictionary) -> Dictionary:
 		if fs < 2 and first_front.is_empty():
 			first_front = f
 	return first_front if not first_front.is_empty() else foes[0]
+
+
+## A charmed unit's mark: the living teammate in its lane, else the first living teammate
+## ({} when it is the last one standing).
+func _charmed_target(u: Dictionary) -> Dictionary:
+	var lane: int = int(u.slot) % 2
+	var first: Dictionary = {}
+	for m in _alive_of(u.side):
+		if m.uid == u.uid:
+			continue
+		if int(m.slot) % 2 == lane:
+			return m
+		if first.is_empty():
+			first = m
+	return first
+
+
+## Stunned or charmed: no ultimate.
+func _silenced(u: Dictionary) -> bool:
+	return not u.statuses.is_empty() and (u.statuses.has("stun") or u.statuses.has("charm"))
 
 
 func _resolve_targets(u: Dictionary, e: Dictionary, primary: Dictionary) -> Array:
@@ -809,7 +835,7 @@ func _add_shield(src: Dictionary, dst: Dictionary, amount: int) -> void:
 func _apply_status(src: Dictionary, dst: Dictionary, status: String, duration_ms: int, value_bp: int, dot_mult_bp: int) -> void:
 	if not dst.alive or duration_ms <= 0:
 		return
-	if status == "stun" and dst.is_boss:
+	if (status == "stun" or status == "charm") and dst.is_boss:
 		duration_ms /= BOSS_STUN_DIVISOR
 	var sts: Dictionary = dst.statuses
 	var prev: int = int(sts.get(status, 0))

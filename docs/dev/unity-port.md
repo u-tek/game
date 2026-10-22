@@ -121,7 +121,8 @@ JSON integer (read as `long`), `bp` = basis points int, `ms` = milliseconds int.
 `on_attack_heal {mult_bp}`, `low_hp_bonus {bp}`, `on_kill {heal_pct_bp?, energy?}`,
 `lifesteal {bp}`, `crit_damage {bp}`, `double_strike {chance_bp}`, `ult_bonus {effects: [Effect]}`.
 
-**Statuses:** `stun`, `burn`, `regen`, `taunt`, `atk_up`, `atk_down`, `def_up`, `def_down`, `spd_up`.
+**Statuses:** `stun`, `burn`, `regen`, `taunt`, `atk_up`, `atk_down`, `def_up`, `def_down`, `spd_up`,
+`charm` (2026-10-22: every Infernal ultimate but Brakka's charms its target for 2.5 s).
 
 ### 3.2 stages.json
 
@@ -412,7 +413,7 @@ after all other events but before an `end` event. Flags are then cleared. Flags 
 sim is constructed are flushed by the first step.
 
 `request_ultimate(uid)`: accepted (true) if no winner, the unit is a living ally with energy >=
-1000, not stunned, and not already queued; it is appended to the queue. `can_ultimate(uid)` is
+1000, not stunned or charmed, and not already queued; it is appended to the queue. `can_ultimate(uid)` is
 the same test minus the queue check. `run_to_end()` steps until a winner (no events are built;
 results are identical). `outcome() = {winner, victory, duration_ms: t, allies_alive,
 enemies_alive, timeout: winner == "enemy" && t >= max_ms && both sides alive, damage_dealt,
@@ -440,7 +441,9 @@ If target alive: for each `on_hit_status` effect of u (passive order): if `rng.C
 `thorns > 0` and u alive: `ApplyDamage(target, u, max(1, dealt * thorns / 10000), crit=false,
 adv=false, ult=false, dot=false)` (the target reflects even if this hit killed it).
 
-**BasicTarget(u)**: `foes` = living enemies of u in unit order; empty -> none. The first foe
+**BasicTarget(u)**: if u is **charmed**: the first living teammate (unit order, not u) with
+`slot % 2 == u.slot % 2`, else the first living teammate; if u is the last of its side, go on
+as below. `foes` = living enemies of u in unit order; empty -> none. The first foe
 with `taunt` wins. Else by role: **assassin**: `LowestRatio(back-row foes)` (slot >= 2), or of
 all foes if the back row is empty; **caster**: `rng.Pick(foes)`; **others**: the foe whose slot
 == `u.slot % 2` if alive, else the first foe with slot < 2, else `foes[0]`.
@@ -450,9 +453,9 @@ all foes if the back row is empty; **caster**: `rng.Pick(foes)`; **others**: the
 ### 7.4 Ultimate phase
 
 1. Take the manual queue (and clear it). For each uid in request order: if alive, energy >=
-   1000 and not stunned: `CastUltimate`; if `CheckEnd()`: end the phase.
+   1000 and not stunned or charmed: `CastUltimate`; if `CheckEnd()`: end the phase.
 2. Snapshot the **full-energy list** (uids in the order they reached 1000; 7.6). For each: skip
-   if dead, energy < 1000 or stunned; skip allies when `auto_ultimates` is false; else
+   if dead, energy < 1000, stunned or charmed; skip allies when `auto_ultimates` is false; else
    `CastUltimate`; if `CheckEnd()`: end the phase. (Units that fill during this phase cast on a
    later tick.)
 
@@ -474,7 +477,7 @@ DoT/HoT therefore tick **before** expiry on the same tick. `statuses[name]` (rem
 always reads `end_t - t`.
 
 **ApplyStatus(src, dst, status, duration, value_bp, dot_mult_bp)**: return if dst dead or
-duration <= 0. Stun on a boss: `duration /= boss.stun_divisor`. `prev` = remaining ms if
+duration <= 0. Stun or charm on a boss: `duration /= boss.stun_divisor`. `prev` = remaining ms if
 active, else 0. `end_t = max(current end_t or 0, t + duration)`. If `value_bp > 0`:
 `mods[status] = max(mods[status] ?? 0, value_bp)`. If `dot_mult_bp > 0`: `amount = max(1,
 Atk(src) * dot_mult_bp / 10000)`; regen: `amount = amount * (10000 + src.heal_bonus) / 10000`;
@@ -483,7 +486,8 @@ if `amount >= dots[status] ?? 0`: `dots[status] = amount`, dot source = src. Emi
 `duration - prev >= status_refresh_event_ms`.
 
 Mods: `atk_up`/`atk_down`, `def_up`/`def_down` (bp), `spd_up` (bp of attack speed). `stun`:
-no attacks, no ultimates (timer frozen). `taunt`: forced basic target.
+no attacks, no ultimates (timer frozen). `taunt`: forced basic target. `charm`: basic attacks
+hit the unit's own side (BasicTarget), no ultimates; a charmed unit ignores taunt.
 
 ### 7.6 Damage, healing, shields, energy, death
 

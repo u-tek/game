@@ -609,11 +609,12 @@
 			"ultimate": {
 				"id": "ninth_furnace",
 				"name": "Ninth Furnace",
-				"description": "Brings down the burning greatsword: 320% ATK to her target, 140% ATK to every other enemy, and Burns them all (50% ATK per second) for 4 s.",
+				"description": "Brings down the burning greatsword: 320% ATK to her target, 140% ATK to every other enemy, and Burns them all (50% ATK per second) for 4 s. Charms her target for 2.5 s: it turns on its own side.",
 				"effects": [
 					{"type": "damage", "target": "enemy_target", "mult_bp": 32000},
 					{"type": "damage", "target": "enemy_others", "mult_bp": 14000},
-					{"type": "status", "target": "enemy_all", "status": "burn", "duration_ms": 4000, "dot_mult_bp": 5000}
+					{"type": "status", "target": "enemy_all", "status": "burn", "duration_ms": 4000, "dot_mult_bp": 5000},
+					{"type": "status", "target": "enemy_target", "status": "charm", "duration_ms": 2500}
 				]
 			},
 			"passives": [
@@ -711,10 +712,11 @@
 			"ultimate": {
 				"id": "ember_rain",
 				"name": "Ember Rain",
-				"description": "Forecast: fire. 140% ATK to all enemies and Burns them (50% ATK per second) for 6 s.",
+				"description": "Forecast: fire. 140% ATK to all enemies and Burns them (50% ATK per second) for 6 s. Charms her target for 2.5 s: it turns on its own side.",
 				"effects": [
 					{"type": "damage", "target": "enemy_all", "mult_bp": 14000},
-					{"type": "status", "target": "enemy_all", "status": "burn", "duration_ms": 6000, "dot_mult_bp": 5000}
+					{"type": "status", "target": "enemy_all", "status": "burn", "duration_ms": 6000, "dot_mult_bp": 5000},
+					{"type": "status", "target": "enemy_target", "status": "charm", "duration_ms": 2500}
 				]
 			},
 			"passives": [
@@ -749,10 +751,11 @@
 			"ultimate": {
 				"id": "lantern_pact",
 				"name": "Lantern Pact",
-				"description": "Strikes a deal with the whole team: all allies +20% ATK for 5 s, and every other ally gains 100 energy.",
+				"description": "Strikes a deal with the whole team: all allies +20% ATK for 5 s, and every other ally gains 100 energy. Charms her target for 2.5 s: it turns on its own side.",
 				"effects": [
 					{"type": "status", "target": "ally_all", "status": "atk_up", "duration_ms": 5000, "value_bp": 2000},
-					{"type": "energy", "target": "ally_others", "amount": 100}
+					{"type": "energy", "target": "ally_others", "amount": 100},
+					{"type": "status", "target": "enemy_target", "status": "charm", "duration_ms": 2500}
 				]
 			},
 			"passives": [
@@ -787,8 +790,8 @@
 			"ultimate": {
 				"id": "twelfth_contract",
 				"name": "Twelfth Contract",
-				"description": "Pounces on the weakest enemy anywhere: 280% ATK, executing it if left below 25% HP (not bosses).",
-				"effects": [{"type": "damage", "target": "enemy_lowest", "mult_bp": 28000, "execute_bp": 2500}]
+				"description": "Pounces on the weakest enemy anywhere: 280% ATK, executing it if left below 25% HP (not bosses). Charms her target for 2.5 s: it turns on its own side.",
+				"effects": [{"type": "damage", "target": "enemy_lowest", "mult_bp": 28000, "execute_bp": 2500}, {"type": "status", "target": "enemy_target", "status": "charm", "duration_ms": 2500}]
 			},
 			"passives": [
 				{
@@ -820,11 +823,12 @@
 			"ultimate": {
 				"id": "bass_drop",
 				"name": "Bass Drop",
-				"description": "Drops the beat: all allies gain +20% ATK and +15% SPD for 5 s, and every other ally gains 100 energy.",
+				"description": "Drops the beat: all allies gain +20% ATK and +15% SPD for 5 s, and every other ally gains 100 energy. Charms her target for 2.5 s: it turns on its own side.",
 				"effects": [
 					{"type": "status", "target": "ally_all", "status": "atk_up", "duration_ms": 5000, "value_bp": 2000},
 					{"type": "status", "target": "ally_all", "status": "spd_up", "duration_ms": 5000, "value_bp": 1500},
-					{"type": "energy", "target": "ally_others", "amount": 100}
+					{"type": "energy", "target": "ally_others", "amount": 100},
+					{"type": "status", "target": "enemy_target", "status": "charm", "duration_ms": 2500}
 				]
 			},
 			"passives": [
@@ -886,10 +890,11 @@
 			"ultimate": {
 				"id": "full_house",
 				"name": "Full House",
-				"description": "Deals the whole table in: 100% ATK to all enemies, then 200% ATK to the weakest enemy, executing it if left below 25% HP (not bosses).",
+				"description": "Deals the whole table in: 100% ATK to all enemies, then 200% ATK to the weakest enemy, executing it if left below 25% HP (not bosses). Charms her target for 2.5 s: it turns on its own side.",
 				"effects": [
 					{"type": "damage", "target": "enemy_all", "mult_bp": 10000},
-					{"type": "damage", "target": "enemy_lowest", "mult_bp": 20000, "execute_bp": 2500}
+					{"type": "damage", "target": "enemy_lowest", "mult_bp": 20000, "execute_bp": 2500},
+					{"type": "status", "target": "enemy_target", "status": "charm", "duration_ms": 2500}
 				]
 			},
 			"passives": [
@@ -952,11 +957,12 @@
 			"ultimate": {
 				"id": "red_flag",
 				"name": "Red Flag",
-				"description": "Waves the red flag: gains a shield of 30% max HP, Taunts all enemies for 5 s and Weakens them all (-15% ATK) for 5 s.",
+				"description": "Waves the red flag: gains a shield of 30% max HP, Taunts all enemies for 5 s and Weakens them all (-15% ATK) for 5 s. Charms her target for 2.5 s: it turns on its own side.",
 				"effects": [
 					{"type": "shield", "target": "self", "pct_max_hp_bp": 3000},
 					{"type": "status", "target": "self", "status": "taunt", "duration_ms": 5000},
-					{"type": "status", "target": "enemy_all", "status": "atk_down", "duration_ms": 5000, "value_bp": 1500}
+					{"type": "status", "target": "enemy_all", "status": "atk_down", "duration_ms": 5000, "value_bp": 1500},
+					{"type": "status", "target": "enemy_target", "status": "charm", "duration_ms": 2500}
 				]
 			},
 			"passives": [
@@ -989,11 +995,12 @@
 			"ultimate": {
 				"id": "permanent_ink",
 				"name": "Permanent Ink",
-				"description": "Inks a curse on every enemy: -20% DEF for 6 s, then 140% ATK to all of them and Burns them (50% ATK per second) for 6 s.",
+				"description": "Inks a curse on every enemy: -20% DEF for 6 s, then 140% ATK to all of them and Burns them (50% ATK per second) for 6 s. Charms her target for 2.5 s: it turns on its own side.",
 				"effects": [
 					{"type": "status", "target": "enemy_all", "status": "def_down", "duration_ms": 6000, "value_bp": 2000},
 					{"type": "damage", "target": "enemy_all", "mult_bp": 14000},
-					{"type": "status", "target": "enemy_all", "status": "burn", "duration_ms": 6000, "dot_mult_bp": 5000}
+					{"type": "status", "target": "enemy_all", "status": "burn", "duration_ms": 6000, "dot_mult_bp": 5000},
+					{"type": "status", "target": "enemy_target", "status": "charm", "duration_ms": 2500}
 				]
 			},
 			"passives": [
@@ -1028,10 +1035,11 @@
 			"ultimate": {
 				"id": "moment_of_truth",
 				"name": "Moment of Truth",
-				"description": "Passes the cape over the front row, Weakening it (-30% ATK) for 5 s, then thrusts twice at the weakest back-row enemy for 180% ATK each.",
+				"description": "Passes the cape over the front row, Weakening it (-30% ATK) for 5 s, then thrusts twice at the weakest back-row enemy for 180% ATK each. Charms her target for 2.5 s: it turns on its own side.",
 				"effects": [
 					{"type": "status", "target": "enemy_front_row", "status": "atk_down", "duration_ms": 5000, "value_bp": 3000},
-					{"type": "damage", "target": "enemy_back_lowest", "mult_bp": 18000, "hits": 2}
+					{"type": "damage", "target": "enemy_back_lowest", "mult_bp": 18000, "hits": 2},
+					{"type": "status", "target": "enemy_target", "status": "charm", "duration_ms": 2500}
 				]
 			},
 			"passives": [
@@ -1064,10 +1072,11 @@
 			"ultimate": {
 				"id": "encore_smash",
 				"name": "Encore Smash",
-				"description": "Swings the guitar-axe three times at her target for 130% ATK each, then gains +25% ATK for 5 s.",
+				"description": "Swings the guitar-axe three times at her target for 130% ATK each, then gains +25% ATK for 5 s. Charms her target for 2.5 s: it turns on its own side.",
 				"effects": [
 					{"type": "damage", "target": "enemy_target", "mult_bp": 13000, "hits": 3},
-					{"type": "status", "target": "self", "status": "atk_up", "duration_ms": 5000, "value_bp": 2500}
+					{"type": "status", "target": "self", "status": "atk_up", "duration_ms": 5000, "value_bp": 2500},
+					{"type": "status", "target": "enemy_target", "status": "charm", "duration_ms": 2500}
 				]
 			},
 			"passives": [
@@ -1100,12 +1109,13 @@
 			"ultimate": {
 				"id": "backdraft",
 				"name": "Backdraft",
-				"description": "Kicks the door in: 120% ATK to front-row enemies and Burns them (40% ATK per second) for 5 s, then gains a shield of 20% max HP and Taunts all enemies for 4 s.",
+				"description": "Kicks the door in: 120% ATK to front-row enemies and Burns them (40% ATK per second) for 5 s, then gains a shield of 20% max HP and Taunts all enemies for 4 s. Charms her target for 2.5 s: it turns on its own side.",
 				"effects": [
 					{"type": "damage", "target": "enemy_front_row", "mult_bp": 12000},
 					{"type": "status", "target": "enemy_front_row", "status": "burn", "duration_ms": 5000, "dot_mult_bp": 4000},
 					{"type": "shield", "target": "self", "pct_max_hp_bp": 2000},
-					{"type": "status", "target": "self", "status": "taunt", "duration_ms": 4000}
+					{"type": "status", "target": "self", "status": "taunt", "duration_ms": 4000},
+					{"type": "status", "target": "enemy_target", "status": "charm", "duration_ms": 2500}
 				]
 			},
 			"passives": [
@@ -1138,10 +1148,11 @@
 			"ultimate": {
 				"id": "one_for_the_road",
 				"name": "One for the Road",
-				"description": "Pours a round for the team: heals all allies for 180% ATK and grants them +15% ATK for 5 s.",
+				"description": "Pours a round for the team: heals all allies for 180% ATK and grants them +15% ATK for 5 s. Charms her target for 2.5 s: it turns on its own side.",
 				"effects": [
 					{"type": "heal", "target": "ally_all", "mult_bp": 18000},
-					{"type": "status", "target": "ally_all", "status": "atk_up", "duration_ms": 5000, "value_bp": 1500}
+					{"type": "status", "target": "ally_all", "status": "atk_up", "duration_ms": 5000, "value_bp": 1500},
+					{"type": "status", "target": "enemy_target", "status": "charm", "duration_ms": 2500}
 				]
 			},
 			"passives": [
