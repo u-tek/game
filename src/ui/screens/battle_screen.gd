@@ -157,6 +157,12 @@ var _drag_from := Vector2.INF
 var _drag_cam := 0.0
 var _souls: Node2D
 var _souls_won := -1
+## Encore (battle_sim): the last ally ultimate's hero, when its window closes (display ms) and the
+## sticker over the cards that counts it down.
+var _encore_hero := ""
+var _encore_until := -1.0
+var _encore_tag: Control
+var _encore_label: Label
 var _num_n := 0
 var _shown_secs := -1
 
@@ -220,6 +226,17 @@ func setup(params: Dictionary) -> void:
 	# Screenshots: jump to the result (params skip = true, or a forced result).
 	if bool(params.get("skip", false)) or _force_result != "":
 		get_tree().create_timer(0.4).timeout.connect(_skip)
+	# Screenshots (debug, throwaway save): encore_demo = true plays an Encore close-up of the first
+	# two heroines once the fight starts (display only; the sim is untouched).
+	if _debug_params_ok() and bool(params.get("encore_demo", false)):
+		get_tree().create_timer(INTRO_TIME + 0.3).timeout.connect(func() -> void:
+			var ids: Array[String] = []
+			for uid: String in _views:
+				if str(_views[uid].get("side")) == "ally":
+					ids.append(uid)
+			if ids.size() >= 2:
+				_encore_hero = str(_views[ids[0]].get("hero_id"))
+				_start_ult({"type": "ultimate", "src": ids[1], "skill_name": "Encore Demo", "targets": [], "encore": 1}))
 
 
 ## Debug-only params (result, manual) work in debug builds on the throwaway save only.
@@ -810,6 +827,21 @@ func _build_bottom() -> void:
 	hint.visible = false
 	_bottom.add_child(hint)
 	_manual_hint = hint
+	# Encore: after a heroine's ultimate, a signal sticker counts the window down; a second ultimate
+	# inside it chains (by hand: +15% per step).
+	var enc := _sticker(BP.INK)
+	_encore_label = BP.t("", 14, BP.SIG, "mono_bold")
+	_encore_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	enc.add_child(_encore_label)
+	enc.anchor_left = 0.5
+	enc.anchor_right = 0.5
+	enc.grow_horizontal = GROW_DIRECTION_BOTH
+	enc.offset_top = -86
+	enc.offset_bottom = -52
+	enc.rotation = -0.02
+	enc.visible = false
+	_bottom.add_child(enc)
+	_encore_tag = enc
 
 
 ## A printed sticker (paper or signal) with a small shadow.
@@ -1254,7 +1286,12 @@ func _start_ult(ev: Dictionary) -> void:
 	_dim_target = 0.62 if ally else 0.4
 	var c: Control = UltCinematic.new()
 	_overlay.add_child(c)
-	c.call("play", str(v.get("hero_id")), str(ev.get("skill_name", "Ultimate")), ally, d + 0.12)
+	var step := int(ev.get("encore", 0))
+	var partner := _encore_hero if ally and step > 0 and _encore_hero != str(v.get("hero_id")) else ""
+	c.call("play", str(v.get("hero_id")), str(ev.get("skill_name", "Ultimate")), ally, d + 0.12, partner, step)
+	if ally:
+		_encore_hero = str(v.get("hero_id"))
+		_encore_until = _display_ms + float(BattleSim.ENCORE_WINDOW_MS)
 	UI.sfx("ult")
 	UI.haptic(40 if ally else 20)
 	_shake(4.0)
@@ -1578,6 +1615,12 @@ func _on_result_action(action_name: String) -> void:
 func _update_hud() -> void:
 	if _timer_label == null:
 		return
+	if _encore_tag:
+		var left := (_encore_until - _display_ms) / 1000.0
+		var on := _phase == "fight" and _hold <= 0.0 and left > 0.0
+		_encore_tag.visible = on
+		if on:
+			_encore_label.text = "ENCORE  ·  %.1f S  ·  CAST ANOTHER TO CHAIN" % left
 	var foes := 0
 	var team := 0
 	for uid: String in _views:

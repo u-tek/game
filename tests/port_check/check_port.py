@@ -335,6 +335,7 @@ class Sim:
         self.t, self.winner = 0, ""
         self.auto = True
         self.queue, self.full, self.eflags = [], [], []
+        self.enc_t, self.enc_n, self.ult_bonus = -1000000000, 0, 0
         self.events = []
         self.dmg, self.heal_done = {}, {}
         for s in setup.get("allies", []): self.add(s, "ally")
@@ -501,13 +502,13 @@ class Sim:
         for uid in q:
             u = self.by[uid]
             if u.alive and u.energy >= EMAX and not self.silenced(u):
-                self.cast(u)
+                self.cast(u, True)
                 if self.check_end(): return
         for uid in list(self.full):
             u = self.by[uid]
             if not u.alive or u.energy < EMAX or self.silenced(u): continue
             if u.side == "ally" and not self.auto: continue
-            self.cast(u)
+            self.cast(u, False)
             if self.check_end(): return
 
     def attack_phase(self):
@@ -693,7 +694,13 @@ class Sim:
         if t == "self": return [u]
         return []
 
-    def cast(self, u):
+    def cast(self, u, manual):
+        E = B["encore"]
+        self.ult_bonus = 0; step = 0
+        if u.side == "ally":
+            step = min(self.enc_n + 1, E["max_steps"]) if self.t - self.enc_t <= E["window_ms"] else 0
+            self.enc_n, self.enc_t = step, self.t
+            self.ult_bonus = step * (E["step_bp"] if manual else E["auto_step_bp"])
         effects = list(u.ult["effects"]) + list(u.p["ult_bonus"])
         u.energy = 0
         if u.uid in self.full: self.full.remove(u.uid)
@@ -705,15 +712,19 @@ class Sim:
             resolved.append(ts)
             for t in ts:
                 if t.uid not in ids: ids.append(t.uid)
-        self.emit({"type": "ultimate", "src": u.uid, "skill_id": u.ult["id"], "skill_name": u.ult["name"], "targets": ids})
+        ev = {"type": "ultimate", "src": u.uid, "skill_id": u.ult["id"], "skill_name": u.ult["name"], "targets": ids}
+        if step > 0: ev["encore"] = step
+        self.emit(ev)
         for e, ts in zip(effects, resolved):
             self.apply_effect(u, e, ts)
-            if self.winner or not self.living(self.foe(u.side)): return
+            if self.winner or not self.living(self.foe(u.side)): break
+        self.ult_bonus = 0
 
     def apply_effect(self, u, e, ts):
         ty = e["type"]
         if ty == "damage":
             mult, lowb, ex = e.get("mult_bp", 10000), e.get("low_hp_bonus_bp", 0), e.get("execute_bp", 0)
+            if self.ult_bonus > 0: mult = idiv(mult * (10000 + self.ult_bonus), 10000)
             if e.get("target") == "enemy_random":
                 for t in ts:
                     if not t.alive:

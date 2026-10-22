@@ -15,5 +15,6 @@
 	"atk_floor_bp": 2000,
 	"shield_cap_bp": 6000,
 	"boss": {"hp_bp": 25000, "atk_bp": 11500, "def_bp": 11000, "stun_divisor": 2},
-	"status_refresh_event_ms": 1000
+	"status_refresh_event_ms": 1000,
+	"encore": {"window_ms": 3000, "step_bp": 1500, "auto_step_bp": 0, "max_steps": 4}
 }

@@ -18,7 +18,13 @@
   cuts to ink with her red halftone print and speed lines, her live rig in her skin fills it framed
   on her face (portrait rect, in rig units) playing her ultimate while the camera pushes in, the
   skill name lands huge across the foot; at least 1.5 s at 1x before the hit.
-- Next: Encore / Spotlight / Mark, the balance pass, then the front map.
+- **Encore** (rules in `battle_sim.gd` + port check, `encore` in `data/battle.json`): an ally
+  ultimate within 3 s of the previous one is the next step of a chain (max 4); fired by hand each
+  step adds +15% ultimate damage; auto chains show the same close-up with no bonus (any auto bonus
+  made a first session clear chapter 1: `test_first_session_progress`). The close-up of a chained
+  ultimate brings the previous heroine in from the lower left with ENCORE xN stamped in signal; a
+  sticker over the cards counts the window down. Debug shot: battle `{"encore_demo": true}`.
+- Next: Spotlight / Mark, the balance pass, then the front map.
 
 
 The owner liked the War for Souls (`docs/dev/feature-ideas.md`: "this is better yes") and asked

@@ -453,13 +453,24 @@ all foes if the back row is empty; **caster**: `rng.Pick(foes)`; **others**: the
 ### 7.4 Ultimate phase
 
 1. Take the manual queue (and clear it). For each uid in request order: if alive, energy >=
-   1000 and not stunned or charmed: `CastUltimate`; if `CheckEnd()`: end the phase.
+   1000 and not stunned or charmed: `CastUltimate(manual = true)`; if `CheckEnd()`: end the phase.
 2. Snapshot the **full-energy list** (uids in the order they reached 1000; 7.6). For each: skip
    if dead, energy < 1000, stunned or charmed; skip allies when `auto_ultimates` is false; else
+   `CastUltimate(manual = false)`; otherwise as before:
    `CastUltimate`; if `CheckEnd()`: end the phase. (Units that fill during this phase cast on a
    later tick.)
 
-**CastUltimate(u)**: `effects = ultimate.effects + ult_bonus effects`; `energy = 0`; remove u
+**Encore** (2026-10-22, `encore {window_ms, step_bp, auto_step_bp, max_steps}` in battle.json):
+state `encore_t` (start -1000000000), `encore_n` (0), `ult_bonus_bp` (0). At the start of
+`CastUltimate(u, manual)`: `ult_bonus_bp = 0`; if u is an ally: `step = min(encore_n + 1,
+max_steps)` if `t - encore_t <= window_ms` else 0; `encore_n = step`; `encore_t = t`;
+`ult_bonus_bp = step * (step_bp if manual else auto_step_bp)`. The `ultimate` event gets
+`encore: step` when step > 0. Every **damage** effect of the cast uses `mult_bp * (10000 +
+ult_bonus_bp) / 10000` (integer). After the effects (also when they stop early) `ult_bonus_bp
+= 0`. Enemies never chain. (auto_step_bp is 0 today: pacing tests showed any auto bonus clears
+chapter 1 in a first session.)
+
+**CastUltimate(u, manual)**: `effects = ultimate.effects + ult_bonus effects`; `energy = 0`; remove u
 from the full-energy list; set u's energy flag. `primary = BasicTarget(u)` (a caster draws a
 pick here). Resolve the targets of **every** effect first, in effect order (7.7), then emit
 `ultimate {src, skill_id, skill_name, targets}` (unique uids, first-seen order). Then apply each

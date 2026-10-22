@@ -337,6 +337,40 @@ func test_charm_turns_a_foe_on_its_own_side(t: TestCtx) -> void:
 	t.ok(back > 0 or sim.is_over(), "after the charm it fights the team again")
 
 
+func test_encore_chains_ally_ultimates(t: TestCtx) -> void:
+	# Two ultimates fired by hand within the window: the second is Encore step 1 and hits harder
+	# than the same ultimate fired alone; a lone one later is no chain. Enemies never chain.
+	var setup := {"seed": 11, "allies": [_unit("a0", "seraphiel", 0, 30, 3), _unit("a1", "mordessa", 1, 30, 3)],
+		"enemies": [_unit("e0", "uriela", 0, 60, 1), _unit("e1", "ashra", 1, 60, 1)]}
+	var dealt := func(chain: bool) -> Array:
+		var sim := BattleSim.new(setup)
+		sim.auto_ultimates = false
+		sim.unit("a1").energy = BattleSim.ENERGY_MAX
+		if chain:
+			sim.unit("a0").energy = BattleSim.ENERGY_MAX
+			sim.request_ultimate("a0")
+		sim.request_ultimate("a1")
+		var total := 0
+		var step := -1
+		for e in sim.step():
+			if e.type == "ultimate" and e.src == "a1":
+				step = int(e.get("encore", 0))
+			if e.type == "damage" and e.src == "a1" and e.get("from_ultimate", false):
+				total += int(e.amount)
+		return [step, total]
+	var alone: Array = dealt.call(false)
+	var chained: Array = dealt.call(true)
+	t.eq(int(alone[0]), 0, "a lone ultimate is no chain")
+	t.eq(int(chained[0]), 1, "the second ultimate in the window is Encore step 1")
+	t.ok(int(chained[1]) > int(alone[1]), "Encore hits harder (%d vs %d)" % [chained[1], alone[1]])
+	var sim2 := BattleSim.new(setup)
+	sim2.auto_ultimates = false
+	for i in 200:
+		for e in sim2.step():
+			if e.type == "ultimate" and str(e.src).begins_with("e"):
+				t.ok(not e.has("encore"), "enemies never chain")
+
+
 func test_passives_unlock_by_stars(t: TestCtx) -> void:
 	# Noctaire 5 stars: on kill energy. Rare 1 star: no passives.
 	t.eq(HeroKits.active_passives("uriela", 1).size(), 0)

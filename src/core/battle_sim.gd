@@ -18,6 +18,9 @@ extends RefCounted
 ## - Energy: +100 per basic attack, + up to 500 for losing a full health bar (min 15 per
 ##   hit). Ultimate at 1000. Enemies always cast automatically; allies when
 ##   auto_ultimates is true or when request_ultimate() is called.
+## - Encore: an ally ultimate cast within encore.window_ms of the previous ally ultimate is the
+##   next step of a chain (max encore.max_steps); its damage effects get +step_bp per step when
+##   the player fired it (request_ultimate), +auto_step_bp when auto did. Enemies never chain.
 ## - Faction bonus (3/4/5 of one faction: +6/10/15% HP and ATK) and boss multipliers are
 ##   applied when the sim is built. 90 s limit: a timeout is a defeat.
 ## Every tunable number comes from data/battle.json (and hero kits from data/heroes.json).
@@ -59,6 +62,10 @@ static var BOSS_ATK_BP: int = int(_B.boss.atk_bp)
 static var BOSS_DEF_BP: int = int(_B.boss.def_bp)
 static var BOSS_STUN_DIVISOR: int = int(_B.boss.stun_divisor)
 static var STATUS_REFRESH_EVENT_MS: int = int(_B.status_refresh_event_ms)
+static var ENCORE_WINDOW_MS: int = int(_B.encore.window_ms)
+static var ENCORE_STEP_BP: int = int(_B.encore.step_bp)
+static var ENCORE_AUTO_STEP_BP: int = int(_B.encore.auto_step_bp)
+static var ENCORE_MAX_STEPS: int = int(_B.encore.max_steps)
 
 ## Runtime units. Contract keys: uid, hero_id, side, slot, max_hp, hp, shield, energy,
 ## alive, is_boss, statuses {name: remaining_ms}. Extra keys are internal.
@@ -77,6 +84,11 @@ var _rec: bool = true
 
 var _by_uid: Dictionary = {}
 var _queued: Array[String] = []
+## Encore: when the last ally ultimate was cast, the chain's step, and the damage bonus (bp) of the
+## ultimate being cast right now.
+var _encore_t: int = -1_000_000_000
+var _encore_n: int = 0
+var _ult_bonus_bp: int = 0
 var _events: Array = []
 var _damage: Dictionary = {}
 var _healing: Dictionary = {}
@@ -401,7 +413,7 @@ func _tick_ultimates() -> void:
 	for uid in queue:
 		var u: Dictionary = _by_uid[uid]
 		if u.alive and int(u.energy) >= ENERGY_MAX and not _silenced(u):
-			_cast_ultimate(u)
+			_cast_ultimate(u, true)
 			if _check_end():
 				return
 	if _full_energy.is_empty():
@@ -413,7 +425,7 @@ func _tick_ultimates() -> void:
 			continue
 		if u.side == "ally" and not auto_ultimates:
 			continue
-		_cast_ultimate(u)
+		_cast_ultimate(u, false)
 		if _check_end():
 			return
 
@@ -474,8 +486,15 @@ func _strike(u: Dictionary, target: Dictionary) -> void:
 		_apply_damage(target, u, maxi(1, dealt * thorns / 10000), false, false, false, false)
 
 
-func _cast_ultimate(u: Dictionary) -> void:
+func _cast_ultimate(u: Dictionary, manual: bool) -> void:
 	var ult: Dictionary = u.ult
+	_ult_bonus_bp = 0
+	var step := 0
+	if u.side == "ally":
+		step = mini(_encore_n + 1, ENCORE_MAX_STEPS) if t_ms - _encore_t <= ENCORE_WINDOW_MS else 0
+		_encore_n = step
+		_encore_t = t_ms
+		_ult_bonus_bp = step * (ENCORE_STEP_BP if manual else ENCORE_AUTO_STEP_BP)
 	var effects: Array = []
 	effects.append_array(ult.effects)
 	effects.append_array(u.pas.ult_bonus)
@@ -495,17 +514,23 @@ func _cast_ultimate(u: Dictionary) -> void:
 			if not seen.has(t.uid):
 				seen[t.uid] = true
 				target_ids.append(t.uid)
-	_emit({"type": "ultimate", "src": u.uid, "skill_id": ult.id, "skill_name": ult.name, "targets": target_ids})
+	var ev := {"type": "ultimate", "src": u.uid, "skill_id": ult.id, "skill_name": ult.name, "targets": target_ids}
+	if step > 0:
+		ev["encore"] = step
+	_emit(ev)
 	for i in effects.size():
 		_apply_effect(u, effects[i], resolved[i])
 		if winner != "" or _all_dead(_enemy_side(u.side)):
-			return
+			break
+	_ult_bonus_bp = 0
 
 
 func _apply_effect(u: Dictionary, e: Dictionary, targets: Array) -> void:
 	match str(e.type):
 		"damage":
 			var mult: int = int(e.get("mult_bp", 10000))
+			if _ult_bonus_bp > 0:
+				mult = mult * (10000 + _ult_bonus_bp) / 10000
 			var low_bonus: int = int(e.get("low_hp_bonus_bp", 0))
 			var execute: int = int(e.get("execute_bp", 0))
 			if str(e.target) == "enemy_random":
