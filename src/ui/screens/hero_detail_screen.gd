@@ -327,6 +327,10 @@ func _build_poster() -> void:
 	var pw := pr.size.x
 	var ph := pr.size.y
 
+	# ---- A Legendary's poster is printed on gold foil (owner, 2026-10-23: "the gold sheet is
+	# awesome"): brushed holo gold under her name and figure, catching the tilt.
+	if _legend:
+		LegendKit.foil_rect(p, Rect2(BAND, 0, pw - BAND, ph), 0, _gold_opts()).name = "GoldSheet"
 	# ---- The band: her red halftone print, brand marks, title and bio in paper type.
 	PK.rect(p, Rect2(0, 0, BAND, ph), PK.BAND)
 	var ht := PK.halftone_print(_id, skin, Vector2(BAND, ph * 0.58), 7.0, LegendKit.GOLD_PRINT if _legend else PK.PRINT, 1.25)
@@ -385,6 +389,9 @@ func _build_poster() -> void:
 	_fig_h = ph * 0.82
 	var feet := Vector2(BAND + 262, ph + 10)
 	var echo := PK.echo(_id, skin, _fig_h * 1.14, 0.36 if _owned else 0.16)
+	if _legend:
+		# On the gold sheet her echo is a deep burnt gold, not red.
+		(echo.material as ShaderMaterial).set_shader_parameter("tint", Color(0.42, 0.24, 0.04, 0.42 if _owned else 0.2))
 	echo.position = Vector2(feet.x - echo.size.x * 0.5 + 96, feet.y - echo.size.y - 30)
 	_box.add_child(echo)
 	if _legend:
@@ -437,12 +444,17 @@ func _build_poster() -> void:
 	hdr.z_index = 2
 	hdr.mouse_filter = MOUSE_FILTER_IGNORE
 	p.add_child(hdr)
-	var paper := ColorRect.new()
-	paper.color = Color(MATTE, 0.96)
-	paper.mouse_filter = MOUSE_FILTER_IGNORE
-	paper.position = Vector2(BAND, 0)
-	paper.size = Vector2(pw - RULE_IN - BAND, HEADER_H)
-	hdr.add_child(paper)
+	# Its ground: the poster's own paper, or on a Legendary the same gold (same origin and pattern as
+	# the sheet below, so it reads as one sheet); either way solid, so her wings pass behind it.
+	if _legend:
+		LegendKit.foil_rect(hdr, Rect2(BAND, 0, pw - RULE_IN - BAND, HEADER_H), 0, _gold_opts()).name = "HeaderGold"
+	else:
+		var paper := ColorRect.new()
+		paper.color = Color(MATTE, 0.96)
+		paper.mouse_filter = MOUSE_FILTER_IGNORE
+		paper.position = Vector2(BAND, 0)
+		paper.size = Vector2(pw - RULE_IN - BAND, HEADER_H)
+		hdr.add_child(paper)
 	PK.rule(hdr, Vector2(BAND, HEADER_H - 1.5), Vector2(pw - RULE_IN - BAND, 1.5), INK)
 	PK.at(hdr, PK.t("%s  HH©" % nm, 14, INK, "mono_bold"), Vector2(x1, 16))
 	_level_l = PK.t("", 14, INK, "mono_bold")
@@ -1703,6 +1715,11 @@ func _build_legend_figure(feet: Vector2, pw: float, ph: float) -> void:
 	for g: Control in [g1, g2]:
 		if g:
 			g.name = "Growth"
+
+
+## The gold sheet's foil (the poster's and the header's share it, so they read as one sheet).
+func _gold_opts() -> Dictionary:
+	return {"band_px": 620.0, "strength": 0.92, "holo": 0.16, "sparkle": 0.35, "seed": float(_id.hash() % 97)}
 
 
 ## Paints the giant name's two copies (the band's and the paper's) in foil.
