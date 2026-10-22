@@ -1,0 +1,17 @@
+{
+	"version": 1,
+	"_doc": "The player's district on their side of the front (src/core/district_rules.gd). A building opens when the player's lifetime souls reach `souls`; it adds `bonus_bp` to the idle rate of `currency`; a keeper (an owned heroine) of the side's faction (celestial for heaven, infernal for hell; the fallen count for both) doubles it.",
+	"names": {"heaven": "The Halo Quarter", "hell": "The Horn Quarter"},
+	"keeper_factions": {"heaven": ["celestial", "fallen"], "hell": ["infernal", "fallen"]},
+	"keeper_mult_bp": 20000,
+	"buildings": [
+		{"id": "gate", "name": "The Gate", "souls": 0, "currency": "gold", "bonus_bp": 200, "w": 2, "d": 1, "h": 3},
+		{"id": "chapel", "name": "The Chapel", "souls": 400, "currency": "hero_exp", "bonus_bp": 200, "w": 1, "d": 2, "h": 4},
+		{"id": "market", "name": "The Soul Market", "souls": 1200, "currency": "gold", "bonus_bp": 300, "w": 2, "d": 2, "h": 2},
+		{"id": "baths", "name": "The Baths", "souls": 2500, "currency": "hero_exp", "bonus_bp": 300, "w": 2, "d": 1, "h": 2},
+		{"id": "forge", "name": "The Forge", "souls": 4500, "currency": "dust", "bonus_bp": 400, "w": 1, "d": 1, "h": 5},
+		{"id": "lounge", "name": "The Lounge", "souls": 7000, "currency": "gold", "bonus_bp": 400, "w": 2, "d": 2, "h": 3},
+		{"id": "archive", "name": "The Archive", "souls": 10000, "currency": "dust", "bonus_bp": 400, "w": 1, "d": 2, "h": 4},
+		{"id": "spire", "name": "The High Spire", "souls": 15000, "currency": "gems", "bonus_bp": 500, "w": 1, "d": 1, "h": 7}
+	]
+}

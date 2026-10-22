@@ -373,7 +373,7 @@ func refresh_daily() -> void:
 func idle_status() -> Dictionary:
 	refresh_daily()
 	var elapsed := _idle_elapsed()
-	var per_hour := IdleRules.per_hour(cleared_count())
+	var per_hour := idle_rates()
 	var calc := IdleRules.accrue(elapsed, per_hour, state.idle.get("carry", {}), int(state.idle.get("gear_ms", 0)))
 	var used: int = int(state.idle.quick_claims_used)
 	return {
@@ -389,12 +389,24 @@ func idle_status() -> Dictionary:
 	}
 
 
+## Idle rates per hour: the campaign's (IdleRules.per_hour) with the district's bonus.
+func idle_rates() -> Dictionary:
+	return DistrictRules.apply(IdleRules.per_hour(cleared_count()), _district_bonus())
+
+
+func _district_bonus() -> Dictionary:
+	var ws: Dictionary = state.get("war", {})
+	if ws.is_empty() or str(ws.get("side", "")) == "":
+		return {}
+	return DistrictRules.bonus(str(ws.side), int(ws.souls_total), ws.get("keepers", {}))
+
+
 ## Grants pending idle rewards; returns the Reward granted.
 func claim_idle() -> Dictionary:
 	refresh_daily()
 	var now := now_ms()
 	var elapsed := _idle_elapsed()
-	var calc := IdleRules.accrue(elapsed, IdleRules.per_hour(cleared_count()), state.idle.get("carry", {}),
+	var calc := IdleRules.accrue(elapsed, idle_rates(), state.idle.get("carry", {}),
 		int(state.idle.get("gear_ms", 0)))
 	state.idle.carry = calc.carry
 	state.idle.gear_ms = calc.gear_ms
@@ -421,7 +433,7 @@ func quick_claim() -> Dictionary:
 		return _err("Not enough gems")
 	_add_currency("gems", -cost)
 	state.idle.quick_claims_used = used + 1
-	var q := IdleRules.quick_reward(IdleRules.per_hour(cleared_count()), int(state.idle.gear_ms))
+	var q := IdleRules.quick_reward(idle_rates(), int(state.idle.gear_ms))
 	var reward: Dictionary = q.reward
 	reward["gear_drops"] = _idle_drops(int(q.gear_count))
 	state.idle.gear_ms = int(q.gear_ms)
@@ -2192,6 +2204,51 @@ func _war_claimable() -> Dictionary:
 	return {"week": last, "won": won, "held": held, "winner": str(st.winner), "reward": WarRules.reward(won, held)}
 
 
+## The player's district: {name, side, souls, bonus {currency: bp}, buildings [{i, id, name, souls,
+## open, currency, bonus_bp (with the keeper), keeper, doubled, w, d, h}], next {souls, name} or {}}.
+func district() -> Dictionary:
+	var ws: Dictionary = state.war
+	var side := str(ws.side)
+	var souls := int(ws.souls_total)
+	var keepers: Dictionary = ws.keepers
+	var open := DistrictRules.open(souls)
+	var bl: Array = []
+	var nxt := {}
+	for i in DistrictRules.BUILDINGS.size():
+		var b: Dictionary = DistrictRules.BUILDINGS[i]
+		var hid := str(keepers.get(str(i), ""))
+		var mult := DistrictRules.kept_mult(side, str(hero_def(hid).get("faction", ""))) if hid != "" else 10000
+		bl.append({"i": i, "id": str(b.id), "name": str(b.name), "souls": int(b.souls), "open": open.has(i),
+			"currency": str(b.currency), "bonus_bp": int(b.bonus_bp) * mult / 10000, "keeper": hid,
+			"doubled": mult > 10000, "w": int(b.w), "d": int(b.d), "h": int(b.h)})
+		if nxt.is_empty() and not open.has(i):
+			nxt = {"souls": int(b.souls), "name": str(b.name)}
+	return {"name": DistrictRules.quarter_name(side), "side": side, "souls": souls, "bonus": _district_bonus(),
+		"buildings": bl, "next": nxt}
+
+
+## Puts an owned heroine in charge of an open building ("" clears it). A heroine keeps one building
+## at a time (moving her frees the old one).
+func district_set_keeper(building: int, hero_id: String) -> Dictionary:
+	var ws: Dictionary = state.war
+	if str(ws.side) == "":
+		return _err("Pick a side first")
+	if building < 0 or building >= DistrictRules.BUILDINGS.size() or not DistrictRules.open(int(ws.souls_total)).has(building):
+		return _err("That building isn't open yet")
+	var keepers: Dictionary = ws.keepers
+	if hero_id == "":
+		keepers.erase(str(building))
+	else:
+		if not owns(hero_id):
+			return _err("Hero not owned")
+		for k: Variant in keepers.keys():
+			if str(keepers[k]) == hero_id:
+				keepers.erase(k)
+		keepers[str(building)] = hero_id
+	_changed()
+	return _ok({"building": building, "keeper": hero_id})
+
+
 ## Claims last week's war reward. Result {ok, value: {reward, won, held}, error}.
 func war_claim() -> Dictionary:
 	var cl := _war_claimable()
@@ -2221,6 +2278,17 @@ func _migrate_war(ws: Dictionary) -> void:
 	ws.claimed_week = int(ws.claimed_week)
 	ws.souls_total = maxi(0, int(ws.souls_total))
 	ws.seen_week = int(ws.seen_week)
+	var kp := {}
+	if ws.keepers is Dictionary:
+		var seen := {}
+		for k: Variant in ws.keepers:
+			var i := int(str(k))
+			var hid := str(ws.keepers[k])
+			if str(k).is_valid_int() and i >= 0 and i < DistrictRules.BUILDINGS.size() and not HeroData.get_def(hid).is_empty() \
+					and not seen.has(hid):
+				kp[str(i)] = hid
+				seen[hid] = true
+	ws.keepers = kp
 	var c: Dictionary = ws.champ
 	if HeroData.get_def(str(c.hero)).is_empty():
 		c.hero = ""

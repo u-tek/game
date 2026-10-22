@@ -64,6 +64,11 @@ func _new_screens() -> void:
 	_check(not (_game.war().champion as Dictionary).is_empty(), "a champion this week")
 	if _game.owned_heroes().is_empty():
 		_game.model.add_hero("seraphiel")
+	var dist := await _go("district")
+	_check(dist.find_child("Plan", true, false) != null, "the district plan")
+	var hid := str((_game.owned_heroes()[0] as Dictionary).id)
+	_check(bool(_game.district_set_keeper(0, hid).ok), "a keeper for the gate")
+	_check(str((_game.district().buildings as Array)[0].keeper) == hid, "the gate has her")
 	var gal := await _go("gallery")
 	_check(gal.find_child("HeroAnchor", true, false) != null, "the gallery shows a heroine")
 	var first := str(gal.get("_i"))

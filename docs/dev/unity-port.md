@@ -955,6 +955,20 @@ Offline: both sides' hosts are simulated; the player's souls are the only live i
 - Fixture: data/fixtures/war.json (weeks, pushes, control cases, rewards, champions, levels, stats,
   tiers).
 
+## 9e. The district (`src/core/district_rules.gd`, data/district.json, GameModel `district*`)
+
+- `open(souls)` = indices of buildings with `souls >= building.souls` (data order).
+- `kept_mult(side, faction)` = `keeper_mult_bp` when faction is in `keeper_factions[side]`, else 10000.
+- `bonus(side, souls, keepers)` ({} without a side): for each open building i, `bp = bonus_bp`; with
+  a keeper (`keepers["<i>"]` = hero id) `bp = bp * kept_mult(side, her faction) / 10000`; summed per
+  `currency`.
+- `apply(rates, bonus)`: each rate `* (10000 + bonus[currency]) / 10000`.
+- GameModel: `souls` = `war.souls_total`; keepers in `war.keepers`. `idle_rates()` =
+  `apply(IdleRules.per_hour(cleared), bonus(...))`, used by idle_status, claim_idle and quick_claim.
+  `district_set_keeper(i, id)`: needs a side and an open building; "" clears; an owned heroine keeps
+  one building (setting her moves her). Save repair drops bad indices, unknown heroes and duplicates.
+- Fixture: data/fixtures/war.json (district_open, district_out).
+
 ## 10. Golden fixtures (`data/fixtures/`)
 
 Each file: `{version, about, regenerate, ...}`. Inputs and expected outputs sit side by side.

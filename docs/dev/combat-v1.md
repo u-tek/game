@@ -48,8 +48,14 @@
 - **Balance** (checked 2026-10-22): the stages were calibrated to the economy on 2026-10-18 by the
   pacing bots; a no-spend bot clears 30 stages in 90-168 h; the hands-on inputs and Encore add no
   auto bonus, so idle pacing is unchanged. No change needed now.
-- Next: the player's district (the souls settle); the server (real sides, the Champion as a
-  side-wide boss).
+- **The district** (built 2026-10-22; `src/core/district_rules.gd`, `data/district.json`, screen
+  `district` from the Front's YOUR DISTRICT link, port spec 9e): the souls settle in the player's
+  quarter (the Halo or Horn Quarter). Eight buildings open as lifetime souls grow (0 to 15,000); each
+  adds 2-5% to one idle rate (gold, hero EXP, dust, gems); an owned heroine can keep one, and a
+  keeper of the side's faction (or the Fallen) doubles it. Drawn as a printed isometric block plan
+  (ref 1): open buildings inked, the next one in signal dashes with its souls, keepers' portraits on
+  leaders over their roofs; the ledger below picks keepers (a sheet with x2 tags).
+- Next: the server (real sides, the Champion as a side-wide boss).
 
 
 The owner liked the War for Souls (`docs/dev/feature-ideas.md`: "this is better yes") and asked

@@ -900,6 +900,15 @@ static func _war_inputs() -> Dictionary:
 		"champ_avgs": [1, 2, 9, 30, 64],
 		"champ_stats": [["mordessa", 50], ["seraphiel", 18], ["brakka", 72]],
 		"champ_tiers": [[1000000, 0], [1000000, 99999], [1000000, 100000], [1000000, 520000], [371625, 371625], [371625, 9999999]],
+		"district_souls": [0, 399, 400, 1200, 9999, 15000, 99999],
+		"district_cases": [
+			{"side": "heaven", "souls": 0, "keepers": {}},
+			{"side": "heaven", "souls": 4500, "keepers": {"0": "seraphiel", "1": "mordessa", "4": "noctaire"}},
+			{"side": "hell", "souls": 4500, "keepers": {"0": "seraphiel", "1": "mordessa", "4": "noctaire"}},
+			{"side": "hell", "souls": 20000, "keepers": {"7": "kessa", "2": "brakka", "9": "kessa"}},
+			{"side": "", "souls": 20000, "keepers": {}},
+		],
+		"district_rates": {"gold": 6100, "hero_exp": 4150, "dust": 28, "gems": 15},
 	}
 
 
@@ -933,7 +942,17 @@ static func _war(f: Dictionary) -> Dictionary:
 	return {"days": f.days, "weeks": weeks, "push_days": f.push_days, "pushes": pushes, "log": f.log, "cases": cases,
 		"reward_cases": f.reward_cases, "rewards": rewards, "champ_weeks": f.champ_weeks, "champions": champs,
 		"champ_avgs": f.champ_avgs, "champ_levels": levels, "champ_stats": f.champ_stats, "champ_stats_out": cstats,
-		"champ_tiers": f.champ_tiers, "champ_tiers_out": ctiers}
+		"champ_tiers": f.champ_tiers, "champ_tiers_out": ctiers, "district_souls": f.district_souls,
+		"district_open": (f.district_souls as Array).map(func(s: Variant) -> Array: return DistrictRules.open(int(s))),
+		"district_cases": f.district_cases, "district_rates": f.district_rates, "district_out": _district_out(f)}
+
+
+static func _district_out(f: Dictionary) -> Array:
+	var out: Array = []
+	for c: Dictionary in f.district_cases:
+		var b := DistrictRules.bonus(str(c.side), int(c.souls), c.keepers)
+		out.append({"bonus": b, "rates": DistrictRules.apply(f.district_rates, b)})
+	return out
 
 
 static func _rival_inputs() -> Dictionary:

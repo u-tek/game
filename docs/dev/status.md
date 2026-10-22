@@ -40,8 +40,10 @@ this file says where things stand. Older logs are under "History" at the bottom.
   Front, three tries a day, damage tiers pay). The balance was checked (already calibrated to the
   economy). **The gallery** (screen `gallery`: the Lobby's VIEW label and a VIEW label on each hero
   page): every owned heroine full screen, swipe between them, every look in a strip (unowned skins
-  as a PREVIEW with BUY, owned ones WEAR), double tap or pinch to zoom, tap her to react. Next: the
-  player's district, then the server (real sides). `tools/check` now compresses newly installed hero
+  as a PREVIEW with BUY, owned ones WEAR), double tap or pinch to zoom, tap her to react. **The
+  district** (screen `district` from the Front): eight buildings open with lifetime souls, each a
+  small idle bonus, heroines as keepers (the side's faction doubles). Next: the server (real sides,
+  the Champion side-wide), more reference refinement. `tools/check` now compresses newly installed hero
   art itself (the PC art session installs 18+ looks while code work runs).
 - **For the art session (18+ skins):** `HeroArt._built_art` shows the nude base look whatever skin
   is chosen when nudity is on (tested in `test_skins.gd test_nudity_mode_drops_skins`), so the 18+

@@ -396,9 +396,19 @@ func _build_foot(pw: float, y: float, war: Dictionary) -> void:
 	line.size = Vector2(pw - 60, 50)
 	line.custom_minimum_size.x = pw - 60
 	PK.at(p, line, Vector2(26, y))
+	# The district: where the souls settle (a printed link above the FIGHT pass).
+	var dl := PK.t("YOUR DISTRICT  ›   %s SOULS SETTLED" % Kit.format_num(int(war.souls_total)), 13, SIG, "mono_bold")
+	PK.at(p, dl, Vector2(26, y + 50))
+	var dh := Control.new()
+	dh.name = "District"
+	dh.mouse_filter = MOUSE_FILTER_PASS
+	dh.position = Vector2(16, y + 30)
+	dh.size = Vector2(pw - 32, 60)
+	p.add_child(dh)
+	Kit.make_tappable(dh, func() -> void: UI.go("district"))
 	var spec := {"width": 420.0, "kicker": "CAMPAIGN  //  +%d SOULS A WIN" % int(war.souls_per_win), "title": "FIGHT",
 		"sub": "TO %s" % str(focus.name).to_upper(), "action": "ENGAGE  >>>", "icon": "sword"}
-	Poster.pass_on(p, spec, Vector2(pw - 450.0, y + 80.0), func() -> void: UI.go("campaign"), "Fight", "FrontFight")
+	Poster.pass_on(p, spec, Vector2(pw - 450.0, y + 110.0), func() -> void: UI.go("campaign"), "Fight", "FrontFight")
 
 
 # ------------------------------------------------------------------ the chart

@@ -54,6 +54,7 @@ const SCREENS := {
 	"bag": "res://src/ui/screens/bag_screen.gd",
 	"front": "res://src/ui/screens/front_screen.gd",
 	"gallery": "res://src/ui/screens/gallery_screen.gd",
+	"district": "res://src/ui/screens/district_screen.gd",
 	# Style v4 Lobby mockup, the approved poster composition (debug builds only; docs/dev/ui-style-v4.md).
 	"lobby_v5": "res://src/ui/screens/lobby_v5_screen.gd",
 }
@@ -65,7 +66,7 @@ const NAV_ROOTS: Array[String] = ["heroes", "formation", "home", "gear", "summon
 ## Which nav tab is highlighted for non-tab screens.
 const NAV_PARENT := {"campaign": "home", "tower": "home", "battle": "home", "hero_detail": "heroes",
 	"quests": "home", "shop": "home", "settings": "home", "profile": "home", "prints": "profile", "rival": "home",
-	"bag": "home", "front": "home", "gallery": "heroes"}
+	"bag": "home", "front": "home", "gallery": "heroes", "district": "home"}
 ## Currencies shown in the top-bar resource pill per screen (default: gems, gold).
 const TOP_CURRENCIES := {"summon": ["gems", "scrolls"], "heroes": ["gold", "hero_exp"],
 	"hero_detail": ["gold", "hero_exp"], "gear": ["gold", "dust"]}

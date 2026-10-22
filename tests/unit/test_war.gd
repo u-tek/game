@@ -147,3 +147,44 @@ func test_champion_week(t: TestCtx) -> void:
 			t.eq(int(ch.tries_left), WarRules.CHAMP_TRIES, "tries reset each day")
 			t.ok(int(ch.damage) > 0, "damage kept for the week")
 	_done()
+
+
+func test_district_buildings_keepers_and_idle(t: TestCtx) -> void:
+	var g := _open()
+	var base: Dictionary = g.model.idle_rates()
+	t.eq(base, IdleRules.per_hour(g.model.cleared_count()), "no side: no district bonus")
+	g.war_choose_side("hell")
+	var d: Dictionary = g.district()
+	t.eq(str(d.name), DistrictRules.quarter_name("hell"))
+	t.ok(bool((d.buildings as Array)[0].open), "the first building opens at once")
+	t.ok(not bool((d.buildings as Array)[1].open), "the next waits for souls")
+	t.ok(int(g.model.idle_rates().gold) > int(base.gold), "the open building raises the gold rate")
+	t.ok(not bool(g.district_set_keeper(1, "kessa").ok), "a closed building takes no keeper")
+	g.model.state.war.souls_total = 1200
+	t.ok(bool((g.district().buildings as Array)[2].open), "1200 souls open the market")
+	var owned: Array = g.owned_heroes()
+	var inf := ""
+	var cel := ""
+	for h: Dictionary in owned:
+		var f := str(HeroData.get_def(str(h.id)).faction)
+		if f == "infernal" and inf == "":
+			inf = str(h.id)
+		elif f == "celestial" and cel == "":
+			cel = str(h.id)
+	if inf == "":
+		g.model.add_hero("kessa")
+		inf = "kessa"
+	if cel == "":
+		g.model.add_hero("uriela")
+		cel = "uriela"
+	var before := int(g.model.idle_rates().gold)
+	t.ok(bool(g.district_set_keeper(0, inf).ok))
+	var b0: Dictionary = (g.district().buildings as Array)[0]
+	t.ok(bool(b0.doubled), "an Infernal keeper doubles a Hell building")
+	t.ok(int(g.model.idle_rates().gold) > before, "and the rate goes up")
+	t.ok(bool(g.district_set_keeper(2, inf).ok), "moving her")
+	t.eq(str((g.district().buildings as Array)[0].keeper), "", "frees the old building")
+	t.ok(bool(g.district_set_keeper(0, cel).ok))
+	t.ok(not bool((g.district().buildings as Array)[0].doubled), "a Celestial keeper doesn't double for Hell")
+	t.ok(not bool(g.district_set_keeper(0, "nobody").ok), "unknown hero refused")
+	_done()

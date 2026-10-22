@@ -1188,6 +1188,21 @@ def w_champ_stats(hid, level):
 check("war.champions", f["champions"], [[w_champion(w, "heaven"), w_champion(w, "hell"), w_champion(w, "")] for w in f["champ_weeks"]])
 check("war.champ_levels", f["champ_levels"], [max(C["min_level"], a + C["level_over"]) for a in f["champ_avgs"]])
 check("war.champ_stats", f["champ_stats_out"], [w_champ_stats(c[0], c[1]) for c in f["champ_stats"]])
+# ---------------- the district (9e)
+DIST = load("district")
+def d_open(souls): return [i for i, b in enumerate(DIST["buildings"]) if souls >= b["souls"]]
+def d_mult(side, faction): return DIST["keeper_mult_bp"] if faction in DIST["keeper_factions"].get(side, []) else 10000
+def d_bonus(side, souls, keepers):
+    out = {}
+    if side == "": return out
+    for i in d_open(souls):
+        b = DIST["buildings"][i]; bp = b["bonus_bp"]; hid = keepers.get(str(i), "")
+        if hid: bp = idiv(bp * d_mult(side, HERO[hid]["faction"]), 10000)
+        out[b["currency"]] = out.get(b["currency"], 0) + bp
+    return out
+def d_apply(rates, bonus): return {k: idiv(v * (10000 + bonus.get(k, 0)), 10000) for k, v in rates.items()}
+check("district.open", f["district_open"], [d_open(s) for s in f["district_souls"]])
+check("district.bonus", f["district_out"], [{"bonus": (b := d_bonus(c["side"], c["souls"], c["keepers"])), "rates": d_apply(f["district_rates"], b)} for c in f["district_cases"]])
 check("war.champ_tiers", f["champ_tiers_out"], [[i for i, t in enumerate(C["tiers"]) if c[1] * 100 >= c[0] * t["pct"]] for c in f["champ_tiers"]])
 
 bad = [k for k, v in results.items() if v]

@@ -785,6 +785,17 @@ func war_claim() -> Dictionary:
 	return r
 
 
+## The player's district (GameModel.district): buildings, keepers, the idle bonus.
+func district() -> Dictionary:
+	return model.district()
+
+
+func district_set_keeper(building: int, hero_id: String) -> Dictionary:
+	var r := model.district_set_keeper(building, hero_id)
+	_flush()
+	return r
+
+
 ## The Champion fight's BattleSetup ({} without a side or with no tries left today).
 func war_champion_setup() -> Dictionary:
 	var r := model.war_champion_setup()
@@ -809,6 +820,20 @@ func dev_war(side: String) -> void:
 	for d in range(w0 - 7, today + 1):
 		ws.log[str(d)] = {"3": 600 + (d % 3) * 200, "1": 240}
 		ws.souls_total = int(ws.souls_total) + 840 + (d % 3) * 200
+	# Two keepers: one of the side's faction (doubled), one not.
+	var want := "celestial" if side == "heaven" else "infernal"
+	var mine := ""
+	var other := ""
+	for h: Dictionary in model.owned_heroes():
+		var f := str(hero_def(str(h.id)).get("faction", ""))
+		if f == want and mine == "":
+			mine = str(h.id)
+		elif f != want and f != "fallen" and other == "":
+			other = str(h.id)
+	if mine != "":
+		ws.keepers["0"] = mine
+	if other != "":
+		ws.keepers["2"] = other
 	_flush()
 
 
