@@ -64,7 +64,48 @@ like stamp errors. They never change stats. The print shaders already draw every
 
 Claude's suggested first loop: 1, 2, 6 and 13 (print, she competes, the map keeps score).
 
-## Art first, light commitment (2026-10-22)
+## Twenty core loops (open, 2026-10-22)
+
+The owner turned down the cover shoot ("no i dont like that idea either. give me a list of like
+20"). Each loop keeps the art on screen, sessions short and nothing harder. Starred: Claude's picks.
+
+1. **Dice board (starred).** Roll dice around a board of Heaven and Hell; spaces pay out or start
+   mini-events, and a sticker album fills with every hero and skin (the Monopoly GO loop).
+2. **Pinball (starred).** Each hero is a portrait pinball table with her art as the playfield;
+   hitting her targets lights her up and plays her animations. A ball lasts about a minute.
+3. **Scratch-off summons (starred).** Every pull is a foil scratch card; scratch with a finger and
+   she shows through. Free cards daily.
+4. **Reveal.** Cut lines across a cover to uncover her art (the Gals Panic arcade idea), with no way
+   to lose.
+5. **Poker runs.** Poker hands where the heroes are the jokers that bend the rules (the Balatro
+   loop). Runs always pay out.
+6. **Plinko.** Drop orbs down a pegboard over her art; where they land pays out.
+7. **Claw machine.** A 3D crane game full of capsules (hero shards, skins, prints); free grabs daily.
+8. **Fishing the Styx.** Cast into the river between Heaven and Hell for loot, souls and sometimes
+   a hero.
+9. **Tarot.** A daily three-card draw with the heroes as the arcana; the reading sets the day's
+   bonuses.
+10. **Merge.** Merge items to fill heroes' orders; each order unlocks her next look (Merge Mansion,
+    Travel Town). Adult merge games exist.
+11. **Triple tile.** Tap three matching tiles off a pile; clearing it uncovers her art underneath.
+12. **Jigsaw.** Every skin's art is a jigsaw; pieces come from idle play; finishing it unlocks the
+    animated version.
+13. **Drop-merge.** Drop hero bubbles in a jar; two alike merge into the next tier; the top tier
+    plays her splash (the Suika Game loop).
+14. **Hidden object.** Painted scenes with heroes posed in them; find the items (June's Journey).
+    Needs many new paintings.
+15. **Match-3.** Matches charge her ultimate. Exists: Puzzle & Dragons, HuniePop.
+16. **Short stories with premium choices.** Five-minute chapters per hero; paid choices open the
+    steamier scenes (the Choices and Episode model). Adult visual-novel gachas do this.
+17. **Dating show.** A weekly rose ceremony: heroes compete for you on dates in their skins; nobody
+    leaves for good.
+18. **Race betting.** Heroes race or compete in pageants; back one and watch it play out idle.
+19. **Swipe court.** Souls petition you, swipe left or right, heroes advise (the Reigns loop); every
+    answer pays something, no game over.
+20. **Catch, don't pull.** Heroes appear in the wild on a Purgatory map; charm them to join
+    (Pokémon-style), beside the normal summon.
+
+## Art first, light commitment (2026-10-22; the cover shoot was rejected: "no i dont like that idea either")
 
 The owner's steer after the core-loop pitches below: "i want the artwork to be front and center.
 obviously people are buying the skins for the sexual value, so i want to continue giving them that
