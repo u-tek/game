@@ -58,16 +58,19 @@ def wanted(s0, rerolls):
     return [s0 + k for k in range(2 + 2 * int(rerolls))]
 
 
-LOW_POSES = ("sitting", "kneeling", "on her knees", "lying", "all fours")
+WIDE_POSES = ("sitting", "lying")                       # landscape (owner: "for the sitting/lying ones, just make it landscape")
+LOW_POSES = ("kneeling", "on her knees", "all fours")    # square
 
 
 def nude_size(hero, sid):
-    """Sitting, kneeling and lying nude poses render square so knees, wings and feet fit (owner, 2026-10-22: "i dont
-    want the sitting down ones to be cropped"); None keeps the family size."""
+    """Sitting and lying nude poses render landscape, kneeling ones square, so knees, wings and feet fit (owner,
+    2026-10-22: "i dont want the sitting down ones to be cropped"); None keeps the family size."""
     import prompts as P
     b = P.load_bible()
     h = P.skin_view(b, hero, sid, adult=True) if sid else P.hero_view(b, hero, adult=True)
     pose = P._nude_pose(b["families"]["moss"], h)
+    if any(w in pose for w in WIDE_POSES):
+        return "1152x896"
     return "1024x1024" if any(w in pose for w in LOW_POSES) else None
 
 
