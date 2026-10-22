@@ -2,7 +2,8 @@ extends Control
 ## The district as an architect's maquette (the district screen's plan): the eight buildings of
 ## data/district.json in white clay on a paper ground slab with its street grid and the souls' road,
 ## rendered in Blender (tools/blender/district_models.py, assets/art/ui/district/), stacked back to
-## front. Built buildings stand in clay; a kept one takes its keeper's mark (her side's ink in
+## front. Built buildings stand in clay (in the Horn Quarter, cast in black obsidian); a kept one takes
+## its keeper's mark (her side's ink in
 ## halftone when she doubles it, gold for the Halo Quarter, signal for the Horn); unbuilt ones are
 ## frosted placeholders with their soul price, the next one warmed in signal. Drawn over them: each
 ## building's number on a paper tag, the prices, and a leader up from each kept roof (the screen
@@ -106,6 +107,7 @@ func _rebuild() -> void:
 		m.set_shader_parameter("tint", Vector3(tint.r, tint.g, tint.b))
 		m.set_shader_parameter("rect_px", tr.size)
 		m.set_shader_parameter("offset_px", tr.position)
+		m.set_shader_parameter("obsidian", str(dist.get("side", "")) == "hell")
 		tr.material = m
 		tr.set_meta("state", st)
 		add_child(tr)

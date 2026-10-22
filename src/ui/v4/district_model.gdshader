@@ -13,6 +13,8 @@ uniform vec3 sig = vec3(1.0, 0.294, 0.122);
 uniform vec2 rect_px = vec2(100.0, 100.0);
 uniform vec2 offset_px = vec2(0.0);
 uniform float cell = 5.0;
+// The Horn Quarter's model is cast in black: obsidian with the light kept as soft grey highlights.
+uniform bool obsidian = false;
 
 float dots(vec2 p, float v, float c) {
 	mat2 r = mat2(vec2(0.966, 0.259), vec2(-0.259, 0.966));
@@ -35,6 +37,11 @@ void fragment() {
 		}
 		a *= shadow ? 0.12 : (state == 4 ? 0.55 : 0.32);
 	} else if (!shadow) {
+		if (obsidian) {
+			float l = clamp((lum - 0.35) / 0.6, 0.0, 1.0);
+			c = mix(vec3(0.06, 0.06, 0.07), vec3(0.6, 0.58, 0.56), l * l);
+			lum = l * 0.6;
+		}
 		if (state == 2) {
 			vec2 p = UV * rect_px + offset_px;
 			float g = dots(p, clamp((0.9 - lum) * 1.3, 0.0, 1.0), cell);
