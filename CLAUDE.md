@@ -304,7 +304,7 @@ godot --path . -- --rich                         # play with every hero and lots
 `character-briefs.md`, `skins.md`, `art-style.md`, `halorig.md`, `art-generation.md` (the ComfyUI
 pipeline; current settings are in `status.md`), `comfyui-setup.md` (the tunnel route, unused),
 `economy-v1.md`, `feature-ideas.md` (brainstorms; the owner picked the Rival and Misprints),
-`unity-port.md`, `ios-build.md`, `morning-2026-10-18.md` (the last summary sent to
+`unity-port.md`, `ios-build.md`, `morning-2026-10-23.md` (the last summary for
 the owner).
 `docs/open-questions.md` holds business questions the owner never answered. `docs/tech-plan.md`
 and `docs/roadmap.md` are historical (written when Unity was the engine).
