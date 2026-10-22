@@ -780,6 +780,11 @@ func _refresh() -> void:
 		_power_value = p
 	_refresh_avatar()
 	_refresh_dots()
+	# A commendation just earned: dated in the record, and a word about it.
+	if Game.has_method("setting") and not Game.state.is_empty():
+		var fresh := ProfileScreen.note_commendations()
+		if not fresh.is_empty():
+			UI.toast("Commendation: %s" % str(fresh[0].ring).capitalize(), "good")
 
 
 func _refresh_avatar() -> void:

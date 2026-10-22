@@ -33,6 +33,9 @@ const PrintBits := preload("res://src/ui/components/print_bits.gd")
 
 ## Game setting: the hero whose portrait the player chose ("" = the team lead).
 const AVATAR_KEY := "avatar_hero"
+## Game setting: the day each commendation was first seen earned ({id: day}); its stamp carries the
+## date. Missing until the first check, which dates everything already earned quietly.
+const COMMEND_KEY := "commend_days"
 ## Game setting for the call sign (the model keeps it in state.player_name).
 const NAME_KEY := "player_name"
 const DEFAULT_NAME := "ENVOY"
@@ -577,7 +580,8 @@ func _build_badges() -> void:
 	var p := _poster
 	var y := _y_badges
 	var tw := _tw
-	var list := _badges()
+	var list := badges()
+	var days: Variant = Game.setting(COMMEND_KEY)
 	var earned := 0
 	for b: Dictionary in list:
 		if bool(b.earned):
@@ -605,7 +609,10 @@ func _build_badges() -> void:
 		if on:
 			holder.rotation = float(absi(hash(str(b.id))) % 21 - 10) * 0.013
 		var st := Bits.Badge.new()
-		st.ring = str(b.ring)
+		var when := ""
+		if on and days is Dictionary and (days as Dictionary).has(str(b.id)):
+			when = _ddmmyy(int(days[str(b.id)]))
+		st.ring = str(b.ring) + ("  ·  " + when if when != "" else "")
 		st.value = str(b.value)
 		st.earned = on
 		st.ink = SIG if on and bool(b.get("big", false)) else INK
@@ -615,12 +622,37 @@ func _build_badges() -> void:
 		_stamps.append(holder)
 		# 88 px targets, tiled over the row.
 		var hx := X0 + tw * 0.5 - per_row * 44.0 + (i % per_row) * 88.0
-		var msg := ("%s: earned." % str(b.ring).capitalize()) if on else ("%s: %s." % [str(b.ring).capitalize(), str(b.how)])
+		var msg := ("%s: earned%s." % [str(b.ring).capitalize(), " " + when if when != "" else ""]) if on \
+			else ("%s: %s." % [str(b.ring).capitalize(), str(b.how)])
 		_hit(p, Rect2(hx, cy - 7.0, 88, 88), func() -> void: UI.toast(msg, "good" if on else "info"), "Commendation_%s" % str(b.id))
 
 
+## A day number as DD.MM.YY.
+static func _ddmmyy(day: int) -> String:
+	var c := CalendarRules.civil(day)
+	return "%02d.%02d.%02d" % [c[2], c[1], c[0] % 100]
+
+
+## Dates the commendations earned since the last check (COMMEND_KEY) and returns them. The first
+## check ever dates what is already earned and returns nothing (no burst of news on an old save).
+## main.gd calls it on every change; it writes only when something is new.
+static func note_commendations() -> Array[Dictionary]:
+	var cur: Variant = Game.setting(COMMEND_KEY)
+	var first := not (cur is Dictionary)
+	var d: Dictionary = (cur as Dictionary).duplicate() if cur is Dictionary else {}
+	var fresh: Array[Dictionary] = []
+	for b: Dictionary in badges():
+		if bool(b.earned) and not d.has(str(b.id)):
+			d[str(b.id)] = Game.today()
+			if not first:
+				fresh.append(b)
+	if first or not fresh.is_empty():
+		Game.set_setting(COMMEND_KEY, d)
+	return fresh
+
+
 ## The commendations, in rough order of difficulty: {id, ring, value, earned, how, big}.
-func _badges() -> Array[Dictionary]:
+static func badges() -> Array[Dictionary]:
 	var st: Dictionary = Game.state
 	var cleared := Game.cleared_count()
 	var chs := Game.chapters()
