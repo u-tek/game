@@ -271,7 +271,10 @@ func _nudity_row() -> Control:
 			return
 		UI.confirm("Nude art is for adults (18+) only. Show it?",
 			func() -> void: _set_nudity(true, state),
-			func() -> void: t.set_pressed_no_signal(false),
+			func() -> void:
+				# (the screen may have been rebuilt or left while the question was open)
+				if is_instance_valid(t):
+					t.set_pressed_no_signal(false),
 			"I'm 18+", "Cancel"))
 	row.add_child(t)
 	return v
