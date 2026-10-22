@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for cordia adult, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s286780, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "cordia.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [319, 864, 410],
+  "look_px": [8, 5],
+  "meta": {"weapon": "shaker", "attack": "attack_ranged", "fx_color": "#ff8a3d", "art": "comfy s286780 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [384, 1288]},
+    {"name": "torso", "parent": "hips", "pivot": [366, 1194]},
+    {"name": "chest", "parent": "torso", "pivot": [345, 1078]},
+    {"name": "neck", "parent": "chest", "pivot": [325, 973]},
+    {"name": "head", "parent": "neck", "pivot": [311, 945]},
+    {"name": "face", "parent": "head", "pivot": [319, 856]},
+    {"name": "hair_front", "parent": "head", "pivot": [319, 763]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [319, 872], "radius": [79, 69], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [319, 789], "radius": [94, 47], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [319, 841], "radius": [152, 148], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[229, 963], [421, 963], [520, 1018], [511, 1174], [488, 1204], [244, 1204], [179, 1174], [170, 1018]], "feather": 40}}
+  ],
+  "overlays": []
+}

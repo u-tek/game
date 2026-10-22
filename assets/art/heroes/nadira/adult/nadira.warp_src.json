@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for nadira adult, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s316780, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "nadira.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [526, 868, 351],
+  "look_px": [8, 5],
+  "meta": {"weapon": "staff", "attack": "attack_ranged", "fx_color": "#b48cff", "art": "comfy s316780 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [510, 1281]},
+    {"name": "torso", "parent": "hips", "pivot": [514, 1186]},
+    {"name": "chest", "parent": "torso", "pivot": [520, 1070]},
+    {"name": "neck", "parent": "chest", "pivot": [488, 964]},
+    {"name": "head", "parent": "neck", "pivot": [520, 935]},
+    {"name": "face", "parent": "head", "pivot": [526, 862]},
+    {"name": "hair_front", "parent": "head", "pivot": [526, 785]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [526, 874], "radius": [68, 56], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [526, 807], "radius": [81, 38], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [526, 849], "radius": [130, 122], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[406, 954], [570, 954], [670, 1010], [662, 1166], [619, 1196], [409, 1196], [378, 1166], [370, 1010]], "feather": 40}}
+  ],
+  "overlays": []
+}

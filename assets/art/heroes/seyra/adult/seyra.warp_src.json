@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for seyra adult, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s356780, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "seyra.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [380, 1210, 473],
+  "look_px": [8, 5],
+  "meta": {"weapon": "orb", "attack": "attack_ranged", "fx_color": "#b48cff", "art": "comfy s356780 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [417, 1526]},
+    {"name": "torso", "parent": "hips", "pivot": [407, 1463]},
+    {"name": "chest", "parent": "torso", "pivot": [395, 1387]},
+    {"name": "neck", "parent": "chest", "pivot": [390, 1318]},
+    {"name": "head", "parent": "neck", "pivot": [372, 1300]},
+    {"name": "face", "parent": "head", "pivot": [380, 1201]},
+    {"name": "hair_front", "parent": "head", "pivot": [380, 1096]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [380, 1218], "radius": [91, 77], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [380, 1126], "radius": [108, 52], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [380, 1183], "radius": [175, 166], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[279, 1308], [501, 1308], [596, 1327], [586, 1443], [548, 1473], [266, 1473], [204, 1443], [194, 1327]], "feather": 40}}
+  ],
+  "overlays": []
+}

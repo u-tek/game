@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for severine adult, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s336780, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "severine.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [476, 1420, 448],
+  "look_px": [8, 5],
+  "meta": {"weapon": "sword", "fx_color": "#b48cff", "art": "comfy s336780 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [504, 1660]},
+    {"name": "torso", "parent": "hips", "pivot": [497, 1616]},
+    {"name": "chest", "parent": "torso", "pivot": [487, 1562]},
+    {"name": "neck", "parent": "chest", "pivot": [479, 1513]},
+    {"name": "head", "parent": "neck", "pivot": [468, 1501]},
+    {"name": "face", "parent": "head", "pivot": [476, 1412]},
+    {"name": "hair_front", "parent": "head", "pivot": [476, 1317]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [476, 1427], "radius": [86, 69], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [476, 1344], "radius": [103, 47], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [476, 1396], "radius": [166, 149], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[374, 1503], [584, 1503], [678, 1502], [668, 1596], [631, 1626], [363, 1626], [306, 1596], [296, 1502]], "feather": 40}}
+  ],
+  "overlays": []
+}

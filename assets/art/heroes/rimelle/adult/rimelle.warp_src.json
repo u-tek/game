@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for rimelle adult, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s136780, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "rimelle.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [514, 1488, 446],
+  "look_px": [8, 5],
+  "meta": {"weapon": "sceptre", "attack": "attack_ranged", "fx_color": "#ffe9a8", "art": "comfy s136780 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [515, 1708]},
+    {"name": "torso", "parent": "hips", "pivot": [515, 1670]},
+    {"name": "chest", "parent": "torso", "pivot": [515, 1624]},
+    {"name": "neck", "parent": "chest", "pivot": [515, 1582]},
+    {"name": "head", "parent": "neck", "pivot": [506, 1572]},
+    {"name": "face", "parent": "head", "pivot": [514, 1480]},
+    {"name": "hair_front", "parent": "head", "pivot": [514, 1384]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [514, 1497], "radius": [86, 71], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [514, 1411], "radius": [102, 48], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [514, 1464], "radius": [165, 153], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[411, 1572], [619, 1572], [705, 1564], [695, 1650], [648, 1680], [382, 1680], [335, 1650], [325, 1564]], "feather": 40}}
+  ],
+  "overlays": []
+}

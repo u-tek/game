@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for kindra adult, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s276781, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "kindra.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [486, 1140, 462],
+  "look_px": [8, 5],
+  "meta": {"weapon": "axe", "fx_color": "#ff8a3d", "art": "comfy s276781 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [477, 1477]},
+    {"name": "torso", "parent": "hips", "pivot": [470, 1408]},
+    {"name": "chest", "parent": "torso", "pivot": [483, 1324]},
+    {"name": "neck", "parent": "chest", "pivot": [516, 1247]},
+    {"name": "head", "parent": "neck", "pivot": [477, 1227]},
+    {"name": "face", "parent": "head", "pivot": [486, 1132]},
+    {"name": "hair_front", "parent": "head", "pivot": [486, 1031]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [486, 1148], "radius": [89, 74], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [486, 1059], "radius": [106, 50], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [486, 1115], "radius": [171, 160], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[408, 1237], [624, 1237], [680, 1264], [670, 1388], [608, 1418], [332, 1418], [296, 1388], [286, 1264]], "feather": 40}}
+  ],
+  "overlays": []
+}

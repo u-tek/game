@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for torqua adult, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s236780, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "torqua.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [515, 1398, 373],
+  "look_px": [8, 5],
+  "meta": {"weapon": "parasol", "fx_color": "#ff8a3d", "art": "comfy s236780 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [520, 1640]},
+    {"name": "torso", "parent": "hips", "pivot": [518, 1593]},
+    {"name": "chest", "parent": "torso", "pivot": [517, 1536]},
+    {"name": "neck", "parent": "chest", "pivot": [515, 1484]},
+    {"name": "head", "parent": "neck", "pivot": [508, 1471]},
+    {"name": "face", "parent": "head", "pivot": [515, 1390]},
+    {"name": "hair_front", "parent": "head", "pivot": [515, 1306]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [515, 1405], "radius": [72, 62], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [515, 1330], "radius": [86, 42], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [515, 1376], "radius": [138, 134], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[428, 1474], [602, 1474], [676, 1476], [668, 1573], [629, 1603], [407, 1603], [366, 1573], [358, 1476]], "feather": 40}}
+  ],
+  "overlays": []
+}

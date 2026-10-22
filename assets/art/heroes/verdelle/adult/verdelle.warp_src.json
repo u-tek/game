@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for verdelle adult, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s176780, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "verdelle.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [492, 1400, 400],
+  "look_px": [8, 5],
+  "meta": {"weapon": "watering_can", "attack": "attack_ranged", "fx_color": "#ffe9a8", "art": "comfy s176780 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [527, 1643]},
+    {"name": "torso", "parent": "hips", "pivot": [517, 1596]},
+    {"name": "chest", "parent": "torso", "pivot": [506, 1539]},
+    {"name": "neck", "parent": "chest", "pivot": [495, 1488]},
+    {"name": "head", "parent": "neck", "pivot": [485, 1475]},
+    {"name": "face", "parent": "head", "pivot": [492, 1393]},
+    {"name": "hair_front", "parent": "head", "pivot": [492, 1308]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [492, 1408], "radius": [77, 63], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [492, 1332], "radius": [92, 43], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [492, 1379], "radius": [148, 136], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[401, 1478], [589, 1478], [676, 1479], [668, 1576], [636, 1606], [398, 1606], [344, 1576], [336, 1479]], "feather": 40}}
+  ],
+  "overlays": []
+}

@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for zecchina adult, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s226780, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "zecchina.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [498, 1396, 378],
+  "look_px": [8, 5],
+  "meta": {"weapon": "cards", "fx_color": "#ff8a3d", "art": "comfy s226780 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [487, 1638]},
+    {"name": "torso", "parent": "hips", "pivot": [490, 1591]},
+    {"name": "chest", "parent": "torso", "pivot": [503, 1533]},
+    {"name": "neck", "parent": "chest", "pivot": [497, 1481]},
+    {"name": "head", "parent": "neck", "pivot": [491, 1468]},
+    {"name": "face", "parent": "head", "pivot": [498, 1389]},
+    {"name": "hair_front", "parent": "head", "pivot": [498, 1306]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [498, 1403], "radius": [73, 61], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [498, 1330], "radius": [87, 41], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [498, 1375], "radius": [140, 131], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[408, 1471], [586, 1471], [664, 1473], [656, 1571], [603, 1601], [377, 1601], [350, 1571], [342, 1473]], "feather": 40}}
+  ],
+  "overlays": []
+}

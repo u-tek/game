@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for benthe adult, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s346780, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "benthe.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [508, 1476, 413],
+  "look_px": [8, 5],
+  "meta": {"weapon": "sword", "fx_color": "#b48cff", "art": "comfy s346780 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [509, 1697]},
+    {"name": "torso", "parent": "hips", "pivot": [508, 1657]},
+    {"name": "chest", "parent": "torso", "pivot": [508, 1609]},
+    {"name": "neck", "parent": "chest", "pivot": [508, 1565]},
+    {"name": "head", "parent": "neck", "pivot": [500, 1555]},
+    {"name": "face", "parent": "head", "pivot": [508, 1468]},
+    {"name": "hair_front", "parent": "head", "pivot": [508, 1376]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [508, 1483], "radius": [80, 67], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [508, 1402], "radius": [95, 46], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [508, 1453], "radius": [153, 145], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[411, 1555], [605, 1555], [684, 1549], [675, 1637], [631, 1667], [385, 1667], [341, 1637], [332, 1549]], "feather": 40}}
+  ],
+  "overlays": []
+}

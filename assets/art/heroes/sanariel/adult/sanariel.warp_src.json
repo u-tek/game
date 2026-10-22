@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for sanariel adult, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s126780, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "sanariel.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [528, 1239, 440],
+  "look_px": [8, 5],
+  "meta": {"weapon": "staff", "attack": "attack_ranged", "fx_color": "#ffe9a8", "art": "comfy s126780 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [522, 1540]},
+    {"name": "torso", "parent": "hips", "pivot": [523, 1479]},
+    {"name": "chest", "parent": "torso", "pivot": [496, 1405]},
+    {"name": "neck", "parent": "chest", "pivot": [493, 1338]},
+    {"name": "head", "parent": "neck", "pivot": [519, 1321]},
+    {"name": "face", "parent": "head", "pivot": [528, 1231]},
+    {"name": "hair_front", "parent": "head", "pivot": [528, 1136]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [528, 1247], "radius": [85, 70], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [528, 1163], "radius": [101, 47], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [528, 1215], "radius": [163, 150], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[390, 1328], [596, 1328], [683, 1345], [674, 1459], [654, 1489], [392, 1489], [318, 1459], [309, 1345]], "feather": 40}}
+  ],
+  "overlays": []
+}

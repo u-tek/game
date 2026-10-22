@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for rivette adult, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s366780, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "rivette.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [669, 1408, 475],
+  "look_px": [8, 5],
+  "meta": {"weapon": "axe", "fx_color": "#b48cff", "art": "comfy s366780 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [748, 1657]},
+    {"name": "torso", "parent": "hips", "pivot": [727, 1612]},
+    {"name": "chest", "parent": "torso", "pivot": [700, 1558]},
+    {"name": "neck", "parent": "chest", "pivot": [676, 1508]},
+    {"name": "head", "parent": "neck", "pivot": [660, 1496]},
+    {"name": "face", "parent": "head", "pivot": [669, 1400]},
+    {"name": "hair_front", "parent": "head", "pivot": [669, 1299]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [669, 1417], "radius": [92, 74], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [669, 1327], "radius": [109, 51], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [669, 1383], "radius": [176, 161], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[565, 1498], [787, 1498], [902, 1498], [892, 1592], [869, 1622], [585, 1622], [508, 1592], [498, 1498]], "feather": 40}}
+  ],
+  "overlays": []
+}

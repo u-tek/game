@@ -1,0 +1,27 @@
+{
+  "_doc": "HaloRig warp rig source for halcia adult, written by tools/art_quick_rig.py (body bones from the face box and the silhouette; no spring parts or face overlays yet). ComfyUI candidate s196780, cut out without the face pass or the tiled 2x repaint. Coordinates are image pixels (1024x2048, soles at the origin).",
+  "image": "halcia.png",
+  "origin": [512, 1990],
+  "grid": [24, 48],
+  "texel_scale": 1.0,
+  "portrait": [261, 576, 521],
+  "look_px": [8, 5],
+  "meta": {"weapon": "dagger", "fx_color": "#ffe9a8", "art": "comfy s196780 quick"},
+  "body_bone": "hips",
+  "bones": [
+    {"name": "hips", "parent": "root", "pivot": [230, 1106]},
+    {"name": "torso", "parent": "hips", "pivot": [224, 987]},
+    {"name": "chest", "parent": "torso", "pivot": [216, 842]},
+    {"name": "neck", "parent": "chest", "pivot": [266, 710]},
+    {"name": "head", "parent": "neck", "pivot": [197, 674]},
+    {"name": "face", "parent": "head", "pivot": [206, 567]},
+    {"name": "hair_front", "parent": "head", "pivot": [206, 455]}
+  ],
+  "regions": [
+    {"name": "face", "bone": "face", "rule": {"type": "ellipse", "center": [206, 586], "radius": [100, 82], "feather": 14}},
+    {"name": "hair_front", "rule": {"type": "ellipse", "center": [206, 487], "radius": [120, 56], "feather": 12}},
+    {"name": "head", "rule": {"type": "ellipse", "center": [206, 548], "radius": [193, 178], "feather": 22}},
+    {"name": "chest", "rule": {"type": "polygon", "points": [[144, 700], [388, 700], [438, 782], [427, 967], [379, 997], [69, 997], [5, 967], [-6, 782]], "feather": 40}}
+  ],
+  "overlays": []
+}
