@@ -36,7 +36,7 @@ this file says where things stand. Older logs are under "History" at the bottom.
   hands, arm or hair covering (no micro top); the owner hasn't decided whether to re-render the
   whole pack or regenerate single ones. **Nude set:** `art_src/_review/nude_run` (picker:
   `picker_nude.bat`, port 8766) runs first by the owner's call; the normal run waits on it
-  (`qa/config.json` "after"). Since 2026-10-22 each nude look gets one of 8 openly erotic solo poses
+  (`qa/config.json` "after"). Since 2026-10-22 each nude look gets one of 22 openly erotic solo poses
   (`nude_poses_natural`). About 400 candidates, about 17 h of GPU before picks are finished. The
   nude finals install under `adult/` and need Claude's pick review before they're committed.
 - **UI v4 "Signal" redesign (started 2026-10-19):** the owner sent 22 reference images and asked for
