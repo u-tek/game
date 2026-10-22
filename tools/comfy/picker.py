@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Art picker (owner, 2026-10-22): a page on this PC that shows each hero's and skin's base candidates side by
-side. "Use this" puts that one in the game (roster_qa.py finishes it: face pass + 2x, install, quick rig);
+"""Art picker (owner, 2026-10-22): a page on this PC that shows one hero or skin at a time, its base candidates
+as full-screen cards side by side ("i want them as cards side by side taking up the whole screen"). "Use this" puts that one in the game (roster_qa.py finishes it: face pass + 2x, install, quick rig);
 "Regenerate" renders 2 new candidates for it. The worker starts by itself when there is work.
     python tools/comfy/picker.py [--port 8765] [--run DIR] [--no-worker]
 or double-click tools/comfy/picker.bat. Listens on 127.0.0.1 only (--lan: the home network too). Picks change assets/ on this PC; Claude
@@ -198,78 +198,87 @@ PAGE = r"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Art Picker</title>
 <style>
-:root{--bg:#121316;--panel:#1b1d22;--line:#2b2e36;--text:#eceef2;--mute:#9aa0ab;--acc:#ff4d6d;--ok:#3ecf8e;--warn:#f5b84b;--info:#6aa8ff}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,Segoe UI,sans-serif}
-header{position:sticky;top:0;z-index:5;background:rgba(18,19,22,.96);border-bottom:1px solid var(--line);padding:12px 20px}
-.top{display:flex;gap:16px;align-items:center;flex-wrap:wrap}h1{font-size:18px;margin:0;letter-spacing:.02em}
-.stat{color:var(--mute)}.stat b{color:var(--text)}
-.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
-.tabs button,.only{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;font:inherit}
-.tabs button.on{background:var(--text);color:#111;border-color:var(--text)}
-.only{display:inline-flex;gap:6px;align-items:center}
-main{padding:16px 20px 60px;display:grid;gap:14px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
-.head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
-.name{font-weight:700;font-size:15px}.pack{color:var(--mute)}.n{color:var(--mute);font-variant-numeric:tabular-nums}
-.chip{border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600}
+:root{--bg:#0f1013;--panel:#1a1c21;--line:#2b2e36;--text:#eceef2;--mute:#9aa0ab;--acc:#ff4d6d;--ok:#3ecf8e;--warn:#f5b84b;--info:#6aa8ff}
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,Segoe UI,sans-serif;display:grid;grid-template-rows:auto 1fr auto;overflow:hidden}
+.bar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.bot{border-top:1px solid var(--line);border-bottom:0;color:var(--mute);font-size:12px;padding:6px 16px}
+.nav{background:#24272e;color:var(--text);border:1px solid var(--line);border-radius:8px;width:44px;height:40px;font-size:18px;cursor:pointer}
+.nav:hover{border-color:var(--text)}
+.title{display:flex;flex-direction:column;min-width:0}.name{font-size:20px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub{color:var(--mute)}.chip{border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700}
 .in_game{background:rgba(62,207,142,.15);color:var(--ok)}.finishing{background:rgba(106,168,255,.15);color:var(--info)}
 .rendering{background:rgba(154,160,171,.15);color:var(--mute)}.waiting{background:rgba(245,184,75,.15);color:var(--warn)}
 .failed{background:rgba(255,77,109,.15);color:var(--acc)}
-.regen{margin-left:auto;background:none;border:1px solid var(--line);color:var(--text);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit}
+.sp{flex:1}select,.ctl{background:#24272e;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit}
+.ctl{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+.regen{background:none;border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit;font-weight:600}
 .regen:hover{border-color:var(--acc);color:var(--acc)}
-.row{display:flex;gap:12px;overflow-x:auto;padding-bottom:4px}
-.cand{flex:0 0 auto;width:260px;border:2px solid transparent;border-radius:10px;overflow:hidden;background:#0d0e10}
-.cand.picked{border-color:var(--ok)}.cand img{display:block;width:260px;height:334px;object-fit:cover;cursor:zoom-in;background:#222}
-.cand .bar{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;gap:6px}
-.seed{color:var(--mute);font-size:12px;font-variant-numeric:tabular-nums}
-.use{background:var(--acc);color:#fff;border:0;border-radius:6px;padding:6px 12px;font-weight:700;cursor:pointer;font:inherit}
-.use[disabled]{background:#2b2e36;color:var(--ok);cursor:default}
-.ph{width:260px;height:334px;display:grid;place-items:center;color:var(--mute);border:1px dashed var(--line);border-radius:10px;flex:0 0 auto}
-#lb{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;place-items:center;z-index:9;cursor:zoom-out}
-#lb img{max-width:96vw;max-height:96vh}
-.log{color:var(--mute);font:12px ui-monospace,Consolas,monospace;white-space:pre-wrap;margin-top:8px;max-height:3.2em;overflow:hidden}
-@media (max-width:600px){header,main{padding-left:12px;padding-right:12px}.cand,.cand img,.ph{width:200px}.cand img,.ph{height:257px}}
+#stage{display:flex;gap:14px;padding:14px;min-height:0}
+.card{flex:1 1 0;min-width:0;display:flex;flex-direction:column;background:var(--panel);border:3px solid var(--line);border-radius:14px;overflow:hidden}
+.card.picked{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok),0 0 30px rgba(62,207,142,.25)}
+.pic{flex:1;min-height:0;display:grid;place-items:center;background:#8f9196;cursor:zoom-in}
+.pic img{width:100%;height:100%;object-fit:contain;display:block}
+.foot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px}
+.seed{color:var(--mute);font-variant-numeric:tabular-nums}.key{color:var(--mute);border:1px solid var(--line);border-radius:5px;padding:0 6px;margin-right:6px;font-size:12px}
+.use{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:10px 22px;font-weight:800;font-size:15px;cursor:pointer}
+.use[disabled]{background:rgba(62,207,142,.15);color:var(--ok);cursor:default}
+.ph{flex:1 1 0;display:grid;place-items:center;color:var(--mute);border:3px dashed var(--line);border-radius:14px}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;place-items:center;z-index:9;cursor:zoom-out}
+#lb img{max-width:98vw;max-height:98vh}
+#empty{margin:auto;color:var(--mute);font-size:16px}
 </style></head><body>
-<header><div class="top"><h1>Art Picker</h1><span class="stat" id="stat">loading…</span>
-<label class="only"><input type="checkbox" id="only"> only ones waiting for me</label></div>
-<div class="tabs" id="tabs"></div><div class="log" id="log"></div></header>
-<main id="list"></main><div id="lb"><img alt=""></div>
+<div class="bar"><button class="nav" id="prev" title="Previous (←)">◀</button>
+<div class="title"><span class="name" id="name">loading…</span><span class="sub" id="sub"></span></div>
+<span class="chip" id="chip"></span><span class="sp"></span>
+<button class="regen" id="regen" title="R">Regenerate (2 new)</button>
+<select id="pack"></select><label class="ctl"><input type="checkbox" id="only"> waiting for me</label>
+<button class="nav" id="next" title="Next (→)">▶</button></div>
+<div id="stage"></div>
+<div class="bar bot"><span id="stat"></span><span class="sp"></span><span>← → move · 1 2 3 4 pick · R regenerate · click a picture to enlarge</span></div>
+<div id="lb"><img alt=""></div>
 <script>
-const PACKS={heroes:"Heroes"};let tab="all",S=null;const cards={},sigs={};
-const $=s=>document.querySelector(s);
-function packName(p){return PACKS[p]||p.replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase())}
 const LABEL={in_game:"In game",finishing:"Finishing…",rendering:"Rendering…",waiting:"Pick one",failed:"Failed: pick again"};
+const $=s=>document.querySelector(s);let S=null,cur=null,sig="";
+const pn=p=>p=="heroes"?"Heroes":p.replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase());
+const full=(k,s)=>`/full?key=${encodeURIComponent(k)}&seed=${s}`;
+function list(){const p=$("#pack").value,o=$("#only").checked;
+ return S.items.filter(i=>(p=="all"||i.pack==p)&&(!o||i.status=="waiting"||i.status=="failed"||i.key==cur))}
+function item(){return S.items.find(i=>i.key==cur)}
+function move(d){const L=list();if(!L.length)return;let i=L.findIndex(x=>x.key==cur);
+ i=i<0?0:Math.min(L.length-1,Math.max(0,i+d));cur=L[i].key;draw(true);preload(L[i+1])}
+function preload(it){if(it)for(const s of it.have){const im=new Image();im.src=full(it.key,s)}}
+function draw(force){const it=item();if(!it){$("#stage").innerHTML='<div id="empty">Nothing here.</div>';return}
+ const L=list(),pos=L.findIndex(x=>x.key==it.key)+1;
+ $("#name").textContent=it.hero+(it.skin?" · "+it.skin:"");
+ $("#sub").textContent=`${pn(it.pack)} · ${pos||"–"} of ${L.length}`;
+ const c=$("#chip");c.className="chip "+it.status;
+ c.textContent=LABEL[it.status]+(it.pick&&it.status!="waiting"?(it.by_owner?" · your pick":" · Claude's pick"):"");
+ const s2=JSON.stringify([it.key,it.seeds,it.have,it.pick]);if(!force&&s2==sig)return;sig=s2;
+ $("#stage").innerHTML=it.seeds.map((s,n)=>it.have.includes(s)?
+  `<div class="card${it.pick===s?" picked":""}"><div class="pic" data-full="${full(it.key,s)}"><img src="${full(it.key,s)}" alt=""></div>
+   <div class="foot"><span class="seed"><span class="key">${n+1}</span>${s}</span>
+   <button class="use" data-s="${s}" ${it.pick===s?"disabled":""}>${it.pick===s?"✓ In the game":"Use this"}</button></div></div>`
+  :`<div class="ph">rendering ${s}…</div>`).join("")}
+function stat(){const c=k=>S.items.filter(i=>i.status==k).length;
+ $("#stat").textContent=`${c("in_game")} in game · ${c("waiting")} waiting for a pick · ${c("finishing")} finishing · ${c("rendering")} rendering · worker ${S.worker?"running":"idle"}${S.eta_min?` · about ${S.eta_min} min of GPU work queued`:""}`}
+async function load(){S=await (await fetch("/api/state")).json();
+ if(!$("#pack").children.length){$("#pack").innerHTML=["all",...new Set(S.items.map(i=>i.pack))].map(p=>`<option value="${p}">${p=="all"?"All packs":pn(p)}</option>`).join("")}
+ if(!cur){const L=list();cur=(L.find(i=>i.status=="waiting")||L[0]||{}).key}
+ draw(false);stat()}
 async function post(url,body){const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
- const j=await r.json();if(j.error)alert(j.error);load()}
-function card(it){
- let h=`<div class="head"><span class="n">#${it.n}</span><span class="name">${it.hero}${it.skin?" · "+it.skin:""}</span>
- <span class="pack">${packName(it.pack)}</span><span class="chip ${it.status}">${LABEL[it.status]}${it.pick&&it.status!="waiting"?(it.by_owner?" · your pick":" · Claude's pick"):""}</span>
- <button class="regen" data-k="${it.key}">Regenerate (2 new)</button></div><div class="row">`;
- for(const s of it.seeds){
-  if(it.have.includes(s)){const on=it.pick===s;
-   h+=`<div class="cand${on?" picked":""}"><img loading="lazy" src="/thumb?key=${encodeURIComponent(it.key)}&seed=${s}" data-full="/full?key=${encodeURIComponent(it.key)}&seed=${s}" alt="">
-   <div class="bar"><span class="seed">${s}</span><button class="use" data-k="${it.key}" data-s="${s}" ${on?"disabled":""}>${on?"✓ Chosen":"Use this"}</button></div></div>`}
-  else h+=`<div class="ph">rendering ${s}…</div>`}
- return h+"</div>"}
-function render(){
- const list=$("#list"),only=$("#only").checked;
- for(const it of S.items){
-  const show=(tab=="all"||it.pack==tab)&&(!only||it.status=="waiting"||it.status=="failed");
-  let el=cards[it.key];if(!el){el=document.createElement("section");el.className="card";cards[it.key]=el;list.appendChild(el)}
-  el.style.display=show?"":"none";const sig=JSON.stringify(it);if(sigs[it.key]!==sig){el.innerHTML=card(it);sigs[it.key]=sig}}
- const c=k=>S.items.filter(i=>i.status==k).length;
- $("#stat").innerHTML=`<b>${c("in_game")}</b> in game · <b>${c("waiting")}</b> waiting for a pick · <b>${c("finishing")}</b> finishing · <b>${c("rendering")}</b> rendering · worker ${S.worker?"<b>running</b>":"idle"}${S.eta_min?` · about <b>${S.eta_min} min</b> of GPU work queued`:""}`;
- $("#log").textContent=S.log.slice(-2).join("\n")}
-function tabs(){const packs=["all",...new Set(S.items.map(i=>i.pack))];
- $("#tabs").innerHTML=packs.map(p=>`<button data-t="${p}" class="${p==tab?"on":""}">${p=="all"?"All":packName(p)}</button>`).join("")}
-async function load(){S=await (await fetch("/api/state")).json();if(!$("#tabs").children.length)tabs();render()}
-document.addEventListener("click",e=>{const t=e.target;
- if(t.dataset.t){tab=t.dataset.t;tabs();render()}
- else if(t.classList.contains("use")&&!t.disabled){t.disabled=true;t.textContent="…";post("/api/pick",{key:t.dataset.k,seed:+t.dataset.s})}
- else if(t.classList.contains("regen")){if(confirm("Render 2 new options for this one? About 6 minutes of GPU."))post("/api/regen",{key:t.dataset.k})}
- else if(t.dataset.full){$("#lb img").src=t.dataset.full;$("#lb").style.display="grid"}
+ const j=await r.json();if(j.error)alert(j.error);await load()}
+async function pick(s){const it=item();if(!it||!it.have.includes(s)||it.pick===s)return;await post("/api/pick",{key:it.key,seed:s});draw(true);setTimeout(()=>move(1),350)}
+async function regen(){const it=item();if(it&&confirm(`Render 2 new options for ${it.hero}${it.skin?" · "+it.skin:""}? About 6 minutes of GPU.`)){await post("/api/regen",{key:it.key});draw(true)}}
+document.addEventListener("click",e=>{const t=e.target,p=t.closest(".pic");
+ if(t.id=="prev")move(-1);else if(t.id=="next")move(1);else if(t.id=="regen")regen();
+ else if(t.classList.contains("use")&&!t.disabled)pick(+t.dataset.s);
+ else if(p){$("#lb img").src=p.dataset.full;$("#lb").style.display="grid"}
  else if(t.closest("#lb"))$("#lb").style.display="none"});
-$("#only").addEventListener("change",render);document.addEventListener("keydown",e=>{if(e.key=="Escape")$("#lb").style.display="none"});
+document.addEventListener("keydown",e=>{if(e.target.tagName=="SELECT")return;const it=item();
+ if(e.key=="Escape")$("#lb").style.display="none";else if(e.key=="ArrowLeft")move(-1);else if(e.key=="ArrowRight")move(1);
+ else if(/^[1-9]$/.test(e.key)&&it){const s=it.seeds[+e.key-1];if(s)pick(s)}else if(e.key=="r"||e.key=="R")regen()});
+$("#pack").addEventListener("change",()=>{cur=null;load()});$("#only").addEventListener("change",()=>{const L=list();if(!L.some(i=>i.key==cur))cur=(L[0]||{}).key;draw(true)});
 load();setInterval(load,10000);
 </script></body></html>"""
 
