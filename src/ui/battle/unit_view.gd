@@ -35,6 +35,10 @@ var sprite: Node2D
 var statuses := {}
 var home_facing := 1
 var depth_scale := 1.0
+## Front view (the team big in the foreground): she always faces the camera (no flipping toward
+## targets) and her overhead tag stays hidden (her card on the bottom strip carries HP and energy).
+var lock_facing := false
+var bars_off := false
 ## Animation timing read from this hero's rig (battle ms at speed 1; -1 = unknown).
 var hit_ms := -1.0
 var release_ms := -1.0
@@ -112,7 +116,8 @@ func _read_timing() -> void:
 ## scale), with a soft backlight in the faction colour behind the sprite so every unit reads on any
 ## floor.
 func _draw() -> void:
-	if dead:
+	if dead or lock_facing:
+		# Front view: the team stands at the foot of the screen with no ring under her.
 		return
 	var k := float(sprite.scale.y) if sprite else 1.0
 	var rx := 62.0 * k * (1.3 if is_boss else 1.0)
@@ -169,6 +174,9 @@ func attack_anim() -> String:
 
 
 func face_toward(p: Vector2) -> void:
+	if lock_facing:
+		sprite.call("set_facing", home_facing)
+		return
 	var dx := p.x - global_position.x
 	if absf(dx) > 40.0:
 		sprite.call("set_facing", 1 if dx > 0.0 else -1)
@@ -253,7 +261,7 @@ func snap_to(u: Dictionary) -> void:
 
 
 func bars_visible(on: bool) -> void:
-	_bars.visible = on
+	_bars.visible = on and not bars_off
 
 
 func _exit_tree() -> void:

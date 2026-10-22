@@ -14,6 +14,14 @@ extends Control
 ## readout tags over the units, the allies as framed print cards on the bottom strip; the results
 ## are risograph posters (battle_result.gd).
 ##
+## Front view (combat v1, the war version; docs/dev/combat-v1.md): the team stands big in the
+## foreground, facing the camera, along a line wider than the screen; the camera glides along it to
+## whoever is acting (a sideways swipe on the field looks along the line; the camera follows the
+## fight again a moment later). The foes stand smaller in the mid-ground and drift a little with the
+## camera. Over them the souls crowd (src/ui/battle/souls_crowd.gd) turns gold or red as the fight
+## swings; the winner takes it. The team's overhead tags stay hidden: their cards on the
+## bottom strip carry HP and energy.
+##
 ## The BattleSim runs a little ahead of what the player sees (SIM_LEAD_MS of battle time).
 ## Every event is scheduled on a display clock so animations line up with their results:
 ## an attack starts its swing early enough that the impact frame lands exactly when its
@@ -27,6 +35,7 @@ const SceneBackdrop := preload("res://src/ui/battle/scene_backdrop.gd")
 const UnitView := preload("res://src/ui/battle/unit_view.gd")
 const BattleFx := preload("res://src/ui/battle/battle_fx.gd")
 const UltCinematic := preload("res://src/ui/battle/ult_cinematic.gd")
+const SoulsCrowd := preload("res://src/ui/battle/souls_crowd.gd")
 const AllyPortrait := preload("res://src/ui/battle/ally_portrait.gd")
 const BattleResult := preload("res://src/ui/battle/battle_result.gd")
 const RivalResult := preload("res://src/ui/rival/rival_result.gd")
@@ -57,6 +66,19 @@ const END_DELAY := 1.4
 const INTRO_TIME := 1.25
 const FRONT_X := [0.31, 0.69]
 const BACK_X := [0.16, 0.5, 0.84]
+## Front view: a front-row heroine's height (share of the field), the spacing along the team's line
+## (share of the screen width) and the slots left to right along it (the front pair near the middle).
+const ALLY_H := 0.6
+const ALLY_PITCH := 0.5
+const LINE_ORDER := [2, 0, 3, 1, 4]
+## A front-row foe's height (share of the field); how much the foes move with the camera.
+const FOE_H := 0.24
+const FOE_PARALLAX := 0.28
+## The camera: glide rate (1/s), how long a focus holds before another may take it, and how long a
+## swipe keeps it where the player left it (seconds).
+const CAM_RATE := 3.0
+const CAM_HOLD := 0.9
+const SWIPE_HOLD := 2.6
 ## Where repeat numbers on one unit appear (fan slots 0-3, relative to the head).
 const NUM_FAN := [Vector2(0, -10), Vector2(34, -40), Vector2(-34, -70), Vector2(14, -100)]
 ## Status words float up in mono type: debuffs in signal, buffs on paper.
@@ -124,6 +146,17 @@ var _shake_amp := 0.0
 var _dim_target := 0.0
 var _manual_hint: Control
 var _num_stack: Dictionary = {}
+## Front view: each unit's spot (allies: x along the team's line, foes: x on screen; y on screen),
+## the camera (x along the line) and its goal, the focus hold, the swipe.
+var _home: Dictionary = {}
+var _cam_x := 0.0
+var _cam_goal := 0.0
+var _cam_lock_until := 0.0
+var _swipe_until := 0.0
+var _drag_from := Vector2.INF
+var _drag_cam := 0.0
+var _souls: Node2D
+var _souls_won := -1
 var _num_n := 0
 var _shown_secs := -1
 
@@ -244,6 +277,9 @@ func _build() -> void:
 	bd.horizon = clampf((f.position.y + f.size.y * 0.12) / maxf(size.y, 1.0), 0.12, 0.4) if size.y > 0.0 else 0.22
 	bd.sigil_y = (f.position.y + f.size.y * 0.5) / maxf(size.y, 1.0) if size.y > 0.0 else 0.5
 
+	_souls = SoulsCrowd.new()
+	_souls.name = "Souls"
+	_world.add_child(_souls)
 	_units = Node2D.new()
 	_units.name = "Units"
 	_world.add_child(_units)
@@ -306,44 +342,117 @@ func _layout_units() -> void:
 	if _units == null or size.y <= 0.0:
 		return
 	var f := _field_rect()
-	var fh := f.size.y
-	var d := fh * 0.14
-	var g := fh * 0.05
-	var unit_h := (fh - 18.0 - 2.0 * d - g) * 0.5
-	var k := clampf((unit_h - 44.0) / 300.0, 0.62, 1.0)
-	var rows := {
-		"enemy_back": [f.position.y + unit_h, 0.9],
-		"enemy_front": [f.position.y + unit_h + d, 0.95],
-		"ally_front": [f.position.y + unit_h * 2.0 + d + g, 1.0],
-		"ally_back": [f.position.y + unit_h * 2.0 + 2.0 * d + g, 1.04],
-	}
-	var order: Array = []
+	var w := f.size.x
+	var pitch := w * ALLY_PITCH
 	for uid: String in _views:
 		var v: Node2D = _views[uid]
 		var side: String = v.get("side")
 		var slot: int = v.get("slot")
 		var back := slot >= 2
-		var key := side + ("_back" if back else "_front")
-		var row: Array = rows[key]
-		var x: float = f.size.x * (float(BACK_X[clampi(slot - 2, 0, 2)]) if back else float(FRONT_X[clampi(slot, 0, 1)]))
-		var y: float = row[0]
-		var depth: float = row[1]
-		var kk := k * depth
 		var sprite: Node2D = v.get("sprite")
 		var boss: bool = v.get("is_boss")
-		if boss and side == "enemy":
-			# Bosses are 30% bigger: keep the crown on screen.
-			y = maxf(y, f.position.y + 300.0 * kk * 1.3 + 30.0)
-		v.position = Vector2(x, y)
-		sprite.scale = Vector2(kk, kk)
-		v.set("depth_scale", depth)
+		var base_h := float(sprite.call("get_height")) / maxf(absf(sprite.scale.y), 0.001)
+		var k := 1.0
+		if side == "ally":
+			# The team: big, feet on the bottom strip, the back row a little smaller and higher.
+			k = f.size.y * ALLY_H * (0.9 if back else 1.0) / maxf(base_h, 1.0)
+			var li := maxi(LINE_ORDER.find(slot), 0)
+			_home[uid] = Vector2(li * pitch, f.end.y - (f.size.y * 0.04 if back else 0.0) - 2.0)
+			v.set("depth_scale", 1.04 if back else 1.1)
+			v.set("lock_facing", true)
+			v.queue_redraw()
+			v.set("bars_off", true)
+			v.call("bars_visible", false)
+		else:
+			# The foes: smaller, in the mid-ground; bosses 30% bigger with the crown on screen.
+			k = f.size.y * FOE_H * (0.86 if back else 1.0) * (1.3 if boss else 1.0) / maxf(base_h, 1.0)
+			var x := w * (float(BACK_X[clampi(slot - 2, 0, 2)]) if back else float(FRONT_X[clampi(slot, 0, 1)]))
+			var y := f.position.y + f.size.y * (0.36 if back else 0.45)
+			if boss:
+				y = maxf(y, f.position.y + base_h * k + 40.0)
+			_home[uid] = Vector2(x, y)
+			v.set("depth_scale", 0.86 if back else 0.95)
+		sprite.scale = Vector2(k, k)
 		v.set("_head_h", float(sprite.call("get_height")))
-		order.append(v)
-	# Draw order: further up the screen is further away.
-	order.sort_custom(func(a: Node2D, b: Node2D) -> bool: return a.position.y < b.position.y)
-	for i in order.size():
-		_units.move_child(order[i], i)
-	_units.move_child(_dim, -1)
+	if _souls:
+		_souls.call("setup", f)
+	_cam_x = _clamp_cam(pitch * 2.0)
+	_cam_goal = _cam_x
+	_place_units()
+	_layout_order()
+
+
+## The camera's range along the team's line: two heroines always fill the view.
+func _clamp_cam(x: float) -> float:
+	var pitch := _width() * ALLY_PITCH
+	return clampf(x, pitch * 0.5, pitch * 3.5)
+
+
+## Puts every unit at its spot for the camera: the team slides along its line, the foes drift a
+## little the other way (parallax).
+func _place_units() -> void:
+	var w := _width()
+	var mid := w * ALLY_PITCH * 2.0
+	for uid: String in _views:
+		var v: Node2D = _views[uid]
+		if not _home.has(uid):
+			continue
+		var h: Vector2 = _home[uid]
+		if str(v.get("side")) == "ally":
+			v.position = Vector2(w * 0.5 + h.x - _cam_x, h.y)
+		else:
+			v.position = Vector2(h.x - (_cam_x - mid) * FOE_PARALLAX, h.y)
+
+
+## Points the camera at an ally (by uid): her spot on the line. Ignored while a recent focus or a
+## swipe holds it, unless forced (ultimates).
+func _focus(uid: String, force: bool = false) -> void:
+	var v: Node2D = _views.get(uid)
+	if v == null or str(v.get("side")) != "ally" or v.get("dead") or not _home.has(uid):
+		return
+	var now := Time.get_ticks_msec() / 1000.0
+	if now < _swipe_until or (not force and now < _cam_lock_until):
+		return
+	_cam_goal = _clamp_cam((_home[uid] as Vector2).x)
+	_cam_lock_until = now + CAM_HOLD
+
+
+## The player's share of the souls: how much more of the foes' health is gone than the team's.
+func _souls_share() -> float:
+	var lost := {"ally": [0, 0], "enemy": [0, 0]}
+	for uid: String in _views:
+		var v: Node2D = _views[uid]
+		var side := str(v.get("side"))
+		var acc: Array = lost[side]
+		acc[0] = int(acc[0]) + int(v.get("max_hp")) - int(v.get("hp"))
+		acc[1] = int(acc[1]) + int(v.get("max_hp"))
+	var ea: Array = lost.enemy
+	var aa: Array = lost.ally
+	var e := float(ea[0]) / maxf(float(ea[1]), 1.0)
+	var a := float(aa[0]) / maxf(float(aa[1]), 1.0)
+	return clampf(0.5 + 0.5 * (e - a), 0.0, 1.0)
+
+
+## A sideways drag on the field looks along the team's line; the camera stays there a moment.
+func _gui_input(event: InputEvent) -> void:
+	if _phase != "fight" and _phase != "intro":
+		return
+	var mb := event as InputEventMouseButton
+	if mb and mb.button_index == MOUSE_BUTTON_LEFT:
+		if mb.pressed:
+			_drag_from = mb.position
+			_drag_cam = _cam_goal
+		else:
+			_drag_from = Vector2.INF
+		return
+	var mm := event as InputEventMouseMotion
+	if mm and _drag_from != Vector2.INF:
+		var dx := mm.position.x - _drag_from.x
+		if absf(dx) > 12.0:
+			_cam_goal = _clamp_cam(_drag_cam - dx * 1.15)
+			_cam_x = lerpf(_cam_x, _cam_goal, 0.5)
+			_swipe_until = Time.get_ticks_msec() / 1000.0 + SWIPE_HOLD
+			accept_event()
 
 
 ## Width of the screen (before the first layout, the viewport's).
@@ -810,6 +919,10 @@ func _process(delta: float) -> void:
 		return
 	_update_shake(delta)
 	_dim.modulate.a = move_toward(_dim.modulate.a, _dim_target, delta * 4.0)
+	_cam_x = lerpf(_cam_x, _cam_goal, 1.0 - exp(-delta * CAM_RATE))
+	_place_units()
+	if _souls and _souls_won < 0:
+		_souls.call("update_share", _souls_share())
 	match _phase:
 		"intro":
 			_phase_t += delta
@@ -883,6 +996,8 @@ func _apply(ev: Dictionary) -> void:
 			var dst: Node2D = _views.get(str(ev.target))
 			if src and dst and not src.get("dead"):
 				src.call("play_attack", _lunge_point(src, dst))
+				# The camera finds the heroine acting, or the one being hit.
+				_focus(str(ev.src) if str(src.get("side")) == "ally" else str(ev.target))
 		"_bolt":
 			var s2: Node2D = _views.get(str(ev.src))
 			var d2: Node2D = _views.get(str(ev.target))
@@ -1061,10 +1176,8 @@ func _sync_portrait(v: Node2D) -> void:
 func _lunge_point(src: Node2D, dst: Node2D) -> Vector2:
 	var a := src.global_position
 	var b := dst.global_position
-	var dist := a.distance_to(b)
-	if dist < 1.0:
-		return b
-	return b + (a - b) / dist * minf(110.0, dist * 0.5)
+	# Front view: the big heroines step a little toward their mark; foes come further forward.
+	return a + (b - a) * (0.16 if str(src.get("side")) == "ally" else 0.3)
 
 
 ## Spawn point for a floating number over a unit. Numbers that land on the same unit in
@@ -1114,6 +1227,8 @@ func _start_ult(ev: Dictionary) -> void:
 	if v == null or v.get("dead"):
 		return
 	var ally := str(v.get("side")) == "ally"
+	if ally:
+		_focus(str(ev.src), true)
 	# The caster's wind-up plays during the hold; enemy ultimates wind up faster so the
 	# player's own heroes get the longer, bigger moment.
 	var cs := minf(float(_speed), 2.0) * (1.0 if ally else 1.6)
@@ -1272,6 +1387,17 @@ func _on_end(winner: String) -> void:
 	_phase = "ending"
 	_phase_t = 0.0
 	_manual_hint.visible = false
+	if _souls and _souls_won < 0:
+		_souls_won = int(_souls.call("finish", winner == "ally"))
+		if winner == "ally":
+			var slip := BP.t("+%d SOULS" % _souls_won, 40, Color(1.0, 0.82, 0.42), "compressed")
+			slip.position = Vector2((_width() - 260.0) * 0.5, _field_rect().position.y + _field_rect().size.y * 0.5)
+			slip.size = Vector2(260, 60)
+			slip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			_overlay.add_child(slip)
+			var tw := slip.create_tween()
+			tw.tween_property(slip, "position:y", slip.position.y + 160.0, 1.1).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+			tw.parallel().tween_property(slip, "modulate:a", 0.0, 0.5).set_delay(0.7)
 	for uid: String in _views:
 		var v: Node2D = _views[uid]
 		if not v.get("dead") and (str(v.get("side")) == "ally") == (winner == "ally"):

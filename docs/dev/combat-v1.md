@@ -1,6 +1,22 @@
 # Combat v1: scope (draft for the owner, 2026-10-20)
 
-## The war version (pitched 2026-10-22)
+## The war version (pitched 2026-10-22; building since the same day: "yeah see what you can come up with")
+
+**Built so far (2026-10-22):**
+- **Front view** (`battle_screen.gd`): the team stands big in the foreground (ALLY_H 60% of the
+  field), facing the camera, along a line 2.5 screens wide (LINE_ORDER puts the front pair in the
+  middle); the camera glides to whoever acts or is hit (CAM_HOLD between focus changes, forced on
+  ultimates); a sideways swipe on the field looks along the line for SWIPE_HOLD. Foes stand smaller
+  in the mid-ground with a little parallax. Lunges are a step toward the mark (16% of the way for the
+  team, 30% for foes). The team's overhead tags and ground rings are off (their cards carry HP).
+- **Souls** (`src/ui/battle/souls_crowd.gd`): 40 flame wisps in the sky over the foes with a SOULS
+  count; the player's share follows how much more of the foes' HP is gone than the team's; the
+  winner takes them all (+40 SOULS on a victory). Display only: nothing is saved yet (the front and
+  the economy come later).
+- **Charm**: see Faction signatures below.
+- Next: the full-screen ultimate close-up of her front rig, Encore / Spotlight / Mark, the balance
+  pass, then the front map.
+
 
 The owner liked the War for Souls (`docs/dev/feature-ideas.md`: "this is better yes") and asked
 "whats the combat going to be?". The draft below stays (big front-view heroines, mostly auto, tap
