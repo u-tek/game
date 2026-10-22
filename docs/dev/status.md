@@ -131,7 +131,8 @@ this file says where things stand. Older logs are under "History" at the bottom.
   `DistrictRules.can_decorate`, GameModel `district_decor_buy / move / remove` (port check 106).
   Souls drift in along the souls' road (gold wisps in Heaven's quarter, ember in Hell's). A building
   that opened since the last visit rises out of the ground with a thud and a puff of dust, once
-  (setting `district_seen`; shot param `rise`).
+  (setting `district_seen`; shot param `rise`). From 19:00 to 06:00 the lamp props are lit (a warm
+  pool on the ground, the head glowing; `--lamp` lights them in shots).
 - **Wardrobe to gallery (2026-10-22):** every skin's print in the Shop's wardrobe carries a VIEW tag;
   tapping it opens her in that look full screen in the gallery (zoom, swipe the looks, BUY), also for
   a heroine not yet recruited (shown as a preview). The art sells the skin, not a thumbnail.

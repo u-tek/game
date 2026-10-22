@@ -75,6 +75,8 @@ var hold_kind := "":
 var _tap_down := Vector2.INF
 ## Buildings to raise out of the ground when the model is first shown (newly opened ones).
 var rise: Array = []
+## Debug (shots): the lamps lit whatever the hour.
+var _lamps_on := OS.is_debug_build() and OS.get_cmdline_user_args().has("--lamp")
 
 
 func _init() -> void:
@@ -434,6 +436,20 @@ func _process(delta: float) -> void:
 ## little, gold in the Halo Quarter and ember in the Horn; they fade in at one end and out at the
 ## other.
 func _draw_souls() -> void:
+	# After dark (19:00 to 06:00 local) the lamps are lit: a warm pool on the ground round each one.
+	if _lamps_lit():
+		for d: Variant in dist.get("decor", []):
+			if str((d as Dictionary).kind) != "lamp":
+				continue
+			var c := _ground(float(d.x) + 0.5, float(d.y) + 0.5)
+			var flick := 1.0 + sin(_t * 7.0 + float(d.x) * 3.1) * 0.03
+			for k in 6:
+				var r := (54.0 - k * 8.0) * flick
+				var pts := PackedVector2Array()
+				for q in 24:
+					var a := TAU * q / 24.0
+					pts.append(c + Vector2(cos(a) * r, sin(a) * r * 0.58))
+				_souls_layer.draw_colored_polygon(pts, Color(1.0, 0.76, 0.34, 0.11))
 	var road := float(DistrictRules.ROAD_ROW) + 0.5
 	var n := float(DistrictRules.GRID)
 	var hell := str(dist.get("side", "")) == "hell"
@@ -603,7 +619,22 @@ func debug_hold(i: int, x: int, y: int) -> void:
 	_lots_layer.queue_redraw()
 
 
+## After dark: each lamp's head lit (over its prop).
+func _lamps_lit() -> bool:
+	var hour := int(Time.get_datetime_dict_from_system().hour)
+	return (hour >= 19 or hour < 6 or _lamps_on) and not arranging
+
+
 func _draw_labels() -> void:
+	if _lamps_lit():
+		var dc: Array = dist.get("decor", [])
+		for k: int in _props:
+			if k < dc.size() and str(dc[k].kind) == "lamp":
+				var tr: TextureRect = _props[k]
+				var head := Vector2(_ground(float(dc[k].x) + 0.5, float(dc[k].y) + 0.5).x, tr.position.y + 9.0)
+				_overlay.draw_circle(head, 14.0, Color(1.0, 0.8, 0.4, 0.18))
+				_overlay.draw_circle(head, 7.0, Color(1.0, 0.85, 0.5, 0.45))
+				_overlay.draw_circle(head, 3.0, Color(1.0, 0.97, 0.85, 0.95))
 	var bl: Array = dist.get("buildings", [])
 	var f := Kit.font("mono_bold")
 	var next_souls := int((dist.get("next", {}) as Dictionary).get("souls", -1))
