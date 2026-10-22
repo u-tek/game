@@ -336,6 +336,7 @@ class Sim:
         self.auto = True
         self.queue, self.full, self.eflags = [], [], []
         self.enc_t, self.enc_n, self.ult_bonus = -1000000000, 0, 0
+        self.spot, self.spot_t, self.mark = "", -1000000000, ""
         self.events = []
         self.dmg, self.heal_done = {}, {}
         for s in setup.get("allies", []): self.add(s, "ally")
@@ -429,7 +430,8 @@ class Sim:
         return best
     def Atk(self, u):
         m = u.mods
-        return max(1, idiv(u.atk * max(10000 + m.get("atk_up", 0) - m.get("atk_down", 0), B["atk_floor_bp"]), 10000))
+        bp = 10000 + m.get("atk_up", 0) - m.get("atk_down", 0) + (B["spotlight"]["atk_bp"] if u.uid == self.spot else 0)
+        return max(1, idiv(u.atk * max(bp, B["atk_floor_bp"]), 10000))
     def Def(self, u):
         m = u.mods
         return max(0, idiv(u.de * max(10000 + m.get("def_up", 0) - m.get("def_down", 0), 0), 10000))
@@ -467,6 +469,20 @@ class Sim:
             self.winner = "enemy"
             self.emit({"type": "end", "winner": "enemy", "timeout": True})
         return self.flush()
+
+    def set_spotlight(self, uid):
+        S = B["spotlight"]; u = self.by.get(uid)
+        if self.winner or u is None or uid == self.spot or u.side != "ally" or not u.alive or self.t - self.spot_t < S["switch_ms"]:
+            return False
+        self.spot, self.spot_t = uid, self.t
+        return True
+
+    def set_mark(self, uid):
+        u = self.by.get(uid)
+        if self.winner or u is None or uid == self.mark or u.side != "enemy" or not u.alive:
+            return False
+        self.mark = uid
+        return True
 
     def request(self, uid):
         u = self.by.get(uid)
@@ -541,6 +557,8 @@ class Sim:
         if not foes: return None
         for f in foes:
             if "taunt" in f.st_end: return f
+        if u.side == "ally" and self.mark and self.by[self.mark].alive:
+            return self.by[self.mark]
         if u.role == "assassin":
             back = [f for f in foes if f.slot >= 2]
             return self.lowest(back if back else foes)
@@ -640,6 +658,7 @@ class Sim:
 
     def gain(self, u, n):
         if not u.alive: return
+        if n > 0 and u.uid == self.spot: n = idiv(n * (10000 + B["spotlight"]["energy_bp"]), 10000)
         old = u.energy; e = min(EMAX, old + n)
         if e == old: return
         u.energy = e
@@ -1074,9 +1093,13 @@ if "rotation" in f:
 f = fx("battles")
 for b in f["battles"]:
     sim = Sim(b["setup"]); sim.auto = b["auto_ultimates"]
-    evs, reqs, tick = [], [], 0
+    evs, reqs, ins, tick = [], [], [], 0
     while not sim.winner:
         tick += 1
+        for r in b.get("inputs", []):
+            if r["tick"] == tick:
+                ok = sim.set_spotlight(r["uid"]) if r["kind"] == "spotlight" else sim.set_mark(r["uid"])
+                ins.append({"tick": r["tick"], "kind": r["kind"], "uid": r["uid"], "accepted": ok})
         for r in b["manual_ultimates"]:
             if r["tick"] == tick:
                 reqs.append({"tick": r["tick"], "uid": r["uid"], "accepted": sim.request(r["uid"])})
@@ -1087,6 +1110,7 @@ for b in f["battles"]:
     check("battle.%s.outcome" % b["name"], b["outcome"], sim.outcome())
     check("battle.%s.final_units" % b["name"], b["final_units"], units)
     if reqs: check("battle.%s.requests" % b["name"], b["manual_ultimates"], reqs)
+    if "inputs" in b: check("battle.%s.inputs" % b["name"], b["inputs"], ins)
 
 f = fx("prints")
 check("prints.editions", [c["out"] for c in f["editions"]], [edition_on(c["banner"], c["day"], c["epoch_day"]) for c in f["editions"]])

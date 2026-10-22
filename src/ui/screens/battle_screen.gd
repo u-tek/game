@@ -17,7 +17,8 @@ extends Control
 ## Front view (combat v1, the war version; docs/dev/combat-v1.md): the team stands big in the
 ## foreground, facing the camera, along a line wider than the screen; the camera glides along it to
 ## whoever is acting (a sideways swipe on the field looks along the line; the camera follows the
-## fight again a moment later). The foes stand smaller in the mid-ground and drift a little with the
+## fight again a moment later; a tap on a heroine puts her in the spotlight, a tap on a foe marks it:
+## BattleSim.set_spotlight / set_mark). The foes stand smaller in the mid-ground and drift a little with the
 ## camera. Over them the souls crowd (src/ui/battle/souls_crowd.gd) turns gold or red as the fight
 ## swings; the winner takes it. The team's overhead tags stay hidden: their cards on the
 ## bottom strip carry HP and energy.
@@ -155,6 +156,9 @@ var _cam_lock_until := 0.0
 var _swipe_until := 0.0
 var _drag_from := Vector2.INF
 var _drag_cam := 0.0
+var _dragged := false
+## The hint for the hands-on taps (shown once per player, then remembered in the settings).
+var _tap_hint: Control
 var _souls: Node2D
 var _souls_won := -1
 ## Encore (battle_sim): the last ally ultimate's hero, when its window closes (display ms) and the
@@ -228,6 +232,17 @@ func setup(params: Dictionary) -> void:
 		get_tree().create_timer(0.4).timeout.connect(_skip)
 	# Screenshots (debug, throwaway save): encore_demo = true plays an Encore close-up of the first
 	# two heroines once the fight starts (display only; the sim is untouched).
+	# tap_demo = true: spotlights the second heroine and marks the first foe once the fight starts.
+	if _debug_params_ok() and bool(params.get("tap_demo", false)):
+		get_tree().create_timer(INTRO_TIME + 0.4).timeout.connect(func() -> void:
+			var a: Array[Node2D] = []
+			var e: Array[Node2D] = []
+			for uid: String in _views:
+				(a if str(_views[uid].get("side")) == "ally" else e).append(_views[uid])
+			if a.size() >= 2:
+				_tap_unit(a[1])
+			if not e.is_empty():
+				_tap_unit(e[0]))
 	if _debug_params_ok() and bool(params.get("encore_demo", false)):
 		get_tree().create_timer(INTRO_TIME + 0.3).timeout.connect(func() -> void:
 			var ids: Array[String] = []
@@ -459,17 +474,94 @@ func _gui_input(event: InputEvent) -> void:
 		if mb.pressed:
 			_drag_from = mb.position
 			_drag_cam = _cam_goal
+			_dragged = false
 		else:
+			if _drag_from != Vector2.INF and not _dragged and _phase == "fight":
+				_tap_field(mb.position)
 			_drag_from = Vector2.INF
 		return
 	var mm := event as InputEventMouseMotion
 	if mm and _drag_from != Vector2.INF:
 		var dx := mm.position.x - _drag_from.x
 		if absf(dx) > 12.0:
+			_dragged = true
 			_cam_goal = _clamp_cam(_drag_cam - dx * 1.15)
 			_cam_x = lerpf(_cam_x, _cam_goal, 0.5)
 			_swipe_until = Time.get_ticks_msec() / 1000.0 + SWIPE_HOLD
 			accept_event()
+
+
+## A tap on the field: the heroine or foe under the finger (heroines first: they stand in front).
+## A heroine takes the spotlight (faster ultimate, harder hits; a short cooldown between switches),
+## a foe becomes the team's mark.
+func _tap_field(p: Vector2) -> void:
+	var best: Node2D = null
+	var best_d := INF
+	for side: String in ["ally", "enemy"]:
+		for uid: String in _views:
+			var v: Node2D = _views[uid]
+			if str(v.get("side")) != side or v.get("dead"):
+				continue
+			var h := float(v.get("_head_h"))
+			var w := h * 0.36
+			var feet := v.global_position - global_position
+			var r := Rect2(feet.x - w * 0.5, feet.y - h * 0.95, w, h * 0.95)
+			if r.has_point(p):
+				var d := absf(p.x - feet.x)
+				if d < best_d:
+					best = v
+					best_d = d
+		if best:
+			break
+	if best == null:
+		return
+	_tap_unit(best)
+
+
+func _tap_unit(best: Node2D) -> void:
+	var uid := str(best.get("uid"))
+	if str(best.get("side")) == "ally":
+		if _sim.set_spotlight(uid):
+			for k: String in _views:
+				_views[k].call("set_spotlit", k == uid)
+			_focus(uid, true)
+			_swipe_until = Time.get_ticks_msec() / 1000.0 + SWIPE_HOLD
+			_float_text(best, "SPOTLIGHT", Color(1.0, 0.86, 0.5), 20, 46.0, 0.0, Vector2(0, -20), "mono_bold")
+			Kit.sfx("tap")
+			UI.haptic(18)
+		elif _sim.spotlight() != uid:
+			_float_text(best, "SPOTLIGHT COOLING", NUM_PAPER, 16, 30.0, 0.0, Vector2(0, -20), "mono_bold")
+	else:
+		if _sim.set_mark(uid):
+			for k: String in _views:
+				_views[k].call("set_marked", k == uid)
+			_float_text(best, "MARKED", BP.SIG, 18, 40.0, 0.0, Vector2(0, -30), "mono_bold")
+			Kit.sfx("tap")
+			UI.haptic(12)
+	_hide_tap_hint()
+
+
+## The first fights teach the taps: a sticker over the field until the player has used them.
+func _show_tap_hint() -> void:
+	if Game.setting("seen_tap_hint") == true or _tap_hint != null:
+		return
+	var hint := _sticker(BP.PAPER)
+	var l := BP.t("TAP A HEROINE: SPOTLIGHT  ·  TAP A FOE: MARK", 13, BP.INK, "mono_bold")
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.add_child(l)
+	var f := _field_rect()
+	hint.position = Vector2((_width() - 520.0) * 0.5, f.position.y + f.size.y * 0.3)
+	hint.custom_minimum_size = Vector2(520, 0)
+	hint.rotation = -0.015
+	_overlay.add_child(hint)
+	_tap_hint = hint
+
+
+func _hide_tap_hint() -> void:
+	if _tap_hint and is_instance_valid(_tap_hint):
+		_tap_hint.queue_free()
+		Game.set_setting("seen_tap_hint", true)
+	_tap_hint = null
 
 
 ## Width of the screen (before the first layout, the viewport's).
@@ -960,6 +1052,8 @@ func _process(delta: float) -> void:
 			_phase_t += delta
 			if _phase_t >= INTRO_TIME:
 				_phase = "fight"
+				if _mode == "stage":
+					_show_tap_hint()
 		"fight":
 			_step_display(delta)
 		"ending":

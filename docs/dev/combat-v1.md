@@ -24,7 +24,13 @@
   made a first session clear chapter 1: `test_first_session_progress`). The close-up of a chained
   ultimate brings the previous heroine in from the lower left with ENCORE xN stamped in signal; a
   sticker over the cards counts the window down. Debug shot: battle `{"encore_demo": true}`.
-- Next: Spotlight / Mark, the balance pass, then the front map.
+- **Spotlight and Mark** (rules + port check, `spotlight` in `data/battle.json`; inputs only, auto
+  uses neither): tap a heroine on the field to light her (+30% energy gain, +10% ATK; 3 s between
+  switches): a warm beam behind her, the camera holds on her; tap a foe to mark it (the team's basic
+  attacks go to it; Taunt still wins): a signal crosshair. A one-time sticker teaches the taps
+  (setting `seen_tap_hint`). The camera swipe and the taps share the field (a drag is not a tap).
+  Debug shot: battle `{"tap_demo": true}`.
+- Next: the balance pass, then the front map.
 
 
 The owner liked the War for Souls (`docs/dev/feature-ideas.md`: "this is better yes") and asked

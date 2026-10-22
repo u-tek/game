@@ -371,6 +371,43 @@ func test_encore_chains_ally_ultimates(t: TestCtx) -> void:
 				t.ok(not e.has("encore"), "enemies never chain")
 
 
+func test_spotlight_and_mark(t: TestCtx) -> void:
+	var setup := {"seed": 21, "allies": [_unit("a0", "uriela", 0, 30, 1), _unit("a1", "ashra", 1, 30, 1)],
+		"enemies": [_unit("e0", "uriela", 0, 60, 1), _unit("e1", "lucen", 1, 60, 1), _unit("e2", "ashra", 2, 60, 1)]}
+	# Mark: every ally basic attack goes to the marked enemy.
+	var sim := BattleSim.new(setup)
+	sim.auto_ultimates = false
+	t.ok(sim.set_mark("e2"), "mark a living enemy")
+	t.ok(not sim.set_mark("e2"), "marking her again is refused")
+	t.ok(not sim.set_mark("a0"), "allies can't be marked")
+	var other := 0
+	var on_mark := 0
+	for i in 40:
+		for e in sim.step():
+			if e.type == "attack" and str(e.src).begins_with("a"):
+				if e.target == "e2":
+					on_mark += 1
+				elif sim.unit("e2").alive:
+					other += 1
+	t.ok(on_mark > 0, "allies hit the mark (%d)" % on_mark)
+	t.eq(other, 0, "nothing else while the mark lives")
+	# Spotlight: the lit ally fills her ultimate faster; switching has a cooldown.
+	var lit := BattleSim.new(setup)
+	var dark := BattleSim.new(setup)
+	lit.auto_ultimates = false
+	dark.auto_ultimates = false
+	t.ok(lit.set_spotlight("a0"), "spotlight an ally")
+	t.ok(not lit.set_spotlight("a1"), "switching right away is refused")
+	t.ok(not lit.set_spotlight("e0"), "foes can't take the spotlight")
+	for i in 30:
+		lit.step()
+		dark.step()
+	t.ok(int(lit.unit("a0").energy) > int(dark.unit("a0").energy), "the lit ally gains energy faster (%d vs %d)"
+		% [lit.unit("a0").energy, dark.unit("a0").energy])
+	t.eq(lit.spotlight(), "a0")
+	t.ok(lit.set_spotlight("a1"), "after the cooldown the spotlight moves")
+
+
 func test_passives_unlock_by_stars(t: TestCtx) -> void:
 	# Noctaire 5 stars: on kill energy. Rare 1 star: no passives.
 	t.eq(HeroKits.active_passives("uriela", 1).size(), 0)

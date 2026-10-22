@@ -221,7 +221,7 @@ static func inputs(name: String) -> Dictionary:
 			}
 		"battles":
 			return {
-				"about": "BattleSim (src/core/battle_sim.gd): setup + seed -> every event of every step() in order, outcome() and the final units. manual_ultimates: before step number `tick` (1 = first step), request_ultimate(uid); `accepted` is its result. Then run_to_end() on a fresh sim must give the same outcome.",
+				"about": "BattleSim (src/core/battle_sim.gd): setup + seed -> every event of every step() in order, outcome() and the final units. inputs (optional): before step number `tick` (1 = first step), set_spotlight(uid) (kind spotlight) or set_mark(uid) (kind mark); then manual_ultimates: request_ultimate(uid); `accepted` is each call's result. Then run_to_end() on a fresh sim must give the same outcome.",
 				"battles": _battle_inputs(),
 			}
 		"session":
@@ -526,7 +526,11 @@ static func _battle_inputs() -> Array:
 		["seraphiel", 3, 52, 3], ["nuriel", 4, 52, 3]]),
 		"enemies": _team("e", [["brakka", 0, 44, 3, true], ["kessa", 1, 40, 3], ["vesper", 2, 40, 3], ["imra", 3, 40, 3]])}
 	out.append({"name": "manual_ultimates", "about": "auto_ultimates off: allies cast only when requested (requests 3 ticks after a bar fills, plus some refused ones); enemy boss.",
-		"setup": manual, "auto_ultimates": false, "manual_ultimates": _manual_requests(manual)})
+		"setup": manual, "auto_ultimates": false, "manual_ultimates": _manual_requests(manual),
+		# Spotlight and Mark: accepted, refused in the switch cooldown, refused when already set.
+		"inputs": [{"tick": 8, "kind": "spotlight", "uid": "a0"}, {"tick": 12, "kind": "spotlight", "uid": "a2"},
+			{"tick": 15, "kind": "mark", "uid": "e2"}, {"tick": 40, "kind": "spotlight", "uid": "a2"},
+			{"tick": 50, "kind": "mark", "uid": "e2"}, {"tick": 60, "kind": "mark", "uid": "e3"}]})
 	out.append({"name": "legends_awakened", "about": "Awakened Legendaries on both sides (UnitSetup awaken 1-3: legend passives from A1, empowered ultimates from A2).",
 		"setup": {"seed": 6161, "allies": _team("a", [["argentiel", 0, 110, 6, false, 1], ["gantra", 1, 110, 6, false, 2],
 			["seraphiel", 2, 110, 6, false, 2], ["sanariel", 3, 110, 6, false, 3], ["mordessa", 4, 110, 6, false, 2]]),
@@ -573,10 +577,15 @@ static func _battles(f: Dictionary) -> Dictionary:
 		var sim := BattleSim.new(setup)
 		sim.auto_ultimates = bool(b.auto_ultimates)
 		var reqs: Array = []
+		var ins: Array = []
 		var events: Array = []
 		var tick := 0
 		while not sim.is_over():
 			tick += 1
+			for r in b.get("inputs", []):
+				if int(r.tick) == tick:
+					var ok := sim.set_spotlight(str(r.uid)) if str(r.kind) == "spotlight" else sim.set_mark(str(r.uid))
+					ins.append({"tick": r.tick, "kind": r.kind, "uid": r.uid, "accepted": ok})
 			for r in b.manual_ultimates:
 				if int(r.tick) == tick:
 					reqs.append({"tick": r.tick, "uid": r.uid, "accepted": sim.request_ultimate(str(r.uid))})
@@ -588,6 +597,8 @@ static func _battles(f: Dictionary) -> Dictionary:
 		var entry := {"name": b.name, "about": b.get("about", ""), "setup": setup, "auto_ultimates": b.auto_ultimates,
 			"manual_ultimates": reqs if not reqs.is_empty() else b.manual_ultimates, "steps": tick,
 			"outcome": sim.outcome(), "final_units": units}
+		if b.has("inputs"):
+			entry["inputs"] = ins
 		if b.manual_ultimates.is_empty():
 			# Skip must land on the same battle as watching it.
 			entry["skip_outcome"] = BattleSim.new(setup).run_to_end()

@@ -21,6 +21,10 @@ extends RefCounted
 ## - Encore: an ally ultimate cast within encore.window_ms of the previous ally ultimate is the
 ##   next step of a chain (max encore.max_steps); its damage effects get +step_bp per step when
 ##   the player fired it (request_ultimate), +auto_step_bp when auto did. Enemies never chain.
+## - Spotlight (set_spotlight, the player's input): one ally at a time gains energy +energy_bp and
+##   attacks with +atk_bp ATK; switching it needs switch_ms since the last switch. Mark (set_mark):
+##   the allies' basic attacks go to the marked enemy while it lives (Taunt still wins; charmed
+##   allies ignore it). Auto uses neither.
 ## - Faction bonus (3/4/5 of one faction: +6/10/15% HP and ATK) and boss multipliers are
 ##   applied when the sim is built. 90 s limit: a timeout is a defeat.
 ## Every tunable number comes from data/battle.json (and hero kits from data/heroes.json).
@@ -66,6 +70,9 @@ static var ENCORE_WINDOW_MS: int = int(_B.encore.window_ms)
 static var ENCORE_STEP_BP: int = int(_B.encore.step_bp)
 static var ENCORE_AUTO_STEP_BP: int = int(_B.encore.auto_step_bp)
 static var ENCORE_MAX_STEPS: int = int(_B.encore.max_steps)
+static var SPOT_ENERGY_BP: int = int(_B.spotlight.energy_bp)
+static var SPOT_ATK_BP: int = int(_B.spotlight.atk_bp)
+static var SPOT_SWITCH_MS: int = int(_B.spotlight.switch_ms)
 
 ## Runtime units. Contract keys: uid, hero_id, side, slot, max_hp, hp, shield, energy,
 ## alive, is_boss, statuses {name: remaining_ms}. Extra keys are internal.
@@ -89,6 +96,10 @@ var _queued: Array[String] = []
 var _encore_t: int = -1_000_000_000
 var _encore_n: int = 0
 var _ult_bonus_bp: int = 0
+## Spotlight: the lit ally's uid ("" = none) and when it was last switched; Mark: the marked enemy.
+var _spot: String = ""
+var _spot_t: int = -1_000_000_000
+var _mark: String = ""
 var _events: Array = []
 var _damage: Dictionary = {}
 var _healing: Dictionary = {}
@@ -165,6 +176,39 @@ func request_ultimate(uid: String) -> bool:
 		return false
 	_queued.append(uid)
 	return true
+
+
+## Puts the spotlight on a living ally. Refused (false) during the switch cooldown, for the ally
+## already lit, or when the battle is over.
+func set_spotlight(uid: String) -> bool:
+	if winner != "" or not _by_uid.has(uid) or uid == _spot:
+		return false
+	var u: Dictionary = _by_uid[uid]
+	if u.side != "ally" or not u.alive or t_ms - _spot_t < SPOT_SWITCH_MS:
+		return false
+	_spot = uid
+	_spot_t = t_ms
+	return true
+
+
+## Marks a living enemy as the allies' basic-attack target. Refused for the one already marked.
+func set_mark(uid: String) -> bool:
+	if winner != "" or not _by_uid.has(uid) or uid == _mark:
+		return false
+	var u: Dictionary = _by_uid[uid]
+	if u.side != "enemy" or not u.alive:
+		return false
+	_mark = uid
+	return true
+
+
+## The lit ally and the marked enemy ("" when none, or dead).
+func spotlight() -> String:
+	return _spot if _spot != "" and bool(_by_uid[_spot].alive) else ""
+
+
+func mark() -> String:
+	return _mark if _mark != "" and bool(_by_uid[_mark].alive) else ""
 
 
 ## True when this ally could cast its ultimate right now.
@@ -630,6 +674,10 @@ func _basic_target(u: Dictionary) -> Dictionary:
 	for f in foes:
 		if not f.statuses.is_empty() and f.statuses.has("taunt"):
 			return f
+	if u.side == "ally" and _mark != "":
+		var mk: Dictionary = _by_uid[_mark]
+		if mk.alive:
+			return mk
 	var role: String = u.role
 	if role == "assassin":
 		var back := _row(foes, true)
@@ -725,6 +773,8 @@ func _resolve_targets(u: Dictionary, e: Dictionary, primary: Dictionary) -> Arra
 func _atk(u: Dictionary) -> int:
 	var m: Dictionary = u.mods
 	var bp: int = 10000 + int(m.get("atk_up", 0)) - int(m.get("atk_down", 0))
+	if u.uid == _spot:
+		bp += SPOT_ATK_BP
 	return maxi(1, int(u.atk) * maxi(bp, ATK_FLOOR_BP) / 10000)
 
 
@@ -740,8 +790,10 @@ func _hit(src: Dictionary, dst: Dictionary, mult_bp: int, from_ult: bool, low_hp
 		return 0
 	var atk: int = src.atk
 	var sm: Dictionary = src.mods
-	if not sm.is_empty():
-		atk = maxi(1, atk * maxi(10000 + int(sm.get("atk_up", 0)) - int(sm.get("atk_down", 0)), ATK_FLOOR_BP) / 10000)
+	if not sm.is_empty() or src.uid == _spot:
+		# Inline _atk (the hot path): mods and the spotlight.
+		var abp: int = 10000 + int(sm.get("atk_up", 0)) - int(sm.get("atk_down", 0)) + (SPOT_ATK_BP if src.uid == _spot else 0)
+		atk = maxi(1, atk * maxi(abp, ATK_FLOOR_BP) / 10000)
 	var def: int = dst.def
 	var dm: Dictionary = dst.mods
 	if not dm.is_empty():
@@ -891,6 +943,8 @@ func _gain_energy(u: Dictionary, amount: int) -> void:
 	if not u.alive:
 		return
 	var before: int = u.energy
+	if amount > 0 and u.uid == _spot:
+		amount = amount * (10000 + SPOT_ENERGY_BP) / 10000
 	var e: int = mini(ENERGY_MAX, before + amount)
 	if e == before:
 		return

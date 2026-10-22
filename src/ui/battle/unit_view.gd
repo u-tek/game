@@ -39,6 +39,10 @@ var depth_scale := 1.0
 ## targets) and her overhead tag stays hidden (her card on the bottom strip carries HP and energy).
 var lock_facing := false
 var bars_off := false
+## Hands-on: the heroine in the spotlight (a warm beam behind her, a little brighter) and the foe
+## marked for the team (a signal crosshair on her).
+var spotlit := false
+var marked := false
 ## Animation timing read from this hero's rig (battle ms at speed 1; -1 = unknown).
 var hit_ms := -1.0
 var release_ms := -1.0
@@ -116,7 +120,24 @@ func _read_timing() -> void:
 ## scale), with a soft backlight in the faction colour behind the sprite so every unit reads on any
 ## floor.
 func _draw() -> void:
-	if dead or lock_facing:
+	if dead:
+		return
+	if spotlit:
+		# A warm beam from above, behind her: soft at the top, brightest at her feet.
+		var bw := _head_h * 0.62
+		# Three nested beams (wide and faint to narrow and bright) so the edges fall off softly.
+		for k in 3:
+			var wk := 1.0 - k * 0.22
+			var ak := 0.13 + k * 0.07
+			var beam := PackedVector2Array([Vector2(-bw * 0.16 * wk, -_head_h * 1.3), Vector2(bw * 0.16 * wk, -_head_h * 1.3),
+				Vector2(bw * 0.62 * wk, 0), Vector2(-bw * 0.62 * wk, 0)])
+			var cols := PackedColorArray([Color(1.0, 0.86, 0.55, 0.0), Color(1.0, 0.86, 0.55, 0.0),
+				Color(1.0, 0.8, 0.45, ak), Color(1.0, 0.8, 0.45, ak)])
+			draw_polygon(beam, cols)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.24))
+		draw_circle(Vector2.ZERO, bw * 0.62, Color(1.0, 0.82, 0.5, 0.35), true, -1.0, true)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if lock_facing:
 		# Front view: the team stands at the foot of the screen with no ring under her.
 		return
 	var k := float(sprite.scale.y) if sprite else 1.0
@@ -202,6 +223,22 @@ func play_ultimate(target: Vector2) -> void:
 func play_hit() -> void:
 	if not dead:
 		sprite.call("play_hit")
+
+
+func set_spotlit(on: bool) -> void:
+	if on == spotlit:
+		return
+	spotlit = on
+	if sprite:
+		sprite.modulate = Color(1.1, 1.08, 1.02) if on else Color.WHITE
+	queue_redraw()
+
+
+func set_marked(on: bool) -> void:
+	if on == marked:
+		return
+	marked = on
+	_bars.queue_redraw()
 
 
 func set_hp(new_hp: int, new_shield: int) -> void:
@@ -295,6 +332,15 @@ func _process(delta: float) -> void:
 ## line over it and the energy line in signal under the ruler (it pulses and a light shows at its end
 ## when the ultimate is ready). Status chips sit above the tag as small printed squares.
 func _draw_bars() -> void:
+	if marked and not dead:
+		# The mark: a signal crosshair over her chest with corner ticks.
+		var c := Vector2(0, -_head_h * 0.52)
+		var r := _head_h * 0.16
+		_bars.draw_arc(c, r, 0, TAU, 40, Color(SIG, 0.95), 3.0, true)
+		for q in 4:
+			var d := Vector2.from_angle(q * PI * 0.5)
+			_bars.draw_line(c + d * (r - 10.0), c + d * (r + 14.0), Color(SIG, 0.95), 3.0, true)
+		_bars.draw_circle(c, 4.0, Color(SIG, 0.95), true, -1.0, true)
 	if _bars_alpha <= 0.01:
 		return
 	var a := _bars_alpha * _lunge_k

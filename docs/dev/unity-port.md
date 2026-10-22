@@ -470,6 +470,17 @@ ult_bonus_bp) / 10000` (integer). After the effects (also when they stop early) 
 = 0`. Enemies never chain. (auto_step_bp is 0 today: pacing tests showed any auto bonus clears
 chapter 1 in a first session.)
 
+**Spotlight and Mark** (2026-10-22, `spotlight {energy_bp, atk_bp, switch_ms}`): state `spot` ("")
+`spot_t` (-1000000000), `mark` (""). Called between steps (no events). `set_spotlight(uid)`: false
+if a winner exists, uid unknown, uid == spot, not an ally, dead, or `t - spot_t < switch_ms`; else
+`spot = uid; spot_t = t`, true. `set_mark(uid)`: false if a winner exists, uid unknown, uid ==
+mark, not an enemy or dead; else `mark = uid`, true. Effects: **Atk(u)** adds `atk_bp` to its bp
+sum when u is the spot (`10000 + atk_up - atk_down + atk_bp`, then the floor); **GainEnergy(u,
+n)**: when `n > 0` and u is the spot, `n = n * (10000 + energy_bp) / 10000` first;
+**BasicTarget(u)**: after the taunt check, an ally with a living mark targets it (a charmed ally
+returns its teammate before this). The fixture's `inputs` list replays these calls (before the
+tick's ultimate requests).
+
 **CastUltimate(u, manual)**: `effects = ultimate.effects + ult_bonus effects`; `energy = 0`; remove u
 from the full-energy list; set u's energy flag. `primary = BasicTarget(u)` (a caster draws a
 pick here). Resolve the targets of **every** effect first, in effect order (7.7), then emit
