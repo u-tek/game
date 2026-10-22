@@ -31,6 +31,7 @@ emphasis 1.1, literal parentheses must be escaped as "\\(" "\\)". lint() rejects
 import json
 import os
 import re
+import zlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, "..", ".."))
@@ -507,6 +508,14 @@ def _face_sentence(fam, closed):
     return fam.get("face_natural_closed" if closed else "face_natural", "")
 
 
+def _nude_pose(fam, h):
+    """The nude set's pose for a look: one of nude_poses_natural, the same for every seed of that look."""
+    poses = fam.get("nude_poses_natural") or []
+    if not poses or not fam.get("pin_up_natural"):
+        return ""
+    return poses[zlib.crc32((h.get("natural") or h["name"]).encode("utf-8")) % len(poses)]
+
+
 def _sentence_full_body(bible, fam, h, hero_id, bg, extra_tags, adult, pose=None):
     subj = _sentence_subject(bible, h, adult)
     composition = fam.get("composition_rig_natural" if pose == "rig" else "composition_natural", "")
@@ -518,6 +527,10 @@ def _sentence_full_body(bible, fam, h, hero_id, bg, extra_tags, adult, pose=None
         style = style.replace(fam["outfit_natural"], fam["topless_natural"].format(cover=cover))
     if adult and fam.get("outfit_natural") and fam.get("nude_natural"):    # the nude set (owner, 2026-10-22)
         style = style.replace(fam["outfit_natural"], fam["nude_natural"])
+        nude_pose = _nude_pose(fam, h)
+        if nude_pose:   # owner: "way more sexual, rather than just the regular character with no clothes"
+            style = style.replace(fam["pin_up_natural"], nude_pose)
+            h = dict(h, pose="")
     parts = ["%s, full body." % subj, style,
              _face_sentence(fam, h.get("default_eyes") == "closed"), composition,
              _who(fam, h), _prose(plain_tags(extra_tags)) if extra_tags else "",

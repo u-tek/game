@@ -164,6 +164,18 @@
    "body_drop_natural": ["toned", "muscular female", "muscular"],
    "outfit_natural": "She wears almost nothing: her outfit is a tiny, barely-there micro version of her design, just thin straps, strings and very small patches that barely cover the tips of her breasts and her crotch, with lots of underboob and sideboob spilling out, and her stomach, hips, thighs, butt, back, shoulders and arms all bare. Any coat, cape, jacket, robe, sarong or long skirt in her design hangs open or slips off her body and covers nothing, and any bodysuit or leotard is cut down to a few thin strips.",
    "nude_natural": "She is completely nude, with no clothing of any kind on her body, only the accessories listed below; her breasts, nipples and hips are fully bare.",
+   "pin_up_natural": "in a provocative, suggestive pin-up pose with her back deeply arched and her chest and hips thrust out.",
+   "_nude_poses_doc": "The nude set (owner, 2026-10-22: \"i want the poses to be way more sexual, rather than just the regular character with no clothes\"): one of these replaces pin_up_natural and the look's own pose, picked by the look (prompts._nude_pose). Solo, no sex acts or toys.",
+   "nude_poses_natural": [
+    "in an openly erotic, lewd pose: kneeling on the floor with her knees spread wide apart, sitting back on her heels with her back arched, both hands lifting and squeezing her bare breasts together, offering her naked body to the viewer.",
+    "in an openly erotic, lewd pose: bent forward toward the viewer with her legs apart and her hands on her knees, her heavy bare breasts hanging down and pressed together between her arms, her bare butt pushed up high behind her.",
+    "in an openly erotic, lewd pose: a deep squat with her knees spread wide open and her heels raised, leaning forward with her hands resting on her inner thighs, her naked body fully on display.",
+    "in an openly erotic, lewd pose: standing turned three-quarters away and bent at the hips, her bare butt pushed back toward the viewer, looking back over her shoulder and biting her lip, one hand squeezing her own butt cheek.",
+    "in an openly erotic, lewd pose: standing with her legs apart and her hips cocked, both arms raised behind her head, her back arched hard to thrust her bare breasts forward, licking her lips.",
+    "in an openly erotic, lewd pose: sitting on the floor leaning back on her hands with her legs spread wide in an M shape, knees up and thighs wide open, her bare breasts pushed up.",
+    "in an openly erotic, lewd pose: standing on one leg with the other knee lifted high and out to the side, her thighs wide open, one hand cupping her bare breast and the other gripping her raised thigh.",
+    "in an openly erotic, lewd pose: on her knees with her thighs apart, leaning forward on all fours toward the viewer, her heavy bare breasts hanging down, her bare butt raised behind her, looking up with a hungry gaze."
+   ],
    "topless_natural": "Above the waist she wears nothing at all, not even a bikini top, only the lower half of her outfit; her chest is bare and {cover}, so the tips of her breasts are completely hidden. Everything else about her body is bare too.",
    "cover_natural": {"hands": "her own hands are cupped over the front of her breasts, palms and fingers pressed flat over them", "arm": "one forearm is pressed across the front of her breasts with her hand cupping the far side", "hair": "her long hair falls in thick locks over the front of her breasts"},
    "quality": "",
