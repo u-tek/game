@@ -40,8 +40,7 @@ const DISC_PAD := 23.0
 const DISC_OBJ := 300.0
 const STAMP := 140.0
 ## The side menu. Heroes and Team are only in the bottom nav (her hero page: tap her signature).
-const MENU := [["daily", "DAILY"], ["offers", "OFFERS"], ["spire", "SPIRE"], ["rival", "RIVAL"],
-	["shop", "SHOP"], ["view", "VIEW"]]
+const MENU := [["daily", "DAILY"], ["spire", "SPIRE"], ["rival", "RIVAL"], ["shop", "SHOP"], ["view", "VIEW"]]
 const CK := preload("res://src/ui/v4/collect/collect_kit.gd")
 
 ## Blurred red echoes of hero art, by art key (an Image resize per hero is not free).
@@ -448,8 +447,6 @@ func _on_menu(id: String) -> void:
 	match id:
 		"daily":
 			UI.go("quests")
-		"offers":
-			UI.go("shop", {"tab": 0})
 		"spire":
 			UI.go("tower")
 		"rival":
@@ -589,7 +586,7 @@ func _refresh_badges() -> void:
 	for o: Dictionary in Game.offers():
 		if str(o.get("price_label", "")) == "Free" and bool(o.get("available", false)):
 			gift = true
-	_set_led("offers", gift)
+	_set_led("shop", gift)
 	_set_led("rival", Game.rival_alert())
 	_refresh_objective()
 	_refresh_rue_tag()
@@ -678,7 +675,8 @@ func _refresh_rue_tag() -> void:
 					sc2.queue_redraw(), 0.0, 1.0, 0.9).set_delay(0.3)
 
 
-## The label: the guide's next step while it is active, else the next stage.
+## The label: the guide's next step while it is active (hidden otherwise: the Campaign pass shows
+## the next stage).
 func _refresh_objective() -> void:
 	var st := Game.current_stage()
 	var text := "Stage %s" % str(st.get("id", "")) if not st.is_empty() else "Every stage cleared"
@@ -704,6 +702,7 @@ func _refresh_objective() -> void:
 			cb = func() -> void: UI.go("quests")
 	_tape_text.text = text.to_upper()
 	_tape_cb = cb
+	_tape.visible = Guide.step() in ["claim", "summon", "formation", "level", "quests"]
 
 
 # ------------------------------------------------------------------ the lobby hero
@@ -1307,12 +1306,10 @@ func _refresh_sheet(st: Dictionary) -> void:
 		var cs := _sheet_refs.claim_slot as HBoxContainer
 		for c in cs.get_children():
 			c.queue_free()
-		var claim := SignalKit.stamp_button({"width": 456.0, "height": 120.0, "word": "CLAIM REWARDS" if n > 0 else "FILLING",
+		var claim := SignalKit.stamp_button({"width": 580.0, "height": 120.0, "word": "CLAIM REWARDS" if n > 0 else "FILLING",
 			"kicker": "SANCTUM  //  COLLECT", "disabled": n == 0, "button_text": "Claim"}, _claim)
 		claim.name = "Claim"
 		cs.add_child(claim)
-		cs.add_theme_constant_override("separation", 12)
-		cs.add_child(_claim_cap(n > 0, claim))
 		_sheet_refs["claim"] = claim
 	var cl: Variant = _sheet_refs.get("claim", null)
 	if cl is Button and is_instance_valid(cl):
@@ -1330,35 +1327,6 @@ func _refresh_sheet(st: Dictionary) -> void:
 		slot.add_child(q)
 		_sheet_refs["quick"] = q
 		Guide.mark(q, Guide.step() == "claim", 0)
-
-
-## The Sanctum's big red push button beside the claim stamp: a red cap in a knurled silver bezel
-## (rendered), with a green light when there is something to collect. It claims too; pressing either
-## sinks the cap.
-func _claim_cap(has_any: bool, stamp: Button) -> Button:
-	var b := Button.new()
-	b.name = "ClaimCap"
-	b.theme_type_variation = &"BareButton"
-	b.focus_mode = FOCUS_NONE
-	b.custom_minimum_size = Vector2(112, 120)
-	var cap := PhysicalKit.PushCap.new("bezel", 100.0)
-	cap.position = Vector2(6, 10)
-	b.add_child(cap)
-	var led := PhysicalKit.Led.new("green" if has_any else "red", "breathe" if has_any else "off", 16.0)
-	led.position = Vector2(92, 2)
-	b.add_child(led)
-	var down := func() -> void:
-		cap.set_pressed(true)
-		Kit.haptic(16)
-	var up := func() -> void: cap.set_pressed(false)
-	b.button_down.connect(down)
-	b.button_up.connect(up)
-	stamp.button_down.connect(down)
-	stamp.button_up.connect(up)
-	b.pressed.connect(func() -> void:
-		Kit.sfx("tap")
-		_claim())
-	return b
 
 
 ## Quick Claim as a printed outline button: the name in heavy condensed type over a mono line (free,

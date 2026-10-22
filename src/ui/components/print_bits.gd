@@ -11,9 +11,6 @@ extends RefCounted
 ##   CropMarks  printer's crop marks at the four corners of a sheet
 ##   Sweep      an indeterminate printed progress rule (a signal run sliding along the ticks)
 
-const INK := Color("101113")
-const SIGNAL := Color("ff4b1f")
-
 
 class TickRule:
 	extends Control

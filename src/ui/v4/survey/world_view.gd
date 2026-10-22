@@ -5,9 +5,9 @@ extends Control
 ## time by planet.gdshader (a grey studio render on the day side that turns into halftone print in
 ## the shadow, an ink terminator, lava that glows, ice and crystal that glint), in an IsoView at 30
 ## fps. Around it the instrument's line work, drawn in 2D: ring arcs with ticks and segment marks
-## that draw on, a crosshair, diagonal strokes, a "Loading ..." line that types in, the MASS tag, a
-## barcode ring with its ID turning slowly, and a vertical gauge whose marker is the chapter's
-## progress. A soft shadow lies under the planet on the paper.
+## that draw on, a crosshair, diagonal strokes, a status line that types in (a locked world's
+## "Signal lost ..."), the MASS tag, a barcode ring with its ID turning slowly, and a vertical gauge
+## whose marker is the chapter's progress. A soft shadow lies under the planet on the paper.
 ##
 ##   var w := WorldView.new(); w.world = 3; w.center = Vector2(330, 280); w.radius = 190.0
 ##   w.size = Vector2(684, 560); add_child(w); w.pressed.connect(...)
@@ -50,7 +50,7 @@ var progress := 0.0
 ## The MASS tag's value and the barcode ring's ID line.
 var mass_text := ""
 var id_text := ""
-var loading_text := "Loading ..."
+var loading_text := ""
 
 var view: IsoView
 var _pivot: Node3D
@@ -321,24 +321,26 @@ class _Hud:
 		var ch := c + Vector2(-r * 1.17, 0.0)
 		draw_line(ch - Vector2(9, 0), ch + Vector2(9, 0), ink, 1.2, true)
 		draw_line(ch - Vector2(0, 16), ch + Vector2(0, 16), ink, 1.2, true)
-		# "Loading ..." types in over the top left, then its dots keep cycling.
+		# A status line (a locked world's "Signal lost ...") types in over the top left, then its
+		# dots keep cycling. Open worlds print none (a "Loading ..." that never ends read as stuck).
 		var lt: String = wv.loading_text
-		var shown := lt
-		if anim:
-			var n := int(t / 0.055)
-			if n < lt.length():
-				shown = lt.substr(0, n)
-			else:
-				var base := lt.trim_suffix("...").trim_suffix(" ")
-				var dots := 1 + int(fmod(t * 1.6, 3.0))
-				shown = base + " " + ".".repeat(dots)
-		var lp := c + Vector2(-r * 0.86, -r * 1.36)
-		draw_string(fm, lp, shown, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, ink)
-		# Three short bars before it (a signal meter).
-		for i in 3:
-			draw_rect(Rect2(lp + Vector2(-26.0 + i * 5.0, -11.0), Vector2(2.0, 10.0)), Color(INK, (0.85 if i < 2 else 0.35) * fade))
-		draw_line(lp + Vector2(-38, -20), lp + Vector2(-38, -6), ink, 1.2, true)
-		draw_line(lp + Vector2(-38, -6), lp + Vector2(-30, -6), ink, 1.2, true)
+		if lt != "":
+			var shown := lt
+			if anim:
+				var n := int(t / 0.055)
+				if n < lt.length():
+					shown = lt.substr(0, n)
+				else:
+					var base := lt.trim_suffix("...").trim_suffix(" ")
+					var dots := 1 + int(fmod(t * 1.6, 3.0))
+					shown = base + " " + ".".repeat(dots)
+			var lp := c + Vector2(-r * 0.86, -r * 1.36)
+			draw_string(fm, lp, shown, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, ink)
+			# Three short bars before it (a signal meter).
+			for i in 3:
+				draw_rect(Rect2(lp + Vector2(-26.0 + i * 5.0, -11.0), Vector2(2.0, 10.0)), Color(INK, (0.85 if i < 2 else 0.35) * fade))
+			draw_line(lp + Vector2(-38, -20), lp + Vector2(-38, -6), ink, 1.2, true)
+			draw_line(lp + Vector2(-38, -6), lp + Vector2(-30, -6), ink, 1.2, true)
 		# The MASS tag across the lower left of the planet.
 		var mt: String = wv.mass_text
 		if mt != "":

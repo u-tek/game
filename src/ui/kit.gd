@@ -1,77 +1,52 @@
 class_name Kit
 extends RefCounted
-## Kit: static UI builders for Halo & Horn, style v3 "Aero Y2K" (2026-10-17: v2's layout with rounded glass
-## plates, bubble badges, gloss and an ocean-and-aqua palette; KitBox.aero). Was style v2 ("tactical gacha": dark translucent
-## chrome over full-screen art, light paper pages with near-black text, one bright cyan-blue
-## accent, orange highlights, condensed bold type, skewed plates, hex badges, hatching and
-## thin technical lines). Spec: docs/dev/ui-style-v2.md. Every screen builds its UI with
-## these so the whole game shares one look.
+## Kit: static UI builders for Halo & Horn. Every screen builds its UI with these so the whole
+## game shares one look: style v4 "Signal", the poster house style (paper matte, ink, red
+## halftone, compressed type; spec: docs/dev/ui-style-v4.md). The token names date from style v2
+## so every screen keeps compiling.
 ##
 ## Quick reference (all static, all return ready-to-add Controls):
 ##   Tokens     dark chrome: BG, CHROME, PANEL, PANEL_HI, LINE, INK, INK_DIM, OUTLINE
-##              light pages: PAPER, WHITE, TEXT, TEXT_DIM, LINE_LIGHT
+##              light pages: PAPER, WHITE, TEXT, TEXT_DIM, LINE_LIGHT, BONE
+##              poster: MATTE, SHEET, SHEET_WHITE, BAND, PRINT_RED
 ##              accents: ACCENT, ACCENT_HI, ACCENT_DEEP, ORANGE, ORANGE_HI, NEW_RED, RED_DOT
 ##              semantic: GOLD, GOLD_LIGHT, GOLD_DEEP, EMBER, VIOLET, SKY, GOOD, RARE, EPIC,
-##              LEGENDARY; SIZE_SMALL/BODY/BUTTON/HEADER/HERO; BUTTON_H (88), GAP, PAD, SKEW
-##   Text       label, title, header, body, number, caption, font, fit_label
-##   Buttons    primary_button (cyan), secondary_button (graphite), danger_button, light_button
-##              (white, for light pages), orange_button, icon_button, cost_button,
-##              costs_button, segmented, filter_chips, tab_strip, toggle, make_tappable,
-##              add_press_fx, empty_slot, back_bar
-##   Lobby      shortcut (big tapered plate), side_button, speech_bubble, banner_card,
-##              notice_bar, percent_meter, resource_pill, avatar
-##   Layout     vbox, hbox, grid, flow, scroll, margin, center, spacer, expand, add, divider
+##              LEGENDARY; SIZE_SMALL/BODY/BUTTON/HEADER/HERO; BUTTON_H (88), GAP, PAD
+##   Text       label, title, body, font, fit_label
+##   Buttons    primary_button, secondary_button, danger_button, light_button, icon_button,
+##              segmented, filter_chips, toggle, make_tappable, add_press_fx, deny
+##   Chrome     resource_pill (top bar currencies), avatar
+##   Layout     vbox, hbox, grid, scroll, margin, spacer, add, divider
 ##   Panels     panel ("glass" | "card" | "inset" | "plain" dark; "white" | "paper" |
-##              "light_inset" | "row" light), card, info_panel, header_bar, dialog, style, box,
-##              page_bg
-##   Print (v4 poster sheets, 2026-10-19)  dialog (the printed sheet every popup uses),
-##              tick_rule, fill_dial/set_dial, sheet_pass (the compact OG pass), reward_receipt,
-##              halftone_ramp, loading_veil, print_label; the light-family widgets (buttons,
-##              chips, segments, tabs, rows, header_bar, section_header, empty_state, divider,
-##              reward tiles, light progress bars) are drawn in the poster style too
-##   Widgets    progress_bar/set_progress, star_row, currency_icon, currency_chip/
-##              set_chip_amount, cost_row, reward_list, reward_tile, faction_badge, role_badge,
-##              rarity_badge, rarity_mark, tag, hero_card, portrait_card, name_plate,
-##              equip_slot, hex_badge, new_badge/set_new, dot/set_dot, section_header,
-##              screen_header, stat_row, empty_state, icon, deco, glow, rays, ribbon,
-##              art_background, art_crop, vgradient
-##   Economy    have(currency_id), can_afford(costs)
-##   Colors     faction_color, rarity_color, rarity_frame, tier_color
+##              "light_inset" | "row" light), glassify, header_bar, dialog, style, box
+##   Print      dialog (the printed sheet every popup uses), tick_rule, fill_dial/set_dial,
+##              sheet_pass (the compact pass), reward_receipt, halftone_ramp, loading_veil,
+##              print_label
+##   Widgets    currency_icon, set_chip_amount, reward_entries, faction_icon, faction_badge, tag,
+##              hex_badge, equip_slot, dot/set_dot, section_header, empty_state, icon,
+##              art_crop, hero_look, vgradient, grayscale_material
+##   Economy    have(currency_id)
+##   Colors     faction_color, rarity_color, tier_color, roman
 ##   Numbers    format_num (12.5K / 3.4M), format_full (1,234,567), format_time (2h 05m)
-##   Motion     pop_in, pulse, shake, deny, count_to, offset_in, stagger_in, float_text,
-##              sparkle, spinner, add_shine, add_glow_pulse, motion_ok
+##   Motion     pop_in, pulse, shake, count_to, offset_in, stagger_in, float_text, motion_ok
 ##
 ## Conventions: sizes are viewport px on the 720 px wide canvas. Light-on-dark is the
 ## default (INK text on dark chrome); builders that also live on light pages take a
-## `light` flag (TEXT colors). Builders only read Game (never write): hero cards (owned
-## level/stars when not given), reward tiles (gear names), cost rows / costs buttons /
-## have / can_afford (currency amounts). Buttons play UI.sfx("tap") and a light haptic.
-## Every clickable Kit widget uses MOUSE_FILTER_PASS so it works inside Kit.scroll lists (a
-## drag scrolls instead of pressing). Touch targets are at least BUTTON_H (88 px) tall.
+## `light` flag (TEXT colors). Builders only read Game (never write): reward receipts (hero and
+## gear names), have (currency amounts), hero_look (equipped skins). Buttons play UI.sfx("tap")
+## and a light haptic. Every clickable Kit widget uses MOUSE_FILTER_PASS so it works inside
+## Kit.scroll lists (a drag scrolls instead of pressing). Touch targets are at least BUTTON_H
+## (88 px) tall.
 ##
-## Feel (2026-10-19): every Kit button, tile and card squashes and brightens the instant a
-## finger lands and springs back past full size on release (add_press_fx); a tap on a
-## disabled button shakes "no". Primary and orange buttons, banners and the lobby call to
-## action catch a light sweep now and then (add_shine); orange buttons breathe a glow.
-## Progress bars fill in, currency amounts count with a colour flash, tabs slide their
-## underline, switches slide their knob. Settings > Reduce motion (motion_ok() false) turns
-## the decorative motion off; press feedback stays.
+## Feel (2026-10-19): every Kit button and tile squashes and brightens the instant a finger
+## lands and springs back past full size on release (add_press_fx); a tap on a disabled button
+## shakes "no". Currency amounts count with a colour flash, switches slide their knob.
+## Settings > Reduce motion (motion_ok() false) turns the decorative motion off; press feedback
+## stays.
 
 const KitBox := preload("res://src/ui/components/kit_box.gd")
-const HeroCard := preload("res://src/ui/components/hero_card.gd")
-const PortraitCard := preload("res://src/ui/components/portrait_card.gd")
-const Filigree := preload("res://src/ui/components/filigree.gd")
 const Dot := preload("res://src/ui/components/dot.gd")
-const Badge := preload("res://src/ui/components/badge.gd")
 const HexBadge := preload("res://src/ui/components/hex_badge.gd")
-const Deco := preload("res://src/ui/components/deco.gd")
-const Rays := preload("res://src/ui/components/rays.gd")
-const Ribbon := preload("res://src/ui/components/ribbon.gd")
-const ShortcutButton := preload("res://src/ui/components/shortcut_button.gd")
-const Backdrop := preload("res://src/ui/components/backdrop.gd")
-const Shine := preload("res://src/ui/components/shine.gd")
-const Spinner := preload("res://src/ui/components/spinner.gd")
-const Sparkle := preload("res://src/ui/components/sparkle.gd")
 const ToggleSwitch := preload("res://src/ui/components/toggle_switch.gd")
 const PrintBits := preload("res://src/ui/components/print_bits.gd")
 const PlateScript := preload("res://src/ui/components/plate.gd")
@@ -113,14 +88,8 @@ const NEW_RED := Color("ff3b1f")
 const RED_DOT := Color("ff3b1f")
 
 # Signal extras.
-## Status-light red (Kit.led).
-const LED := Color("ff3b1f")
-## Off-white bone and the brushed sage-grey metal of plates.
+## Off-white bone.
 const BONE := Color("ecebe5")
-const METAL_TOP := Color("d6d9d3")
-const METAL_BOTTOM := Color("b4bab4")
-## Smoked glass fill (Kit.panel glass kinds blur what is behind them; glass.gdshader).
-const GLASS := Color("15181dad")
 
 # The poster house style (docs/dev/ui-style-v4.md section 0): the paper matte, printed poster
 # paper, sticker white, the dark band and the print ink (TEXT is the same ink).
@@ -153,14 +122,11 @@ const SIZE_HERO := 56
 const BUTTON_H := 88
 const GAP := 16
 const PAD := 24
-## The house slant: tan(10 degrees). Plates skew by this fraction of their height.
-const SKEW := 0.176
 
-const CURRENCIES: Array[String] = ["gold", "gems", "scrolls", "hero_exp", "dust"]
 const CURRENCY_NAMES := {
 	"gold": "Gold", "gems": "Gems", "scrolls": "Summon Scrolls", "hero_exp": "Hero EXP", "dust": "Dust",
 }
-## Short names for tight spots (reward tile captions).
+## Short names for tight spots.
 const CURRENCY_SHORT := {"gold": "Gold", "gems": "Gems", "scrolls": "Scrolls", "hero_exp": "Hero EXP", "dust": "Dust"}
 const FACTIONS: Array[String] = ["celestial", "infernal", "fallen"]
 const FACTION_NAMES := {"celestial": "Celestial", "infernal": "Infernal", "fallen": "Fallen"}
@@ -208,7 +174,6 @@ const _FONT_FILES := {
 
 static var _fonts: Dictionary = {}
 static var _icons: Dictionary = {}
-static var _glow_textures: Dictionary = {}
 static var _grad_textures: Dictionary = {}
 static var _crops: Dictionary = {}
 ## Hero id -> the looks (HeroArt.art_key) art_crop holds crops of, oldest first; at most
@@ -338,8 +303,8 @@ static func label(text: String, size: int = SIZE_BODY, color: Color = INK, weigh
 	return l
 
 
-## Big display title (hero names, result banners): Barlow Condensed ExtraBold, white, soft
-## drop shadow. Centered.
+## Big display title (hero names, result banners): Archivo "title" (expanded, heavy), soft drop
+## shadow. Centered.
 static func title(text: String, size: int = SIZE_HERO, color: Color = INK) -> Label:
 	var l := label(text, size, color, "title", 0)
 	l.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.45))
@@ -350,17 +315,7 @@ static func title(text: String, size: int = SIZE_HERO, color: Color = INK) -> La
 	return l
 
 
-## Screen / panel header: Barlow Condensed ExtraBold 40 (text case kept as given).
-static func header(text: String, size: int = SIZE_HEADER, color: Color = INK) -> Label:
-	var l := label(text, size, color, "title", 0)
-	if color.get_luminance() > 0.5:
-		l.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.4))
-		l.add_theme_constant_override("shadow_offset_y", 2)
-		l.add_theme_constant_override("shadow_outline_size", 3)
-	return l
-
-
-## Body text: Barlow SemiBold, word-wrapped by default (expands horizontally for a width).
+## Body text: Archivo "bold", word-wrapped by default (expands horizontally for a width).
 static func body(text: String, size: int = SIZE_BODY, color: Color = INK, wrap: bool = true) -> Label:
 	var l := label(text, size, color, "bold")
 	if wrap:
@@ -368,18 +323,6 @@ static func body(text: String, size: int = SIZE_BODY, color: Color = INK, wrap: 
 		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		l.custom_minimum_size.x = 40
 	return l
-
-
-## Number display: Barlow Condensed Bold with a thin dark outline. ints are compact (12.5K).
-static func number(value: Variant, size: int = SIZE_BUTTON, color: Color = INK) -> Label:
-	var text := format_num(int(value)) if (value is int or value is float) else str(value)
-	var dark := color.get_luminance() < 0.4
-	return label(text, size, color, "black", 0 if dark else maxi(3, size / 9))
-
-
-## Small secondary text (22 px, dim).
-static func caption(text: String, size: int = SIZE_SMALL, color: Color = INK_DIM) -> Label:
-	return label(text, size, color, "bold")
 
 
 ## Shrinks a label's font size (down to min_size) until its text fits `width` px.
@@ -393,7 +336,7 @@ static func fit_label(l: Label, width: float, max_size: int, min_size: int = 14)
 
 # ------------------------------------------------------------------ buttons
 
-## Cyan-blue call-to-action button (88 px tall). icon = optional assets/art/ui icon name.
+## The signal call-to-action button (88 px tall). icon = optional assets/art/ui icon name.
 static func primary_button(text: String, on_pressed: Callable = Callable(), icon_name: String = "") -> Button:
 	return _button(text, &"PrimaryButton", on_pressed, icon_name)
 
@@ -413,13 +356,8 @@ static func light_button(text: String, on_pressed: Callable = Callable(), icon_n
 	return _button(text, &"LightButton", on_pressed, icon_name)
 
 
-## Orange glowing button: the one "go fight / go now" action on a screen.
-static func orange_button(text: String, on_pressed: Callable = Callable(), icon_name: String = "") -> Button:
-	return _button(text, &"OrangeButton", on_pressed, icon_name)
-
-
 ## Square icon button with an 88 px touch target.
-## look: "round" (dark glass tile, default), "gold" / "accent" (cyan tile), "light" (white
+## look: "round" (dark glass tile, default), "gold" / "accent" (signal tile), "light" (white
 ## tile, dark glyph), "bare" (glyph only).
 static func icon_button(icon_name: String, on_pressed: Callable = Callable(), size: float = 88.0, look: String = "round") -> Button:
 	var b := Button.new()
@@ -448,165 +386,10 @@ static func icon_button(icon_name: String, on_pressed: Callable = Callable(), si
 	return b
 
 
-## Button with a label and a price line, e.g. ("Summon x10", "gems", 2700).
-## look: "primary" | "secondary" | "light" | "orange". The price sits in a small pill under
-## the label and turns red when the player has less than `amount` (or when affordable =
-## false); the button stays pressable so the screen can explain why. amount <= 0 shows a
-## green "FREE" in the pill instead (free daily summon).
-static func cost_button(text: String, currency_id: String, amount: int, on_pressed: Callable = Callable(), look: String = "primary", affordable: bool = true) -> Button:
-	var b := _button("", _variation(look), on_pressed, "")
-	b.custom_minimum_size = Vector2(240, 108)
-	var col := vbox(4)
-	col.alignment = BoxContainer.ALIGNMENT_CENTER
-	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var t := label(text, 30, _button_ink(look), "extrabold")
-	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	col.add_child(t)
-	var short := not affordable or have(currency_id) < amount
-	var pill := _price_pill(look)
-	var price := hbox(6)
-	price.alignment = BoxContainer.ALIGNMENT_CENTER
-	price.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if amount <= 0:
-		var free_ink := Color("12965c") if look in ["primary", "orange", "light"] else GOOD
-		price.add_child(label("FREE", 24, free_ink, "black"))
-	else:
-		price.add_child(currency_icon(currency_id, 30))
-		price.add_child(label(format_full(amount), 24, _price_ink(look, short), "black"))
-	pill.add_child(price)
-	col.add_child(center(pill))
-	col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	col.offset_bottom = -4
-	b.add_child(col)
-	b.set_meta("price_box", price)
-	_dress_button(b, look)
-	return b
-
-
-## Icons + amounts for a cost dict, e.g. {"gold": 1200, "hero_exp": 300}. When
-## check_afford is on, amounts the player can't pay are drawn in `short_color`.
-static func cost_row(costs: Dictionary, size: int = 24, color: Color = INK, check_afford: bool = true, short_color: Color = Color("ff6a50")) -> HBoxContainer:
-	var row := hbox(16)
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	for id: Variant in costs:
-		var amt := int(costs[id])
-		var pair := hbox(4)
-		pair.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		pair.add_child(currency_icon(str(id), size + 8))
-		var ok := (not check_afford) or have(str(id)) >= amt
-		pair.add_child(label(format_full(amt) if amt < 100000 else format_num(amt), size, color if ok else short_color, "black"))
-		row.add_child(pair)
-	return row
-
-
 ## Amount of a currency the player has (0 when Game isn't available).
 static func have(currency_id: String) -> int:
 	var g := autoload("Game")
 	return int(g.call("currency", currency_id)) if g else 0
-
-
-## True when the player can pay every amount in `costs` ({currency_id: amount}).
-static func can_afford(costs: Dictionary) -> bool:
-	for id: Variant in costs:
-		if have(str(id)) < int(costs[id]):
-			return false
-	return true
-
-
-## Like cost_button but for several currencies, e.g. ("Level Up", {"gold": 1200, "hero_exp": 300}).
-## Amounts the player can't pay show in red automatically. look: as cost_button.
-static func costs_button(text: String, costs: Dictionary, on_pressed: Callable = Callable(), look: String = "primary") -> Button:
-	var b := _button("", _variation(look), on_pressed, "")
-	b.custom_minimum_size = Vector2(240, 108)
-	var col := vbox(4)
-	col.alignment = BoxContainer.ALIGNMENT_CENTER
-	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var t := label(text, 30, _button_ink(look), "extrabold")
-	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	col.add_child(t)
-	var pill := _price_pill(look)
-	pill.add_child(cost_row(costs, 22, _price_ink(look, false), true, _price_ink(look, true)))
-	col.add_child(center(pill))
-	col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	col.offset_bottom = -4
-	b.add_child(col)
-	_dress_button(b, look)
-	return b
-
-
-## Idle life for a call-to-action button: the hot orange "go now" plate catches a glint now and
-## then and breathes a glow. The signal plate (primary) is flat print: no gloss (style v4).
-static func _dress_button(b: Button, look: String) -> void:
-	if look == "orange":
-		add_shine(b)
-		add_glow_pulse(b, ORANGE)
-
-
-## Fits a Kit text button into `width` px (tight rows): narrows its side padding to `pad`
-## and shrinks the font (max_size down to min_size) until the text fits, so the button's
-## minimum width never pushes its row wider than planned.
-static func fit_button(b: Button, width: float, max_size: int = SIZE_BUTTON, min_size: int = 16, pad: float = 10.0) -> void:
-	var bases := {&"PrimaryButton": "btn_primary", &"SecondaryButton": "btn_secondary", &"DangerButton": "btn_danger",
-		&"LightButton": "btn_light", &"OrangeButton": "btn_orange"}
-	var base := str(bases.get(b.theme_type_variation, "btn_secondary"))
-	var suffix := {"normal": "", "hover": "_hover", "pressed": "_pressed", "hover_pressed": "_pressed", "disabled": "_disabled"}
-	for st: String in suffix:
-		var sb := UITheme.style(base + str(suffix[st]))
-		sb.content_margin_left = pad
-		sb.content_margin_right = pad
-		b.add_theme_stylebox_override(st, sb)
-	var f := b.get_theme_font("font")
-	var fs := max_size
-	while fs > min_size and f.get_string_size(b.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > width - pad * 2.0 - 2.0:
-		fs -= 1
-	b.add_theme_font_size_override("font_size", fs)
-	b.custom_minimum_size.x = minf(b.custom_minimum_size.x, width)
-
-
-static func _variation(look: String) -> StringName:
-	match look:
-		"secondary":
-			return &"SecondaryButton"
-		"light":
-			return &"LightButton"
-		"orange":
-			return &"OrangeButton"
-		"danger":
-			return &"DangerButton"
-	return &"PrimaryButton"
-
-
-static func _button_ink(look: String) -> Color:
-	return TEXT if look == "light" else Color.WHITE
-
-
-static func _price_pill(look: String) -> PanelContainer:
-	var p := PanelContainer.new()
-	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var bx := KitBox.new()
-	bx.radius = 999
-	if look == "primary" or look == "orange":
-		bx.top_color = SHEET_WHITE
-		bx.bottom_color = SHEET_WHITE
-	elif look == "light":
-		bx.top_color = Color(TEXT, 0.08)
-		bx.bottom_color = Color(TEXT, 0.08)
-	else:
-		bx.top_color = Color(0, 0, 0, 0.4)
-		bx.bottom_color = Color(0, 0, 0, 0.4)
-	bx.content_margin_left = 14
-	bx.content_margin_right = 16
-	bx.content_margin_top = 0
-	bx.content_margin_bottom = 0
-	p.add_theme_stylebox_override("panel", bx.commit())
-	return p
-
-
-static func _price_ink(look: String, short: bool) -> Color:
-	if look == "primary" or look == "orange" or look == "light":
-		return Color("d42a12") if short else TEXT
-	return Color("ff6a50") if short else INK
 
 
 ## Row of toggle tabs (one selected). options: Array of String or {text, icon}.
@@ -648,7 +431,7 @@ static func segmented(options: Array, selected: int, on_select: Callable = Calla
 	return row
 
 
-## Square filter chips (roster filters): dark graphite squares, the selected one cyan.
+## Square filter chips (roster filters): printed outline squares, the selected one solid ink.
 ## options: Array of String ("ALL", "I") or {icon} / {text, icon}. Each chip is `size` px
 ## visually inside an 88 px touch square. on_select(index).
 static func filter_chips(options: Array, selected: int, on_select: Callable = Callable(), size: float = 76.0) -> HBoxContainer:
@@ -699,86 +482,7 @@ static func filter_chips(options: Array, selected: int, on_select: Callable = Ca
 	return row
 
 
-## Tab strip (page tabs, dialog tabs): the active tab is a white plate with a cyan top bar
-## and near-black text, the others are dark glass with light text. options: String or
-## {text, icon}. on_select(index). Each tab is 88 px tall. The cyan bar ("Ink") slides from
-## the old tab to the new one.
-static func tab_strip(options: Array, selected: int, on_select: Callable = Callable(), min_width: float = 200.0) -> HBoxContainer:
-	var row := hbox(2)
-	row.name = "TabStrip"
-	var group := ButtonGroup.new()
-	for i in options.size():
-		var opt: Variant = options[i]
-		var b := Button.new()
-		b.toggle_mode = true
-		b.button_group = group
-		b.focus_mode = Control.FOCUS_NONE
-		b.mouse_filter = Control.MOUSE_FILTER_PASS
-		b.custom_minimum_size = Vector2(min_width, BUTTON_H)
-		b.theme_type_variation = &"TabButton"
-		# The active plate without its own bar: the shared Ink draws (and slides) it.
-		b.add_theme_stylebox_override("pressed", UITheme.style("tab_on_flat"))
-		b.add_theme_stylebox_override("hover_pressed", UITheme.style("tab_on_flat"))
-		var text := str(opt.get("text", "")) if opt is Dictionary else str(opt)
-		b.text = text.to_upper()
-		if opt is Dictionary and opt.has("icon"):
-			b.icon = icon_texture(str(opt.icon))
-			b.add_theme_constant_override("icon_max_width", 34)
-			b.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
-		var ink := ColorRect.new()
-		ink.name = "Ink"
-		ink.color = ACCENT
-		ink.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		ink.z_index = 1
-		ink.anchor_right = 1.0
-		ink.offset_bottom = 5
-		ink.visible = i == selected
-		b.add_child(ink)
-		b.button_pressed = i == selected
-		add_press_fx(b)
-		var idx := i
-		b.toggled.connect(func(on: bool) -> void:
-			if on:
-				_slide_ink(row, b)
-				sfx("tab")
-				haptic(10, 0.3)
-				if on_select.is_valid():
-					on_select.call(idx))
-		row.add_child(b)
-	return row
-
-
-## Moves a tab strip's cyan bar from the tab that had it to `to` (an eased slide that also
-## takes on the new tab's width).
-static func _slide_ink(row: Control, to: Button) -> void:
-	var ink := to.get_node_or_null("Ink") as Control
-	if ink == null:
-		return
-	var from: Button = null
-	for c in row.get_children():
-		if c != to and c is Button:
-			var other := (c as Button).get_node_or_null("Ink") as Control
-			if other and other.visible:
-				from = c as Button
-				other.visible = false
-	ink.visible = true
-	var prev: Variant = ink.get_meta("_tw") if ink.has_meta("_tw") else null
-	if prev is Tween and (prev as Tween).is_valid():
-		(prev as Tween).kill()
-	if from == null or not motion_ok() or not to.is_inside_tree():
-		ink.offset_left = 0
-		ink.offset_right = 0
-		return
-	var dx := from.position.x - to.position.x
-	ink.offset_left = dx
-	ink.offset_right = dx + from.size.x - to.size.x
-	var tw := ink.create_tween().set_parallel(true)
-	tw.tween_property(ink, "offset_left", 0.0, 0.32).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-	tw.tween_property(ink, "offset_right", 0.0, 0.32).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-	ink.set_meta("_tw", tw)
-
-
-## On/off switch (settings): an animated Aero switch (ToggleSwitch, still a CheckButton).
+## On/off switch (settings): an animated switch (ToggleSwitch, still a CheckButton).
 ## on_toggled(on: bool).
 static func toggle(on: bool, on_toggled: Callable = Callable()) -> CheckButton:
 	var c := ToggleSwitch.new()
@@ -922,8 +626,6 @@ static func _button(text: String, variation: StringName, on_pressed: Callable, i
 	add_press_fx(b)
 	if on_pressed.is_valid():
 		_connect_pressed(b, on_pressed)
-	if text != "" or icon_name != "":
-		_dress_button(b, "primary" if variation == &"PrimaryButton" else ("orange" if variation == &"OrangeButton" else ""))
 	return b
 
 
@@ -966,387 +668,7 @@ static func _center_child(parent: Control, child: Control, sz: Vector2) -> void:
 	parent.add_child(child)
 
 
-## Bottom-left "Back" + home pair (sub-screens without the nav, like hero detail): a cyan
-## Back button with the exit glyph and a cyan square home button. on_back defaults to
-## UI.back(), on_home to UI.go("home").
-static func back_bar(on_back: Callable = Callable(), on_home: Callable = Callable()) -> HBoxContainer:
-	var row := hbox(8)
-	row.name = "BackBar"
-	var cb := on_back
-	if not cb.is_valid():
-		cb = func() -> void:
-			var u := autoload("UI")
-			if u:
-				u.call("back")
-	var hb := on_home
-	if not hb.is_valid():
-		hb = func() -> void:
-			var u := autoload("UI")
-			if u:
-				u.call("go", "home")
-	var back := primary_button("Back", cb, "exit")
-	back.name = "Back"
-	back.custom_minimum_size = Vector2(200, BUTTON_H)
-	row.add_child(back)
-	var home := icon_button("home", hb, BUTTON_H, "accent")
-	home.name = "Home"
-	row.add_child(home)
-	return row
-
-
-# ------------------------------------------------------------------ lobby widgets
-
-## Big lobby shortcut plate (tapered translucent quad with a glyph and a title).
-## look: "blue" | "white" | "orange" | "dark" (see shortcut_button.gd). opts:
-##   size: Vector2 = (330, 150)   side: "left" | "right" (which screen edge it hugs)
-##   badge: "N" | "!" | "dot" | ""  sub: Control (a meter or art strip under the title)
-##   title_size: int              icon_k: float (glyph size / plate height)
-##   art: Texture2D               framed art strip in the lower right (art_caption: tag text)
-static func shortcut(text: String, icon_name: String, look: String = "blue", on_pressed: Callable = Callable(), opts: Dictionary = {}) -> Button:
-	var b := ShortcutButton.new()
-	var sz: Vector2 = opts.get("size", Vector2(330, 150))
-	b.taper = float(opts.get("taper", 0.12))
-	b.icon_k = float(opts.get("icon_k", 0.56))
-	b.title_size = int(opts.get("title_size", 0))
-	b.setup(text, icon_name, look, 1 if str(opts.get("side", "left")) == "right" else -1, sz)
-	var sub: Variant = opts.get("sub", null)
-	if sub is Control:
-		b.set_sub(sub)
-	var art: Variant = opts.get("art", null)
-	if art is Texture2D:
-		b.set_art(art, str(opts.get("art_caption", "")))
-	add_press_fx(b, b.face)
-	if on_pressed.is_valid():
-		_connect_pressed(b, on_pressed)
-	_apply_badge(b, str(opts.get("badge", "")), 30.0, Vector2(-6, -10))
-	return b
-
-
-## Small lobby side button: a 72 px tile with a glyph and a label under it (shadowed white
-## text), on a 96 x 116 touch area. look: "dark" (glass tile), "accent" (cyan tile),
-## "orange" (orange tile), "white" (white tile, dark glyph), "diamond" (one dark glass diamond
-## with a white glyph). badge: "N" | "!" | "dot" | "".
-static func side_button(icon_name: String, text: String, on_pressed: Callable = Callable(), look: String = "dark", badge: String = "") -> Button:
-	var b := Button.new()
-	b.theme_type_variation = &"BareButton"
-	b.focus_mode = Control.FOCUS_NONE
-	b.mouse_filter = Control.MOUSE_FILTER_PASS
-	b.custom_minimum_size = Vector2(104, 120)
-	b.name = "Side_" + text.to_pascal_case()
-	var face := Control.new()
-	face.name = "Face"
-	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	face.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	b.add_child(face)
-	var tile := Panel.new()
-	tile.name = "Tile"
-	tile.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var ts := 74.0
-	tile.anchor_left = 0.5
-	tile.anchor_right = 0.5
-	tile.offset_left = -ts * 0.5
-	tile.offset_right = ts * 0.5
-	tile.offset_top = 4
-	tile.offset_bottom = 4 + ts
-	var glyph_tint := Color.WHITE
-	if look == "diamond":
-		# One frame only: a dark glass diamond with the white glyph on it.
-		tile.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-		tile.draw.connect(func() -> void:
-			var ci := tile.get_canvas_item()
-			var c := tile.size * 0.5
-			var r := ts * 0.5
-			var dia := PackedVector2Array([c + Vector2(0, -r), c + Vector2(r, 0), c + Vector2(0, r), c + Vector2(-r, 0)])
-			KitBox.soft_shadow(ci, dia, Color(0, 0, 0, 0.4), 6.0, Vector2(0, 2))
-			KitBox.fill_poly(ci, dia, Color("121c31d9"), Color("090e1cd9"))
-			KitBox.stroke_poly(ci, dia, Color(1, 1, 1, 0.45), 1.5))
-	else:
-		var kind := {"accent": "tile_accent", "orange": "tile_orange", "white": "tile_white"}.get(look, "tile_dark") as String
-		tile.add_theme_stylebox_override("panel", UITheme.style(kind))
-		if look == "white":
-			glyph_tint = Color("111c31")
-	face.add_child(tile)
-	var isz := ts * (0.46 if look == "diamond" else 0.6)
-	var ic := icon(icon_name, isz, glyph_tint)
-	ic.name = "Glyph"
-	_center_child(tile, ic, Vector2(isz, isz))
-	var l := label(text, 22, Color.WHITE, "extrabold", 0)
-	l.name = "Caption"
-	l.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
-	l.add_theme_constant_override("shadow_offset_y", 2)
-	l.add_theme_constant_override("shadow_outline_size", 6)
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.anchor_right = 1.0
-	l.offset_left = -10
-	l.offset_right = 10
-	l.offset_top = 4 + ts + 6
-	l.offset_bottom = 4 + ts + 34
-	face.add_child(l)
-	add_press_fx(b, face)
-	if on_pressed.is_valid():
-		_connect_pressed(b, on_pressed)
-	_apply_badge(tile, badge, 28.0, Vector2(-12, -10))
-	return b
-
-
-## Character speech line over the lobby art: dark translucent box, bold name, text.
-## Update later with set_meta("text_label") / set_meta("name_label").
-static func speech_bubble(speaker: String, text: String, width: float = 560.0) -> PanelContainer:
-	var p := PanelContainer.new()
-	p.name = "SpeechBubble"
-	p.theme_type_variation = &"SpeechPanel"
-	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	p.custom_minimum_size.x = width
-	var v := vbox(6)
-	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var n := label(speaker, 26, Color.WHITE, "extrabold")
-	v.add_child(n)
-	var t := body(text, 24, Color("f0f2f4"))
-	t.add_theme_constant_override("line_spacing", 2)
-	v.add_child(t)
-	# The glass is light (about 45% black): a soft shadow keeps the words crisp over art.
-	for lab: Label in [n, t]:
-		lab.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.55))
-		lab.add_theme_constant_override("shadow_offset_y", 1)
-		lab.add_theme_constant_override("shadow_outline_size", 3)
-	p.add_child(v)
-	p.set_meta("name_label", n)
-	p.set_meta("text_label", t)
-	return p
-
-
-## Event / feature banner (top-left of the lobby): dark plate, faint hatching in `color`,
-## optional hero art crop on the left, a big condensed title and a colored sub-plate.
-## opts: size (Vector2(330, 136)), color (ACCENT), hero_id, skin (hero_look: default the
-## player's equipped skin, "" = base look), texture, sub_color, pages (carousel dot count,
-## 0 = none), page (active dot).
-static func banner_card(title_text: String, subtitle: String = "", on_pressed: Callable = Callable(), opts: Dictionary = {}) -> Button:
-	var sz: Vector2 = opts.get("size", Vector2(330, 136))
-	var col: Color = opts.get("color", ACCENT)
-	var b := Button.new()
-	b.theme_type_variation = &"BareButton"
-	b.focus_mode = Control.FOCUS_NONE
-	b.mouse_filter = Control.MOUSE_FILTER_PASS
-	b.name = "Banner_" + title_text.to_pascal_case()
-	var pages := int(opts.get("pages", 0))
-	b.custom_minimum_size = Vector2(sz.x, sz.y + (22.0 if pages > 0 else 0.0))
-	var face := Panel.new()
-	face.name = "Face"
-	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	face.clip_contents = true
-	face.size = sz
-	face.custom_minimum_size = sz
-	var bx := KitBox.new()
-	bx.radius = 4
-	bx.top_color = Color("111b30f0")
-	bx.bottom_color = Color("080d1bf0")
-	bx.horizontal = true
-	bx.hatch_color = Color(col, 0.16)
-	bx.hatch_spacing = 10
-	bx.hatch_from = 0.35
-	bx.shadow_size = 8
-	bx.shadow_color = Color(0, 0, 0, 0.4)
-	bx.border_width = 1.0
-	bx.border_color = Color(1, 1, 1, 0.16)
-	face.add_theme_stylebox_override("panel", bx.commit())
-	b.add_child(face)
-	var text_x := 18.0
-	var tex: Variant = opts.get("texture", null)
-	var hid := str(opts.get("hero_id", ""))
-	if tex == null and hid != "":
-		tex = art_crop(hid, (sz.x * 0.46) / sz.y, 1.15, hero_look(hid, opts))
-	if tex is Texture2D:
-		var art := TextureRect.new()
-		art.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		art.texture = tex
-		art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-		art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
-		art.size = Vector2(sz.x * 0.46, sz.y)
-		face.add_child(art)
-		var fade := TextureRect.new()
-		fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		fade.texture = vgradient(Color("0c132300"), Color("0c1323f5"), true)
-		fade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		fade.stretch_mode = TextureRect.STRETCH_SCALE
-		fade.position = Vector2(sz.x * 0.3, 0)
-		fade.size = Vector2(sz.x * 0.18, sz.y)
-		face.add_child(fade)
-		text_x = sz.x * 0.47
-	var t := label(title_text.to_upper(), int(sz.y * 0.3), Color.WHITE, "title", 0)
-	t.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.5))
-	t.add_theme_constant_override("shadow_offset_y", 2)
-	t.position = Vector2(text_x, sz.y * 0.08)
-	t.size = Vector2(sz.x - text_x - 12.0, sz.y * 0.58)
-	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	t.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
-	var tf := font("title")
-	var tfs := int(sz.y * 0.3)
-	while tfs > 16 and (tf.get_multiline_string_size(t.text, HORIZONTAL_ALIGNMENT_LEFT, t.size.x, tfs).y > t.size.y * 1.12 \
-			or tf.get_string_size(_longest_word(t.text), HORIZONTAL_ALIGNMENT_LEFT, -1, tfs).x > t.size.x):
-		tfs -= 1
-	t.add_theme_font_size_override("font_size", tfs)
-	t.add_theme_constant_override("line_spacing", -int(tfs * 0.22))
-	face.add_child(t)
-	if subtitle != "":
-		var sc: Color = opts.get("sub_color", ORANGE_HI)
-		var sub := tag(subtitle.to_upper(), sc, TEXT if sc.get_luminance() > 0.5 else Color.WHITE, int(maxf(16.0, sz.y * 0.13)))
-		sub.position = Vector2(text_x, sz.y * 0.7)
-		face.add_child(sub)
-	if pages > 0:
-		var dots := Deco.new()
-		dots.kind = "pips"
-		dots.count = pages
-		dots.filled = 0
-		dots.color = Color.WHITE
-		dots.color2 = Color(1, 1, 1, 0.45)
-		dots.size = Vector2(pages * 16.0, 8.0)
-		dots.position = Vector2((sz.x - dots.size.x) * 0.5, sz.y + 8.0)
-		dots.set_meta("active", int(opts.get("page", 0)))
-		dots.filled = int(opts.get("page", 0)) + 1
-		b.add_child(dots)
-	# Featured banners catch the light more often than buttons.
-	add_shine(face, Callable(), 0.26, Vector2(3.2, 5.5), Vector2(0.5, 1.6))
-	add_press_fx(b, face)
-	if on_pressed.is_valid():
-		_connect_pressed(b, on_pressed)
-	_apply_badge(face, str(opts.get("badge", "")), 28.0, Vector2(-8, 6))
-	return b
-
-
-static func _longest_word(text: String) -> String:
-	var best := ""
-	for w in text.split(" ", false):
-		if w.length() > best.length():
-			best = w
-	return best
-
-
-## Objective strip ("Next: Stage 1-5"): dark glass bar with a cyan hexagon holding a glyph
-## (default the objective flag) on the left, the text, and a white chevron on the right.
-## The whole strip is the 88 px touch target.
-static func notice_bar(text: String, on_pressed: Callable = Callable(), width: float = 420.0, icon_name: String = "flag") -> Button:
-	var b := Button.new()
-	b.theme_type_variation = &"BareButton"
-	b.focus_mode = Control.FOCUS_NONE
-	b.mouse_filter = Control.MOUSE_FILTER_PASS
-	b.name = "NoticeBar"
-	b.custom_minimum_size = Vector2(width, BUTTON_H)
-	var face := Control.new()
-	face.name = "Face"
-	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	face.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	b.add_child(face)
-	var bar := Panel.new()
-	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bar.add_theme_stylebox_override("panel", UITheme.style("notice"))
-	bar.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	bar.offset_left = 26
-	bar.offset_top = 16
-	bar.offset_bottom = -16
-	face.add_child(bar)
-	var hx := hex_badge(icon_name, 62, ACCENT, Color.WHITE)
-	hx.name = "Glyph"
-	hx.set("glow", Color(0, 0, 0, 0.35))
-	hx.set("glow_size", 5.0)
-	hx.position = Vector2(0, 13)
-	face.add_child(hx)
-	var l := label(text, 24, Color.WHITE, "extrabold")
-	l.name = "Text"
-	l.anchor_right = 1.0
-	l.anchor_bottom = 1.0
-	l.offset_left = 76
-	l.offset_right = -48
-	l.clip_text = true
-	l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	face.add_child(l)
-	var ai := icon("chevron_right", 26, Color(1, 1, 1, 0.9))
-	ai.anchor_left = 1.0
-	ai.anchor_right = 1.0
-	ai.anchor_top = 0.5
-	ai.anchor_bottom = 0.5
-	ai.offset_left = -40
-	ai.offset_right = -14
-	ai.offset_top = -13
-	ai.offset_bottom = 13
-	face.add_child(ai)
-	# The chevron nudges right now and then: "this way".
-	if motion_ok():
-		var nudge := func(v: float) -> void:
-			ai.offset_left = -40.0 + v
-			ai.offset_right = -14.0 + v
-		ai.ready.connect(func() -> void:
-			var tw := ai.create_tween().set_loops()
-			tw.tween_interval(2.6)
-			tw.tween_method(nudge, 0.0, 7.0, 0.16).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-			tw.tween_method(nudge, 7.0, 0.0, 0.38).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-			tw.tween_method(nudge, 0.0, 5.0, 0.14).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-			tw.tween_method(nudge, 5.0, 0.0, 0.34).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT), CONNECT_ONE_SHOT)
-	b.set_meta("text_label", l)
-	add_press_fx(b, face)
-	if on_pressed.is_valid():
-		_connect_pressed(b, on_pressed)
-	return b
-
-
-## Fill meter plate (the Sanctum fill % on the idle shortcut): dark plate, glyph, a two-line
-## uppercase caption, a big cyan percentage ("41%") and a thin bar; an optional level tag
-## sits under the glyph. Update with set_percent_meter(m, pct).
-static func percent_meter(caption_text: String, pct: float, icon_name: String = "sanctum", level_text: String = "") -> PanelContainer:
-	var p := PanelContainer.new()
-	p.name = "PercentMeter"
-	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	p.add_theme_stylebox_override("panel", UITheme.style("meter"))
-	var row := hbox(10)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var left := vbox(0)
-	left.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	left.add_child(icon(icon_name, 46, ACCENT_HI))
-	if level_text != "":
-		var lt := tag(level_text, Color("1d2a38"), INK, 15)
-		left.add_child(lt)
-	row.add_child(left)
-	var mid := vbox(2)
-	mid.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	mid.alignment = BoxContainer.ALIGNMENT_CENTER
-	var cap := label(caption_text.to_upper(), 20, Color.WHITE, "cond_bold")
-	cap.add_theme_constant_override("line_spacing", -6)
-	mid.add_child(cap)
-	var bar := ProgressBar.new()
-	bar.name = "Bar"
-	bar.show_percentage = false
-	bar.max_value = 100.0
-	bar.value = clampf(pct, 0.0, 100.0)
-	bar.custom_minimum_size = Vector2(110, 6)
-	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var bg := StyleBoxFlat.new()
-	bg.bg_color = Color(1, 1, 1, 0.14)
-	var fg := StyleBoxFlat.new()
-	fg.bg_color = ACCENT
-	bar.add_theme_stylebox_override("background", bg)
-	bar.add_theme_stylebox_override("fill", fg)
-	mid.add_child(bar)
-	row.add_child(mid)
-	var n := label("%d%%" % int(clampf(pct, 0.0, 999.0)), 46, ACCENT_HI, "cond_bold")
-	n.custom_minimum_size.x = 92
-	n.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	n.name = "Percent"
-	row.add_child(n)
-	p.add_child(row)
-	p.set_meta("percent_label", n)
-	p.set_meta("bar", bar)
-	return p
-
-
-## Updates a percent_meter.
-static func set_percent_meter(m: Control, pct: float) -> void:
-	var n: Label = m.get_meta("percent_label") if m.has_meta("percent_label") else null
-	if n:
-		n.text = "%d%%" % int(clampf(pct, 0.0, 999.0))
-	var bar: ProgressBar = m.get_meta("bar") if m.has_meta("bar") else null
-	if bar:
-		bar.value = clampf(pct, 0.0, 100.0)
-
+# ------------------------------------------------------------------ top-bar widgets
 
 ## One dark glass bar holding several currencies ("[icon] 30,367 +"), the top-bar resource
 ## pill. entries: [{id, amount, on_plus (Callable, optional)}]. Each entry is tappable when
@@ -1488,17 +810,6 @@ static func grid(columns: int, gap: int = GAP) -> GridContainer:
 	return g
 
 
-## Wrapping row (reward lists, tags). center = center each line.
-static func flow(gap: int = GAP, center_items: bool = false) -> HFlowContainer:
-	var f := HFlowContainer.new()
-	f.add_theme_constant_override("h_separation", gap)
-	f.add_theme_constant_override("v_separation", gap)
-	f.mouse_filter = Control.MOUSE_FILTER_PASS
-	if center_items:
-		f.alignment = FlowContainer.ALIGNMENT_CENTER
-	return f
-
-
 ## Vertical touch-scroll area around `content` (content fills the width).
 ## Put the ScrollContainer in a layout slot that gives it a height (e.g. expand it).
 static func scroll(content: Control) -> ScrollContainer:
@@ -1528,14 +839,6 @@ static func margin(child: Control, h: int = PAD, v: int = 0) -> MarginContainer:
 	return m
 
 
-## Centers `child` in the available space.
-static func center(child: Control) -> CenterContainer:
-	var c := CenterContainer.new()
-	c.mouse_filter = Control.MOUSE_FILTER_PASS
-	c.add_child(child)
-	return c
-
-
 ## Empty space. expand = take all free space in the parent box.
 static func spacer(w: float = 0.0, h: float = 0.0, expand_fill: bool = false) -> Control:
 	var c := Control.new()
@@ -1543,14 +846,6 @@ static func spacer(w: float = 0.0, h: float = 0.0, expand_fill: bool = false) ->
 	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if expand_fill:
 		c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		c.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	return c
-
-
-## Sets horizontal (and optionally vertical) expand-fill; returns the control.
-static func expand(c: Control, vertical: bool = false) -> Control:
-	c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	if vertical:
 		c.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	return c
 
@@ -1603,16 +898,6 @@ static func glassify(c: CanvasItem) -> CanvasItem:
 	return c
 
 
-## A list-row card (shorthand for panel("card", pad)).
-static func card(pad: int = -1) -> PanelContainer:
-	return panel("card", pad)
-
-
-## White info panel (the hero detail column, light page cards).
-static func info_panel(pad: int = -1) -> PanelContainer:
-	return panel("white", pad)
-
-
 ## Header band for a sheet section ("READY TO COLLECT", "FIRST CLEAR REWARDS"), style v4 print: an
 ## ink band across the paper with a signal tick at its start, the title in paper-white mono and a
 ## small barcode at the end. right = optional control at the end (replaces the barcode).
@@ -1640,17 +925,6 @@ static func header_bar(text: String, right: Control = null, icon_name: String = 
 		row.add_child(bc)
 	p.add_child(row)
 	return p
-
-
-## Light hatched page background (or "dark"): add as the first child of a screen that wants
-## the light page look. Fills its parent.
-static func page_bg(mode: String = "light") -> Control:
-	var b := Backdrop.new()
-	b.name = "PageBg"
-	b.mode = mode
-	b.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	b.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return b
 
 
 ## A fresh StyleBox preset (see UITheme.style for kinds). pad = content margin override.
@@ -2191,104 +1465,6 @@ static func loading_veil() -> Control:
 	return v
 
 
-# ------------------------------------------------------------------ progress & stars
-
-## Flat technical progress bar (squared ends, bright top edge on the fill). text (optional)
-## is drawn centered on the bar. light = track for light pages.
-static func progress_bar(value: float, max_value: float, color: Color = GOOD, height: float = 24.0, text: String = "", light: bool = false) -> ProgressBar:
-	var bar := ProgressBar.new()
-	bar.show_percentage = false
-	bar.min_value = 0
-	bar.max_value = maxf(max_value, 0.0001)
-	bar.value = clampf(value, 0.0, bar.max_value)
-	bar.custom_minimum_size = Vector2(80, height)
-	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var r := minf(3.0, height * 0.2)
-	if light:
-		# Style v4 print: an ink-ruled track on the paper, a flat printed fill.
-		var pbg := StyleBoxFlat.new()
-		pbg.bg_color = Color(TEXT, 0.06)
-		pbg.border_color = Color(TEXT, 0.5)
-		pbg.set_border_width_all(1)
-		bar.add_theme_stylebox_override("background", pbg)
-		var pfg := StyleBoxFlat.new()
-		pfg.bg_color = color
-		bar.add_theme_stylebox_override("fill", pfg)
-	else:
-		var bg := KitBox.new()
-		bg.radius = r
-		bg.top_color = Color(0, 0, 0, 0.55)
-		bg.bottom_color = Color(0.05, 0.05, 0.06, 0.55)
-		bg.border_width = 1
-		bg.border_color = Color(1, 1, 1, 0.1)
-		bar.add_theme_stylebox_override("background", bg.commit())
-		var fg := KitBox.new()
-		fg.radius = r
-		fg.top_color = color.lightened(0.12)
-		fg.bottom_color = color.darkened(0.08)
-		fg.top_line_color = Color(color.lightened(0.6), 0.9)
-		if height >= 16.0:
-			fg.hatch_color = Color(1, 1, 1, 0.12)
-			fg.hatch_spacing = 8.0
-		bar.add_theme_stylebox_override("fill", fg.commit())
-	var l := label(text, int(clampf(height * 0.8, 16, 26)), TEXT if light else Color.WHITE, "mono_bold" if light else "cond_bold", 0 if light else 3)
-	l.name = "Text"
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	l.visible = text != ""
-	bar.add_child(l)
-	# Fill in from empty when it first appears (and when its first value arrives right after).
-	bar.set_meta("_born", Time.get_ticks_msec())
-	bar.tree_entered.connect(func() -> void: _fill_in(bar), CONNECT_ONE_SHOT)
-	return bar
-
-
-static func _fill_in(bar: ProgressBar) -> void:
-	var target := bar.value
-	if target <= bar.min_value or not motion_ok():
-		return
-	bar.value = bar.min_value
-	_tween_bar(bar, target, 0.75, 0.1)
-
-
-static func _tween_bar(bar: ProgressBar, target: float, dur: float, delay: float = 0.0) -> void:
-	_kill_tween(bar, "_fill_tw")
-	var tw := bar.create_tween()
-	tw.tween_property(bar, "value", target, dur).set_delay(delay).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	bar.set_meta("_fill_tw", tw)
-
-
-## Updates a Kit progress bar (animated by default; a bar that just appeared fills in even
-## when animate is off). max_value < 0 keeps the old max.
-static func set_progress(bar: ProgressBar, value: float, max_value: float = -1.0, text: String = "", animate: bool = true) -> void:
-	if max_value >= 0.0:
-		bar.max_value = maxf(max_value, 0.0001)
-	var target := clampf(value, 0.0, bar.max_value)
-	var young := Time.get_ticks_msec() - int(bar.get_meta("_born", -100000)) < 450
-	if bar.is_inside_tree() and (animate or (young and motion_ok())):
-		_tween_bar(bar, target, 0.35 if animate and not young else 0.75)
-	else:
-		_kill_tween(bar, "_fill_tw")
-		bar.value = target
-	var l := bar.get_node_or_null("Text") as Label
-	if l:
-		l.text = text
-		l.visible = text != ""
-
-
-## Row of stars. max_stars > stars shows the missing ones as dim slots.
-static func star_row(stars: int, max_stars: int = 0, size: float = 28.0) -> HBoxContainer:
-	var row := hbox(int(-size * 0.12))
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var total := maxi(stars, max_stars)
-	for i in total:
-		var filled := i < stars
-		row.add_child(icon("star" if filled else "star_empty", size))
-	return row
-
-
 # ------------------------------------------------------------------ currencies
 
 ## Icon for a currency id ("gold", "gems", "scrolls", "hero_exp", "dust").
@@ -2296,34 +1472,8 @@ static func currency_icon(currency_id: String, size: float = 40.0) -> TextureRec
 	return icon(currency_id, size)
 
 
-## Dark glass chip showing a currency icon and amount (compact formatted). on_plus = tap
-## action (shows a small "+" and makes the whole chip tappable). Update with set_chip_amount.
-static func currency_chip(currency_id: String, amount: int, on_plus: Callable = Callable(), min_width: float = 0.0) -> PanelContainer:
-	var chip := PanelContainer.new()
-	chip.theme_type_variation = &"ChipPanel"
-	chip.mouse_filter = Control.MOUSE_FILTER_PASS
-	chip.custom_minimum_size = Vector2(min_width, 52)
-	var row := hbox(4)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(currency_icon(currency_id, 40))
-	var n := label(format_num(amount), 26, Color.WHITE, "black")
-	n.name = "Amount"
-	n.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	n.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(n)
-	if on_plus.is_valid():
-		row.add_child(icon("plus", 22, Color(1, 1, 1, 0.9)))
-	else:
-		row.add_child(spacer(4))
-	chip.add_child(row)
-	chip.set_meta("amount", amount)
-	chip.set_meta("amount_label", n)
-	if on_plus.is_valid():
-		make_tappable(chip, on_plus)
-	return chip
-
-
-## Updates a currency chip (or a resource_pill entry); animate counts and pulses on change.
+## Updates a resource_pill entry (any Control with "amount" / "amount_label" metas); animate
+## counts and pulses on change.
 static func set_chip_amount(chip: Control, amount: int, animate: bool = true) -> void:
 	if not chip.has_meta("amount_label"):
 		return
@@ -2391,74 +1541,6 @@ static func reward_entries(reward: Dictionary) -> Array[Dictionary]:
 	return out
 
 
-## Wrapping, centered list of reward tiles for a Reward dict. light = captions for light
-## panels (dark text).
-static func reward_list(reward: Dictionary, tile: float = 112.0, show_names: bool = true, center_items: bool = true, light: bool = false) -> HFlowContainer:
-	var f := flow(14, center_items)
-	f.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	for e in reward_entries(reward):
-		f.add_child(reward_tile(e.kind, e.id, int(e.amount), tile, show_names, light))
-	return f
-
-
-## One reward tile: a pale item tile with a colored base strip and the amount bottom-right.
-## kind: "currency" (id = currency id), "hero", "shard" (id = hero id), "gear" (id = gear
-## uid), "gear_drop" (preview, id = "slot:tier"; empty slot = any slot, tier 0 = unknown;
-## amount = how many). show_name adds a caption under the tile.
-static func reward_tile(kind: String, id: String, amount: int, tile: float = 112.0, show_name: bool = true, light: bool = false) -> Control:
-	var col := vbox(4)
-	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var name_text := ""
-	var face: Control
-	match kind:
-		"hero":
-			face = hero_card(id, {"size": tile, "show_level": false, "owned": true})
-			name_text = str(_def(id).get("name", id))
-		"shard":
-			face = hero_card(id, {"size": tile, "show_level": false, "show_stars": false, "shard": true, "owned": true})
-			_corner(face, _amount_tag("x%s" % format_num(amount), tile), Vector2(1, 1), Vector2(-4, -4))
-			name_text = str(_def(id).get("name", id))
-		"gear":
-			var item := _gear_item(id)
-			var slot := str(item.get("slot", "weapon"))
-			var tier := int(item.get("tier", 1))
-			face = _tile_box(tile, tier_color(tier))
-			var gi := icon("gear_" + slot, tile * 0.54, TEXT)
-			_center_child(face, gi, gi.custom_minimum_size)
-			_corner(face, _amount_tag(roman(tier), tile, false), Vector2(0, 0), Vector2(4, 4))
-			name_text = str(item.get("name", GEAR_SLOT_NAMES.get(slot, "Gear")))
-		"gear_drop":
-			var parts := id.split(":")
-			var slot := parts[0] if parts.size() > 0 else ""
-			var tier := int(parts[1]) if parts.size() > 1 else 0
-			var accent := tier_color(tier) if tier > 0 else SKY
-			face = _tile_box(tile, accent)
-			var gi := icon("gear_" + (slot if slot != "" else "weapon"), tile * 0.54, TEXT)
-			_center_child(face, gi, gi.custom_minimum_size)
-			if tier > 0:
-				_corner(face, _amount_tag(roman(tier), tile, false), Vector2(0, 0), Vector2(4, 4))
-			if amount > 1 or slot == "":
-				_corner(face, _amount_tag("x%d" % amount, tile), Vector2(1, 1), Vector2(-4, -8))
-			name_text = str(GEAR_SLOT_NAMES.get(slot, "Gear")) if slot != "" else "Gear"
-		_:
-			var accent := {"gold": GOLD, "gems": ACCENT, "scrolls": VIOLET, "hero_exp": GOOD, "dust": EPIC}
-			face = _tile_box(tile, accent.get(id, GOLD))
-			var ci := icon(id, tile * 0.58)
-			_center_child(face, ci, ci.custom_minimum_size)
-			_corner(face, _amount_tag(format_num(amount), tile), Vector2(1, 1), Vector2(-4, -8))
-			name_text = str(CURRENCY_SHORT.get(id, id.capitalize()))
-	col.add_child(face)
-	if show_name:
-		var n := label(name_text.to_upper(), 13, TEXT_DIM if light else INK_DIM, "mono_bold")
-		n.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		n.custom_minimum_size.x = tile
-		n.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		n.clip_text = true
-		col.add_child(n)
-	col.custom_minimum_size.x = tile
-	return col
-
-
 ## An item tile, style v4 print (rewards, gear): sticker paper ruled in ink with crop marks inside
 ## and a coloured base strip (tier / currency colour).
 static func _tile_box(tile: float, accent: Color) -> Control:
@@ -2490,24 +1572,6 @@ static func _tile_box(tile: float, accent: Color) -> Control:
 	strip.offset_top = -maxf(4.0, tile * 0.055)
 	strip.offset_bottom = -1
 	p.add_child(strip)
-	return p
-
-
-## A small printed tag for a tile corner: an amount (ink block, paper mono type) or, solid = false,
-## a tier numeral (ink outline on the sticker).
-static func _amount_tag(text: String, tile: float, solid: bool = true) -> PanelContainer:
-	var p := PanelContainer.new()
-	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = TEXT if solid else Color(SHEET_WHITE, 0.9)
-	sb.border_color = TEXT
-	sb.set_border_width_all(0 if solid else 1)
-	sb.content_margin_left = 6
-	sb.content_margin_right = 6
-	sb.content_margin_top = 0
-	sb.content_margin_bottom = 1
-	p.add_theme_stylebox_override("panel", sb)
-	p.add_child(label(text, int(clampf(tile * 0.16, 12.0, 20.0)), MATTE if solid else TEXT, "mono_bold"))
 	return p
 
 
@@ -2545,7 +1609,7 @@ static func _gear_item(uid: String) -> Dictionary:
 	return {}
 
 
-# ------------------------------------------------------------------ factions, roles, rarity
+# ------------------------------------------------------------------ factions & rarity
 
 ## Faction accent color (celestial gold, infernal ember, fallen violet).
 static func faction_color(faction: String) -> Color:
@@ -2583,25 +1647,9 @@ static func roman(n: int) -> String:
 	return r[n - 1] if n >= 1 and n <= 10 else str(n)
 
 
-## Frame StyleBox in the rarity color (border only), for custom portraits/cards.
-static func rarity_frame(rarity: String, width: int = 3, radius: float = 4.0) -> StyleBox:
-	var c := rarity_color(rarity)
-	var b := KitBox.new()
-	b.fill = false
-	b.radius = radius
-	b.border_width = width
-	b.border_color = c
-	return b.commit()
-
-
 ## Faction emblem icon (celestial halo-sun, infernal horned flame, fallen broken halo).
 static func faction_icon(faction: String, size: float = 40.0) -> TextureRect:
 	return icon("faction_" + faction, size)
-
-
-## Role icon (guardian, striker, caster, support, assassin), tintable.
-static func role_icon(role: String, size: float = 36.0, color: Color = Color.WHITE) -> TextureRect:
-	return icon("role_" + role, size, color)
 
 
 ## Faction emblem + name in the faction color. light = darker name for light pages.
@@ -2615,60 +1663,7 @@ static func faction_badge(faction: String, size: float = 40.0, show_name: bool =
 	return row
 
 
-## Role tag: dark plate with the role glyph and name.
-static func role_badge(role: String, size: float = 36.0, show_name: bool = true) -> PanelContainer:
-	var p := PanelContainer.new()
-	p.theme_type_variation = &"TagPanel"
-	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var row := hbox(6)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(role_icon(role, size * 0.8))
-	if show_name:
-		row.add_child(label(str(ROLE_NAMES.get(role, role.capitalize())).to_upper(), int(size * 0.6), INK, "cond_bold"))
-	p.add_child(row)
-	return p
-
-
-## Skewed rarity plate ("LEGENDARY") in the rarity color.
-static func rarity_badge(rarity: String, size: int = 20) -> PanelContainer:
-	var c := rarity_color(rarity)
-	var p := tag(str(RARITY_NAMES.get(rarity, rarity.capitalize())).to_upper(), c, Color.WHITE, size)
-	var b := KitBox.new()
-	b.radius = 2
-	b.skew = SKEW * 1.4
-	b.top_color = c.lightened(0.1)
-	b.bottom_color = c.darkened(0.1)
-	b.horizontal = true
-	b.hatch_color = Color(1, 1, 1, 0.16)
-	b.hatch_spacing = 6
-	b.hatch_from = 0.7
-	b.content_margin_left = size * 0.9
-	b.content_margin_right = size * 0.9
-	b.content_margin_top = 0
-	b.content_margin_bottom = 1
-	p.add_theme_stylebox_override("panel", b.commit())
-	return p
-
-
-## Big rarity word for headers (hero detail): condensed extra-bold text in the rarity color
-## with rarity chevrons in front. Returns an HBox.
-static func rarity_mark(rarity: String, size: int = 40) -> HBoxContainer:
-	var row := hbox(6)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var c := rarity_color(rarity)
-	var chev := deco("chevrons", Vector2(size * 0.9, size * 0.7), c)
-	chev.set("count", int(RARITY_STARS.get(rarity, 1)))
-	chev.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(chev)
-	var l := label(str(RARITY_NAMES.get(rarity, rarity)).to_upper(), size, c, "title", 0)
-	l.add_theme_color_override("font_shadow_color", Color(c.darkened(0.6), 0.5))
-	l.add_theme_constant_override("shadow_offset_x", 2)
-	l.add_theme_constant_override("shadow_offset_y", 2)
-	row.add_child(l)
-	return row
-
-
-## Small flat tag, e.g. tag("NEW"), tag("BOSS", Kit.EMBER). Barlow Condensed, uppercase look.
+## Small flat tag, e.g. tag("NEW"), tag("BOSS", Kit.EMBER). Archivo "cond_bold", uppercase look.
 static func tag(text: String, color: Color = ACCENT, text_color: Color = Color.WHITE, size: int = 20) -> PanelContainer:
 	var p := PanelContainer.new()
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -2705,164 +1700,7 @@ static func hex_badge(icon_name: String, size: float = 44.0, fill: Color = Color
 	return h
 
 
-## Red-orange "N" badge (new) or a short count/"!" in the same look.
-static func new_badge(size: float = 30.0, text: String = "N") -> Control:
-	var b := Badge.new()
-	b.text = text
-	b.custom_minimum_size = Vector2(size, size)
-	b.size = Vector2(size, size)
-	return b
-
-
-## Shows/hides an "N" badge at the top-right corner of `target` (not a Container).
-static func set_new(target: Control, show: bool, size: float = 30.0, inset: Vector2 = Vector2(-8, -8), text: String = "N") -> void:
-	var b := target.get_node_or_null("KitNew") as Control
-	if b == null:
-		if not show:
-			return
-		b = new_badge(size, text)
-		b.name = "KitNew"
-		_corner(target, b, Vector2(1, 0), Vector2(-inset.x, inset.y))
-		b.offset_left = -inset.x - size
-		b.offset_right = -inset.x
-		b.offset_top = inset.y
-		b.offset_bottom = inset.y + size
-	b.visible = show
-
-
-static func _apply_badge(target: Control, badge: String, size: float, inset: Vector2) -> void:
-	match badge:
-		"N":
-			set_new(target, true, size, inset)
-		"!":
-			var b := new_badge(size, "!")
-			(b as Badge).round = true
-			(b as Badge).color = ACCENT
-			b.name = "KitNew"
-			_corner(target, b, Vector2(1, 0), Vector2(-inset.x, inset.y))
-			b.offset_left = -inset.x - size
-			b.offset_right = -inset.x
-			b.offset_top = inset.y
-			b.offset_bottom = inset.y + size
-		"dot":
-			set_dot(target, true, size * 0.7, Vector2(inset.x + 4, inset.y + 4))
-
-
-## Decoration: kind "hatch" | "barcode" | "brackets" | "chevrons" | "techline" | "pips" |
-## "dots" | "cross" (see deco.gd). Returns the sized Control (set .count/.filled etc.).
-static func deco(kind: String, size: Vector2, color: Color = Color(1, 1, 1, 0.12)) -> Control:
-	var d := Deco.new()
-	d.kind = kind
-	d.color = color
-	d.custom_minimum_size = size
-	d.size = size
-	return d
-
-
-# ------------------------------------------------------------------ hero cards
-
-## Square hero card: head-and-shoulders portrait on a pale studio tile, role/faction hex,
-## level, star pips, rarity strip. Returns a Button (tap with opts.on_pressed).
-## opts (all optional):
-##   size: float = 152        level: int, stars: int (default: owned values or rarity base)
-##   owned: bool (default Game.owns)  unowned cards are greyed out
-##   locked: bool             dark overlay with a lock
-##   selected: bool           cyan glow ring
-##   checked: bool            dark overlay with a check
-##   show_name: bool = false  name caption under the card (light: bool = dark caption)
-##   show_level / show_stars / show_faction: bool = true
-##   dot: bool                red notification dot
-##   tag: String              "N" = new badge, otherwise a small tag ("x2", "BOSS")
-##   shard: bool              shard overlay (for shard rewards)
-##   skin: String             the look (default: the player's equipped skin, hero_look;
-##                            "" = base look, for enemies)
-##   on_pressed: Callable
-static func hero_card(hero_id: String, opts: Dictionary = {}) -> Button:
-	var c := HeroCard.new()
-	c.setup(hero_id, opts)
-	return c
-
-
-## Tall roster card (4 per row on the 720 canvas at size ~158): waist-up art on a pale
-## studio backdrop, role hex + tier numeral hex top-left, barcode top-right, dark-to-rarity
-## footer with "LV." and a big two-digit level left and the name right, rarity chevrons and
-## star pips. Same opts as hero_card (size = width; height = width * 1.62), plus new: bool.
-static func portrait_card(hero_id: String, opts: Dictionary = {}) -> Button:
-	var c := PortraitCard.new()
-	c.setup(hero_id, opts)
-	return c
-
-
-## Level + name plate (hero detail): "LV.12/40" on a dark plate and the name on a black plate.
-static func name_plate(level: int, max_level: int, hero_name: String, size: int = 30) -> HBoxContainer:
-	var row := hbox(0)
-	row.name = "NamePlate"
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var lvp := PanelContainer.new()
-	lvp.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	lvp.add_theme_stylebox_override("panel", UITheme.style("plate_level"))
-	var lv := hbox(2)
-	lv.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	lv.add_child(label("LV.", int(size * 0.62), Color.WHITE, "cond_bold"))
-	var n := label(str(level), size, ORANGE_HI, "title")
-	n.name = "Level"
-	lv.add_child(n)
-	lv.add_child(label("/%d" % max_level, int(size * 0.62), INK_DIM, "cond_bold"))
-	lvp.add_child(lv)
-	row.add_child(lvp)
-	var np := PanelContainer.new()
-	np.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	np.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	np.add_theme_stylebox_override("panel", UITheme.style("plate_name"))
-	var nl := label(hero_name, size, Color.WHITE, "extrabold")
-	nl.name = "Name"
-	nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	nl.clip_text = true
-	np.add_child(nl)
-	row.add_child(np)
-	return row
-
-
-## Empty hero slot (formation, team picks): glass square with corner brackets, a faint plus
-## and an optional caption ("Front", "Empty"). Returns a Button (tap with on_pressed).
-static func empty_slot(size: float = 152.0, text: String = "", on_pressed: Callable = Callable()) -> Button:
-	var b := Button.new()
-	b.theme_type_variation = &"BareButton"
-	b.focus_mode = Control.FOCUS_NONE
-	b.mouse_filter = Control.MOUSE_FILTER_PASS
-	b.custom_minimum_size = Vector2(size, size)
-	var p := Panel.new()
-	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var bx := KitBox.new()
-	bx.radius = 4
-	bx.top_color = Color(0.05, 0.06, 0.07, 0.55)
-	bx.bottom_color = Color(0.08, 0.09, 0.1, 0.55)
-	bx.border_width = 1
-	bx.border_color = Color(1, 1, 1, 0.22)
-	bx.hatch_color = Color(1, 1, 1, 0.04)
-	bx.hatch_spacing = 10
-	bx.corner_marks_color = Color(1, 1, 1, 0.5)
-	bx.corner_marks_size = maxf(8.0, size * 0.1)
-	bx.corner_marks_inset = 5
-	p.add_theme_stylebox_override("panel", bx.commit())
-	p.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	b.add_child(p)
-	var ic := icon("plus", size * 0.26, Color(1, 1, 1, 0.5))
-	_center_child(b, ic, ic.custom_minimum_size)
-	if text != "":
-		var l := label(text.to_upper(), int(maxf(16.0, size * 0.12)), Color(INK_DIM, 0.9), "cond_bold")
-		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		l.anchor_top = 1.0
-		l.anchor_bottom = 1.0
-		l.anchor_right = 1.0
-		l.offset_top = -size * 0.26
-		l.offset_bottom = -size * 0.04
-		b.add_child(l)
-	add_press_fx(b)
-	if on_pressed.is_valid():
-		_connect_pressed(b, on_pressed)
-	return b
-
+# ------------------------------------------------------------------ gear slots
 
 ## Equipment slot (hero detail 2x2, gear lists): pale square, the slot glyph in dark ink,
 ## tier numeral hex top-left and a tier-colored base strip; empty = faint glyph + plus.
@@ -2964,57 +1802,6 @@ static func section_header(text: String, size: int = 30, color: Color = INK, lig
 	return row
 
 
-## Standard top row for sub-screens: a dark square back button, the uppercase condensed
-## title, optional control on the right. on_back defaults to UI.back().
-static func screen_header(title_text: String, on_back: Callable = Callable(), right: Control = null) -> HBoxContainer:
-	var row := hbox(10)
-	row.custom_minimum_size.y = 96
-	var cb := on_back
-	if not cb.is_valid():
-		cb = func() -> void:
-			var u := autoload("UI")
-			if u:
-				u.call("back")
-	var back := icon_button("back", cb, BUTTON_H, "round")
-	back.name = "Back"
-	back.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(back)
-	var t := header(title_text.to_upper(), SIZE_HEADER)
-	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	t.clip_text = true
-	t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	row.add_child(t)
-	if right:
-		right.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		row.add_child(right)
-	else:
-		row.add_child(spacer(BUTTON_H))
-	return row
-
-
-## Stat line: icon, name, value (right aligned). stat: hp/atk/def/spd/crit.
-## delta (optional) shows a green "+N" after the value (level-up previews).
-## light = dark text for white panels (the info column status rows).
-static func stat_row(stat: String, value: Variant, delta: Variant = null, label_text: String = "", light: bool = false) -> HBoxContainer:
-	var row := hbox(12)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.custom_minimum_size.y = 44
-	row.add_child(icon("stat_" + stat, 30, TEXT if light else Color.WHITE))
-	var n := label(label_text if label_text != "" else str(STAT_SHORT.get(stat, stat.to_upper())), SIZE_BODY - 2, TEXT_DIM if light else INK_DIM, "cond_bold")
-	n.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(n)
-	var vt := str(value)
-	if value is int:
-		vt = format_full(value)
-	row.add_child(label(vt, SIZE_BODY, TEXT if light else INK, "black"))
-	if delta != null:
-		var dt := str(delta)
-		if delta is int:
-			dt = format_full(delta)
-		row.add_child(label("+" + dt, SIZE_BODY - 2, Color("1f9e63") if light else GOOD, "black"))
-	return row
-
-
 ## Empty-list message, style v4 print: an optional faint glyph, the line in the slanted serif and a
 ## mono "NOTHING ON FILE" under it. light = for paper (ink), else paper-white on dark.
 static func empty_state(text: String, icon_name: String = "", light: bool = false) -> VBoxContainer:
@@ -3038,32 +1825,7 @@ static func empty_state(text: String, icon_name: String = "", light: bool = fals
 	return v
 
 
-# ------------------------------------------------------------------ light effects & art
-
-## Soft radial glow sprite (behind portraits, chests, summons).
-static func glow(color: Color = ACCENT, size: float = 240.0) -> TextureRect:
-	var key := color.to_html()
-	if not _glow_textures.has(key):
-		var g := Gradient.new()
-		g.set_color(0, Color(color, 0.85))
-		g.set_color(1, Color(color, 0.0))
-		g.add_point(0.35, Color(color, 0.38))
-		var gt := GradientTexture2D.new()
-		gt.gradient = g
-		gt.fill = GradientTexture2D.FILL_RADIAL
-		gt.fill_from = Vector2(0.5, 0.5)
-		gt.fill_to = Vector2(0.5, 0.0)
-		gt.width = 128
-		gt.height = 128
-		_glow_textures[key] = gt
-	var t := TextureRect.new()
-	t.texture = _glow_textures[key]
-	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	t.stretch_mode = TextureRect.STRETCH_SCALE
-	t.custom_minimum_size = Vector2(size, size)
-	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return t
-
+# ------------------------------------------------------------------ art
 
 ## Two-color linear gradient texture (top to bottom, or left to right), cached. Use in a
 ## TextureRect with STRETCH_SCALE for shades and footers.
@@ -3139,68 +1901,6 @@ static func _remember_look(hero_id: String, look: String) -> void:
 			if str(k).begins_with(old):
 				_crops.erase(k)
 	_crop_looks[hero_id] = looks
-
-
-## Slowly rotating light rays (reward popups, summon reveals). Place centered behind art.
-static func rays(color: Color = ACCENT, size: float = 520.0, count: int = 14) -> Control:
-	var r := Rays.new()
-	r.color = color
-	r.ray_count = count
-	r.custom_minimum_size = Vector2(size, size)
-	r.size = Vector2(size, size)
-	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return r
-
-
-## Banner plate (skewed band with hatching and side ticks) with an uppercase condensed title
-## ("VICTORY", reward popups). color: band color (Kit.ACCENT, Kit.ORANGE, Kit.EMBER for
-## defeat...). Long text shrinks to fit. Change the text later with banner.set_text("...").
-static func ribbon(text: String, width: float = 520.0, color: Color = ACCENT, text_color: Color = Color.WHITE, size: int = 44) -> Control:
-	var r := Ribbon.new()
-	r.text = text
-	r.color = color
-	r.text_color = text_color
-	r.font_size = size
-	r.custom_minimum_size = Vector2(width, size * 2.1)
-	r.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	return r
-
-
-## Full-screen background art (e.g. HeroArt.background("home")) scaled to cover, with a
-## dark fade at the top and bottom so chrome and text stay readable. Add it as the first
-## child of the screen. tex may be null (only the shade is drawn).
-static func art_background(tex: Texture2D, shade: float = 0.6) -> Control:
-	var root := Control.new()
-	root.name = "ArtBackground"
-	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	if tex:
-		var tr := TextureRect.new()
-		tr.texture = tex
-		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		tr.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		root.add_child(tr)
-	var g := Gradient.new()
-	g.set_color(0, Color(CHROME, shade))
-	g.set_color(1, Color(CHROME, shade))
-	g.add_point(0.2, Color(CHROME, 0.0))
-	g.add_point(0.72, Color(CHROME, 0.0))
-	var gt := GradientTexture2D.new()
-	gt.gradient = g
-	gt.fill_from = Vector2(0, 0)
-	gt.fill_to = Vector2(0, 1)
-	gt.width = 4
-	gt.height = 256
-	var sh := TextureRect.new()
-	sh.texture = gt
-	sh.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	sh.stretch_mode = TextureRect.STRETCH_SCALE
-	sh.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	sh.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	root.add_child(sh)
-	return root
 
 
 ## Material that greys out a CanvasItem (unowned heroes). amount 0..1.
@@ -3432,70 +2132,6 @@ static func float_text(anchor: Control, text: String, color: Color = GOOD, size:
 	tw.tween_property(l, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.tween_property(l, "modulate:a", 0.0, 0.4).set_delay(0.5)
 	tw.chain().tween_callback(l.queue_free)
-
-
-## A burst of glints at `at` (local to `parent`, which must not be a Container).
-static func sparkle(parent: Control, at: Vector2, color: Color = Color.WHITE, count: int = 7, radius: float = 64.0) -> void:
-	if not parent.is_inside_tree() or not motion_ok():
-		return
-	var s := Sparkle.new()
-	s.color = color
-	s.count = count
-	s.radius = radius
-	s.star = clampf(radius * 0.2, 7.0, 16.0)
-	s.position = at
-	s.z_index = 5
-	parent.add_child(s)
-
-
-## Loading spinner (an aqua arc turning around a faint ring), `size` px square.
-static func spinner(size: float = 64.0, color: Color = ACCENT_HI) -> Control:
-	var s := Spinner.new()
-	s.color = color
-	s.custom_minimum_size = Vector2(size, size)
-	s.size = Vector2(size, size)
-	return s
-
-
-## A light sweep across `c` now and then (Shine). shape: () -> outline in c's local
-## coordinates (default: c's KitBox stylebox). every / first: seconds between sweeps and
-## before the first. Returns the Shine node (sweep_now() plays one at once).
-static func add_shine(c: Control, shape: Callable = Callable(), strength: float = 0.32, every: Vector2 = Vector2(4.5, 8.5), first: Vector2 = Vector2(0.8, 3.5)) -> Control:
-	var s := Shine.new()
-	s.name = "Shine"
-	s.shape = shape
-	s.strength = strength
-	s.every = every
-	s.first = first
-	c.add_child(s)
-	return s
-
-
-## A soft glow behind `c` (drawn behind it) that breathes: the main call to action.
-static func add_glow_pulse(c: Control, color: Color = ORANGE, size: int = 16, radius: int = 16) -> Control:
-	var g := Panel.new()
-	g.name = "GlowPulse"
-	g.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	g.show_behind_parent = true
-	g.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var sb := StyleBoxFlat.new()
-	sb.draw_center = false
-	sb.bg_color = Color(color, 0.0)
-	sb.shadow_color = Color(color, 0.5)
-	sb.shadow_size = size
-	sb.set_corner_radius_all(radius)
-	sb.anti_aliasing = true
-	g.add_theme_stylebox_override("panel", sb)
-	c.add_child(g)
-	if motion_ok():
-		g.modulate.a = 0.3
-		g.ready.connect(func() -> void:
-			var tw := g.create_tween().set_loops()
-			tw.tween_property(g, "modulate:a", 1.0, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-			tw.tween_property(g, "modulate:a", 0.3, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT), CONNECT_ONE_SHOT)
-	else:
-		g.modulate.a = 0.6
-	return g
 
 
 # ------------------------------------------------------------------ number formatting

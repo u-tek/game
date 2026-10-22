@@ -1,12 +1,11 @@
 extends RefCounted
 ## Cosmetic skins (data/skins.json, docs/dev/skins.md): data integrity, buying with gems,
 ## equipping, save round trip, migration of bad saves, and the art fallback to the base look;
-## cards and crops follow the skin (Kit.art_crop, hero_card, portrait_card), nudity swaps a skin to
-## its adult art, base looks without adult art (<id>/adult/) keep their art, splash adult layers.
+## crops follow the skin (Kit.art_crop, Kit.hero_look), nudity swaps a skin to its adult art, and
+## base looks without adult art (<id>/adult/) keep their art.
 
 const BASE_MS := 1_702_083_600_000
 const PATH := "user://unit_test_save_skins.json"
-const SplashCardScript := preload("res://src/ui/components/splash_card.gd")
 
 
 func _game(path: String = "") -> Node:
@@ -192,7 +191,7 @@ func _starter_skin() -> String:
 	return ""
 
 
-func test_art_crop_and_cards_follow_the_skin(t: TestCtx) -> void:
+func test_art_crop_follows_the_skin(t: TestCtx) -> void:
 	HeroArt.nudity = false
 	var sid := _starter_skin()
 	t.ok(sid != "", "kessa has an installed skin")
@@ -207,24 +206,9 @@ func test_art_crop_and_cards_follow_the_skin(t: TestCtx) -> void:
 	t.ok(Kit.art_crop("kessa", 0.6, 1.3, sid) == c1, "cached per look")
 	t.ok(HeroArt.art_key("kessa", sid) != HeroArt.art_key("kessa"), "the art key names the look")
 	t.eq(HeroArt.art_key("kessa", "uriela_surf_racer"), HeroArt.art_key("kessa"), "another hero's skin is the base look")
-	# Cards take opts.skin ("" = base look, for enemies); the default is the player's equipped skin.
+	# Views take opts.skin ("" = base look, for enemies); the default is the player's equipped skin.
 	t.eq(Kit.hero_look("kessa", {"skin": sid}), sid)
 	t.eq(Kit.hero_look("kessa", {"skin": ""}), "", "an enemy keeps the base look")
-	var pc := Kit.portrait_card("kessa", {"skin": sid, "owned": true})
-	var art := pc.find_child("Art", true, false) as TextureRect
-	t.ok(art != null and (art.texture as AtlasTexture).atlas == dressed, "the roster card shows the skin")
-	pc.free()
-	pc = Kit.portrait_card("kessa", {"skin": "", "owned": true})
-	art = pc.find_child("Art", true, false) as TextureRect
-	t.ok(art != null and (art.texture as AtlasTexture).atlas == base, "the roster card without a skin shows the base")
-	pc.free()
-	var hc := Kit.hero_card("kessa", {"skin": sid})
-	var found := false
-	for n in hc.find_children("*", "TextureRect", true, false):
-		if (n as TextureRect).texture == HeroArt._portrait_tex("kessa", sid):
-			found = true
-	t.ok(found, "the square card shows the skin's portrait")
-	hc.free()
 
 
 func test_equipped_skin_and_nudity_show_adult_skin_art(t: TestCtx) -> void:
@@ -289,19 +273,4 @@ func test_base_look_adult_art_falls_back(t: TestCtx) -> void:
 		t.ok(spr != null and spr.rig != null and spr.rig.rig != null, "%s: the sprite still builds" % id)
 		if spr:
 			spr.free()
-	HeroArt.nudity = was
-
-
-func test_splash_cards_prefer_adult_layers(t: TestCtx) -> void:
-	var was := HeroArt.nudity
-	HeroArt.nudity = false
-	t.eq(SplashCardScript.file_path("demo", "plate.png"), "res://assets/art/splash/demo/plate.png")
-	HeroArt.nudity = true
-	t.eq(SplashCardScript.file_path("demo", "plate.png"), "res://assets/art/splash/demo/plate.png",
-		"no adult layer: the card's own layer")
-	for card in SplashCardScript.installed():
-		var c: Control = SplashCardScript.make(card)
-		t.ok(c != null, "%s builds with nudity on" % card)
-		if c:
-			c.free()
 	HeroArt.nudity = was

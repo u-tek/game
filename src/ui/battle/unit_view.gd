@@ -135,11 +135,6 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
-## Local y of the top of the head (negative).
-func head_y() -> float:
-	return -_head_h
-
-
 ## Where the body currently is relative to the formation spot (attack lunges move it).
 func body_offset() -> Vector2:
 	if sprite == null:

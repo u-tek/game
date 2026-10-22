@@ -11,7 +11,6 @@ extends RefCounted
 ##   const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
 
 const Plate := preload("res://src/ui/components/plate.gd")
-const MOSAIC := preload("res://src/ui/v4/pixel_mosaic.gdshader")
 const ECHO := preload("res://src/ui/v4/soft_echo.gdshader")
 
 const MATTE := Color("f5f4f0")
@@ -155,49 +154,6 @@ static func giant(parent: Control, bb: String, font_size: int, pos: Vector2, blo
 static func text_w(text: String, size: int, weight: String = "compressed") -> float:
 	return Kit.font(weight).get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 
-
-## A framed pixel square: a crop of the hero's art (`focus` "face" | "chest" | "hips") as a mosaic of
-## flat cells inside a hairline frame with a small solid tab at one corner.
-static func pixel_square(hero_id: String, skin: String, focus: String, side: float, cells: int = 8,
-		frame: Color = INK) -> Control:
-	var root := Control.new()
-	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.size = Vector2(side, side)
-	root.custom_minimum_size = root.size
-	var tex := HeroArt.texture(hero_id, skin)
-	if tex:
-		var face := HeroArt.portrait_region(hero_id, skin)
-		var ts := Vector2(tex.get_size())
-		var c := face.get_center()
-		var s := face.size.x * 0.7
-		match focus:
-			"chest":
-				c += Vector2(0, face.size.y * 0.95)
-				s = face.size.x * 0.8
-			"hips":
-				c += Vector2(0, face.size.y * 2.1)
-				s = face.size.x * 0.9
-		var reg := Rect2(c - Vector2(s, s) * 0.5, Vector2(s, s))
-		reg.position = reg.position.clamp(Vector2.ZERO, (ts - reg.size).max(Vector2.ZERO))
-		var tr := TextureRect.new()
-		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		tr.texture = tex
-		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		tr.stretch_mode = TextureRect.STRETCH_SCALE
-		tr.position = Vector2(4, 4)
-		tr.size = Vector2(side - 8, side - 8)
-		var m := ShaderMaterial.new()
-		m.shader = MOSAIC
-		m.set_shader_parameter("region", Vector4(reg.position.x / ts.x, reg.position.y / ts.y, reg.size.x / ts.x, reg.size.y / ts.y))
-		m.set_shader_parameter("cells", float(cells))
-		m.set_shader_parameter("lod", clampf(log(s / cells) / log(2.0) - 0.5, 0.0, 8.0))
-		tr.material = m
-		root.add_child(tr)
-	var f := Frame.new()
-	f.color = frame
-	f.size = root.size
-	root.add_child(f)
-	return root
 
 
 ## The pass for a screen's main action (the OG-pass look of SignalKit.pass_button) whose text can

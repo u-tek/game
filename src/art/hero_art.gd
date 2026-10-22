@@ -86,13 +86,6 @@ static func texture(hero_id: String, skin_id: String = "") -> Texture2D:
 	return _fallback_tex(hero_id, "still")
 
 
-## The figure's outline in texture(hero_id, skin_id) pixels: the art's alpha bounds (weapon, hair
-## and all). A wide pose (bent over, a weapon held out) is far wider than a standing one, so views
-## frame by this instead of assuming a slim figure in the middle of the canvas. Cached per look.
-static func figure_bounds(hero_id: String, skin_id: String = "") -> Rect2:
-	return used_rect(texture(hero_id, skin_id))
-
-
 static var _used_rects: Dictionary = {}
 
 
@@ -197,7 +190,7 @@ static func _fallback_tex(hero_id: String, kind: String) -> Texture2D:
 	return tex
 
 
-## Background texture: "home", "summon", "chapter-1", "chapter-2", "chapter-3".
+## Background texture by kind ("chapter-1" ... "chapter-6"), or null when there is no art.
 static func background(kind: String) -> Texture2D:
 	var path := "res://assets/art/backgrounds/%s.svg" % kind
 	if ResourceLoader.exists(path):

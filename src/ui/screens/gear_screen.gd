@@ -21,7 +21,7 @@ const SORT_NAMES := {"tier": "Tier", "score": "Score", "slot": "Slot"}
 const INK := PK.INK
 const PAPER := PK.PAPER
 const SIG := PK.SIGNAL
-const HEAD_H := 236.0
+const HEAD_H := 168.0
 const CELL_H := 236.0
 
 static var _slot_idx := 0
@@ -221,8 +221,8 @@ func _restore(y: int) -> void:
 		_scroll.scroll_vertical = y
 
 
-## The catalogue sheet: the header (band, giant GEAR, counts) and the pieces.
-func _build_sheet(items: Array[Dictionary], total: int, worn: int) -> void:
+## The catalogue sheet: the header (band, giant GEAR) and the pieces (the counts are at the top).
+func _build_sheet(items: Array[Dictionary], _total: int, _worn: int) -> void:
 	var pw := _w - 36
 	var rows := ceili(float(items.size()) / COLS)
 	var ph := HEAD_H + maxf(1.0, float(rows)) * CELL_H + 40.0
@@ -237,16 +237,13 @@ func _build_sheet(items: Array[Dictionary], total: int, worn: int) -> void:
 	# "GEAR" set huge, two-tone across the band; the counts as a bracketed table beside it.
 	var f := Kit.font("compressed")
 	var fs := 250
-	while fs > 120 and 64.0 + f.get_string_size("GEAR", HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x + 20.0 > pw - 236.0:
+	while fs > 110 and (64.0 + f.get_string_size("GEAR", HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x + 20.0 > pw - 40.0
+			or PK.caps(f, fs).y - PK.caps(f, fs).x > HEAD_H - 64.0):
 		fs -= 10
 	var cp := PK.caps(f, fs)
 	PK.giant(p, "GEAR", fs, [[0.0, bw, PAPER], [bw, pw - bw, INK]], Vector2(64, 16.0 - cp.x), Vector2(pw + 300, fs * 1.3), 0.0)
 	var cap_end := 16.0 + cp.y - cp.x
-	var spare := total - worn
 	var x := bw + 20
-	var tb := PK.data_table([["ITEMS", "%d" % total], ["WORN", "%d" % worn], ["SPARE", "%d" % spare, spare > 0]], 220.0,
-		{"size": 12, "row_h": 22.0, "bar": Color(1, 1, 1, 0.65)})
-	PK.at(p, tb, Vector2(pw - 236, cap_end - 66))
 	PK.at(p, PK.t("TAP A PIECE TO EQUIP, COMPARE OR SALVAGE IT.", 10, Color(INK, 0.75), "mono"), Vector2(x, minf(cap_end + 12, HEAD_H - 22)))
 	PK.rule(p, Rect2(0, HEAD_H, pw, 1), Color(INK, 0.55))
 	_empty = Control.new()

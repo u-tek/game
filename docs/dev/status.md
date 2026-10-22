@@ -27,6 +27,38 @@ this file says where things stand. Older logs are under "History" at the bottom.
 
 ## Where things stand
 
+- **App cleanup (2026-10-22, PC chat; the owner: "i want the clean the app up first", then "i'm happy
+  for you to go ahead with all of those changes").** An audit of every screen (`tools/shoot`, rich
+  save) and of the code, then:
+  - **Owner asks:** the Campaign's world select swipes left and right (anywhere off the planet; a
+    quick long flick on it too) and the previous world peeks in from the left, tap to go back
+    (`world_dossier.gd`); the Wish picker is a sideways swipe strip of every Legendary that opens on
+    the current wish, and the Wish banner's list scrolls above the pity card (`summon_screen.gd`;
+    both in `tests/tools/scroll_audit.gd`).
+  - **Cuts the owner approved:** the splash viewer (empty, unreachable), the top bar's grid menu (a
+    Settings button instead), the Lobby's OFFERS side label (SHOP takes its light) and its paper NEXT
+    label outside the first-session guide, the Sanctum's red push button (one CLAIM REWARDS stamp),
+    the Campaign's endless "Loading ...", and the Prints stats that repeated the filter tabs.
+  - **Messy screens fixed:** hero page (abilities card moved into the dark band, ID lines on a paper
+    label over her wings, pixel squares gone, signature clear of the index), Summon (rates on a raised
+    paper label, x10 ticket on screen, band prints clear of the tickets), Rival (her line over her
+    figure), Spire ("THE SPIRE" and REC PWR no longer repeated, band micro type gone), Heroes (one
+    count), Profile (rank disc moved off the allegiance), Shop (titles and tag pills no longer
+    overlap), reward receipt (the stamp shows the item count, not a second OK), Team ("4 OF 5
+    COUNTER", bench hint), top bar (icon, amount and plus together), Gear (slimmer head, no repeated
+    counts). The hero rig draws above plain print: labels that must sit over her use `z_index = 2`.
+  - **Code:** a subagent removed the v2/v3 leftovers: kit_demo and the components only it used, dead
+    Kit builders and theme styles, the aero paths in KitBox, unused HUD/plate/signal pieces, the
+    Barlow fonts, 20 unused icons, the coil renders; README, architecture, ui-style-v4, skins and
+    halorig docs updated. `data/art_prompts.json` is excluded from the export.
+  - **Size:** hero paintings and portraits (554 imports) are lossy WebP at 90% (`tools/art_lossy.py`,
+    unit test `test_art_import.gd`); close-ups sent to the owner looked identical at 2x. The IPA was
+    471 MB with lossless art.
+  - `tools/check e2e`: 154 tests, boot, 5 e2e scripts and the scroll audit green.
+  - **Left for later:** Settings still has the free-currency Dev tools in release builds (useful for
+    the owner's testing; hide before any public release); the four duplicated poster kits and the
+    palette copies (`INK`/`PAPER` in ~35 files) are not merged yet; Seraphiel's painting is very pale
+    (about half the others' contrast), the owner can pick another candidate.
 - **Art roster, style B+ (2026-10-22, PC chat):** every hero and skin gets 2 MOSS candidates; Claude
   checks them (wings, props, anatomy, coverage) and the pick is finished (face pass + 2x, no hires
   repaint), installed and quick-rigged by `tools/comfy/roster_qa.py` (state in
@@ -479,6 +511,9 @@ this file says where things stand. Older logs are under "History" at the bottom.
 
 ## Waiting on the owner
 
+- **Inventory (2026-10-22):** the owner asked "do we have an inventory yet??". Only gear has one
+  (the Gear tab). Offered: a Bag screen (currencies, shards, skins, links to gear and prints) from a
+  top-bar icon, or a real item system (EXP potions, chests, tickets). Waiting for the pick.
 0. **Direction pinned (2026-10-22): the War for Souls.** The players split into Heaven and Hell, and
    combat, a district per player and clans all feed one shared front (`docs/dev/feature-ideas.md`;
    the combat for it is at the top of `docs/dev/combat-v1.md`). The owner: "lets put a pin in this

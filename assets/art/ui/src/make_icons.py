@@ -118,40 +118,24 @@ icons = {}
 # Back: chunky left arrow.
 icons["back"] = svg(stroke("M38 14 L20 32 L38 50", 7) + stroke("M22 32 H50", 7))
 icons["chevron_right"] = svg(stroke("M24 14 L42 32 L24 50", 7))
-icons["arrow_right"] = svg(path(poly_d([(10, 26), (34, 26), (34, 14), (54, 32), (34, 50), (34, 38), (10, 38)])))
-icons["arrow_up"] = svg(path(poly_d([(32, 8), (54, 30), (40, 30), (40, 56), (24, 56), (24, 30), (10, 30)])))
 icons["close"] = svg(stroke("M16 16 L48 48 M48 16 L16 48", 6.5))
 icons["check"] = svg(stroke("M12 33 L26 47 L53 18", 7.5))
 icons["plus"] = svg(stroke("M32 12 V52 M12 32 H52", 7.5, cap="butt"))
-icons["plus_badge"] = svg(stroke("M32 14 V50 M14 32 H50", 9, cap="butt"))
 icons["info"] = svg(path(circle_d(32, 32, 26) + " " + circle_d(32, 32, 21.5)) + circ(32, 20, 3.6) + rect(28.6, 27, 6.8, 21, 1.5))
 icons["lock"] = svg(stroke("M21 30 V22 A11 11 0 0 1 43 22 V30", 6, cap="butt")
                     + path(rrect_d(13, 28, 38, 28, 4) + " " + circle_d(32, 39, 4.2) + " " + poly_d([(30, 41), (34, 41), (35, 50), (29, 50)])))
 icons["refresh"] = svg(stroke("M50 30 A18 18 0 1 1 42 16", 6, cap="butt") + poly([(36, 6), (52, 14), (38, 26)]))
 icons["settings"] = svg(path(gear_d(32, 32, 27, 20, 8) + " " + circle_d(32, 32, 8.5)))
-icons["menu"] = svg(rect(9, 9, 20, 20, 3) + rect(35, 9, 20, 20, 3) + rect(9, 35, 20, 20, 3) + rect(35, 35, 20, 20, 3))
 icons["mail"] = svg(path(rrect_d(6, 13, 52, 38, 4) + " " + poly_d([(9, 15), (32, 32), (55, 15), (57, 19.5), (32, 38), (7, 19.5)])))
 icons["bell"] = svg(path("M32 7 C42 7 47 15 47 25 V36 L53 45 H11 L17 36 V25 C17 15 22 7 32 7 Z") + path(circle_d(32, 51, 6)))
-icons["chat"] = svg(path(rrect_d(6, 10, 52, 36, 8) + " " + circle_d(20, 28, 3.6) + " " + circle_d(32, 28, 3.6) + " " + circle_d(44, 28, 3.6)) + poly([(16, 44), (28, 44), (14, 56)]))
 icons["quests"] = svg(path(rrect_d(11, 10, 42, 48, 4) + " " + rrect_d(16, 18, 32, 35, 1.5))
                       + rect(23, 5, 18, 10, 2.5) + stroke("M21 35 L28 42 L43 26", 5.2) )
-icons["calendar"] = svg(path(rrect_d(8, 12, 48, 44, 4) + " " + rrect_d(13, 25, 38, 26, 1.5)) + rect(17, 6, 6, 12, 2) + rect(41, 6, 6, 12, 2)
-                        + rect(18, 30, 8, 7, 1) + rect(28, 30, 8, 7, 1) + rect(38, 30, 8, 7, 1) + rect(18, 40, 8, 7, 1) + rect(28, 40, 8, 7, 1))
-icons["friend"] = svg(circ(32, 22, 11) + path("M10 56 C10 42 20 36 32 36 C44 36 54 42 54 56 Z"))
 icons["avatar"] = svg(circ(32, 24, 12) + path("M8 60 C8 45 19 38 32 38 C45 38 56 45 56 60 Z"))
-icons["trophy"] = svg(path("M18 8 H46 V26 C46 35 40 41 32 41 C24 41 18 35 18 26 Z") + stroke("M18 14 H10 V20 C10 27 15 30 19 30 M46 14 H54 V20 C54 27 49 30 45 30", 4)
-                      + rect(29, 40, 6, 9) + rect(19, 49, 26, 7, 2))
 icons["filter"] = svg(path(poly_d([(8, 10), (56, 10), (38, 32), (38, 52), (26, 58), (26, 32)])))
-icons["sort"] = svg(path(poly_d([(18, 6), (30, 22), (22, 22), (22, 58), (14, 58), (14, 22), (6, 22)]))
-                    + path(poly_d([(46, 58), (34, 42), (42, 42), (42, 6), (50, 6), (50, 42), (58, 42)])))
 icons["eye_off"] = svg(stroke("M6 32 C14 20 22 15 32 15 C42 15 50 20 58 32 C50 44 42 49 32 49 C22 49 14 44 6 32 Z", 4.5) + circ(32, 32, 8) + stroke("M12 54 L52 10", 5))
 icons["home"] = svg(path(poly_d([(32, 6), (58, 30), (51, 30), (51, 56), (38, 56), (38, 40), (26, 40), (26, 56), (13, 56), (13, 30), (6, 30)])))
-icons["exit"] = svg(path(poly_d([(8, 8), (40, 8), (40, 22), (34, 22), (34, 14), (14, 14), (14, 50), (34, 50), (34, 42), (40, 42), (40, 56), (8, 56)]))
-                    + path(poly_d([(22, 29), (44, 29), (44, 20), (58, 32), (44, 44), (44, 35), (22, 35)])))
 icons["pointer"] = svg(poly([(32, 60), (8, 32), (22, 32), (22, 6), (42, 6), (42, 32), (56, 32)], W)
                        + poly([(32, 53), (15, 35), (26, 35), (26, 10), (38, 10), (38, 35), (49, 35)], ORANGE))
-icons["hex"] = svg(poly(hex_pts(32, 32, 29)))
-icons["hex_outline"] = svg(path(poly_d(hex_pts(32, 32, 29)) + " " + poly_d(hex_pts(32, 32, 24))))
 
 # Bottom nav (Heroes, Team, Lobby, Gear, Summon). Original glyphs, consistent weight.
 # Heroes: one figure under a halo with a single swept wing behind the shoulder (our angel
@@ -171,7 +155,6 @@ icons["team"] = icons["nav_team"]
 # Lobby: halo over a horned crest (the game's two sides), inside a hex frame.
 icons["nav_lobby"] = svg(path("M8 58 V30 L32 10 L56 30 V58 Z M24 58 V44 C24 38 27 34 32 31 C37 34 40 38 40 44 V58 Z")
                          + path(circle_d(32, 6, 5) + " " + circle_d(32, 6, 2.6)) + rect(4, 55, 56, 5, 1.5))
-icons["lobby"] = icons["nav_lobby"]
 # Gear: shield with a sword through it.
 icons["nav_gear"] = svg(path(poly_d([(44, 6), (58, 6), (58, 20), (50, 28), (36, 14)])) + path(poly_d([(6, 50), (14, 42), (22, 50), (14, 58)])) + rect(4, 41, 22, 5, 2, W, ' transform="rotate(45 15 43.5)"')
                         + path("M32 12 L52 19 V33 C52 45 43 53 32 58 C21 53 12 45 12 33 V19 Z " + poly_d([(20, 28), (32, 36), (44, 28), (44, 34), (32, 42), (20, 34)])))
@@ -181,9 +164,6 @@ icons["nav_summon"] = svg(path("M8 46 C8 39 19 35 32 35 C45 35 56 39 56 46 C56 5
                           + poly(star_pts(32, 22, 18, 5, 4, -90)) + circ(48, 10, 3) + circ(14, 16, 2.4))
 icons["summon"] = icons["nav_summon"]
 
-# Codex (the hero archive): an open book with a bookmark ribbon.
-icons["codex"] = svg(path("M4 14 C13 10 23 11 30 16 V56 C23 51 13 50 4 54 Z")
-                     + path("M60 14 C51 10 41 11 34 16 V56 C41 51 51 50 60 54 Z M42 13.5 V31 L46.5 27 L51 31 V12.2 C47.8 12.2 44.8 12.6 42 13.5 Z"))
 # Objective flag: a pole and a notched pennant (the lobby objective strip).
 icons["flag"] = svg(rect(12, 6, 6, 52, 2) + path(poly_d([(18, 8), (54, 8), (44, 21), (54, 34), (18, 34)])) + rect(6, 54, 18, 5, 2))
 
@@ -200,12 +180,8 @@ icons["gift"] = svg(rect(8, 22, 48, 11, 2) + rect(12, 35, 40, 22, 2)
 icons["chest"] = svg(path("M6 26 C6 16 13 10 22 10 H42 C51 10 58 16 58 26 V30 H6 Z") + path(rrect_d(6, 33, 52, 23, 3) + " " + poly_d([(27, 33), (37, 33), (37, 44), (32, 47), (27, 44)])))
 icons["sword"] = svg(path(poly_d([(50, 6), (58, 6), (58, 14), (28, 44), (20, 36)])) + rect(8, 34, 26, 6, 2, W, ' transform="rotate(45 21 37)"')
                      + path(poly_d([(14, 44), (20, 50), (11, 59), (5, 53)])))
-icons["crossed"] = svg(path(poly_d([(46, 4), (56, 4), (56, 14), (24, 46), (14, 36)])) + path(poly_d([(18, 4), (8, 4), (8, 14), (40, 46), (50, 36)]))
-                       + rect(6, 44, 18, 5, 2, W, ' transform="rotate(45 15 46)"') + rect(40, 44, 18, 5, 2, W, ' transform="rotate(-45 49 46)"'))
-icons["skill"] = svg(path(poly_d([(36, 4), (14, 36), (30, 36), (26, 60), (50, 26), (34, 26)])))
 icons["equip"] = icons["nav_gear"]
 icons["upgrade"] = svg(path(poly_d([(32, 6), (54, 28), (42, 28), (42, 40), (22, 40), (22, 28), (10, 28)])) + rect(22, 45, 20, 5, 1) + rect(22, 53, 20, 5, 1))
-icons["timer"] = svg(path(circle_d(32, 36, 24) + " " + circle_d(32, 36, 19)) + rect(26, 4, 12, 6, 2) + stroke("M32 22 V36 L41 42", 4.5))
 
 # Battle / settings controls.
 icons["speed"] = svg(path(poly_d([(6, 12), (32, 32), (6, 52)])) + path(poly_d([(30, 12), (58, 32), (30, 52)])))
@@ -213,7 +189,6 @@ icons["skip"] = svg(path(poly_d([(8, 12), (36, 32), (8, 52)])) + rect(42, 12, 9,
 icons["auto"] = svg(stroke("M50 30 A18 18 0 1 0 46 44", 6, cap="butt") + poly([(56, 22), (54, 38), (40, 28)])
                     + path("M25 41 L31 22 H35 L41 41 H36.5 L35 36 H31 L29.5 41 Z M32 32 H34 L33 28 Z"))
 icons["sound_on"] = svg(path(poly_d([(6, 24), (18, 24), (32, 10), (32, 54), (18, 40), (6, 40)])) + stroke("M40 22 A13 13 0 0 1 40 42", 4.5) + stroke("M46 14 A23 23 0 0 1 46 50", 4.5))
-icons["sound_off"] = svg(path(poly_d([(6, 24), (18, 24), (32, 10), (32, 54), (18, 40), (6, 40)])) + stroke("M40 24 L56 40 M56 24 L40 40", 5))
 icons["music"] = svg(rect(24, 10, 5, 36) + rect(48, 6, 5, 36) + path(poly_d([(24, 10), (53, 4), (53, 14), (24, 20)]))
                      + circ(19, 46, 8) + circ(43, 42, 8))
 icons["vibrate"] = svg(path(rrect_d(20, 6, 24, 52, 4) + " " + rrect_d(24, 12, 16, 36, 1)) + stroke("M12 20 V44 M6 25 V39 M52 20 V44 M58 25 V39", 3.5))
@@ -223,7 +198,6 @@ icons["stat_hp"] = svg(path("M32 56 C16 44 6 35 6 23 C6 14 13 8 21 8 C26 8 30 11
 icons["stat_atk"] = icons["sword"]
 icons["stat_def"] = svg(path("M32 6 L54 14 V30 C54 44 44 53 32 58 C20 53 10 44 10 30 V14 Z"))
 icons["stat_spd"] = svg(path(poly_d([(36, 4), (12, 36), (28, 36), (24, 60), (52, 24), (34, 24)])))
-icons["stat_crit"] = svg(path(circle_d(32, 32, 24) + " " + circle_d(32, 32, 18.5)) + circ(32, 32, 6) + rect(29.5, 2, 5, 16) + rect(29.5, 46, 5, 16) + rect(2, 29.5, 16, 5) + rect(46, 29.5, 16, 5))
 icons["power"] = svg(poly([(38, 3), (12, 36), (29, 36), (24, 61), (52, 25), (35, 25)], ORANGE)
                      + poly([(38, 3), (12, 36), (29, 36), (35, 25)], AMBER))
 
@@ -292,8 +266,6 @@ icons["shard"] = svg(shard_icon())
 
 icons["star"] = svg(poly(star_pts(32, 34, 28, 12.5), ORANGE_DK) + poly(star_pts(32, 32, 28, 12.5), AMBER)
                     + poly([star_pts(32, 32, 28, 12.5)[i] for i in (9, 0, 1)] + [(32, 32)], "#ffe39a") + glint(22, 22, 3))
-icons["star_empty"] = svg(path(poly_d(star_pts(32, 32, 28, 12.5)) + " " + poly_d(star_pts(32, 32.5, 21, 9.3)), "#9aa1ab")
-                          + poly(star_pts(32, 32.5, 21, 9.3), "#9aa1ab", ' opacity="0.25"'))
 icons["crown"] = svg(poly([(6, 18), (20, 30), (32, 10), (44, 30), (58, 18), (52, 50), (12, 50)], AMBER) + rect(12, 50, 40, 7, 1.5, ORANGE_DK)
                      + circ(32, 10, 4, W) + circ(6, 18, 3.5, AMBER) + circ(58, 18, 3.5, AMBER) + poly([(32, 30), (37, 38), (32, 46), (27, 38)], ORANGE_DK))
 

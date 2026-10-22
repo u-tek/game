@@ -54,11 +54,6 @@ func setup(id: String, text: String, icon_name: String, is_center: bool = false)
 	_apply(false)
 
 
-## Bottom of the label: main.gd puts the shared underline just under it.
-func ink_y() -> float:
-	return 84.0
-
-
 ## Touch-down squash of the glyph; release springs it back.
 func _squash(down: bool) -> void:
 	if _press_tw and _press_tw.is_valid():

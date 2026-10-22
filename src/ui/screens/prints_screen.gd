@@ -27,7 +27,7 @@ const SIG := Color("ff4b1f")
 const BAND_C := Color("141517")
 const SHEET := Color("e2e3e1")
 const BAND := 132.0
-const HEAD := 404.0
+const HEAD := 320.0
 const COLS := 3
 const MAX_W := 760.0
 
@@ -232,12 +232,9 @@ func _build_head(pw: float) -> void:
 	var dl := CK.DataList.new()
 	dl.name = "Register"
 	var bp := best
+	# Misprints, holo, top grade and Rue's count are on the filter tabs just below (owner-approved cut).
 	dl.rows = [
-		["MISPRINTS", "%02d" % int(stats.get("misprints", 0)), int(stats.get("misprints", 0)) > 0],
-		["HOLO FOIL", "%02d" % int(stats.get("holo", 0))],
-		["GRADE 9 OR 10", "%02d" % int(stats.get("top", 0))],
-		["FROM RUE", "%02d" % int(stats.get("from_rival", 0))],
-		["EVER PULLED", Kit.format_num(int(stats.get("total", 0)))],
+		["EVER PULLED", Kit.format_num(int(stats.get("total", 0))), true],
 		[],
 		["BEST", ("%s · %s" % [str(HeroData.get_def(str(bp.get("hero", ""))).get("name", "")).to_upper(),
 			"No.%04d" % int(bp.get("serial", 0))]) if not bp.is_empty() else "--"],

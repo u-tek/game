@@ -278,7 +278,7 @@ on desktop the mouse over the window). Reduce motion holds it still and gentle. 
 | `play_hit()`, `play_death()`, `play_victory()`, `play(anim)` | `play` puts looping anims (stun, run) on the base track, others as actions |
 | `set_facing(dir)`, `set_echo(bool)`, `set_boss(bool)` | mirror; desat + violet shade; x1.3 + pulsing aura |
 | `set_speed(mult)` | battle speed 1/2/4 (animations, events, physics) |
-| `set_expression(slot, variant)`, `is_busy()` | overlay slots `eyes`, `mouth` |
+| `set_expression(slot, variant)` | overlay slots `eyes`, `mouth` |
 | `get_point("chest"/"head"/"weapon") -> Vector2`, `vfx_point(kind)`, `get_height()` | global positions for VFX and damage numbers |
 
 Signals: `anim_event(name)`, `anim_finished(name)`, `vfx_requested(kind, global_pos, facing)`.

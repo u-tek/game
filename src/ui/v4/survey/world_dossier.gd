@@ -2,8 +2,8 @@ extends Control
 ## The Campaign's chapter select (style v4 "Signal", poster look; docs/dev/ui-style-v4.md), built like
 ## the owner's planet-dossier reference: each chapter is a world. The chapter's planet turns in the
 ## middle of a printed instrument (WorldView: the Blender-baked planet in real time, ring arcs, ticks,
-## "Loading ...", the MASS tag, a barcode ring, a progress gauge); the next world peeks in from the
-## right edge; the catalogue mark sits top right ("01  S1 |"); under the planet the chapter name runs
+## the MASS tag, a barcode ring, a progress gauge); the next world peeks in from the right edge and
+## the previous one from the left (tap either to go there); the catalogue mark sits top right ("01  S1 |"); under the planet the chapter name runs
 ## huge between ‹ › arrows over a pale band with the chapter number ghosted behind it, then a
 ## two-column mono data list (host, stages cleared, enemy levels and grades, recommended power, the
 ## counter faction, the boss; then the world's terrain class and flavour readouts from
@@ -12,7 +12,10 @@ extends Control
 ##
 ##   var d := WorldDossier.new(); d.size = poster_size; poster.add_child(d); d.build(ci)
 ##   d.enter_pressed.connect(...)   # the planet or the pass: zoom into the survey map
-##   d.switch_pressed.connect(...)  # ‹ › or the neighbour planet: show another chapter
+##   d.switch_pressed.connect(...)  # ‹ ›, a neighbour planet or a sideways swipe: another chapter
+##
+## Swipe left or right anywhere on the poster for the next or previous world. On the planet itself a
+## slow drag turns it; a quick long flick still changes the world.
 ##
 ## dive(then) plays the zoom into the planet (the line work and type fade, the planet grows past the
 ## poster) and calls `then`; arrive() plays it backwards when coming out of a map.
@@ -32,6 +35,15 @@ var world_view: WorldView
 var enter_button: Button
 var _chrome: Control
 var _neighbor: WorldView
+var _prev: WorldView
+## The swipe being tracked: where it started (local) and when; INF when none.
+var _sw_at := Vector2.INF
+var _sw_ms := 0
+var _sw_on_planet := false
+## A sideways swipe this long (px) changes the world; on the planet it must be a quick, longer flick.
+const SWIPE_MIN := 90.0
+const FLICK_MIN := 170.0
+const FLICK_MS := 450
 ## Debug builds (screenshots): print the world as open even when it is still locked.
 var look_open := false
 
@@ -78,6 +90,19 @@ func build(ci: int) -> void:
 		_neighbor.name = "NextWorld"
 		_neighbor.pressed.connect(func() -> void: switch_pressed.emit(ci + 1))
 		add_child(_neighbor)
+	# The previous world peeks in from the left edge, so there is always a way back.
+	_prev = null
+	if ci > 0:
+		_prev = WorldView.new()
+		_prev.bare = true
+		_prev.world = int(world_of(ci - 1).get("world", ci))
+		_prev.locked = Game.stage_status(int(chs[ci - 1].get("first_stage", 0))) == "locked"
+		_prev.radius = r * 0.8
+		_prev.center = Vector2(-r * 0.38, c.y + r * 0.08)
+		_prev.size = Vector2(pw, ph)
+		_prev.name = "PrevWorldPeek"
+		_prev.pressed.connect(func() -> void: switch_pressed.emit(ci - 1))
+		add_child(_prev)
 
 	# The world itself, with its instrument.
 	world_view = WorldView.new()
@@ -89,7 +114,7 @@ func build(ci: int) -> void:
 	world_view.progress = float(done) / maxf(float(count), 1.0)
 	world_view.mass_text = str(wd.get("mass", ""))
 	world_view.id_text = "ID %s-%03d" % [str(wd.get("code", "W")), (ci + 1) * 7]
-	world_view.loading_text = "Signal lost ..." if locked else "Loading ..."
+	world_view.loading_text = "Signal lost ..." if locked else ""
 	world_view.size = Vector2(pw, ph)
 	world_view.pressed.connect(func() -> void: enter_pressed.emit())
 	add_child(world_view)
@@ -232,7 +257,7 @@ func build(ci: int) -> void:
 ## A small ‹ or › with an 88 px hit area centred on `at`; dim when there is nothing that way.
 func _arrow(p: Control, at: Vector2, dir: int, on: bool, cb: Callable, node_name: String) -> void:
 	var tri := Polygon2D.new()
-	var s := 9.0
+	var s := 14.0
 	tri.polygon = PackedVector2Array([Vector2(-s * 0.6 * dir, -s), Vector2(s * 0.6 * dir, 0), Vector2(-s * 0.6 * dir, s)])
 	tri.color = Color(INK, 0.9 if on else 0.2)
 	tri.position = at
@@ -277,8 +302,9 @@ func dive(then: Callable) -> void:
 	var tw := create_tween()
 	tw.set_parallel(true)
 	tw.tween_property(_chrome, "modulate:a", 0.0, 0.22)
-	if _neighbor:
-		tw.tween_property(_neighbor, "modulate:a", 0.0, 0.22)
+	for nb: WorldView in [_neighbor, _prev]:
+		if nb:
+			tw.tween_property(nb, "modulate:a", 0.0, 0.22)
 	tw.tween_method(world_view.zoom, 1.0, 3.4, 0.62).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	tw.chain().tween_callback(then)
 
@@ -293,6 +319,34 @@ func arrive() -> void:
 	tw.set_parallel(true)
 	tw.tween_method(world_view.zoom, 3.2, 1.0, 0.55).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tw.tween_property(_chrome, "modulate:a", 1.0, 0.3).set_delay(0.35)
-	if _neighbor:
-		_neighbor.modulate.a = 0.0
-		tw.tween_property(_neighbor, "modulate:a", 1.0, 0.3).set_delay(0.35)
+	for nb: WorldView in [_neighbor, _prev]:
+		if nb:
+			nb.modulate.a = 0.0
+			tw.tween_property(nb, "modulate:a", 1.0, 0.3).set_delay(0.35)
+
+
+## Sideways swipes change the world (read in _input so they work over the print, the data list and
+## the neighbours alike; nothing is consumed, so taps and the planet's turn work as before).
+func _input(event: InputEvent) -> void:
+	var mb := event as InputEventMouseButton
+	if mb == null or mb.button_index != MOUSE_BUTTON_LEFT or not is_visible_in_tree():
+		return
+	var lp: Vector2 = (make_input_local(mb) as InputEventMouseButton).position
+	if mb.pressed:
+		_sw_at = Vector2.INF
+		if _chrome == null or _chrome.modulate.a < 0.99 or UI.has_modal() or not Rect2(Vector2.ZERO, size).has_point(lp):
+			return
+		_sw_at = lp
+		_sw_ms = Time.get_ticks_msec()
+		_sw_on_planet = world_view != null and world_view._has_point(lp)
+		return
+	if _sw_at == Vector2.INF:
+		return
+	var d := lp - _sw_at
+	var quick := Time.get_ticks_msec() - _sw_ms <= (FLICK_MS if _sw_on_planet else 900)
+	_sw_at = Vector2.INF
+	if not quick or absf(d.x) < (FLICK_MIN if _sw_on_planet else SWIPE_MIN) or absf(d.x) < absf(d.y) * 1.4:
+		return
+	var k := chapter + (1 if d.x < 0.0 else -1)
+	if k >= 0 and k < Game.chapters().size():
+		switch_pressed.emit(k)

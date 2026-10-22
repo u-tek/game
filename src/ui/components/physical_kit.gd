@@ -405,15 +405,6 @@ class Sprout:
 			queue_free()
 
 
-## How big a round piece is drawn so its body is `diameter` screen px: the scale for piece().
-static func ppu_for(piece_name: String, diameter: float) -> float:
-	var inf := info(piece_name)
-	var d := float(inf.get("diameter", 0.0))
-	if d <= 0.0:
-		return 0.0
-	return float(inf.get("px_per_unit", 1.0)) * diameter / d
-
-
 ## A real LED: the off render, the lit render (its glow baked in) over it. color: green | orange | red |
 ## cyan; mode: "steady" | "breathe" | "blink" | "off". Size it with `diameter` (the lens + grommet).
 class Led:

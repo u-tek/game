@@ -192,10 +192,10 @@ func _build() -> void:
 	_edge_label(p, "BACK", top + front_h + 10)
 
 	# ---- Notes at the poster's foot: the hint, or the empty-team warning in signal.
-	_hint = PK.t("TAP A BENCH HERO TO PLACE HER, A PLACED ONE TO TAKE HER OUT. PICK A POSITION FIRST TO CHOOSE WHERE.", 9, Color(INK, 0.6), "mono")
+	_hint = PK.t("BENCH BELOW: SCROLL DOWN. TAP A HERO TO PLACE HER, A PLACED ONE TO TAKE HER OUT, A POSITION TO CHOOSE WHERE.", 9, Color(INK, 0.6), "mono")
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_hint.size = Vector2(maxf(pw - x0 - 330.0, 180.0), 0)
-	PK.at(p, _hint, Vector2(x0, ph - 48))
+	PK.at(p, _hint, Vector2(x0, ph - 58))
 	_warn = PK.t("", 11, SIG, "mono_bold")
 	_warn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_warn.size = Vector2(maxf(pw - x0 - 330.0, 180.0), 0)
@@ -421,7 +421,12 @@ func _refresh_summary() -> void:
 					cp.append(str(FACTION_SHORT.get(f, f)))
 					fielded += int(mine.get(f, 0))
 		lines.append("COUNTER %s +%d%%" % [" ".join(cp), BattleSim.ADVANTAGE_BP / 100])
-		lines.append("%d IN TEAM" % fielded)
+		var placed := 0
+		for id: Variant in _slots:
+			if str(id) != "":
+				placed += 1
+		# How many of the team counter the next enemy ("4 IN TEAM" read as the team's size).
+		lines.append("%d OF %d COUNTER" % [fielded, placed])
 	_data_l.text = "\n".join(lines)
 	# The band print follows the lead (the first hero in the team).
 	var lead := ""

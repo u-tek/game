@@ -339,6 +339,8 @@ func _build_line_slip(text: String) -> void:
 	slip.add_child(v)
 	slip.position = Vector2(BAND - 40.0, FACE - 150.0)
 	slip.rotation = -0.025
+	# Over her figure (the rig draws raised): her line was hidden behind her body.
+	slip.z_index = 2
 	p.add_child(slip)
 	_fade.append(slip)
 	CK.hit(p, Rect2(BAND - 40.0, FACE - 156.0, minf(_pw - 100.0, 520.0), 110.0), _next_line, "Line", "Talk")

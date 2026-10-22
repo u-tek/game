@@ -476,23 +476,17 @@ func _build_portrait(av: String, skin: String) -> void:
 	al_l.size = Vector2(dw, 18)
 	PK.at(db, al_l, Vector2(0, 188))
 	PK.at(db, PK.t(str(al[1]), 10, Color(INK, 0.7), "mono"), Vector2(0, 206))
-	var bw := minf(116.0, dw)
-	var bc := SignalKit.barcode(Vector2(bw, 24), INK, absi(hash(player_id())) % 100000)
-	PK.at(db, bc, Vector2(dw - bw, ps.y - 30.0))
-	var idl := PK.t(player_id(), 9, Color(INK, 0.8), "mono")
-	idl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	idl.size = Vector2(dw, 12)
-	PK.at(db, idl, Vector2(0, ps.y - 4.0))
 
-	# The RANK stamp on a machined disc, stuck over the portrait's corner.
+	# The RANK stamp on a machined disc, stuck at the foot of the data column (under the allegiance,
+	# clear of the portrait and the lines above it).
 	var lv := level()
 	var title := str(RANKS[rank_index(lv)][1])
-	var dpos := Vector2(X0 + ps.x - 68.0, y0 + ps.y - 46.0)
-	_rank_disc = SignalKit.plate("silver", dpos, Vector2(112, 112), {"circle": true, "shadow": 0.5}, p)
-	_rank_disc.add_child(SignalKit.stamp("RANK · %s · LEVEL · " % title, "%02d" % lv, 112.0))
+	var dpos := Vector2(dx + dw - 108.0, y0 + ps.y - 34.0)
+	_rank_disc = SignalKit.plate("silver", dpos, Vector2(104, 104), {"circle": true, "shadow": 0.5}, p)
+	_rank_disc.add_child(SignalKit.stamp("RANK · %s · LEVEL · " % title, "%02d" % lv, 104.0))
 	_rank_disc.rotation = -0.12
-	_rank_disc.pivot_offset = Vector2(56, 56)
-	var rb := _hit(p, Rect2(dpos - Vector2(4, 4), Vector2(120, 120)), _on_rank, "Rank", "Rank")
+	_rank_disc.pivot_offset = Vector2(52, 52)
+	var rb := _hit(p, Rect2(dpos - Vector2(8, 8), Vector2(120, 120)), _on_rank, "Rank", "Rank")
 	var disc := _rank_disc
 	rb.button_down.connect(func() -> void: disc.call("set_pressed_look", true))
 	rb.button_up.connect(func() -> void: disc.call("set_pressed_look", false))

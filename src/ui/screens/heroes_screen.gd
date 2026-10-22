@@ -208,8 +208,6 @@ func _build_head(owned_total: int, total: int) -> void:
 		b.name = "Page_%d" % i if i < 2 else "PrintsPage"
 		if i > 0:
 			PK.at(p, PK.t("/", 13, Color(INK, 0.35), "mono"), Vector2(ix + i * 116 - 14, 14))
-	var note := PK.t("EVERY HERO WHO ANSWERS THE PORTAL" if _tab_idx == 1 else "HEROES YOU CAN PLACE IN YOUR TEAM", 9, Color(INK, 0.6), "mono")
-	PK.at(p, note, Vector2(ix, 46))
 
 
 ## The filter tabs: ALL + the roles, then SORT and FILTER, printed on the matte.
@@ -323,9 +321,9 @@ func _refresh(reset_scroll: bool = false) -> void:
 	_build_tabs()
 	_count_l.text = "%02d OF %02d SUMMONED  ·  SORTED BY %s" % [owned_total, total, str(SORT_NAMES[SORTS[_sort_idx]]).to_upper()]
 	if _tab_idx == 0:
-		_hint.text = "HEROES YOU CAN PLACE IN YOUR TEAM.  %d OF %d SUMMONED." % [owned_total, total]
+		_hint.text = "HEROES YOU CAN PLACE IN YOUR TEAM.  TAP ONE FOR HER FILE."
 	else:
-		_hint.text = "EVERY HERO WHO ANSWERS THE PORTAL.  %d OF %d COLLECTED." % [owned_total, total]
+		_hint.text = "EVERY HERO WHO ANSWERS THE PORTAL.  GREY ONES ARE STILL TO SUMMON."
 
 	var shown: Array[String] = []
 	shown.append_array(owned_ids)

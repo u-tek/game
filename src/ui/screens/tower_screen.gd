@@ -1,8 +1,8 @@
 extends Control
 ## Screen "tower": the Spire (TowerData, data/tower.json), style v4 "Signal" in the approved poster
 ## look (docs/dev/ui-style-v4.md). A printed poster on the paper matte: the dark band down the left
-## carries the next floor's lead enemy as a red halftone print, the micro type and "THE SPIRE" set
-## huge down the poster; the centrepiece is the climb as an exploded stack of floor plates in
+## carries the next floor's lead enemy as a red halftone print and "THE SPIRE" set huge down the
+## poster; the centrepiece is the climb as an exploded stack of floor plates in
 ## isometric line art (src/ui/v4/survey/plate_stack.gd: cleared floors in ink, the next floor in
 ## signal red, sealed floors on paper, boss floors with a second rim), each with a leader to its
 ## label. The title block (top right) holds the best floor; the right edge is an altitude ruler
@@ -90,9 +90,6 @@ func _build() -> void:
 	if lead != "":
 		Poster.halftone_print(p, lead, Rect2(0, ph * 0.36, BAND_W, ph * 0.64), Color(1.0, 0.36, 0.16, 0.95), 6.5)
 	p.add_child(SignalKit.back_button(func() -> void: UI.back(), false))
-	Poster.vlabel(p, "©2026 HH, TOWER SURVEY. ALL RIGHTS RESERVED.", Vector2(42, 96), 10, Color(PAPER, 0.8))
-	Poster.at(p, Poster.t("No.\n%03d" % shown, 12, Color(PAPER, 0.85)), Vector2(70, ph * 0.3))
-	Poster.at(p, Poster.t(Poster.date_short(), 12, Color(PAPER, 0.85)), Vector2(70, ph * 0.3 + 40))
 	Poster.giant_side(p, TowerData.NAME, 150, 150.0, 104.0, 0.0, BAND_W, true)
 
 	# ---- The stack of floors.
@@ -110,8 +107,6 @@ func _build() -> void:
 		var boss := bool(tf.get("is_boss", false))
 		var label := "F.%03d  %s" % [f, "NEXT" if state == "next" else ("CLEARED" if state == "cleared" else "SEALED")]
 		var sub := ""
-		if state == "next":
-			sub = "REC PWR %s" % Kit.format_full(int(tf.get("recommended_power", 0)))
 		if boss:
 			sub = ("BOSS  ·  " + sub) if sub != "" else "BOSS FLOOR"
 		elif f % 5 == 0 and state != "cleared":
@@ -222,7 +217,7 @@ func _build() -> void:
 	var idl := Poster.t("%03d" % nxt, 40, SIG, "wide_black")
 	Poster.at(s, idl, Vector2(12, 18))
 	var idw := idl.get_minimum_size().x
-	Poster.at(s, Poster.t(TowerData.NAME.to_upper(), 36, INK, "compressed"), Vector2(idw + 28, 10))
+	Poster.at(s, Poster.t("BOSS FLOOR" if boss else ("GEM FLOOR" if nxt % 5 == 0 else "NEXT FLOOR"), 36, INK, "compressed"), Vector2(idw + 28, 10))
 	Poster.at(s, Poster.t("BEST %03d  ·  NEXT %03d / %03d" % [best, nxt, total], 10, Color(INK, 0.7), "mono"), Vector2(idw + 30, 54))
 	var verdict := StageInfo.verdict_light(team, rec)
 	for row: Array in [["REC PWR %s" % Kit.format_full(rec), INK, "mono_bold", 10.0], ["TEAM %s" % Kit.format_num(team), Color(INK, 0.75), "mono", 30.0],
@@ -246,8 +241,8 @@ func _build() -> void:
 	var pp := _pr.position
 	Poster.stamp_disc(slot, "TEAM · FORMATION · POWER · ", Kit.format_num(team), pp + Vector2(BAND_W + 22, ph - 152), 112.0, -0.12,
 		func() -> void: UI.go("formation"), "Team", "Team")
-	var spec := {"width": 400.0, "kicker": "ENGAGE // THE SPIRE", "title": "FLOOR %03d" % nxt, "sub": ("BOSS FLOOR" if boss else "BEST %03d" % best),
-		"action": "FIGHT  >>>", "icon": "sword", "info": "REC PWR %s" % Kit.format_full(rec)}
+	var spec := {"width": 400.0, "kicker": "ENGAGE", "title": "FLOOR %03d" % nxt, "sub": ("BOSS FLOOR" if boss else "BEST %03d" % best),
+		"action": "FIGHT  >>>", "icon": "sword"}
 	var pass_root := Poster.pass_on(slot, spec, pp + Vector2(pw - 412, ph - 176), func() -> void: _fight(nxt), "Fight", "FightFloor")
 	_fight_btn = Poster.pass_hit(pass_root)
 	_tail(lead)

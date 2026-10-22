@@ -91,16 +91,6 @@ func loaded() -> bool:
 	return _done.size() >= _paths.size()
 
 
-## Collects whatever is still loading (blocks until it lands). For a quit or a skip.
-func wait_all() -> void:
-	for p in _paths:
-		if not _done.has(p):
-			var r := ResourceLoader.load_threaded_get(p)
-			if r:
-				_held.append(r)
-			_done[p] = true
-
-
 ## The main-thread warm-ups, each worth a frame of its own.
 func steps() -> Array[Callable]:
 	var out: Array[Callable] = []

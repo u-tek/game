@@ -382,6 +382,18 @@ static func _short_date(day: int) -> String:
 
 ## RATES (opens the odds) and the rates as printed micro type at pos; returns the y under them.
 func _rates_block(parent: Control, pos: Vector2, ink: Color = INK, accent: Color = SIG, align_right: bool = false) -> float:
+	# One node ("RatesBlock"): a paper label carrying the RATES button and the odds.
+	var blk := Control.new()
+	blk.name = "RatesBlock"
+	# Above the hero (her rig draws raised), so the odds are never hidden under hair or wings.
+	blk.z_index = 2
+	blk.mouse_filter = MOUSE_FILTER_IGNORE
+	parent.add_child(blk)
+	var label := ColorRect.new()
+	label.color = Color(PAPER, 0.94)
+	label.mouse_filter = MOUSE_FILTER_IGNORE
+	blk.add_child(label)
+	parent = blk
 	var rates_btn := PK.print_button("RATES  ↗", _open_rates, {"size": Vector2(150, 60), "text_size": 13, "color": ink,
 		"align": "right" if align_right else "left"})
 	rates_btn.name = "Rates"
@@ -408,6 +420,13 @@ func _rates_block(parent: Control, pos: Vector2, ink: Color = INK, accent: Color
 		PK.at(parent, gl, Vector2(pos.x - 200, ry + 2))
 	else:
 		PK.at(parent, gl, Vector2(pos.x, ry + 2))
+	var lx := pos.x - (162.0 if align_right else 10.0)
+	label.position = Vector2(lx, pos.y + 40.0)
+	label.size = Vector2(172.0, ry + 24.0 - (pos.y + 40.0))
+	if ink == INK:
+		PK.hairbox(blk, Rect2(label.position, label.size), Color(INK, 0.35))
+	else:
+		label.color = Color(0, 0, 0, 0)
 	return ry + 20.0
 
 
@@ -549,8 +568,8 @@ func _compose_standard(pr: Rect2) -> void:
 	PK.vt(_poster, "©2026 · PORTAL Nº 01 · EVERY HERO CAN ANSWER", 12, INK, Vector2(36, 14))
 	# The Legendary in full colour, in front of the type (tap her for her page).
 	_figure(Rect2(49, 0, pw - 49, ph), _feature, Vector2(bx * 0.46 + 10.0, ph - 4.0), ph * 0.95)
-	# The other Legendaries: small framed prints stuck on the band.
-	var fy := ph * 0.56
+	# The other Legendaries: small framed prints stuck on the band (clear of the tickets below).
+	var fy := ph * 0.5
 	for i in range(1, mini(3, legends.size())):
 		var id := str(legends[i])
 		var d := Game.hero_def(id)
@@ -801,25 +820,52 @@ func _compose_wish(pr: Rect2) -> void:
 		var b := PK.print_button("PICK A LEGENDARY  ↗", _open_wish_picker, {"size": Vector2(slot.size.x, 70), "text_size": 15, "color": SIG, "align": "center"})
 		b.name = "PickWishSlot"
 		PK.at(_poster, b, slot.position + Vector2(0, slot.size.y * 0.3 + 128))
-	# The choices on the band: tap one to wish for her; the wished one is ringed in grease pencil.
-	var fy := ph * 0.1
+	# The choices on the band: every Legendary in a strip that swipes up and down, between the top
+	# and the CHANGE WISH button (clear of the pity card); tap one to wish for her, the wished one is
+	# ringed in grease pencil and the strip opens on her.
+	var top := ph * 0.1 - 18.0
+	var pick_y := ph - 292.0 - 84.0
+	var strip := ScrollContainer.new()
+	strip.name = "WishBand"
+	strip.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	strip.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	strip.scroll_deadzone = 14
+	strip.follow_focus = false
+	strip.mouse_filter = MOUSE_FILTER_PASS
+	strip.position = Vector2(bx + 12, top)
+	strip.size = Vector2(BAND_W - 12, pick_y - 34.0 - top)
+	_poster.add_child(strip)
+	var list := Control.new()
+	list.mouse_filter = MOUSE_FILTER_PASS
+	list.custom_minimum_size = Vector2(BAND_W - 12, 18.0 + choices.size() * 150.0)
+	strip.add_child(list)
+	var on_i := -1
 	for i in choices.size():
 		var id := str(choices[i])
 		var d := Game.hero_def(id)
 		var on := id == target
-		var fr := _framed_print(_poster, id, Vector2(bx + 30, fy), 104.0, ("%02d %s" % [i + 1, str(d.get("name", id)).to_upper()]) + ("  ✓" if on else ""),
+		var fr := _framed_print(list, id, Vector2(18, 18.0 + i * 150.0), 104.0, ("%02d %s" % [i + 1, str(d.get("name", id)).to_upper()]) + ("  ✓" if on else ""),
 			SIG if on else Color(PAPER, 0.8), func() -> void: _wish_for(id))
 		fr.name = "Wish_" + id
 		if on:
+			on_i = i
 			var loop := _Loop.new()
 			loop.position = Vector2(-12, -12)
 			loop.size = Vector2(128, 128)
 			fr.add_child(loop)
-		fy += 150.0
+	if on_i > 0:
+		var to := int(on_i * 150.0)
+		get_tree().create_timer(0.05).timeout.connect(func() -> void:
+			if is_instance_valid(strip):
+				strip.scroll_vertical = to)
+	# More below than fits: a small "swipe" mark at the strip's foot.
+	if list.custom_minimum_size.y > strip.size.y:
+		var more := PK.t("↕  SWIPE  ·  %d LEGENDARIES" % choices.size(), 9, Color(PAPER, 0.75), "mono_bold")
+		PK.at(_poster, more, Vector2(bx + 30, pick_y - 24.0))
 	var pick := PK.print_button("CHANGE WISH  ↗" if target != "" else "CHOOSE  ↗", _open_wish_picker,
 		{"size": Vector2(BAND_W - 40, 64), "text_size": 13, "color": PAPER if target != "" else SIG})
 	pick.name = "PickWish"
-	PK.at(_poster, pick, Vector2(bx + 30, fy - 10))
+	PK.at(_poster, pick, Vector2(bx + 30, pick_y + 4.0))
 
 
 func _live_wish(pr: Rect2) -> void:
@@ -859,7 +905,7 @@ func _wish_for(id: String) -> void:
 	_recompose(false)
 
 
-## The picker sheet: the three Legendaries as prints; tap one to wish for her.
+## The picker sheet: every Legendary as a print in a sideways strip; tap one to wish for her.
 func _open_wish_picker() -> void:
 	if _kind() != "wish" or _phase != "":
 		return
@@ -868,9 +914,25 @@ func _open_wish_picker() -> void:
 	var v := Kit.vbox(16)
 	v.custom_minimum_size.x = 560
 	v.add_child(Kit.body("Every Legendary from The Wish is the hero you choose. You can change your wish at any time; the pity carries over.", 21, Kit.TEXT_DIM))
+	# Every Legendary in one row that swipes sideways (a third card peeks in at the edge).
+	var strip := ScrollContainer.new()
+	strip.name = "WishStrip"
+	strip.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	strip.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	strip.scroll_deadzone = 14
+	strip.follow_focus = false
+	strip.mouse_filter = MOUSE_FILTER_PASS
+	strip.custom_minimum_size = Vector2(560, 334)
+	v.add_child(strip)
 	var row := Kit.hbox(14)
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	v.add_child(row)
+	strip.add_child(row)
+	v.add_child(PK.t("⟷  SWIPE FOR MORE  ·  %d LEGENDARIES" % choices.size(), 11, Color(INK, 0.6), "mono_bold"))
+	var ti := choices.find(target)
+	if ti > 0:
+		var to := maxi(0, ti * 190 - 192)
+		get_tree().create_timer(0.08).timeout.connect(func() -> void:
+			if is_instance_valid(strip):
+				strip.scroll_horizontal = to)
 	var modal_ref: Array[Control] = []
 	for id: Variant in choices:
 		var hid := str(id)
@@ -1063,7 +1125,7 @@ func _refresh() -> void:
 	_dyn.add_child(t1)
 	var t10 := _ticket(_ticket_spec(10, false), func() -> void: _try_summon(10))
 	t10.name = "Summon10"
-	t10.position = Vector2(pr.end.x - t10.size.x + 8, y - 4)
+	t10.position = Vector2(pr.end.x - t10.size.x - 6, y - 4)
 	t10.rotation = 0.02
 	_dyn.add_child(t10)
 	if not free_ready and _bid == "standard":

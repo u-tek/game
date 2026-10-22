@@ -1,7 +1,7 @@
 extends Control
-## App root (style v2, docs/dev/ui-style-v2.md): backdrop, top bar (leader avatar with the
-## team power chip, the resource pill, quests / notices / menu), the content area where
-## screens mount, the bottom nav (Heroes, Team, Lobby as a raised hexagon, Gear, Summon),
+## App root (style v4 "Signal", docs/dev/ui-style-v4.md): backdrop, top bar (the player's avatar
+## with the team power chip, the resource pill, quests / notices / settings), the content area where
+## screens mount, the printed bottom nav (Heroes, Team, Lobby, Gear, Summon),
 ## toast and modal layers. Registers itself with the UI autoload and refreshes on
 ## Game.changed.
 ##
@@ -73,7 +73,7 @@ var _pill: PanelContainer
 var _pill_ids: Array = []
 var _quests_btn: Button
 var _bell_btn: Button
-var _menu_btn: Button
+var _settings_btn: Button
 var _tabs: Dictionary = {}
 var _nav_ink: ColorRect
 var _ink_tab := ""
@@ -400,7 +400,7 @@ func _build_top_bar() -> void:
 
 	_rebuild_pill(DEFAULT_CURRENCIES)
 
-	# Right cluster: quests, notices, menu in one dark glass box.
+	# Right cluster: quests, notices, settings (the grid menu only repeated the bottom bar).
 	var cluster := PanelContainer.new()
 	cluster.name = "Cluster"
 	cluster.mouse_filter = MOUSE_FILTER_PASS
@@ -409,8 +409,8 @@ func _build_top_bar() -> void:
 	var crow := Kit.hbox(0)
 	_quests_btn = _cluster_button("quests", func() -> void: UI.go("quests"))
 	_bell_btn = _cluster_button("bell", _open_notices)
-	_menu_btn = _cluster_button("menu", _open_menu)
-	Kit.add(crow, [_quests_btn, _bell_btn, _menu_btn])
+	_settings_btn = _cluster_button("settings", func() -> void: UI.go("settings"))
+	Kit.add(crow, [_quests_btn, _bell_btn, _settings_btn])
 	cluster.add_child(crow)
 	_top_row.add_child(cluster)
 
@@ -459,6 +459,8 @@ func _rebuild_pill(ids: Array) -> void:
 		amt.add_theme_font_override("font", Kit.font("mono_bold"))
 		amt.add_theme_font_size_override("font_size", 21)
 		amt.add_theme_color_override("font_color", SignalKit.INK)
+		amt.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		amt.size_flags_horizontal = SIZE_FILL
 		var icons := cell.find_children("*", "TextureRect", true, false)
 		for k in range(1, icons.size()):
 			(icons[k] as CanvasItem).modulate = Color(SignalKit.INK, 0.75)
@@ -837,28 +839,6 @@ func _open_notices() -> void:
 	m_ref.append(UI.popup("Notices", col, Callable(), 620.0, true))
 
 
-func _open_menu() -> void:
-	var g := Kit.grid(2, 12)
-	g.custom_minimum_size.x = 560
-	var entries := [
-		["Campaign", "campaign", "campaign"], ["Quests", "quests", "quests"], ["Shop", "shop", "shop"],
-		["Settings", "settings", "settings"], ["Heroes", "heroes", "heroes"], ["Team", "team", "formation"],
-		["Gear", "gear", "gear"], ["Summon", "summon", "summon"],
-	]
-	if OS.is_debug_build():
-		entries.append(["Kit Preview", "info", "kit_demo"])
-	var m_ref: Array[Control] = []
-	for e: Array in entries:
-		var screen: String = e[2]
-		var b := Kit.light_button(e[0], func() -> void:
-			if not m_ref.is_empty():
-				UI.close_modal(m_ref[0])
-			UI.go(screen), e[1])
-		b.size_flags_horizontal = SIZE_EXPAND_FILL
-		g.add_child(b)
-	m_ref.append(UI.popup("Menu", g, Callable(), 620.0, true))
-
-
 ## Global feedback for one-shot Game events that can happen on any screen. During full-screen
 ## moments (chrome hidden: battle, summon reveal) the toast waits until the chrome is back, so
 ## it never covers a Victory banner or summon results.
@@ -1022,12 +1002,6 @@ func _run_shoot() -> void:
 			await get_tree().create_timer(0.6).timeout
 			if UI.current and UI.current.has_method("debug_poke"):
 				UI.current.call("debug_poke", 4 if str(_shoot.get("do", "")) == "poke4" else 1)
-		"shine":
-			# Every glint on screen sweeps at once (to see them in a still).
-			await get_tree().create_timer(0.8).timeout
-			for n in find_children("Shine", "", true, false):
-				if n.has_method("sweep_now"):
-					n.call("sweep_now")
 	if float(_shoot.get("place", 0.0)) > 0.0:
 		await _hold_for_placement(float(_shoot["place"]), str(_shoot.get("place_file", "")))
 	await get_tree().create_timer(float(_shoot.get("wait", 1.0))).timeout

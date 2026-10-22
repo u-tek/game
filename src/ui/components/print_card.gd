@@ -15,7 +15,6 @@ extends Control
 const MISPRINT := preload("res://src/ui/shaders/misprint.gdshader")
 const GLOSS := preload("res://src/ui/shaders/slab_gloss.gdshader")
 const INK := Color("101113")
-const PAPER := Color("e9e8e2")
 const CARD := Color("f4f3ef")
 const SIG := Color("ff4b1f")
 ## The swapped inks (sRGB): cyan, violet, acid green, gold.
@@ -110,11 +109,6 @@ static func flags_line(p: Dictionary) -> String:
 func set_flaw_amount(k: float) -> void:
 	if mat:
 		mat.set_shader_parameter("amount", clampf(k, 0.0, 1.0))
-
-
-func set_holo(k: float) -> void:
-	if mat:
-		mat.set_shader_parameter("holo", clampf(k, 0.0, 1.0))
 
 
 # ------------------------------------------------------------------ build

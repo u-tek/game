@@ -2,20 +2,15 @@ extends Control
 ## Plate: a UI shape rendered as a lit physical part (style v4 "Signal", docs/dev/ui-style-v4.md).
 ## The control's rect is the plate body; a ColorRect child, larger by `margin`, runs plate.gdshader
 ## (bevel, material, screws, cast shadow, animated glow). Add content (labels, icons) as children
-## after it. Kit.plate / Kit.plate_button build these.
+## after it. SignalKit.plate builds these.
 ##
 ##   preset   "silver" (brushed machined metal), "graphite" (matte near-black), "slate" (matte mid
 ##            grey), "signal" (emissive red-orange glass), "dial" (round turned metal, set circle),
 ##            "ink" (dark glass inset)
 ##   cuts     chamfer per corner [TL, TR, BR, BL] in px, or `shape` for any polygon (body px)
 ##   screws   positions in body px
-##
-## Also here: GlassBlock (thick refracting glass slab, refract_glass.gdshader) and LightStrip
-## (an emissive tube that breathes and flickers, light_strip.gdshader).
 
 const PLATE_SHADER := preload("res://src/ui/shaders/plate.gdshader")
-const GLASS_SHADER := preload("res://src/ui/shaders/refract_glass.gdshader")
-const STRIP_SHADER := preload("res://src/ui/shaders/light_strip.gdshader")
 
 const PRESETS := {
 	"silver": {"mat": 0, "albedo": Color("e3e6e2"), "albedo_low": Color("a9aeab"), "bevel": 5.0},
@@ -221,102 +216,3 @@ static func tab_bottom(sz: Vector2, c: float, x0: float, x1: float, tab: float) 
 	var y := sz.y - tab
 	return PackedVector2Array([Vector2(c, 0), Vector2(sz.x - c, 0), Vector2(sz.x, c), Vector2(sz.x, y),
 		Vector2(x1 + tab, y), Vector2(x1, sz.y), Vector2(x0, sz.y), Vector2(x0 - tab, y), Vector2(0, y), Vector2(0, c)])
-
-
-## A plate whose top edge steps up into a tab between x0 and x1.
-static func tab_top(sz: Vector2, c: float, x0: float, x1: float, tab: float) -> PackedVector2Array:
-	return PackedVector2Array([Vector2(0, tab), Vector2(x0 - tab, tab), Vector2(x0, 0), Vector2(x1, 0), Vector2(x1 + tab, tab),
-		Vector2(sz.x, tab), Vector2(sz.x, sz.y - c), Vector2(sz.x - c, sz.y), Vector2(c, sz.y), Vector2(0, sz.y - c)])
-
-
-## Thick refracting glass slab. The control's rect is the slab.
-class GlassBlock:
-	extends Control
-	var radius := 14.0
-	var margin := 26.0
-	var refract_px := 26.0
-	var blur_px := 14.0
-	var tint := Color("d2dae2")
-	var tint_amount := 0.16
-	var sweep := 1.0
-	var _surf: ColorRect
-	var _mat: ShaderMaterial
-
-	func _init() -> void:
-		mouse_filter = MOUSE_FILTER_IGNORE
-
-	func _ready() -> void:
-		_surf = ColorRect.new()
-		_surf.mouse_filter = MOUSE_FILTER_IGNORE
-		_surf.show_behind_parent = true
-		_mat = ShaderMaterial.new()
-		_mat.shader = load("res://src/ui/shaders/refract_glass.gdshader")
-		_surf.material = _mat
-		add_child(_surf)
-		move_child(_surf, 0)
-		resized.connect(_apply)
-		_apply()
-
-	func _apply() -> void:
-		_surf.position = Vector2(-margin, -margin)
-		_surf.size = size + Vector2(margin, margin) * 2.0
-		_mat.set_shader_parameter("rect_size", _surf.size)
-		_mat.set_shader_parameter("margin", margin)
-		_mat.set_shader_parameter("radius", radius)
-		_mat.set_shader_parameter("refract_px", refract_px)
-		_mat.set_shader_parameter("blur_px", blur_px)
-		_mat.set_shader_parameter("tint", tint)
-		_mat.set_shader_parameter("tint_amount", tint_amount)
-		_mat.set_shader_parameter("sweep", sweep if Kit.motion_ok() else 0.0)
-
-
-## Emissive tube from `from` to `to` (local px). Size the control to cover the halo.
-class LightStrip:
-	extends Control
-	var from := Vector2(20, 20)
-	var to := Vector2(20, 180)
-	var core := 3.5
-	var color := Color("ff4b1f")
-	var intensity := 1.0
-	var halo := 16.0
-	var breathe := 0.3
-	var period := 3.0
-	var phase := 0.0
-	## Strips light the plates around them like glowing plates do (Plate.relight_all).
-	var spill := 0.45
-	var emit_color: Color:
-		get:
-			return color
-	var _mat: ShaderMaterial
-
-	func _init() -> void:
-		mouse_filter = MOUSE_FILTER_IGNORE
-
-	func emitter_rect() -> Rect2:
-		var a := global_position + Vector2(minf(from.x, to.x), minf(from.y, to.y)) - Vector2(core, core)
-		return Rect2(a, (to - from).abs() + Vector2(core, core) * 2.0)
-
-	func _ready() -> void:
-		add_to_group(&"plate_emitters")
-		var r := ColorRect.new()
-		r.mouse_filter = MOUSE_FILTER_IGNORE
-		r.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-		_mat = ShaderMaterial.new()
-		_mat.shader = load("res://src/ui/shaders/light_strip.gdshader")
-		r.material = _mat
-		add_child(r)
-		resized.connect(_apply)
-		_apply()
-
-	func _apply() -> void:
-		_mat.set_shader_parameter("rect_size", size)
-		_mat.set_shader_parameter("a", from)
-		_mat.set_shader_parameter("b", to)
-		_mat.set_shader_parameter("core", core)
-		_mat.set_shader_parameter("color", color)
-		_mat.set_shader_parameter("intensity", intensity)
-		_mat.set_shader_parameter("halo", halo)
-		_mat.set_shader_parameter("breathe", breathe if Kit.motion_ok() else 0.0)
-		_mat.set_shader_parameter("period", period)
-		_mat.set_shader_parameter("flicker", 1.0 if Kit.motion_ok() else 0.0)
-		_mat.set_shader_parameter("phase", phase)

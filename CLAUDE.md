@@ -118,7 +118,7 @@ that the owner sideloads. The repo `u-tek/game` is public. The only code branch 
   the reference game and should change "a little bit ... still that same vibe, that
   professional-looking thing": v3 "Aero Y2K" keeps the v2 layouts (`docs/dev/ui-style-v2.md`) and
   draws rounded glass plates, bubble badges, gloss, ocean navy and aqua (`KitBox.aero`). Our own
-  names (Lobby, Heroes, Team, Gear, Summon; Sanctum = idle rewards), icons and Barlow fonts, and the
+  names (Lobby, Heroes, Team, Gear, Summon; Sanctum = idle rewards), icons and fonts, and the
   App Store 4.1 copycat guardrails. No repo file or commit message names the
   reference game (the history is public; three early commit messages already do, so leave those
   alone); write "the reference game".
@@ -158,8 +158,11 @@ that the owner sideloads. The repo `u-tek/game` is public. The only code branch 
   `art_src/.gitignore` ignores the images, and if the stop hook flags any, never commit them).
 - **Images.** Committed images live only under `assets/`. Hero art goes in
   `assets/art/heroes/<id>/`: `<id>.png` (1024x2048 RGBA, soles at 512,1990), `variants/*.png`
-  (same alpha as the base, only the face changes) and the `tools/art_warp` outputs. UI icons are
-  SVGs from `assets/art/ui/src/make_icons.py`. UI collage objects (coil, stamp disc ...) are Cycles
+  (same alpha as the base, only the face changes) and the `tools/art_warp` outputs. Every hero,
+  skin and adult painting and its portrait import lossy (WebP 90%; 2026-10-22, the IPA had reached
+  471 MB): after installing art and importing, run `python tools/art_lossy.py` and import again (a
+  unit test fails otherwise). UI icons are
+  SVGs from `assets/art/ui/src/make_icons.py`. UI collage objects (stamp disc ...) are Cycles
   renders in `assets/art/ui/objects/` from `tools/blender/ui_objects.py` + `finish_objects.py`; the 65 gear
   pieces (13 kinds x 5 tiers) in `assets/art/ui/gear/<noun>_<tier>.png` from `tools/blender/gear_objects.py`.
 - **Farm output** goes to the orphan branch `art-gen-output`, written only by art-gen.yml's publish
@@ -256,7 +259,7 @@ Ask the owner for approval (plan mode or a permission rule they add) instead.
 ## Commands (Linux)
 
 ```bash
-tools/check                 # import + 118 unit tests + headless boot (~20 s); must be green
+tools/check                 # import + 154 unit tests + headless boot (~20 s); must be green
 tools/check e2e             # plus 3 screen end-to-end scripts and the touch-scroll audit (~2 min)
 tools/gd --headless --path . -s tests/run_tests.gd -- test_playthrough   # one test file
 python3 -B tests/port_check/check_port.py        # independent Python rules check (60 checks)
@@ -269,6 +272,7 @@ python tools/comfy/finalize.py <id> <seed>          # (MOSS: hires 1.5x) + face 
 # every tools/comfy command renders with the pin's main model (MOSS); add --fallback for Amanatsu
 python tools/comfy/splash.py plates | card <name> --plate <png> --heroes id:png[,...]   # splash cards
 python tools/art_quick_rig.py <id>@<art> --face x,y,w,h   # quick skin rig (docs/dev/skins.md, Quick install)
+python tools/art_lossy.py                        # new hero art imports lossy (then import again)
 tools/art_warp --check                           # validate every built hero rig (the first 15)
 tools/gd --headless --path . -s tools/art_selftest.gd   # every rig x every animation
 tools/shoot home --rich --safe-area-sim --out screenshots/home.png   # render a screen to PNG
@@ -288,7 +292,6 @@ godot --path . -- --rich                         # play with every hero and lots
 | `tools/artgen/`, `.github/workflows/art-gen.yml` | The art farm |
 | `tools/comfy/` | ComfyUI pipeline for a real GPU (prompts, finalize, variants, install, skins, `splash.py`) |
 | `data/skins.json`, `src/data/skins.gd` | The skin catalogue (160 skins, 4 packs x 40 heroes) and its loader; art in `assets/art/heroes/<id>/skins/<art>/` |
-| `src/ui/components/splash_card.gd`, `assets/art/splash/` | Animated splash cards (layers from `splash.py`) |
 | `tools/art_*` | Rig build, preview, self-test, GIFs |
 | `tools/art_import/` | The one-off scripts that imported the 15 farm finals and wrote their rigs (README inside) |
 

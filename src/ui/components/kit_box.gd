@@ -1,10 +1,14 @@
 extends StyleBox
-## KitBox: the house StyleBox for Halo & Horn (style v2, docs/dev/ui-style-v2.md).
-## A box with a gradient fill, anti-aliased border, optional inner hairline, soft shadow or
-## glow, and the v2 "technical" extras: skew (parallelogram), chamfered corners, diagonal
-## hatching, corner brackets and accent bars. Everything is geometry, so it stays crisp at
-## any device scale. Built by Kit / UITheme. If you edit fields after first use, call
+## KitBox: the house StyleBox for Halo & Horn. A box with a gradient fill, anti-aliased border,
+## optional inner hairline, soft shadow or glow, and the "technical" extras: chamfered corners,
+## diagonal hatching, corner brackets and accent bars. Everything is geometry, so it stays crisp
+## at any device scale. Built by Kit / UITheme. If you edit fields after first use, call
 ## commit() again.
+##
+## Style v4 "Signal" (owner, 2026-10-19: hard hardware edges, docs/dev/ui-style-v4.md): radii
+## shrink to at most 4 px (capsules of radius >= 100 stay capsules), a skew becomes a chamfer on
+## two corners, hexagons become round dials, and chamfers, hatching and corner brackets draw as
+## set.
 ##
 ## The static helpers (shape_points, offset_poly, hatch, fill_poly, ...) are shared with the
 ## Kit components that draw their own shapes (skew plates, hex badges, cards).
@@ -44,9 +48,9 @@ var top_line_color := Color.TRANSPARENT
 ## a large touch area while looking compact. Add the same amount to the content margins.
 var draw_inset := Vector2.ZERO
 
-# ---- v2 extras
-## Horizontal shear as a fraction of the height: the top edge sits `skew * h` px right of
-## the bottom edge (0.176 = 10 degrees, the house angle). The shape stays inside the rect.
+# ---- technical extras
+## Slant as a fraction of the height (0.176 = 10 degrees). Style v4 draws it as a straight plate
+## with two cut corners (see shape_points); the gloss is skipped on skewed boxes.
 var skew: float = 0.0
 ## Cut-corner size in px for the corners in `chamfer_corners` (1 TL, 2 TR, 4 BR, 8 BL).
 var chamfer: float = 0.0
@@ -70,18 +74,6 @@ var corner_marks_inset: float = 6.0
 var _shadow: StyleBoxFlat
 var _committed := false
 
-## Aero Y2K look (owner, 2026-10-17: "the UI looks too much like [the reference game] ... still that same
-## vibe, that professional-looking thing"). On: skewed and chamfered plates become rounded glass, hexagons
-## become round bubbles, the tactical hatching and corner brackets go, and faces get a glass gloss. Off
-## restores the v2 "tactical" shapes exactly. Replaced by `signal_look` on 2026-10-19.
-static var aero := false
-
-## Style v4 "Signal" (owner, 2026-10-19: industrial glass, docs/dev/ui-style-v4.md). On: hard
-## hardware edges. Radii shrink to at most 4 px (capsules of radius >= 100 stay capsules), skew
-## becomes a chamfer on two corners, hexagons become round dials, and there is no gloss; chamfers,
-## hatching and corner brackets draw as set.
-static var signal_look := true
-
 
 ## Rebuilds cached helpers. Returns self for chaining.
 func commit() -> StyleBox:
@@ -101,15 +93,6 @@ func commit() -> StyleBox:
 	return self
 
 
-## The face outline this box draws inside `rect` (convex, clockwise): for overlays that must
-## match its shape exactly (the button shine, press highlights).
-func face_outline(rect: Rect2) -> PackedVector2Array:
-	var body := _body(rect)
-	if body.size.x < 1.0 or body.size.y < 1.0:
-		return PackedVector2Array()
-	return shape_points(body, _radius_for(body), chamfer, chamfer_corners, skew)
-
-
 func _body(rect: Rect2) -> Rect2:
 	var body := rect.grow_individual(-draw_inset.x, -draw_inset.y, -draw_inset.x, -draw_inset.y)
 	body.position.y += offset_y
@@ -119,10 +102,8 @@ func _body(rect: Rect2) -> Rect2:
 
 func _radius_for(body: Rect2) -> float:
 	var r := minf(radius, minf(body.size.x, body.size.y) * 0.5 - 0.05)
-	if signal_look and r > 0.5 and radius < 100.0:
+	if r > 0.5 and radius < 100.0:
 		return minf(radius * 0.35, 4.0)
-	if aero and r > 0.5:
-		r = minf(maxf(r * 1.6, 12.0), minf(body.size.x, body.size.y) * 0.5 - 0.05)
 	return r
 
 
@@ -134,9 +115,6 @@ func _draw(ci: RID, rect: Rect2) -> void:
 		return
 	var r := _radius_for(body)
 	var outline := shape_points(body, r, chamfer, chamfer_corners, skew)
-	var gl_alpha := gloss
-	if aero and fill and gl_alpha <= 0.0 and r > 0.5:
-		gl_alpha = 0.16 if body.size.y <= 160.0 else 0.05
 	# Shadow / glow.
 	if _shadow:
 		_shadow.draw(ci, body)
@@ -150,8 +128,7 @@ func _draw(ci: RID, rect: Rect2) -> void:
 			face.size.y = maxf(face.size.y - lip, 1.0)
 			face_pts = shape_points(face, minf(r, minf(face.size.x, face.size.y) * 0.5 - 0.05), chamfer, chamfer_corners, skew)
 		fill_poly(ci, face_pts, top_color, bottom_color, horizontal)
-		if gl_alpha > 0.0 and (skew == 0.0 or aero):
-			var gloss := gl_alpha
+		if gloss > 0.0 and skew == 0.0:
 			var fb := _bounds(face_pts)
 			var gl := fb.grow(-maxf(border_width, 1.0) - 1.0)
 			gl.size.y *= 0.46
@@ -223,22 +200,14 @@ static func _bounds(pts: PackedVector2Array) -> Rect2:
 
 ## Outline of a box (clockwise from the top-left): rounded corners of radius `rad`, except
 ## the corners in `cut_mask` (1 TL, 2 TR, 4 BR, 8 BL) which are chamfered by `cut` px when
-## cut > 0. skew shears it into a parallelogram that still fits in `r`.
+## cut > 0. A skew (skew_k != 0) cuts two corners instead of slanting the box (style v4).
 static func shape_points(r: Rect2, rad: float, cut: float = 0.0, cut_mask: int = 5, skew_k: float = 0.0, seg: int = 6) -> PackedVector2Array:
-	if signal_look and skew_k != 0.0:
+	if skew_k != 0.0:
 		# Signal: a slanted plate becomes a straight plate with two cut corners.
 		cut = maxf(cut, minf(absf(skew_k) * r.size.y * 0.8, 22.0))
 		cut_mask = 5 if cut_mask == 0 else cut_mask
-		skew_k = 0.0
-	if aero and (skew_k != 0.0 or cut > 0.0):
-		# Aero: a slanted or cut plate becomes a rounded glass plate of the same box.
-		rad = maxf(rad, maxf(cut * 1.3, 14.0))
-		cut = 0.0
-		skew_k = 0.0
-		seg = maxi(seg, 8)
 	var pts := PackedVector2Array()
-	var sx := skew_k * r.size.y
-	var base := Rect2(r.position.x + sx * 0.5, r.position.y, maxf(r.size.x - sx, 2.0), r.size.y)
+	var base := Rect2(r.position.x, r.position.y, maxf(r.size.x, 2.0), r.size.y)
 	rad = clampf(rad, 0.0, minf(base.size.x, base.size.y) * 0.5 - 0.05)
 	cut = clampf(cut, 0.0, minf(base.size.x, base.size.y) * 0.5)
 	var corners: Array[Vector2] = [base.position, Vector2(base.end.x, base.position.y), base.end, Vector2(base.position.x, base.end.y)]
@@ -258,32 +227,17 @@ static func shape_points(r: Rect2, rad: float, cut: float = 0.0, cut_mask: int =
 				pts.append(center + Vector2(cos(a), sin(a)) * rad)
 		else:
 			pts.append(corner)
-	if skew_k != 0.0:
-		var cy := r.position.y + r.size.y * 0.5
-		for i in pts.size():
-			pts[i].x += (cy - pts[i].y) * skew_k
 	return pts
 
 
-## Points of a rounded rectangle (kept for older callers).
-static func rrect_points(r: Rect2, rad: float, seg: int = 8) -> PackedVector2Array:
-	return shape_points(r, rad, 0.0, 0, 0.0, seg)
-
-
-## Hexagon points. flat = flat top; otherwise pointy top.
-static func hex_points(center: Vector2, rad: float, flat: bool = false, squash: float = 1.0) -> PackedVector2Array:
+## "Hexagon" points: style v4 draws hex badges as round dials (slightly smaller than the hex of
+## radius `rad`, so they fill its area). _flat is kept for callers (flat or pointy top: unused).
+static func hex_points(center: Vector2, rad: float, _flat: bool = false, squash: float = 1.0) -> PackedVector2Array:
 	var pts := PackedVector2Array()
-	if aero or signal_look:
-		# Aero / Signal: hex badges become round bubbles / dials (slightly smaller, so they fill the hex's area).
-		var rr := rad * 0.93
-		for i in 32:
-			var a := TAU * i / 32.0
-			pts.append(center + Vector2(cos(a) * rr, sin(a) * rr * squash))
-		return pts
-	var off := 0.0 if flat else 30.0
-	for i in 6:
-		var a := deg_to_rad(off + 60.0 * i)
-		pts.append(center + Vector2(cos(a) * rad, sin(a) * rad * squash))
+	var rr := rad * 0.93
+	for i in 32:
+		var a := TAU * i / 32.0
+		pts.append(center + Vector2(cos(a) * rr, sin(a) * rr * squash))
 	return pts
 
 
@@ -439,8 +393,6 @@ static func _isect(p1: Vector2, p2: Vector2, a: Vector2, b: Vector2) -> Vector2:
 ## Diagonal hatching (45 degrees, rising to the right) clipped to a convex polygon. from/to
 ## limit it to a horizontal band of the polygon's width; lines fade in over the band.
 static func hatch(ci: RID, poly: PackedVector2Array, col: Color, spacing: float = 9.0, width: float = 2.0, from: float = 0.0, to: float = 1.0) -> void:
-	if aero:
-		return
 	var b := _bounds(poly)
 	if b.size.x < 2.0 or b.size.y < 2.0:
 		return
@@ -498,7 +450,7 @@ static func _clip_segment(a: Vector2, b: Vector2, poly: PackedVector2Array) -> P
 
 ## Thin L-brackets at the corners of `r` (the "technical frame" mark).
 static func corner_marks(ci: RID, r: Rect2, col: Color, size: float = 12.0, width: float = 2.0) -> void:
-	if aero or r.size.x < size * 2.0 or r.size.y < size * 2.0:
+	if r.size.x < size * 2.0 or r.size.y < size * 2.0:
 		return
 	var cs: Array[Vector2] = [r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]
 	var dx: Array[float] = [1.0, -1.0, -1.0, 1.0]

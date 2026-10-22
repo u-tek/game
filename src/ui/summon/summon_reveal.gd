@@ -602,12 +602,6 @@ func tap() -> bool:
 	return true
 
 
-## Lands everything immediately without the effects (screenshots, Skip).
-func finish_now() -> void:
-	_running = true
-	_jump(_settle_t)
-
-
 func _jump(to: float) -> void:
 	# Events before `to` are skipped silently (a skipped press still lifts the dark); one exactly at
 	# `to` still fires.

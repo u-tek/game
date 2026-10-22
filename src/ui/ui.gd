@@ -29,7 +29,7 @@ extends Node
 ## inside UI.safe_top() / UI.safe_bottom(). A screen that calls UI.set_full_bleed(true)
 ## (the lobby) also fills the whole window but keeps the chrome, which turns translucent
 ## over its art; it keeps its own controls inside content_top() / content_bottom().
-## Style v2 (docs/dev/ui-style-v2.md): bottom nav Heroes, Team, Lobby (home), Gear, Summon.
+## Style v4 (docs/dev/ui-style-v4.md): bottom nav Heroes, Team, Lobby (home), Gear, Summon.
 
 const Sfx := preload("res://src/ui/components/sfx.gd")
 
@@ -51,10 +51,6 @@ const SCREENS := {
 	"profile": "res://src/ui/screens/profile_screen.gd",
 	"prints": "res://src/ui/screens/prints_screen.gd",
 	"rival": "res://src/ui/screens/rival_screen.gd",
-	# Widget gallery for UI work (debug builds only; not in the nav).
-	"kit_demo": "res://src/ui/components/kit_demo.gd",
-	# Splash card preview (loading screens, event cards; assets/art/splash/).
-	"splash_view": "res://src/ui/screens/splash_view_screen.gd",
 	# Style v4 Lobby mockup, the approved poster composition (debug builds only; docs/dev/ui-style-v4.md).
 	"lobby_v5": "res://src/ui/screens/lobby_v5_screen.gd",
 }
@@ -64,7 +60,7 @@ const NAV_TABS: Array[String] = ["heroes", "formation", "home", "gear", "summon"
 ## Going to one of these resets the history (back returns home).
 const NAV_ROOTS: Array[String] = ["heroes", "formation", "home", "gear", "summon", "quests", "shop"]
 ## Which nav tab is highlighted for non-tab screens.
-const NAV_PARENT := {"campaign": "home", "tower": "home", "battle": "home", "hero_detail": "heroes", "kit_demo": "home",
+const NAV_PARENT := {"campaign": "home", "tower": "home", "battle": "home", "hero_detail": "heroes",
 	"quests": "home", "shop": "home", "settings": "home", "profile": "home", "prints": "profile", "rival": "home"}
 ## Currencies shown in the top-bar resource pill per screen (default: gems, gold).
 const TOP_CURRENCIES := {"summon": ["gems", "scrolls"], "heroes": ["gold", "hero_exp"],
@@ -72,7 +68,7 @@ const TOP_CURRENCIES := {"summon": ["gems", "scrolls"], "heroes": ["gold", "hero
 ## Screens never kept in history (back from the next screen skips them).
 const NO_HISTORY: Array[String] = ["battle"]
 ## Screens with their own entrance (no automatic content stagger).
-const NO_STAGGER: Array[String] = ["battle", "summon", "splash_view"]
+const NO_STAGGER: Array[String] = ["battle", "summon"]
 ## Screens slow enough to build that a loading veil shows first (in the app, not in tests).
 const HEAVY: Array[String] = ["battle"]
 const FADE_TIME := 0.15
@@ -159,7 +155,7 @@ func attach(app_root: Control) -> void:
 ## Navigate to a screen by name with optional params. params "_dir" (1 / -1) picks the slide
 ## direction when a screen replaces itself (hero browse arrows).
 func go(screen: String, params: Dictionary = {}) -> void:
-	if not SCREENS.has(screen) or (screen in ["kit_demo", "lobby_v5"] and not OS.is_debug_build()):
+	if not SCREENS.has(screen) or (screen == "lobby_v5" and not OS.is_debug_build()):
 		push_error("UI.go: unknown screen '%s'" % screen)
 		toast("That screen doesn't exist yet")
 		return
@@ -790,7 +786,7 @@ func confirm(text: String, on_yes: Callable, on_no: Callable = Callable(), yes_t
 ## Show a reward popup (Reward dictionary), then call `on_closed` if valid. Popups queue if one
 ## is already open. Style v4 print: a receipt laid on the matte (receipt number and time, the title
 ## big in compressed type with its last word in signal, one printed row per reward with a dotted
-## leader, the item count, a barcode and a RECEIVED stamp on a silver disc, a torn edge), then OK
+## leader, a barcode and a RECEIVED stamp with the item count on a silver disc, a torn edge), then OK
 ## (the signal plate). The rows print one after another with rising notes and the stamp comes down
 ## last; on close the currencies fly from their rows to the wallet.
 func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callable()) -> void:
@@ -879,7 +875,7 @@ func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callab
 			inner.add_child(sc)
 		else:
 			inner.add_child(receipt)
-	# The foot: a double rule, the item count, a barcode and the RECEIVED stamp on a silver disc.
+	# The foot: a double rule, a barcode and the RECEIVED stamp (the item count) on a silver disc.
 	var dbl := Kit.vbox(3)
 	dbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for i in 2:
@@ -889,12 +885,6 @@ func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callab
 		hr.custom_minimum_size = Vector2(iw, 1)
 		dbl.add_child(hr)
 	inner.add_child(dbl)
-	var tot := Kit.hbox(8)
-	tot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	tot.add_child(Kit.print_label("Items", 13))
-	tot.add_child(Kit.spacer(0, 0, true))
-	tot.add_child(Kit.print_label("%02d" % entries.size(), 13))
-	inner.add_child(tot)
 	var foot := Kit.hbox(0)
 	foot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	foot.custom_minimum_size.y = 64
@@ -908,9 +898,10 @@ func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callab
 	var slot := Control.new()
 	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	slot.custom_minimum_size = Vector2(128, 64)
-	var disc := SignalKit.plate("silver", Vector2(0, -58), Vector2(128, 128), {"circle": true, "shadow": 0.5}, slot)
-	disc.add_child(SignalKit.stamp("RECEIVED · HALO & HORN · ", "OK", 128))
-	disc.pivot_offset = Vector2(64, 64)
+	# The disc stamps the item count as RECEIVED (it used to say OK, right over the real OK button).
+	var disc := SignalKit.plate("silver", Vector2(0, -26), Vector2(112, 112), {"circle": true, "shadow": 0.5}, slot)
+	disc.add_child(SignalKit.stamp("RECEIVED · ITEMS · ", "%02d" % entries.size(), 112))
+	disc.pivot_offset = Vector2(56, 56)
 	disc.rotation = -0.16
 	foot.add_child(slot)
 	inner.add_child(foot)

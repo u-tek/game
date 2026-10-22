@@ -1,7 +1,7 @@
 class_name UITheme
 extends RefCounted
 ## The app Theme, built in code from the design tokens in Kit (style v4 "Signal", see
-## docs/dev/ui-style-v4.md; v2 layouts in docs/dev/ui-style-v2.md). main.gd applies it to the root window, so every Control in the
+## docs/dev/ui-style-v4.md). main.gd applies it to the root window, so every Control in the
 ## game inherits it. Kit builders select looks with theme_type_variation:
 ##   Buttons  (v4 print, the poster house style) PrimaryButton (the signal plate), SecondaryButton
 ##            (ink plate), DangerButton (ink plate ruled in signal), LightButton (printed ink
@@ -19,8 +19,6 @@ extends RefCounted
 const KitBox := preload("res://src/ui/components/kit_box.gd")
 
 static var _theme: Theme
-
-const SKEW := 0.176 # tan(10 deg): the house slant
 
 ## v4 print colours (the poster house style, docs/dev/ui-style-v4.md section 0).
 const PRINT_INK := Color("101113")
@@ -42,12 +40,12 @@ static func get_theme() -> Theme:
 ## corners on dark; bone-metal plates on the light side; signal red-orange for the accent.
 ## Glass fills keep their alpha in 0.60-0.80: Kit.panel gives the glass kinds a material that
 ## blurs what is behind them there (src/ui/shaders/glass.gdshader).
-## Dark chrome: glass, card, inset, plain, chip, tag, modal, topbar, navbar, disc,
-##   disc_gold, speech, pill, bar, bar_accent
-## Light (v4 print: paper, ink hairlines): white, paper, light_inset, row, row_alt, dialog,
-##   dialog_dark, dialog_header, header_bar, slot, reward_panel, toast (row kinds are StyleBoxFlat)
+## Dark chrome: glass, card, inset, plain, chip, tag, modal, power_chip, disc, disc_gold,
+##   speech, bar, avatar
+## Light (v4 print: paper, ink hairlines): white, paper, light_inset, row (a StyleBoxFlat), dialog,
+##   dialog_dark, header_bar, slot, reward_panel, toast, disc_light, chip_off, chip_on
 ## Buttons: btn_<primary|secondary|danger|light|orange>[_hover|_pressed|_disabled],
-##   seg_off, seg_on, seg_on_pressed, tab_on, tab_off
+##   seg_off, seg_on, tab_on, tab_off
 ## Other: empty, line_edit, line_edit_focus
 static func style(kind: String, pad: int = -1) -> StyleBox:
 	var b := KitBox.new()
@@ -91,13 +89,6 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			b.border_width = 1.0
 			b.border_color = Color(1, 1, 1, 0.12)
 			m = Vector4(10, 2, 12, 2)
-		"pill":
-			b.radius = 999
-			b.top_color = Color("0a0b0dc7")
-			b.bottom_color = Color("0a0b0dc7")
-			b.border_width = 1.0
-			b.border_color = Color(1, 1, 1, 0.14)
-			m = Vector4(10, 2, 14, 2)
 		"tag":
 			b.top_color = Color("24272d")
 			b.bottom_color = Color("1c1f24")
@@ -142,33 +133,6 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			b.top_color = Color("1d2025")
 			b.bottom_color = Color("16181c")
 			m = Vector4(16, 6, 16, 6)
-		"bar_accent":
-			b.top_color = Color("1d2025")
-			b.bottom_color = Color("16181c")
-			b.accent_color = Kit.ACCENT
-			b.accent_left = 4
-			m = Vector4(20, 6, 16, 6)
-		"topbar":
-			b.radius = 0
-			b.top_color = Color("060708f2")
-			b.bottom_color = Color("0b0c0ec7")
-			m = Vector4(0, 0, 0, 0)
-		"topbar_clear":
-			b.radius = 0
-			b.top_color = Color("000000b3")
-			b.bottom_color = Color("00000000")
-			m = Vector4(0, 0, 0, 0)
-		"navbar":
-			b.radius = 0
-			b.top_color = Color("111317f5")
-			b.bottom_color = Color("060708")
-			b.top_line_color = Color(1, 1, 1, 0.14)
-			m = Vector4(0, 0, 0, 0)
-		"navbar_clear":
-			b.radius = 0
-			b.top_color = Color("00000000")
-			b.bottom_color = Color("000000e6")
-			m = Vector4(0, 0, 0, 0)
 		"power_chip":
 			b.top_color = Color("0a0b0deb")
 			b.bottom_color = Color("0a0b0deb")
@@ -211,10 +175,10 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			b.border_width = 1.0
 			b.border_color = Color(PRINT_INK, 0.16)
 			m = Vector4(14, 10, 14, 10)
-		"row", "row_alt":
+		"row":
 			# A printed list row: a sheet of lighter paper with a hairline under it.
 			var row := StyleBoxFlat.new()
-			row.bg_color = PRINT_WHITE if kind == "row" else Color("e4e3dd")
+			row.bg_color = PRINT_WHITE
 			row.border_color = Color(PRINT_INK, 0.16)
 			row.border_width_bottom = 1
 			var rm := Vector4(14, 6, 14, 6) if pad < 0 else Vector4(pad, pad, pad, pad)
@@ -232,11 +196,6 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			b.shadow_color = Color(0, 0, 0, 0.3)
 			b.shadow_offset = Vector2(0, 12)
 			m = Vector4(0, 0, 0, 0)
-		"dialog_header":
-			b.radius = 0
-			b.top_color = PRINT_BAND
-			b.bottom_color = PRINT_BAND
-			m = Vector4(28, 0, 12, 0)
 		"slot":
 			b.radius = 0
 			b.top_color = Color("dddcd5")
@@ -270,63 +229,6 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			b.accent_color = Kit.ACCENT
 			b.accent_left = 6
 			m = Vector4(20, 6, 14, 6)
-		"plate_level":
-			b.top_color = Color("24272d")
-			b.bottom_color = Color("1a1c21")
-			m = Vector4(14, 2, 14, 2)
-		"plate_name":
-			b.radius = 0
-			b.top_color = Color("0a0b0d")
-			b.bottom_color = Color("0a0b0d")
-			b.hatch_color = Color(1, 1, 1, 0.05)
-			b.hatch_from = 0.8
-			b.hatch_spacing = 6
-			b.hatch_width = 1.5
-			m = Vector4(18, 2, 18, 2)
-		"tile_dark":
-			b.top_color = Color("1b1e24d9")
-			b.bottom_color = Color("121418d9")
-			b.border_width = 1.0
-			b.border_color = Color(1, 1, 1, 0.2)
-			b.chamfer = 10
-			b.chamfer_corners = 5
-			b.shadow_size = 6
-			b.shadow_color = Color(0, 0, 0, 0.35)
-			b.shadow_offset = Vector2(0, 3)
-			m = Vector4(0, 0, 0, 0)
-		"tile_accent":
-			b.top_color = Color("ff5a2e")
-			b.bottom_color = Color("e63a10")
-			b.border_width = 1.0
-			b.border_color = Color("ffb199")
-			b.chamfer = 10
-			b.chamfer_corners = 5
-			b.shadow_size = 8
-			b.shadow_color = Color(1.0, 0.28, 0.08, 0.3)
-			b.shadow_offset = Vector2.ZERO
-			m = Vector4(0, 0, 0, 0)
-		"tile_orange":
-			b.top_color = Color("ff6a2a")
-			b.bottom_color = Color("f0440e")
-			b.border_width = 1.0
-			b.border_color = Color("ffc0a0")
-			b.chamfer = 10
-			b.chamfer_corners = 5
-			b.shadow_size = 10
-			b.shadow_color = Color(1.0, 0.35, 0.1, 0.4)
-			b.shadow_offset = Vector2.ZERO
-			m = Vector4(0, 0, 0, 0)
-		"tile_white":
-			b.top_color = Color("f2f1ed")
-			b.bottom_color = Color("d6d8d2")
-			b.border_width = 1.0
-			b.border_color = Color("ffffff")
-			b.chamfer = 10
-			b.chamfer_corners = 5
-			b.shadow_size = 6
-			b.shadow_color = Color(0, 0, 0, 0.35)
-			b.shadow_offset = Vector2(0, 3)
-			m = Vector4(0, 0, 0, 0)
 		"disc_light":
 			b.radius = 999
 			b.top_color = Color("f2f1ed")
@@ -337,23 +239,6 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			b.shadow_color = Color(0, 0, 0, 0.2)
 			b.shadow_offset = Vector2(0, 2)
 			m = Vector4(0, 0, 0, 0)
-		"notice":
-			b.top_color = Color("0a0b0dc7")
-			b.bottom_color = Color("0a0b0dc7")
-			b.border_width = 1.0
-			b.border_color = Color(1, 1, 1, 0.12)
-			b.chamfer = 8
-			b.chamfer_corners = 5
-			m = Vector4(0, 0, 0, 0)
-		"meter":
-			b.top_color = Color("0d0e10e6")
-			b.bottom_color = Color("08090ae6")
-			b.border_width = 1.0
-			b.border_color = Color(Kit.ACCENT, 0.8)
-			b.hatch_color = Color(Kit.ACCENT, 0.1)
-			b.hatch_spacing = 6
-			b.hatch_width = 1.5
-			m = Vector4(10, 6, 14, 6)
 		"avatar":
 			b.top_color = Color("23262c")
 			b.bottom_color = Color("0e0f12")
@@ -468,7 +353,7 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			b.border_width = 1.5
 			b.border_color = Color(PRINT_INK, 0.6)
 			m = Vector4(14, 6, 14, 6)
-		"seg_on", "seg_on_pressed":
+		"seg_on":
 			b.radius = 0
 			b.top_color = PRINT_INK
 			b.bottom_color = PRINT_INK
@@ -477,16 +362,15 @@ static func style(kind: String, pad: int = -1) -> StyleBox:
 			b.accent_color = Kit.ACCENT
 			b.accent_top = 4
 			m = Vector4(14, 6, 14, 6)
-		"tab_on", "tab_on_flat":
-			# A printed index tab on the paper. tab_on_flat: without the bar (Kit.tab_strip slides its own).
+		"tab_on":
+			# A printed index tab on the paper with a signal bar on top.
 			b.radius = 0
 			b.top_color = PRINT_WHITE
 			b.bottom_color = PRINT_WHITE
 			b.border_width = 1.0
 			b.border_color = Color(PRINT_INK, 0.35)
-			if kind == "tab_on":
-				b.accent_color = Kit.ACCENT
-				b.accent_top = 4
+			b.accent_color = Kit.ACCENT
+			b.accent_top = 4
 			m = Vector4(18, 8, 18, 6)
 		"tab_off":
 			b.radius = 0
@@ -583,7 +467,7 @@ static func build() -> Theme:
 	t.set_color("icon_pressed_color", "SegmentButton", Color.WHITE)
 	t.set_color("icon_hover_pressed_color", "SegmentButton", Color.WHITE)
 
-	# Page / dialog tabs (Kit.tab_strip): printed index tabs, the active one on paper with a signal bar.
+	# Page / dialog tabs (TabButton): printed index tabs, the active one on paper with a signal bar.
 	t.set_type_variation("TabButton", "Button")
 	for st in ["normal", "hover", "disabled"]:
 		t.set_stylebox(st, "TabButton", style("tab_off"))
@@ -629,7 +513,7 @@ static func build() -> Theme:
 			t.set_icon(ic, sb, none)
 	t.set_stylebox("panel", "ScrollContainer", StyleBoxEmpty.new())
 
-	# Progress bar defaults (Kit.progress_bar sets its own).
+	# Progress bar defaults.
 	var pb_bg := KitBox.new()
 	pb_bg.radius = 1
 	pb_bg.top_color = Color("060708")

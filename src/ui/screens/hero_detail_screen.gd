@@ -5,14 +5,14 @@ extends Control
 ## dossier printed in the approved Lobby poster's look, on a paper matte, two sheets that scroll.
 ##
 ## Sheet 01, the poster: a dark band down the left with her red halftone print, her bio and title in
-## paper type, framed pixel squares of her and the brand marks; her name set huge across the poster in
+## paper type and the brand marks; her name set huge across the poster in
 ## compressed type (paper over the band, ink over the paper, a signal full stop); the hero in full
 ## colour (the live rig, tap her for a reaction) in front of it with a soft red echo, boxed by the
 ## right-hand rule; down that rule the menu as small vertical labels (LOBBY, PREV, the issue number,
 ## NEXT); top right the dossier data: her name and level, stat dots for HP / ATK / DEF / SPD / CRIT
 ## with the exact numbers and the next level's gain, the ID code, faction and role, rarity and stars,
-## power and a signal IN TEAM. Stuck on like collage: the abilities capsule ("/ ULTIMATE > ...",
-## "/ PASSIVE > ..."), the Star Up stamp on a silver disc (shards, dust; tap to star up), a barcode
+## power and a signal IN TEAM (on a paper label over her). Stuck on like collage: the abilities card
+## in the band ("/ ULTIMATE > ...", "/ PASSIVE > ..."), the Star Up stamp on a silver disc (shards, dust; tap to star up), a barcode
 ## and her signature, and the Level Up pass over the bottom edge (tap, hold to repeat; the knob is MAX
 ## with the levels it would buy). Under the poster: the file index (01 DOSSIER / 02 ARMAMENT / 03
 ## ABILITIES / 04 WARDROBE, each jumps there; a status light when better gear waits), the date and
@@ -353,9 +353,6 @@ func _build_poster() -> void:
 	# Her name repeated down the band's edge in micro type.
 	var rep := PK.vlabel(("%s  ·  " % name_txt.to_upper()).repeat(14), 10, Color(PAPER, 0.42), "mono_bold")
 	PK.at(p, rep, Vector2(BAND - 6, 6))
-	# Framed pixel squares of her over the print.
-	PK.at(p, PK.pixel_square(_id, skin, "face", 88, 9, PAPER), Vector2(20, ph * 0.555))
-	PK.at(p, PK.pixel_square(_id, skin, "chest", 60, 7, PAPER), Vector2(116, ph * 0.555 + 58))
 
 	# ---- Her name, huge across the poster: paper over the band, ink over the paper.
 	var nm := name_txt.to_upper()
@@ -450,31 +447,51 @@ func _build_poster() -> void:
 		"%s  —  %s" % [str(Kit.FACTION_NAMES.get(str(_def.faction), "")).to_upper(), str(Kit.ROLE_NAMES.get(str(_def.role), "")).to_upper()],
 		str(Kit.RARITY_NAMES.get(str(_def.rarity), "")).to_upper(),
 	]
+	# The ID lines, stars, power and IN TEAM: a paper label stuck over her (raised above the rig,
+	# which draws over plain print; her wings used to cover these).
+	var idb := Control.new()
+	idb.name = "IdLabel"
+	idb.z_index = 2
+	idb.mouse_filter = MOUSE_FILTER_IGNORE
+	p.add_child(idb)
 	var ly := 126.0
+	var idw := 0.0
+	for l: String in lines:
+		idw = maxf(idw, PK.text_w(l, 13, "mono"))
+	idw = maxf(idw + 96.0, 250.0)
+	var back := ColorRect.new()
+	back.color = Color(MATTE, 0.92)
+	back.mouse_filter = MOUSE_FILTER_IGNORE
+	back.position = Vector2(xr - idw - 8.0, ly - 6.0)
+	back.size = Vector2(idw + 14.0, lines.size() * 18.0 + 30.0)
+	idb.add_child(back)
+	PK.rule(idb, Vector2(back.position.x, back.position.y), Vector2(back.size.x, 1), Color(INK, 0.5))
 	for l: String in lines:
 		var lab := PK.t(l, 13, INK, "mono")
 		lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		lab.size = Vector2(320, 17)
-		PK.at(p, lab, Vector2(xr - 320, ly))
+		PK.at(idb, lab, Vector2(xr - 320, ly))
 		ly += 18.0
 	_stars = PK.Stars.new()
 	_stars.size = Vector2(6 * 11 + 5 * 3, 11)
-	PK.at(p, _stars, Vector2(xr - _stars.size.x - PK.text_w(lines[2], 13, "mono") - 12, ly - 15))
+	PK.at(idb, _stars, Vector2(xr - _stars.size.x - PK.text_w(lines[2], 13, "mono") - 12, ly - 15))
 	_power_l = PK.t("", 13, INK, "mono_bold")
 	_power_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_power_l.size = Vector2(240, 17)
-	PK.at(p, _power_l, Vector2(xr - 240 - 78, ly))
+	PK.at(idb, _power_l, Vector2(xr - 240 - 78, ly))
 	_team_l = PK.t("IN TEAM", 13, SIG, "mono_bold")
 	_team_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_team_l.size = Vector2(72, 17)
-	PK.at(p, _team_l, Vector2(xr - 72, ly))
+	PK.at(idb, _team_l, Vector2(xr - 72, ly))
 
 	# ---- Collage at the bottom: the abilities capsule, the Star Up stamp, barcode and signature.
 	_capsule = Control.new()
 	_capsule.name = "Capsule"
 	_capsule.mouse_filter = MOUSE_FILTER_IGNORE
-	_capsule.position = pr.position + Vector2(14, ph - (358 if _legend else 316))
-	_capsule.size = Vector2(minf(400.0, pw - RULE_IN - 40.0), 158 if _legend else 116)
+	# In the dark band above the Star Up disc, clear of her figure (it used to cover her legs).
+	var cap_h := 70.0 + (_def.get("passives", []) as Array).size() * 38.0 + (38.0 if _legend else 0.0)
+	_capsule.position = pr.position + Vector2(12, ph - 186.0 - cap_h)
+	_capsule.size = Vector2(BAND - 22.0, cap_h)
 	_sheet.add_child(_capsule)
 	if _owned:
 		_star_disc = SignalKit.plate("silver", pr.position + Vector2(20, ph - 172), Vector2(112, 112), {"circle": true, "shadow": 0.5}, _sheet)
@@ -556,12 +573,12 @@ func _build_poster() -> void:
 			led.visible = false
 			_sheet.add_child(led)
 			_gear_led = led
-	PK.at(_sheet, PK.t(_print_date(true), 26, INK, "regular"), Vector2(20, nav_y + 46))
+	PK.at(_sheet, PK.t(_print_date(true), 26, INK, "regular"), Vector2(20, nav_y + 72))
 	var sig := PK.t(name_txt, 54, INK, "serif_italic")
 	sig.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	sig.size = Vector2(300, 60)
-	PK.at(_sheet, sig, Vector2(w - 24 - 300, nav_y + 24))
-	var swash := PK.rect(_sheet, Rect2(w - 250, nav_y + 84, 220, 2), INK)
+	PK.at(_sheet, sig, Vector2(w - 24 - 300, nav_y + 50))
+	var swash := PK.rect(_sheet, Rect2(w - 250, nav_y + 110, 220, 2), INK)
 	swash.rotation = -0.06
 	SignalKit.relight(self)
 
@@ -942,42 +959,43 @@ func _refresh_capsule(stars: int) -> void:
 	sb.bg_color = MATTE
 	sb.border_color = INK
 	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(int(cs.y * 0.5))
+	sb.set_corner_radius_all(16)
 	sb.shadow_color = Color(0, 0, 0, 0.18)
 	sb.shadow_size = 8
 	sb.shadow_offset = Vector2(0, 3)
 	pill.add_theme_stylebox_override("panel", sb)
 	pill.size = cs
 	_capsule.add_child(pill)
-	var lw := cs.x * 0.47
+	# One column (the card sits in the narrow band): the ultimate, each passive, the legend passive.
+	var tw := cs.x - 28.0
 	var ult: Dictionary = _def.get("ultimate", {})
-	PK.at(_capsule, PK.t("/ ULTIMATE", 11, INK, "mono_bold"), Vector2(30, 18))
-	var un := PK.t("> " + str(ult.get("name", "")).to_upper(), 13, INK, "mono_bold")
-	un.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	un.size = Vector2(lw - 34, 0)
-	PK.at(_capsule, un, Vector2(30, 36))
-	PK.at(_capsule, PK.t("TAP FOR THE FULL FILE", 9, Color(INK, 0.5), "mono"), Vector2(30, cs.y - 30))
-	PK.rule(_capsule, Vector2(lw, 16), Vector2(1, cs.y - 32), INK)
-	var y := 16.0
+	PK.at(_capsule, PK.t("/ ULTIMATE", 10, INK, "mono_bold"), Vector2(14, 12))
+	var un := PK.t("> " + str(ult.get("name", "")).to_upper(), 12, INK, "mono_bold")
+	un.size = Vector2(tw, 16)
+	Kit.fit_label(un, tw, 12, 9)
+	PK.at(_capsule, un, Vector2(14, 27))
+	var y := 52.0
 	for pas: Dictionary in _def.get("passives", []):
 		var on := _owned and stars >= int(pas.unlock_stars)
 		var col := INK if on else Color(INK, 0.45)
-		PK.at(_capsule, PK.t("/ PASSIVE  %d★" % int(pas.unlock_stars) if Kit.font("mono_bold").has_char(0x2605) else "/ PASSIVE  %d STARS" % int(pas.unlock_stars), 10, col, "mono_bold"), Vector2(lw + 12, y))
-		var pn := PK.t("> " + str(pas.name).to_upper() + ("" if on else "  (LOCKED)"), 12, col, "mono_bold")
-		pn.size = Vector2(cs.x - lw - 30, 16)
-		pn.clip_text = true
-		PK.at(_capsule, pn, Vector2(lw + 12, y + 15))
-		y += 42.0
+		PK.rule(_capsule, Vector2(14, y - 6.0), Vector2(tw, 1), Color(INK, 0.25))
+		PK.at(_capsule, PK.t("/ PASSIVE  %d★" % int(pas.unlock_stars) if Kit.font("mono_bold").has_char(0x2605) else "/ PASSIVE  %d STARS" % int(pas.unlock_stars), 10, col, "mono_bold"), Vector2(14, y))
+		var pn := PK.t("> " + str(pas.name).to_upper() + ("" if on else "  ×"), 12, col, "mono_bold")
+		pn.size = Vector2(tw, 16)
+		Kit.fit_label(pn, tw, 12, 9)
+		PK.at(_capsule, pn, Vector2(14, y + 15))
+		y += 38.0
 	if _legend:
 		# Her legend passive (A1), in deep gold once awakened.
 		var lp: Dictionary = (_def.legend as Dictionary).get("passive", {})
 		var on2 := _owned and _aw >= 1
 		var col2 := LegendKit.GOLD_DEEP if on2 else Color(INK, 0.45)
-		PK.at(_capsule, PK.t("/ LEGEND  ·  A1", 10, col2, "mono_bold"), Vector2(lw + 12, y))
-		var ln := PK.t("> " + str(lp.get("name", "")).to_upper() + ("" if on2 else "  (LOCKED)"), 12, col2, "mono_bold")
-		ln.size = Vector2(cs.x - lw - 30, 16)
-		ln.clip_text = true
-		PK.at(_capsule, ln, Vector2(lw + 12, y + 15))
+		PK.rule(_capsule, Vector2(14, y - 6.0), Vector2(tw, 1), Color(INK, 0.25))
+		PK.at(_capsule, PK.t("/ LEGEND  ·  A1", 10, col2, "mono_bold"), Vector2(14, y))
+		var ln := PK.t("> " + str(lp.get("name", "")).to_upper() + ("" if on2 else "  ×"), 12, col2, "mono_bold")
+		ln.size = Vector2(tw, 16)
+		Kit.fit_label(ln, tw, 12, 9)
+		PK.at(_capsule, ln, Vector2(14, y + 15))
 	var hb := _hit(_capsule, Rect2(Vector2.ZERO, cs), _jump.bind("legend" if _legend else "skills", true))
 	hb.name = "CapsuleHit"
 	Kit.add_press_fx(hb, pill)

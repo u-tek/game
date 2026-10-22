@@ -1,9 +1,9 @@
 class_name SignalKit
 extends RefCounted
 ## Style v4 "Signal" building blocks shared by every rebuilt screen (docs/dev/ui-style-v4.md). Kit
-## keeps the tokens, fonts and the restyled v2 widgets; this file holds the v4 pieces: lit plates,
+## keeps the tokens, fonts and the shared widgets; this file holds the v4 pieces: lit plates,
 ## engraving, the pass button (the owner's "THIS is how I want the main buttons to look"), print
-## details (stamp, matrix code, barcode, coil, pill) and the halftone / grain layers.
+## details (stamp, matrix code, barcode, pill) and the halftone / grain layers.
 ##
 ##   SignalKit.plate(preset, pos, size, opts, parent)   a Plate (see plate.gd for presets / opts)
 ##   SignalKit.pass_button(spec, on_pressed)            the OG-pass call to action (silver over signal)
@@ -11,12 +11,11 @@ extends RefCounted
 ##   SignalKit.etch_icon(name, size, on_light)          an icon cut into metal
 ##   SignalKit.pill(text, size, color)                  outlined capsule label
 ##   SignalKit.stamp(label, value, size)                round inspection stamp
-##   SignalKit.matrix(size) / barcode(size, color) / coil(size)
+##   SignalKit.matrix(size) / barcode(size, color)
 ##   SignalKit.halftone_material(cell, ink, light_dots) / grain(amount, still)
 ##   SignalKit.relight(node)                            light plates by the glowing ones (deferred)
 
 const Plate := preload("res://src/ui/components/plate.gd")
-const HUD := preload("res://src/ui/components/hud.gd")
 
 const SIGNAL := Color("ff4b1f")
 const PAPER := Color("e9e8e2")
@@ -595,13 +594,6 @@ static func barcode(size: Vector2, color: Color = INK, seed_value: int = 289) ->
 	return b
 
 
-static func coil(size: Vector2) -> Control:
-	var c := _Coil.new()
-	c.custom_minimum_size = size
-	c.size = size
-	return c
-
-
 ## Halftone material for a TextureRect (dots follow brightness, or darkness when light_dots false).
 static func halftone_material(cell: float = 7.0, ink: Color = Color(1.0, 0.36, 0.16, 0.95), light_dots: bool = true) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
@@ -707,25 +699,3 @@ class _Barcode:
 			if rng.randf() < 0.7:
 				draw_rect(Rect2(x, 0, minf(bw, size.x - x), size.y), color)
 			x += bw + float(rng.randi_range(1, 3))
-
-
-## A coil spring seen end-on in perspective, in heavy ink.
-class _Coil:
-	extends Control
-
-	func _init() -> void:
-		mouse_filter = MOUSE_FILTER_IGNORE
-
-	func _draw() -> void:
-		var n := 30
-		var y := 40.0
-		for i in n:
-			var k := float(i) / n
-			var rx := lerpf(92.0, 16.0, pow(k, 0.8)) * size.x / 240.0
-			var ry := rx * lerpf(0.55, 0.2, k)
-			var cx := size.x * 0.5 + sin(k * 5.0) * 10.0 * (1.0 - k)
-			var w := lerpf(7.0, 1.5, k)
-			draw_set_transform(Vector2(cx, y), 0.0, Vector2(1.0, ry / maxf(rx, 0.01)))
-			draw_arc(Vector2.ZERO, rx, 0.0, TAU, 64, Color(0.06, 0.065, 0.07, lerpf(0.95, 0.6, k)), w, true)
-			y += lerpf(26.0, 8.0, k) * size.y / 650.0
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

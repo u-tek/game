@@ -265,11 +265,6 @@ func set_speed(mult: float) -> void:
 		rig.speed_scale = mult
 
 
-## True while an action (attack, cast, hit...) is still playing on top of idle.
-func is_busy() -> bool:
-	return rig != null and rig.is_playing(1)
-
-
 ## Resting expression, e.g. set_expression("eyes", "open"); "" restores the hero's default.
 ## Overlay slots: "eyes" (open/closed/smile/hurt), "mouth" (default/open/smile/hurt).
 func set_expression(slot: String, variant: String) -> void:

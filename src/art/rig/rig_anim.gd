@@ -160,10 +160,6 @@ static func find(anim_name: String, hero_id: String = "", kind: String = "", art
 	return null
 
 
-static func clear_cache() -> void:
-	_cache.clear()
-
-
 static func from_file(path: String) -> RigAnim:
 	var txt := FileAccess.get_file_as_string(path)
 	var d: Variant = JSON.parse_string(txt)

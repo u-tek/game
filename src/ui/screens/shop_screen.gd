@@ -232,7 +232,8 @@ func _offer_card(o: Dictionary, n: int) -> Control:
 		rows.append(["THEN EACH DAY", "+100 GEMS"])
 	if not rows.is_empty():
 		rows[0] = [rows[0][0], rows[0][1], true]
-	var y_info := 10.0 + name_h + 14.0
+	# A fifth of the type size more: the giant's last line sat on the tag and limit line.
+	var y_info := 10.0 + name_h + 14.0 + fs * 0.2
 	var y_desc := y_info + 30.0
 	var y_tab := y_desc + 46.0
 	var tab_end := y_tab + rows.size() * 22.0
@@ -255,7 +256,8 @@ func _offer_card(o: Dictionary, n: int) -> Control:
 	if tag != "":
 		var tp := SignalKit.pill(tag.to_upper(), 13, SIG, "mono_bold")
 		PK.at(p, tp, Vector2(ix, y_info - 2))
-		ix += tp.get_combined_minimum_size().x + 12
+		# Measured from the type (the pill's minimum size isn't known yet): the limit line overlapped it.
+		ix += Kit.font("mono_bold").get_string_size(tag.to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + 36.0 + 14.0
 	var lim_txt := _limit_text(o).to_upper()
 	var days := int(o.get("days_left", Game.monthly_card_days_left()))
 	if id == "monthly_card":
@@ -300,7 +302,7 @@ func _buy_button(o: Dictionary, width: float) -> Button:
 		spec.merge({"kicker": "DAILY // CLAIMED" if daily else "OFFER // SOLD OUT", "price": "CLAIMED" if daily else "SOLD OUT",
 			"note": "Come back tomorrow" if daily else "Limit reached", "action": "DONE", "disabled": true})
 	elif free:
-		spec.merge({"kicker": "DAILY // A GIFT FROM THE CHOIR", "price": "FREE", "note": "Daily gift", "action": "CLAIM",
+		spec.merge({"kicker": "FROM THE CHOIR", "price": "FREE", "note": "Daily gift", "action": "CLAIM",
 			"fill": "signal", "button_text": "Claim free"})
 	else:
 		spec.merge({"kicker": "BUY // %s" % str(o.name).to_upper(), "price": str(o.get("price_label", "")),

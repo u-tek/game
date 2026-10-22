@@ -407,19 +407,7 @@ func setup(r: RigData) -> void:
 	_evaluate(0.0)
 
 
-func load_hero(id: String) -> bool:
-	var r := RigData.load_rig(id)
-	if r == null:
-		return false
-	setup(r)
-	return true
-
-
 # ------------------------------------------------------------------ public API
-
-func has_anim(anim_name: String) -> bool:
-	return RigAnim.find(anim_name, hero_id, rig.anim_kind() if rig else "", rig.dir if rig else "") != null
-
 
 ## Plays `anim_name` on `track` (0 = base/loops, 1+ = overlays). loop: -1 = anim default,
 ## 0 = once, 1 = loop. mix < 0 uses the animation's own "mix". Returns false if missing.
@@ -480,14 +468,6 @@ func get_bone_position(bone_name: String) -> Vector2:
 
 func get_bone_global_position(bone_name: String) -> Vector2:
 	return global_transform * get_bone_position(bone_name)
-
-
-## Node2D that follows the bone (attach effects to it). Bone nodes update every frame once
-## any of them has been requested.
-func get_bone_node(bone_name: String) -> Node2D:
-	_bones_live = true
-	var i := rig.bone(bone_name) if rig else -1
-	return _bone_nodes[i] if i >= 0 else null
 
 
 ## Weapon tip (or the right hand if the rig has no weapon), in this node's space.
@@ -562,10 +542,6 @@ func get_warp_param(param: StringName) -> Variant:
 ## cutout rigs.
 func warp_shader() -> Shader:
 	return _warp_mat.shader if _warp_mat != null else null
-
-
-func reset_physics() -> void:
-	_sp_ready = false
 
 
 ## Kicks the jiggle springs (spring "m": 2, the breasts): `v` in rig px/s in her body's frame
