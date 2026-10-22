@@ -64,7 +64,32 @@ like stamp errors. They never change stats. The print shaders already draw every
 
 Claude's suggested first loop: 1, 2, 6 and 13 (print, she competes, the map keeps score).
 
-## Core loops (open, pitched 2026-10-22)
+## Art first, light commitment (2026-10-22)
+
+The owner's steer after the core-loop pitches below: "i want the artwork to be front and center.
+obviously people are buying the skins for the sexual value, so i want to continue giving them that
+value, while not making the game too much of a committment". That rules out the city builder (the
+art would shrink to buildings and it asks for planning). Claude's pitch for the main loop:
+
+- **The cover shoot.** You run the afterlife's hottest pin-up magazine; the v4 poster UI already
+  reads as one. A session is about two minutes:
+  1. The idle haul is already counted.
+  2. This week's readers want something ("Bunny Lounge, a demon, night"). Pick a hero and a skin;
+     she fills the screen, rigged and moving. Frame the shot (pinch to zoom, angle, lighting) and
+     shoot.
+  3. It prints as a cover, becomes the Lobby poster and goes on your wall; sales come in while you
+     are away, more when the cover matches what readers want. A weekly special issue (the swimsuit
+     issue is Aqua Resort week) pays a bonus.
+
+  Skins become the best tool in the game, not only a costume: every skin is a new cover and a trend
+  match pays more, though no skin is ever required. One shoot a day is the whole commitment;
+  missed days bank up, nothing expires and nothing fails. Battles keep running on auto for currency
+  and heroes (manual play stays possible, never needed). It reuses what exists: 40 heroes x (base +
+  4 skins) of installed art and rigs, the Rival as a rival magazine chasing the same trends, covers
+  as numbered prints with Misprints. Adult gachas already reward play with art; a game where
+  styling and shooting the art is the game itself was not found.
+
+## Core loops (pitched 2026-10-22, set aside for "Art first" above)
 
 After the batch below the owner said: "no i dont like these ideas. i want it more to do with what
 keeps players coming back, the core gameplay loop, etc. like no one has made a proper city building
