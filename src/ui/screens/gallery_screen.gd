@@ -7,7 +7,7 @@ extends Control
 ##                        her look everywhere), a skin she doesn't own yet shows as a PREVIEW with
 ##                        its price and BUY (gems); skins whose art isn't in the build are skipped
 ##   double tap           zoom in (2.2x) where tapped / back out; pinch zooms (two fingers), a drag
-##                        pans while zoomed
+##                        pans while zoomed; she always stays on screen (_clamp_pan)
 ##   a single tap on her  she reacts (HeroReact)
 ##   hide                 the type and strip fade out (tap anywhere to bring them back)
 ## Mono type in the poster style: her name, title, the look's name and pack, "07 / 40".
@@ -78,6 +78,15 @@ func setup(params: Dictionary) -> void:
 	_i = maxi(0, _ids.find(want))
 	_build()
 	_show_hero(_i, str(params.get("skin", "*")))
+	# Screenshots (debug): zoom = 2.2 and pan = [x, y] (the clamp keeps her on screen).
+	if OS.is_debug_build() and params.has("zoom"):
+		(func() -> void:
+			await get_tree().process_frame
+			await get_tree().process_frame
+			_zoom = float(params.zoom)
+			var pp: Variant = params.get("pan", [0, 0])
+			_pan = Vector2(float(pp[0]), float(pp[1]))
+			_apply_zoom()).call_deferred()
 	resized.connect(_layout)
 
 
@@ -245,8 +254,36 @@ func _apply_zoom() -> void:
 		return
 	var vs := size if size.x > 0.0 else get_viewport_rect().size
 	var c := vs * 0.5
+	_clamp_pan(vs)
 	_anchor.scale = Vector2(_zoom, _zoom)
 	_anchor.position = c + (_feet - c) * _zoom + _pan
+
+
+## Keeps her on screen while zoomed (owner, 2026-10-23: "fix the character view mode so that the
+## heroes don't go off the screen when you're zooming in"): along each axis, if her zoomed body (the
+## core figure: wings and props may run past it) is bigger than the view it always covers the view,
+## else it is centred on it.
+func _clamp_pan(vs: Vector2) -> void:
+	if _zoom <= 1.001:
+		_pan = Vector2.ZERO
+		return
+	if _sprite == null or not is_instance_valid(_sprite) or not _sprite.has_method("figure_rect"):
+		return
+	# (figure_rect is already in the anchor's units: it includes the sprite's fitted scale)
+	var fr: Rect2 = _sprite.call("figure_rect", true)
+	var fig := Rect2(_feet + fr.position, fr.size)
+	var c := vs * 0.5
+	# Her figure at this zoom without pan.
+	var z0 := Rect2(c + (fig.position - c) * _zoom, fig.size * _zoom)
+	var view := Rect2(Vector2.ZERO, vs)
+	for ax in 2:
+		var lo := z0.position[ax]
+		var hi := z0.end[ax]
+		if hi - lo >= view.size[ax]:
+			# Pan within [view.end - hi, view.position - lo].
+			_pan[ax] = clampf(_pan[ax], view.end[ax] - hi, view.position[ax] - lo)
+		else:
+			_pan[ax] = (view.position[ax] + view.end[ax]) * 0.5 - (lo + hi) * 0.5
 
 
 func _build_strip() -> void:
