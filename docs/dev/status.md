@@ -37,7 +37,12 @@ this file says where things stand. Older logs are under "History" at the bottom.
   whole pack or regenerate single ones. **Nude set:** `art_src/_review/nude_run` (picker:
   `picker_nude.bat`, port 8766) runs first by the owner's call; the normal run waits on it
   (`qa/config.json` "after"). Since 2026-10-22 each nude look gets one of 22 openly erotic solo poses
-  (`nude_poses_natural`). About 400 candidates, about 17 h of GPU before picks are finished. The
+  (`nude_poses_natural`, 26 since the owner asked for spreading poses), with no weapons or held props; sitting
+  and lying poses render landscape (1152x896), kneeling ones square. About 400 candidates, about 17 h of GPU.
+  **Age (2026-10-22):** normal art now reads as about twenty (`age_natural`, owner: "this is much better"); the nude
+  set stays mid-twenties (`age_natural_adult`). **Next:** `art_src/_review/v20_run` (seed offset 1800) re-renders
+  all 200 normal looks at the new age as soon as the nude worker is idle (owner: "finish the nude set first"); the vB
+  run is paused for good. `picker.bat` opens v20. The
   nude finals install under `adult/` and need Claude's pick review before they're committed.
 - **UI v4 "Signal" redesign (started 2026-10-19):** the owner sent 22 reference images and asked for
   a full redesign; brief, screen map and kit in `docs/dev/ui-style-v4.md`. Done: the Mobile
