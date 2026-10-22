@@ -50,7 +50,7 @@ this file says where things stand. Older logs are under "History" at the bottom.
   the first launch goes from the boot print run to the intake form (`calling_screen.gd`): name and a
   finger signature, ANSWER stamps it, the lobby heroine greets the player by name for the real hour.
   The signature (`signature.gd`, `state.signature`, strokes 0..1000) then signs the profile footer,
-  reward receipts, the oath on the front and the print album. Guide marks are red grease-pencil
+  reward receipts, the oath on the front, the print album and the District's deed (DEED HOLDER). Guide marks are red grease-pencil
   proof marks. Subtle touches: the Lobby heroine notices an absence of 8 h or more, once ("14 hours.
   Not that I was counting."); on day 7, 30, 100 and 365 after signing she remembers it once ("A week
   since you signed. I still have the form."); 22:00-05:00 the app warms like paper under a lamp. Old saves with

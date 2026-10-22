@@ -10,6 +10,7 @@ extends Control
 ## lifetime souls debossed, the idle bonus per currency, the next building and the souls it needs.
 ## params: keeper (a building index: opens its keeper sheet; screenshots).
 
+const Signature := preload("res://src/ui/components/signature.gd")
 const PosterKit := preload("res://src/ui/v4/poster_kit.gd")
 const DistrictModel := preload("res://src/ui/v4/district_model.gd")
 const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
@@ -214,6 +215,22 @@ func _build_head(pw: float, dist: Dictionary) -> void:
 	kl.size = Vector2(tw, 30)
 	kl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	PK.at(p, kl, Vector2(x0, 220))
+	# The quarter's deed: the holder's signature from the intake form (or their name), bottom right.
+	var dx := pw - 18.0 - 190.0
+	PK.at(p, PK.t("DEED HOLDER", 9, Color(INK, 0.55), "mono_bold"), Vector2(dx, HEAD - 22))
+	PK.rule(p, Vector2(dx + 76, HEAD - 16), Vector2(114, 1))
+	if Signature.has_ink(Game.signature()):
+		var sg := Signature.new()
+		sg.strokes = Game.signature()
+		sg.ink = INK
+		sg.size = Vector2(120, 36)
+		sg.position = Vector2(dx + 70, HEAD - 52)
+		p.add_child(sg)
+	else:
+		var nm := PK.t(str(Game.state.get("player_name", "")), 22, INK, "serif_italic")
+		nm.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		nm.size = Vector2(190, 28)
+		PK.at(p, nm, Vector2(dx, HEAD - 46))
 	PK.rule(p, Vector2(BAND, HEAD - 1), Vector2(pw - BAND, 1))
 
 
