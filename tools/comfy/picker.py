@@ -79,7 +79,7 @@ class App:
             elif pick is not None:
                 status = "finishing"
             elif len(have) < len(seeds):
-                status = "rendering"
+                status = "later" if rerolls.get(key) else "rendering"
             else:
                 status = "waiting"
             skin_name, line = self.skins.get((hero, art), (None, "")) if art else (None, "")
@@ -209,7 +209,7 @@ body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,Seg
 .sub{color:var(--mute)}.chip{border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700}
 .in_game{background:rgba(62,207,142,.15);color:var(--ok)}.finishing{background:rgba(106,168,255,.15);color:var(--info)}
 .rendering{background:rgba(154,160,171,.15);color:var(--mute)}.waiting{background:rgba(245,184,75,.15);color:var(--warn)}
-.failed{background:rgba(255,77,109,.15);color:var(--acc)}
+.failed{background:rgba(255,77,109,.15);color:var(--acc)}.later{background:rgba(200,140,255,.15);color:#c88cff}
 .sp{flex:1}select,.ctl{background:#24272e;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit}
 .ctl{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
 .regen{background:none;border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit;font-weight:600}
@@ -231,14 +231,14 @@ body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,Seg
 <div class="bar"><button class="nav" id="prev" title="Previous (←)">◀</button>
 <div class="title"><span class="name" id="name">loading…</span><span class="sub" id="sub"></span></div>
 <span class="chip" id="chip"></span><span class="sp"></span>
-<button class="regen" id="regen" title="R">Regenerate (2 new)</button>
+<button class="regen" id="regen" title="R">Regenerate later (2 new)</button>
 <select id="pack"></select><label class="ctl"><input type="checkbox" id="only"> waiting for me</label>
 <button class="nav" id="next" title="Next (→)">▶</button></div>
 <div id="stage"></div>
 <div class="bar bot"><span id="stat"></span><span class="sp"></span><span>← → move · 1 2 3 4 pick · R regenerate · click a picture to enlarge</span></div>
 <div id="lb"><img alt=""></div>
 <script>
-const LABEL={in_game:"In game",finishing:"Finishing…",rendering:"Rendering…",waiting:"Pick one",failed:"Failed: pick again"};
+const LABEL={in_game:"In game",finishing:"Finishing…",rendering:"Rendering…",waiting:"Pick one",failed:"Failed: pick again",later:"Regenerate saved: renders after the rest"};
 const $=s=>document.querySelector(s);let S=null,cur=null,sig="";
 const pn=p=>p=="heroes"?"Heroes":p.replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase());
 const full=(k,s)=>`/full?key=${encodeURIComponent(k)}&seed=${s}`;
@@ -259,9 +259,9 @@ function draw(force){const it=item();if(!it){$("#stage").innerHTML='<div id="emp
   `<div class="card${it.pick===s?" picked":""}"><div class="pic" data-full="${full(it.key,s)}"><img src="${full(it.key,s)}" alt=""></div>
    <div class="foot"><span class="seed"><span class="key">${n+1}</span>${s}</span>
    <button class="use" data-s="${s}" ${it.pick===s?"disabled":""}>${it.pick===s?"✓ In the game":"Use this"}</button></div></div>`
-  :`<div class="ph">rendering ${s}…</div>`).join("")}
+  :`<div class="ph">${it.status=="later"?"new option: renders after everything else":"rendering "+s+"…"}</div>`).join("")}
 function stat(){const c=k=>S.items.filter(i=>i.status==k).length;
- $("#stat").textContent=`${c("in_game")} in game · ${c("waiting")} waiting for a pick · ${c("finishing")} finishing · ${c("rendering")} rendering · worker ${S.worker?"running":"idle"}${S.eta_min?` · about ${S.eta_min} min of GPU work queued`:""}`}
+ $("#stat").textContent=`${c("in_game")} in game · ${c("waiting")} waiting for a pick · ${c("finishing")} finishing · ${c("rendering")} rendering · ${c("later")} regenerates saved for later · worker ${S.worker?"running":"idle"}${S.eta_min?` · about ${S.eta_min} min of GPU work queued`:""}`}
 async function load(){S=await (await fetch("/api/state")).json();
  if(!$("#pack").children.length){$("#pack").innerHTML=["all",...new Set(S.items.map(i=>i.pack))].map(p=>`<option value="${p}">${p=="all"?"All packs":pn(p)}</option>`).join("")}
  if(!cur){const L=list();cur=(L.find(i=>i.status=="waiting")||L[0]||{}).key}
@@ -269,7 +269,7 @@ async function load(){S=await (await fetch("/api/state")).json();
 async function post(url,body){const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
  const j=await r.json();if(j.error)alert(j.error);await load()}
 async function pick(s){const it=item();if(!it||!it.have.includes(s)||it.pick===s)return;await post("/api/pick",{key:it.key,seed:s});draw(true);setTimeout(()=>move(1),350)}
-async function regen(){const it=item();if(it&&confirm(`Render 2 new options for ${it.hero}${it.skin?" · "+it.skin:""}? About 6 minutes of GPU.`)){await post("/api/regen",{key:it.key});draw(true)}}
+async function regen(){const it=item();if(it&&confirm(`Save ${it.hero}${it.skin?" · "+it.skin:""} for regenerating? 2 new options render after everything else is done.`)){await post("/api/regen",{key:it.key});draw(true)}}
 document.addEventListener("click",e=>{const t=e.target,p=t.closest(".pic");
  if(t.id=="prev")move(-1);else if(t.id=="next")move(1);else if(t.id=="regen")regen();
  else if(t.classList.contains("use")&&!t.disabled)pick(+t.dataset.s);

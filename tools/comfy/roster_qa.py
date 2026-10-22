@@ -97,7 +97,8 @@ def worker_pid(run):
 
 
 def pending(run):
-    """(picks to finish, candidates to render) as lists of (index, hero, skin, art, seed)."""
+    """(picks to finish, candidates to render) as lists of (index, hero, skin, art, seed). Renders for items the
+    owner asked to regenerate come last (owner: "i want it saved and regenerated later")."""
     picks, rerolls = load(run, "picks.json"), load(run, "rerolls.json")
     fin, ren = [], []
     for i, (hero, sid, art, s0) in enumerate(items()):
@@ -109,6 +110,7 @@ def pending(run):
         for s in wanted(s0, rerolls.get(key, 0)):
             if not candidate(hero, art, s):
                 ren.append((i, hero, sid, art, s))
+    ren.sort(key=lambda r: int(rerolls.get(key_of(r[1], r[3]), 0)) > 0)     # stable: first-run renders first
     return fin, ren
 
 
