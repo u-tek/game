@@ -48,6 +48,11 @@ var arranging := false:
 var _layout: Dictionary = {}
 var _overlay: Control
 var _lots_layer: Control         ## the lot grid and the dragged footprint, on the ground under the buildings
+var _souls_layer: Control        ## souls drifting in along the road (under the buildings)
+var _t := 0.0
+## Souls on the road: how many, and how fast they drift (lots a second).
+const SOULS := 9
+const SOUL_SPEED := 0.22
 var _made: Array[Node] = []      ## the ground and buildings (the screen adds the keepers' portraits)
 var _sprites: Dictionary = {}    ## building index -> its TextureRect
 var _drag := -1                  ## the building being dragged (-1: none)
@@ -204,6 +209,14 @@ func _rebuild() -> void:
 	add_child(_lots_layer)
 	move_child(_lots_layer, 0)
 	_made.append(_lots_layer)
+	_souls_layer = Control.new()
+	_souls_layer.name = "Souls"
+	_souls_layer.mouse_filter = MOUSE_FILTER_IGNORE
+	_souls_layer.size = size
+	_souls_layer.draw.connect(_draw_souls)
+	add_child(_souls_layer)
+	move_child(_souls_layer, 1)
+	_made.append(_souls_layer)
 	var bl: Array = dist.get("buildings", [])
 	var tint := GOLD if str(dist.get("side", "")) == "heaven" else SIG
 	var next_souls := int((dist.get("next", {}) as Dictionary).get("souls", -1))
@@ -297,7 +310,7 @@ func _place_sprites() -> void:
 	for k: int in _props:
 		order.append(DECOR_BASE + k)
 	order.sort_custom(func(a: int, b: int) -> bool: return _depth(a) < _depth(b))
-	var n := 2
+	var n := 3
 	for key: int in order:
 		var tr: TextureRect
 		var shift: Vector2
@@ -350,6 +363,31 @@ func _solid_at(tr: TextureRect, p: Vector2) -> bool:
 	var uv := (p - tr.position) / tr.size
 	var c := img.get_pixel(clampi(int(uv.x * img.get_width()), 0, img.get_width() - 1), clampi(int(uv.y * img.get_height()), 0, img.get_height() - 1))
 	return c.a > 0.5 and maxf(c.r, maxf(c.g, c.b)) > 0.08
+
+
+func _process(delta: float) -> void:
+	if _souls_layer and Kit.motion_ok():
+		_t += delta
+		_souls_layer.queue_redraw()
+
+
+## Souls arriving from the front: small glowing wisps drifting down the souls' road, bobbing a
+## little, gold in the Halo Quarter and ember in the Horn; they fade in at one end and out at the
+## other.
+func _draw_souls() -> void:
+	var road := float(DistrictRules.ROAD_ROW) + 0.5
+	var n := float(DistrictRules.GRID)
+	var hell := str(dist.get("side", "")) == "hell"
+	var col := Color(1.0, 0.45, 0.16) if hell else Color(1.0, 0.82, 0.42)
+	for k in SOULS:
+		var u := fposmod(_t * SOUL_SPEED + float(k) * (n + 1.0) / float(SOULS), n + 1.0) - 0.5
+		var sway := sin(_t * 0.9 + float(k) * 2.1) * 0.14
+		var bob := 7.0 + sin(_t * 2.3 + float(k) * 1.7) * 2.5
+		var p := _ground(u, road + sway) + Vector2(0, -bob)
+		var fade := clampf(minf(u + 0.5, n + 0.5 - u) / 0.8, 0.0, 1.0)
+		_souls_layer.draw_circle(p, 6.0, Color(col, 0.16 * fade))
+		_souls_layer.draw_circle(p, 3.2, Color(col, 0.35 * fade))
+		_souls_layer.draw_circle(p, 1.6, Color(1.0, 0.97, 0.9, 0.95 * fade))
 
 
 ## The lot under a point on the ground (local px).

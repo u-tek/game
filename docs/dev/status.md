@@ -123,6 +123,7 @@ this file says where things stand. Older logs are under "History" at the bottom.
   quarter to sell it back for half. Up to 24. Rendered like the buildings
   (`tools/blender/district_decor.py`, `finish_district.py <dir> --decor`). Rules
   `DistrictRules.can_decorate`, GameModel `district_decor_buy / move / remove` (port check 106).
+  Souls drift in along the souls' road (gold wisps in Heaven's quarter, ember in Hell's).
 - **Wardrobe to gallery (2026-10-22):** every skin's print in the Shop's wardrobe carries a VIEW tag;
   tapping it opens her in that look full screen in the gallery (zoom, swipe the looks, BUY), also for
   a heroine not yet recruited (shown as a preview). The art sells the skin, not a thumbnail.
