@@ -414,14 +414,23 @@ func _build_top_bar() -> void:
 	_avatar_art.offset_right = -3
 	_avatar_art.offset_bottom = -3
 	frame.add_child(_avatar_art)
+	# The team's power as a small printed tag on the portrait's foot (paper, ink, a hairline).
 	_power_chip = PanelContainer.new()
 	_power_chip.name = "Power"
 	_power_chip.mouse_filter = MOUSE_FILTER_IGNORE
-	_power_chip.add_theme_stylebox_override("panel", UITheme.style("power_chip"))
-	var prow := Kit.hbox(2)
+	var psb := StyleBoxFlat.new()
+	psb.bg_color = Color("f5f4f0")
+	psb.border_color = SignalKit.INK
+	psb.set_border_width_all(1)
+	psb.content_margin_left = 6
+	psb.content_margin_right = 6
+	psb.content_margin_top = 1
+	psb.content_margin_bottom = 1
+	_power_chip.add_theme_stylebox_override("panel", psb)
+	var prow := Kit.hbox(4)
 	prow.mouse_filter = MOUSE_FILTER_IGNORE
-	prow.add_child(Kit.icon("power", 20))
-	_power_label = Kit.label("0", 19, Color.WHITE, "cond_bold")
+	prow.add_child(Kit.label("PWR", 10, Color(SignalKit.INK, 0.6), "mono_bold"))
+	_power_label = Kit.label("0", 15, SignalKit.INK, "mono_bold")
 	prow.add_child(_power_label)
 	_power_chip.add_child(prow)
 	_power_chip.anchor_left = 0.5
@@ -484,7 +493,8 @@ func _rebuild_pill(ids: Array) -> void:
 	psb.content_margin_top = 12
 	psb.content_margin_bottom = 12
 	_pill.add_theme_stylebox_override("panel", psb)
-	# Printed readouts: ink mono amounts, ink plus marks, hairline separators.
+	# Printed readouts (style v4, restraint): no coloured glyph, a mono caption over the amount in
+	# ink, a faint plus mark, hairline separators.
 	var map: Dictionary = _pill.get_meta("entries", {})
 	for cid: Variant in map:
 		var cell := map[cid] as Control
@@ -495,8 +505,23 @@ func _rebuild_pill(ids: Array) -> void:
 		amt.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		amt.size_flags_horizontal = SIZE_FILL
 		var icons := cell.find_children("*", "TextureRect", true, false)
+		if not icons.is_empty():
+			(icons[0] as CanvasItem).visible = false
 		for k in range(1, icons.size()):
-			(icons[k] as CanvasItem).modulate = Color(SignalKit.INK, 0.75)
+			(icons[k] as CanvasItem).modulate = Color(SignalKit.INK, 0.45)
+		var row := amt.get_parent()
+		if row and not row.has_meta("captioned"):
+			row.set_meta("captioned", true)
+			var col := Kit.vbox(-2)
+			col.mouse_filter = MOUSE_FILTER_IGNORE
+			var cap := Kit.label(str(Kit.CURRENCY_SHORT.get(str(cid), str(cid))).to_upper(), 9, Color(SignalKit.INK, 0.55), "mono_bold")
+			cap.mouse_filter = MOUSE_FILTER_IGNORE
+			var amt_i := amt.get_index()
+			row.remove_child(amt)
+			col.add_child(cap)
+			col.add_child(amt)
+			row.add_child(col)
+			row.move_child(col, amt_i)
 	for sep in _pill.find_children("*", "ColorRect", true, false):
 		(sep as ColorRect).color = Color(SignalKit.INK, 0.18)
 	_pill.custom_minimum_size.y = Kit.BUTTON_H
