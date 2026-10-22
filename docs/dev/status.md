@@ -52,7 +52,8 @@ this file says where things stand. Older logs are under "History" at the bottom.
   The signature (`signature.gd`, `state.signature`, strokes 0..1000) then signs the profile footer,
   reward receipts, the oath on the front and the print album. Guide marks are red grease-pencil
   proof marks. Subtle touches: the Lobby heroine notices an absence of 8 h or more, once ("14 hours.
-  Not that I was counting."); 22:00-05:00 the app warms like paper under a lamp. Old saves with
+  Not that I was counting."); on day 7, 30, 100 and 365 after signing she remembers it once ("A week
+  since you signed. I still have the form."); 22:00-05:00 the app warms like paper under a lamp. Old saves with
   progress skip the form; Settings has "Replay the opening"; Reset Save starts there. Debug: shot
   params `calling {"answer": true}`, flags `--away=<hours>`, `--lamp` / `--no-lamp`.
 - **Live Light (iPhone 15 Pro and newer, 2026-10-22; the owner: "do something to take advantage of

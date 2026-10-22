@@ -799,8 +799,27 @@ func _refresh_hero() -> void:
 	_typeset(back if back != "" else lines[_line], false)
 
 
-## After a long absence (8 h or more) her line notices it, once: how long, roughly, in her words.
+## Days since the intake form when she remembers it, once each, and what she says.
+const MILESTONES := {
+	7: "A week since you signed. I still have the form.",
+	30: "A month today. I had your signature framed.",
+	100: "One hundred days. Most of them answer once and never come back.",
+	365: "A year since you answered. I never thought you would stay.",
+}
+
+
+## After a long absence (8 h or more) her line notices it, once: how long, roughly, in her words. On
+## the days that matter since the intake form (a week, a month, a hundred days, a year) she remembers
+## that instead, once each (setting "milestone_seen").
 func _welcome_back() -> String:
+	var created := int(Game.state.get("created_at", 0))
+	if created > 0 and Game.onboarded():
+		var days := int((Time.get_unix_time_from_system() * 1000.0 - created) / 86400000.0)
+		var seen := int(Game.setting("milestone_seen") if Game.setting("milestone_seen") != null else 0)
+		for d: int in [365, 100, 30, 7]:
+			if days >= d and days < d + 3 and seen < d:
+				Game.set_setting("milestone_seen", d)
+				return str(MILESTONES[d])
 	var away := int(Game.get("last_away_ms"))
 	if away < 8 * 3600000 or bool(Game.get("away_noticed")):
 		return ""
