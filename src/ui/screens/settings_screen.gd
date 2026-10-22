@@ -116,17 +116,19 @@ func _masthead(w: float) -> Control:
 	var ramp := Kit.halftone_ramp(Vector2(BAND_W, MAST_H * 0.62), Kit.PRINT_RED, 7.0, "down")
 	ramp.position = Vector2(0, MAST_H * 0.38)
 	mh.add_child(ramp)
+	# The house mark sits at the foot of the band (Back owns the top).
 	var mark := Kit.label("HH", 30, PAPER, "wide_black")
-	mark.position = Vector2(18, 104)
+	mark.position = Vector2(18, MAST_H - 58)
 	mh.add_child(mark)
 	var tm := Kit.label("™", 11, PAPER, "mono")
-	tm.position = Vector2(74, 106)
+	tm.position = Vector2(74, MAST_H - 56)
 	mh.add_child(tm)
 	var vs := Kit.label("CONTROL SHEET  ·  HH-0451  ·  ©2026 HH", 10, Color(PAPER, 0.8), "mono_bold")
 	vs.rotation = PI * 0.5
 	vs.position = Vector2(BAND_W - 14, 70)
 	mh.add_child(vs)
-	# SETTINGS, huge, cut by the right edge; paper-white where it crosses the band.
+	# SETTINGS, huge, cut by the right edge; paper-white where it crosses the band. It starts under
+	# the Back button so the two never touch.
 	var word := "SETTINGS"
 	var f := Kit.font("compressed")
 	var fs := 120
@@ -140,7 +142,7 @@ func _masthead(w: float) -> Control:
 		clip.size = Vector2(float(side[1]), MAST_H)
 		mh.add_child(clip)
 		var l := Kit.label(word, fs, side[2], "compressed")
-		l.position = Vector2(32.0 - float(side[0]), 50.0)
+		l.position = Vector2(32.0 - float(side[0]), 86.0)
 		clip.add_child(l)
 	var ver := str(ProjectSettings.get_setting("application/config/version", "0.1.0"))
 	var info := Kit.vbox(2)
@@ -152,9 +154,9 @@ func _masthead(w: float) -> Control:
 	# The shared big Back, printed for the dark band.
 	var back := SignalKit.back_button(func() -> void: UI.back(), false)
 	mh.add_child(back)
-	var disc := SignalKit.plate("silver", Vector2(w - 142, MAST_H - 132), Vector2(112, 112), {"circle": true, "shadow": 0.5}, mh)
-	disc.add_child(SignalKit.stamp("DEVICE · HALO & HORN · ", "v%s" % ver.get_slice(".", 0) + "." + ver.get_slice(".", 1), 112))
-	disc.pivot_offset = Vector2(56, 56)
+	var disc := SignalKit.plate("silver", Vector2(w - 138, MAST_H - 114), Vector2(104, 104), {"circle": true, "shadow": 0.5}, mh)
+	disc.add_child(SignalKit.stamp("DEVICE · HALO & HORN · ", "v%s" % ver.get_slice(".", 0) + "." + ver.get_slice(".", 1), 104))
+	disc.pivot_offset = Vector2(52, 52)
 	disc.rotation = -0.14
 	var rule := ColorRect.new()
 	rule.color = Color(INK, 0.55)

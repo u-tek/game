@@ -542,8 +542,6 @@ func _compose_standard(pr: Rect2) -> void:
 	# The band: the first Legendary as a red halftone print, micro type in paper white.
 	var band := PK.band(_poster, Rect2(bx, 0, BAND_W, ph), _feature, "", {"from": 0.2, "cell": 7.0})
 	PK.vt(band, "©2026 HH, ALL RIGHTS RESERVED.", 10, Color(PAPER, 0.75), Vector2(BAND_W - 6, ph * 0.62))
-	PK.at(band, PK.t("No.\n001", 12, Color(PAPER, 0.85), "mono_bold"), Vector2(14, ph * 0.46))
-	PK.at(band, PK.t(_short_date(Game.today()), 12, Color(PAPER, 0.85), "mono_bold"), Vector2(14, ph * 0.46 + 40))
 	# The banner's name, set huge and turned on its side: paper over the band, ink over the paper,
 	# the last word in signal.
 	var name_txt := str(_banner.get("name", "Summon")).to_upper()
@@ -563,9 +561,8 @@ func _compose_standard(pr: Rect2) -> void:
 	PK.at(_poster, PK.t("FEATURED LEGENDARY\n%s · %s" % [str(def.get("name", _feature)).to_upper(), str(Kit.ROLE_NAMES.get(str(def.get("role", "")), "")).to_upper()],
 		11, INK, "mono_bold"), Vector2(64, 16))
 	_rates_block(_poster, Vector2(64, 16))
-	# Left edge: a hairline and vertical micro type (the pity ruler is live, in _refresh).
+	# Left edge: a hairline (the pity ruler and its label are live, in _refresh).
 	PK.rule(_poster, Rect2(48, 0, 1, ph), Color(INK, 0.55))
-	PK.vt(_poster, "©2026 · PORTAL Nº 01 · EVERY HERO CAN ANSWER", 12, INK, Vector2(36, 14))
 	# The Legendary in full colour, in front of the type (tap her for her page).
 	_figure(Rect2(49, 0, pw - 49, ph), _feature, Vector2(bx * 0.46 + 10.0, ph - 4.0), ph * 0.95)
 	# The other Legendaries: small framed prints stuck on the band (clear of the tickets below).
