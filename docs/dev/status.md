@@ -136,8 +136,14 @@ this file says where things stand. Older logs are under "History" at the bottom.
   tapping it opens her in that look full screen in the gallery (zoom, swipe the looks, BUY), also for
   a heroine not yet recruited (shown as a preview). The art sells the skin, not a thumbnail.
 - **Restraint pass, continued:** Settings' title no longer runs through Back; Summon's left edge no
-  longer overprints two lines of micro type.
-- **Next:** keep refining every screen as a restrained poster.
+  longer overprints two lines of micro type; the Bag lists currencies as ledger codes (GEM, SCR ...)
+  instead of coloured icons; bulletin titles never break mid-word. Reward receipts and the Sanctum
+  keep their currency icons on purpose (they are scanned, not read).
+- **Overnight 2026-10-22/23 summary for the owner:** `docs/dev/morning-2026-10-23.md`.
+- **Next:** keep refining every screen as a restrained poster; the server for the War (real sides,
+  the Champion side-wide); check Live Light, the heartbeat haptics and the District's frame rate on
+  the owner's iPhone. Before committing, grep the whole `tools/check e2e` output for `SCRIPT ERROR`
+  (the summary lines say ok regardless).
 - **For the art session (18+ skins):** `HeroArt._built_art` shows the nude base look whatever skin
   is chosen when nudity is on (tested in `test_skins.gd test_nudity_mode_drops_skins`), so the 18+
   looks being installed under `skins/<art>/adult/` never show. When the per-skin nude set is in,
