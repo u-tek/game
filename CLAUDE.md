@@ -165,7 +165,8 @@ that the owner sideloads. The repo `u-tek/game` is public. The only code branch 
   SVGs from `assets/art/ui/src/make_icons.py`. UI collage objects (stamp disc ...) are Cycles
   renders in `assets/art/ui/objects/` from `tools/blender/ui_objects.py` + `finish_objects.py`; the 65 gear
   pieces (13 kinds x 5 tiers) in `assets/art/ui/gear/<noun>_<tier>.png` from `tools/blender/gear_objects.py`; the War map's relief
-  in `assets/art/ui/front/` from `tools/blender/front_terrain.py` + `finish_front.py`.
+  in `assets/art/ui/front/` from `tools/blender/front_terrain.py` + `finish_front.py`; the district
+  maquette in `assets/art/ui/district/` from `tools/blender/district_models.py` + `finish_district.py`.
 - **Farm output** goes to the orphan branch `art-gen-output`, written only by art-gen.yml's publish
   job. Fetch it; never push to it by hand.
 - **Godot runs go through `tools/gd`** (a flock on `/tmp/halo-godot.lock`, so parallel agents never

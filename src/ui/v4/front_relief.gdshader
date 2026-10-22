@@ -39,7 +39,8 @@ int sector_at(vec2 uv) {
 
 void fragment() {
 	vec4 tex = texture(TEXTURE, UV);
-	// Read as printed values, like halftone.gdshader (the output is converted for the canvas).
+	// The relief is a grey + alpha texture, which has no sRGB form: it arrives as stored (unlike RGBA
+	// textures on the HDR 2D canvas, which arrive linear). The output is converted for the canvas.
 	vec3 c = tex.rgb;
 	// The clay's light, stretched to its real range (about 0.43 to 0.81 as rendered).
 	float lum = smoothstep(0.42, 0.83, tex.r);

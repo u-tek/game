@@ -1,15 +1,16 @@
 extends Control
 ## Screen "district": the player's quarter on their side of the front (DistrictRules, GameModel
-## district; docs/dev/combat-v1.md) in the house poster style, built like the exploded isometric map
-## of reference 1: the quarter as a printed block plan in isometric line art (our own projection,
-## drawn in 2D), each building a box on the ground grid, open ones inked and solid, the next one in
-## signal, later ones as dashed outlines with the souls they need; each keeper's portrait framed on
-## a leader line over her building. Under the plan, the ledger: one row per building (name, its idle
+## district; docs/dev/combat-v1.md) in the house poster style: the quarter as an architect's maquette
+## (src/ui/v4/district_model.gd: eight clay buildings rendered in Blender on an isometric ground slab),
+## built ones in clay, a kept one marked in her side's ink, unbuilt ones frosted with the souls they
+## need, the next one warmed in signal; each keeper's portrait framed on a leader line over her
+## building. Under the plan, the ledger: one row per building (name, its idle
 ## bonus, its keeper or "NO KEEPER"), tap a row to choose a keeper (a sheet of owned heroines, the
 ## side's faction first: they double the bonus). The head: the quarter's name huge on the band, the
 ## lifetime souls debossed, the idle bonus per currency, the next building and the souls it needs.
 ## params: keeper (a building index: opens its keeper sheet; screenshots).
 
+const DistrictModel := preload("res://src/ui/v4/district_model.gd")
 const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
 const Poster := preload("res://src/ui/v4/survey/poster.gd")
 const CK := preload("res://src/ui/v4/collect/collect_kit.gd")
@@ -108,7 +109,7 @@ func _build() -> void:
 	var pr := Rect2(ox + 16, 14, pw, ph)
 	_poster = PK.poster(_page, pr)
 	_build_head(pw, dist)
-	var plan := DistrictPlan.new()
+	var plan := DistrictModel.new()
 	plan.name = "Plan"
 	plan.position = Vector2(18, HEAD + 30.0)
 	plan.size = Vector2(pw - 36, PLAN_H)
@@ -305,101 +306,3 @@ func _pick_keeper(building: int) -> void:
 		grid.add_child(card)
 	_sheet = UI.popup("Keeper", col, func() -> void: _sheet = null, 640.0, true)
 	modal_ref.append(_sheet)
-
-
-## The quarter's block plan: buildings as boxes on an isometric ground grid (ink line art on paper).
-class DistrictPlan:
-	extends Control
-
-	const INK := Color("101113")
-	const PAPER := Color("e9e8e2")
-	const SIG := Color("ff4b1f")
-	## Grid spots (cell x, cell y) for each building, in data order: a small street plan.
-	const SPOTS := [Vector2i(3, 6), Vector2i(0, 5), Vector2i(5, 5), Vector2i(0, 1), Vector2i(6, 1), Vector2i(2, 0), Vector2i(5, 0), Vector2i(7, 0)]
-	const CELL := 46.0
-	const GRID := 8
-	const UNIT_H := 22.0
-
-	var dist: Dictionary = {}
-
-	func _init() -> void:
-		mouse_filter = MOUSE_FILTER_IGNORE
-
-	## Ground point (iso) for grid coords (x, y) and height z (px).
-	func _iso(x: float, y: float, z: float = 0.0) -> Vector2:
-		var o := Vector2(size.x * 0.5, 130.0)
-		return o + Vector2((x - y) * CELL * 0.866, (x + y) * CELL * 0.5 - z)
-
-	## The middle of a building's roof (for the keeper prints' leaders).
-	func roof_point(i: int) -> Vector2:
-		var b: Dictionary = (dist.buildings as Array)[i]
-		var s: Vector2i = SPOTS[i % SPOTS.size()]
-		return _iso(s.x + int(b.w) * 0.5, s.y + int(b.d) * 0.5, int(b.h) * UNIT_H)
-
-	func _draw() -> void:
-		# The ground: a paper slab with the street grid and the souls' road through the middle.
-		var g := PackedVector2Array([_iso(0, 0), _iso(GRID, 0), _iso(GRID, GRID), _iso(0, GRID)])
-		draw_colored_polygon(g, Color("f5f4f0"))
-		var slab := PackedVector2Array([_iso(GRID, 0), _iso(GRID, GRID), _iso(GRID, GRID, -18), _iso(GRID, 0, -18)])
-		draw_colored_polygon(slab, Color(INK, 0.15))
-		var slab2 := PackedVector2Array([_iso(0, GRID), _iso(GRID, GRID), _iso(GRID, GRID, -18), _iso(0, GRID, -18)])
-		draw_colored_polygon(slab2, Color(INK, 0.28))
-		for k in GRID + 1:
-			draw_line(_iso(k, 0), _iso(k, GRID), Color(INK, 0.12), 1.0, true)
-			draw_line(_iso(0, k), _iso(GRID, k), Color(INK, 0.12), 1.0, true)
-		draw_polyline(PackedVector2Array([_iso(0, 3.5), _iso(GRID, 3.5)]), Color(SIG, 0.5), 6.0, true)
-		draw_polyline(g + PackedVector2Array([g[0]]), INK, 1.5, true)
-		# Buildings, back to front.
-		var order: Array = range((dist.get("buildings", []) as Array).size())
-		order.sort_custom(func(a: int, b: int) -> bool:
-			var sa: Vector2i = SPOTS[a % SPOTS.size()]
-			var sb: Vector2i = SPOTS[b % SPOTS.size()]
-			return sa.x + sa.y < sb.x + sb.y)
-		var next_shown := false
-		var f := Kit.font("mono_bold")
-		for i: int in order:
-			var b: Dictionary = (dist.buildings as Array)[i]
-			var s: Vector2i = SPOTS[i % SPOTS.size()]
-			var w := int(b.w)
-			var d := int(b.d)
-			var h := int(b.h) * UNIT_H
-			var open := bool(b.open)
-			var is_next := not open and int(b.souls) == int((dist.get("next", {}) as Dictionary).get("souls", -1))
-			var top := PackedVector2Array([_iso(s.x, s.y, h), _iso(s.x + w, s.y, h), _iso(s.x + w, s.y + d, h), _iso(s.x, s.y + d, h)])
-			var right := PackedVector2Array([_iso(s.x + w, s.y, 0), _iso(s.x + w, s.y + d, 0), _iso(s.x + w, s.y + d, h), _iso(s.x + w, s.y, h)])
-			var left := PackedVector2Array([_iso(s.x, s.y + d, 0), _iso(s.x + w, s.y + d, 0), _iso(s.x + w, s.y + d, h), _iso(s.x, s.y + d, h)])
-			if open:
-				draw_colored_polygon(left, INK)
-				draw_colored_polygon(right, Color(INK, 0.78))
-				draw_colored_polygon(top, PAPER if not bool(b.doubled) else Color(SIG, 0.9))
-				# Window ticks down the left face.
-				for k in int(b.h):
-					var y0 := (k + 0.5) * UNIT_H
-					draw_line(_iso(s.x + 0.25, s.y + d, y0), _iso(s.x + w - 0.25, s.y + d, y0), Color(PAPER, 0.35), 1.0, true)
-				draw_polyline(top + PackedVector2Array([top[0]]), INK, 1.5, true)
-			else:
-				var col := SIG if is_next else Color(INK, 0.35)
-				for poly: PackedVector2Array in [left, right, top]:
-					_dashed(poly + PackedVector2Array([poly[0]]), col)
-				var lab := "%s SOULS" % Kit.format_num(int(b.souls))
-				draw_string(f, top[0] + Vector2(-10, -10), lab, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, col)
-				if is_next and not next_shown:
-					next_shown = true
-			# The building's number on its roof.
-			draw_string(f, (top[0] + top[2]) * 0.5 + Vector2(-8, 5), "%02d" % (i + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 12,
-				(PAPER if bool(b.doubled) else INK) if open else Color(INK, 0.4))
-		# Leaders from each keeper's print down to her roof.
-		for i: int in order:
-			var b: Dictionary = (dist.buildings as Array)[i]
-			if str(b.keeper) != "" and bool(b.open):
-				var r := roof_point(i) + Vector2(0, -12)
-				draw_line(r, r + Vector2(0, -28), SIG if bool(b.doubled) else INK, 1.5, true)
-
-	func _dashed(pts: PackedVector2Array, col: Color) -> void:
-		for k in pts.size() - 1:
-			var a := pts[k]
-			var b := pts[k + 1]
-			var n := maxi(1, int(a.distance_to(b) / 8.0))
-			for j in n:
-				if j % 2 == 0:
-					draw_line(a.lerp(b, float(j) / n), a.lerp(b, float(j + 1) / n), col, 1.4, true)

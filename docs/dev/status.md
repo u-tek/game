@@ -95,6 +95,11 @@ this file says where things stand. Older logs are under "History" at the bottom.
   (paper and gold for Heaven, ink, red and lava for Hell, the trench between), clouds over Heaven.
   Re-render: `blender --background --factory-startup --python tools/blender/front_terrain.py --
   <dir>` (about 15 s), then `python tools/blender/finish_front.py <dir>`.
+- **The district is a maquette (2026-10-22):** the block plan is now an architect's model: eight
+  clay buildings with their own architecture rendered in Blender, frosted placeholders for those not
+  yet built, kept ones in their keeper's ink. Re-render: `blender --background --factory-startup
+  --python tools/blender/district_models.py -- <dir>` (about 90 s), then `python
+  tools/blender/finish_district.py <dir>`.
 - **Restraint pass, continued:** Settings' title no longer runs through Back; Summon's left edge no
   longer overprints two lines of micro type.
 - **Next:** keep refining every screen as a restrained poster.
