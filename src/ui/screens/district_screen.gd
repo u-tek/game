@@ -228,7 +228,10 @@ TO ANOTHER LOT", 9, SIG, "mono_bold")
 
 
 ## Each keeper's portrait framed over her building, on a leader line from its roof.
+## Each portrait clears the others: one that would cover another is lifted on a longer leader.
 func _keeper_prints(plan: Control, dist: Dictionary) -> void:
+	var taken: Array[Rect2] = []
+	var frames: Array[Control] = []
 	for b: Variant in dist.buildings:
 		var bd := b as Dictionary
 		var hid := str(bd.keeper)
@@ -237,6 +240,22 @@ func _keeper_prints(plan: Control, dist: Dictionary) -> void:
 		var roof: Vector2 = plan.call("roof_point", int(bd.i))
 		var s := 64.0
 		var at := roof + Vector2(-s * 0.5, -s - 40.0)
+		var lifted := true
+		while lifted:
+			lifted = false
+			for r in taken:
+				if r.grow(6.0).intersects(Rect2(at, Vector2(s, s))):
+					at.y = r.position.y - s - 10.0
+					lifted = true
+		taken.append(Rect2(at, Vector2(s, s)))
+		var lead := ColorRect.new()
+		lead.mouse_filter = MOUSE_FILTER_IGNORE
+		lead.color = SIG if bool(bd.doubled) else INK
+		lead.position = Vector2(roof.x - 0.75, at.y + s)
+		lead.size = Vector2(1.5, maxf(roof.y - 4.0 - (at.y + s), 0.0))
+		plan.add_child(lead)
+		# Leaders under every portrait (a lifted one's leader passes behind the one below it).
+		plan.move_child(lead, plan.get_child_count() - 1 - frames.size())
 		var fr := Control.new()
 		fr.mouse_filter = MOUSE_FILTER_IGNORE
 		fr.position = at
@@ -247,6 +266,7 @@ func _keeper_prints(plan: Control, dist: Dictionary) -> void:
 		pic.mouse_filter = MOUSE_FILTER_IGNORE
 		pic.size = Vector2(s, s)
 		fr.add_child(pic)
+		frames.append(fr)
 
 
 func _build_ledger(pw: float, y: float, dist: Dictionary) -> void:

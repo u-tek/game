@@ -5,8 +5,8 @@ extends Control
 ## front. Built buildings stand in clay (in the Horn Quarter, cast in black obsidian); a kept one takes
 ## its keeper's mark (her side's ink in halftone when she doubles it, gold for the Halo Quarter,
 ## signal for the Horn); unbuilt ones are frosted placeholders with their soul price, the next one
-## warmed in signal. Drawn over them: each building's number on a paper tag, the prices, and a leader
-## up from each kept roof (the screen hangs the keeper's portrait at its end, roof_point()).
+## warmed in signal. Drawn over them: each building's number on a paper tag and the prices; each
+## kept roof's point is roof_point() (the screen hangs the keeper's portrait and its leader there).
 ## Arranging (arranging = true): the lots show as a faint grid; drag a building and it follows the
 ## finger lot by lot (the camera is orthographic, so a building on another lot is the same picture
 ## moved by a fixed offset), its footprint marked in ink where it fits and in signal where it doesn't;
@@ -349,7 +349,6 @@ func _draw_labels() -> void:
 			continue
 		var roof := roof_point(i)
 		var open := bool(bd.open)
-		var kept := open and str(bd.keeper) != ""
 		var foot := _foot(i)
 		# The number on a small paper tag at the building's foot, toward the viewer.
 		var tag := Rect2(foot + Vector2(-14, 10), Vector2(28, 16))
@@ -371,5 +370,4 @@ func _draw_labels() -> void:
 			var lab := "%s SOULS" % Kit.format_num(int(bd.souls))
 			var col := SIG if nx else Color(INK, 0.5)
 			_overlay.draw_string(f, roof + Vector2(-60, -8), lab, HORIZONTAL_ALIGNMENT_CENTER, 120, 10, col)
-		elif kept:
-			_overlay.draw_line(roof + Vector2(0, -4), roof + Vector2(0, -40), SIG if bool(bd.doubled) else INK, 1.5, true)
+
