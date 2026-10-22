@@ -27,6 +27,7 @@
 				"idle": {"last_claim_at": 1702080000000, "quick_claims_used": 0, "quick_claim_day": 19700, "carry": {}, "gear_ms": 0, "full_notified": false},
 				"onboarded": true,
 				"signature": [],
+				"player_birthday": "",
 				"tower": {"best": 0},
 				"summon": {
 					"pity": 0,
@@ -110,6 +111,7 @@
 				"created_at": 1702083600000,
 				"player_name": "Envoy",
 				"signature": [],
+				"player_birthday": "",
 				"currencies": {"gold": 4000, "hero_exp": 2400, "gems": 1800, "scrolls": 10, "dust": 0},
 				"tower": {"best": 0},
 				"idle": {"last_claim_at": 1702083600000, "quick_claims_used": 0, "quick_claim_day": 19700, "carry": {}, "gear_ms": 0, "full_notified": false},
@@ -175,6 +177,7 @@
 				"onboarded": false,
 				"player_name": "Envoy",
 				"signature": [],
+				"player_birthday": "",
 				"currencies": {"gold": 4000, "hero_exp": 2400, "gems": 1800, "scrolls": 10, "dust": 0},
 				"formation": ["uriela", "", "", "", ""],
 				"campaign": {"cleared": 0},
@@ -242,6 +245,7 @@
 				"created_at": 1702083600000,
 				"player_name": "Envoy",
 				"signature": [],
+				"player_birthday": "",
 				"currencies": {"gold": 4000, "hero_exp": 2400, "gems": 1800, "scrolls": 10, "dust": 0},
 				"formation": ["kessa", "", "", "", ""],
 				"campaign": {"cleared": 0},
@@ -280,6 +284,7 @@
 				"player_name": "Envoy",
 				"onboarded": false,
 				"signature": [],
+				"player_birthday": "",
 				"currencies": {"gold": 6400, "hero_exp": 4000, "gems": 1512, "scrolls": 0, "dust": 12},
 				"heroes": {
 					"uriela": {"id": "uriela", "level": 1, "stars": 1, "shards": 0, "gear": {}, "awaken": 0},
@@ -382,6 +387,7 @@
 				"player_name": "Envoy",
 				"onboarded": false,
 				"signature": [],
+				"player_birthday": "",
 				"currencies": {"gold": 6400, "hero_exp": 4000, "gems": 1512, "scrolls": 0, "dust": 12},
 				"heroes": {
 					"uriela": {"id": "uriela", "level": 1, "stars": 1, "shards": 0, "gear": {}, "awaken": 0},
