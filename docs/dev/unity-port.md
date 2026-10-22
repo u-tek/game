@@ -969,6 +969,31 @@ Offline: both sides' hosts are simulated; the player's souls are the only live i
   one building (setting her moves her). Save repair drops bad indices, unknown heroes and duplicates.
 - Fixture: data/fixtures/war.json (district_open, district_out).
 
+## 9f. The calendar (`src/core/calendar_rules.gd`, data/calendar.json, GameModel `calendar*`)
+
+Real days the game notices: the holidays in `days` and each heroine's `birthdays` entry (MM-DD).
+Day numbers are GameModel's (days since 1970-01-01 on the player's local clock).
+- `civil(day)` = [year, month, day], proleptic Gregorian, integer maths with truncating division
+  (valid for negative days too):
+  `z = day + 719468; era = (z >= 0 ? z : z - 146096) / 146097; doe = z - era*146097;
+  yoe = (doe - doe/1460 + doe/36524 - doe/146096) / 365; doy = doe - (365*yoe + yoe/4 - yoe/100);
+  mp = (5*doy + 2) / 153; d = doy - (153*mp + 2)/5 + 1; m = mp < 10 ? mp + 3 : mp - 9;
+  y = yoe + era*400 + (m <= 2 ? 1 : 0)`.
+- `day_number(y, m, d)` is the inverse: `y -= (m <= 2); era = (y >= 0 ? y : y - 399) / 400;
+  yoe = y - era*400; doy = (153*(m > 2 ? m - 3 : m + 9) + 2)/5 + d - 1;
+  return era*146097 + yoe*365 + yoe/4 - yoe/100 + doy - 719468`.
+- `events(day, owned)`: every holiday whose `md` matches, in data order, as `{kind: "day", id,
+  key: "<id>-<year>", gift}`; then every birthday (in the order of `birthdays`) whose MM-DD matches
+  and whose heroine is in `owned`, as `{kind: "birthday", id: hero id, key: "bday-<id>-<year>",
+  gift: birthday.gift}`.
+- GameModel: `calendar.claimed` maps a key to the day it was taken. `calendar_today()` = the events
+  for today and the owned heroines, each with `claimed`. `claim_calendar(key)`: the key must be one
+  of today's and not claimed; grants the gift. Claims older than 400 days are dropped (on a claim
+  and on save repair), so the same day next year (a new key) is open again.
+- UI only (not rules): her Lobby line on the day (`lines[faction]`, or for a birthday
+  `birthday.mine` / `birthday.other` with `{her}`), the stamp's word.
+- Fixture: data/fixtures/calendar.json (civil with day_number back, events).
+
 ## 10. Golden fixtures (`data/fixtures/`)
 
 Each file: `{version, about, regenerate, ...}`. Inputs and expected outputs sit side by side.
@@ -986,6 +1011,7 @@ Each file: `{version, about, regenerate, ...}`. Inputs and expected outputs sit 
 | `session.json` | GameModel: `start_ms`, `tz_bias_ms`, `steps [{advance_ms, call, args}]` -> `results [{value, notify}]`, `final_state`. Each step advances the clock, then calls the method; `"battle"` = `stage_battle_setup(i)` + `run_to_end` + `complete_stage(i, outcome)`, value `{seed, victory, duration_ms, complete}`. |
 | `save.json` | `cases []`: `now_ms`, `input` (a save) -> `out` (`migrate(input)`). |
 | `prints.json` | `editions[]` (banner, day, epoch_day -> out); `flaw_rolls` -> `flaws`, `grade_rolls` -> `grades`; `make_prints[]` (inputs -> `out {prints, ed}`, a long run covers every flaw and holo); `samples[]` (print -> notable, score); `trim` (list, keep_plain -> `out`, `out_default`). |
+| `calendar.json` | `days[]` -> `civil[]` ([y, m, d, day_number(y, m, d)]); `event_cases[]` (day, owned) -> `events[]`. |
 | `rival.json` | `banner_days` -> `banners`; `factions` -> `counters`; `stars[]`, `levels[]`, `teams[]` -> out; `sims[]`: `new_state(seed)` then each step `catch_up(state, today, epoch_day, owns)` -> `{days, state, best_untaken}`; `hauls` -> `haul_out`; `leads` ([cleared, Spire best, day]) -> `lead_out`; `lines` ([kind, seed, day, salt, fills]) -> `line_out`. |
 
 **Checking (NUnit sketch):** load each file with Newtonsoft, run the inputs through your port,
@@ -994,7 +1020,8 @@ treats object key order as irrelevant). Report the first differing path to debug
 
 **Second reference:** `tests/port_check/check_port.py` is an independent Python
 implementation of sections 4-8 (RNG, stats, battle, summon, idle, progression, gear), 8.5 (prints),
-9b (the Spire's floors) and 9c (the Rival's rules), written
+9b (the Spire's floors), 9c (the Rival's rules), 9d-9e (the war, the district) and 9f (the
+calendar), written
 from this document, that passes every fixture except `session`/`save` (GameModel is not
 covered). Run `python3 -B tests/port_check/check_port.py`. It is a compact model for the C#
 code, and proof that this document is precise enough to port from.

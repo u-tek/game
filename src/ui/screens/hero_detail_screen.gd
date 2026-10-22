@@ -337,6 +337,11 @@ func _build_poster() -> void:
 	PK.at(p, PK.t("™", 12, PAPER, "mono"), Vector2(84, 18))
 	PK.at(p, PK.t("No.\n%02d" % _number(), 12, Color(PAPER, 0.85), "mono_bold"), Vector2(20, 72))
 	PK.at(p, PK.t(_print_date(), 12, Color(PAPER, 0.85), "mono_bold"), Vector2(64, 78))
+	var bday := CalendarRules.birthday(_id)
+	if bday != "":
+		var today_md := CalendarRules.md(Game.today())
+		PK.at(p, PK.t("BORN %s.%s%s" % [bday.get_slice("-", 1), bday.get_slice("-", 0), "  ·  TODAY" if bday == today_md else ""], 10,
+			PK.SIG if bday == today_md else Color(PAPER, 0.6), "mono_bold"), Vector2(64, 96))
 	var title := PK.t(str(_def.get("title", "")).to_upper(), 12, PAPER, "mono_bold")
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	title.size = Vector2(BAND - 46, 0)

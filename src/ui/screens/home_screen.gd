@@ -22,6 +22,7 @@ extends Control
 ## clipped over the band's edge (tap it: the next bulletin).
 
 const DeviceTier := preload("res://src/art/device_tier.gd")
+const DayStamp := preload("res://src/ui/components/day_stamp.gd")
 const HUD := preload("res://src/ui/components/hud.gd")
 const LobbyLines := preload("res://src/ui/battle/lobby_lines.gd")
 
@@ -96,6 +97,9 @@ var _pass_root: Control
 var _pass_led: Control
 var _pass_sig := "-"
 var _sig_label: Label
+var _day_layer: Control        ## the calendar's stamps and line beside the date (_refresh_days)
+var _day_sig := "-"
+var _day_key := ""             ## the day still waiting to be stamped ("" when none)
 var _sheet: Control
 var _sheet_refs: Dictionary = {}
 var _t := 0.0
@@ -104,7 +108,8 @@ var _tick := 0.0
 var _rue_tag: Control
 
 
-## params: sheet (bool) opens the Sanctum sheet, bulletin (page) shows that bulletin (screenshots);
+## params: sheet (bool) opens the Sanctum sheet, bulletin (page) shows that bulletin, stamp (bool)
+## stamps today's waiting real day (screenshots);
 ## debug builds: hero / skin show a
 ## given hero and look (framing checks).
 func setup(params: Dictionary) -> void:
@@ -119,6 +124,8 @@ func setup(params: Dictionary) -> void:
 		_open_sanctum.call_deferred()
 	if params.has("bulletin"):
 		_show_bulletin.call_deferred(int(params.bulletin), false)
+	if bool(params.get("stamp", false)):
+		_stamp_day.call_deferred()
 
 
 func _exit_tree() -> void:
@@ -268,11 +275,19 @@ func _build() -> void:
 	_page.add_child(_pass_slot)
 	_pass_sig = "-"
 
-	# ---- Under the poster: the date and her signature.
-	var d := Time.get_date_dict_from_system()
-	var date := Kit.label("%d %02d/%02d" % [int(d.year), int(d.month), int(d.day)], 26, INK, "regular")
+	# ---- Under the poster: the date and her signature. On a real day (the calendar) the date is
+	# where it is stamped: tap it.
+	var d := CalendarRules.civil(Game.today())
+	var date := Kit.label("%d %02d/%02d" % [d[0], d[1], d[2]], 26, INK, "regular")
 	date.position = Vector2(20, pr.end.y + 22)
 	_page.add_child(date)
+	_day_layer = Control.new()
+	_day_layer.name = "Days"
+	_day_layer.mouse_filter = MOUSE_FILTER_IGNORE
+	_day_layer.position = Vector2(0, pr.end.y)
+	_day_layer.size = Vector2(380, 88)
+	_page.add_child(_day_layer)
+	_day_sig = "-"
 	var sig_btn := Button.new()
 	sig_btn.name = "Signature"
 	sig_btn.theme_type_variation = &"BareButton"
@@ -572,6 +587,7 @@ func _refresh() -> void:
 	_refresh_campaign()
 	_refresh_badges()
 	_refresh_guide()
+	_refresh_days()
 
 
 ## First-session guidance: the Sanctum stamp (free quick claim) and the Campaign pass; the Sanctum
@@ -796,7 +812,111 @@ func _refresh_hero() -> void:
 	var lines := LobbyLines.lines(id)
 	_line = int(Time.get_unix_time_from_system() / 60.0) % lines.size()
 	var back := _welcome_back()
+	if back == "":
+		back = _day_line(id)
 	_typeset(back if back != "" else lines[_line], false)
+
+
+# ------------------------------------------------------------------ the calendar
+
+## Real days (CalendarRules): each day already stamped is a red rubber stamp on the date; the first
+## still waiting gets a red line beside the date ("HALLOWEEN · STAMP IT"), and tapping the date
+## brings the stamp down, then the gift. Rebuilt only when what it shows changes.
+func _refresh_days(pressed_key: String = "") -> void:
+	if _day_layer == null or not is_instance_valid(_day_layer):
+		return
+	var evs: Array = Game.calendar_today()
+	var parts: Array[String] = []
+	for e: Dictionary in evs:
+		parts.append("%s:%s" % [str(e.key), str(e.claimed)])
+	var sig := ",".join(parts)
+	if sig == _day_sig:
+		return
+	_day_sig = sig
+	for c in _day_layer.get_children():
+		c.queue_free()
+	_day_key = ""
+	var d := CalendarRules.civil(Game.today())
+	var n := 0
+	var waiting: Dictionary = {}
+	for e: Dictionary in evs:
+		if not bool(e.claimed):
+			if waiting.is_empty():
+				waiting = e
+			continue
+		var st := DayStamp.new()
+		st.name = "Stamp_" + str(e.key)
+		st.setup(_day_word(e), d[1], d[2])
+		st.position = Vector2(166 + n * 70, -12 - (n % 2) * 6)
+		_day_layer.add_child(st)
+		var rot := -0.14 + n * 0.22
+		if str(e.key) == pressed_key:
+			st.press(rot)
+		else:
+			st.pivot_offset = st.size * 0.5
+			st.rotation = rot
+		n += 1
+	if waiting.is_empty():
+		return
+	_day_key = str(waiting.key)
+	var x := 168.0 + n * 80.0
+	var dot := Kit.dot(14)
+	dot.position = Vector2(x, 34)
+	_day_layer.add_child(dot)
+	var cap := Kit.label("%s  ·  STAMP IT" % _day_word(waiting), 12, SIG, "mono_bold")
+	cap.mouse_filter = MOUSE_FILTER_IGNORE
+	cap.position = Vector2(x + 22, 31)
+	_day_layer.add_child(cap)
+	var b := Button.new()
+	b.name = "StampDay"
+	b.text = "Stamp " + _day_key
+	b.add_theme_color_override("font_color", Color.TRANSPARENT)
+	b.add_theme_color_override("font_hover_color", Color.TRANSPARENT)
+	b.add_theme_color_override("font_pressed_color", Color.TRANSPARENT)
+	b.theme_type_variation = &"BareButton"
+	b.focus_mode = FOCUS_NONE
+	b.size = Vector2(maxf(cap.position.x + cap.get_minimum_size().x + 12.0, 300.0), 88)
+	b.pressed.connect(_stamp_day)
+	_day_layer.add_child(b)
+
+
+## The word on a day's stamp: the holiday's, or the birthday heroine's name.
+func _day_word(e: Dictionary) -> String:
+	if str(e.kind) == "birthday":
+		return "%s'S BIRTHDAY" % str(Game.hero_def(str(e.id)).get("name", e.id)).to_upper()
+	return CalendarRules.stamp(e)
+
+
+func _stamp_day() -> void:
+	var key := _day_key
+	if key == "":
+		return
+	var r: Dictionary = Game.claim_calendar(key)
+	if not bool(r.get("ok", false)):
+		UI.toast(str(r.get("error", "")), "bad")
+		return
+	Kit.haptic(28, 0.9)
+	Kit.sfx("hit", 0.7)
+	_refresh_days(key)
+	var e: Dictionary = r.value.event
+	var title := "%s's birthday" % str(Game.hero_def(str(e.id)).get("name", e.id)) if str(e.kind) == "birthday" \
+		else str(CalendarRules.holiday(str(e.id)).get("name", "A gift"))
+	var reward: Dictionary = r.value.reward
+	get_tree().create_timer(0.5).timeout.connect(func() -> void:
+		UI.show_reward(title, reward))
+
+
+## Her line on a real day: her own birthday first, else the first of today's days.
+func _day_line(id: String) -> String:
+	var evs: Array = Game.calendar_today()
+	if evs.is_empty():
+		return ""
+	var ev: Dictionary = evs[0]
+	for e: Dictionary in evs:
+		if str(e.kind) == "birthday" and str(e.id) == id:
+			ev = e
+	var def := Game.hero_def(id)
+	return CalendarRules.line(ev, id, str(def.get("faction", "")), str(Game.hero_def(str(ev.id)).get("name", ev.id)))
 
 
 ## Days since the intake form when she remembers it, once each, and what she says.

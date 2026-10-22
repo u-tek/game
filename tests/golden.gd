@@ -10,7 +10,7 @@ extends RefCounted
 ##
 ## Outputs are compared as JSON values: objects by key (order-free), arrays in order.
 
-const FILES: Array[String] = ["rng", "progression", "idle", "gear", "stats", "summon", "battles", "session", "save", "prints", "rival", "war"]
+const FILES: Array[String] = ["rng", "progression", "idle", "gear", "stats", "summon", "battles", "session", "save", "prints", "rival", "war", "calendar"]
 const REGENERATE := "tools/gd --headless --path . -s tests/tools/make_fixtures.gd"
 ## Fixed clock for model-driven fixtures: 2023-12-09 01:00 UTC.
 const BASE_MS := 1_702_083_600_000
@@ -37,6 +37,7 @@ static func compute(name: String, f: Dictionary) -> Dictionary:
 		"prints": out = _prints(f)
 		"rival": out = _rival(f)
 		"war": out = _war(f)
+		"calendar": out = _calendar(f)
 		_: return {}
 	var head := {"version": 1, "about": str(f.get("about", "")), "regenerate": REGENERATE}
 	head.merge(out)
@@ -243,6 +244,8 @@ static func inputs(name: String) -> Dictionary:
 			return _rival_inputs()
 		"war":
 			return _war_inputs()
+		"calendar":
+			return _calendar_inputs()
 	return {}
 
 
@@ -945,6 +948,36 @@ static func _war(f: Dictionary) -> Dictionary:
 		"champ_tiers": f.champ_tiers, "champ_tiers_out": ctiers, "district_souls": f.district_souls,
 		"district_open": (f.district_souls as Array).map(func(s: Variant) -> Array: return DistrictRules.open(int(s))),
 		"district_cases": f.district_cases, "district_rates": f.district_rates, "district_out": _district_out(f)}
+
+
+# ---------------------------------------------------------------- the calendar
+
+static func _calendar_inputs() -> Dictionary:
+	# Day numbers around the epoch, leap days, century years and far dates, plus every holiday and
+	# a few birthdays with and without the heroine.
+	var days: Array = [0, -1, 1, 59, 60, 365, -365, -719468, -719469, 11016, 11017, 19782, 20392, 20393, 20453, 20454,
+		30000, 47541, 47542, 100000, -100000]
+	var ev_cases: Array = []
+	for c: Array in [[2026, 10, 31, []], [2026, 12, 25, ["cassiel"]], [2027, 1, 1, []], [2027, 11, 5, []],
+			[2027, 11, 5, ["seraphiel", "vesper"]], [2028, 2, 29, ["vesper"]], [2026, 3, 21, ["seraphiel", "cassiel"]],
+			[2026, 12, 31, ["ombre"]], [1999, 2, 14, ["noctaire"]], [2026, 10, 22, []]]:
+		ev_cases.append({"day": CalendarRules.day_number(int(c[0]), int(c[1]), int(c[2])), "owned": c[3]})
+	return {
+		"about": "CalendarRules (src/core/calendar_rules.gd) on data/calendar.json: civil(day) for day numbers (days since 1970-01-01), day_number(civil) back, and events(day, owned).",
+		"days": days,
+		"event_cases": ev_cases,
+	}
+
+
+static func _calendar(f: Dictionary) -> Dictionary:
+	var civ: Array = []
+	for d: Variant in f.days:
+		var c := CalendarRules.civil(int(d))
+		civ.append([c[0], c[1], c[2], CalendarRules.day_number(c[0], c[1], c[2])])
+	var evs: Array = []
+	for c: Dictionary in f.event_cases:
+		evs.append(CalendarRules.events(int(c.day), c.owned))
+	return {"days": f.days, "civil": civ, "event_cases": f.event_cases, "events": evs}
 
 
 static func _district_out(f: Dictionary) -> Array:

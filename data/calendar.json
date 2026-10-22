@@ -1,0 +1,116 @@
+{
+	"version": 1,
+	"about": "Real days the game notices (CalendarRules, docs/dev/unity-port.md section 9f). md is MM-DD on the player's local calendar. On a day: a stamp on the Lobby (tap it: the gift, once a year) and her line, by her faction. Birthdays: each heroine's day, for owned heroines only; the Lobby heroine says 'mine' on her own and names the other one ({her}) on someone else's. Lines are short: the Lobby sets them huge.",
+	"days": [
+		{
+			"id": "new_year", "md": "01-01", "name": "New Year", "stamp": "NEW YEAR",
+			"gift": {"gems": 300, "scrolls": 1},
+			"lines": {
+				"celestial": "A new year. I wrote you into every page of it.",
+				"infernal": "New year, same sins. Let's add a few.",
+				"fallen": "Another year. I'm still here. So are you."
+			}
+		},
+		{
+			"id": "valentine", "md": "02-14", "name": "Valentine's Day", "stamp": "VALENTINE",
+			"gift": {"gems": 200},
+			"lines": {
+				"celestial": "I wrote you a hymn. Please don't read it aloud.",
+				"infernal": "Valentine's Day. I don't do chocolates. I do worse.",
+				"fallen": "I'm bad at Valentine's Day. Stay anyway."
+			}
+		},
+		{
+			"id": "halloween", "md": "10-31", "name": "Halloween", "stamp": "HALLOWEEN",
+			"gift": {"gems": 200, "dust": 300},
+			"lines": {
+				"celestial": "I came as an angel. Nobody believes it's a costume.",
+				"infernal": "Halloween. The one night nobody stares at the horns.",
+				"fallen": "Everyone wears a mask tonight. I can take mine off."
+			}
+		},
+		{
+			"id": "christmas_eve", "md": "12-24", "name": "Christmas Eve", "stamp": "CHRISTMAS EVE",
+			"gift": {"gems": 150},
+			"lines": {
+				"celestial": "Heaven's busiest night. I stayed here with you.",
+				"infernal": "Christmas Eve. I've been very naughty. Check the list.",
+				"fallen": "Nobody hangs a stocking for the Fallen. Except you."
+			}
+		},
+		{
+			"id": "christmas", "md": "12-25", "name": "Christmas", "stamp": "CHRISTMAS",
+			"gift": {"gems": 300, "scrolls": 1},
+			"lines": {
+				"celestial": "Merry Christmas, envoy. Unwrap me carefully.",
+				"infernal": "Merry Christmas. I wrapped myself. Mostly.",
+				"fallen": "Merry Christmas. My first in a long time."
+			}
+		},
+		{
+			"id": "new_years_eve", "md": "12-31", "name": "New Year's Eve", "stamp": "LAST NIGHT",
+			"gift": {"gems": 150},
+			"lines": {
+				"celestial": "The last night of the year. Stay up with me.",
+				"infernal": "Midnight's coming. Decide who you're kissing.",
+				"fallen": "One more year survived. Raise a glass with me."
+			}
+		}
+	],
+	"birthday": {
+		"stamp": "BIRTHDAY",
+		"gift": {"gems": 100, "hero_exp": 2000},
+		"mine": {
+			"celestial": "It's my birthday. You came. That's the gift.",
+			"infernal": "My birthday, envoy. I expect to be spoiled.",
+			"fallen": "My birthday. I stopped counting. Count this one."
+		},
+		"other": {
+			"celestial": "It's {her}'s birthday. Go and say something kind.",
+			"infernal": "{her}'s birthday. She'll pretend she doesn't care.",
+			"fallen": "{her}'s birthday today. Don't make a fuss. A small one."
+		}
+	},
+	"birthdays": {
+		"seraphiel": "03-21",
+		"cassiel": "06-21",
+		"liora": "04-07",
+		"uriela": "07-21",
+		"nuriel": "05-19",
+		"argentiel": "11-11",
+		"sanariel": "05-12",
+		"rimelle": "02-08",
+		"avienne": "12-17",
+		"cirella": "10-10",
+		"ferrael": "09-03",
+		"verdelle": "04-22",
+		"isobel": "09-10",
+		"halcia": "06-06",
+		"mordessa": "06-13",
+		"brakka": "01-19",
+		"vesper": "11-05",
+		"imra": "02-01",
+		"kessa": "08-08",
+		"drezza": "07-13",
+		"zecchina": "07-07",
+		"torqua": "05-29",
+		"sigilla": "03-09",
+		"carmesa": "04-26",
+		"thrasha": "03-15",
+		"kindra": "10-09",
+		"cordia": "12-05",
+		"noctaire": "08-12",
+		"orrin": "09-23",
+		"sable": "11-02",
+		"lucen": "01-27",
+		"ashra": "04-30",
+		"nadira": "10-04",
+		"gantra": "06-30",
+		"severine": "12-14",
+		"benthe": "06-08",
+		"seyra": "01-13",
+		"rivette": "09-17",
+		"vandra": "04-15",
+		"ombre": "11-19"
+	}
+}

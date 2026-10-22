@@ -81,6 +81,10 @@ func _ready() -> void:
 		if args.has("--rival-tag"):   # screenshots/testing: Rue won the last fight (her tag on the Lobby)
 			dev_rival_tag(true)
 		for a in args:
+			# screenshots/testing: --date=MM-DD moves the clock to that day this year (the calendar).
+			if a.begins_with("--date="):
+				dev_date(a.substr("--date=".length()))
+		for a in args:
 			# screenshots/testing: --war=heaven|hell picks the side and logs a few days of souls in two
 			# sectors (and last week's, so a claim waits).
 			if a.begins_with("--war="):
@@ -200,6 +204,29 @@ func _mark_dirty() -> void:
 
 
 # ---------------------------------------------------------------- time / save
+
+# ---------------------------------------------------------------- the calendar
+
+## Today's real days (holidays, owned heroines' birthdays), each with "claimed".
+func calendar_today() -> Array:
+	return model.calendar_today()
+
+
+func claim_calendar(key: String) -> Dictionary:
+	var r := model.claim_calendar(key)
+	_flush()
+	return r
+
+
+## Screenshots/testing: shifts the clock (dev_time_offset) so today is MM-DD this year.
+func dev_date(mmdd: String) -> void:
+	var parts := mmdd.split("-")
+	if parts.size() != 2:
+		return
+	var y := int(CalendarRules.civil(today())[0])
+	var target := CalendarRules.day_number(y, int(parts[0]), int(parts[1]))
+	model.state.dev_time_offset = int(model.state.dev_time_offset) + (target - today()) * GameModel.DAY_MS
+
 
 ## Current time in ms (real clock + state.dev_time_offset, or now_override_ms).
 func now_ms() -> int:

@@ -58,6 +58,7 @@
 					"champ": {"week": -1000000, "hero": "", "level": 0, "hp": 0, "damage": 0, "day": -1000000, "tries": 0, "tiers": []},
 					"keepers": {}
 				},
+				"calendar": {"claimed": {}},
 				"counters": {},
 				"dev_time_offset": 0,
 				"rng_seed": 1055219407
@@ -140,6 +141,7 @@
 					"champ": {"week": -1000000, "hero": "", "level": 0, "hp": 0, "damage": 0, "day": -1000000, "tries": 0, "tiers": []},
 					"keepers": {}
 				},
+				"calendar": {"claimed": {}},
 				"counters": {},
 				"dev_time_offset": 0,
 				"rng_seed": 5422372
@@ -196,6 +198,7 @@
 					"champ": {"week": -1000000, "hero": "", "level": 0, "hp": 0, "damage": 0, "day": -1000000, "tries": 0, "tiers": []},
 					"keepers": {}
 				},
+				"calendar": {"claimed": {}},
 				"counters": {},
 				"dev_time_offset": 0,
 				"rng_seed": 1055219407
@@ -262,6 +265,7 @@
 					"champ": {"week": -1000000, "hero": "", "level": 0, "hp": 0, "damage": 0, "day": -1000000, "tries": 0, "tiers": []},
 					"keepers": {}
 				},
+				"calendar": {"claimed": {}},
 				"counters": {},
 				"dev_time_offset": 0,
 				"rng_seed": 5422372
@@ -367,6 +371,7 @@
 					"champ": {"week": -1000000, "hero": "", "level": 0, "hp": 0, "damage": 0, "day": -1000000, "tries": 0, "tiers": []},
 					"keepers": {}
 				},
+				"calendar": {"claimed": {}},
 				"counters": {"summons": 11, "idle_claims": 1},
 				"dev_time_offset": 0,
 				"rng_seed": 5422372
@@ -468,6 +473,7 @@
 					"champ": {"week": -1000000, "hero": "", "level": 0, "hp": 0, "damage": 0, "day": -1000000, "tries": 0, "tiers": []},
 					"keepers": {}
 				},
+				"calendar": {"claimed": {}},
 				"counters": {"summons": 11, "idle_claims": 1},
 				"dev_time_offset": 0,
 				"rng_seed": 5422372

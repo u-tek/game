@@ -1,0 +1,67 @@
+{
+	"version": 1,
+	"about": "CalendarRules (src/core/calendar_rules.gd) on data/calendar.json: civil(day) for day numbers (days since 1970-01-01), day_number(civil) back, and events(day, owned).",
+	"regenerate": "tools/gd --headless --path . -s tests/tools/make_fixtures.gd",
+	"days": [0, -1, 1, 59, 60, 365, -365, -719468, -719469, 11016, 11017, 19782, 20392, 20393, 20453, 20454, 30000, 47541, 47542, 100000, -100000],
+	"civil": [
+		[1970, 1, 1, 0],
+		[1969, 12, 31, -1],
+		[1970, 1, 2, 1],
+		[1970, 3, 1, 59],
+		[1970, 3, 2, 60],
+		[1971, 1, 1, 365],
+		[1969, 1, 1, -365],
+		[0, 3, 1, -719468],
+		[0, 2, 29, -719469],
+		[2000, 2, 29, 11016],
+		[2000, 3, 1, 11017],
+		[2024, 2, 29, 19782],
+		[2025, 10, 31, 20392],
+		[2025, 11, 1, 20393],
+		[2025, 12, 31, 20453],
+		[2026, 1, 1, 20454],
+		[2052, 2, 20, 30000],
+		[2100, 3, 1, 47541],
+		[2100, 3, 2, 47542],
+		[2243, 10, 17, 100000],
+		[1696, 3, 17, -100000]
+	],
+	"event_cases": [
+		{"day": 20757, "owned": []},
+		{"day": 20812, "owned": ["cassiel"]},
+		{"day": 20819, "owned": []},
+		{"day": 21127, "owned": []},
+		{"day": 21127, "owned": ["seraphiel", "vesper"]},
+		{"day": 21243, "owned": ["vesper"]},
+		{"day": 20533, "owned": ["seraphiel", "cassiel"]},
+		{"day": 20818, "owned": ["ombre"]},
+		{"day": 10636, "owned": ["noctaire"]},
+		{"day": 20748, "owned": []}
+	],
+	"events": [
+		[{"kind": "day", "id": "halloween", "key": "halloween-2026", "gift": {"gems": 200, "dust": 300}}],
+		[{"kind": "day", "id": "christmas", "key": "christmas-2026", "gift": {"gems": 300, "scrolls": 1}}],
+		[{"kind": "day", "id": "new_year", "key": "new_year-2027", "gift": {"gems": 300, "scrolls": 1}}],
+		[],
+		[
+			{
+				"kind": "birthday",
+				"id": "vesper",
+				"key": "bday-vesper-2027",
+				"gift": {"gems": 100, "hero_exp": 2000}
+			}
+		],
+		[],
+		[
+			{
+				"kind": "birthday",
+				"id": "seraphiel",
+				"key": "bday-seraphiel-2026",
+				"gift": {"gems": 100, "hero_exp": 2000}
+			}
+		],
+		[{"kind": "day", "id": "new_years_eve", "key": "new_years_eve-2026", "gift": {"gems": 150}}],
+		[{"kind": "day", "id": "valentine", "key": "valentine-1999", "gift": {"gems": 200}}],
+		[]
+	]
+}

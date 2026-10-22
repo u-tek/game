@@ -105,6 +105,8 @@ func default_state() -> Dictionary:
 			"showcase": []},
 		"rival": RivalRules.new_state(now & 0x7FFFFFFF),
 		"war": WarRules.new_state(),
+		# Real days (CalendarRules): the gift keys taken ("halloween-2026": the day it was taken).
+		"calendar": {"claimed": {}},
 		"counters": {},
 		"dev_time_offset": 0,
 		"rng_seed": SeededRng.mix(now & 0x7FFFFFFF, 104729),
@@ -202,6 +204,7 @@ func migrate(loaded: Dictionary) -> Dictionary:
 	_migrate_prints(loaded.prints)
 	_migrate_rival(loaded.rival)
 	_migrate_war(loaded.war)
+	loaded.calendar.claimed = _clean_calendar_claims(loaded.calendar.claimed, day_of(now_ms()))
 	loaded.campaign.cleared = clampi(int(loaded.campaign.cleared), 0, StageData.count())
 	loaded.tower.best = clampi(int(loaded.tower.best), 0, TowerData.FLOORS)
 	loaded.version = SAVE_VERSION
@@ -2336,6 +2339,49 @@ static func _clean_signature(v: Variant) -> Array:
 			out.append(pts)
 		if out.size() >= SIGNATURE_MAX_STROKES:
 			break
+	return out
+
+
+# ---------------------------------------------------------------- the calendar
+
+## How long a taken gift's key is kept (a year and a bit: the same day next year has a new key).
+const CALENDAR_KEEP_DAYS := 400
+
+
+## Today's real days (CalendarRules.events for the owned heroines), each with "claimed".
+func calendar_today() -> Array:
+	var cl: Dictionary = state.calendar.claimed
+	var out: Array = []
+	for e: Dictionary in CalendarRules.events(today(), state.heroes.keys()):
+		var e2 := e.duplicate(true)
+		e2["claimed"] = cl.has(str(e.key))
+		out.append(e2)
+	return out
+
+
+## Takes one of today's gifts (by key), once.
+func claim_calendar(key: String) -> Dictionary:
+	for e: Dictionary in calendar_today():
+		if str(e.key) != key:
+			continue
+		if bool(e.claimed):
+			return _err("Already received")
+		state.calendar.claimed[key] = today()
+		state.calendar.claimed = _clean_calendar_claims(state.calendar.claimed, today())
+		var got := grant(e.gift)
+		_changed()
+		return _ok({"reward": got, "event": e})
+	return _err("Not today")
+
+
+## Keeps well-formed claims from the last CALENDAR_KEEP_DAYS days.
+static func _clean_calendar_claims(v: Variant, day: int) -> Dictionary:
+	var out := {}
+	if v is Dictionary:
+		for k: Variant in v:
+			var d := int(v[k]) if (v[k] is int or v[k] is float) else -1000000000
+			if day - d <= CALENDAR_KEEP_DAYS:
+				out[str(k)] = d
 	return out
 
 

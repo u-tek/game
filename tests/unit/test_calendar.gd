@@ -1,0 +1,102 @@
+extends RefCounted
+## Real days (CalendarRules + GameModel.calendar*): the date maths, today's holidays and the owned
+## heroines' birthdays, and each gift taken once a year.
+
+const DAY := 86400000
+
+var _made: Array[Node] = []
+
+
+func _game(y: int, m: int, d: int) -> Node:
+	var g: Node = load("res://src/core/game.gd").new()
+	_made.append(g)
+	g.save_path = ""
+	g.tz_bias_ms = 0
+	g.now_override_ms = CalendarRules.day_number(y, m, d) * DAY + 15 * 3600000
+	return g
+
+
+func _done() -> void:
+	for g in _made:
+		if is_instance_valid(g):
+			g.free()
+	_made.clear()
+
+
+func test_civil_dates(t: TestCtx) -> void:
+	t.eq(CalendarRules.civil(0), [1970, 1, 1], "day 0")
+	t.eq(CalendarRules.civil(-1), [1969, 12, 31], "the day before")
+	t.eq(CalendarRules.civil(CalendarRules.day_number(2024, 2, 29)), [2024, 2, 29], "a leap day")
+	t.eq(CalendarRules.civil(CalendarRules.day_number(2026, 10, 31)), [2026, 10, 31])
+	t.eq(CalendarRules.day_number(2000, 3, 1) - CalendarRules.day_number(2000, 2, 28), 2, "2000 was a leap year")
+	t.eq(CalendarRules.day_number(1900, 3, 1) - CalendarRules.day_number(1900, 2, 28), 1, "1900 was not")
+	var ok := true
+	for day in range(-800, 70000, 37):
+		var c := CalendarRules.civil(day)
+		if CalendarRules.day_number(c[0], c[1], c[2]) != day:
+			ok = false
+	t.ok(ok, "civil and day_number round-trip")
+	t.eq(CalendarRules.md(CalendarRules.day_number(2026, 1, 9)), "01-09")
+
+
+func test_events(t: TestCtx) -> void:
+	var hw := CalendarRules.day_number(2026, 10, 31)
+	var ev := CalendarRules.events(hw, [])
+	t.eq(ev.size(), 1)
+	t.eq(str(ev[0].key), "halloween-2026")
+	t.eq(str(ev[0].kind), "day")
+	t.eq(CalendarRules.events(hw + 1, ["vesper"]).size(), 0, "an ordinary day")
+	var vb := CalendarRules.day_number(2027, 11, 5)
+	t.eq(CalendarRules.events(vb, []).size(), 0, "no birthday for a heroine you don't have")
+	var bv := CalendarRules.events(vb, ["seraphiel", "vesper"])
+	t.eq(bv.size(), 1)
+	t.eq(str(bv[0].key), "bday-vesper-2027")
+	t.eq(CalendarRules.line(bv[0], "vesper", "infernal", "Vesper"), "My birthday, envoy. I expect to be spoiled.")
+	t.ok(CalendarRules.line(bv[0], "seraphiel", "celestial", "Vesper").begins_with("It's Vesper's"), "the others name her")
+	t.ok(CalendarRules.line(ev[0], "noctaire", "fallen", "").length() > 10, "a holiday line by faction")
+	# Every heroine has a birthday, none on a holiday and no two on one day.
+	var seen := {}
+	var holidays := {}
+	for d: Dictionary in GameData.file("calendar").days:
+		holidays[str(d.md)] = true
+	for id in HeroData.ids():
+		var b := CalendarRules.birthday(id)
+		t.ok(b != "" and not seen.has(b) and not holidays.has(b), "a birthday of her own: " + id)
+		seen[b] = true
+
+
+func test_claim_once_a_year(t: TestCtx) -> void:
+	var g := _game(2026, 10, 31)
+	g.new_game()
+	var gems := int(g.model.state.currencies.gems)
+	var today: Array = g.calendar_today()
+	t.eq(today.size(), 1)
+	t.ok(not bool(today[0].claimed))
+	var r: Dictionary = g.claim_calendar("halloween-2026")
+	t.ok(bool(r.ok), str(r.error))
+	t.eq(int(g.model.state.currencies.gems), gems + 200)
+	t.ok(bool(g.calendar_today()[0].claimed))
+	t.ok(not bool(g.claim_calendar("halloween-2026").ok), "once")
+	t.ok(not bool(g.claim_calendar("christmas-2026").ok), "not today")
+	# A year on: a new key, and last year's claim is pruned after CALENDAR_KEEP_DAYS.
+	g.now_override_ms += 365 * DAY
+	t.eq(str(g.calendar_today()[0].key), "halloween-2027")
+	t.ok(bool(g.claim_calendar("halloween-2027").ok))
+	g.now_override_ms += 40 * DAY
+	g.model.migrate(g.model.state.duplicate(true))
+	t.ok(not (g.model.state.calendar.claimed as Dictionary).has("halloween-2026"), "old claims are dropped")
+	t.ok((g.model.state.calendar.claimed as Dictionary).has("halloween-2027"))
+	_done()
+
+
+func test_birthday_claim(t: TestCtx) -> void:
+	var g := _game(2026, 11, 5)
+	g.new_game()
+	t.eq(g.calendar_today().size(), 0, "not hers yet")
+	g.model.receive_hero("vesper")
+	var today: Array = g.calendar_today()
+	t.eq(today.size(), 1)
+	var exp := int(g.model.state.currencies.hero_exp)
+	t.ok(bool(g.claim_calendar("bday-vesper-2026").ok))
+	t.eq(int(g.model.state.currencies.hero_exp), exp + 2000)
+	_done()

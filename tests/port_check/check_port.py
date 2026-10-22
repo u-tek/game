@@ -1205,6 +1205,35 @@ check("district.open", f["district_open"], [d_open(s) for s in f["district_souls
 check("district.bonus", f["district_out"], [{"bonus": (b := d_bonus(c["side"], c["souls"], c["keepers"])), "rates": d_apply(f["district_rates"], b)} for c in f["district_cases"]])
 check("war.champ_tiers", f["champ_tiers_out"], [[i for i, t in enumerate(C["tiers"]) if c[1] * 100 >= c[0] * t["pct"]] for c in f["champ_tiers"]])
 
+# ---------------- the calendar (9f)
+CAL = load("calendar")
+def c_civil(day):
+    z = day + 719468
+    era = idiv(z if z >= 0 else z - 146096, 146097)
+    doe = z - era * 146097
+    yoe = idiv(doe - idiv(doe, 1460) + idiv(doe, 36524) - idiv(doe, 146096), 365)
+    doy = doe - (365 * yoe + idiv(yoe, 4) - idiv(yoe, 100))
+    mp = idiv(5 * doy + 2, 153)
+    d = doy - idiv(153 * mp + 2, 5) + 1
+    m = mp + 3 if mp < 10 else mp - 9
+    return [yoe + era * 400 + (1 if m <= 2 else 0), m, d]
+def c_day_number(y, m, d):
+    y -= 1 if m <= 2 else 0
+    era = idiv(y if y >= 0 else y - 399, 400)
+    yoe = y - era * 400
+    doy = idiv(153 * (m - 3 if m > 2 else m + 9) + 2, 5) + d - 1
+    return era * 146097 + yoe * 365 + idiv(yoe, 4) - idiv(yoe, 100) + doy - 719468
+def c_events(day, owned):
+    y, m, d = c_civil(day)
+    md = "%02d-%02d" % (m, d)
+    out = [{"kind": "day", "id": h["id"], "key": "%s-%d" % (h["id"], y), "gift": h["gift"]} for h in CAL["days"] if h["md"] == md]
+    out += [{"kind": "birthday", "id": hid, "key": "bday-%s-%d" % (hid, y), "gift": CAL["birthday"]["gift"]}
+        for hid, b in CAL["birthdays"].items() if b == md and hid in owned]
+    return out
+f = fx("calendar")
+check("calendar.civil", f["civil"], [(c := c_civil(d)) + [c_day_number(*c)] for d in f["days"]])
+check("calendar.events", f["events"], [c_events(c["day"], c["owned"]) for c in f["event_cases"]])
+
 bad = [k for k, v in results.items() if v]
 print("\n%d checks, %d differ" % (len(results), len(bad)))
 sys.exit(1 if bad else 0)

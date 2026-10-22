@@ -176,3 +176,14 @@ func test_fixture_rival(t: TestCtx) -> void:
 				kinds[str(e.type)] = true
 	for k in ["legendary", "misprint"]:
 		t.ok(kinds.has(k), "rival fixtures cover '%s' feed entries" % k)
+
+
+func test_fixture_calendar(t: TestCtx) -> void:
+	var f := _check(t, "calendar")
+	if f.is_empty():
+		return
+	var kinds := {}
+	for evs: Array in f.events:
+		for e: Dictionary in evs:
+			kinds[str(e.kind)] = true
+	t.ok(kinds.has("day") and kinds.has("birthday"), "calendar fixtures have holidays and birthdays")

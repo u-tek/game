@@ -62,6 +62,17 @@ this file says where things stand. Older logs are under "History" at the bottom.
   and shading, sheen on gloss, rim light) and throw her soft shadow on the paper. Detection by model
   identifier (`device_tier.gd`, tested); a Settings switch there; older phones unchanged. Not yet
   tried on a real iPhone 15 Pro: check the frame rate and the look when the owner has one.
+- **Real days (2026-10-22, onboarding's subtle layer):** the game knows the calendar
+  (`src/core/calendar_rules.gd`, `data/calendar.json`, port spec 9f, fixture `calendar.json`):
+  New Year, Valentine's Day, Halloween, Christmas Eve, Christmas, New Year's Eve, and a birthday for
+  each of the 40 heroines (owned ones only; dates picked to fit each: Sanariel on Nurses' Day,
+  Cordia on Repeal Day, Noctaire on the 2026 eclipse ...). On the day the Lobby's date waits for a
+  stamp ("HALLOWEEN · STAMP IT"); tap it and a red rubber stamp comes down on the date, then the
+  gift (once a year). Her Lobby line is the day's, by faction; on another heroine's birthday she
+  names her. The hero page prints her birthday under the print date. The Lobby date is now the
+  model's day. Shots: `--date=MM-DD`, Lobby param `stamp`. First up: Halloween, 2026-10-31.
+- **Restraint pass, continued:** Settings' title no longer runs through Back; Summon's left edge no
+  longer overprints two lines of micro type.
 - **Next:** keep refining every screen as a restrained poster.
 - **For the art session (18+ skins):** `HeroArt._built_art` shows the nude base look whatever skin
   is chosen when nudity is on (tested in `test_skins.gd test_nudity_mode_drops_skins`), so the 18+
