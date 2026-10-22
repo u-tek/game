@@ -1342,6 +1342,16 @@ func _show_bulletin(page: int, animate: bool = true) -> void:
 		tw2.tween_property(b, "position:y", 0.0, 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 
+## A heroine whose birthday it is and who has looks on sale ("" when none).
+func _birthday_sale_hero() -> String:
+	for id in HeroData.ids():
+		if CalendarRules.skin_discount_bp(Game.today(), id) > 0:
+			for sk: Dictionary in Game.skins_for(id):
+				if bool(sk.get("installed", false)) and not bool(sk.owned):
+					return id
+	return ""
+
+
 func _make_bulletin(page: int) -> Button:
 	var title := ""
 	var sub := ""
@@ -1355,11 +1365,19 @@ func _make_bulletin(page: int) -> Button:
 			sub = "FREE PULL READY →" if lit else "SUMMON NOW →"
 			cb = func() -> void: UI.go("summon")
 		1:
-			var offer := _featured_offer()
-			title = str(offer.get("name", "Offers"))
-			lit = bool(offer.get("available", false)) and str(offer.get("price_label", "")) == "Free"
-			sub = "FREE GIFT →" if lit else "%s →" % str(offer.get("tag", "Offer")).to_upper()
-			cb = func() -> void: UI.go("shop", {"tab": 0})
+			var bday := _birthday_sale_hero()
+			if bday != "":
+				# Her birthday: her looks are on sale today (CalendarRules.skin_price).
+				title = "%s's birthday" % str(Game.hero_def(bday).get("name", bday))
+				sub = "HER LOOKS −%d%% TODAY →" % (CalendarRules.skin_discount_bp(Game.today(), bday) / 100)
+				lit = true
+				cb = func() -> void: UI.go("shop", {"tab": 2})
+			else:
+				var offer := _featured_offer()
+				title = str(offer.get("name", "Offers"))
+				lit = bool(offer.get("available", false)) and str(offer.get("price_label", "")) == "Free"
+				sub = "FREE GIFT →" if lit else "%s →" % str(offer.get("tag", "Offer")).to_upper()
+				cb = func() -> void: UI.go("shop", {"tab": 0})
 		3:
 			# The front: the standing, or the oath still to swear; a claim or the champion lights it.
 			var war: Dictionary = Game.war()
@@ -1448,7 +1466,16 @@ func _make_bulletin(page: int) -> Button:
 ## `height` (lines drawn `tighten` px closer than the font's line height).
 func _fit_block(text: String, width: float, height: float, max_fs: int, min_fs: int, tighten: float) -> int:
 	var f := Kit.font("compressed")
+	var words := text.split(" ", false)
 	for fs in range(max_fs, min_fs - 1, -2):
+		# No word may be wider than the block (it would break mid-word).
+		var fits := true
+		for w in words:
+			if f.get_string_size(w, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > width:
+				fits = false
+				break
+		if not fits:
+			continue
 		var lh := f.get_height(fs)
 		var sz := f.get_multiline_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, width, fs)
 		var n := maxi(1, roundi(sz.y / lh))
