@@ -100,6 +100,7 @@ var _sig_label: Label
 var _day_layer: Control        ## the calendar's stamps and line beside the date (_refresh_days)
 var _day_sig := "-"
 var _day_key := ""             ## the day still waiting to be stamped ("" when none)
+var _age_override := -1        ## debug: the poster's age in days (shot param "age")
 var _sheet: Control
 var _sheet_refs: Dictionary = {}
 var _t := 0.0
@@ -116,6 +117,7 @@ func setup(params: Dictionary) -> void:
 	if OS.is_debug_build():
 		_force_hero = str(params.get("hero", ""))
 		_force_skin = str(params.get("skin", ""))
+		_age_override = int(params.get("age", -1))
 	_build()
 	Game.changed.connect(_refresh)
 	resized.connect(_on_resized)
@@ -201,8 +203,11 @@ func _build() -> void:
 	rights.position = Vector2(46, 90)
 	_poster.add_child(rights)
 
-	# The paper's grain re-lights the print under it (her line sits on top: it is pressed in).
-	PhysicalKit.relief(_poster)
+	# The paper's grain re-lights the print under it (her line sits on top: it is pressed in). The
+	# poster ages with the account: folds, sun and pin holes over months (paper_relief.gdshader).
+	var rel := PhysicalKit.relief(_poster)
+	if rel and rel.material is ShaderMaterial:
+		(rel.material as ShaderMaterial).set_shader_parameter("age_days", float(_poster_age()))
 
 	_type_layer = _layer(_poster, "Type")
 	# The hero, full colour, in front of her line, boxed by the right-hand rule.
@@ -815,6 +820,17 @@ func _refresh_hero() -> void:
 	if back == "":
 		back = _day_line(id)
 	_typeset(back if back != "" else lines[_line], false)
+
+
+## How many days the poster has been on the wall: since the account began (a shot param "age"
+## overrides it in debug builds).
+func _poster_age() -> int:
+	if OS.is_debug_build() and _age_override >= 0:
+		return _age_override
+	var created := int(Game.state.get("created_at", 0))
+	if created <= 0:
+		return 0
+	return maxi(0, (Game.now_ms() - created) / Game.DAY_MS)
 
 
 # ------------------------------------------------------------------ the calendar
