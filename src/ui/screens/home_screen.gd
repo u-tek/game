@@ -103,7 +103,8 @@ var _tick := 0.0
 var _rue_tag: Control
 
 
-## params: sheet (bool) opens the Sanctum sheet (screenshots); debug builds: hero / skin show a
+## params: sheet (bool) opens the Sanctum sheet, bulletin (page) shows that bulletin (screenshots);
+## debug builds: hero / skin show a
 ## given hero and look (framing checks).
 func setup(params: Dictionary) -> void:
 	if OS.is_debug_build():
@@ -115,6 +116,8 @@ func setup(params: Dictionary) -> void:
 	_refresh()
 	if bool(params.get("sheet", false)):
 		_open_sanctum.call_deferred()
+	if params.has("bulletin"):
+		_show_bulletin.call_deferred(int(params.bulletin), false)
 
 
 func _exit_tree() -> void:
@@ -376,7 +379,7 @@ func _build_bulletin_tab() -> void:
 	word.rotation = PI * 0.5
 	word.position = Vector2(42, 8)
 	tab.add_child(word)
-	_bull_tab_text = Kit.label("%02d/03" % (_bull_page + 1), 11, Color(SIG, 0.98), "mono_bold")
+	_bull_tab_text = Kit.label("%02d/%02d" % [_bull_page + 1, _bull_pages()], 11, Color(SIG, 0.98), "mono_bold")
 	_bull_tab_text.mouse_filter = MOUSE_FILTER_IGNORE
 	_bull_tab_text.rotation = PI * 0.5
 	_bull_tab_text.position = Vector2(43, 66)
@@ -972,13 +975,18 @@ func _cheer() -> void:
 
 # ------------------------------------------------------------------ bulletin
 
-## Shows bulletin page `page` (0 summon, 1 offers, 2 chapter) in the band.
+## How many bulletin pages there are: summon, offers, chapter, and the front once it is open.
+func _bull_pages() -> int:
+	return 4 if Game.war_unlocked() else 3
+
+
+## Shows bulletin page `page` (0 summon, 1 offers, 2 chapter, 3 the front) in the band.
 func _show_bulletin(page: int, animate: bool = true) -> void:
-	_bull_page = posmod(page, 3)
+	_bull_page = posmod(page, _bull_pages())
 	_bull_t = 0.0
 	var old: Array[Node] = _bull_slot.get_children()
 	if _bull_tab_text and is_instance_valid(_bull_tab_text):
-		_bull_tab_text.text = "%02d/03" % (_bull_page + 1)
+		_bull_tab_text.text = "%02d/%02d" % [_bull_page + 1, _bull_pages()]
 	var b := _make_bulletin(_bull_page)
 	_bull_slot.add_child(b)
 	for o in old:
@@ -1014,6 +1022,25 @@ func _make_bulletin(page: int) -> Button:
 			lit = bool(offer.get("available", false)) and str(offer.get("price_label", "")) == "Free"
 			sub = "FREE GIFT →" if lit else "%s →" % str(offer.get("tag", "Offer")).to_upper()
 			cb = func() -> void: UI.go("shop", {"tab": 0})
+		3:
+			# The front: the standing, or the oath still to swear; a claim or the champion lights it.
+			var war: Dictionary = Game.war()
+			if str(war.side) == "":
+				title = "The War for Souls"
+				sub = "SWEAR TO A SIDE →"
+				lit = true
+			else:
+				var st0: Dictionary = war.standing
+				title = "Heaven %d · %d Hell" % [int(st0.heaven), int(st0.hell)]
+				var ch: Dictionary = war.get("champion", {})
+				lit = not (war.claim as Dictionary).is_empty()
+				if lit:
+					sub = "LAST WEEK'S REWARD →"
+				elif not ch.is_empty() and int(ch.tries_left) > 0:
+					sub = "CHAMPION %s · %d%% →" % [str(ch.name).to_upper(), int(ch.pct)]
+				else:
+					sub = "THE FRONT · %d SOULS TODAY →" % int(war.souls_today)
+			cb = func() -> void: UI.go("front")
 		_:
 			var st := Game.current_stage()
 			var chs := Game.chapters()
@@ -1046,7 +1073,7 @@ func _make_bulletin(page: int) -> Button:
 	slip.size = b.size
 	b.add_child(slip)
 	var pad := 12.0
-	var kick := Kit.label("BULLETIN %02d/03" % (page + 1), 11, Color(PAPER, 0.6), "mono_bold")
+	var kick := Kit.label("BULLETIN %02d/%02d" % [page + 1, _bull_pages()], 11, Color(PAPER, 0.6), "mono_bold")
 	kick.mouse_filter = MOUSE_FILTER_IGNORE
 	kick.position = Vector2(pad, 10)
 	b.add_child(kick)
@@ -1069,7 +1096,7 @@ func _make_bulletin(page: int) -> Button:
 	s.position = Vector2(pad, b.size.y - 38)
 	b.add_child(s)
 	# Page ticks.
-	for i in 3:
+	for i in _bull_pages():
 		var tick := ColorRect.new()
 		tick.mouse_filter = MOUSE_FILTER_IGNORE
 		tick.color = Color(PAPER, 0.9 if i == page else 0.3)
