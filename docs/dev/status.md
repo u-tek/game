@@ -650,13 +650,8 @@ this file says where things stand. Older logs are under "History" at the bottom.
 
 ## Waiting on the owner
 
-- **Inventory (2026-10-22):** the owner asked "do we have an inventory yet??". Only gear has one
-  (the Gear tab). Offered: a Bag screen (currencies, shards, skins, links to gear and prints) from a
-  top-bar icon, or a real item system (EXP potions, chests, tickets). Waiting for the pick.
-0. **Direction (2026-10-22): the War for Souls** (pinned, then started with combat the same day). The players split into Heaven and Hell, and
-   combat, a district per player and clans all feed one shared front (`docs/dev/feature-ideas.md`;
-   the combat for it is at the top of `docs/dev/combat-v1.md`). The owner: "lets put a pin in this
-   for now. i like this direction but i want the clean the app up first". Nothing built yet.
+0. **The War for Souls server:** the war, the Champion and the district run offline with simulated
+   other players. Real sides need a backend (hosting and its cost are the owner's call).
 1. **Base art:** Claude picked and installed one per hero (above); the owner can swap any
    ("use s<seed> for <hero>") or ask for the face-variant pass (blinks, talking).
 2. **The adult-site version (EroLabs):** the owner named EroLabs. It is a browser-game portal,
