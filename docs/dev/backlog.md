@@ -106,9 +106,12 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   side switch no screen offered** (CHANGE TO ... on the Front at a week's start).
 - P3 done **Profile ENLISTED date in UTC** (local now).
 - P3 done **The record forgot stamped days after 400 days** (kept 3700 days now).
-- P3 doing **Flaky e2e:** meta_screens_e2e "gem summon asks first" failed twice in a full run and
-  passed alone: it now waits for the confirm (up to 30 frames). Left: the "Lambda capture was freed"
-  error printed in the failing runs (no backtrace).
+- P1 todo **Flaky e2e: "Lambda capture at index 0 was freed"** prints now and then during
+  meta_screens_e2e (3 of about 15 full `tools/check e2e` runs on 2026-10-27/28; 0 of 7 standalone
+  runs), and tools/check fails a script on any ERROR line. No GDScript frames in the backtrace (the
+  lambda runs from engine code: a signal, a tween or a timer), so the capture that was freed is
+  unknown. Commit fe36c64 says the e2e was green; its full run had this error (0 check failures);
+  three reruns of the script were clean. The summon confirm's two-frame wait is fixed (c156b9b).
 
 ## P4
 
