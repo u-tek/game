@@ -267,6 +267,20 @@ func _skins() -> void:
 	_check(str(h.get("_hero_key")) == HeroArt.art_key(id, sid) and HeroArt.texture(id, sid) == tame, "nudity off: the Lobby hero is dressed again")
 	_game.equip_skin(id, "")
 	_game.set_setting("lobby_hero", "")
+	# Shake the Sanctum: it collects what is waiting, once; an empty Sanctum gives nothing more.
+	_game.dev_skip_time(3 * 3600000)
+	await _frames(2)
+	var gold0 := int(_game.currency("gold"))
+	h.call("shake_sanctum")
+	await get_tree_timer(1.3)
+	_check(int(_game.currency("gold")) > gold0, "a shake collects the Sanctum")
+	if _ui.has_modal():
+		_press_in_modal("OK")
+		await _frames(4)
+	var gold1 := int(_game.currency("gold"))
+	h.call("shake_sanctum")
+	await _frames(4)
+	_check(int(_game.currency("gold")) == gold1 and not _ui.has_modal(), "an empty Sanctum: a shake gives nothing")
 
 
 # ------------------------------------------------------------------ hero detail

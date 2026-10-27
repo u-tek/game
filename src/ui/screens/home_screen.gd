@@ -106,6 +106,10 @@ var _day_layer: Control        ## the calendar's stamps and line beside the date
 var _day_sig := "-"
 var _day_key := ""             ## the day still waiting to be stamped ("" when none)
 var _visit_seen := -1         ## Game.visit_n when her line was last set (a new visit speaks again)
+## Shake the Sanctum: the accelerometer's resting value, the recent jolts and a cool-down (seconds).
+var _shake_base := Vector3.ZERO
+var _jolts: Array[float] = []
+var _shake_cool := 0.0
 var _press_key := ""           ## the day being stamped right now: its stamp comes down (_stamp_day)
 var _built_day := -1           ## the day the poster was printed for: a new day reprints it
 var _decor_layer: Control      ## a holiday's cut-paper decorations hang here (_refresh_decor)
@@ -158,6 +162,9 @@ func setup(params: Dictionary) -> void:
 		get_tree().create_timer(maxf(delay, 0.0)).timeout.connect(_stamp_day)
 	if OS.is_debug_build() and params.has("pulse"):
 		debug_pulse.call_deferred(float(params.pulse))
+	if OS.is_debug_build() and params.has("shake"):
+		# Shots: a shake after that many seconds (no accelerometer on the PC).
+		get_tree().create_timer(float(params.shake)).timeout.connect(shake_sanctum)
 
 
 ## The "quiet" take (debug shots, a pitch): the poster without the bulletin card and its tab, the hero
@@ -1903,7 +1910,7 @@ func _refresh_sheet(st: Dictionary) -> void:
 	var cl: Variant = _sheet_refs.get("claim", null)
 	if cl is Button and is_instance_valid(cl):
 		var n2 := Kit.reward_entries(pending).size()
-		((cl as Button).get_meta("sub_label") as Label).text = ("%d ITEMS WAITING  ·  %d%% FULL" % [n2, pct]) if n2 > 0 else "NOTHING YET  ·  %d%% FULL" % pct
+		((cl as Button).get_meta("sub_label") as Label).text = ("%d ITEMS WAITING  ·  %d%% FULL%s" % [n2, pct, "  ·  OR SHAKE THE PHONE" if OS.has_feature("mobile") else ""]) if n2 > 0 else "NOTHING YET  ·  %d%% FULL" % pct
 	var cost := int(st.get("quick_claim_cost", -1))
 	var left := int(st.get("quick_claims_left", 0))
 	var qsig := "%d/%d" % [cost, left]
@@ -1963,6 +1970,104 @@ func _two_line(b: Button, line1: String, line2: String, c1: Color, c2: Color, ic
 	b.add_child(v)
 
 
+## Shake the Sanctum (a gesture to find, never explained beyond a line on its sheet): three sharp jolts
+## within 0.9 s, measured off the phone's resting gravity so tilting it doesn't count.
+func _tick_shake(delta: float) -> void:
+	if _shake_cool > 0.0:
+		_shake_cool -= delta
+	if not OS.has_feature("mobile"):
+		return
+	var a := Input.get_accelerometer()
+	if _shake_base == Vector3.ZERO:
+		_shake_base = a
+	_shake_base = _shake_base.lerp(a, clampf(delta * 3.0, 0.0, 1.0))
+	if (a - _shake_base).length() > 13.0 and (_jolts.is_empty() or _t - _jolts[_jolts.size() - 1] > 0.09):
+		_jolts.append(_t)
+	while not _jolts.is_empty() and _t - _jolts[0] > 0.9:
+		_jolts.pop_front()
+	if _jolts.size() >= 3 and _shake_cool <= 0.0:
+		_jolts.clear()
+		_shake_cool = 3.0
+		shake_sanctum()
+
+
+## The shake lands: what the Sanctum holds is collected and its gold tumbles down the poster, then
+## the receipt. Nothing waiting: a small shiver. Not over a sheet or a popup.
+func shake_sanctum() -> void:
+	if not is_visible_in_tree() or (_sheet and is_instance_valid(_sheet)) or UI.has_modal():
+		return
+	var pending: Dictionary = Game.idle_status().get("pending", {})
+	var has_any := false
+	for k: String in pending:
+		if int(pending[k]) > 0:
+			has_any = true
+	if not has_any:
+		Kit.haptic(8, 0.3)
+		return
+	var reward: Dictionary = Game.claim_idle()
+	Kit.haptic(40, 1.0)
+	Kit.sfx("coin")
+	_cheer()
+	if Kit.motion_ok() and _page:
+		var rain := _CoinRain.new()
+		rain.name = "CoinRain"
+		rain.size = _page.size
+		rain.floor_y = _ph + 14.0
+		_page.add_child(rain)
+		get_tree().create_timer(1.0).timeout.connect(func() -> void: UI.show_reward("Sanctum Rewards", reward))
+	else:
+		UI.show_reward("Sanctum Rewards", reward)
+
+
+## Gold shaken out of the Sanctum: coins (the rendered currency) tumbling down the poster with a
+## bounce on its foot, then gone. Frees itself.
+class _CoinRain:
+	extends Control
+	var floor_y := 1000.0
+	var _coins: Array[Dictionary] = []
+	var _t := 0.0
+	var _tex: Texture2D
+
+	func _ready() -> void:
+		mouse_filter = MOUSE_FILTER_IGNORE
+		var ic := Kit.currency_icon("gold", 40)
+		_tex = ic.texture
+		ic.free()
+		var rng := RandomNumberGenerator.new()
+		rng.seed = Time.get_ticks_msec()
+		for i in 22:
+			_coins.append({"p": Vector2(rng.randf_range(40.0, size.x - 40.0), rng.randf_range(-260.0, -20.0)),
+				"v": Vector2(rng.randf_range(-60.0, 60.0), rng.randf_range(0.0, 220.0)), "r": rng.randf() * TAU,
+				"w": rng.randf_range(-7.0, 7.0), "s": rng.randf_range(0.7, 1.15), "b": 0})
+			if i % 4 == 0:
+				Kit.sfx("coin", 0.9 + 0.05 * float(i))
+
+	func _process(delta: float) -> void:
+		_t += delta
+		for c in _coins:
+			c.v = (c.v as Vector2) + Vector2(0, 2400.0) * delta
+			c.p = (c.p as Vector2) + (c.v as Vector2) * delta
+			c.r = float(c.r) + float(c.w) * delta
+			if (c.p as Vector2).y > floor_y - 18.0 and (c.v as Vector2).y > 0.0 and int(c.b) < 1:
+				c.p = Vector2((c.p as Vector2).x, floor_y - 18.0)
+				c.v = Vector2((c.v as Vector2).x * 0.6, -(c.v as Vector2).y * 0.32)
+				c.b = int(c.b) + 1
+		queue_redraw()
+		if _t > 1.6:
+			queue_free()
+
+	func _draw() -> void:
+		if _tex == null:
+			return
+		var fade := clampf((1.6 - _t) / 0.4, 0.0, 1.0)
+		var sz := Vector2(_tex.get_size()).normalized() * 46.0
+		for c in _coins:
+			var s := float(c.s)
+			draw_set_transform(c.p, float(c.r), Vector2(s, s))
+			draw_texture_rect(_tex, Rect2(-sz * 0.5, sz), false, Color(1, 1, 1, fade))
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
 func _claim() -> void:
 	var st: Dictionary = Game.idle_status()
 	var pending: Dictionary = st.get("pending", {})
@@ -2007,6 +2112,7 @@ func _quick_claim() -> void:
 func _process(delta: float) -> void:
 	_t += delta
 	_tick += delta
+	_tick_shake(delta)
 	if _tick >= 1.0:
 		_tick = 0.0
 		_refresh_idle()

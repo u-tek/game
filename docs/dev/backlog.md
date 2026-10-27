@@ -126,6 +126,9 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 
 ## P4
 
+- P4 done **Shake the Sanctum** (feature-ideas "Pure upside"): shake the phone on the Lobby and the
+  Sanctum is collected, gold tumbling down the poster (e2e check). Not felt on a real phone yet: the
+  threshold (13 m/s² over rest, three jolts) may need tuning.
 - P4 todo **Per-skin 18+ art:** `HeroArt._built_art` uses `skins/<art>/adult/` when it exists (base
   nude as fallback); `test_skins.gd test_nudity_mode_drops_skins` updated.
 - P4 done **The War behind one interface:** `WarFront` (offline front = today's simulation); a fake

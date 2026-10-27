@@ -242,7 +242,9 @@ Pitched after the owner's "these all make the game more difficult". None of thes
   leave tips. Misprints that only pay out.
 - **Poster press.** Make your own poster from any hero you own (type, colours, layout, misprint
   effects), set it as the Lobby, or save it sized as a phone wallpaper.
-- **Shake the Sanctum.** Shake the phone to collect the idle haul; coins rain down the poster.
+- **Shake the Sanctum (built 2026-10-28).** Shake the phone to collect the idle haul; gold tumbles
+  down the poster and bounces on its foot, then the receipt. Three sharp jolts within 0.9 s; on the
+  Lobby only; the Sanctum sheet says "OR SHAKE THE PHONE" when something is waiting.
 - **Birthdays.** Your birthday (the game asks once) turns every screen into a party with a free
   pick; each hero has a birthday too, with a gift from her.
 
