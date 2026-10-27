@@ -20,6 +20,8 @@ JOBS = {
     "disc": (300, (5, 9), 7, 0.34),
     # The reward receipt's printer (shown 680 px wide): printer.json says where its slit is.
     "printer": (1360, (0, 12), 14, 0.34),
+    # The intake form's paperclip (shown about 44 px wide).
+    "clip": (88, (3, 5), 3, 0.4),
 }
 # rival_objects.py renders already carry their contact shadow (a shadow catcher): crop and size only.
 JOBS_RIVAL = {

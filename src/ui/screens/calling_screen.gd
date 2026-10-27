@@ -5,7 +5,9 @@ extends Control
 ## and CALLED. down it; beside it the form: its number (the player's ID, the same one printed later
 ## on their profile card), today's date and the local time, one line in the serif, 01 NAME (typed,
 ## optional; Return or a tap elsewhere puts the keyboard away) and 02 SIGNATURE (signed with a finger on a dotted line, an X at its start). Fine print
-## that agrees to nothing. ANSWER stamps the form ACCEPTED with the date; then the heroine, in full
+## that agrees to nothing; under it, her photo paper-clipped to the form (the one who has been calling:
+## full colour, head to hips, on a white print border, a steel paperclip rendered in Blender). ANSWER
+## stamps the form ACCEPTED with the date; then the heroine, in full
 ## colour on ink, greets the player by name with a line for the hour it really is (late night,
 ## morning, afternoon, evening), and the Lobby prints in. The signature is kept (Game.signature) and
 ## the game signs with it afterwards: the profile card, reward receipts, the oath on the front, the
@@ -129,6 +131,7 @@ func _build() -> void:
 	y += 70.0 + _pad.size.y
 	var fine := PK.t("BY SIGNING YOU AGREE TO NOTHING.\nTHE CALLING IS ITS OWN REWARD.", 10, Color(INK, 0.66), "mono")
 	PK.at(p, fine, Vector2(x0, y))
+	_clip_photo(p, Rect2(x0, y + 72.0, tw, ph - 262.0 - (y + 72.0)))
 	Poster.pass_on(p, {"width": minf(tw + 10.0, 380.0), "kicker": "INTAKE  //  RETURN BY HAND", "title": "ANSWER",
 		"sub": "THE CALL", "action": "ANSWER  >>>", "icon": "check"}, Vector2(pw - minf(tw + 10.0, 380.0) - 18.0, ph - 172.0),
 		_answer, "Answer", "Answer")
@@ -143,6 +146,91 @@ func _build() -> void:
 	p.add_child(sh)
 	Kit.make_tappable(sh, func() -> void: _finish("", []))
 	add_child(SignalKit.grain(0.05, true))
+
+
+## Her photo, paper-clipped to the form in `room` (the space between the fine print and SKIP): a
+## print with a white border, turned a little, its shadow on the form, the paperclip over its top
+## edge, and the caller's line on the border.
+func _clip_photo(p: Control, room: Rect2) -> void:
+	if _hero == "" or room.size.y < 180.0:
+		return
+	var h := minf(room.size.y, 420.0)
+	var w := roundf(h * 0.74)
+	var tex := Kit.art_crop(_hero, (w - 24.0) / (h - 52.0), 1.25, Kit.hero_look(_hero))
+	if tex == null:
+		return
+	var photo := Control.new()
+	photo.name = "CallerPhoto"
+	photo.mouse_filter = MOUSE_FILTER_IGNORE
+	photo.size = Vector2(w, h)
+	photo.position = Vector2(room.end.x - w - 6.0, room.position.y + (room.size.y - h) * 0.5)
+	photo.pivot_offset = Vector2(w * 0.5, 0)
+	photo.rotation = 0.045
+	p.add_child(photo)
+	var shadow := ColorRect.new()
+	shadow.color = Color(0, 0, 0, 0.16)
+	shadow.mouse_filter = MOUSE_FILTER_IGNORE
+	shadow.position = Vector2(5, 8)
+	shadow.size = photo.size
+	photo.add_child(shadow)
+	var border := ColorRect.new()
+	border.color = Color("fcfbf8")
+	border.mouse_filter = MOUSE_FILTER_IGNORE
+	border.size = photo.size
+	photo.add_child(border)
+	# The photo itself: a studio portrait, her in front of ink with one soft light behind her.
+	var studio := ColorRect.new()
+	studio.color = BAND_C
+	studio.mouse_filter = MOUSE_FILTER_IGNORE
+	studio.position = Vector2(12, 12)
+	studio.size = Vector2(w - 24, h - 52)
+	photo.add_child(studio)
+	var g := Gradient.new()
+	g.set_color(0, Color(PAPER, 0.24))
+	g.set_color(1, Color(PAPER, 0.0))
+	var gt := GradientTexture2D.new()
+	gt.gradient = g
+	gt.fill = GradientTexture2D.FILL_RADIAL
+	gt.fill_from = Vector2(0.5, 0.42)
+	gt.fill_to = Vector2(1.05, 0.42)
+	var light := TextureRect.new()
+	light.texture = gt
+	light.mouse_filter = MOUSE_FILTER_IGNORE
+	light.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	light.stretch_mode = TextureRect.STRETCH_SCALE
+	light.position = studio.position
+	light.size = studio.size
+	photo.add_child(light)
+	var pic := TextureRect.new()
+	pic.texture = tex
+	pic.mouse_filter = MOUSE_FILTER_IGNORE
+	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	pic.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	pic.clip_contents = true
+	pic.position = Vector2(12, 12)
+	pic.size = Vector2(w - 24, h - 52)
+	photo.add_child(pic)
+	var nm := str(Game.hero_def(_hero).get("name", _hero)).to_upper()
+	# (The short line on a small print, so it stays on the border.)
+	var cap := PK.t(("THE CALLER  ·  %s  ·  ATTACHED" if w >= 280.0 else "THE CALLER  ·  %s") % nm, 10, Color(INK, 0.75), "mono_bold")
+	cap.position = Vector2(14, h - 32)
+	cap.size = Vector2(w - 28.0, 14)
+	cap.clip_text = true
+	photo.add_child(cap)
+	# The paperclip over the top edge, near the left corner (clear of her head).
+	var clip_tex: Texture2D = load("res://assets/art/ui/objects/clip.png")
+	if clip_tex:
+		var clip := TextureRect.new()
+		clip.texture = clip_tex
+		clip.mouse_filter = MOUSE_FILTER_IGNORE
+		clip.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		clip.stretch_mode = TextureRect.STRETCH_SCALE
+		var k := clampf(w * 0.15, 28.0, 44.0) / float(clip_tex.get_width())
+		clip.size = Vector2(clip_tex.get_size()) * k
+		clip.position = Vector2(w * 0.06, -clip.size.y * 0.42)
+		clip.rotation = -0.06
+		photo.add_child(clip)
 
 
 func _answer() -> void:

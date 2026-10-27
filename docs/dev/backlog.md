@@ -137,6 +137,11 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   under it, a HERS stamp. A tap jumps to the end, the next closes it. The loupe's camera helpers
   moved to `summon_fx.gd` (zoom_pan, in_out). Shot param `unveil_demo` (+ `skin`) on her page.
 
+- P2 done **The first screen a new player sees had no heroine** (the Calling: half the form was empty
+  paper): her photo is paper-clipped to the form (`calling_screen.gd _clip_photo`: a studio portrait
+  of the Lobby heroine on ink with a soft light, a white print border, THE CALLER · her name, a steel
+  paperclip rendered in Blender, `tools/blender/ui_objects.py clip` -> `assets/art/ui/objects/clip.png`).
+
 ## P3
 
 - P3 doing **One poster kit:** done: the palette has one source (every INK, PAPER, SIGNAL, MATTE and

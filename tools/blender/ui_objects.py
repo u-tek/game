@@ -2,7 +2,7 @@
 
     blender --background --factory-startup --python tools/blender/ui_objects.py -- <out_dir> <which> [samples]
 
-which: coil_chrome | coil_ink | disc | printer. Writes <out_dir>/<which>.png (16-bit RGBA, transparent;
+which: coil_chrome | coil_ink | disc | printer | clip. Writes <out_dir>/<which>.png (16-bit RGBA, transparent;
 the printer also <which>.json, where its slit is in the render). Then
 tools/blender/finish_objects.py crops, adds the paper shadow and writes assets/art/ui/objects/.
 Uses only Blender's bundled studio light (city.exr, desaturated) and emissive cards, so it runs on
@@ -311,7 +311,54 @@ def printer():
         json.dump(info, f)
 
 
-if WHICH == "printer":
+def clip():
+    """A steel paperclip (the gem shape: three U bends), seen from above, for clipping a photo to the
+    intake form."""
+    sc.render.resolution_x = 360
+    sc.render.resolution_y = 1000
+    pts = []
+
+    def line(a, b, n=6):
+        for i in range(n):
+            t = i / n
+            pts.append((a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t))
+
+    def arc(c, r, a0, a1, n=24):
+        for i in range(n):
+            t = a0 + (a1 - a0) * i / n
+            pts.append((c[0] + r * math.cos(t), c[1] + r * math.sin(t)))
+
+    line((-0.18, 2.35), (-0.18, 0.55))
+    arc((0.0, 0.55), 0.18, math.pi, 2 * math.pi)
+    line((0.18, 0.55), (0.18, 2.75))
+    arc((-0.14, 2.75), 0.32, 0.0, math.pi)
+    line((-0.46, 2.75), (-0.46, 0.42))
+    arc((0.0, 0.42), 0.46, math.pi, 2 * math.pi)
+    line((0.46, 0.42), (0.46, 2.45))
+    pts.append((0.46, 2.45))
+    cu = bpy.data.curves.new("clip", "CURVE")
+    cu.dimensions = "3D"
+    cu.bevel_depth = 0.034
+    cu.bevel_resolution = 8
+    cu.use_fill_caps = True
+    sp = cu.splines.new("POLY")
+    sp.points.add(len(pts) - 1)
+    for i, (x, y) in enumerate(pts):
+        sp.points[i].co = (x, y - 1.55, 0.0, 1.0)
+    ob = bpy.data.objects.new("Clip", cu)
+    sc.collection.objects.link(ob)
+    ob.data.materials.append(principled("Steel", (0.78, 0.79, 0.81), 1.0, 0.16, aniso=0.5))
+    camera((0.0, -0.001, 6.0), (0, 0, 0), ortho=3.4)
+    world()
+    softbox("SoftTop", (-1.8, 1.2, 4.0), (math.radians(-25), math.radians(-30), 0), (3.5, 1.0), 6.0)
+    softbox("Strip", (2.4, -1.6, 2.4), (math.radians(30), math.radians(55), 0), (5, 0.35), 16.0)
+    softbox("Fill", (0.0, 3.0, 2.0), (math.radians(-60), 0, 0), (4, 0.6), 3.0)
+    key_light((-3, -2, 5), 300)
+
+
+if WHICH == "clip":
+    clip()
+elif WHICH == "printer":
     printer()
 elif WHICH == "coil_chrome":
     coil(False)
