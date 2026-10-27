@@ -296,7 +296,25 @@ func _build_head(pw: float, war: Dictionary) -> void:
 		["WEEK ENDS IN", "%d DAY%s" % [int(war.days_left), "" if int(war.days_left) == 1 else "S"]],
 	]
 	PK.at(p, PPK.data_table(rows, tw, {"size": 11, "row_h": 22.0}), Vector2(x0, 168))
+	# The oath allows a change of side at a week's start (no souls sent yet, last week claimed).
+	if int(war.souls_week) == 0 and (war.claim as Dictionary).is_empty():
+		var other := "hell" if str(war.side) == "heaven" else "heaven"
+		var sw := PPK.print_button("CHANGE TO %s  ↗" % WarRules.side_name(other).to_upper(), _ask_switch.bind(other),
+			{"size": Vector2(tw, 44), "text_size": 11, "align": "right"})
+		sw.name = "SwitchSide"
+		PK.at(p, sw, Vector2(x0, 276))
 	PK.rule(p, Vector2(BAND, HEAD - 1), Vector2(pw - BAND, 1))
+
+
+func _ask_switch(side: String) -> void:
+	UI.confirm("Swear to %s for this week? Your souls go to its front until the next week starts." % WarRules.side_name(side),
+		func() -> void:
+			var r: Dictionary = Game.war_choose_side(side)
+			if not bool(r.get("ok", false)):
+				UI.toast(str(r.get("error", "")), "bad")
+				return
+			Kit.sfx("stamp")
+			UI.go("front"), Callable(), "Swear", "Stay")
 
 
 func _on_pick(sector: int) -> void:

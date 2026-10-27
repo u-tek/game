@@ -2039,6 +2039,9 @@ func war_choose_side(side: String) -> Dictionary:
 		return _ok({"side": side})
 	if str(ws.side) != "" and _war_week_souls() > 0:
 		return _err("You can change sides when the next week starts")
+	# Last week's reward is reckoned for the side that fought it: claim it before changing.
+	if str(ws.side) != "" and not _war_claimable().is_empty():
+		return _err("Claim last week's reward first")
 	ws.side = side
 	_changed()
 	return _ok({"side": side})
@@ -2478,8 +2481,10 @@ static func _clean_signature(v: Variant) -> Array:
 
 # ---------------------------------------------------------------- the calendar
 
-## How long a taken gift's key is kept (a year and a bit: the same day next year has a new key).
-const CALENDAR_KEEP_DAYS := 400
+## How long a taken gift's key is kept. Keys carry the year (the same day next year has a new one),
+## so this only bounds the save; it is long because the profile's record lists the days stamped
+## (about 50 small entries a year at most).
+const CALENDAR_KEEP_DAYS := 3700
 
 
 ## Today's real days (CalendarRules.events for the owned heroines), each with "claimed".

@@ -901,10 +901,11 @@ func _days() -> int:
 	return maxi(1, Game.today() - Game.day_of(created) + 1)
 
 
+## The day the save began, on the player's local calendar (as the record's own line for it).
 func _created_date() -> String:
 	var created := int(Game.state.get("created_at", Game.now_ms()))
-	var d := Time.get_datetime_dict_from_unix_time(created / 1000)
-	return "%04d.%02d.%02d" % [int(d.year), int(d.month), int(d.day)]
+	var c := CalendarRules.civil(Game.day_of(created))
+	return "%04d.%02d.%02d" % [c[0], c[1], c[2]]
 
 
 ## [faction name, "N OF M HEROES"] for the faction most of the player's heroes belong to.

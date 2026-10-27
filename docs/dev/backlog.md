@@ -89,7 +89,7 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 - P2 done **Replay the opening, then SKIP, wiped the signature** (unit test).
 - P2 done **On a birthday with 18+ on, the bulletin's sale opened a shop tab that doesn't exist.**
 - P2 done **Notices waited for a Lobby rebuild**; **daylight saving read as travel** ("an hour" now).
-- P2 done **The shop didn't refresh at midnight** (quests: todo).
+- P2 done **The shop and quests didn't refresh at midnight.**
 - P2 done **Holding LEVEL UP to the cap left the pass sunk.**
 - P2 done **A hit-stop during an ultimate's hold cancelled its freeze.**
 - P2 todo **Too many reds:** Quests, Gear, Rival, Prints each print five or more red masses.
@@ -100,11 +100,13 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   MATTE and BAND constants now point at SignalKit / Kit.BAND). Left: 72 inline uses of the same hex
   colours in expressions; folding `poster_kit.gd`, `hero_poster_kit.gd`, survey `poster.gd` and
   SignalKit into one kit (three copies of the pass alone); one set of spacing constants.
-- P3 todo **War claim pays by the current side; the oath promises a side switch no screen offers.**
-- P3 todo **Profile ENLISTED date in UTC** (the rest is local).
-- P3 todo **The record forgets stamped days after 400 days** (claims are pruned).
-- P3 todo **Flaky e2e:** meta_screens_e2e "gem summon asks first" failed once and passed on a rerun
-  (two frames may not be enough for the confirm); a "Lambda capture was freed" error in the same run.
+- P3 done **War claim paid by the current side** (no switch while a claim waits); **the oath promised a
+  side switch no screen offered** (CHANGE TO ... on the Front at a week's start).
+- P3 done **Profile ENLISTED date in UTC** (local now).
+- P3 done **The record forgot stamped days after 400 days** (kept 3700 days now).
+- P3 doing **Flaky e2e:** meta_screens_e2e "gem summon asks first" failed twice in a full run and
+  passed alone: it now waits for the confirm (up to 30 frames). Left: the "Lambda capture was freed"
+  error printed in the failing runs (no backtrace).
 
 ## P4
 

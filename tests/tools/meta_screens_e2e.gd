@@ -560,7 +560,11 @@ func _summon() -> void:
 	# Again: no scrolls left, so gems through the confirm.
 	var gems0 := int(_game.currency("gems"))
 	s.call("_again", 1)
-	await _frames(2)
+	# (The confirm comes up after the results close: wait for it rather than a fixed two frames.)
+	for i in 30:
+		if _ui.has_modal():
+			break
+		await _frames(1)
 	_check(_press_in_modal("Summon"), "gem summon asks first")
 	await _frames(2)
 	_check(int(_game.currency("gems")) == gems0 - int(_game.banner().cost_one), "x1 paid with gems")

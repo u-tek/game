@@ -946,7 +946,8 @@ and actions, so none changes. Test: `test_war.gd test_the_war_goes_through_one_f
 - `reward(won, held)`: `rewards.all`, plus `rewards.won` if won, plus `rewards.held_per_sector`
   `held` times (summed per key).
 - GameModel: `war_unlocked()` = cleared >= unlock_cleared. `war_choose_side(side)`: heaven/hell
-  only, once unlocked; switching needs 0 souls logged this week. `war_set_focus(s)`: 0..sectors-1.
+  only, once unlocked; switching needs 0 souls logged this week and last week's claim taken ("Claim
+  last week's reward first": the claim is reckoned for the side that fought). `war_set_focus(s)`: 0..sectors-1.
   A campaign or Spire **victory** adds `souls_per_win` to `log[today][focus]` and `souls_total`
   (nothing without a side), then drops log days older than `today - log_days`; its result carries
   `souls`. `war()` builds the view from `control(week_of(today), today, log, side)`. The claim:
@@ -1028,8 +1029,9 @@ Day numbers are GameModel's (days since 1970-01-01 on the player's local clock).
 - GameModel: `player_birthday` ("MM-DD" or "", set by `complete_intake(name, strokes, born)` when
   `clean_md(born)` is not empty; save repair cleans it). `calendar.claimed` maps a key to the day it was taken. `calendar_today()` = the events
   for today and the owned heroines, each with `claimed`. `claim_calendar(key)`: the key must be one
-  of today's and not claimed; grants the gift. Claims older than 400 days are dropped (on a claim
-  and on save repair), so the same day next year (a new key) is open again.
+  of today's and not claimed; grants the gift. Claims older than 3700 days are dropped (on a claim
+  and on save repair; keys carry the year, so the same day next year is a new key: the limit only
+  bounds the save, and the profile's record lists what is kept).
 - `skin_price(p, day, hero) = p * (10000 - d) / 10000`, d = `birthday.skin_discount_bp` when md(day)
   is the heroine's birthday, else 0. GameModel `skin_price(skin)` (today), used by `buy_skin`;
   `skins_for` gives `price_gems` (today's), `full_price_gems` and `sale`.

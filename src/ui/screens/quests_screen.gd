@@ -205,6 +205,8 @@ func _process(delta: float) -> void:
 	if _tick >= 1.0:
 		_tick = 0.0
 		_update_reset()
+		# Past midnight the day's orders turn over: reprint the sheet (unchanged orders cost nothing).
+		_refresh()
 
 
 func _update_reset() -> void:

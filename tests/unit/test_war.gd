@@ -119,12 +119,14 @@ func test_claim_last_week(t: TestCtx) -> void:
 	g.now_override_ms = BASE_MS + 7 * DAY
 	var cl: Dictionary = g.war().claim
 	t.ok(not cl.is_empty(), "last week's result is claimable")
+	t.ok(not bool(g.war_choose_side("heaven").ok), "no change of side while last week's claim waits")
 	var gems := int(g.currency("gems"))
 	var r: Dictionary = g.war_claim()
 	t.ok(bool(r.ok))
 	t.ok(int(g.currency("gems")) > gems, "the claim pays gems")
 	t.ok(int(r.value.reward.get("gems", 0)) >= int(WarRules.reward(false, 0).gems), "everyone gets the base share")
 	t.ok(not bool(g.war_claim().ok), "only once")
+	t.ok(bool(g.war_choose_side("heaven").ok), "claimed, a new week, no souls yet: the side can change")
 	_done()
 
 

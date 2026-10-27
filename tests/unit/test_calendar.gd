@@ -104,7 +104,10 @@ func test_claim_once_a_year(t: TestCtx) -> void:
 	t.ok(bool(g.claim_calendar("halloween-2027").ok))
 	g.now_override_ms += 40 * DAY
 	g.model.migrate(g.model.state.duplicate(true))
-	t.ok(not (g.model.state.calendar.claimed as Dictionary).has("halloween-2026"), "old claims are dropped")
+	t.ok((g.model.state.calendar.claimed as Dictionary).has("halloween-2026"), "last year's stamp is kept (the profile's record lists it)")
+	g.now_override_ms += (GameModel.CALENDAR_KEEP_DAYS - 365) * DAY
+	g.model.migrate(g.model.state.duplicate(true))
+	t.ok(not (g.model.state.calendar.claimed as Dictionary).has("halloween-2026"), "claims older than CALENDAR_KEEP_DAYS are dropped")
 	t.ok((g.model.state.calendar.claimed as Dictionary).has("halloween-2027"))
 	_done()
 
