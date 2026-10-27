@@ -35,12 +35,13 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   undoes the zoom**; the strip highlight lands on a card being freed.
 - P1 todo **Hero page: the level-up pass and abilities capsule cover her legs and wings**; sub-tabs
   45 px tall. Done when: nothing interactive crosses her figure's box on any of 4 heroes.
-- P1 todo **Summon: the RATES card sits on her head; the x1 stub on her feet.** Done when: clear of
-  her figure on both sizes.
-- P1 todo **Quests: the last order row is cut by the sheet; two title sizes; 69 px GO boxes.**
-- P1 todo **Shop: a long skin description runs into the price; the vertical micro type runs through
-  the giant name.**
-- P1 todo **Heroes: PWR runs into the tier numeral; the fifth star overflows the card; tabs 30 px.**
+- P1 done **Summon: the RATES card sat on her head** (Standard banner; the stubs at her feet stay as
+  stuck-on collage).
+- P1 done **Quests: the last order row was cut; two title sizes** (the GO boxes already had 108x86
+  hit areas).
+- P1 done **Shop: a long skin description ran into the price; the micro type crossed the name.**
+- P1 done **Heroes: PWR ran into the tier numeral; the stars overflowed** (the numeral is gone: the
+  frame says the rarity; the tabs already had 88 px hit areas).
 - P1 todo **Prints: the grade word is cut by the label strip; the count runs into its caption.**
 - P1 todo **Rival: 'HER LV · POWER' cut by the plate; the reward line overflows the plate.**
 - P1 todo **Battle: a flame particle covers the SOULS count; the fifth FOES square prints over TEAM;

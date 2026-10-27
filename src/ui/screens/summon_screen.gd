@@ -564,7 +564,8 @@ func _compose_standard(pr: Rect2) -> void:
 	# Left edge: a hairline (the pity ruler and its label are live, in _refresh).
 	PK.rule(_poster, Rect2(48, 0, 1, ph), Color(INK, 0.55))
 	# The Legendary in full colour, in front of the type (tap her for her page).
-	_figure(Rect2(49, 0, pw - 49, ph), _feature, Vector2(bx * 0.46 + 10.0, ph - 4.0), ph * 0.95)
+	# Her head clears the rates label at the top left (the odds sit above her, on paper).
+	_figure(Rect2(49, 0, pw - 49, ph), _feature, Vector2(bx * 0.46 + 10.0, ph - 4.0), ph * 0.8)
 	# The other Legendaries: small framed prints stuck on the band (clear of the tickets below).
 	var fy := ph * 0.5
 	for i in range(1, mini(3, legends.size())):

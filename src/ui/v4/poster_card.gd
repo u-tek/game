@@ -147,11 +147,8 @@ func _build(w: float, h: float) -> void:
 		pips.gap = 1.5 * k
 		pips.size = Vector2(pips.count * 9.0 * k + (pips.count - 1) * 1.5 * k, 9.0 * k)
 		PK.at(p, pips, Vector2(mid_x, fy + 40 * k))
-		var tier_ink := ink if rarity == "rare" or not owned else RK.ink(rarity)
-		var tier := PK.t(str(Kit.RARITY_TIER.get(rarity, "I")), int(34 * k), tier_ink, "compressed")
-		tier.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		tier.size = Vector2(44 * k, 40 * k)
-		PK.at(p, tier, Vector2(w - 50 * k, fy + 2 * k))
+		# (The rarity's tier numeral left the strip on 2026-10-27: the frame and its LEGEND tab say it,
+		# and a four-digit power ran into it.)
 
 	# Her rarity's frame (under the lights and tags).
 	rarity_frame = RK.card_frame(p, face, Vector2(w, h), rarity, {"k": k, "faction": str(def.get("faction", "celestial")),

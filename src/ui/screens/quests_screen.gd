@@ -39,6 +39,8 @@ var _root: Control
 var _pr := Rect2()
 var _list: VBoxContainer
 var _scroll: ScrollContainer
+var _title_fs := 30
+var _row_h := ROW_H
 var _reset_label: Label
 var _done_label: Label
 var _map: _MissionMap
@@ -258,6 +260,15 @@ func _refresh() -> void:
 	for c in _list.get_children():
 		_list.remove_child(c)
 		c.queue_free()
+	# One title size for the whole sheet: the size the longest title fits at. Rows share the list's
+	# height when they can, so the last one isn't cut in half.
+	var tw := _scroll.size.x - 4.0 - 52.0 - 120.0
+	var cf := Kit.font("compressed")
+	_title_fs = 30
+	for q: Dictionary in sorted:
+		while _title_fs > 18 and cf.get_string_size(str(q.title).to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, _title_fs).x > tw:
+			_title_fs -= 1
+	_row_h = clampf(floorf(_scroll.size.y / maxf(float(sorted.size()), 1.0)), 72.0, ROW_H) if not sorted.is_empty() else ROW_H
 	for q: Dictionary in sorted:
 		_list.add_child(_quest_row(q, orders.find(q) + 1))
 	if qs.is_empty():
@@ -358,15 +369,14 @@ func _quest_row(q: Dictionary, number: int) -> Control:
 	var w := _scroll.size.x - 4.0
 	var row := Control.new()
 	row.name = "Quest_" + str(q.id)
-	row.custom_minimum_size = Vector2(w, ROW_H)
+	row.custom_minimum_size = Vector2(w, _row_h)
 	row.mouse_filter = MOUSE_FILTER_PASS
 	var ink := INK if not claimed else Color(INK, 0.45)
-	Poster.hline(row, 0, ROW_H - 1, w, Color(INK, 0.35))
+	Poster.hline(row, 0, _row_h - 1, w, Color(INK, 0.35))
 	Poster.at(row, Poster.t("%02d" % number, 24, SIG if ready else ink, "wide_black"), Vector2(0, 8))
 	var ic := Kit.icon(str(ICONS.get(counter, "quests")) if not claimed else "check", 22, ink)
 	Poster.at(row, ic, Vector2(6, 46))
-	var title := Poster.t(str(q.title).to_upper(), 30, ink, "compressed")
-	Kit.fit_label(title, w - 52 - 120, 30, 18)
+	var title := Poster.t(str(q.title).to_upper(), _title_fs, ink, "compressed")
 	Poster.at(row, title, Vector2(52, 2))
 	if claimed:
 		Poster.hline(row, 52, 22, minf(title.get_minimum_size().x, w - 172), Color(INK, 0.6), 2.0)
@@ -394,7 +404,7 @@ func _quest_row(q: Dictionary, number: int) -> Control:
 	var ax := w - 108.0
 	if claimed:
 		Poster.rubber(row, "DONE", Vector2(ax + 14, 26), Color(INK, 0.6), 16, 0.06)
-		var b := Poster.hit(row, Rect2(ax, 0, 108, ROW_H), Callable(), "Done", "Done")
+		var b := Poster.hit(row, Rect2(ax, 0, 108, _row_h), Callable(), "Done", "Done")
 		b.disabled = true
 		b.mouse_filter = MOUSE_FILTER_PASS
 	elif ready:
@@ -417,11 +427,11 @@ func _quest_row(q: Dictionary, number: int) -> Control:
 		box.add_theme_stylebox_override("panel", sb)
 		box.add_child(Poster.t("GO  >", 15, INK, "mono_bold"))
 		Poster.at(row, box, Vector2(ax + 18, 26))
-		var b := Poster.hit(row, Rect2(ax, 0, 108, ROW_H), func() -> void: UI.go(dest), "Go", "Go")
+		var b := Poster.hit(row, Rect2(ax, 0, 108, _row_h), func() -> void: UI.go(dest), "Go", "Go")
 		b.mouse_filter = MOUSE_FILTER_PASS
 	else:
 		Poster.at(row, Poster.t("%d LEFT" % (int(q.goal) - p), 13, Color(INK, 0.6), "mono_bold"), Vector2(ax + 20, 34))
-		var b := Poster.hit(row, Rect2(ax, 0, 108, ROW_H), Callable(), "Left", "%d left" % (int(q.goal) - p))
+		var b := Poster.hit(row, Rect2(ax, 0, 108, _row_h), Callable(), "Left", "%d left" % (int(q.goal) - p))
 		b.disabled = true
 		b.mouse_filter = MOUSE_FILTER_PASS
 	return row
@@ -459,7 +469,7 @@ func _claim_stamp(parent: Control, pos: Vector2, on_pressed: Callable, node_name
 	led.position = pos + Vector2(88, 12)
 	led.mode = "blink"
 	parent.add_child(led)
-	var b := Poster.hit(parent, Rect2(pos, Vector2(108, ROW_H)), on_pressed, node_name, "Claim")
+	var b := Poster.hit(parent, Rect2(pos, Vector2(108, _row_h)), on_pressed, node_name, "Claim")
 	b.mouse_filter = MOUSE_FILTER_PASS
 	b.button_down.connect(func() -> void: st.modulate = Color(0.8, 0.8, 0.8))
 	b.button_up.connect(func() -> void: st.modulate = Color.WHITE)

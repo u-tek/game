@@ -426,7 +426,8 @@ func _featured_look() -> Control:
 	var bw := 168.0
 	var band := PK.band(p, Rect2(0, 0, bw, ph), hid, sid, {"from": 0.2, "cell": 6.0, "crop": "portrait"})
 	PK.at(band, PK.t("TODAY'S\nLOOK", 22, PAPER, "compressed"), Vector2(14, 14))
-	PK.vt(band, "©2026 HH · WARDROBE · ONE DAY ONLY", 10, Color(PAPER, 0.7), Vector2(bw - 8, 90))
+	# (Down the band's left edge: her name crosses its right edge.)
+	PK.vt(band, "©2026 HH · WARDROBE · ONE DAY ONLY", 10, Color(PAPER, 0.7), Vector2(24, 96))
 	var name_up := str(Game.hero_def(hid).get("name", hid)).to_upper()
 	var f := Kit.font("compressed")
 	var fs := 120
@@ -458,10 +459,19 @@ func _featured_look() -> Control:
 	PK.at(p, ln, Vector2(x, y))
 	var line_name := str(SkinData.lines().get(str(s.line), str(s.line)))
 	PK.at(p, PK.t(("%s  ·  %s" % [line_name, SkinData.tier_name(str(s.tier))]).to_upper(), 11, SIG, "mono_bold"), Vector2(x, y + 34))
-	var d := PK.t(str(s.description), 12, INK, "mono")
+	# The description fills the room down to the price and no further: a long one sets smaller, then
+	# loses its last lines.
+	var avail := (ph - 254.0) - (y + 58.0)
+	var mf := Kit.font("mono")
+	var dfs := 12
+	while dfs > 10 and mf.get_multiline_string_size(str(s.description), HORIZONTAL_ALIGNMENT_LEFT, col_w, dfs).y > avail:
+		dfs -= 1
+	var d := PK.t(str(s.description), dfs, INK, "mono")
 	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	d.size = Vector2(col_w, 110)
+	d.size = Vector2(col_w, avail)
 	d.custom_minimum_size.x = col_w
+	d.max_lines_visible = maxi(1, int(avail / (mf.get_height(dfs) + 1.0)))
+	d.clip_text = true
 	PK.at(p, d, Vector2(x, y + 58))
 	# The price (her birthday sale when it applies) and how long the look stays.
 	var price := int(s.price_gems)
