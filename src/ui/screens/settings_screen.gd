@@ -123,10 +123,8 @@ func _masthead(w: float) -> Control:
 	var tm := Kit.label("™", 11, PAPER, "mono")
 	tm.position = Vector2(74, MAST_H - 56)
 	mh.add_child(tm)
-	var vs := Kit.label("CONTROL SHEET  ·  HH-0451  ·  ©2026 HH", 10, Color(PAPER, 0.8), "mono_bold")
-	vs.rotation = PI * 0.5
-	vs.position = Vector2(BAND_W - 14, 70)
-	mh.add_child(vs)
+	# (No vertical micro type on this band: SETTINGS crosses all of it, and the serial is printed
+	# beside the title.)
 	# SETTINGS, huge, cut by the right edge; paper-white where it crosses the band. It starts under
 	# the Back button so the two never touch.
 	var word := "SETTINGS"

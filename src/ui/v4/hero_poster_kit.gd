@@ -298,13 +298,15 @@ class Pass:
 	func build(width: float, icon_name: String, knob_button: bool, code: bool) -> void:
 		w = width
 		mouse_filter = MOUSE_FILTER_IGNORE
-		custom_minimum_size = Vector2(w, 176)
+		# (The silver is 102 tall, its foot cut back 14 px either side of the tab: the sub-line at 70 clears
+		# the bevel; it was cut in half at 94.)
+		custom_minimum_size = Vector2(w, 184)
 		size = custom_minimum_size
-		sig = SignalKit.plate("signal", Vector2(8, 78), Vector2(w - 14, 96), {"cuts": [0, 12, 18, 0], "glow": 0.4,
+		sig = SignalKit.plate("signal", Vector2(8, 86), Vector2(w - 14, 96), {"cuts": [0, 12, 18, 0], "glow": 0.4,
 			"glow_radius": 14.0, "pulse": 0.5, "topo": 0.6}, self)
-		var top_sz := Vector2(w, 94)
+		var top_sz := Vector2(w, 102)
 		silver = SignalKit.plate("silver", Vector2.ZERO, top_sz, {"shape": Plate.tab_bottom(top_sz, 14, w * 0.33, w * 0.65, 14),
-			"topo": 0.5, "screws": [Vector2(13, 13), Vector2(w - 13, 13), Vector2(13, 66), Vector2(w - 13, 66)]}, self)
+			"topo": 0.5, "screws": [Vector2(13, 13), Vector2(w - 13, 13), Vector2(13, 74), Vector2(w - 13, 74)]}, self)
 		silver.z_index = 1
 		var x := 26.0
 		if code:
@@ -319,7 +321,7 @@ class Pass:
 		_title.position = Vector2(x - 2, 26)
 		silver.add_child(_title)
 		_sub = _etch_box("", 10, "mono")
-		_sub.position = Vector2(x, 66)
+		_sub.position = Vector2(x, 68)
 		silver.add_child(_sub)
 		knob = SignalKit.plate("dial", Vector2(w - 82, 20), Vector2(50, 50), {"circle": true, "shadow": 0.5}, silver)
 		if knob_button:
@@ -349,7 +351,7 @@ class Pass:
 		hit.mouse_filter = MOUSE_FILTER_PASS
 		hit.z_index = 2
 		hit.position = Vector2(-4, -4)
-		hit.size = Vector2(w + 8, 184)
+		hit.size = Vector2(w + 8, 192)
 		hit.button_down.connect(func() -> void:
 			hit.set_meta("_down_at", hit.get_global_mouse_position())
 			if not hit.disabled:
@@ -392,6 +394,8 @@ class Pass:
 		_put_etch(_sub, sub, sub_fill)
 		_pill_l.text = action
 		_info.text = info
+		# The info line keeps to its plate (a long reward line sets smaller).
+		Kit.fit_label(_info, w - 26.0 - _info.position.x, 10, 8)
 		# The title shrinks to fit left of the knob.
 		var room := w - _title.position.x - 92.0
 		var tl := _title.get_child(2) as Label

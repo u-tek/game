@@ -49,16 +49,19 @@ class Dots:
 	var empty := Color(1, 1, 1, 0.22)
 	var square := false
 	var gap := 6.0
+	## A fixed dot size (px); 0 sizes them by the control's height (a fresh control measures 14,
+	## which then sets its minimum size: set this for small dots).
+	var dot := 0.0
 
 	func _init() -> void:
 		mouse_filter = MOUSE_FILTER_IGNORE
 
 	func _get_minimum_size() -> Vector2:
-		var d := size.y if size.y > 0.0 else 14.0
+		var d := dot if dot > 0.0 else (size.y if size.y > 0.0 else 14.0)
 		return Vector2(count * d + (count - 1) * gap, d)
 
 	func _draw() -> void:
-		var d := size.y
+		var d := dot if dot > 0.0 else size.y
 		for i in count:
 			var c := Vector2(i * (d + gap) + d * 0.5, d * 0.5)
 			var on := i < filled

@@ -43,16 +43,19 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 - P1 done **Heroes: PWR ran into the tier numeral; the stars overflowed** (the numeral is gone: the
   frame says the rarity; the tabs already had 88 px hit areas).
 - P1 todo **Prints: the grade word is cut by the label strip; the count runs into its caption.**
-- P1 todo **Rival: 'HER LV · POWER' cut by the plate; the reward line overflows the plate.**
-- P1 todo **Battle: a flame particle covers the SOULS count; the fifth FOES square prints over TEAM;
-  '+40 SOULS' shows on wins that pay none.**
-- P1 todo **Campaign and Spire: the pass plate's sub-line is cut by its bevel; world arrows 20 px.**
-- P1 todo **Settings: the band's micro type runs through the giant title; the E's stem breaks.**
+- P1 done **Rival: 'HER LV · POWER' cut by the plate; the reward line overflowed the plate.**
+- P1 done **Battle: a flame covered the SOULS count; the fifth FOES square printed over TEAM;
+  '+40 SOULS' showed on wins that pay none.**
+- P1 done **Campaign and Spire: the pass plate's sub-line was cut by its bevel** (every pass). World
+  arrows: todo.
+- P1 done **Settings: the band's micro type ran through the giant title.**
 - P1 todo **Lobby: VIEW clipped on short phones; the > arrow under the Sanctum disc; the rights line
   cut by the bulletin tab; the hero arrows 52 px.** (re-check with audit2)
-- P1 todo **Calling: SKIP and the signature copy nearly invisible.**
-- P1 todo **Profile: PORTRAIT > CHANGE tag over the avatar art; side menu 44 px wide.**
-- P1 todo **Toasts draw under modals; the loading veil draws under the bars.**
+- P1 done **Calling: SKIP and the signature copy nearly invisible** (SKIP FOR NOW now sits on the
+  form above ANSWER, 12 px, an 88 px target).
+- P1 done **Profile: PORTRAIT > CHANGE tag over the avatar art** (the side menu's hit areas were
+  already 88 px).
+- P1 done **Toasts drew under modals; the loading veil drew under the bars.**
 
 ## P2
 

@@ -686,24 +686,28 @@ func _build_hud() -> void:
 	_foe_dots.count = n_foes
 	_foe_dots.filled = n_foes
 	_foe_dots.square = true
-	_foe_dots.gap = 3.0
+	_foe_dots.gap = 2.0
+	_foe_dots.dot = 9.0
 	_foe_dots.color = BP.SIG
 	_foe_dots.empty = Color(BP.INK, 0.45)
-	_foe_dots.position = Vector2(142, y0 + 79)
-	_foe_dots.size = Vector2(n_foes * 12 + 15, 12)
+	_foe_dots.position = Vector2(142, y0 + 80)
+	_foe_dots.size = Vector2(n_foes * 11 - 2, 9)
 	_hud.add_child(_foe_dots)
+	# TEAM follows however many foes there are (five used to print over it).
+	var tx := maxf(142.0 + n_foes * 11.0 + 8.0, 200.0)
 	var tl := BP.t("TEAM", 10, Color(BP.INK, 0.75), "mono_bold")
-	tl.position = Vector2(218, y0 + 76)
+	tl.position = Vector2(tx, y0 + 76)
 	_hud.add_child(tl)
 	_team_dots = HUD.Dots.new()
 	_team_dots.count = _team_size
 	_team_dots.filled = _team_size
 	_team_dots.square = true
-	_team_dots.gap = 3.0
+	_team_dots.gap = 2.0
+	_team_dots.dot = 9.0
 	_team_dots.color = BP.INK
 	_team_dots.empty = Color(BP.INK, 0.45)
-	_team_dots.position = Vector2(250, y0 + 79)
-	_team_dots.size = Vector2(_team_size * 12 + 15, 12)
+	_team_dots.position = Vector2(tx + 32, y0 + 80)
+	_team_dots.size = Vector2(_team_size * 11 - 2, 9)
 	_hud.add_child(_team_dots)
 	BP.rect(_hud, Rect2(322, y0 + 14, 1, TOP_H - 30), Color(BP.INK, 0.55))
 
@@ -1557,15 +1561,15 @@ func _on_end(winner: String) -> void:
 		_souls_won = 0
 	if _souls and _souls_won < 0:
 		_souls_won = int(_souls.call("finish", winner == "ally"))
-		if winner == "ally":
+		# The slip only where the win really pays souls (not Rue's fights, not before the war opens).
+		if winner == "ally" and _mode != "rival" and Game.war_unlocked():
 			# Where they go: the player's sector on the front (WarRules), or a nudge to pick a side.
 			var to := ""
-			if _mode != "rival" and Game.war_unlocked():
-				var war: Dictionary = Game.war()
-				if str(war.side) == "":
-					to = "  ·  PICK A SIDE ON THE FRONT"
-				else:
-					to = "  →  " + str(((war.sectors as Array)[int(war.focus)] as Dictionary).name).to_upper()
+			var war: Dictionary = Game.war()
+			if str(war.side) == "":
+				to = "  ·  PICK A SIDE ON THE FRONT"
+			else:
+				to = "  →  " + str(((war.sectors as Array)[int(war.focus)] as Dictionary).name).to_upper()
 			var slip := BP.t("+%d SOULS%s" % [_souls_won, to], 40 if to == "" else 30, Color(1.0, 0.82, 0.42), "compressed")
 			slip.position = Vector2(20.0, _field_rect().position.y + _field_rect().size.y * 0.5)
 			slip.size = Vector2(_width() - 40.0, 60)

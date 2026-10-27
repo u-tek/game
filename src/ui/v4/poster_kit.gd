@@ -384,12 +384,12 @@ static func grain(parent: Node, amount: float = 0.06) -> ColorRect:
 static func pass_button(spec: Dictionary, on_pressed: Callable = Callable()) -> Button:
 	var w: float = spec.get("width", 400.0)
 	var off := bool(spec.get("disabled", false))
-	var b := bare_button(Vector2(w, 176))
-	var sig := SignalKit.plate("graphite" if off else "signal", Vector2(8, 78), Vector2(w - 14, 96), {"cuts": [0, 12, 18, 0],
+	var b := bare_button(Vector2(w, 184))
+	var sig := SignalKit.plate("graphite" if off else "signal", Vector2(8, 86), Vector2(w - 14, 96), {"cuts": [0, 12, 18, 0],
 		"glow": 0.0 if off else 0.4, "glow_radius": 14.0, "pulse": 0.0 if off else 0.5, "topo": 0.6}, b)
-	var top_sz := Vector2(w, 94)
+	var top_sz := Vector2(w, 102)
 	var silver := SignalKit.plate("silver", Vector2.ZERO, top_sz, {"shape": Plate.tab_bottom(top_sz, 14, w * 0.33, w * 0.65, 14), "topo": 0.5,
-		"screws": [Vector2(13, 13), Vector2(w - 13, 13), Vector2(13, 66), Vector2(w - 13, 66)]}, b)
+		"screws": [Vector2(13, 13), Vector2(w - 13, 13), Vector2(13, 74), Vector2(w - 13, 74)]}, b)
 	var x := 26.0
 	if spec.get("code", true):
 		var code := SignalKit.matrix(Vector2(58, 58))
@@ -409,7 +409,7 @@ static func pass_button(spec: Dictionary, on_pressed: Callable = Callable()) -> 
 	title.position = Vector2(x - 2, 26 + (30 - ts) * 0.6)
 	silver.add_child(title)
 	var sub := SignalKit.etch(str(spec.get("sub", "")), 10, "mono")
-	sub.position = Vector2(x, 66)
+	sub.position = Vector2(x, 68)
 	silver.add_child(sub)
 	if spec.has("icon"):
 		var knob := SignalKit.plate("dial", Vector2(w - 82, 20), Vector2(50, 50), {"circle": true, "shadow": 0.5}, silver)

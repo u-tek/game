@@ -114,14 +114,15 @@ static func pill(text: String, size: int = 20, color: Color = Color.WHITE, weigh
 static func pass_button(spec: Dictionary, on_pressed: Callable = Callable()) -> Control:
 	var w: float = spec.get("width", 400.0)
 	var root := Control.new()
-	root.custom_minimum_size = Vector2(w, 176)
+	# (The silver is 102 tall: its sub-line at 70 clears the bevel; at 94 it was cut in half.)
+	root.custom_minimum_size = Vector2(w, 184)
 	root.size = root.custom_minimum_size
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var sig := plate("signal", Vector2(8, 78), Vector2(w - 14, 96), {"cuts": [0, 12, 18, 0], "glow": 0.4, "glow_radius": 14.0,
+	var sig := plate("signal", Vector2(8, 86), Vector2(w - 14, 96), {"cuts": [0, 12, 18, 0], "glow": 0.4, "glow_radius": 14.0,
 		"pulse": 0.5, "topo": 0.6}, root)
-	var top_sz := Vector2(w, 94)
+	var top_sz := Vector2(w, 102)
 	var silver := plate("silver", Vector2.ZERO, top_sz, {"shape": Plate.tab_bottom(top_sz, 14, w * 0.33, w * 0.65, 14), "topo": 0.5,
-		"screws": [Vector2(13, 13), Vector2(w - 13, 13), Vector2(13, 66), Vector2(w - 13, 66)]}, root)
+		"screws": [Vector2(13, 13), Vector2(w - 13, 13), Vector2(13, 74), Vector2(w - 13, 74)]}, root)
 	silver.z_index = 1
 	var x := 26.0
 	if spec.get("code", true):
@@ -136,7 +137,7 @@ static func pass_button(spec: Dictionary, on_pressed: Callable = Callable()) -> 
 	title.position = Vector2(x - 2, 26)
 	silver.add_child(title)
 	var sub := etch(str(spec.get("sub", "")), 10, "mono")
-	sub.position = Vector2(x, 66)
+	sub.position = Vector2(x, 68)
 	silver.add_child(sub)
 	var knob := plate("dial", Vector2(w - 82, 20), Vector2(50, 50), {"circle": true, "shadow": 0.5}, silver)
 	var ic := Kit.icon(str(spec.get("icon", "flag")), 22, Color(1, 1, 1, 0.95))
@@ -148,12 +149,13 @@ static func pass_button(spec: Dictionary, on_pressed: Callable = Callable()) -> 
 	if spec.has("info"):
 		var info := Kit.label(str(spec["info"]), 10, Color(1, 1, 1, 0.85), "mono")
 		info.position = Vector2(w * 0.58, 44)
+		Kit.fit_label(info, w * 0.42 - 26.0, 10, 8)
 		sig.add_child(info)
 	var hit := Button.new()
 	hit.theme_type_variation = &"BareButton"
 	hit.mouse_filter = Control.MOUSE_FILTER_PASS
 	hit.position = Vector2(-4, -4)
-	hit.size = Vector2(w + 8, 184)
+	hit.size = Vector2(w + 8, 192)
 	hit.button_down.connect(func() -> void:
 		(silver as Plate).set_pressed_look(true)
 		(sig as Plate).set_pressed_look(true)

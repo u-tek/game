@@ -98,15 +98,6 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	var glow := BattleFxRef.glow_texture()
-	# The count, printed on a small paper tag at the crowd's left: the player's souls of the total.
-	var f := Kit.font("mono_bold")
-	var txt := "SOULS  %02d / %d" % [souls_owned(), COUNT]
-	var tw := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
-	var tp := band.position + Vector2(0, -4)
-	draw_rect(Rect2(tp + Vector2(1, 2), Vector2(tw + 18, 22)), Color(0, 0, 0, 0.28))
-	draw_rect(Rect2(tp, Vector2(tw + 18, 22)), Color(0.914, 0.91, 0.886, 0.96))
-	draw_rect(Rect2(tp, Vector2(4, 22)), GOLD.darkened(0.15))
-	draw_string(f, tp + Vector2(10, 16), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(0.063, 0.067, 0.075))
 	for w: Dictionary in _wisps:
 		var own := float(w.own)
 		var col := RED.lerp(GOLD, own)
@@ -124,6 +115,16 @@ func _draw() -> void:
 		var sway := sin(_t * 2.3 * float(w.speed) + float(w.phase)) * r * 0.9
 		_flame(p, r, sway, Color(col, 0.95 * fade))
 		_flame(p + Vector2(0, r * 0.25), r * 0.55, sway * 0.6, Color(col.lerp(Color.WHITE, 0.7), fade))
+	# The count, printed on a small paper tag at the crowd's left (the player's souls of the total),
+	# drawn last so no wisp drifts over the number.
+	var f := Kit.font("mono_bold")
+	var txt := "SOULS  %02d / %d" % [souls_owned(), COUNT]
+	var tw := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
+	var tp := band.position + Vector2(0, -4)
+	draw_rect(Rect2(tp + Vector2(1, 2), Vector2(tw + 18, 22)), Color(0, 0, 0, 0.28))
+	draw_rect(Rect2(tp, Vector2(tw + 18, 22)), Color(0.914, 0.91, 0.886, 0.96))
+	draw_rect(Rect2(tp, Vector2(4, 22)), GOLD.darkened(0.15))
+	draw_string(f, tp + Vector2(10, 16), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(0.063, 0.067, 0.075))
 
 
 ## A teardrop flame: a round base of radius r at p and a tip about 2.6 r above it, leaning by sway.

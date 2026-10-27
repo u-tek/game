@@ -341,7 +341,8 @@ func _build() -> void:
 	toast_box = Control.new()
 	toast_box.name = "Toasts"
 	toast_box.mouse_filter = MOUSE_FILTER_IGNORE
-	toast_box.z_index = 90
+	# Over the modals (100): a toast raised from inside a popup must be seen.
+	toast_box.z_index = 105
 	toast_box.anchor_left = 0.5
 	toast_box.anchor_right = 0.5
 	toast_box.grow_horizontal = GROW_DIRECTION_BOTH
@@ -762,6 +763,8 @@ func show_veil(text: String) -> void:
 	if _veil == null:
 		_veil = Kit.loading_veil()
 		_veil.name = "Veil"
+		# Over the bars (60), toasts and modals (100-105) and effects (110): it covers the whole app.
+		_veil.z_index = 120
 		add_child(_veil)
 	move_child(_veil, get_child_count() - 1)
 	(_veil.find_child("Caption", true, false) as Label).text = text.to_upper()

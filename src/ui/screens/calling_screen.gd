@@ -115,32 +115,31 @@ func _build() -> void:
 	_pad.position = Vector2(x0 - 6, y + 26)
 	_pad.size = Vector2(tw + 12, minf(230.0, ph - y - 330.0))
 	p.add_child(_pad)
-	var clear := PK.t("CLEAR", 10, Color(INK, 0.55), "mono_bold")
+	var clear := PK.t("CLEAR", 12, Color(INK, 0.72), "mono_bold")
 	clear.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	clear.size = Vector2(tw, 14)
+	clear.size = Vector2(tw, 16)
 	PK.at(p, clear, Vector2(x0, y + 30 + _pad.size.y))
 	var ch := Control.new()
 	ch.mouse_filter = MOUSE_FILTER_PASS
-	ch.position = Vector2(x0 + tw - 100, y + 14 + _pad.size.y)
-	ch.size = Vector2(110, 50)
+	ch.position = Vector2(x0 + tw - 120, y - 6 + _pad.size.y)
+	ch.size = Vector2(130, 88)
 	p.add_child(ch)
 	Kit.make_tappable(ch, func() -> void: _pad.clear())
 	y += 70.0 + _pad.size.y
-	var fine := PK.t("BY SIGNING YOU AGREE TO NOTHING.\nTHE CALLING IS ITS OWN REWARD.", 9, Color(INK, 0.55), "mono")
+	var fine := PK.t("BY SIGNING YOU AGREE TO NOTHING.\nTHE CALLING IS ITS OWN REWARD.", 10, Color(INK, 0.66), "mono")
 	PK.at(p, fine, Vector2(x0, y))
 	Poster.pass_on(p, {"width": minf(tw + 10.0, 380.0), "kicker": "INTAKE  //  RETURN BY HAND", "title": "ANSWER",
 		"sub": "THE CALL", "action": "ANSWER  >>>", "icon": "check"}, Vector2(pw - minf(tw + 10.0, 380.0) - 18.0, ph - 172.0),
 		_answer, "Answer", "Answer")
-	# A quiet way out (the form is never required).
-	var skip := PK.t("SKIP", 11, Color(INK, 0.5), "mono_bold")
-	skip.position = Vector2(vs.x - 70, top - 22)
-	add_child(skip)
+	# A quiet way out (the form is never required): printed on the form above the ANSWER pass.
+	var skip := PK.t("SKIP FOR NOW  →", 12, Color(INK, 0.66), "mono_bold")
+	PK.at(p, skip, Vector2(x0, ph - 214))
 	var sh := Control.new()
 	sh.name = "Skip"
 	sh.mouse_filter = MOUSE_FILTER_PASS
-	sh.position = Vector2(vs.x - 96, top - 40)
-	sh.size = Vector2(96, 44)
-	add_child(sh)
+	sh.position = Vector2(x0 - 10, ph - 252)
+	sh.size = Vector2(170, 76)
+	p.add_child(sh)
 	Kit.make_tappable(sh, func() -> void: _finish("", []))
 	add_child(SignalKit.grain(0.05, true))
 
@@ -303,7 +302,7 @@ class SignPad:
 		var f := Kit.font("compressed")
 		draw_string(f, Vector2(4, base - 6), "X", HORIZONTAL_ALIGNMENT_LEFT, -1, 34, Color(INK, 0.75))
 		if _strokes.is_empty() and _cur.size() < 2:
-			draw_string(Kit.font("mono_bold"), Vector2(46, base - 14), "SIGN WITH YOUR FINGER", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(INK, 0.3))
+			draw_string(Kit.font("mono_bold"), Vector2(46, base - 14), "SIGN WITH YOUR FINGER", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(INK, 0.5))
 		for s: Variant in _strokes + [_cur]:
 			var pts := s as PackedVector2Array
 			var n := pts.size()

@@ -437,7 +437,7 @@ func _build_portrait(av: String, skin: String) -> void:
 	var fr := PK.Frame.new()
 	fr.size = ps
 	box.add_child(fr)
-	# A paper label stuck across the foot of the portrait: what a tap does.
+	# A paper label stuck under the portrait's foot (clear of her): what a tap does.
 	var tag := PanelContainer.new()
 	tag.mouse_filter = MOUSE_FILTER_IGNORE
 	var ts := StyleBoxFlat.new()
@@ -451,8 +451,8 @@ func _build_portrait(av: String, skin: String) -> void:
 	ts.content_margin_bottom = 4
 	tag.add_theme_stylebox_override("panel", ts)
 	tag.add_child(PK.t("PORTRAIT  ›  CHANGE", 11, INK, "mono_bold"))
-	tag.position = Vector2(-12, ps.y - 34)
-	tag.rotation = -0.035
+	tag.position = Vector2(0, ps.y + 6)
+	tag.rotation = -0.02
 	box.add_child(tag)
 	_hit(p, Rect2(X0, y0, ps.x, ps.y), _open_avatar_sheet, "ChangeAvatar", "Avatar")
 
