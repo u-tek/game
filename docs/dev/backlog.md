@@ -108,5 +108,5 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 
 - P4 todo **Per-skin 18+ art:** `HeroArt._built_art` uses `skins/<art>/adult/` when it exists (base
   nude as fallback); `test_skins.gd test_nudity_mode_drops_skins` updated.
-- P4 todo **The War behind one interface:** every screen reaches the war through one class, with the
-  offline simulation behind it, so a server drops in later.
+- P4 done **The War behind one interface:** `WarFront` (offline front = today's simulation); a fake
+  server front in test_war drives the War and receives the souls.

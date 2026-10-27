@@ -684,7 +684,9 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
 ## Waiting on the owner
 
 0. **The War for Souls server:** the war, the Champion and the district run offline with simulated
-   other players. Real sides need a backend (hosting and its cost are the owner's call).
+   other players. Real sides need a backend (hosting and its cost are the owner's call). The client
+   is ready for one: the game reaches the war through one interface (`WarFront`, 2026-10-28), so a
+   server front drops in without touching any screen.
 1. **Base art:** Claude picked and installed one per hero (above); the owner can swap any
    ("use s<seed> for <hero>") or ask for the face-variant pass (blinks, talking).
 2. **The adult-site version (EroLabs):** the owner named EroLabs. It is a browser-game portal,

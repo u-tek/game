@@ -2053,36 +2053,32 @@ func war_set_focus(sector: int) -> Dictionary:
 	return _ok({"focus": sector})
 
 
+## The War for Souls behind one interface (WarFront): the offline front on the save's souls log, or
+## a server front set here by the Game autoload when there is one.
+var war_front: WarFront = null
+
+
+func _front() -> WarFront:
+	if war_front != null:
+		return war_front
+	return WarFront.new(state.war.log)
+
+
 ## Souls into the focused sector today (only with a side chosen). Returns the souls sent (0 = none).
 func _war_add_souls(n: int) -> int:
 	var ws: Dictionary = state.war
 	if str(ws.side) == "" or n <= 0 or not war_unlocked():
 		return 0
-	var day := today()
-	var dk := str(day)
-	if not (ws.log as Dictionary).has(dk):
-		ws.log[dk] = {}
-	var sk := str(int(ws.focus))
-	ws.log[dk][sk] = int((ws.log[dk] as Dictionary).get(sk, 0)) + n
+	_front().post_souls(today(), int(ws.focus), str(ws.side), n)
+	# The district grows from every soul the player has won (it stays on the phone).
 	ws.souls_total = int(ws.souls_total) + n
-	# Keep only the days a claim can still read (this week and the last).
-	var keep_from := day - WarRules.LOG_DAYS
-	for k: Variant in (ws.log as Dictionary).keys():
-		if int(str(k)) < keep_from:
-			ws.log.erase(k)
 	return n
 
 
 ## Souls the player sent this week.
 func _war_week_souls() -> int:
-	var ws: Dictionary = state.war
 	var d0 := WarRules.week_start(WarRules.week_of(today()))
-	var n := 0
-	for k: Variant in (ws.log as Dictionary).keys():
-		if int(str(k)) >= d0:
-			for s: Variant in (ws.log[k] as Dictionary).values():
-				n += int(s)
-	return n
+	return _front().souls_between(d0, today())
 
 
 ## The front view: {unlocked, name, side, side_name, focus, sectors [{id, name, control}], standing,
@@ -2093,14 +2089,12 @@ func war() -> Dictionary:
 	var day := today()
 	var week := WarRules.week_of(day)
 	var side := str(ws.side)
-	var c := WarRules.control(week, day, ws.log, side)
+	var c := _front().control(week, day, side)
 	var sectors: Array = []
 	for i in WarRules.sector_count():
 		var sd: Dictionary = WarRules.SECTORS[i]
 		sectors.append({"id": str(sd.id), "name": str(sd.name), "control": c[i]})
-	var today_souls := 0
-	for s: Variant in (ws.log.get(str(day), {}) as Dictionary).values():
-		today_souls += int(s)
+	var today_souls := _front().souls_between(day, day)
 	return {"unlocked": war_unlocked(), "name": WarRules.NAME, "side": side, "side_name": WarRules.side_name(side),
 		"focus": int(ws.focus), "sectors": sectors, "standing": WarRules.standing(c), "week": week,
 		"day_in_week": day - WarRules.week_start(week) + 1, "days_left": WarRules.week_start(week) + WarRules.WEEK_DAYS - day,
@@ -2118,7 +2112,7 @@ func _champ_sync() -> Dictionary:
 		return c
 	var day := today()
 	var week := WarRules.week_of(day)
-	var hero := WarRules.champion_for(week, side)
+	var hero := _front().champion(week, side)
 	# (Weeks and days roll forward only, like the dailies: stepping back never pays tiers again.)
 	if int(c.week) < week or (int(c.week) == week and str(c.hero) != hero):
 		var lv := WarRules.champion_level(int(_rival_ctx().avg))
@@ -2221,14 +2215,9 @@ func _war_claimable() -> Dictionary:
 	if int(ws.claimed_week) >= last:
 		return {}
 	var d0 := WarRules.week_start(last)
-	var fought := false
-	for k: Variant in (ws.log as Dictionary).keys():
-		var d := int(str(k))
-		if d >= d0 and d < d0 + WarRules.WEEK_DAYS:
-			fought = true
-	if not fought:
+	if not _front().fought_between(d0, d0 + WarRules.WEEK_DAYS - 1):
 		return {}
-	var c := WarRules.control(last, d0 + WarRules.WEEK_DAYS - 1, ws.log, side)
+	var c := _front().control(last, d0 + WarRules.WEEK_DAYS - 1, side)
 	var st := WarRules.standing(c)
 	var won := str(st.winner) == side
 	var held := int(st[side])

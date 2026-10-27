@@ -924,6 +924,15 @@ Tuning: `tests/tools/rival_bench.gd` (strength_bp sweep).
 
 Offline: both sides' hosts are simulated; the player's souls are the only live input.
 
+**One interface (2026-10-28):** GameModel reaches the war only through a `WarFront`
+(`src/core/war_front.gd`): `control(week, day, side)` (each sector's control), `post_souls(day,
+sector, side, n)`, `souls_between(from_day, to_day)`, `fought_between(from_day, to_day)` and
+`champion(week, side)`. `WarFront` itself is the offline front (these rules on the save's souls
+log, `state.war.log`); `GameModel.war_front` set to a server front replaces it (it answers from its
+last snapshot and queues `post_souls` for upload). The district's lifetime souls (`souls_total`),
+keepers, levels, layout and props stay on the phone. Every screen goes through GameModel's views
+and actions, so none changes. Test: `test_war.gd test_the_war_goes_through_one_front`.
+
 - `week_of(day) = floor((day - epoch_day) / week_days)` (floor division, also before the epoch);
   `week_start(w) = epoch_day + w * week_days`.
 - `sim_push(day, sector, side) = sim.base + SeededRng(mix(mix(seed, day), sector * 2 + k)).range_int(0,

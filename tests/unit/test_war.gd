@@ -68,6 +68,46 @@ func test_victories_send_souls_to_the_focus(t: TestCtx) -> void:
 	_done()
 
 
+## A stand-in for a server: GameModel asks only the front, so what it answers is what the War shows.
+class FakeServerFront:
+	extends WarFront
+	var posted: Array = []
+
+	func control(_week: int, _day: int, _side: String) -> Array:
+		var out: Array = []
+		for i in WarRules.sector_count():
+			out.append(1234)
+		return out
+
+	func post_souls(day: int, sector: int, side: String, n: int) -> void:
+		posted.append([day, sector, side, n])
+
+	func souls_between(_from_day: int, _to_day: int) -> int:
+		return 777
+
+	func champion(_week: int, _side: String) -> String:
+		return "noctaire"
+
+
+func test_the_war_goes_through_one_front(t: TestCtx) -> void:
+	var g := _open()
+	g.war_choose_side("heaven")
+	var fake := FakeServerFront.new({})
+	g.model.war_front = fake
+	var w: Dictionary = g.war()
+	t.eq(int((w.sectors as Array)[0].control), 1234, "the sectors are the front's")
+	t.eq(int(w.souls_week), 777, "this week's souls are the front's")
+	g.war_set_focus(3)
+	g.complete_stage(0, {"victory": true})
+	t.eq(fake.posted.size(), 1, "a win posts its souls to the front")
+	if fake.posted.size() == 1:
+		t.eq(fake.posted[0], [g.today(), 3, "heaven", WarRules.SOULS_PER_WIN], "day, sector, side and souls")
+	t.eq((g.model.state.war.log as Dictionary).size(), 0, "nothing written to the offline log")
+	t.eq(int(g.war().souls_total), WarRules.SOULS_PER_WIN, "the district's lifetime souls stay on the phone")
+	t.eq(str((g.war().champion as Dictionary).get("hero", "")), "noctaire", "the Champion is the front's")
+	_done()
+
+
 func test_claim_last_week(t: TestCtx) -> void:
 	var g := _open()
 	g.war_choose_side("hell")
