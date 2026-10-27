@@ -61,9 +61,10 @@ func test_others_have_no_foil_and_it_switches(t: TestCtx) -> void:
 
 
 func test_face_ellipse_from_the_rig_source(t: TestCtx) -> void:
-	# seraphiel.warp_src.json (the MOSS art, 2026-10-22): face ellipse centre (545, 622), radius (89, 73); origin (512, 1990).
+	# seraphiel.warp_src.json (the v20 MOSS art s102800, 2026-10-24): face ellipse centre (460, 699), radius (77, 64);
+	# origin (512, 1990).
 	var r := RigData.load_rig("seraphiel")
-	t.eq(r.face_ellipse(), Vector4(33, -1368, 89, 73), "seraphiel: the face region from her rig source")
+	t.eq(r.face_ellipse(), Vector4(-52, -1291, 77, 64), "seraphiel: the face region from her rig source")
 	# Without a source the portrait frame stands in (it is framed on the face).
 	var est := RigData.new()
 	est.origin = Vector2(512, 1990)

@@ -1,6 +1,6 @@
 # Status and handoff
 
-**Status as of 2026-10-20, 01:40 UTC (11:40 on the owner's PC clock, UTC+10).** This is the living
+**Status as of 2026-10-27, 13:00 UTC (23:00 on the owner's PC clock, UTC+10).** This is the living
 status file: update it at the end of every work block. Rules and conventions are in `CLAUDE.md`;
 this file says where things stand. Older logs are under "History" at the bottom.
 
@@ -208,9 +208,18 @@ this file says where things stand. Older logs are under "History" at the bottom.
   (`nude_poses_natural`, 26 since the owner asked for spreading poses), with no weapons or held props; sitting
   and lying poses render landscape (1152x896), kneeling ones square. About 400 candidates, about 17 h of GPU.
   **Age (2026-10-22):** normal art now reads as about twenty (`age_natural`, owner: "this is much better"); the nude
-  set stays mid-twenties (`age_natural_adult`). **Next:** `art_src/_review/v20_run` (seed offset 1800) re-renders
-  all 200 normal looks at the new age as soon as the nude worker is idle (owner: "finish the nude set first"); the vB
-  run is paused for good. `picker.bat` opens v20. **18+ mode (owner, 2026-10-22: "have 18+ mode remove skins across the
+  set stays mid-twenties (`age_natural_adult`). **The v20 re-render** (`art_src/_review/v20_run`, seed offset 1800;
+  `picker.bat` opens it; the vB run is paused for good): all 200 looks got 2 candidates by 2026-10-24 03:05 UTC. In
+  the picker the owner picked 153, asked for 32 regenerates and left 15 undecided (the last 15 in bible order,
+  Sanariel Tide Ward to Ombre Silent Partner). The worker finished and installed 55 picks (32 base looks, 23 skins;
+  committed 2026-10-27 after a 1:1 coverage check, all clean), then **the PC crashed at 08:22 UTC on 2026-10-24**
+  (unexpected shutdown) and the worker died with it. Left: 98 picks to finish (about 2.6 min each, ~4.5 h), the 32
+  regenerates (2 candidates each, ~2.5 h, then the owner picks), the 15 undecided. Restart (the owner said "not now",
+  2026-10-27, they were using the PC): start ComfyUI on 8188 (`art_src/_review/HANDOFF.md`), then `python
+  tools/comfy/roster_qa.py --run art_src/_review/v20_run`; it picks up from `qa/done/`. **C: had 0.1 GB free**
+  (2026-10-27): the pip cache (5 GB) and uv cache (16 GB) can be cleared, on the owner's OK. **Zecchina's new base
+  look** (s221801) has a gold charm on her thigh strap shaped like a famous cartoon mouse's
+  head: paint it out (`fix.py`) before any store release. **18+ mode (owner, 2026-10-22: "have 18+ mode remove skins across the
   board and just make everything the nude skin"):** with nudity on, skins are off (no wardrobe on the hero screen,
   no Wardrobe tab in the shop) and every hero shows her nude base look, or her base art until it is built. So the
   nude set is one look per character: 40 base looks, not 200 (`roster_qa.items(adult=True)`). The
