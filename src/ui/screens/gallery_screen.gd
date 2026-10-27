@@ -324,13 +324,14 @@ func _build_strip() -> void:
 		if not bool(lk.owned):
 			pic.modulate = Color(0.55, 0.55, 0.6)
 		card.add_child(pic)
-		var nm := PK.t(str(lk.name).to_upper(), 9, PAPER, "mono_bold")
-		nm.size = Vector2(108, 13)
+		var nm := PK.t(str(lk.name).to_upper(), 11, PAPER, "mono_bold")
+		Kit.fit_label(nm, 106.0, 11, 8)
+		nm.size = Vector2(108, 15)
 		nm.clip_text = true
-		nm.position = Vector2(0, 122)
+		nm.position = Vector2(0, 121)
 		card.add_child(nm)
-		var sub := PK.t("OWNED" if bool(lk.owned) else "%d GEMS" % int(lk.get("price_gems", 0)), 9, Color(PAPER, 0.6) if bool(lk.owned) else SIG, "mono")
-		sub.position = Vector2(0, 136)
+		var sub := PK.t("OWNED" if bool(lk.owned) else "%d GEMS" % int(lk.get("price_gems", 0)), 11, Color(PAPER, 0.65) if bool(lk.owned) else SIG, "mono")
+		sub.position = Vector2(0, 137)
 		card.add_child(sub)
 		var kk := k
 		Kit.make_tappable(card, func() -> void:
@@ -338,6 +339,18 @@ func _build_strip() -> void:
 			_zoom = 1.0
 			_pan = Vector2.ZERO
 			_show_look())
+	_centre_strip()
+
+
+## A strip that fits sits centred under her; a longer one scrolls from the left.
+func _centre_strip() -> void:
+	var sc := _strip.get_parent() as Control
+	if sc == null:
+		return
+	var n := _looks.size()
+	var total := n * 108.0 + maxf(n - 1, 0) * 10.0
+	_strip.alignment = BoxContainer.ALIGNMENT_CENTER if total < sc.size.x else BoxContainer.ALIGNMENT_BEGIN
+	_strip.custom_minimum_size.x = sc.size.x if total < sc.size.x else 0.0
 
 
 func _mark_strip() -> void:

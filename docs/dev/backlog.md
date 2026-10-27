@@ -88,7 +88,9 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   rendered hardware switches (Blender), a glass disc.
 - P2 done **Gear had no Back** (top left now). Left: the empty state leads nowhere; the chrome above
   the first item is tall.
-- P2 todo **Gallery: the strip is left-aligned and tiny; a locked look has no BUY step; dark lightbox.**
+- P2 doing **Gallery:** done: the look strip sits centred when it fits, captions 11 px. Left: the dark
+  lightbox is outside the poster language (a take to show the owner); a locked look's BUY pass only
+  shows once the look is chosen.
 - P2 done **Daily resets reopened when the day went backwards** (a flight west, a zone change): days
   roll forward only (unit test; port spec 8.1, 9c, 9e).
 - P2 done **Replay the opening, then SKIP, wiped the signature** (unit test).
