@@ -1,6 +1,6 @@
 # Status and handoff
 
-**Status as of 2026-10-28, 15:30 UTC (01:30 on the owner's PC clock, UTC+10).** This is the living
+**Status as of 2026-10-28, 16:55 UTC (02:55 on the owner's PC clock, UTC+10).** This is the living
 status file: update it at the end of every work block. Rules and conventions are in `CLAUDE.md`;
 this file says where things stand. Older logs are under "History" at the bottom. **The ranked work
 list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
@@ -64,6 +64,10 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
     pink hearts); fewer reds on Quests, Gear, Rival and Prints; Gear's empty state links the
     Campaign; the Gallery strip centred; the candlelight eased for the phone; the Summon timer fix
     (the flaky "Lambda capture" e2e error); the palette in one place (constants and inline uses).
+  - **Last:** birthday bunting (a heroine's or the player's birthday); Shake the Sanctum (shake the
+    phone on the Lobby: the Sanctum is collected, gold tumbles down the poster; not felt on a phone
+    yet); the two static passes share one plate builder (`SignalKit.pass_plates`); Gear's empty state
+    links the Campaign; Prints' chosen tab in ink. Next build: run 40544417553 (dispatched 16:50 UTC).
   - **IPA: run 40539152132** (green, commit 8fd8d93): the Halloween build. Before: 40529352708
     (64f21f1), 40517231772 (c6d4e17). Run 40526508839 failed only because GitHub had no macOS
     runner free.
