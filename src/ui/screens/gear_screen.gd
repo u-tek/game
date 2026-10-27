@@ -281,7 +281,8 @@ func _cell(it: Dictionary, i: int, cw: float) -> Button:
 	b.name = "Gear_" + uid
 	var s := minf(cw - 24.0, 124.0)
 	var obj := PK.gear_object(slot, s, b, Vector2((cw - s) * 0.5, 10), str(it.get("name", "")), int(it.get("tier", 1)))
-	var st := PK.sticker([[Kit.roman(int(it.tier)), 15, "wide_black"]], {"fill": "signal", "pad": 6, "rotation": -0.12 + 0.05 * (i % 3), "shadow": 0.25})
+	# (Ink stickers on the sheet: ten signal ones made the page red; the piece's own sheet keeps signal.)
+	var st := PK.sticker([[Kit.roman(int(it.tier)), 15, "wide_black"]], {"fill": "ink", "pad": 6, "rotation": -0.12 + 0.05 * (i % 3), "shadow": 0.25})
 	PK.at(b, st, Vector2(cw - st.size.x - 6, 4))
 	var who := str(it.get("equipped_by", ""))
 	if _team_gain(it) > 0:

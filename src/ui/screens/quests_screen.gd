@@ -375,7 +375,8 @@ func _quest_row(q: Dictionary, number: int) -> Control:
 	row.mouse_filter = MOUSE_FILTER_PASS
 	var ink := INK if not claimed else Color(INK, 0.45)
 	Poster.hline(row, 0, _row_h - 1, w, Color(INK, 0.35))
-	Poster.at(row, Poster.t("%02d" % number, 24, SIG if ready else ink, "wide_black"), Vector2(0, 8))
+	# (Readiness is the CLAIM sticker's alone: one red per row.)
+	Poster.at(row, Poster.t("%02d" % number, 24, ink, "wide_black"), Vector2(0, 8))
 	var ic := Kit.icon(str(ICONS.get(counter, "quests")) if not claimed else "check", 22, ink)
 	Poster.at(row, ic, Vector2(6, 46))
 	var title := Poster.t(str(q.title).to_upper(), _title_fs, ink, "compressed")
@@ -544,12 +545,12 @@ class _Ticks:
 		var ink := INK if not done else Color(INK, 0.45)
 		if goal > 10:
 			draw_rect(Rect2(0, size.y * 0.5 - 1, size.x, 2), Color(ink, 0.25))
-			draw_rect(Rect2(0, size.y * 0.5 - 2, size.x * float(have) / goal, 4), SIG if not done else ink)
+			draw_rect(Rect2(0, size.y * 0.5 - 2, size.x * float(have) / goal, 4), ink)
 			return
 		for i in goal:
 			var r := Rect2(i * 14.0, 0, 10, 10)
 			if i < have:
-				draw_rect(r, SIG if (have >= goal and not done) else ink)
+				draw_rect(r, ink)
 			else:
 				draw_rect(r, ink, false, 1.0)
 
@@ -618,7 +619,7 @@ class _MissionMap:
 				draw_circle(c, r, PAPER)
 				draw_arc(c, r, 0.0, TAU, 32, INK, 1.3, true)
 				if prog > 0:
-					draw_arc(c, r + 4.0, -PI * 0.5, -PI * 0.5 + TAU * float(prog) / goal, 32, SIG, 2.4, true)
+					draw_arc(c, r + 4.0, -PI * 0.5, -PI * 0.5 + TAU * float(prog) / goal, 32, INK, 2.4, true)
 			if is_bonus:
 				draw_arc(c, r + 9.0, 0.0, TAU, 40, Color(INK, 0.8), 1.0, true)
 			var label := "B" if is_bonus else "%02d" % (i + 1)

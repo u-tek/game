@@ -93,7 +93,8 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 - P2 done **The shop and quests didn't refresh at midnight.**
 - P2 done **Holding LEVEL UP to the cap left the pass sunk.**
 - P2 done **A hit-stop during an ultimate's hold cancelled its freeze.**
-- P2 todo **Too many reds:** Quests, Gear, Rival, Prints each print five or more red masses.
+- P2 doing **Too many reds:** done: Quests (red only on what is ready to claim: the CLAIM stickers and
+  the map's ready circles) and Gear (ink tier stickers on the sheet). Left: Rival, Prints.
 
 ## P3
 
