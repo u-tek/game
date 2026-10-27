@@ -1,6 +1,6 @@
 # Status and handoff
 
-**Status as of 2026-10-28, 20:55 UTC (06:55 on the owner's PC clock, UTC+10).** This is the living
+**Status as of 2026-10-27, 20:55 UTC (2026-10-28 06:55 on the owner's PC clock, UTC+10).** This is the living
 status file: update it at the end of every work block. Rules and conventions are in `CLAUDE.md`;
 this file says where things stand. Older logs are under "History" at the bottom. **The ranked work
 list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
