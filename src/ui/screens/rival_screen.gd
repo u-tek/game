@@ -331,7 +331,8 @@ func _build_line_slip(text: String) -> void:
 	slip.add_theme_stylebox_override("panel", sb)
 	var v := Kit.vbox(2)
 	v.mouse_filter = MOUSE_FILTER_IGNORE
-	v.add_child(PK.t("RUE  ·  %s" % _kind_word(str(_v.get("line_kind", "idle"))), 10, SIG, "mono_bold"))
+	# (Ink: the poster's reds are her dome, her button and the Fight pass.)
+	v.add_child(PK.t("RUE  ·  %s" % _kind_word(str(_v.get("line_kind", "idle"))), 10, INK, "mono_bold"))
 	_line_label = PK.t("“%s”" % text, 24, INK, "serif_italic")
 	_line_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_line_label.custom_minimum_size = Vector2(minf(_pw - 140.0, 470.0), 0)
@@ -409,7 +410,7 @@ func _build_team(y: float) -> float:
 	var c: Dictionary = _v.get("counter", {})
 	if str(c.get("faction", "")) != "":
 		var st := PKS.sticker([["COUNTER-PICK", 10, "mono_bold"], ["%s  vs  YOUR %s" % [str(c.faction).to_upper(), str(c.main).to_upper()], 14, "mono_bold"]],
-			{"fill": "signal", "rotation": 0.03, "pad": 10})
+			{"fill": "ink", "rotation": 0.03, "pad": 10})
 		st.position = Vector2(22, y + 42)
 		p.add_child(st)
 		_fade.append(st)

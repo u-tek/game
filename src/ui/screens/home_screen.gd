@@ -111,6 +111,9 @@ var _built_day := -1           ## the day the poster was printed for: a new day 
 var _decor_layer: Control      ## a holiday's cut-paper decorations hang here (_refresh_decor)
 var _decor_for := "-"
 var _age_override := -1        ## debug: the poster's age in days (shot param "age")
+## debug: a layout take to pitch to the owner (shot param "take"): "quiet" leaves out the bulletin
+## card and its tab, the hero arrows and counter, and the NEXT label.
+var _take := ""
 var _quiet_stamp := false      ## debug: the calendar stamp without its receipt (motion captures)
 ## The heartbeat (hold a thumb on her): how long the press has lasted (-1: none), where it landed,
 ## the monitor strip once it starts, and whether the release was a hold (not a tap).
@@ -136,10 +139,13 @@ func setup(params: Dictionary) -> void:
 		_force_hero = str(params.get("hero", ""))
 		_force_skin = str(params.get("skin", ""))
 		_age_override = int(params.get("age", -1))
+		_take = str(params.get("take", ""))
 	_build()
 	Game.changed.connect(_refresh)
 	resized.connect(_on_resized)
 	_refresh()
+	if _take == "quiet":
+		_quiet_take.call_deferred()
 	if bool(params.get("sheet", false)):
 		_open_sanctum.call_deferred()
 	if params.has("bulletin"):
@@ -152,6 +158,17 @@ func setup(params: Dictionary) -> void:
 		get_tree().create_timer(maxf(delay, 0.0)).timeout.connect(_stamp_day)
 	if OS.is_debug_build() and params.has("pulse"):
 		debug_pulse.call_deferred(float(params.pulse))
+
+
+## The "quiet" take (debug shots, a pitch): the poster without the bulletin card and its tab, the hero
+## arrows and counter, or the NEXT label: her line, her, the side labels, the stamp and the pass.
+func _quiet_take() -> void:
+	for c: Variant in [_bull_slot, _bull_tab, _prev_btn, _next_btn, _index_label, _total_label, _tape]:
+		if c is CanvasItem and is_instance_valid(c):
+			(c as CanvasItem).visible = false
+	var idx := _over.find_child("IndexNo", true, false) if _over else null
+	if idx is CanvasItem:
+		(idx as CanvasItem).visible = false
 
 
 func _exit_tree() -> void:
@@ -364,6 +381,7 @@ func _layer(parent: Control, layer_name: String) -> Control:
 func _build_index() -> void:
 	var y := _ph * 0.5 - 52.0
 	var no := Kit.label("No.", 12, Color(PAPER, 0.85), "mono_bold")
+	no.name = "IndexNo"
 	no.position = Vector2(150, y)
 	_over.add_child(no)
 	_index_label = Kit.label("001", 12, Color(PAPER, 0.85), "mono_bold")

@@ -27,8 +27,9 @@ void fragment() {
 	vec2 d = (UV - src) * vec2(1.0, 0.62);
 	float r = length(d);
 	float glow = smoothstep(1.05, 0.15, r);
-	vec3 warm = vec3(1.0, 0.86, 0.68);
-	vec3 deep = vec3(0.62, 0.45, 0.34);
+	// (Tuned on the iPhone's path, HDR off: the multiply is in sRGB there and reads stronger.)
+	vec3 warm = vec3(1.0, 0.92, 0.8);
+	vec3 deep = vec3(0.8, 0.66, 0.54);
 	vec3 c = mix(deep, warm, glow);
 	c *= 0.95 + 0.08 * (fl - 0.5) + 0.05 * glow * (fl - 0.5);
 	c = mix(vec3(1.0), c, strength);

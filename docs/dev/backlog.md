@@ -69,16 +69,20 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 - P2 doing **The summon reveal, produced** (the money moment): a motion piece made with real tools,
   not code shapes. Done: the gold foil has a real surface (a tiling normal map of creased facets,
   `tools/textures/foil_normal.py`, global `foil_n`), so it catches the glint facet by facet instead
-  of reading as a smooth gradient. Left: the charge's Epic tell renders as solid electric blue
-  (#402bcf for the violet #8048e8; not the teal overprint or the halftone's colour maths: two
-  fixes changed nothing; reverted); the Legendary poster's restraint (foil, halftone, thorns and
-  the stamp compete).
+  of reading as a smooth gradient. The Epic tell's "electric blue" was the desktop render only (see
+  the shots item below); on the iPhone's path it is the intended violet. Left: the Legendary poster's
+  restraint (foil, halftone, thorns and the stamp compete).
+- P1 done **Shots didn't show what the phone shows:** on this Windows/Vulkan build the HDR 2D canvas
+  is really 8-bit sRGB, so every shader-drawn colour (halftones, foil, paper relief, candle) printed
+  darker and more saturated than on the iPhone, where HDR 2D is off (the band's red #ff5c29 came out
+  #f81000). `tools/shoot` now renders with `--ldr` (the iPhone's path) unless SHOOT_HDR=1. Shots
+  before 2026-10-28 16:30 UTC are in the old, darker colours.
 - P2 done **The first session's guide pointed away** from a step on the screen itself: it no longer
   rings the nav there (free pull or a full ten on Summon, the first fight from Campaign or Team);
   Summon rings the free pull while the Sanctum claim waits; Team rings its Battle pass for the first
   fight. Next: walk the whole first session by shots (the third moment).
-- P2 todo **Lobby restraint pass:** fewer stuck-on objects (bulletin, arrows and counter, NEXT label,
-  team plate, stage plate, ENGAGE), one readable giant line.
+- P2 parked **Lobby restraint pass:** a "quiet" take to show the owner (shot param `take: "quiet"`:
+  no bulletin card and tab, no hero arrows and counter, no NEXT label). Waiting on the owner.
 - P2 done **Settings was a stock list:** rows are channel lines on a device panel (01.1 SOUND
   EFFECTS, mono caps, no stock glyphs); the switch's state word prints in full ink. Could go further:
   rendered hardware switches (Blender), a glass disc.
@@ -94,7 +98,8 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 - P2 done **Holding LEVEL UP to the cap left the pass sunk.**
 - P2 done **A hit-stop during an ultimate's hold cancelled its freeze.**
 - P2 doing **Too many reds:** done: Quests (red only on what is ready to claim: the CLAIM stickers and
-  the map's ready circles) and Gear (ink tier stickers on the sheet). Left: Rival, Prints.
+  the map's ready circles), Gear (ink tier stickers on the sheet), Rival (the counter-pick tag and her
+  line's label in ink). Left: Prints.
 
 ## P3
 
@@ -106,7 +111,9 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   side switch no screen offered** (CHANGE TO ... on the Front at a week's start).
 - P3 done **Profile ENLISTED date in UTC** (local now).
 - P3 done **The record forgot stamped days after 400 days** (kept 3700 days now).
-- P1 todo **Flaky e2e: "Lambda capture at index 0 was freed"** prints now and then during
+- P1 doing **Flaky e2e: "Lambda capture at index 0 was freed"** (likely found: two Summon timers
+  captured the scroll strip in a lambda, and Godot prints this whenever a captured node was freed
+  first, as when the e2e changes banners at once; now weak references; two full runs clean) prints now and then during
   meta_screens_e2e (3 of about 15 full `tools/check e2e` runs on 2026-10-27/28; 0 of 7 standalone
   runs), and tools/check fails a script on any ERROR line. No GDScript frames in the backtrace (the
   lambda runs from engine code: a signal, a tween or a timer), so the capture that was freed is

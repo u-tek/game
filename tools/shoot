@@ -19,6 +19,10 @@ while [ $# -gt 0 ]; do
     *) extra+=("$1"); shift;;
   esac
 done
+# Shots render like the iPhone (HDR 2D is off there): on this Windows/Vulkan build the HDR canvas is
+# really 8-bit sRGB, so the shaders' linear maths printed every shader-drawn colour darker and more
+# saturated than the phone shows it (the band's red #ff5c29 came out #f81000). SHOOT_HDR=1 keeps HDR.
+if [ -z "${SHOOT_HDR:-}" ] && ! printf '%s\n' "${extra[@]}" | grep -qx -- "--ldr"; then extra+=("--ldr"); fi
 mkdir -p "$(dirname "$out")"
 # Never report a stale PNG from an earlier run as this run's result.
 rm -f "$out"

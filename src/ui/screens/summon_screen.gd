@@ -853,9 +853,13 @@ func _compose_wish(pr: Rect2) -> void:
 			fr.add_child(loop)
 	if on_i > 0:
 		var to := int(on_i * 150.0)
+		# (A weak reference: a lambda capturing a node that is freed first, as when the banner
+		# changes at once, prints "Lambda capture ... was freed" however its body checks it.)
+		var wr: WeakRef = weakref(strip)
 		get_tree().create_timer(0.05).timeout.connect(func() -> void:
-			if is_instance_valid(strip):
-				strip.scroll_vertical = to)
+			var st := wr.get_ref() as ScrollContainer
+			if st:
+				st.scroll_vertical = to)
 	# More below than fits: a small "swipe" mark at the strip's foot.
 	if list.custom_minimum_size.y > strip.size.y:
 		var more := PK.t("↕  SWIPE  ·  %d LEGENDARIES" % choices.size(), 9, Color(PAPER, 0.75), "mono_bold")
@@ -928,9 +932,11 @@ func _open_wish_picker() -> void:
 	var ti := choices.find(target)
 	if ti > 0:
 		var to := maxi(0, ti * 190 - 192)
+		var wr: WeakRef = weakref(strip)
 		get_tree().create_timer(0.08).timeout.connect(func() -> void:
-			if is_instance_valid(strip):
-				strip.scroll_horizontal = to)
+			var st := wr.get_ref() as ScrollContainer
+			if st:
+				st.scroll_horizontal = to)
 	var modal_ref: Array[Control] = []
 	for id: Variant in choices:
 		var hid := str(id)
