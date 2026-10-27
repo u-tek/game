@@ -7,9 +7,9 @@ extends RefCounted
 
 const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
 
-const INK := Color("101113")
-const PAPER := Color("e9e8e2")
-const SIG := Color("ff4b1f")
+const INK := SignalKit.INK
+const PAPER := SignalKit.PAPER
+const SIG := SignalKit.SIGNAL
 
 
 ## A rubber-stamped commendation: a double ring with its name set around the rim (repeated so the

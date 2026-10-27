@@ -21,9 +21,9 @@ signal pressed
 
 const IsoView := preload("res://src/ui/v4/survey/iso_view.gd")
 const SHADER := preload("res://src/ui/v4/survey/planet.gdshader")
-const INK := Color("101113")
-const PAPER := Color("e9e8e2")
-const SIGNAL := Color("ff4b1f")
+const INK := SignalKit.INK
+const PAPER := SignalKit.PAPER
+const SIGNAL := SignalKit.SIGNAL
 ## Degrees per second of the idle turn.
 const SPIN := 5.0
 

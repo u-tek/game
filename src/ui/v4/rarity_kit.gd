@@ -22,9 +22,9 @@ const BURST := preload("res://src/ui/shaders/halftone_burst.gdshader")
 const SHIMMER := preload("res://src/ui/shaders/name_shimmer.gdshader")
 const Fx := preload("res://src/ui/summon/summon_fx.gd")
 
-const INK := Color("101113")
-const PAPER := Color("e9e8e2")
-const SIGNAL := Color("ff4b1f")
+const INK := SignalKit.INK
+const PAPER := SignalKit.PAPER
+const SIGNAL := SignalKit.SIGNAL
 ## Epic: the first plate (violet), the second (teal), and the band's deep violet.
 const VIOLET := Color("8048e8")
 const TEAL := Color("12b3c4")

@@ -30,9 +30,9 @@ const W := 720.0
 const BAND_W := 132.0
 const RULE_W := 48.0
 const ROW_H := 86.0
-const INK := Color("101113")
-const PAPER := Color("e9e8e2")
-const SIG := Color("ff4b1f")
+const INK := SignalKit.INK
+const PAPER := SignalKit.PAPER
+const SIG := SignalKit.SIGNAL
 
 var _ready_count := 0
 var _root: Control

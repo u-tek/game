@@ -19,10 +19,10 @@ const Poster := preload("res://src/ui/v4/survey/poster.gd")
 const Signature := preload("res://src/ui/components/signature.gd")
 const HomeScreen := preload("res://src/ui/screens/home_screen.gd")
 
-const INK := Color("101113")
-const PAPER := Color("e9e8e2")
-const SIG := Color("ff4b1f")
-const BAND_C := Color("141517")
+const INK := SignalKit.INK
+const PAPER := SignalKit.PAPER
+const SIG := SignalKit.SIGNAL
+const BAND_C := Kit.BAND
 const BAND := 132.0
 
 var _hero := ""

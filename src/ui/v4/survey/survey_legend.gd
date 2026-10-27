@@ -9,9 +9,9 @@ extends RefCounted
 ##   var t := SurveyLegend.DataTable.new(); t.rows = [[label, value, alt], ...]
 ##   var s := SurveyLegend.ScaleBar.new()
 
-const INK := Color("101113")
-const PAPER := Color("e9e8e2")
-const SIGNAL := Color("ff4b1f")
+const INK := SignalKit.INK
+const PAPER := SignalKit.PAPER
+const SIGNAL := SignalKit.SIGNAL
 
 
 ## The route profile: a row of overlapping circles, one per stage, with a sine wave threaded

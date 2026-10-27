@@ -6,9 +6,9 @@ extends Control
 ## (focus, focus_glow, floor_y, floor_glow and bubble_speed are kept for the sequence's API; the
 ## speed shakes the registration marks during the press run.)
 
-const MATTE := Color("f5f4f0")
-const INK := Color("101113")
-const SIGNAL := Color("ff4b1f")
+const MATTE := SignalKit.MATTE
+const INK := SignalKit.INK
+const SIGNAL := SignalKit.SIGNAL
 
 ## Mood colour and how strongly it washes the page (0..1); eased toward each frame.
 var target_tint := INK

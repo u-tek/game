@@ -7,8 +7,8 @@ extends Control
 
 signal beat(bpm: int)
 
-const INK := Color("101113")
-const SIG := Color("ff4b1f")
+const INK := SignalKit.INK
+const SIG := SignalKit.SIGNAL
 const W := 150.0
 const H := 54.0
 

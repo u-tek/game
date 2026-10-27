@@ -21,9 +21,9 @@ const FOIL := preload("res://src/ui/shaders/legend_foil.gdshader")
 const RAYS := preload("res://src/ui/components/rays.gd")
 const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
 
-const INK := Color("101113")
-const PAPER := Color("e9e8e2")
-const SIG := Color("ff4b1f")
+const INK := SignalKit.INK
+const PAPER := SignalKit.PAPER
+const SIG := SignalKit.SIGNAL
 const GOLD := Color("d9a441")
 const GOLD_HI := Color("ffe2a0")
 const GOLD_DEEP := Color("7a5212")

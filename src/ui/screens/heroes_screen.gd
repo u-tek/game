@@ -29,8 +29,8 @@ const SORT_NAMES := {"power": "Power", "rarity": "Rarity", "level": "Level", "st
 const RARITY_RANK := {"legendary": 3, "epic": 2, "rare": 1}
 const RARITIES: Array[String] = ["rare", "epic", "legendary"]
 const ROLE_CODES := {"guardian": "GRD", "striker": "STR", "caster": "CST", "support": "SUP", "assassin": "ASN"}
-const INK := Color("101113")
-const SIG := Color("ff4b1f")
+const INK := SignalKit.INK
+const SIG := SignalKit.SIGNAL
 const HEAD_H := 176.0
 ## The catalogue is never wider than this (tablets centre it on the matte).
 const MAX_W := 760.0

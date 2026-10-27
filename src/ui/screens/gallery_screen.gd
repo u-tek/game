@@ -15,9 +15,9 @@ extends Control
 
 const DeviceTier := preload("res://src/art/device_tier.gd")
 const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
-const INK := Color("101113")
-const PAPER := Color("e9e8e2")
-const SIG := Color("ff4b1f")
+const INK := SignalKit.INK
+const PAPER := SignalKit.PAPER
+const SIG := SignalKit.SIGNAL
 const STRIP_H := 156.0
 const ZOOM_IN := 2.2
 const SWIPE_MIN := 90.0

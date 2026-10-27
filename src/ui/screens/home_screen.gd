@@ -36,7 +36,7 @@ const PAPER := SignalKit.PAPER
 const MATTE := SignalKit.MATTE
 const INK := SignalKit.INK
 const SIG := SignalKit.SIGNAL
-const BAND_C := Color("141517")
+const BAND_C := Kit.BAND
 ## Rendered collage object (tools/blender/ui_objects.py): the object sits at PAD px inside the PNG
 ## (the rest is its baked paper shadow), OBJ px across.
 const DISC_TEX := "res://assets/art/ui/objects/disc.png"

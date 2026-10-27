@@ -95,9 +95,10 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 
 ## P3
 
-- P3 todo **One poster kit:** fold `poster_kit.gd`, `hero_poster_kit.gd`, survey `poster.gd` and
-  `SignalKit` pieces into one kit; one `INK`/`PAPER` palette (about 35 copies) and one set of spacing
-  constants. Done when: no file defines its own INK/PAPER and `tools/check e2e` is green.
+- P3 doing **One poster kit:** done: the palette has one source (41 files' INK, PAPER, SIG/SIGNAL,
+  MATTE and BAND constants now point at SignalKit / Kit.BAND). Left: 72 inline uses of the same hex
+  colours in expressions; folding `poster_kit.gd`, `hero_poster_kit.gd`, survey `poster.gd` and
+  SignalKit into one kit (three copies of the pass alone); one set of spacing constants.
 - P3 todo **War claim pays by the current side; the oath promises a side switch no screen offers.**
 - P3 todo **Profile ENLISTED date in UTC** (the rest is local).
 - P3 todo **The record forgets stamped days after 400 days** (claims are pruned).

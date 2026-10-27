@@ -6,7 +6,7 @@ extends Button
 ## dot marks a tab with something to do.
 
 const ICON := 34.0
-const INK := Color("101113")
+const INK := SignalKit.INK
 
 var tab_id := ""
 var center := false

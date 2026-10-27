@@ -13,9 +13,9 @@ signal picked(sector: int)
 
 const DIR := "res://assets/art/ui/front/"
 const SHADER := preload("res://src/ui/v4/front_relief.gdshader")
-const INK := Color("101113")
-const PAPER := Color("e9e8e2")
-const SIG := Color("ff4b1f")
+const INK := SignalKit.INK
+const PAPER := SignalKit.PAPER
+const SIG := SignalKit.SIGNAL
 const GOLD := Color(0.86, 0.66, 0.24)
 ## The campaign map's cumulus (a 3 x 2 atlas of 320 px cells), three of them over Heaven's cliffs.
 const CLOUDS := "res://assets/art/worlds/clouds.png"

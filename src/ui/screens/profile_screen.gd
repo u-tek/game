@@ -56,10 +56,10 @@ const LOG_H := 64.0 + LOG_N * 30.0 + 30.0
 const MAX_W := 760.0
 const PORTRAIT := Vector2(220, 260)
 const STAMP := 74.0
-const INK := Color("101113")
-const PAPER := Color("e9e8e2")
-const SIG := Color("ff4b1f")
-const BAND_C := Color("141517")
+const INK := SignalKit.INK
+const PAPER := SignalKit.PAPER
+const SIG := SignalKit.SIGNAL
+const BAND_C := Kit.BAND
 ## Account ranks: [from level, title]. Level = stages cleared (the Sanctum's LV).
 const RANKS := [[1, "INITIATE"], [5, "ACOLYTE"], [10, "WARDEN"], [20, "VANGUARD"], [30, "ARBITER"], [40, "EXARCH"],
 	[50, "ASCENDANT"]]

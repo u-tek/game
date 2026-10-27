@@ -31,11 +31,11 @@ const DOME := "res://assets/art/ui/objects/dome.png"
 const BUTTON := "res://assets/art/ui/objects/button.png"
 const SEAL := "res://assets/art/ui/objects/seal.png"
 
-const INK := Color("101113")
-const PAPER := Color("e9e8e2")
+const INK := SignalKit.INK
+const PAPER := SignalKit.PAPER
 const CARD := Color("f4f3ef")
-const SIG := Color("ff4b1f")
-const BAND_C := Color("141517")
+const SIG := SignalKit.SIGNAL
+const BAND_C := Kit.BAND
 const FELT := Color(0.55, 0.553, 0.565)
 const BAND := 150.0
 const FACE := 700.0

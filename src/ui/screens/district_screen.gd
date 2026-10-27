@@ -17,11 +17,11 @@ const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
 const Poster := preload("res://src/ui/v4/survey/poster.gd")
 const CK := preload("res://src/ui/v4/collect/collect_kit.gd")
 
-const INK := Color("101113")
-const PAPER := Color("e9e8e2")
-const SIG := Color("ff4b1f")
+const INK := SignalKit.INK
+const PAPER := SignalKit.PAPER
+const SIG := SignalKit.SIGNAL
 const GOLD := Color(0.86, 0.66, 0.24)
-const BAND_C := Color("141517")
+const BAND_C := Kit.BAND
 const BAND := 132.0
 const HEAD := 300.0
 const PLAN_H := 530.0

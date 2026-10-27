@@ -25,9 +25,9 @@ signal decor_bought(kind: String, x: int, y: int)
 
 const DIR := "res://assets/art/ui/district/"
 const SHADER := preload("res://src/ui/v4/district_model.gdshader")
-const INK := Color("101113")
-const PAPER := Color("e9e8e2")
-const SIG := Color("ff4b1f")
+const INK := SignalKit.INK
+const PAPER := SignalKit.PAPER
+const SIG := SignalKit.SIGNAL
 const GOLD := Color(0.86, 0.66, 0.24)
 ## Building ids in data order (data/district.json).
 const IDS: Array[String] = ["gate", "chapel", "market", "baths", "forge", "lounge", "archive", "spire"]

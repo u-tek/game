@@ -37,11 +37,11 @@ extends RefCounted
 const Plate := preload("res://src/ui/components/plate.gd")
 const HUD := preload("res://src/ui/components/hud.gd")
 
-const SIGNAL := Color("ff4b1f")
-const INK := Color("101113")
-const PAPER := Color("e9e8e2")
-const MATTE := Color("f5f4f0")
-const BAND := Color("141517")
+const SIGNAL := SignalKit.SIGNAL
+const INK := SignalKit.INK
+const PAPER := SignalKit.PAPER
+const MATTE := SignalKit.MATTE
+const BAND := Kit.BAND
 const RED_INK := Color(1.0, 0.36, 0.16, 0.95)
 
 

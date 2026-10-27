@@ -28,11 +28,11 @@ const CK := preload("res://src/ui/v4/collect/collect_kit.gd")
 const Signature := preload("res://src/ui/components/signature.gd")
 const PPK := preload("res://src/ui/v4/poster_kit.gd")
 
-const INK := Color("101113")
-const PAPER := Color("e9e8e2")
-const SIG := Color("ff4b1f")
+const INK := SignalKit.INK
+const PAPER := SignalKit.PAPER
+const SIG := SignalKit.SIGNAL
 const GOLD := Color(0.86, 0.66, 0.24)
-const BAND_C := Color("141517")
+const BAND_C := Kit.BAND
 const BAND := 132.0
 const HEAD := 330.0
 const CHART_H := 640.0

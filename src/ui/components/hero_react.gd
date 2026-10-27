@@ -13,8 +13,8 @@ extends RefCounted
 ##   var hold := HeroReact.react(host, sprite, anchor, tap_pos_in_host, taps_in_a_row, shake_target)
 ##   (play_idle after `hold` seconds; the expression resets itself)
 
-const SIG := Color("ff4b1f")
-const INK := Color("101113")
+const SIG := SignalKit.SIGNAL
+const INK := SignalKit.INK
 const PAPER := Color("f5f4f0")
 ## Taps closer together than this count as a flurry.
 const FLURRY_GAP := 1.4

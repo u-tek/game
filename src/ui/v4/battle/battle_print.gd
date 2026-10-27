@@ -20,13 +20,13 @@ extends RefCounted
 const HUD := preload("res://src/ui/components/hud.gd")
 const RISO := preload("res://src/ui/v4/battle/riso.gdshader")
 
-const MATTE := Color("f5f4f0")
-const PAPER := Color("e9e8e2")
+const MATTE := SignalKit.MATTE
+const PAPER := SignalKit.PAPER
 ## The paper of a strip's darker parts (inside frames, empty bars).
 const PAPER_DIM := Color("d9d8d1")
-const INK := Color("101113")
-const BAND := Color("141517")
-const SIG := Color("ff4b1f")
+const INK := SignalKit.INK
+const BAND := Kit.BAND
+const SIG := SignalKit.SIGNAL
 const SIG_HI := Color("ff8a62")
 ## Red halftone ink on dark bands (the Lobby poster's print).
 const RED_INK := Color(1.0, 0.36, 0.16, 0.95)

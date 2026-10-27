@@ -10,11 +10,11 @@ const Plate := preload("res://src/ui/components/plate.gd")
 const HUD := preload("res://src/ui/components/hud.gd")
 
 const W := 720.0
-const MATTE := Color("f5f4f0")
-const PAPER := Color("e9e8e2")
-const INK := Color("101113")
-const BAND := Color("141517")
-const SIGNAL := Color("ff4b1f")
+const MATTE := SignalKit.MATTE
+const PAPER := SignalKit.PAPER
+const INK := SignalKit.INK
+const BAND := Kit.BAND
+const SIGNAL := SignalKit.SIGNAL
 
 
 ## The paper matte behind everything.

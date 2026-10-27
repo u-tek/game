@@ -13,9 +13,9 @@ const STATUS_ICONS := {
 const DEBUFFS := ["stun", "burn", "atk_down", "def_down", "charm"]
 const BAR_W := 108.0
 ## Style v4 print colours (paper tag, ink, signal) and the ground ring colours.
-const PAPER := Color("e9e8e2")
-const INK := Color("101113")
-const SIG := Color("ff4b1f")
+const PAPER := SignalKit.PAPER
+const INK := SignalKit.INK
+const SIG := SignalKit.SIGNAL
 const MARK_ALLY := Color("f5f4f0")
 const MARK_ENEMY := Color("ff4b1f")
 

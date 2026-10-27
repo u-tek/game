@@ -22,10 +22,10 @@ const Poster := preload("res://src/ui/v4/survey/poster.gd")
 const CK := preload("res://src/ui/v4/collect/collect_kit.gd")
 
 const FILTERS := [["all", "All"], ["misprint", "Misprints"], ["holo", "Holo"], ["top", "Top grade"], ["rival", "From Rue"]]
-const INK := Color("101113")
-const PAPER := Color("e9e8e2")
-const SIG := Color("ff4b1f")
-const BAND_C := Color("141517")
+const INK := SignalKit.INK
+const PAPER := SignalKit.PAPER
+const SIG := SignalKit.SIGNAL
+const BAND_C := Kit.BAND
 const SHEET := Color("e2e3e1")
 const BAND := 132.0
 const HEAD := 320.0

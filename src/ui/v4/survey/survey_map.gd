@@ -33,9 +33,9 @@ const SHADOW_SHADER := preload("res://src/ui/v4/survey/contact_shadow.gdshader")
 const CLOUDS_PATH := "res://assets/art/worlds/clouds.png"
 const CLOUD_SHADOW_PATH := "res://assets/art/worlds/clouds_shadow.png"
 
-const INK := Color("101113")
-const PAPER := Color("e9e8e2")
-const SIGNAL := Color("ff4b1f")
+const INK := SignalKit.INK
+const PAPER := SignalKit.PAPER
+const SIGNAL := SignalKit.SIGNAL
 const TAP_R := 74.0
 ## Seconds for the model to settle onto the poster when a chapter opens.
 const SETTLE := 0.8

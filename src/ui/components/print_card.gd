@@ -14,9 +14,9 @@ extends Control
 
 const MISPRINT := preload("res://src/ui/shaders/misprint.gdshader")
 const GLOSS := preload("res://src/ui/shaders/slab_gloss.gdshader")
-const INK := Color("101113")
+const INK := SignalKit.INK
 const CARD := Color("f4f3ef")
-const SIG := Color("ff4b1f")
+const SIG := SignalKit.SIGNAL
 ## The swapped inks (sRGB): cyan, violet, acid green, gold.
 const INK_COLORS := {"cyan": Color(0.0, 0.74, 0.86), "violet": Color(0.5, 0.26, 0.86), "acid": Color(0.6, 0.86, 0.04),
 	"gold": Color(0.92, 0.66, 0.1)}

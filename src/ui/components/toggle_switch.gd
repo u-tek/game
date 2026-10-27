@@ -7,7 +7,7 @@ extends CheckButton
 
 const TRACK := Vector2(112, 50)
 const PAPER := Color("f4f3ef")
-const INK := Color("101113")
+const INK := SignalKit.INK
 const LED := Color("ff3b1f")
 
 ## Drawn knob position, 0 = off, 1 = on (springs past the ends a little).

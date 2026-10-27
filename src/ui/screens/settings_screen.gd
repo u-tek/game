@@ -26,7 +26,7 @@ const SPEEDS: Array[int] = [1, 2, 4]
 const INK := SignalKit.INK
 const SIG := SignalKit.SIGNAL
 const PAPER := SignalKit.PAPER
-const BAND := Color("141517")
+const BAND := Kit.BAND
 const BAND_W := 150.0
 const MAST_H := 318.0
 

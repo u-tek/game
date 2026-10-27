@@ -10,9 +10,9 @@ extends Control
 ##   var s := PlateStack.new(); s.floors = [{floor, state ("cleared"|"next"|"locked"), boss, label}]
 ##   s.size = ...; add_child(s)
 
-const INK := Color("101113")
-const PAPER := Color("e9e8e2")
-const SIGNAL := Color("ff4b1f")
+const INK := SignalKit.INK
+const PAPER := SignalKit.PAPER
+const SIGNAL := SignalKit.SIGNAL
 const SIDES := 8
 
 ## Bottom to top: {floor: int, state: String, boss: bool, label: String, sub: String}.

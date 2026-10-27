@@ -29,9 +29,9 @@ const SLOT_ORDER_BACK: Array[int] = [2, 3, 4, 0, 1]
 const FRONT_ROLES: Array[String] = ["guardian", "striker"]
 const BAND := 150.0
 const RULE_IN := 44.0
-const INK := Color("101113")
-const PAPER := Color("e9e8e2")
-const SIG := Color("ff4b1f")
+const INK := SignalKit.INK
+const PAPER := SignalKit.PAPER
+const SIG := SignalKit.SIGNAL
 const FACTION_SHORT := {"celestial": "CEL", "infernal": "INF", "fallen": "FAL"}
 ## Free room at the poster's foot, where the Battle pass is stuck on.
 const PASS_ROOM := 118.0

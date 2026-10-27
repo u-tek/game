@@ -13,10 +13,10 @@ const LobbyLines := preload("res://src/ui/battle/lobby_lines.gd")
 
 const W := 720.0
 const BAND := 248.0
-const PAPER := Color("e9e8e2")
-const MATTE := Color("f5f4f0")
+const PAPER := SignalKit.PAPER
+const MATTE := SignalKit.MATTE
 const INKC := Color("101113")
-const SIG := Color("ff4b1f")
+const SIG := SignalKit.SIGNAL
 
 var _hero_id := ""
 var _anchor: Node2D

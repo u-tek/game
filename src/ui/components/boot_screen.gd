@@ -27,11 +27,11 @@ extends Control
 const PrintBits := preload("res://src/ui/components/print_bits.gd")
 
 const SPLASH := Color(0.07, 0.055, 0.14, 1)
-const MATTE := Color("f5f4f0")
-const PAPER := Color("e9e8e2")
-const INK := Color("101113")
-const BAND := Color("141517")
-const SIG := Color("ff4b1f")
+const MATTE := SignalKit.MATTE
+const PAPER := SignalKit.PAPER
+const INK := SignalKit.INK
+const BAND := Kit.BAND
+const SIG := SignalKit.SIGNAL
 const TIPS: Array[String] = [
 	"The Sanctum keeps filling while you're away. Collect it from the Lobby.",
 	"Your first summon every day is free.",

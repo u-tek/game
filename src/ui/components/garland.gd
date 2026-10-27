@@ -15,7 +15,7 @@ const DIR := "res://assets/art/ui/holiday/"
 const SETS := {
 	"halloween": [["bat_p", 0.74, 12.0, false], ["bat_a", 0.92, 34.0, true], ["bat_b", 0.7, 16.0, false]],
 }
-const INK := Color("101113")
+const INK := SignalKit.INK
 const TAPE := Color(0.93, 0.9, 0.8, 0.9)
 ## The key light is top left: shadows fall down and to the right, further for what hangs lower.
 const SHADOW := Vector2(5.0, 9.0)

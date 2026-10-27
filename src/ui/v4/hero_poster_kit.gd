@@ -13,11 +13,11 @@ extends RefCounted
 const Plate := preload("res://src/ui/components/plate.gd")
 const ECHO := preload("res://src/ui/v4/soft_echo.gdshader")
 
-const MATTE := Color("f5f4f0")
-const PAPER := Color("e9e8e2")
-const INK := Color("101113")
-const BAND := Color("141517")
-const SIG := Color("ff4b1f")
+const MATTE := SignalKit.MATTE
+const PAPER := SignalKit.PAPER
+const INK := SignalKit.INK
+const BAND := Kit.BAND
+const SIG := SignalKit.SIGNAL
 ## Red halftone ink on the dark bands (the Lobby poster's print).
 const PRINT := Color(1.0, 0.36, 0.16, 0.95)
 ## Engraved ink on silver.

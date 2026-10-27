@@ -21,9 +21,9 @@ const ABOVE := 3
 const W := 720.0
 const BAND_W := 132.0
 const RULE_W := 48.0
-const INK := Color("101113")
-const PAPER := Color("e9e8e2")
-const SIG := Color("ff4b1f")
+const INK := SignalKit.INK
+const PAPER := SignalKit.PAPER
+const SIG := SignalKit.SIGNAL
 
 var _root: Control
 var _pr := Rect2()

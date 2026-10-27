@@ -26,9 +26,9 @@ signal switch_pressed(chapter_index: int)
 const WorldView := preload("res://src/ui/v4/survey/world_view.gd")
 const Poster := preload("res://src/ui/v4/survey/poster.gd")
 const StageInfo := preload("res://src/ui/battle/stage_info.gd")
-const INK := Color("101113")
-const PAPER := Color("e9e8e2")
-const SIGNAL := Color("ff4b1f")
+const INK := SignalKit.INK
+const PAPER := SignalKit.PAPER
+const SIGNAL := SignalKit.SIGNAL
 
 var chapter := 0
 var world_view: WorldView
