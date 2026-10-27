@@ -93,7 +93,7 @@ const SFX_VOLUME_DB := {
 	"tap": -10.0, "tab": -11.0, "pop": -13.0, "close": -17.0, "deny": -9.0, "toggle": -11.0,
 	"coin": -13.0, "sparkle": -15.0, "hit": -6.0, "reward": -5.0, "summon": -4.0, "legendary": -3.0,
 	"ult": -5.0, "victory": -4.0, "defeat": -5.0, "stamp": -7.0, "pulse": -19.0,
-	"printer": -13.0, "tear": -11.0, "shutter": -8.0,
+	"printer": -13.0, "tear": -11.0, "shutter": -8.0, "clack": -12.0,
 }
 
 ## App root (main.gd). Screens mount into root.content.

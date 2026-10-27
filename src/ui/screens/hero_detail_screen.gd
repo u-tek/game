@@ -36,6 +36,7 @@ extends Control
 ## fx_at (s) freezes it at that moment (screenshots).
 
 ## The matte line above the poster: the big Back and the publication line.
+const Roller := preload("res://src/ui/components/roller.gd")
 const DeviceTier := preload("res://src/art/device_tier.gd")
 const TOP_LINE := 100.0
 const Roster := preload("res://src/ui/screens/heroes_screen.gd")
@@ -76,6 +77,8 @@ const LEGEND_STRIP := 128.0
 ## Base-stat range over every hero (stat dots rate a hero against the roster): stat -> [min, max].
 static var _stat_range := {}
 
+## The dossier's numbers when a hold on LEVEL UP began (_snapshot), to roll from at its end.
+var _before: Dictionary = {}
 var _id := ""
 var _def: Dictionary = {}
 var _owned := false
@@ -182,6 +185,12 @@ func setup(params: Dictionary) -> void:
 	resized.connect(_on_resized)
 	Game.changed.connect(_refresh)
 	_refresh()
+	if OS.is_debug_build() and params.has("level_demo"):
+		# Shots: a level up (one tap) that many seconds in.
+		get_tree().create_timer(float(params["level_demo"])).timeout.connect(_on_level_tap)
+	if OS.is_debug_build() and params.has("star_demo"):
+		# Shots: the star up's celebration (display only) that many seconds in.
+		get_tree().create_timer(float(params["star_demo"])).timeout.connect(_celebrate_star.bind(int(Game.hero(_id).get("stars", 1))))
 	if params.has("scroll"):
 		_scroll_to.call_deferred(int(params["scroll"]))
 	var want := str(params.get("tab", ""))
@@ -1459,6 +1468,7 @@ func _process(delta: float) -> void:
 
 
 func _on_level_down() -> void:
+	_before = _snapshot()
 	_holding = not _lvl_btn.disabled
 	_hold_t = 0.0
 	_hold_next = HOLD_DELAY
@@ -1472,15 +1482,16 @@ func _end_hold() -> void:
 	_holding = false
 	if _hold_gained > 0:
 		UI.sfx("reward")
-		_celebrate_level(_hold_gained)
+		_celebrate_level(_hold_gained, _before)
 
 
 func _on_level_tap() -> void:
 	if _hold_count > 0:
 		return # the hold already did the work
+	var before := _snapshot()
 	if _do_level(1, false):
 		UI.sfx("reward")
-		_celebrate_level(1)
+		_celebrate_level(1, before)
 
 
 func _on_level_max() -> void:
@@ -1488,22 +1499,24 @@ func _on_level_max() -> void:
 	if n <= 0:
 		UI.toast("Not enough gold or hero EXP", "bad")
 		return
+	var before := _snapshot()
 	var r := Game.level_up_many(_id, n)
 	if not bool(r.get("ok", false)):
 		UI.toast(str(r.get("error", "Can't level up")), "bad")
 		return
 	UI.sfx("reward")
 	UI.haptic(20)
-	_celebrate_level(int(r.value.get("levels_gained", n)))
+	_celebrate_level(int(r.value.get("levels_gained", n)), before)
 
 
 ## One level-up attempt. quiet = part of a hold (no toast on failure, just stop).
 func _do_level(n: int, quiet: bool) -> bool:
+	var lv_before := _level_l.text if _level_l else ""
 	var r := Game.level_up_many(_id, n)
 	if bool(r.get("ok", false)):
 		if quiet:
-			UI.sfx("tap")
-			_burst(0.55)
+			UI.sfx("clack")
+			Roller.roll(_level_l, lv_before, _level_l.text, true)
 		return true
 	if not quiet or _hold_gained == 0:
 		UI.toast(str(r.get("error", "Can't level up")), "bad")
@@ -2193,6 +2206,48 @@ func _burst(strength: float = 1.0, color: Color = Color(0, 0, 0, 0)) -> void:
 	_fx.add_child(b)
 
 
+## A star up: a rubber stamp slams onto her dossier in signal ink (N STARS, the new level cap under
+## it) where its stars line prints, clear of her face, and stays a moment before it lifts away.
+func _stamp_star(stars: int) -> void:
+	var st := PrintCard.Stamp.new()
+	st.name = "StarStamp"
+	st.text = "%d STARS" % stars
+	st.sub = "STAR UP  ·  LEVEL CAP %d" % int(Game.max_level(_id))
+	st.color = SIG
+	st.seed_v = 40 + stars
+	st.size = Vector2(380, 118)
+	# On the screen's top layer (the dossier's header draws over the effects layer).
+	var p := _hero_point() + _fx.global_position - global_position - Vector2(0, 150)
+	if _stars and is_instance_valid(_stars) and _stars.is_visible_in_tree():
+		p = _stars.get_global_rect().get_center() - global_position + Vector2(130, -20)
+	st.position = Vector2(clampf(p.x - 190.0, 16.0, size.x - 396.0), p.y - 59.0)
+	st.pivot_offset = st.size * 0.5
+	st.rotation = -0.14
+	# (Over the poster's paper relief and its header, which draw above the page.)
+	st.z_index = 60
+	add_child(st)
+	if not Kit.motion_ok():
+		var tq := st.create_tween()
+		tq.tween_interval(1.6)
+		tq.tween_property(st, "modulate:a", 0.0, 0.3)
+		tq.tween_callback(st.queue_free)
+		return
+	st.scale = Vector2(2.6, 2.6)
+	st.modulate.a = 0.0
+	var tw := st.create_tween()
+	tw.tween_property(st, "modulate:a", 1.0, 0.05)
+	tw.parallel().tween_property(st, "scale", Vector2.ONE, 0.26).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_callback(func() -> void:
+		UI.sfx("slam")
+		UI.haptic(50)
+		if _poster and is_instance_valid(_poster):
+			Kit.shake(_poster, 6))
+	tw.tween_interval(1.5)
+	tw.tween_property(st, "modulate:a", 0.0, 0.35)
+	tw.parallel().tween_property(st, "position:y", st.position.y - 30.0, 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tw.tween_callback(st.queue_free)
+
+
 func _float_text(text: String, color: Color, size_px: int = 52) -> void:
 	var l := Kit.label(text, size_px, color, "compressed")
 	l.add_theme_constant_override("outline_size", 10)
@@ -2212,21 +2267,36 @@ func _float_text(text: String, color: Color, size_px: int = 52) -> void:
 	tw.chain().tween_callback(l.queue_free)
 
 
-func _celebrate_level(gained: int) -> void:
-	var lv := int(Game.hero(_id).get("level", 1))
-	_burst(1.0)
-	_float_text("LV. %d" % lv if gained <= 1 else "LV. %d  (+%d)" % [lv, gained], SIG, 72)
+## A level up: the dossier's counters turn over like a mechanical counter (the level, then every
+## stat, each changed digit rolling up on its drum with a clack), she answers it, the pass pulses.
+## before: _snapshot() from before the levels were bought.
+func _celebrate_level(gained: int, before: Dictionary = {}) -> void:
+	if not before.is_empty():
+		Roller.roll(_level_l, str(before.get("level", "")), _level_l.text)
+		var vals: Array = before.get("stats", [])
+		for i in mini(vals.size(), _stat_cells.size()):
+			var cell := _stat_cells[i]["value"] as Label
+			Roller.roll(cell, str(vals[i]), cell.text, true, 0.1 + 0.05 * i)
+	if _sprite and is_instance_valid(_sprite) and gained >= 1 and Kit.motion_ok():
+		_sprite.call("play_victory")
+		_victory_left = 1.1
 	if _pass:
 		Kit.pulse(_pass, 1.03)
 	UI.haptic(15)
 
 
+## The dossier's numbers as they print now (the level line, every stat), to roll from after a level up.
+func _snapshot() -> Dictionary:
+	var vals: Array = []
+	for cell: Dictionary in _stat_cells:
+		vals.append((cell["value"] as Label).text)
+	return {"level": _level_l.text if _level_l else "", "stats": vals}
+
+
 func _celebrate_star(stars: int) -> void:
 	UI.sfx("victory")
 	UI.haptic(40)
-	_burst(1.4, Kit.ORANGE)
-	_burst(0.9, Kit.ACCENT_HI)
-	_float_text("%d STARS" % stars, SIG, 84)
+	_stamp_star(stars)
 	if _sprite and is_instance_valid(_sprite):
 		_sprite.call("play_victory")
 		_victory_left = 2.4

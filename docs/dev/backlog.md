@@ -123,6 +123,13 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   inks as its press photo, the MVP in front (`battle_screen.gd _photo_finish`, `battle_result.gd`
   data.photo). Every win has its own picture.
 
+- P2 done **Level up and star up were code bursts** (a ring of sparks and floating "LV. 47"): a level
+  up turns the dossier's numbers over like a mechanical counter (`src/ui/components/roller.gd`: drawn
+  over each label in its own font, every changed digit rolling up on its drum, right to left, sfx
+  `clack`), the level first, then each stat; a hold rolls the level quietly at each step; she
+  answers it (her victory pose for a second). A star up slams a rubber stamp (N STARS · LEVEL CAP)
+  onto the dossier's stars line. Shot params `level_demo` / `star_demo` (seconds).
+
 ## P3
 
 - P3 doing **One poster kit:** done: the palette has one source (every INK, PAPER, SIGNAL, MATTE and

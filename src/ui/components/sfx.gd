@@ -7,13 +7,14 @@ extends RefCounted
 ## opening), reveal (a Rare hero), riser + beat (the held beat before a Legendary) and slam
 ## (the rarity word landing); the Lobby adds stamp (a real day stamped), pulse (her heartbeat)
 ## and rustle (a holiday decoration brushed on its thread); a reward's receipt adds printer (it feeds out
-## of a thermal printer) and tear (torn off); a won battle's photo finish adds shutter.
+## of a thermal printer) and tear (torn off); a won battle's photo finish adds shutter;
+## a level up's counter adds clack (a digit's drum turning over).
 
 const RATE := 22050
 const NAMES: Array[String] = ["tap", "tab", "pop", "deny", "toggle", "coin", "sparkle", "close", "hit", "reward",
 	"ult", "summon", "victory", "defeat", "legendary",
 	"portal", "tell", "tell_big", "burst", "reveal", "riser", "beat", "slam", "stamp", "pulse", "rustle",
-	"printer", "tear", "shutter"]
+	"printer", "tear", "shutter", "clack"]
 
 
 ## Builds the stream for `sound_name` (null if unknown).
@@ -78,6 +79,8 @@ static func make(sound_name: String) -> AudioStreamWAV:
 			s = _tear()
 		"shutter":
 			s = _shutter()
+		"clack":
+			s = _clack()
 		_:
 			return null
 	return _to_wav(s)
@@ -617,4 +620,20 @@ static func _shutter() -> PackedFloat32Array:
 		var k := (t - 0.07) / (dur - 0.07)
 		ph += TAU * (90.0 + 40.0 * k) / RATE
 		b[i] += (sin(ph) * 0.3 + rng.randf_range(-1.0, 1.0) * 0.08) * sin(PI * k) * 0.25
+	return b
+
+
+## A mechanical counter's drum turning over one digit: a small hard tick on a hollow little knock.
+static func _clack() -> PackedFloat32Array:
+	var dur := 0.07
+	var b := _buf(dur)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 23
+	var ph := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		ph += TAU * (520.0 - 180.0 * t / dur) / RATE
+		var tick := rng.randf_range(-1.0, 1.0) * exp(-t * 900.0)
+		var knock := sin(ph) * exp(-t * 70.0)
+		b[i] = (tick * 0.8 + knock * 0.45) * 0.8
 	return b
