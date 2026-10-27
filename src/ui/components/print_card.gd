@@ -190,11 +190,13 @@ func _build_label(r: Rect2) -> void:
 	gn.position = Vector2(0, -2)
 	gb.add_child(gn)
 	var gname := PrintRules.grade_name(g).to_upper().replace("NEAR MINT", "NM").replace("EXCELLENT", "EX").replace("VERY GOOD", "VG")
+	# (A full line's height: a 12 px box cut the word in half. It sets smaller rather than clip.)
 	var gl := Kit.label(gname, 8 if compact else 9, Color(CARD, 0.92), "mono_bold")
 	gl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	gl.clip_text = true
-	gl.size = Vector2(gw, 12)
-	gl.position = Vector2(0, r.size.y - 13)
+	gl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	Kit.fit_label(gl, gw - 4.0, 8 if compact else 9, 6)
+	gl.size = Vector2(gw, 15)
+	gl.position = Vector2(0, r.size.y - 15)
 	gb.add_child(gl)
 	var tw := r.size.x - gw - 10.0
 	var d := HeroData.get_def(str(p.get("hero", "")))

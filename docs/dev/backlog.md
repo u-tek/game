@@ -30,8 +30,8 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 - P1 done **District: a swipe that started on a free lot bought a prop** (e2e check).
 - P1 done **Gallery in 18+ mode sells skins** that can't show; **hidden BUY still live**; **a tap
   undoes the zoom**; the strip highlight lands on a card being freed.
-- P1 todo **Hero page: the level-up pass and abilities capsule cover her legs and wings**; sub-tabs
-  45 px tall. Done when: nothing interactive crosses her figure's box on any of 4 heroes.
+- P2 todo **Hero page: the level-up pass and abilities capsule sit over her legs and wings** (the
+  stuck-on collage of the approved layout; move only with a take that keeps her as big).
 - P1 done **Summon: the RATES card sat on her head** (Standard banner; the stubs at her feet stay as
   stuck-on collage).
 - P1 done **Quests: the last order row was cut; two title sizes** (the GO boxes already had 108x86
@@ -39,15 +39,15 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 - P1 done **Shop: a long skin description ran into the price; the micro type crossed the name.**
 - P1 done **Heroes: PWR ran into the tier numeral; the stars overflowed** (the numeral is gone: the
   frame says the rarity; the tabs already had 88 px hit areas).
-- P1 todo **Prints: the grade word is cut by the label strip; the count runs into its caption.**
+- P1 done **Prints: the grade word was cut by the label strip; the count ran into its caption.**
 - P1 done **Rival: 'HER LV · POWER' cut by the plate; the reward line overflowed the plate.**
 - P1 done **Battle: a flame covered the SOULS count; the fifth FOES square printed over TEAM;
   '+40 SOULS' showed on wins that pay none.**
-- P1 done **Campaign and Spire: the pass plate's sub-line was cut by its bevel** (every pass). World
-  arrows: todo.
+- P1 done **Campaign and Spire: the pass plate's sub-line was cut by its bevel** (every pass; the
+  world arrows already had 88 px hit areas).
 - P1 done **Settings: the band's micro type ran through the giant title.**
-- P1 todo **Lobby: VIEW clipped on short phones; the > arrow under the Sanctum disc; the rights line
-  cut by the bulletin tab; the hero arrows 52 px.** (re-check with audit2)
+- P1 done **Lobby: the rights line was cut by the bulletin tab.** Not real with true insets: VIEW
+  clipped and the > arrow hidden on short phones (audit2 shows both).
 - P1 done **Calling: SKIP and the signature copy nearly invisible** (SKIP FOR NOW now sits on the
   form above ANSWER, 12 px, an 88 px target).
 - P1 done **Profile: PORTRAIT > CHANGE tag over the avatar art** (the side menu's hit areas were

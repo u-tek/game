@@ -220,11 +220,14 @@ func _build_head(pw: float) -> void:
 	PK.at(p, no, Vector2(x0, 18))
 	PK.at(p, Kit.tick_rule(tw, Color(INK, 0.55), {"lead": SIG}), Vector2(x0, 38))
 	var kept := int(stats.get("kept", 0))
-	var big := CK.deboss("%03d" % kept, 96, PAPER, "compressed", 2.0)
+	var count_s := "%03d" % kept
+	var big := CK.deboss(count_s, 96, PAPER, "compressed", 2.0)
 	big.name = "Count"
 	PK.at(p, big, Vector2(x0 - 2, 44))
+	# The caption starts after the count, however many digits it has.
+	var cw := Kit.font("compressed").get_string_size(count_s, HORIZONTAL_ALIGNMENT_LEFT, -1, 96).x
 	var cap := PK.t("PRINTS IN THE ALBUM\nKEPT FOREVER: EVERY MISPRINT,\nHOLO, TOP GRADE AND FIRST COPY", 10, Color(INK, 0.72), "mono")
-	PK.at(p, cap, Vector2(x0 + 150, 66))
+	PK.at(p, cap, Vector2(x0 + cw + 18.0, 66))
 	# An engraved fleuron between the count and the register (the parchment poster's ornaments).
 	var fl := CK.Fleuron.new()
 	fl.size = Vector2(tw, 18)

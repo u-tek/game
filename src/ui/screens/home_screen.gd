@@ -223,7 +223,8 @@ func _build() -> void:
 	# (The maker's mark "HH" gave its corner to the growth; the rights line below still carries it.)
 	var rights := Kit.label("©2026 HH, ALL RIGHTS RESERVED.", 11, Color(PAPER, 0.8), "mono_bold")
 	rights.rotation = PI * 0.5
-	rights.position = Vector2(46, 90)
+	# Below the bulletin's acrylic tab (52-248), which used to cut its first letters.
+	rights.position = Vector2(46, 262)
 	_poster.add_child(rights)
 
 	# The paper's grain re-lights the print under it (her line sits on top: it is pressed in). The
