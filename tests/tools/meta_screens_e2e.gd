@@ -81,6 +81,34 @@ func _new_screens() -> void:
 	var hid := str((_game.owned_heroes()[0] as Dictionary).id)
 	_check(bool(_game.district_set_keeper(0, hid).ok), "a keeper for the gate")
 	_check(str((_game.district().buildings as Array)[0].keeper) == hid, "the gate has her")
+	# Arranging with a prop in hand: a swipe that starts on a free lot buys nothing; a tap buys one.
+	# (The keeper change rebuilds the screen: take the plan once it has settled.)
+	await _frames(4)
+	var plan := _ui.current.find_child("Plan", true, false) as Control
+	if plan:
+		var bought := [0]
+		plan.connect("decor_bought", func(_k: String, _x: int, _y: int) -> void: bought[0] += 1)
+		plan.set("arranging", true)
+		plan.set("hold_kind", "tree")
+		var lot := Vector2i(-1, -1)
+		for ly in 12:
+			for lx in 12:
+				if lot.x < 0 and DistrictRules.can_decorate(plan.call("_current_layout"), plan.call("_decor_layout"), lx, ly):
+					lot = Vector2i(lx, ly)
+		var at: Vector2 = plan.get_global_transform_with_canvas() * (plan.call("_ground", lot.x + 0.5, lot.y + 0.5) as Vector2)
+		_press(at, true)
+		await _frames(1)
+		_press(at + Vector2(0, 160), false)
+		await _frames(1)
+		_check(bought[0] == 0, "a swipe across the plan buys no prop")
+		_press(at, true)
+		await _frames(1)
+		_press(at + Vector2(2, 1), false)
+		await _frames(1)
+		_check(bought[0] == 1, "a tap on a free lot buys one prop")
+		if is_instance_valid(plan):
+			plan.set("hold_kind", "")
+			plan.set("arranging", false)
 	var gal := await _go("gallery")
 	_check(gal.find_child("HeroAnchor", true, false) != null, "the gallery shows a heroine")
 	var first := str(gal.get("_i"))

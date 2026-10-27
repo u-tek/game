@@ -59,6 +59,26 @@ func _run() -> void:
 		await create_timer(0.3).timeout
 		_check(_results() - before == 1, "leaving mid-fight reported %d results" % (_results() - before))
 
+	# The Champion: Retreat after a few seconds keeps the damage dealt and returns to the Front.
+	_game.model.state.campaign.cleared = maxi(int(_game.model.state.campaign.cleared), WarRules.UNLOCK_CLEARED)
+	if str(_game.war().side) == "":
+		_game.war_choose_side("heaven")
+	_ui.go("battle", {"mode": "champion"})
+	await create_timer(4.0).timeout
+	if _ui.current_name == "battle":
+		var dmg0 := int((_game.war().champion as Dictionary).get("damage", 0))
+		_ui.current.call("_ask_retreat")
+		await process_frame
+		var yes := _find_text(root, "Retreat")
+		_check(yes != null, "the retreat question for the Champion")
+		if yes:
+			yes.pressed.emit()
+		await create_timer(0.5).timeout
+		_check(int((_game.war().champion as Dictionary).get("damage", 0)) > dmg0, "a Champion retreat keeps the damage dealt")
+		_check(_ui.current_name == "front", "a Champion retreat returns to the Front (got %s)" % _ui.current_name)
+	else:
+		_check(false, "the Champion fight did not open")
+
 	# Manual ultimates at 4x on the first stage: tap every ready portrait.
 	_game.set_setting("battle_speed", 4)
 	_game.set_setting("auto_ultimates", false)
@@ -73,6 +93,13 @@ func _run() -> void:
 		printerr("E2E FAIL ", f)
 	print("E2E: %d failures" % _fails.size())
 	quit(1 if _fails.size() > 0 else 0)
+
+
+func _find_text(from: Node, text: String) -> Button:
+	for n in from.find_children("*", "Button", true, false):
+		if (n as Button).text == text and (n as Button).is_visible_in_tree():
+			return n as Button
+	return null
 
 
 func _results() -> int:

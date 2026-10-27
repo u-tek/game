@@ -25,12 +25,9 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 
 - P1 done **The Halloween stamp never animates** (the claim's `changed` rebuilt the stamps first).
 - P1 done **The Lobby date goes stale after midnight**: a new day reprints the poster.
-- P1 todo **Leaving in the victory pose loses the win** (`battle_screen.gd` 'ending' phase reports a
-  defeat). Done when: a win is a win once the last foe falls.
-- P1 todo **Champion retreat**: uses a try, counts no damage, returns to Campaign. Done when: damage
-  dealt counts and Back returns to the Front.
-- P1 todo **District: a swipe that starts on a free lot buys a prop.** Done when: buying needs a tap
-  (press and release without moving).
+- P1 done **Leaving in the victory pose lost the win.**
+- P1 done **Champion retreat** used a try, counted no damage and returned to Campaign (e2e check).
+- P1 done **District: a swipe that started on a free lot bought a prop** (e2e check).
 - P1 done **Gallery in 18+ mode sells skins** that can't show; **hidden BUY still live**; **a tap
   undoes the zoom**; the strip highlight lands on a card being freed.
 - P1 todo **Hero page: the level-up pass and abilities capsule cover her legs and wings**; sub-tabs

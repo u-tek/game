@@ -281,6 +281,9 @@ func _exit_tree() -> void:
 		_completed = true
 		# Deferred on Game, not on this screen: the screen is freed before the call would run.
 		var out := {"victory": false, "winner": "enemy", "retreat": true}
+		# Leaving during the victory pose (the last foe already down) is still that result.
+		if _phase == "ending":
+			out = _sim.outcome()
 		if _mode == "tower":
 			Game.complete_tower.call_deferred(_floor, out)
 		elif _mode == "champion":
@@ -309,6 +312,8 @@ func _report(outcome: Dictionary) -> Dictionary:
 func _back_screen() -> String:
 	if _mode == "rival":
 		return "rival"
+	if _mode == "champion":
+		return "front"
 	return "tower" if _mode == "tower" else "campaign"
 
 
@@ -1541,11 +1546,21 @@ func _ask_retreat() -> void:
 	if _completed:
 		UI.go(_back_screen())
 		return
-	UI.confirm("Retreat from this battle? It counts as a defeat.", func() -> void:
+	var ask := "Retreat from her? The damage you've done still counts." if _mode == "champion" else "Retreat from this battle? It counts as a defeat."
+	UI.confirm(ask, func() -> void:
 		if _completed:
 			return
+		# The last foe fell while the question was up: that is the result, not a retreat.
+		if _phase == "ending":
+			_finish(_sim.outcome())
+			return
 		_completed = true
-		_report({"victory": false, "winner": "enemy", "retreat": true})
+		var out := {"victory": false, "winner": "enemy", "retreat": true}
+		if _mode == "champion":
+			# The damage dealt before leaving still counts (the same as leaving by Back).
+			out = _sim.outcome()
+			out["retreat"] = true
+		_report(out)
 		UI.go(_back_screen()), Callable(), "Retreat", "Keep fighting", true)
 
 

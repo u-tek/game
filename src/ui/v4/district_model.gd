@@ -75,6 +75,8 @@ var hold_kind := "":
 
 
 var _tap_down := Vector2.INF
+## Where a press with a prop in hand went down (it buys on release, if that was a tap).
+var _buy_down := Vector2.INF
 ## Buildings to raise out of the ground when the model is first shown (newly opened ones).
 var rise: Array = []
 ## Debug (shots): the lamps lit whatever the hour.
@@ -511,11 +513,9 @@ func _gui_input(event: InputEvent) -> void:
 	if mb and mb.button_index == MOUSE_BUTTON_LEFT:
 		if mb.pressed:
 			if hold_kind != "":
-				var lot := _lot_at(mb.position)
-				if DistrictRules.can_decorate(_current_layout(), _decor_layout(), lot.x, lot.y):
-					decor_bought.emit(hold_kind, lot.x, lot.y)
-				else:
-					Kit.haptic(8, 0.3)
+				# A prop is bought on a tap (press and release on the same lot, hardly moving), never on
+				# the press alone: a swipe across the plan spends nothing.
+				_buy_down = mb.position
 				accept_event()
 				return
 			var i := _building_at(mb.position)
@@ -526,6 +526,16 @@ func _gui_input(event: InputEvent) -> void:
 				_drag_from = mb.position
 				Kit.haptic(10)
 				accept_event()
+		elif _buy_down != Vector2.INF:
+			var lot := _lot_at(mb.position)
+			var tap := mb.position.distance_to(_buy_down) < 14.0 and lot == _lot_at(_buy_down)
+			_buy_down = Vector2.INF
+			if tap and hold_kind != "":
+				if DistrictRules.can_decorate(_current_layout(), _decor_layout(), lot.x, lot.y):
+					decor_bought.emit(hold_kind, lot.x, lot.y)
+				else:
+					Kit.haptic(8, 0.3)
+			accept_event()
 		elif _drag >= DECOR_BASE:
 			var k := _drag - DECOR_BASE
 			var to := _drag_spot
