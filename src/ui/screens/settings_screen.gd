@@ -171,6 +171,12 @@ func _masthead(w: float) -> Control:
 ## by hairlines.
 func _section(title: String, rows: Array) -> Control:
 	_channel += 1
+	var line := 0
+	for r: Variant in rows:
+		var ln := (r as Node).find_child("LineNo", true, false) as Label if r is Node else null
+		if ln:
+			line += 1
+			ln.text = "%02d.%d" % [_channel, line]
 	var v := Kit.vbox(0)
 	var head := Kit.hbox(14)
 	head.mouse_filter = MOUSE_FILTER_IGNORE
@@ -206,18 +212,24 @@ func _hair() -> Control:
 	return r
 
 
-func _row_head(icon_name: String, title: String, sub: String) -> HBoxContainer:
+## A channel line on the device panel: a small printed tick and the row's number in the channel
+## (01.1, 01.2 ...), the name in mono caps, what it does in mono under it; the control on the right.
+## (icon_name is kept for callers; the panel prints no stock glyphs.)
+func _row_head(_icon_name: String, title: String, sub: String) -> HBoxContainer:
 	var row := Kit.hbox(16)
 	row.custom_minimum_size.y = 96
-	var ic := Kit.icon(icon_name, 32, Color(INK, 0.8))
-	ic.size_flags_vertical = SIZE_SHRINK_CENTER
-	row.add_child(ic)
-	var tv := Kit.vbox(2)
+	# (Numbered by _section, which runs after its rows are built.)
+	var no := Kit.label("", 12, Color(INK, 0.55), "mono_bold")
+	no.name = "LineNo"
+	no.custom_minimum_size.x = 44
+	no.size_flags_vertical = SIZE_SHRINK_CENTER
+	row.add_child(no)
+	var tv := Kit.vbox(4)
 	tv.size_flags_horizontal = SIZE_EXPAND_FILL
 	tv.alignment = BoxContainer.ALIGNMENT_CENTER
-	tv.add_child(Kit.label(title, 28, INK, "cond_black"))
+	tv.add_child(Kit.label(title.to_upper(), 17, INK, "mono_bold"))
 	if sub != "":
-		var s := Kit.label(sub, 19, Color(INK, 0.66), "regular")
+		var s := Kit.label(sub.to_upper(), 11, Color(INK, 0.62), "mono")
 		s.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		s.custom_minimum_size.x = 40
 		tv.add_child(s)

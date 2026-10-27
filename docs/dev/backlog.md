@@ -78,8 +78,9 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   fight. Next: walk the whole first session by shots (the third moment).
 - P2 todo **Lobby restraint pass:** fewer stuck-on objects (bulletin, arrows and counter, NEXT label,
   team plate, stage plate, ENGAGE), one readable giant line.
-- P2 todo **Settings is a stock list:** rebuild as the device panel of the brief (switches as
-  hardware, a glass disc, serial codes), ON/OFF readable at a glance.
+- P2 done **Settings was a stock list:** rows are channel lines on a device panel (01.1 SOUND
+  EFFECTS, mono caps, no stock glyphs); the switch's state word prints in full ink. Could go further:
+  rendered hardware switches (Blender), a glass disc.
 - P2 done **Gear had no Back** (top left now). Left: the empty state leads nowhere; the chrome above
   the first item is tall.
 - P2 todo **Gallery: the strip is left-aligned and tiny; a locked look has no BUY step; dark lightbox.**

@@ -85,11 +85,12 @@ func _draw() -> void:
 	draw_rect(track, Color(PAPER, dim))
 	var f := Kit.font("mono_bold")
 	var half := track.size.x * 0.5
+	# (The word left showing is the switch's state: printed in full ink, so ON and OFF read at a glance.)
 	for side in 2:
 		var word := "ON" if side == 0 else "OFF"
-		var tw := f.get_string_size(word, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
+		var tw := f.get_string_size(word, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
 		var cx := track.position.x + half * (side + 0.5)
-		draw_string(f, Vector2(cx - tw * 0.5, track.position.y + track.size.y * 0.5 + 5.0), word, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(INK, 0.55 * dim))
+		draw_string(f, Vector2(cx - tw * 0.5, track.position.y + track.size.y * 0.5 + 5.0), word, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(INK, 0.92 * dim))
 	# The knob: a solid ink block over the word that is not true (it slides with a small spring and
 	# stretches while held); a signal status light on it when on.
 	var stretch := 8.0 * _hold
