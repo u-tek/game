@@ -1,6 +1,6 @@
 # Status and handoff
 
-**Status as of 2026-10-28, 16:55 UTC (02:55 on the owner's PC clock, UTC+10).** This is the living
+**Status as of 2026-10-28, 20:55 UTC (06:55 on the owner's PC clock, UTC+10).** This is the living
 status file: update it at the end of every work block. Rules and conventions are in `CLAUDE.md`;
 this file says where things stand. Older logs are under "History" at the bottom. **The ranked work
 list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
@@ -43,7 +43,8 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
     (`src/ui/components/roller.gd`); a star up stamps N STARS onto the dossier.
   - **A skin's unveil** (`UI.unveil`): the camera travels down her in the new look in a dark studio,
     then the look's name and a HERS stamp land. IPA with the first five moments: run 40580493732.
-  - **The first screen** (the Calling) has her photo paper-clipped to the intake form.
+  - **The first screen** (the Calling) has her photo paper-clipped to the intake form. IPA with all
+    six: run 40581940406.
 - **Autopilot block (2026-10-27/28, PC chat; the owner's brief: audit everything, fix, raise it to the
   bar, show the work).** An audit of every screen (fresh / rich / skins / short, `screenshots/audit/`)
   reviewed by eye and by four review agents, and a code read by four agents with a skeptic per
