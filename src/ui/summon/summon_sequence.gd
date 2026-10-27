@@ -642,7 +642,7 @@ func _build_sheet() -> void:
 	sheet.name = "Sheet"
 	var pw := sr.size.x
 	var ph := sr.size.y
-	PK.at(sheet, PK.t("CONTACT SHEET  ·  PRESS RUN Nº 0047  ·  %d PRINT%s  ·  19.10.26" % [results.size(), "" if single else "S"], 11, PK.INK, "mono_bold"), Vector2(20, 16))
+	PK.at(sheet, PK.t("CONTACT SHEET  ·  PRESS RUN Nº 0047  ·  %d PRINT%s  ·  %s" % [results.size(), "" if single else "S", Kit.print_date_short()], 11, PK.INK, "mono_bold"), Vector2(20, 16))
 	var word := ("NEW HERO" if news > 0 else "RESULT") if single else "RESULTS"
 	var tf := Kit.font("compressed")
 	var tsz := clampi(int(ph * 0.15), 80, 150)

@@ -1096,13 +1096,24 @@ static func _sheet_no(s: String) -> int:
 
 ## Today as printed on sheets: "2026.10.19".
 static func _print_date() -> String:
-	# The model's day (the player's local calendar, the same day the Lobby prints).
+	var c := print_day()
+	return "%d.%02d.%02d" % [c[0], c[1], c[2]]
+
+
+## The model's day as [year, month, day] (the player's local calendar, the day the Lobby prints;
+## the system's date without the Game autoload).
+static func print_day() -> Array:
 	var g := autoload("Game")
 	if g != null and g.has_method("today"):
-		var c := CalendarRules.civil(int(g.call("today")))
-		return "%d.%02d.%02d" % [c[0], c[1], c[2]]
+		return CalendarRules.civil(int(g.call("today")))
 	var d := Time.get_date_dict_from_system()
-	return "%d.%02d.%02d" % [int(d.year), int(d.month), int(d.day)]
+	return [int(d.year), int(d.month), int(d.day)]
+
+
+## Today as press marks print it short: "28.10.26".
+static func print_date_short() -> String:
+	var c := print_day()
+	return "%02d.%02d.%02d" % [c[2], c[1], c[0] % 100]
 
 
 ## The printed "× CLOSE" at a sheet's top-right corner (a bare Button, 150 x 88 target; the

@@ -90,7 +90,7 @@ func _ready() -> void:
 	_marks.draw.connect(_draw_marks.bind(c))
 	_sheet.add_child(_marks)
 	# Press micro type.
-	PK.at(_sheet, PK.t("PRESS RUN Nº 0047\n%d SHEETS · 19.10.26" % count, 12, PK.INK, "mono_bold"), Vector2(sw - 230, 18))
+	PK.at(_sheet, PK.t("PRESS RUN Nº 0047\n%d SHEETS · %s" % [count, Kit.print_date_short()], 12, PK.INK, "mono_bold"), Vector2(sw - 230, 18))
 	_ink_l = PK.t("INK —", 12, PK.INK, "mono_bold")
 	PK.at(_sheet, _ink_l, Vector2(sw - 230, sh - 64))
 	_pct = PK.t("CHARGE 000%", 12, PK.INK, "mono_bold")

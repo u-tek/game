@@ -370,10 +370,9 @@ static func coords(seed_value: int) -> String:
 
 ## Today's date as the posters print it ("2026 10/19") and short ("19.10.26").
 static func date_long() -> String:
-	var d := Time.get_date_dict_from_system()
-	return "%04d %02d/%02d" % [int(d.year), int(d.month), int(d.day)]
+	var c := Kit.print_day()
+	return "%04d %02d/%02d" % [c[0], c[1], c[2]]
 
 
 static func date_short() -> String:
-	var d := Time.get_date_dict_from_system()
-	return "%02d.%02d.%02d" % [int(d.day), int(d.month), int(d.year) % 100]
+	return Kit.print_date_short()
