@@ -1,10 +1,11 @@
 """Crops the Cycles renders of tools/blender/ui_objects.py and gear_objects.py, adds a soft paper
 shadow and writes 8-bit PNGs (style v4 collage objects).
 
-    python tools/blender/finish_objects.py <render_dir>          # coil / disc -> assets/art/ui/objects/
+    python tools/blender/finish_objects.py <render_dir>          # coil / disc / printer -> assets/art/ui/objects/
     python tools/blender/finish_objects.py gear <render_dir>     # <noun>_<tier> -> assets/art/ui/gear/
     python tools/blender/finish_objects.py rival <render_dir>    # rival_objects.py renders -> assets/art/ui/objects/
 """
+import json
 import os
 import sys
 
@@ -17,6 +18,8 @@ JOBS = {
     "coil_ink": (480, (10, 18), 14, 0.30),
     "coil_chrome": (480, (10, 18), 14, 0.26),
     "disc": (300, (5, 9), 7, 0.34),
+    # The reward receipt's printer (shown 680 px wide): printer.json says where its slit is.
+    "printer": (1360, (0, 12), 14, 0.34),
 }
 # rival_objects.py renders already carry their contact shadow (a shadow catcher): crop and size only.
 JOBS_RIVAL = {
@@ -28,7 +31,7 @@ JOBS_RIVAL = {
 }
 
 
-def finish(src: str, name: str, spec: tuple, out_dir: str = OUT, fit_box: bool = False) -> None:
+def finish(src: str, name: str, spec: tuple, out_dir: str = OUT, fit_box: bool = False) -> tuple:
     max_w, off, blur, alpha = spec
     im = Image.open(src).convert("RGBA")
     bbox = im.getchannel("A").point(lambda a: 255 if a > 2 else 0).getbbox()
@@ -47,6 +50,8 @@ def finish(src: str, name: str, spec: tuple, out_dir: str = OUT, fit_box: bool =
     path = os.path.join(out_dir, name + ".png")
     canvas.save(path, optimize=True)
     print(name, canvas.size, "object at", (pad, pad), "size", im.size, "->", path)
+    # Render pixels -> this image's pixels: x' = (x - bbox[0]) * k + pad.
+    return bbox, k, pad, canvas.size
 
 
 if __name__ == "__main__":
@@ -68,4 +73,15 @@ if __name__ == "__main__":
     for n, spec in JOBS.items():
         p = os.path.join(d, n + ".png")
         if os.path.exists(p):
-            finish(p, n, spec)
+            bbox, k, pad, size = finish(p, n, spec)
+            meta = os.path.join(d, n + ".json")
+            if os.path.exists(meta):
+                with open(meta) as f:
+                    m = json.load(f)
+                out = {"size": list(size),
+                    "slit_y": round((m["slit_y"] - bbox[1]) * k + pad, 1),
+                    "slit_x0": round((m["slit_x0"] - bbox[0]) * k + pad, 1),
+                    "slit_x1": round((m["slit_x1"] - bbox[0]) * k + pad, 1)}
+                with open(os.path.join(OUT, n + ".json"), "w") as f:
+                    json.dump(out, f, indent=1)
+                print(n, out)

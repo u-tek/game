@@ -2,7 +2,8 @@
 
     blender --background --factory-startup --python tools/blender/ui_objects.py -- <out_dir> <which> [samples]
 
-which: coil_chrome | coil_ink | disc. Writes <out_dir>/<which>.png (16-bit RGBA, transparent). Then
+which: coil_chrome | coil_ink | disc | printer. Writes <out_dir>/<which>.png (16-bit RGBA, transparent;
+the printer also <which>.json, where its slit is in the render). Then
 tools/blender/finish_objects.py crops, adds the paper shadow and writes assets/art/ui/objects/.
 Uses only Blender's bundled studio light (city.exr, desaturated) and emissive cards, so it runs on
 any Blender 4.0 install. Takes 4-10 s per object on an RTX 3070 (OptiX).
@@ -232,7 +233,87 @@ def disc():
     key_light((-3, -2, 5), 300)
 
 
-if WHICH == "coil_chrome":
+def printer():
+    """The reward receipt's thermal printer, seen from the front and above: a satin black slab with
+    rounded edges, the slit the receipt feeds out of along its top, a red LED and its etched name."""
+    import json
+    from bpy_extras.object_utils import world_to_camera_view
+    sc.render.resolution_x = 1500
+    sc.render.resolution_y = 380
+    W, D, H = 6.4, 1.0, 0.55
+    bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0, 0))
+    body = bpy.context.object
+    body.name = "Printer"
+    body.scale = (W, D, H)
+    bpy.ops.object.transform_apply(scale=True)
+    # The slit: cut through the top, a little forward of the middle.
+    bpy.ops.mesh.primitive_cube_add(size=1, location=(0, -0.1, H * 0.5))
+    cut = bpy.context.object
+    cut.scale = (W - 0.5, 0.075, 0.62)
+    bpy.ops.object.transform_apply(scale=True)
+    bo = body.modifiers.new("slit", "BOOLEAN")
+    bo.operation = "DIFFERENCE"
+    bo.object = cut
+    cut.hide_render = True
+    cut.hide_viewport = True
+    bv = body.modifiers.new("round", "BEVEL")
+    bv.width = 0.11
+    bv.segments = 6
+    bv.limit_method = "ANGLE"
+    bpy.ops.object.shade_smooth()
+    body.data.use_auto_smooth = True
+    body.data.auto_smooth_angle = math.radians(40)
+    body.data.materials.append(principled("Satin", (0.016, 0.016, 0.018), 0.0, 0.38, coat=0.35))
+    # The slit's throat: a black card down inside it, so the slot reads deep.
+    bpy.ops.mesh.primitive_plane_add(size=1, location=(0, -0.1, H * 0.5 - 0.2), rotation=(0, 0, 0))
+    throat = bpy.context.object
+    throat.scale = (W - 0.52, 0.07, 1)
+    m = principled("Throat", (0.0, 0.0, 0.0), 0.0, 1.0)
+    throat.data.materials.append(m)
+    # The LED on the front face, right, in a small bezel.
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.075, depth=0.04, location=(W * 0.5 - 0.42, -D * 0.5 - 0.005, -0.02),
+        rotation=(math.radians(90), 0, 0))
+    bez = bpy.context.object
+    bez.data.materials.append(principled("Bezel", (0.5, 0.5, 0.52), 1.0, 0.3))
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.05, location=(W * 0.5 - 0.42, -D * 0.5 - 0.02, -0.02))
+    led = bpy.context.object
+    lm = bpy.data.materials.new("Led")
+    lm.use_nodes = True
+    nt = lm.node_tree
+    nt.nodes.clear()
+    o = nt.nodes.new("ShaderNodeOutputMaterial")
+    e = nt.nodes.new("ShaderNodeEmission")
+    e.inputs["Color"].default_value = (1.0, 0.07, 0.015, 1)
+    e.inputs["Strength"].default_value = 3.2
+    nt.links.new(e.outputs["Emission"], o.inputs["Surface"])
+    led.data.materials.append(lm)
+    # Its name, etched into the front face (a slightly lighter, rougher print).
+    bpy.ops.object.text_add(location=(-W * 0.5 + 0.34, -D * 0.5 - 0.004, -0.09), rotation=(math.radians(90), 0, 0))
+    tx = bpy.context.object
+    tx.data.body = "HH  ·  THERMAL RECEIPT  ·  58MM"
+    tx.data.size = 0.12
+    tx.data.extrude = 0.004
+    tx.data.space_character = 1.25
+    tx.data.materials.append(principled("Etch", (0.09, 0.09, 0.1), 0.0, 0.75))
+    cam = camera((0.0, -7.2, 5.0), (0.0, 0.0, 0.05), ortho=W + 0.5)
+    world()
+    softbox("TopBand", (0.0, 1.5, 4.5), (math.radians(-25), 0, 0), (9.0, 0.8), 6.0)
+    softbox("Front", (0.0, -4.0, 1.2), (math.radians(75), 0, 0), (9.0, 0.5), 2.5)
+    key_light((-4, -3, 6), 400, 4.0)
+    bpy.context.view_layer.update()
+    # Where the paper leaves the slit (its centre line at the top face), in the render's pixels.
+    v = world_to_camera_view(sc, cam, Vector((0.0, -0.1, H * 0.5)))
+    vl = world_to_camera_view(sc, cam, Vector((-(W - 0.5) * 0.5, -0.1, H * 0.5)))
+    vr = world_to_camera_view(sc, cam, Vector(((W - 0.5) * 0.5, -0.1, H * 0.5)))
+    info = {"slit_y": (1.0 - v.y) * sc.render.resolution_y, "slit_x0": vl.x * sc.render.resolution_x,
+        "slit_x1": vr.x * sc.render.resolution_x, "size": [sc.render.resolution_x, sc.render.resolution_y]}
+    with open(os.path.join(OUT, WHICH + ".json"), "w") as f:
+        json.dump(info, f)
+
+
+if WHICH == "printer":
+    printer()
+elif WHICH == "coil_chrome":
     coil(False)
 elif WHICH == "coil_ink":
     coil(True)

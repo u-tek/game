@@ -28,6 +28,15 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
 
 ## Where things stand
 
+- **The big moments block (2026-10-28, PC chat, after the owner's "oh come on is that it?").** Fewer
+  fixes, more produced moments, each shown as a real capture with sound (`tools/shoot --movie`:
+  Godot's Movie Maker at 30 fps; encode with the ffmpeg line in its header):
+  - **The Legendary's proof under the loupe** (8e12250): after the gold press the camera starts on
+    her eyes as four-colour process dots (`src/ui/shaders/proof.gdshader`), pulls back down all of
+    her while the dots melt into the painting, then the picture flies into its place on the poster.
+  - **Every reward prints**: a rendered thermal printer feeds the receipt up line by line, it tears
+    off, the RECEIVED disc stamps (`src/ui/components/receipt_printer.gd`, the printer render
+    `tools/blender/ui_objects.py printer`).
 - **Autopilot block (2026-10-27/28, PC chat; the owner's brief: audit everything, fix, raise it to the
   bar, show the work).** An audit of every screen (fresh / rich / skins / short, `screenshots/audit/`)
   reviewed by eye and by four review agents, and a code read by four agents with a skeptic per

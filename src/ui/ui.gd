@@ -33,6 +33,7 @@ extends Node
 
 const Signature := preload("res://src/ui/components/signature.gd")
 const Sfx := preload("res://src/ui/components/sfx.gd")
+const ReceiptPrinter := preload("res://src/ui/components/receipt_printer.gd")
 
 signal screen_changed(screen_name: String)
 
@@ -92,6 +93,7 @@ const SFX_VOLUME_DB := {
 	"tap": -10.0, "tab": -11.0, "pop": -13.0, "close": -17.0, "deny": -9.0, "toggle": -11.0,
 	"coin": -13.0, "sparkle": -15.0, "hit": -6.0, "reward": -5.0, "summon": -4.0, "legendary": -3.0,
 	"ult": -5.0, "victory": -4.0, "defeat": -5.0, "stamp": -7.0, "pulse": -19.0,
+	"printer": -13.0, "tear": -11.0,
 }
 
 ## App root (main.gd). Screens mount into root.content.
@@ -812,7 +814,10 @@ func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callab
 		return
 	var ink: Color = opts.get("ink", Kit.ACCENT)
 	_reward_open = true
-	sfx("reward")
+	# With motion the receipt prints out of a slot and the chime comes with its stamp.
+	var printed := Kit.motion_ok()
+	if not printed:
+		sfx("reward")
 	haptic(25)
 	const W := 600.0
 	var iw := W - 64.0
@@ -960,11 +965,24 @@ func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callab
 	disc.rotation = -0.16
 	foot.add_child(slot)
 	inner.add_child(foot)
-	col.add_child(sheet)
 	var torn := Kit.PrintBits.Zigzag.new()
 	torn.color = Kit.SHEET_WHITE
 	torn.custom_minimum_size = Vector2(W, 14)
-	col.add_child(torn)
+	var printer: Control = null
+	if printed:
+		# The receipt (the sheet and its torn foot) rises out of a thermal printer's slot, then tears off.
+		var paper := Kit.vbox(0)
+		paper.name = "Receipt"
+		paper.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		paper.add_child(sheet)
+		paper.add_child(torn)
+		printer = ReceiptPrinter.new()
+		printer.name = "Printer"
+		printer.call("setup", paper, W)
+		col.add_child(printer)
+	else:
+		col.add_child(sheet)
+		col.add_child(torn)
 	col.add_child(Kit.spacer(0, 30))
 	var m_ref: Array[Control] = []
 	var ok := Kit.primary_button("OK", func() -> void:
@@ -996,10 +1014,21 @@ func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callab
 		for r in rows:
 			r.modulate.a = 1.0
 		return
-	head.visible_ratio = 0.0
-	head.create_tween().tween_property(head, "visible_ratio", 1.0, 0.36).set_delay(0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	disc.modulate.a = 0.0
 	hint.modulate.a = 0.0
+	if printer:
+		# Printed: every line is on the paper as it comes out; the stamp comes down once it is torn off.
+		# (A frame first, for the receipt's laid-out height.)
+		for r in rows:
+			r.modulate.a = 1.0
+		await get_tree().process_frame
+		if is_instance_valid(printer):
+			printer.call("play", func() -> void:
+				if is_instance_valid(disc) and is_instance_valid(hint):
+					_stamp_receipt(disc, hint, 0.1, true))
+		return
+	head.visible_ratio = 0.0
+	head.create_tween().tween_property(head, "visible_ratio", 1.0, 0.36).set_delay(0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	# Rows print one after another, each with a rising note; then the stamp comes down.
 	await get_tree().process_frame
 	if not is_instance_valid(m):
@@ -1015,13 +1044,18 @@ func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callab
 			tt.tween_interval(delay + 0.04)
 			tt.tween_callback(func() -> void: sfx("sparkle", pitch))
 		i += 1
-	var at := 0.3 + rows.size() * 0.08
+	_stamp_receipt(disc, hint, 0.3 + rows.size() * 0.08, false)
+
+
+## The receipt's RECEIVED disc stamps down `at` seconds from now (with the reward chime when the
+## receipt was printed), then the close hint fades in and breathes.
+func _stamp_receipt(disc: Control, hint: Control, at: float, chime: bool) -> void:
 	disc.scale = Vector2(1.7, 1.7)
 	var dt := disc.create_tween().set_parallel(true)
 	dt.tween_property(disc, "modulate:a", 1.0, 0.12).set_delay(at)
 	dt.tween_property(disc, "scale", Vector2.ONE, 0.26).set_delay(at).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	dt.tween_callback(func() -> void:
-		sfx("pop")
+		sfx("reward" if chime else "pop")
 		haptic(18)).set_delay(at + 0.14)
 	var ht := hint.create_tween()
 	ht.tween_interval(at + 0.5)

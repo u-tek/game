@@ -109,6 +109,13 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   the map's ready circles), Gear (ink tier stickers on the sheet), Rival (the counter-pick tag and her
   line's label in ink), Prints (the chosen filter tab is smoked ink, not a second orange).
 
+- P2 done **Rewards popped in like any dialog** (every claim, quest, mail): the receipt now prints. A
+  thermal printer (a Cycles render, `tools/blender/ui_objects.py printer`, its slit's place in
+  `printer.json`) sits under the receipt's foot; the paper feeds up out of its slit a printed line at a
+  time with a stepper's buzz (sfx `printer`), tears off (`tear`: it hops and tilts, the printer drops
+  away), then the RECEIVED disc stamps with the reward chime. Reduce motion shows it at once
+  (`src/ui/components/receipt_printer.gd`).
+
 ## P3
 
 - P3 doing **One poster kit:** done: the palette has one source (every INK, PAPER, SIGNAL, MATTE and

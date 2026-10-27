@@ -6,12 +6,14 @@ extends RefCounted
 ## (the 2.7 s charge), tell / tell_big (the portal's rarity color tells), burst (the portal
 ## opening), reveal (a Rare hero), riser + beat (the held beat before a Legendary) and slam
 ## (the rarity word landing); the Lobby adds stamp (a real day stamped), pulse (her heartbeat)
-## and rustle (a holiday decoration brushed on its thread).
+## and rustle (a holiday decoration brushed on its thread); a reward's receipt adds printer (it feeds out
+## of a thermal printer) and tear (torn off).
 
 const RATE := 22050
 const NAMES: Array[String] = ["tap", "tab", "pop", "deny", "toggle", "coin", "sparkle", "close", "hit", "reward",
 	"ult", "summon", "victory", "defeat", "legendary",
-	"portal", "tell", "tell_big", "burst", "reveal", "riser", "beat", "slam", "stamp", "pulse", "rustle"]
+	"portal", "tell", "tell_big", "burst", "reveal", "riser", "beat", "slam", "stamp", "pulse", "rustle",
+	"printer", "tear"]
 
 
 ## Builds the stream for `sound_name` (null if unknown).
@@ -70,6 +72,10 @@ static func make(sound_name: String) -> AudioStreamWAV:
 			s = _pulse()
 		"rustle":
 			s = _rustle()
+		"printer":
+			s = _printer()
+		"tear":
+			s = _tear()
 		_:
 			return null
 	return _to_wav(s)
@@ -536,4 +542,49 @@ static func _slam() -> PackedFloat32Array:
 	_bell(b, 0.0, 739.99, 0.1, 7.0, 0.55)
 	_bell(b, 0.0, 1108.73 * 1.004, 0.08, 8.0, 0.5)
 	_bell(b, 0.0, 1661.0, 0.05, 9.0, 0.45)
+	return b
+
+
+## A thermal receipt printer feeding a receipt: the stepper motor's buzz in short bursts, one a
+## printed line (the paper steps), over the print head's faint hiss, stopping with the last line.
+static func _printer() -> PackedFloat32Array:
+	var dur := 0.9
+	var b := _buf(dur)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 91
+	var lp := 0.0
+	var ph := 0.0
+	var lines := 13.0
+	for i in b.size():
+		var t := float(i) / RATE
+		var k := t / dur
+		var lk := fmod(k * lines, 1.0)
+		var gate := smoothstep(0.0, 0.06, lk) * (1.0 - smoothstep(0.55, 0.72, lk))
+		var env := (0.25 + 0.75 * gate) * smoothstep(0.0, 0.02, k) * (1.0 - smoothstep(0.92, 1.0, k))
+		ph += TAU * (196.0 + 24.0 * gate) / RATE
+		var click := pow(maxf(sin(ph), 0.0), 10.0)
+		lp += (rng.randf_range(-1.0, 1.0) - lp) * 0.45
+		b[i] = (click * 0.55 * gate + lp * 0.16) * env
+	return b
+
+
+## Paper torn off against the printer's serrated edge: a quick dry rip, bright then gone.
+static func _tear() -> PackedFloat32Array:
+	var dur := 0.2
+	var b := _buf(dur)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 57
+	var lp := 0.0
+	var prev := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		var k := t / dur
+		# The teeth: the noise comes in a fast flutter as the paper catches on each one.
+		var teeth := 0.55 + 0.45 * absf(sin(TAU * 62.0 * t))
+		var env := smoothstep(0.0, 0.05, k) * pow(1.0 - k, 1.6)
+		var n := rng.randf_range(-1.0, 1.0)
+		lp += (n - lp) * 0.6
+		var hp := lp - prev
+		prev = lp
+		b[i] = (hp * 1.4 + lp * 0.3) * env * teeth * 0.8
 	return b
