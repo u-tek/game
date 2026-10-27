@@ -554,13 +554,13 @@ func _apply_loupe(u: float) -> void:
 		cam.z = _cam_eye.z * lerpf(1.0, 1.06, kh)
 		rot = lerpf(-0.035, -0.03, kh)
 	elif u < LOUPE_HOLD + LOUPE_PULL:
-		var kp := _in_out(Fx.k01(u, LOUPE_HOLD, LOUPE_HOLD + LOUPE_PULL))
+		var kp := Fx.in_out(Fx.k01(u, LOUPE_HOLD, LOUPE_HOLD + LOUPE_PULL))
 		var from := Vector3(_cam_eye.x, _cam_eye.y, _cam_eye.z * 1.06)
-		cam = _zoom_pan(from, _cam_all, kp)
+		cam = Fx.zoom_pan(from, _cam_all, kp)
 		rot = lerpf(-0.03, 0.0, kp)
 	else:
 		var km := Fx.out_cubic(Fx.k01(u, LOUPE_HOLD + LOUPE_PULL, end))
-		cam = _zoom_pan(_cam_all, _cam_post, km)
+		cam = Fx.zoom_pan(_cam_all, _cam_post, km)
 		rot = 0.0
 	var vs := _loupe.size
 	var ts := _loupe_art.texture.get_size()
@@ -577,20 +577,6 @@ func _apply_loupe(u: float) -> void:
 	_loupe_marks.modulate.a = sheet
 	# She takes over from the picture as it lands.
 	_loupe_art.modulate.a = 1.0 - Fx.k01(u, end - 0.1, end)
-
-
-## A zoom with a pan between two framings (centre x, y, scale): the window's size moves on a log
-## scale and its centre with the size, so the move reads as one lift, not a slide and a zoom.
-static func _zoom_pan(a: Vector3, b: Vector3, k: float) -> Vector3:
-	var s := exp(lerpf(log(a.z), log(b.z), k))
-	var wa := 1.0 / a.z
-	var wb := 1.0 / b.z
-	var f := k if absf(wb - wa) < 0.0001 else (1.0 / s - wa) / (wb - wa)
-	return Vector3(lerpf(a.x, b.x, f), lerpf(a.y, b.y, f), s)
-
-
-static func _in_out(x: float) -> float:
-	return 4.0 * x * x * x if x < 0.5 else 1.0 - pow(-2.0 * x + 2.0, 3.0) * 0.5
 
 
 ## The print's marks: the serial stamp, and for a misprint or holo the flawed still (hidden until the

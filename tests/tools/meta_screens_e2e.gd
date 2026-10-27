@@ -265,6 +265,21 @@ func _skins() -> void:
 	_game.set_setting("nudity", false)
 	await _frames(2)
 	_check(str(h.get("_hero_key")) == HeroArt.art_key(id, sid) and HeroArt.texture(id, sid) == tame, "nudity off: the Lobby hero is dressed again")
+	# A look bought ends on her unveil, over everything: a tap lands it, the next closes it.
+	_ui.unveil(id, sid)
+	await _frames(3)
+	var uv := root.find_child("Unveil", true, false) as Control
+	_check(uv != null, "the unveil opens")
+	if uv:
+		var uc := uv.get_global_rect().get_center()
+		_press(uc, true)
+		_press(uc, false)
+		await _frames(2)
+		_check(is_instance_valid(uv) and float(uv.get("_t")) >= 4.3, "a tap lands the unveil")
+		_press(uc, true)
+		_press(uc, false)
+		await create_timer(0.5).timeout
+		_check(not is_instance_valid(uv), "the next tap closes the unveil")
 	_game.equip_skin(id, "")
 	_game.set_setting("lobby_hero", "")
 	# Shake the Sanctum: it collects what is waiting, once; an empty Sanctum gives nothing more.
@@ -452,6 +467,11 @@ func _real_input() -> void:
 	_press(c, false)
 	await _frames(3)
 	_check(int(_game.hero(id).level) == lv_end + 1, "a real tap levels once")
+	# The level up's counter rolls over the level line and the stats, then gives them back.
+	await create_timer(1.2).timeout
+	var lvl: Label = s.get("_level_l")
+	var rolling: Array = lvl.get_children().filter(func(n: Node) -> bool: return n.has_meta("roller")) if lvl else []
+	_check(lvl != null and lvl.self_modulate.a == 1.0 and rolling.is_empty(), "the level line shows again after its roll")
 	# Tap a card in the heroes grid.
 	var h := await _go("heroes")
 	await _frames(4)

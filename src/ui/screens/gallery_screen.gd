@@ -382,7 +382,7 @@ func _build_buy() -> void:
 				UI.toast(str(r.get("error", "")), "bad")
 				return
 			Game.equip_skin(id, sid)
-			UI.toast("%s is hers" % str(lk.name), "good")
+			UI.unveil(id, sid)
 			_looks = _looks_for(id)
 			_build_strip()
 			_show_look()

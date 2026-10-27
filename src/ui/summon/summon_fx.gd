@@ -48,3 +48,17 @@ static func smooth(x: float) -> float:
 ## Smooth pseudo-random wave in -1..1 (sum of sines), for camera shake.
 static func wave(t: float, seed_k: float) -> float:
 	return sin(t * 39.1 + seed_k) * 0.55 + sin(t * 67.3 + seed_k * 2.3) * 0.3 + sin(t * 23.7 + seed_k * 5.1) * 0.15
+
+
+## A zoom with a pan between two framings (window centre x, y, scale): the window's size moves on a
+## log scale and its centre with the size, so the move reads as one lift, not a slide and a zoom.
+static func zoom_pan(a: Vector3, b: Vector3, k: float) -> Vector3:
+	var s := exp(lerpf(log(a.z), log(b.z), k))
+	var wa := 1.0 / a.z
+	var wb := 1.0 / b.z
+	var f := k if absf(wb - wa) < 0.0001 else (1.0 / s - wa) / (wb - wa)
+	return Vector3(lerpf(a.x, b.x, f), lerpf(a.y, b.y, f), s)
+
+
+static func in_out(x: float) -> float:
+	return 4.0 * x * x * x if x < 0.5 else 1.0 - pow(-2.0 * x + 2.0, 3.0) * 0.5

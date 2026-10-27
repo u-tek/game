@@ -188,6 +188,12 @@ func setup(params: Dictionary) -> void:
 	if OS.is_debug_build() and params.has("level_demo"):
 		# Shots: a level up (one tap) that many seconds in.
 		get_tree().create_timer(float(params["level_demo"])).timeout.connect(_on_level_tap)
+	if OS.is_debug_build() and params.has("unveil_demo"):
+		# Shots: a new look's unveil (display only): shot param "skin" (else her first look).
+		var looks := SkinData.for_hero(_id)
+		var usid := str(params.get("skin", str(looks[0].id) if not looks.is_empty() else ""))
+		if usid != "":
+			get_tree().create_timer(float(params["unveil_demo"])).timeout.connect(UI.unveil.bind(_id, usid))
 	if OS.is_debug_build() and params.has("star_demo"):
 		# Shots: the star up's celebration (display only) that many seconds in.
 		get_tree().create_timer(float(params["star_demo"])).timeout.connect(_celebrate_star.bind(int(Game.hero(_id).get("stars", 1))))
@@ -1378,7 +1384,8 @@ func _buy_skin(sid: String) -> void:
 				UI.toast(str(r.get("error", "Purchase failed")), "bad")
 				return
 			_preview = ""
-			Game.equip_skin(_id, sid),
+			Game.equip_skin(_id, sid)
+			UI.unveil(_id, sid),
 		Callable(), "Buy")
 
 

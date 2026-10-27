@@ -34,6 +34,7 @@ extends Node
 const Signature := preload("res://src/ui/components/signature.gd")
 const Sfx := preload("res://src/ui/components/sfx.gd")
 const ReceiptPrinter := preload("res://src/ui/components/receipt_printer.gd")
+const Unveil := preload("res://src/ui/components/unveil.gd")
 
 signal screen_changed(screen_name: String)
 
@@ -1064,6 +1065,21 @@ func _stamp_receipt(disc: Control, hint: Control, at: float, chime: bool) -> voi
 		var loop := hint.create_tween().set_loops()
 		loop.tween_property(hint, "modulate:a", 0.45, 1.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 		loop.tween_property(hint, "modulate:a", 1.0, 1.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT))
+
+
+## A new look's unveil, full screen (a skin just bought): the camera travels down her in it, then
+## its name and the HERS stamp land; on_closed runs when it is dismissed.
+func unveil(hero_id: String, skin_id: String, on_closed: Callable = Callable()) -> void:
+	var layer := _modal_layer()
+	if layer == null:
+		if on_closed.is_valid():
+			on_closed.call()
+		return
+	var u := Unveil.new()
+	u.call("setup", hero_id, skin_id)
+	if on_closed.is_valid():
+		u.connect("closed", on_closed)
+	layer.add_child(u)
 
 
 ## Freezes the top-bar wallet (its amounts stay put while a reward popup is open). Returns

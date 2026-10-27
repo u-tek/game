@@ -130,6 +130,13 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   answers it (her victory pose for a second). A star up slams a rubber stamp (N STARS · LEVEL CAP)
   onto the dossier's stars line. Shot params `level_demo` / `star_demo` (seconds).
 
+- P2 done **A skin bought ended on a toast** (Shop, Gallery, her page): it ends on her unveil
+  (`src/ui/components/unveil.gd`, `UI.unveil`): a dark studio with one soft light; the camera starts
+  close on her face in the new look, travels down it (her chest, her hips: `HeroArt.body_points`,
+  the rig's bones) and pulls back to all of her; the look's name lands huge behind her, its line
+  under it, a HERS stamp. A tap jumps to the end, the next closes it. The loupe's camera helpers
+  moved to `summon_fx.gd` (zoom_pan, in_out). Shot param `unveil_demo` (+ `skin`) on her page.
+
 ## P3
 
 - P3 doing **One poster kit:** done: the palette has one source (every INK, PAPER, SIGNAL, MATTE and

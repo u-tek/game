@@ -693,7 +693,7 @@ func _buy_skin(sid: String) -> void:
 			if not bool(r.get("ok", false)):
 				UI.toast(str(r.get("error", "Purchase failed")), "bad")
 				return
-			UI.toast("%s unlocked. Tap Wear to put it on." % sd.name, "good"),
+			UI.unveil(str(sd.get("hero", "")), sid, func() -> void: UI.toast("%s is yours. Tap Wear to put it on." % sd.name, "good")),
 		Callable(), "Buy")
 
 

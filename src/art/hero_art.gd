@@ -162,6 +162,25 @@ static func face_rect(hero_id: String, skin_id: String = "") -> Rect2:
 	return Rect2(c - Vector2(e.z, e.w) * k, Vector2(e.z, e.w) * 2.0 * k)
 
 
+## Her landmarks in the art's texture pixels, for a camera that travels down her (a new look's
+## unveil): "face" (a Rect2, face_rect), "chest", "hips" (the rig's bones, when it has them) and
+## "feet" (where her soles stand). Missing bones are left out (callers estimate them from the face).
+static func body_points(hero_id: String, skin_id: String = "") -> Dictionary:
+	var out := {"face": face_rect(hero_id, skin_id)}
+	var art := _built_art(hero_id, skin_id)
+	var r := RigData.load_rig(hero_id, art) if art != "" else RigData.load_rig(hero_id if has_art(hero_id) else FALLBACK)
+	var t := texture(hero_id, skin_id)
+	if r == null or t == null:
+		return out
+	var k := float(t.get_width()) / maxf(r.canvas.x, 1.0)
+	out["feet"] = r.origin * k
+	for b: String in ["chest", "hips"]:
+		var i := r.bone(b)
+		if i >= 0 and i < r.setup_world.size():
+			out[b] = (r.origin + r.setup_world[i]) * k
+	return out
+
+
 ## Animated battle/stage sprite (HeroSprite: feet at origin, battle size at scale 1).
 static func make_sprite(hero_id: String, skin_id: String = "") -> Node2D:
 	var s := HeroSprite.new()

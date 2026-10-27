@@ -41,6 +41,8 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
     print on the matte) and the battle report prints that frame as its press photo behind the MVP.
   - **Level up / star up**: the dossier's numbers turn over like a mechanical counter
     (`src/ui/components/roller.gd`); a star up stamps N STARS onto the dossier.
+  - **A skin's unveil** (`UI.unveil`): the camera travels down her in the new look in a dark studio,
+    then the look's name and a HERS stamp land. IPA with the first three moments: run 40578234653.
 - **Autopilot block (2026-10-27/28, PC chat; the owner's brief: audit everything, fix, raise it to the
   bar, show the work).** An audit of every screen (fresh / rich / skins / short, `screenshots/audit/`)
   reviewed by eye and by four review agents, and a code read by four agents with a skeptic per

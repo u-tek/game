@@ -279,6 +279,8 @@ python tools/art_lossy.py                        # new hero art imports lossy (t
 tools/art_warp --check                           # validate every built hero rig (the first 15)
 tools/gd --headless --path . -s tools/art_selftest.gd   # every rig x every animation
 tools/shoot home --rich --safe-area-sim --out screenshots/home.png   # render a screen to PNG
+tools/shoot summon --rich --movie screenshots/m/leg.avi --shoot-params='{"demo":"legendary"}' --shoot-wait=10
+                                                 # a real capture with sound (Movie Maker, 30 fps); ffmpeg line in its header
 godot --path . -- --rich                         # play with every hero and lots of currency
 ```
 
