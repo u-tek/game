@@ -21,6 +21,10 @@ extends Control
 ##              growth erupts from the poster's corners; the plate lifts off a gold foil sheet; a
 ##              light sweeps across her art; her giant name debosses into the foil; a LEGENDARY rubber
 ##              stamp slams down. Skippable like the rest: a tap jumps to the press, the next lands it.
+##              Between the press and the poster, the proof under the loupe: out of the flash, her eyes
+##              fill the screen as huge four-colour halftone dots on paper (proof.gdshader); the camera
+##              pulls back down all of her while the dots shrink and melt into the painting, then the
+##              picture flies into its place on the gold poster (a match cut) and she comes alive there.
 ## Reduce motion plays short static versions (the clock runs fast; no slides, shakes, slams, sparks,
 ## sweeps or flashes; the growth just sits there).
 ##
@@ -67,6 +71,13 @@ const GROW := [0.02, 0.8]
 const LIFT := [0.12, 0.45]
 const SWEEP := [0.6, 1.3]
 const STAMP := 1.6
+## Legendary, after the press: the proof under the loupe holds on her eyes (LOUPE_HOLD), pulls back to
+## all of her (LOUPE_PULL), then flies into the poster (LOUPE_MATCH). The poster's own beats wait
+## LOUPE_HOLD + LOUPE_PULL (_lag). LOUPE_DOT: the dots' size on screen at the first framing, px.
+const LOUPE_HOLD := 0.75
+const LOUPE_PULL := 1.2
+const LOUPE_MATCH := 0.5
+const LOUPE_DOT := 11.0
 ## Under Reduce motion the clock runs this much faster.
 const RM_SPEED := 3.0
 ## The misprint / holo beat: it starts this long after she has landed and lasts BEAT_FLAW.
@@ -141,6 +152,19 @@ var _sparks: RK.Sparks
 var _growths: Array[TextureRect] = []
 var _wash: ColorRect
 var _legend_stamp: Control
+## The Legendary's poster beats run this long after the press (the loupe; 0 under Reduce motion).
+var _lag := 0.0
+var _skin := ""
+var _loupe: Control
+var _loupe_paper: ColorRect
+var _loupe_art: TextureRect
+var _loupe_m: ShaderMaterial
+var _loupe_marks: Control
+## The camera's framings, as (window centre x, y in texture px, scale in screen px per texture px):
+## on her eyes, all of her on the screen, and her place on the poster.
+var _cam_eye := Vector3.ZERO
+var _cam_all := Vector3.ZERO
+var _cam_post := Vector3.ZERO
 
 
 ## res: one entry of Game.summon's results ({hero_id, rarity, is_new, shards, dust}).
@@ -161,7 +185,8 @@ func setup(res: Dictionary, stars: int, skin: String, top_inset: float, bottom_i
 	sheets = total
 	_burst_t = float(BEAT[rarity])
 	_sched = SCHEDULE[rarity]
-	_settle_t = _burst_t + float(_sched[5])
+	_lag = LOUPE_HOLD + LOUPE_PULL if rarity == "legendary" and _mo > 0.0 else 0.0
+	_settle_t = _burst_t + _lag + float(_sched[5])
 	print_data = res.get("print", {}) if res.get("print") is Dictionary else {}
 	if str(print_data.get("flaw", "")) != "" or bool(print_data.get("holo", false)):
 		_flaw_t = _settle_t + FLAW_GAP
@@ -178,6 +203,7 @@ func setup(res: Dictionary, stars: int, skin: String, top_inset: float, bottom_i
 # ------------------------------------------------------------------ build
 
 func _build(stars: int, skin: String) -> void:
+	_skin = skin
 	var vp := get_viewport_rect().size if is_inside_tree() else Vector2(720, 1280)
 	var w := vp.x
 	var h := vp.y
@@ -259,7 +285,7 @@ func _build(stars: int, skin: String) -> void:
 	elif not legend:
 		_print = _hero_print(tex, sr, INK, 6.0, 0.5236)
 		box.add_child(_print)
-	else:
+	elif _lag <= 0.0:
 		# Her impression in the foil (the plate's die left it), fading as she resolves.
 		_foil_fig = _still(tex, sr, RK.foil_material("gold", 2, {"rect_size": sr.size, "glint": 1.2}))
 		_foil_fig.name = "FoilFigure"
@@ -352,7 +378,8 @@ func _still(tex: Texture2D, r: Rect2, mat: Material) -> TextureRect:
 	return tr
 
 
-## The LEGENDARY rubber stamp (it slams down last), across her legs.
+## The LEGENDARY rubber stamp (it slams down last), on the band's foot and the foil beside it, clear
+## of her legs (it sat across them, the third LEGENDARY on a poster that is about her).
 func _build_legend_stamp(pw: float, ph: float) -> void:
 	var st := PrintCard.Stamp.new()
 	st.name = "LegendStamp"
@@ -360,13 +387,13 @@ func _build_legend_stamp(pw: float, ph: float) -> void:
 	st.sub = "GOLD FOIL  ·  FIRST PRESSING  ·  RUN 0047"
 	st.color = SIG
 	st.seed_v = 31
-	var sw := minf(pw - BAND_W - 40.0, 470.0)
+	var sw := minf(BAND_W + 120.0, 330.0)
 	st.size = Vector2(sw, sw * 0.3)
-	st.position = Vector2(BAND_W + (pw - BAND_W - 49.0 - sw) * 0.5 + 6.0, ph * 0.845)
+	st.position = Vector2(12.0, ph * 0.7)
 	# Stamped on top of everything, her figure included (the relief moves it above).
 	st.set_meta("above_paper", true)
 	st.pivot_offset = st.size * 0.5
-	st.rotation = -0.12
+	st.rotation = -0.16
 	st.modulate.a = 0.0
 	_p.add_child(st)
 	_legend_stamp = st
@@ -427,6 +454,8 @@ func _build_press(tex: Texture2D, sr: Rect2, faction: String) -> void:
 	face.add_child(die)
 	add_child(plate)
 	_plate = plate
+	if _lag > 0.0:
+		_build_loupe(tex, sr)
 	_sparks = RK.Sparks.new()
 	_sparks.name = "Sparks"
 	_sparks.emit = Rect2(slab.position + Vector2(0, slab.size.y * 0.15), Vector2(slab.size.x, slab.size.y * 0.85))
@@ -441,6 +470,127 @@ func _build_press(tex: Texture2D, sr: Rect2, faction: String) -> void:
 	_wash.size = (_sparks.size) + Vector2(160, 160)
 	_wash.modulate.a = 0.0
 	add_child(_wash)
+
+
+## The proof under the loupe (Legendary): a full-screen paper sheet with her art on it as a
+## four-colour halftone (proof.gdshader), framed by the camera in _apply_loupe, and the proof's marks
+## (a registration target in signal, the proof's line in mono). sr: her still on the poster.
+func _build_loupe(tex: Texture2D, sr: Rect2) -> void:
+	var vs := get_viewport_rect().size if is_inside_tree() else Vector2(720, 1280)
+	var ts := Vector2(tex.get_size())
+	_loupe = Control.new()
+	_loupe.name = "Loupe"
+	_loupe.mouse_filter = MOUSE_FILTER_IGNORE
+	_loupe.size = vs
+	_loupe.visible = false
+	add_child(_loupe)
+	_loupe_paper = ColorRect.new()
+	_loupe_paper.name = "ProofSheet"
+	_loupe_paper.mouse_filter = MOUSE_FILTER_IGNORE
+	_loupe_paper.color = PAPER
+	_loupe_paper.position = Vector2(-60, -60)
+	_loupe_paper.size = vs + Vector2(120, 120)
+	_loupe.add_child(_loupe_paper)
+	_loupe_m = ShaderMaterial.new()
+	_loupe_m.shader = load("res://src/ui/shaders/proof.gdshader")
+	_loupe_m.set_shader_parameter("tex_size", ts)
+	_loupe_m.set_shader_parameter("paper", PAPER)
+	var art := TextureRect.new()
+	art.name = "Proof"
+	art.mouse_filter = MOUSE_FILTER_IGNORE
+	art.texture = tex
+	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	art.stretch_mode = TextureRect.STRETCH_SCALE
+	art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	art.material = _loupe_m
+	_loupe.add_child(art)
+	_loupe_art = art
+	# On her eyes: the face's upper half, a little over a face wide across the screen, the eyes a
+	# little above the middle.
+	var fr := HeroArt.face_rect(hero_id, _skin)
+	var eyes := Vector2(fr.get_center().x, fr.position.y + fr.size.y * 0.44)
+	var s0 := vs.x / maxf(fr.size.x * 1.7, 40.0)
+	var c0 := eyes + (vs * 0.5 - Vector2(vs.x * 0.5, vs.y * 0.44)) / s0
+	_cam_eye = Vector3(c0.x, c0.y, s0)
+	# All of her: the whole sheet on the screen.
+	var s1 := minf(vs.x / ts.x, vs.y / ts.y) * 0.98
+	_cam_all = Vector3(ts.x * 0.5, ts.y * 0.5, s1)
+	# Her place on the poster: the still's rect, in this node's coordinates.
+	var g := Rect2(_pr.position + sr.position, sr.size)
+	var s2 := g.size.x / ts.x
+	var c2 := ts * 0.5 + (vs * 0.5 - g.get_center()) / s2
+	_cam_post = Vector3(c2.x, c2.y, s2)
+	# The dots: LOUPE_DOT px on screen at the first framing (fixed to the art from then on).
+	_loupe_m.set_shader_parameter("cell", LOUPE_DOT / s0)
+	# The proof's marks: a registration target (the accent) and the proof's line.
+	_loupe_marks = Control.new()
+	_loupe_marks.name = "ProofMarks"
+	_loupe_marks.mouse_filter = MOUSE_FILTER_IGNORE
+	_loupe_marks.size = vs
+	_loupe.add_child(_loupe_marks)
+	var reg := RegMark.new()
+	reg.position = Vector2(24, safe_top + 30)
+	_loupe_marks.add_child(reg)
+	var line := PK.t("PROOF  ·  4/C  ·  Nº %04d  ·  %s" % [int(print_data.get("serial", 47)), str(_def.get("name", hero_id)).to_upper()],
+		11, Color(INK, 0.75), "mono_bold")
+	line.position = Vector2(26, vs.y - safe_bottom - 44)
+	_loupe_marks.add_child(line)
+
+
+## The camera on the proof: u is the time since the press. Holds on her eyes (a slow push-in), pulls
+## back to all of her (the window's centre moves with its size, so one point stays put, the way a
+## loupe lifts), then flies into her place on the poster while the sheet around her fades away.
+func _apply_loupe(u: float) -> void:
+	if _loupe == null:
+		return
+	var end := LOUPE_HOLD + LOUPE_PULL + LOUPE_MATCH
+	_loupe.visible = u >= 0.0 and u < end
+	if not _loupe.visible:
+		return
+	var cam := _cam_eye
+	var rot := -0.035
+	if u < LOUPE_HOLD:
+		var kh := Fx.smooth(Fx.k01(u, 0.0, LOUPE_HOLD))
+		cam.z = _cam_eye.z * lerpf(1.0, 1.06, kh)
+		rot = lerpf(-0.035, -0.03, kh)
+	elif u < LOUPE_HOLD + LOUPE_PULL:
+		var kp := _in_out(Fx.k01(u, LOUPE_HOLD, LOUPE_HOLD + LOUPE_PULL))
+		var from := Vector3(_cam_eye.x, _cam_eye.y, _cam_eye.z * 1.06)
+		cam = _zoom_pan(from, _cam_all, kp)
+		rot = lerpf(-0.03, 0.0, kp)
+	else:
+		var km := Fx.out_cubic(Fx.k01(u, LOUPE_HOLD + LOUPE_PULL, end))
+		cam = _zoom_pan(_cam_all, _cam_post, km)
+		rot = 0.0
+	var vs := _loupe.size
+	var ts := _loupe_art.texture.get_size()
+	_loupe_art.size = ts * cam.z
+	_loupe_art.position = vs * 0.5 - Vector2(cam.x, cam.y) * cam.z
+	_loupe_art.pivot_offset = vs * 0.5 - _loupe_art.position
+	_loupe_art.rotation = rot
+	# The dots melt into the painting over the end of the pull; the sheet around her goes at the cut.
+	var res := Fx.smooth(Fx.k01(u, LOUPE_HOLD + LOUPE_PULL * 0.45, LOUPE_HOLD + LOUPE_PULL))
+	var sheet := 1.0 - Fx.k01(u, LOUPE_HOLD + LOUPE_PULL, LOUPE_HOLD + LOUPE_PULL + LOUPE_MATCH * 0.55)
+	_loupe_m.set_shader_parameter("resolve", res)
+	_loupe_m.set_shader_parameter("sheet", sheet)
+	_loupe_paper.modulate.a = sheet
+	_loupe_marks.modulate.a = sheet
+	# She takes over from the picture as it lands.
+	_loupe_art.modulate.a = 1.0 - Fx.k01(u, end - 0.1, end)
+
+
+## A zoom with a pan between two framings (centre x, y, scale): the window's size moves on a log
+## scale and its centre with the size, so the move reads as one lift, not a slide and a zoom.
+static func _zoom_pan(a: Vector3, b: Vector3, k: float) -> Vector3:
+	var s := exp(lerpf(log(a.z), log(b.z), k))
+	var wa := 1.0 / a.z
+	var wb := 1.0 / b.z
+	var f := k if absf(wb - wa) < 0.0001 else (1.0 / s - wa) / (wb - wa)
+	return Vector3(lerpf(a.x, b.x, f), lerpf(a.y, b.y, f), s)
+
+
+static func _in_out(x: float) -> float:
+	return 4.0 * x * x * x if x < 0.5 else 1.0 - pow(-2.0 * x + 2.0, 3.0) * 0.5
 
 
 ## The print's marks: the serial stamp, and for a misprint or holo the flawed still (hidden until the
@@ -564,10 +714,13 @@ func _build_events() -> void:
 			for i in PULSES.size():
 				_events.append([float(PULSES[i]), "pulse%d" % i])
 			_events.append([p, "burst"])
-			_events.append([p + float(_sched[0]), "slam"])
-			_events.append([p + float(_sched[1]) + 0.12, "name"])
+			if _lag > 0.0:
+				_events.append([p + LOUPE_HOLD, "pull"])
+				_events.append([p + _lag, "match"])
+			_events.append([p + _lag + float(_sched[0]), "slam"])
+			_events.append([p + _lag + float(_sched[1]) + 0.12, "name"])
 			_events.append([p + float(LIFT[1]), "lights"])
-			_events.append([p + STAMP, "legend_stamp"])
+			_events.append([p + _lag + STAMP, "legend_stamp"])
 	if _flaw_t >= 0.0:
 		_events.append([_flaw_t, "flaw_stamp"])
 		_events.append([_flaw_t + 0.36, "flip"])
@@ -682,6 +835,14 @@ func _on_event(id: String) -> void:
 			fx.emit("grain", Color.WHITE, 0.14)
 		"lights":
 			fx.emit("darken", Color.BLACK, 0.0)
+		"pull":
+			UI.sfx("riser")
+			UI.haptic(12)
+		"match":
+			UI.sfx("slam")
+			UI.haptic(40)
+			_shake(0.35)
+			fx.emit("grain", Color.WHITE, 0.14)
 		"legend_stamp":
 			UI.sfx("slam")
 			UI.sfx("legendary")
@@ -774,6 +935,9 @@ func _apply() -> void:
 	var t := _t
 	var tb := t - _burst_t
 	var after := tb >= 0.0
+	# The poster's own beats (a Legendary's wait for the loupe).
+	var tp := tb - _lag
+	var after_p := tp >= 0.0
 	var ph := _pr.size.y
 	var res: float = RESOLVE[rarity]
 	var kb := Fx.k01(t, 0.0, maxf(_burst_t, 0.001))
@@ -787,19 +951,26 @@ func _apply() -> void:
 		"epic":
 			_apply_epic(t, tb, after, res, kb)
 		"legendary":
-			_apply_legend(t, tb, after, res, kb)
+			_apply_legend(t, tb, after, res, tp)
+			_apply_loupe(tb)
 	# Her: resolves out of an overexposed glow and settles with a small push-in.
 	var hero_a := Fx.k01(tb, 0.02, res * 0.8) if after else 0.0
 	if rarity == "legendary":
 		hero_a = Fx.k01(tb, 0.18, 0.18 + res) if after else 0.0
 	var glow := (1.0 - Fx.out_cubic(Fx.k01(tb, 0.0, res + 0.35))) if after else 0.0
 	var zoom := 1.0 + 0.04 * _mo * (1.0 - Fx.out_cubic(Fx.k01(tb, 0.0, res + 0.4))) if after else 1.0 + 0.04 * _mo
+	if _lag > 0.0:
+		# The proof lands exactly where she stands: she comes alive under it, no glow, no push.
+		hero_a = Fx.k01(tp, LOUPE_MATCH - 0.12, LOUPE_MATCH - 0.02)
+		glow = 0.0
+		zoom = 1.0
 	var hot := Color(1.5, 1.4, 1.25) if rarity == "legendary" else Color(1.35, 1.3, 1.28)
 	var m := Color.WHITE.lerp(hot, glow * (0.6 if rarity == "rare" else 1.0))
 	m.a = hero_a
 	_anchor.modulate = m
 	_anchor.scale = Vector2(zoom, zoom)
-	# The name.
+	# The name (and everything after it) on the poster's clock.
+	tb = tp
 	var s1 := float(_sched[1])
 	match rarity:
 		"legendary":
@@ -898,11 +1069,13 @@ func _apply_epic(t: float, tb: float, after: bool, res: float, kb: float) -> voi
 
 ## Legendary: the dark, the plate coming down and pressing, its lift off the gold foil, the
 ## growths erupting, the sparks, the flash, the light sweep and the stamp.
-func _apply_legend(t: float, tb: float, after: bool, res: float, _kb: float) -> void:
+## tp: the poster's clock (tb less the loupe).
+func _apply_legend(t: float, tb: float, after: bool, res: float, tp: float) -> void:
 	var on := _mo > 0.0
 	# The dark: the poster sits in it until the press lifts it.
 	if _veil:
-		_veil.modulate.a = (0.9 * Fx.k01(t, 0.0, 0.12)) if not after else 0.9 * (1.0 - Fx.k01(tb, 0.0, 0.22))
+		# (Dark from the first frame: a fade-in showed the poster for a frame.)
+		_veil.modulate.a = 0.9 if not after else 0.9 * (1.0 - Fx.k01(tb, 0.0, 0.22))
 		_veil.visible = _veil.modulate.a > 0.002
 	if _flood:
 		_flood.visible = after
@@ -937,7 +1110,7 @@ func _apply_legend(t: float, tb: float, after: bool, res: float, _kb: float) -> 
 		_wash.modulate.a = (0.9 * exp(-tb * 10.0) if after else 0.0) * _mo
 		_wash.visible = _wash.modulate.a > 0.004
 	# The growths erupt out of the corners, then twist slowly (the shader's clock).
-	var kg := Fx.k01(tb, float(GROW[0]), float(GROW[1])) if after else 0.0
+	var kg := Fx.k01(tp, float(GROW[0]), float(GROW[1])) if tp >= 0.0 else 0.0
 	var gv := Fx.out_back(kg, 1.6) if on else (1.0 if after else 0.0)
 	for g in _growths:
 		(g.material as ShaderMaterial).set_shader_parameter("grow", gv)
@@ -946,14 +1119,14 @@ func _apply_legend(t: float, tb: float, after: bool, res: float, _kb: float) -> 
 	if _foil_fig:
 		_foil_fig.modulate.a = (1.0 - Fx.k01(tb, 0.25, 0.25 + res)) if after else 0.0
 	if _sweep:
-		var ks := Fx.k01(tb, float(SWEEP[0]), float(SWEEP[1]))
+		var ks := Fx.k01(tp, float(SWEEP[0]), float(SWEEP[1]))
 		_sweep.visible = on and after and ks > 0.0 and ks < 1.0
 		(_sweep.material as ShaderMaterial).set_shader_parameter("sweep", Fx.smooth(ks))
 		(_sweep.material as ShaderMaterial).set_shader_parameter("amount", 0.7)
 	# The LEGENDARY stamp slams.
 	if _legend_stamp:
-		var kst := Fx.k01(tb, STAMP, STAMP + 0.3)
-		_legend_stamp.modulate.a = Fx.k01(tb, STAMP, STAMP + 0.05)
+		var kst := Fx.k01(tp, STAMP, STAMP + 0.3)
+		_legend_stamp.modulate.a = Fx.k01(tp, STAMP, STAMP + 0.05)
 		var ss := lerpf(lerpf(1.0, 2.8, _mo), 1.0, Fx.out_back(kst, 1.3))
 		_legend_stamp.scale = Vector2(ss, ss)
 	if _band_print:
@@ -1027,3 +1200,20 @@ class SerialStamp:
 		var paper := SignalKit.PAPER
 		for i in 90:
 			draw_circle(Vector2(rng.randf() * size.x, rng.randf() * size.y), rng.randf_range(0.4, 1.2), Color(paper, rng.randf_range(0.5, 0.95)))
+
+
+## A printer's registration target (the proof's one accent): a ring and a cross in signal.
+class RegMark:
+	extends Control
+
+	func _init() -> void:
+		mouse_filter = MOUSE_FILTER_IGNORE
+		size = Vector2(44, 44)
+
+	func _draw() -> void:
+		var c := size * 0.5
+		var col := SignalKit.SIGNAL
+		draw_arc(c, 13.0, 0.0, TAU, 40, col, 2.0, true)
+		draw_circle(c, 5.0, col)
+		draw_line(Vector2(c.x, 0), Vector2(c.x, size.y), col, 1.5)
+		draw_line(Vector2(0, c.y), Vector2(size.x, c.y), col, 1.5)

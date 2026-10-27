@@ -70,8 +70,14 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   not code shapes. Done: the gold foil has a real surface (a tiling normal map of creased facets,
   `tools/textures/foil_normal.py`, global `foil_n`), so it catches the glint facet by facet instead
   of reading as a smooth gradient. The Epic tell's "electric blue" was the desktop render only (see
-  the shots item below); on the iPhone's path it is the intended violet. Left: the Legendary poster's
-  restraint (foil, halftone, thorns and the stamp compete).
+  the shots item below); on the iPhone's path it is the intended violet. 2026-10-28: **the proof under
+  the loupe**: after the gold press the camera starts on her eyes as huge four-colour process dots
+  (proof.gdshader: cyan, magenta, yellow and key screens at their own angles, the dot pitch fixed to
+  the art), pulls back down all of her while the dots melt into the painting, then flies into her
+  place on the gold poster, where she comes alive (a match cut). The LEGENDARY stamp moved off her
+  legs onto the band's foot; the poster no longer flashes for a frame before the dark. Video:
+  `tools/shoot --movie` (Movie Maker, 30 fps, with sound). Left: the Epic's own beat (kept shorter:
+  the loupe stays the Legendary's).
 - P1 done **Shots didn't show what the phone shows:** on this Windows/Vulkan build the HDR 2D canvas
   is really 8-bit sRGB, so every shader-drawn colour (halftones, foil, paper relief, candle) printed
   darker and more saturated than on the iPhone, where HDR 2D is off (the band's red #ff5c29 came out

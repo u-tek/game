@@ -148,6 +148,20 @@ static func portrait_region(hero_id: String, skin_id: String = "") -> Rect2:
 	return Rect2(r.portrait_rect.position * k, r.portrait_rect.size * k)
 
 
+## Her face in the art's texture pixels: the rig's face ellipse (RigData.face_ellipse) as its
+## bounding rect, for close-ups (the Legendary summon's loupe). Falls back to the portrait region.
+static func face_rect(hero_id: String, skin_id: String = "") -> Rect2:
+	var art := _built_art(hero_id, skin_id)
+	var r := RigData.load_rig(hero_id, art) if art != "" else RigData.load_rig(hero_id if has_art(hero_id) else FALLBACK)
+	var t := texture(hero_id, skin_id)
+	if r == null or t == null:
+		return portrait_region(hero_id, skin_id)
+	var k := float(t.get_width()) / maxf(r.canvas.x, 1.0)
+	var e := r.face_ellipse()
+	var c := (r.origin + Vector2(e.x, e.y)) * k
+	return Rect2(c - Vector2(e.z, e.w) * k, Vector2(e.z, e.w) * 2.0 * k)
+
+
 ## Animated battle/stage sprite (HeroSprite: feet at origin, battle size at scale 1).
 static func make_sprite(hero_id: String, skin_id: String = "") -> Node2D:
 	var s := HeroSprite.new()

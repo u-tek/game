@@ -7,15 +7,22 @@
 #   --shoot-wait=2.0, --tilt=-0.45,0.05 (holds the phone tilt: the Legendary foil, the plates), --ldr
 # --place (Windows): holds the window 60 s so the owner can drag it where shots should open; the
 #   spot is saved in screenshots/.shot_window and every later shot opens there.
+# --movie clip.avi: also records the run with Godot's Movie Maker (a fixed 30 fps, every frame, the
+#   game's sound included; the clock is the movie's, so it plays as on the phone however slowly it
+#   renders). Give --shoot-wait the clip's length. Then: ffmpeg -i clip.avi -c:v libx264 -crf 18 -vf "crop=trunc(iw/2)*2:trunc(ih/2)*2:0:0"
+#   -pix_fmt yuv420p -c:a aac clip.mp4
 # Prints the PNG path and any script errors. View the PNG with the Read tool.
 cd "$(dirname "$0")/.." || exit 1
 screen="$1"; shift
-res=720x1560; out="screenshots/${screen}.png"; extra=(); place=""
+res=720x1560; out="screenshots/${screen}.png"; extra=(); place=""; eng=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --res) res="$2"; shift 2;;
     --out) out="$2"; shift 2;;
     --place) place=60; shift;;
+    --movie) mkdir -p "$(dirname "$2")"; mv="$(realpath -m "$2")"
+      command -v cygpath >/dev/null 2>&1 && mv="$(cygpath -m "$mv")"
+      eng=(--write-movie "$mv" --fixed-fps 30); shift 2;;
     *) extra+=("$1"); shift;;
   esac
 done
@@ -38,7 +45,7 @@ command -v cygpath >/dev/null 2>&1 && out_abs="$(cygpath -m "$out_abs")"
 if command -v xvfb-run >/dev/null 2>&1 && command -v flock >/dev/null 2>&1; then
   # The lock wait is not limited (other agents may hold it); the render itself gets 120 s.
   log=$(flock /tmp/halo-godot.lock timeout 120 xvfb-run -a -s "-screen 0 1800x2400x24" \
-    "$G" --path . --rendering-driver "$drv" --resolution "$res" -- \
+    "$G" --path . --rendering-driver "$drv" --resolution "$res" "${eng[@]}" -- \
     --shoot="$screen" --shoot-out="$out_abs" "${extra[@]}" 2>&1 | grep -vE "$NOISE")
 else
   # Windows: the owner may be playing a game on the main monitor. The window opens where they parked
@@ -58,7 +65,7 @@ else
   if [ -n "$place" ]; then
     extra+=("--shoot-place=$place" "--shoot-place-file=$(cygpath -m "$(realpath -m screenshots/.shot_window)")")
   fi
-  log=$(timeout 120 "$G" --path . --rendering-driver "$drv" --resolution "$res" -- \
+  log=$(timeout 120 "$G" --path . --rendering-driver "$drv" --resolution "$res" "${eng[@]}" -- \
     --shoot="$screen" --shoot-out="$out_abs" "${extra[@]}" 2>&1 | grep -vE "$NOISE")
 fi
 echo "$log" | grep -E -A2 "SCRIPT ERROR|Parse Error|ERROR:" | head -30
