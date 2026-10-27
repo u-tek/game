@@ -1,0 +1,5 @@
+{
+	"version": 1,
+	"about": "Skins whose own 18+ look (assets/art/heroes/<hero>/skins/<art>/adult/) is current: painted from the skin's present art and reviewed. In 18+ mode such a skin shows that look (HeroArt._built_art); every other skin shows the heroine's nude base look. The art session adds \"<hero>@<art>\" here as it installs and reviews each one. The 60 folders from 2026-10-19 predate the skins' re-render (2026-10-21/22) and stay out.",
+	"current": []
+}

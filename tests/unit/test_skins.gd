@@ -172,6 +172,15 @@ func test_nudity_mode_drops_skins(t: TestCtx) -> void:
 		if HeroArt.has_adult_art("kessa"):
 			t.ok(HeroArt.texture("kessa") != base, "nudity on: her nude base look")
 			t.eq(HeroArt.art_key("kessa"), "kessa@/adult")
+		# A skin whose own 18+ look is listed as current (data/adult_skins.json) shows that look instead.
+		var art := str(SkinData.get_def(sid).art)
+		if RigData.exists("kessa", RigData.adult_art(art)):
+			var keep: Array = HeroArt.adult_skins.duplicate()
+			HeroArt.adult_skins.append("kessa@" + art)
+			t.eq(HeroArt.art_key("kessa", sid), "kessa@" + RigData.adult_art(art), "nudity on: the skin's current 18+ look")
+			t.ok(HeroArt.texture("kessa", sid) != HeroArt.texture("kessa"), "nudity on: not the base nude")
+			HeroArt.adult_skins = keep
+		t.ok(not HeroArt.adult_skin_current("kessa", art) or HeroArt.adult_skins.has("kessa@" + art), "only listed looks count")
 		g.set_setting("nudity", false)
 		t.eq(HeroArt.texture("kessa", sid), tame, "nudity off: back to the skin's art")
 	t.eq(HeroArt.has_adult_art("uriela", "kessa_card_shark"), false, "another hero's skin never resolves")

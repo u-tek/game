@@ -1,8 +1,9 @@
 # Status and handoff
 
-**Status as of 2026-10-27, 13:00 UTC (23:00 on the owner's PC clock, UTC+10).** This is the living
+**Status as of 2026-10-28, 15:00 UTC (01:00 on the owner's PC clock, UTC+10).** This is the living
 status file: update it at the end of every work block. Rules and conventions are in `CLAUDE.md`;
-this file says where things stand. Older logs are under "History" at the bottom.
+this file says where things stand. Older logs are under "History" at the bottom. **The ranked work
+list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
 
 ## Start here (any new session)
 
@@ -27,6 +28,28 @@ this file says where things stand. Older logs are under "History" at the bottom.
 
 ## Where things stand
 
+- **Autopilot block (2026-10-27/28, PC chat; the owner's brief: audit everything, fix, raise it to the
+  bar, show the work).** An audit of every screen (fresh / rich / skins / short, `screenshots/audit/`)
+  reviewed by eye and by four review agents, and a code read by four agents with a skeptic per
+  finding; the ranked list is `docs/dev/backlog.md`. `--safe-area-sim` now gives a 16:9 window a
+  home-button iPhone's insets (38 px top, none below): the old shots put a notch on an SE and made
+  several short-phone problems look real. Done and pushed (commits d8edab1..8c1916c):
+  - **Halloween (2026-10-31):** cut-paper bats on a taped thread across the Lobby poster (Blender
+    renders `tools/blender/holiday_objects.py` + `finish_holiday.py` -> `assets/art/ui/holiday/`;
+    `src/ui/components/garland.gd`): they lean with the tilt, swing when a thumb brushes past, and
+    are strung up in front of the player the first time each year. The stamp, its line and the boot
+    print run in pumpkin ink; the proof stamp names the day; from 18:00 to 05:00 candlelight
+    (`candle.gdshader`) instead of the lamp. Data: `calendar.json` `decor`, `night`. Shots:
+    `--date=10-31`, `--candle`. Fixed: the stamp never pressed down; the Lobby's date went stale past
+    midnight.
+  - **Fixes:** Gallery Back dead after hiding the UI (and 18+ skins, zoom spring-back); Team's battle
+    pass under the nav, Team and Gear with a real Back; Summon's odds on her head; roster footers;
+    Shop text on the price; Quests' cut row; every pass's cut sub-line; battle HUD (souls count,
+    FOES/TEAM, souls slip); Settings, intake form, profile, prints, Lobby type; toasts above popups,
+    the veil above the bars; a win lost by leaving in the victory pose; Champion retreats; props
+    bought by a swipe; notices said late; daylight saving read as travel; a replayed form's SKIP
+    erasing the signature; the shop across midnight; a stuck Level Up pass; hit-stop vs. ultimates.
+  - **IPA: run 40517231772** (green, commit c6d4e17): everything up to the battle fixes.
 - **Combat v1, the war version (started 2026-10-22, PC chat; the owner: "yeah see what you can come
   up with").** Built and committed the same day: charm (the Infernal signature, rules + port check
   + fixtures), the front view (the team big in the foreground, a camera gliding along the line,
@@ -158,11 +181,12 @@ this file says where things stand. Older logs are under "History" at the bottom.
   the Champion side-wide); check Live Light, the heartbeat haptics and the District's frame rate on
   the owner's iPhone. Before committing, grep the whole `tools/check e2e` output for `SCRIPT ERROR`
   (the summary lines say ok regardless).
-- **For the art session (18+ skins):** `HeroArt._built_art` shows the nude base look whatever skin
-  is chosen when nudity is on (tested in `test_skins.gd test_nudity_mode_drops_skins`), so the 18+
-  looks being installed under `skins/<art>/adult/` never show. When the per-skin nude set is in,
-  switch `_built_art` to the skin's adult art when it exists (fall back to the base nude) and update
-  that test; the gallery's look strip will then show every skin's 18+ version.
+- **For the art session (18+ skins, 2026-10-28):** in 18+ mode a skin shows its own 18+ look when
+  that look is listed as current in `data/adult_skins.json` (`"<hero>@<art>"`), else her nude base
+  look (`HeroArt._built_art`, `adult_skin_current`; tested in `test_skins.gd`). The gallery lists
+  such skins in 18+ mode. **Add each new per-skin 18+ look to that list when you install and review
+  it.** The 60 `skins/<art>/adult/` folders from 2026-10-19 predate the skins' re-render and are not
+  listed.
 - **App cleanup (2026-10-22, PC chat; the owner: "i want the clean the app up first", then "i'm happy
   for you to go ahead with all of those changes").** An audit of every screen (`tools/shoot`, rich
   save) and of the code, then:

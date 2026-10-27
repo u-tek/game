@@ -23,6 +23,9 @@ static var _tinted := {}
 ## Show adult (nude) art where it is installed (skins and the base look). Game sets it from the
 ## "nudity" setting.
 static var nudity := false
+## Skins whose own 18+ look is current, as "<hero>@<art>" (data/adult_skins.json, kept by the art
+## session; an 18+ look painted for an older version of the skin stays out).
+static var adult_skins: Array = (GameData.file("adult_skins").get("current", []) as Array).duplicate()
 
 
 ## True if the hero has its own built art (warp or cutout rig), not the silhouette fallback.
@@ -46,6 +49,11 @@ static func _skin_art(hero_id: String, skin_id: String) -> String:
 	return str(sd.art)
 
 
+## True if this skin art's own 18+ look is built and listed as current (data/adult_skins.json).
+static func adult_skin_current(hero_id: String, skin_art: String) -> bool:
+	return adult_skins.has("%s@%s" % [hero_id, skin_art]) and RigData.exists(hero_id, RigData.adult_art(skin_art))
+
+
 ## True if the look has adult (nude) art built: skins/<art>/adult/ for a skin, <id>/adult/ for the
 ## base look (skin_id ""). An unknown skin or another hero's never resolves.
 static func has_adult_art(hero_id: String, skin_id: String = "") -> bool:
@@ -60,6 +68,10 @@ static func has_adult_art(hero_id: String, skin_id: String = "") -> bool:
 ## rig exists, else "" (the base art or the silhouette).
 static func _built_art(hero_id: String, skin_id: String) -> String:
 	if nudity:
+		# The skin's own 18+ look where it is current, else her nude base look, else her base art.
+		var sk := _skin_art(hero_id, skin_id)
+		if sk != "" and adult_skin_current(hero_id, sk):
+			return RigData.adult_art(sk)
 		return RigData.adult_art() if RigData.exists(hero_id, RigData.adult_art()) else ""
 	var art := _skin_art(hero_id, skin_id)
 	if art != "" and RigData.exists(hero_id, art):

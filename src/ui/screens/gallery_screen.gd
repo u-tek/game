@@ -180,15 +180,17 @@ func _layout() -> void:
 	_fit()
 
 
-## Her looks: the base and every skin whose art is in the build. In 18+ mode skins are off across the
-## board (every heroine shows her nude look; the shop and hero page hide the wardrobe): only the one.
+## Her looks: the base and every skin whose art is in the build. In 18+ mode skins are off (every
+## heroine shows her nude look; the shop and hero page hide the wardrobe) except those whose own 18+
+## look is current (data/adult_skins.json): those show, owned or as a preview.
 func _looks_for(id: String) -> Array[Dictionary]:
 	var out: Array[Dictionary] = [{"id": "", "name": "Original", "line": "", "owned": true, "price_gems": 0}]
-	if HeroArt.nudity:
-		return out
 	for s: Dictionary in Game.skins_for(id):
-		if bool(s.get("installed", false)):
-			out.append(s)
+		if not bool(s.get("installed", false)):
+			continue
+		if HeroArt.nudity and not HeroArt.adult_skin_current(id, str(SkinData.get_def(str(s.id)).get("art", ""))):
+			continue
+		out.append(s)
 	return out
 
 
