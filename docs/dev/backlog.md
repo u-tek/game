@@ -16,12 +16,10 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 
 ## P0
 
-- P0 todo **Gallery: BACK dead after hiding the UI** (`gallery_screen.gd` `_toggle_ui` restores
-  every filter to IGNORE). Done when: hide, show, BACK works; a test covers it.
-- P0 todo **Formation's BATTLE pass under the nav** (tall phones: the plate hangs off the poster into
-  the tab bar's rule; short phones: hidden). Done when: the pass sits inside the poster on both sizes.
-- P0 todo **Front oath: SWEAR passes under the nav on short phones** (re-check with audit2). Done
-  when: both passes show at 720x1280.
+- P0 done **Gallery: BACK dead after hiding the UI** (e2e check in meta_screens_e2e).
+- P0 done **Formation's BATTLE pass under the nav**; Formation and Gear have a Back (they left the nav
+  on 2026-10-23 but were still history roots).
+- P0 not real: **Front oath SWEAR passes on short phones** (the old notch simulation; audit2 shows them).
 
 ## P1
 
@@ -33,8 +31,8 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   dealt counts and Back returns to the Front.
 - P1 todo **District: a swipe that starts on a free lot buys a prop.** Done when: buying needs a tap
   (press and release without moving).
-- P1 todo **Gallery in 18+ mode sells skins** that can't show; **hidden BUY still live**; **a tap
-  undoes the zoom**; the strip highlight lands on a card being freed. Done when: each fixed.
+- P1 done **Gallery in 18+ mode sells skins** that can't show; **hidden BUY still live**; **a tap
+  undoes the zoom**; the strip highlight lands on a card being freed.
 - P1 todo **Hero page: the level-up pass and abilities capsule cover her legs and wings**; sub-tabs
   45 px tall. Done when: nothing interactive crosses her figure's box on any of 4 heroes.
 - P1 todo **Summon: the RATES card sits on her head; the x1 stub on her feet.** Done when: clear of
@@ -94,6 +92,8 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 - P3 todo **War claim pays by the current side; the oath promises a side switch no screen offers.**
 - P3 todo **Profile ENLISTED date in UTC** (the rest is local).
 - P3 todo **The record forgets stamped days after 400 days** (claims are pruned).
+- P3 todo **Flaky e2e:** meta_screens_e2e "gem summon asks first" failed once and passed on a rerun
+  (two frames may not be enough for the confirm); a "Lambda capture was freed" error in the same run.
 
 ## P4
 

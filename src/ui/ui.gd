@@ -64,7 +64,9 @@ const SCREENS := {
 ## Bottom-nav tabs, left to right (the centre one, "home", is the Lobby).
 const NAV_TABS: Array[String] = ["heroes", "home", "shop", "summon"]
 ## Going to one of these resets the history (back returns home).
-const NAV_ROOTS: Array[String] = ["heroes", "formation", "home", "gear", "summon", "quests", "shop"]
+## (Team and Gear left the nav on 2026-10-23: they are reached from the Lobby, the Bag and hero pages,
+## and Back returns there.)
+const NAV_ROOTS: Array[String] = ["heroes", "home", "summon", "quests", "shop"]
 ## Which nav tab is highlighted for non-tab screens.
 const NAV_PARENT := {"campaign": "home", "tower": "home", "battle": "home", "hero_detail": "heroes",
 	"quests": "home", "settings": "home", "profile": "home", "prints": "profile", "rival": "home",

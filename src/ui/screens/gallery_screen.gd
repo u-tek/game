@@ -31,6 +31,7 @@ var _stage: Control
 var _type: Control
 var _print: TextureRect
 var _anchor: Node2D
+var _punch: Node2D
 var _sprite: Node2D
 var _ui: Control
 var _strip: HBoxContainer
@@ -119,6 +120,7 @@ func _build() -> void:
 	add_child(_ui)
 	var top := UI.safe_top() + 14.0
 	var back := SignalKit.back_button(func() -> void: UI.back(), false)
+	back.name = "Back"
 	back.position = Vector2(12, top - 6.0)
 	_ui.add_child(back)
 	_count_l = PK.t("", 12, Color(PAPER, 0.7), "mono_bold")
@@ -178,9 +180,12 @@ func _layout() -> void:
 	_fit()
 
 
-## Her looks: the base and every skin whose art is in the build.
+## Her looks: the base and every skin whose art is in the build. In 18+ mode skins are off across the
+## board (every heroine shows her nude look; the shop and hero page hide the wardrobe): only the one.
 func _looks_for(id: String) -> Array[Dictionary]:
 	var out: Array[Dictionary] = [{"id": "", "name": "Original", "line": "", "owned": true, "price_gems": 0}]
+	if HeroArt.nudity:
+		return out
 	for s: Dictionary in Game.skins_for(id):
 		if bool(s.get("installed", false)):
 			out.append(s)
@@ -218,8 +223,13 @@ func _show_look() -> void:
 	_anchor = Node2D.new()
 	_anchor.name = "HeroAnchor"
 	_stage.add_child(_anchor)
+	# The tap reaction's camera punch scales this, inside the anchor that carries the zoom, so a
+	# reaction never springs the zoom back.
+	_punch = Node2D.new()
+	_punch.name = "Punch"
+	_anchor.add_child(_punch)
 	_sprite = HeroArt.make_sprite(id, skin)
-	_anchor.add_child(_sprite)
+	_punch.add_child(_sprite)
 	DeviceTier.light(_sprite)
 	var d := Game.hero_def(id)
 	_name_l.text = str(d.get("name", id)).to_upper()
@@ -287,7 +297,9 @@ func _clamp_pan(vs: Vector2) -> void:
 
 
 func _build_strip() -> void:
+	# Out of the strip now, not at the end of the frame: _mark_strip counts the cards right after.
 	for c in _strip.get_children():
+		_strip.remove_child(c)
 		c.queue_free()
 	var id := _ids[_i]
 	for k in _looks.size():
@@ -376,12 +388,23 @@ func _build_buy() -> void:
 	_layout()
 
 
+## Hide shows her alone: everything but the Hide control fades out and leaves play (hidden, so no
+## button in it, however deep, takes a tap); showing puts it all back as it was.
 func _toggle_ui() -> void:
 	_hidden = not _hidden
-	_ui.create_tween().tween_property(_ui, "modulate:a", 0.0 if _hidden else 1.0, 0.2)
+	var tw := _ui.create_tween()
+	if not _hidden:
+		_set_ui_shown(true)
+	tw.tween_property(_ui, "modulate:a", 0.0 if _hidden else 1.0, 0.2)
+	if _hidden:
+		tw.tween_callback(_set_ui_shown.bind(false))
+
+
+## (A hide's fade that finishes after a quick show again leaves everything shown.)
+func _set_ui_shown(on: bool) -> void:
 	for c in _ui.get_children():
-		if c is Control and c.name != "Hide":
-			(c as Control).mouse_filter = MOUSE_FILTER_IGNORE if _hidden else (c as Control).mouse_filter
+		if c is CanvasItem and c.name != "Hide":
+			(c as CanvasItem).visible = on or not _hidden
 
 
 # ------------------------------------------------------------------ touch
@@ -480,7 +503,7 @@ func _release(p: Vector2) -> void:
 		var t := now / 1000.0
 		_tap_n = HeroReact.next_count(_tap_n, t - _tap_at)
 		_tap_at = t
-		_react_left = HeroReact.react(self, _sprite, _anchor, p, _tap_n, _stage)
+		_react_left = HeroReact.react(self, _sprite, _punch, p, _tap_n, _stage)
 		if _tap_n >= 4:
 			_tap_n = 0
 

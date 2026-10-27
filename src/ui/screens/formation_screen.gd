@@ -133,7 +133,8 @@ func _build() -> void:
 	pub.size = Vector2(420, 16)
 	PK.at(_page, pub, Vector2(ox + w - 20 - 420, 9))
 
-	var pr := Rect2(ox + 18, 30, w - 36, clampf(size.y - 70.0, 860.0, 1080.0))
+	# The Battle pass hangs 54 px below the poster's foot: the poster leaves it room above the nav.
+	var pr := Rect2(ox + 18, 30, w - 36, clampf(size.y - 104.0, 860.0, 1080.0))
 	_poster = PK.poster(_page, pr)
 	var p := _poster
 	var pw := pr.size.x
@@ -141,14 +142,17 @@ func _build() -> void:
 
 	# ---- The band: the lead's print, the marks, the team's data.
 	PK.rect(p, Rect2(0, 0, BAND, ph), PK.BAND)
-	PK.at(p, PK.t("HH", 28, PAPER, "wide_black"), Vector2(14, 12))
-	PK.at(p, PK.t("™", 11, PAPER, "mono"), Vector2(70, 14))
-	PK.at(p, PK.t("FORMATION\nNo.05", 11, Color(PAPER, 0.85), "mono_bold"), Vector2(14, 54))
+	var back := SignalKit.back_button(func() -> void: UI.back(), false)
+	back.position = Vector2(0, 4)
+	p.add_child(back)
+	PK.at(p, PK.t("HH", 28, PAPER, "wide_black"), Vector2(14, 104))
+	PK.at(p, PK.t("™", 11, PAPER, "mono"), Vector2(70, 106))
+	PK.at(p, PK.t("FORMATION\nNo.05", 11, Color(PAPER, 0.85), "mono_bold"), Vector2(14, 146))
 	_data_l = PK.t("", 10, Color(PAPER, 0.9), "mono")
 	_data_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_data_l.size = Vector2(BAND - 36, 0)
-	PK.at(p, _data_l, Vector2(14, 104))
-	PK.at(p, PK.vlabel("©2026 HH, ALL RIGHTS RESERVED.", 10, Color(PAPER, 0.45)), Vector2(BAND - 6, 10))
+	PK.at(p, _data_l, Vector2(14, 196))
+	PK.at(p, PK.vlabel("©2026 HH, ALL RIGHTS RESERVED.", 10, Color(PAPER, 0.45)), Vector2(BAND - 6, 104))
 
 	# ---- The right-hand rule.
 	PK.rule(p, Vector2(pw - RULE_IN, 0), Vector2(1, ph))
@@ -192,13 +196,13 @@ func _build() -> void:
 	_edge_label(p, "BACK", top + front_h + 10)
 
 	# ---- Notes at the poster's foot: the hint, or the empty-team warning in signal.
-	_hint = PK.t("BENCH BELOW: SCROLL DOWN. TAP A HERO TO PLACE HER, A PLACED ONE TO TAKE HER OUT, A POSITION TO CHOOSE WHERE.", 9, Color(INK, 0.6), "mono")
+	_hint = PK.t("THE BENCH IS BELOW  ↓\nTAP A HERO TO PLACE HER", 11, Color(INK, 0.72), "mono_bold")
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_hint.size = Vector2(maxf(pw - x0 - 330.0, 180.0), 0)
+	_hint.size = Vector2(maxf(pw - x0 - 360.0, 180.0), 0)
 	PK.at(p, _hint, Vector2(x0, ph - 58))
 	_warn = PK.t("", 11, SIG, "mono_bold")
 	_warn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_warn.size = Vector2(maxf(pw - x0 - 330.0, 180.0), 0)
+	_warn.size = Vector2(maxf(pw - x0 - 360.0, 180.0), 0)
 	_warn.visible = false
 	PK.at(p, _warn, Vector2(x0, ph - 44))
 
@@ -219,10 +223,10 @@ func _build() -> void:
 
 	# ---- The Battle pass stuck over the poster's foot, then the bench under the poster.
 	var by := pr.end.y
-	_pass = PK.make_pass(300.0, "sword", false, false)
+	_pass = PK.make_pass(336.0, "sword", false, false)
 	_pass.hit.name = "Battle"
 	Kit._connect_pressed(_pass.hit, func() -> void: UI.go("campaign"))
-	_pass.position = Vector2(ox + w - 18 - 300, by - PASS_ROOM - 4.0)
+	_pass.position = Vector2(ox + w - 18 - 336, by - PASS_ROOM - 4.0)
 	_pass.rotation = -0.025
 	_filter_row = Control.new()
 	_filter_row.name = "BenchTabs"

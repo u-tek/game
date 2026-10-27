@@ -87,6 +87,14 @@ func _new_screens() -> void:
 	gal.call("_show_hero", int(gal.get("_i")) + 1)
 	await _frames(3)
 	_check(_game.owned_heroes().size() < 2 or str(gal.get("_i")) != first, "the gallery moves to the next heroine")
+	# Hide the UI and show it again: Back still works (it used to stay dead).
+	gal.call("_toggle_ui")
+	await get_tree_timer(0.35)
+	var gback := gal.find_child("Back", true, false) as Control
+	_check(gback != null and not gback.is_visible_in_tree(), "hidden: Back is out of play")
+	gal.call("_toggle_ui")
+	await get_tree_timer(0.35)
+	_check(gback != null and gback.is_visible_in_tree() and gback.mouse_filter != Control.MOUSE_FILTER_IGNORE, "shown again: Back takes taps")
 	_ui.go("home")
 	await _frames(4)
 
