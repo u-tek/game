@@ -116,6 +116,13 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   away), then the RECEIVED disc stamps with the reward chime. Reduce motion shows it at once
   (`src/ui/components/receipt_printer.gd`).
 
+- P2 done **A won fight just stopped**: the photo finish. On the last blow a shutter clicks (sfx
+  `shutter`), the field freezes a beat and snaps into a photograph's white border on the matte
+  (crop marks, the caption FIG. 01 · THE LAST BLOW with the souls line); the frame it fell on is
+  taken (the field only: the overlay stays out of it) and the battle report prints it in the riso
+  inks as its press photo, the MVP in front (`battle_screen.gd _photo_finish`, `battle_result.gd`
+  data.photo). Every win has its own picture.
+
 ## P3
 
 - P3 doing **One poster kit:** done: the palette has one source (every INK, PAPER, SIGNAL, MATTE and

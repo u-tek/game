@@ -37,6 +37,8 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
   - **Every reward prints**: a rendered thermal printer feeds the receipt up line by line, it tears
     off, the RECEIVED disc stamps (`src/ui/components/receipt_printer.gd`, the printer render
     `tools/blender/ui_objects.py printer`).
+  - **The photo finish**: a won fight's last blow is photographed (a shutter, a freeze, the field as a
+    print on the matte) and the battle report prints that frame as its press photo behind the MVP.
 - **Autopilot block (2026-10-27/28, PC chat; the owner's brief: audit everything, fix, raise it to the
   bar, show the work).** An audit of every screen (fresh / rich / skins / short, `screenshots/audit/`)
   reviewed by eye and by four review agents, and a code read by four agents with a skeptic per

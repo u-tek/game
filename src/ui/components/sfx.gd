@@ -7,13 +7,13 @@ extends RefCounted
 ## opening), reveal (a Rare hero), riser + beat (the held beat before a Legendary) and slam
 ## (the rarity word landing); the Lobby adds stamp (a real day stamped), pulse (her heartbeat)
 ## and rustle (a holiday decoration brushed on its thread); a reward's receipt adds printer (it feeds out
-## of a thermal printer) and tear (torn off).
+## of a thermal printer) and tear (torn off); a won battle's photo finish adds shutter.
 
 const RATE := 22050
 const NAMES: Array[String] = ["tap", "tab", "pop", "deny", "toggle", "coin", "sparkle", "close", "hit", "reward",
 	"ult", "summon", "victory", "defeat", "legendary",
 	"portal", "tell", "tell_big", "burst", "reveal", "riser", "beat", "slam", "stamp", "pulse", "rustle",
-	"printer", "tear"]
+	"printer", "tear", "shutter"]
 
 
 ## Builds the stream for `sound_name` (null if unknown).
@@ -76,6 +76,8 @@ static func make(sound_name: String) -> AudioStreamWAV:
 			s = _printer()
 		"tear":
 			s = _tear()
+		"shutter":
+			s = _shutter()
 		_:
 			return null
 	return _to_wav(s)
@@ -587,4 +589,32 @@ static func _tear() -> PackedFloat32Array:
 		var hp := lp - prev
 		prev = lp
 		b[i] = (hp * 1.4 + lp * 0.3) * env * teeth * 0.8
+	return b
+
+
+## A camera's shutter (the battle's photo finish): the mirror slap and the curtain, two dry clicks a
+## few hundredths apart, with a breath of the film advance under them.
+static func _shutter() -> PackedFloat32Array:
+	var dur := 0.22
+	var b := _buf(dur)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 71
+	for click: Array in [[0.0, 1.0, 3400.0], [0.045, 0.7, 2600.0]]:
+		var at := float(click[0])
+		var amp := float(click[1])
+		var f := float(click[2])
+		var i0 := int(at * RATE)
+		for i in int(0.03 * RATE):
+			if i0 + i >= b.size():
+				break
+			var t := float(i) / RATE
+			var env := exp(-t * 220.0)
+			b[i0 + i] += (rng.randf_range(-1.0, 1.0) * 0.7 + sin(TAU * f * t) * 0.5) * env * amp * 0.8
+	# The advance: a soft low whirr after the clicks.
+	var ph := 0.0
+	for i in range(int(0.07 * RATE), b.size()):
+		var t := float(i) / RATE
+		var k := (t - 0.07) / (dur - 0.07)
+		ph += TAU * (90.0 + 40.0 * k) / RATE
+		b[i] += (sin(ph) * 0.3 + rng.randf_range(-1.0, 1.0) * 0.08) * sin(PI * k) * 0.25
 	return b

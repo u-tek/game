@@ -163,6 +163,10 @@ var _dragged := false
 var _tap_hint: Control
 var _souls: Node2D
 var _souls_won := -1
+## The photo finish: the field at the last blow of a won fight, for the victory poster (null until then).
+var _photo: Texture2D
+## The souls slip's line ("+40 SOULS  ->  ..."), for the photo finish's caption.
+var _souls_line := ""
 ## Encore (battle_sim): the last ally ultimate's hero, when its window closes (display ms) and the
 ## sticker over the cards that counts it down.
 var _encore_hero := ""
@@ -1291,6 +1295,68 @@ func _hit_stop(secs: float) -> void:
 	_hitstop = maxf(_hitstop, secs)
 
 
+## The photo finish's frame: the field snaps into a photograph's white border (a thick paper edge,
+## crop marks at the corners), a hair smaller and turned, and holds there until the report comes.
+func _snap_frame(f: Rect2) -> void:
+	var fr := _SnapFrame.new()
+	fr.name = "PhotoFinish"
+	fr.caption = "FIG. 01  ·  THE LAST BLOW" + ("  ·  " + _souls_line if _souls_line != "" else "")
+	fr.position = f.position
+	fr.size = f.size
+	fr.pivot_offset = f.size * 0.5
+	add_child(fr)
+	# Under the overlay, where the report comes up over it.
+	if _overlay and _overlay.get_parent() == self:
+		move_child(fr, _overlay.get_index())
+	fr.scale = Vector2(1.06, 1.06)
+	fr.modulate.a = 0.0
+	var tw := fr.create_tween().set_parallel(true)
+	tw.tween_property(fr, "modulate:a", 1.0, 0.05)
+	tw.tween_property(fr, "scale", Vector2(0.985, 0.985), 0.22).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_property(fr, "rotation", -0.012, 0.22).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+
+## A photograph's border over the field: paper outside the picture, a hairline inside, crop marks.
+class _SnapFrame:
+	extends Control
+	const EDGE := 14.0
+	var caption := ""
+
+	func _init() -> void:
+		mouse_filter = MOUSE_FILTER_IGNORE
+
+	func _draw() -> void:
+		var r := Rect2(Vector2.ZERO, size)
+		var matte := SignalKit.MATTE
+		var white := Color("fcfbf8")
+		# The matte far around it (the frame shrinks, so the screen outside it is covered), then the
+		# print's white edge.
+		var far := 400.0
+		draw_rect(Rect2(-far, -far, size.x + far * 2.0, far), matte)
+		draw_rect(Rect2(-far, size.y, size.x + far * 2.0, far), matte)
+		draw_rect(Rect2(-far, 0, far, size.y), matte)
+		draw_rect(Rect2(size.x, 0, far, size.y), matte)
+		draw_rect(Rect2(0, 0, size.x, EDGE), white)
+		draw_rect(Rect2(0, size.y - EDGE, size.x, EDGE), white)
+		draw_rect(Rect2(0, 0, EDGE, size.y), white)
+		draw_rect(Rect2(size.x - EDGE, 0, EDGE, size.y), white)
+		# The print's shadow on the matte, down and to the right.
+		for i in 4:
+			var g := 3.0 + i * 3.0
+			var a := 0.07 - i * 0.014
+			draw_rect(Rect2(size.x, 8.0 + g * 0.5, g, size.y - 4.0), Color(0, 0, 0, a))
+			draw_rect(Rect2(8.0 + g * 0.5, size.y, size.x - 4.0, g), Color(0, 0, 0, a))
+		draw_rect(r.grow(-EDGE), Color(SignalKit.INK, 0.6), false, 1.0)
+		var ink := SignalKit.INK
+		for c: Vector2 in [Vector2(EDGE, EDGE), Vector2(size.x - EDGE, EDGE), Vector2(EDGE, size.y - EDGE), Vector2(size.x - EDGE, size.y - EDGE)]:
+			var sx := -1.0 if c.x < size.x * 0.5 else 1.0
+			var sy := -1.0 if c.y < size.y * 0.5 else 1.0
+			draw_line(c + Vector2(sx * 3.0, 0), c + Vector2(sx * 12.0, 0), ink, 1.5)
+			draw_line(c + Vector2(0, sy * 3.0), c + Vector2(0, sy * 12.0), ink, 1.5)
+		var f := Kit.font("mono_bold")
+		draw_string(f, Vector2(EDGE + 2.0, size.y + 16.0), caption, HORIZONTAL_ALIGNMENT_LEFT, size.x - EDGE * 2.0, 11, Color(ink, 0.85))
+
+
 ## A brief full-screen flash (additive white-ish) for crits and ultimates.
 func _screen_flash(col: Color, peak: float) -> void:
 	if _flash_rect == null:
@@ -1587,7 +1653,8 @@ func _on_end(winner: String) -> void:
 				to = "  ·  PICK A SIDE ON THE FRONT"
 			else:
 				to = "  →  " + str(((war.sectors as Array)[int(war.focus)] as Dictionary).name).to_upper()
-			var slip := BP.t("+%d SOULS%s" % [_souls_won, to], 40 if to == "" else 30, Color(1.0, 0.82, 0.42), "compressed")
+			_souls_line = "+%d SOULS%s" % [_souls_won, to]
+			var slip := BP.t(_souls_line, 40 if to == "" else 30, Color(1.0, 0.82, 0.42), "compressed")
 			slip.position = Vector2(20.0, _field_rect().position.y + _field_rect().size.y * 0.5)
 			slip.size = Vector2(_width() - 40.0, 60)
 			slip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -1601,6 +1668,45 @@ func _on_end(winner: String) -> void:
 			var sprite: Node2D = v.get("sprite")
 			sprite.call("set_facing", int(v.get("home_facing")))
 			sprite.call("play_victory")
+	if winner == "ally":
+		_photo_finish()
+
+
+## The photo finish: the frame the last foe fell on is taken (the field, as it was drawn), with a
+## shutter's click and flash and a short freeze; the victory poster prints it as its press photo.
+func _photo_finish() -> void:
+	# The overlay (the souls slip, the tap hint) stays out of the picture; with the frame it stays
+	# hidden until the report (the slip's line goes on the photo's caption instead).
+	if _overlay:
+		_overlay.visible = false
+	await RenderingServer.frame_post_draw
+	if not is_inside_tree() or _phase == "result":
+		return
+	var img := get_viewport().get_texture().get_image()
+	if img == null or img.is_empty() or not Kit.motion_ok():
+		_overlay.visible = true
+	if img == null or img.is_empty():
+		return
+	var vs := get_viewport_rect().size
+	var k := float(img.get_width()) / maxf(vs.x, 1.0)
+	var f := _field_rect()
+	var gr := get_global_rect()
+	var r := Rect2i(Vector2i((gr.position + f.position) * k), Vector2i(f.size * k)).intersection(Rect2i(Vector2i.ZERO, img.get_size()))
+	if r.size.x < 8 or r.size.y < 8:
+		_overlay.visible = true
+		return
+	_photo = ImageTexture.create_from_image(img.get_region(r))
+	UI.sfx("shutter")
+	UI.haptic(20)
+	if Kit.motion_ok():
+		_screen_flash(Color(1, 1, 1), 0.7)
+		_snap_frame(f)
+		# Everyone holds still for a beat, as in the picture.
+		for uid: String in _views:
+			_views[uid].call("set_speed", 0.02)
+		get_tree().create_timer(0.3).timeout.connect(func() -> void:
+			for uid: String in _views:
+				_views[uid].call("set_speed", float(_speed)))
 
 
 func _finish(outcome: Dictionary) -> void:
@@ -1608,6 +1714,8 @@ func _finish(outcome: Dictionary) -> void:
 		return
 	_completed = true
 	_phase = "result"
+	if _overlay:
+		_overlay.visible = true
 	if _force_result != "":
 		outcome = _forced(outcome)
 	var res := _report(outcome)
@@ -1641,6 +1749,7 @@ func _finish(outcome: Dictionary) -> void:
 			"next_text": next_text, "back_text": "Spire" if _mode == "tower" else "Campaign",
 			"safe_top": UI.safe_top(), "safe_bottom": UI.safe_bottom(),
 			"mode": _mode, "floor": _floor, "report_no": _report_no(), "souls": int(val.get("souls", 0)),
+			"photo": _photo,
 		})
 	else:
 		UI.sfx("defeat")

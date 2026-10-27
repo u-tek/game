@@ -125,7 +125,8 @@ func _rule_labels(parent: Control, x: float, y0: float, y1: float, items: Array,
 
 
 ## data: stage, outcome, reward, first_clear, stars (1-3), team_size, mvp {hero_id, damage, share},
-## has_next (bool), next_text, back_text, safe_top, safe_bottom, mode, floor, report_no.
+## has_next (bool), next_text, back_text, safe_top, safe_bottom, mode, floor, report_no, photo (the
+## field at the last blow, a Texture2D: printed behind the MVP; else her own riso print is).
 func show_victory(data: Dictionary) -> void:
 	_frame(float(data.get("safe_top", 0.0)), float(data.get("safe_bottom", 0.0)))
 	var p := _poster
@@ -188,19 +189,33 @@ func show_victory(data: Dictionary) -> void:
 		_hero = PK.hero_fig(hb, mvp_id, skin, feet, height)
 		var spr := _hero.get_child(0) as Node2D
 		var sr := PK.still_rect(spr, _hero.position, height)
-		var k := 1.1
-		var echo := BP.riso(mvp_id, skin, "full", {"shift_b": Vector2(5, -4), "cell_a": 6.0, "cell_b": 5.0, "strength": 0.92})
-		echo.position = _hero.position + (sr.position - _hero.position) * k + Vector2(-58, -10)
-		echo.size = sr.size * k
-		hb.add_child(echo)
-		hb.move_child(echo, 0)
+		var photo: Variant = data.get("photo")
+		if photo is Texture2D:
+			# The photo finish: the field at the last blow, printed in the riso's two inks behind her.
+			var ph_tr := TextureRect.new()
+			ph_tr.name = "PressPhoto"
+			ph_tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			ph_tr.texture = photo
+			ph_tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			ph_tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+			ph_tr.size = box.size
+			ph_tr.material = BP.riso_material({"shift_b": Vector2(4, -3), "cell_a": 5.0, "cell_b": 4.0, "strength": 0.62})
+			hb.add_child(ph_tr)
+			hb.move_child(ph_tr, 0)
+		else:
+			var k := 1.1
+			var echo := BP.riso(mvp_id, skin, "full", {"shift_b": Vector2(5, -4), "cell_a": 6.0, "cell_b": 5.0, "strength": 0.92})
+			echo.position = _hero.position + (sr.position - _hero.position) * k + Vector2(-58, -10)
+			echo.size = sr.size * k
+			hb.add_child(echo)
+			hb.move_child(echo, 0)
 		if spr.has_method("play_victory"):
 			spr.call("play_victory")
 	HPK.rule(p, box.position, Vector2(box.size.x, 1))
 	HPK.rule(p, box.position + Vector2(0, box.size.y - 1), Vector2(box.size.x, 1))
 	HPK.rule(p, box.position, Vector2(1, box.size.y))
 	HPK.rule(p, box.position + Vector2(box.size.x - 1, 0), Vector2(1, box.size.y))
-	var fig := BP.t("FIG. 01  ·  MVP", 10, Color(BP.INK, 0.75), "mono_bold")
+	var fig := BP.t("FIG. 01  ·  MVP  ·  THE LAST BLOW" if data.get("photo") is Texture2D else "FIG. 01  ·  MVP", 10, Color(BP.INK, 0.75), "mono_bold")
 	BP.at(p, fig, box.position + Vector2(8, 6))
 
 	# Physical: chrome thorns crawl over the band's top corner (over the poster, under the pass).
