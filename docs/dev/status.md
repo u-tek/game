@@ -60,8 +60,13 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
     so shader-drawn colours (halftones, foil, paper, candlelight) printed darker and more saturated
     than the iPhone (HDR off) shows; `tools/shoot` renders with `--ldr` unless `SHOOT_HDR=1`.
     Earlier shots, sent and archived, are in the darker colours.
-  - **IPA: run 40529352708** (green, commit 64f21f1). Before: 40517231772 (c6d4e17). Run
-    40526508839 failed only because GitHub had no macOS runner free.
+  - **Then:** holiday decorations for Christmas, New Year and Valentine's (snowflakes, gold stars,
+    pink hearts); fewer reds on Quests, Gear, Rival and Prints; Gear's empty state links the
+    Campaign; the Gallery strip centred; the candlelight eased for the phone; the Summon timer fix
+    (the flaky "Lambda capture" e2e error); the palette in one place (constants and inline uses).
+  - **IPA: run 40539152132** (green, commit 8fd8d93): the Halloween build. Before: 40529352708
+    (64f21f1), 40517231772 (c6d4e17). Run 40526508839 failed only because GitHub had no macOS
+    runner free.
 - **Combat v1, the war version (started 2026-10-22, PC chat; the owner: "yeah see what you can come
   up with").** Built and committed the same day: charm (the Infernal signature, rules + port check
   + fixtures), the front view (the team big in the foreground, a camera gliding along the line,
