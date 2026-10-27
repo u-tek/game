@@ -385,50 +385,12 @@ static func pass_button(spec: Dictionary, on_pressed: Callable = Callable()) -> 
 	var w: float = spec.get("width", 400.0)
 	var off := bool(spec.get("disabled", false))
 	var b := bare_button(Vector2(w, 184))
-	var sig := SignalKit.plate("graphite" if off else "signal", Vector2(8, 86), Vector2(w - 14, 96), {"cuts": [0, 12, 18, 0],
-		"glow": 0.0 if off else 0.4, "glow_radius": 14.0, "pulse": 0.0 if off else 0.5, "topo": 0.6}, b)
-	var top_sz := Vector2(w, 102)
-	var silver := SignalKit.plate("silver", Vector2.ZERO, top_sz, {"shape": Plate.tab_bottom(top_sz, 14, w * 0.33, w * 0.65, 14), "topo": 0.5,
-		"screws": [Vector2(13, 13), Vector2(w - 13, 13), Vector2(13, 74), Vector2(w - 13, 74)]}, b)
-	var x := 26.0
-	if spec.get("code", true):
-		var code := SignalKit.matrix(Vector2(58, 58))
-		code.position = Vector2(26, 13)
-		silver.add_child(code)
-		x = 98.0
-	var kick := SignalKit.etch(str(spec.get("kicker", "")), 10, "mono_bold")
-	kick.position = Vector2(x, 12)
-	silver.add_child(kick)
-	var title_txt := str(spec.get("title", ""))
-	var ts := int(spec.get("title_size", 30))
-	var avail := w - x - (92.0 if spec.has("icon") else 24.0)
-	var tf := Kit.font("wide_black")
-	while ts > 14 and tf.get_string_size(title_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, ts).x > avail:
-		ts -= 1
-	var title := SignalKit.etch(title_txt, ts, "wide_black")
-	title.position = Vector2(x - 2, 26 + (30 - ts) * 0.6)
-	silver.add_child(title)
-	var sub := SignalKit.etch(str(spec.get("sub", "")), 10, "mono")
-	sub.position = Vector2(x, 68)
-	silver.add_child(sub)
-	if spec.has("icon"):
-		var knob := SignalKit.plate("dial", Vector2(w - 82, 20), Vector2(50, 50), {"circle": true, "shadow": 0.5}, silver)
-		var ic := Kit.icon(str(spec["icon"]), 22, Color(1, 1, 1, 0.95))
-		ic.position = Vector2(14, 14)
-		knob.add_child(ic)
-	var act := SignalKit.pill(str(spec.get("action", "ENGAGE  >>>")), int(spec.get("action_size", 20)), Color(1, 1, 1, 0.45) if off else Color.WHITE)
-	act.position = Vector2(18, 32)
-	sig.add_child(act)
-	if spec.has("info"):
-		var ix := maxf(w * 0.56, 34.0 + act.get_combined_minimum_size().x + 14.0)
-		var info := t(str(spec["info"]), 10, Color(1, 1, 1, 0.5 if off else 0.9), "mono")
-		info.position = Vector2(ix, 30)
-		info.size = Vector2(w - 24 - ix, 40)
-		info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		sig.add_child(info)
-		b.set_meta("info_label", info)
+	# (The plates and their print are SignalKit.pass_plates, shared with SignalKit.pass_button.)
+	var parts := SignalKit.pass_plates(b, w, spec, off, false)
+	if parts.info != null:
+		b.set_meta("info_label", parts.info)
 	b.disabled = off
-	wire(b, [silver, sig], on_pressed)
+	wire(b, [parts.silver, parts.sig], on_pressed)
 	return b
 
 

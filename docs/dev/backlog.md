@@ -107,8 +107,10 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 
 - P3 doing **One poster kit:** done: the palette has one source (every INK, PAPER, SIGNAL, MATTE and
   BAND constant and inline use in 60 files points at SignalKit / Kit.BAND; only the palette files and
-  theme.gd hold the hex). Left: folding `poster_kit.gd`, `hero_poster_kit.gd`, survey `poster.gd` and
-  SignalKit into one kit (three copies of the pass alone); one set of spacing constants.
+  theme.gd hold the hex); the two static passes (SignalKit.pass_button, PosterKit.pass_button) build
+  their plates with one SignalKit.pass_plates (shots identical). Left: HeroPosterKit's stateful Pass
+  class (its own plates, set_text); folding the rest of `poster_kit.gd`, `hero_poster_kit.gd` and
+  survey `poster.gd` into SignalKit; one set of spacing constants.
 - P3 done **War claim paid by the current side** (no switch while a claim waits); **the oath promised a
   side switch no screen offered** (CHANGE TO ... on the Front at a week's start).
 - P3 done **Profile ENLISTED date in UTC** (local now).

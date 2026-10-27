@@ -118,39 +118,10 @@ static func pass_button(spec: Dictionary, on_pressed: Callable = Callable()) -> 
 	root.custom_minimum_size = Vector2(w, 184)
 	root.size = root.custom_minimum_size
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var sig := plate("signal", Vector2(8, 86), Vector2(w - 14, 96), {"cuts": [0, 12, 18, 0], "glow": 0.4, "glow_radius": 14.0,
-		"pulse": 0.5, "topo": 0.6}, root)
-	var top_sz := Vector2(w, 102)
-	var silver := plate("silver", Vector2.ZERO, top_sz, {"shape": Plate.tab_bottom(top_sz, 14, w * 0.33, w * 0.65, 14), "topo": 0.5,
-		"screws": [Vector2(13, 13), Vector2(w - 13, 13), Vector2(13, 74), Vector2(w - 13, 74)]}, root)
+	var parts := pass_plates(root, w, spec, false, true)
+	var silver: Control = parts.silver
+	var sig: Control = parts.sig
 	silver.z_index = 1
-	var x := 26.0
-	if spec.get("code", true):
-		var code := matrix(Vector2(58, 58))
-		code.position = Vector2(26, 13)
-		silver.add_child(code)
-		x = 98.0
-	var kick := etch(str(spec.get("kicker", "")), 10, "mono_bold")
-	kick.position = Vector2(x, 12)
-	silver.add_child(kick)
-	var title := etch(str(spec.get("title", "")), 30, "wide_black")
-	title.position = Vector2(x - 2, 26)
-	silver.add_child(title)
-	var sub := etch(str(spec.get("sub", "")), 10, "mono")
-	sub.position = Vector2(x, 68)
-	silver.add_child(sub)
-	var knob := plate("dial", Vector2(w - 82, 20), Vector2(50, 50), {"circle": true, "shadow": 0.5}, silver)
-	var ic := Kit.icon(str(spec.get("icon", "flag")), 22, Color(1, 1, 1, 0.95))
-	ic.position = Vector2(14, 14)
-	knob.add_child(ic)
-	var act := pill(str(spec.get("action", "ENGAGE  >>>")), 20)
-	act.position = Vector2(18, 32)
-	sig.add_child(act)
-	if spec.has("info"):
-		var info := Kit.label(str(spec["info"]), 10, Color(1, 1, 1, 0.85), "mono")
-		info.position = Vector2(w * 0.58, 44)
-		Kit.fit_label(info, w * 0.42 - 26.0, 10, 8)
-		sig.add_child(info)
 	var hit := Button.new()
 	hit.theme_type_variation = &"BareButton"
 	hit.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -169,6 +140,59 @@ static func pass_button(spec: Dictionary, on_pressed: Callable = Callable()) -> 
 			on_pressed.call())
 	root.add_child(hit)
 	return root
+
+
+## The pass's two plates and their print, under `parent` (shared by pass_button here and
+## PosterKit.pass_button): the signal plate (graphite when off) with the action pill and the info
+## line, the silver plate with the matrix code, kicker, title (set smaller to fit), sub line and the
+## knob (always when `knob`, else only with spec.icon). Returns {silver, sig, info (or null)}.
+static func pass_plates(parent: Control, w: float, spec: Dictionary, off: bool, knob: bool) -> Dictionary:
+	var sig := plate("graphite" if off else "signal", Vector2(8, 86), Vector2(w - 14, 96), {"cuts": [0, 12, 18, 0],
+		"glow": 0.0 if off else 0.4, "glow_radius": 14.0, "pulse": 0.0 if off else 0.5, "topo": 0.6}, parent)
+	var top_sz := Vector2(w, 102)
+	var silver := plate("silver", Vector2.ZERO, top_sz, {"shape": Plate.tab_bottom(top_sz, 14, w * 0.33, w * 0.65, 14), "topo": 0.5,
+		"screws": [Vector2(13, 13), Vector2(w - 13, 13), Vector2(13, 74), Vector2(w - 13, 74)]}, parent)
+	var x := 26.0
+	if spec.get("code", true):
+		var code := matrix(Vector2(58, 58))
+		code.position = Vector2(26, 13)
+		silver.add_child(code)
+		x = 98.0
+	var kick := etch(str(spec.get("kicker", "")), 10, "mono_bold")
+	kick.position = Vector2(x, 12)
+	silver.add_child(kick)
+	var with_knob := knob or spec.has("icon")
+	var title_txt := str(spec.get("title", ""))
+	var ts := int(spec.get("title_size", 30))
+	var avail := w - x - (92.0 if with_knob else 24.0)
+	var tf := Kit.font("wide_black")
+	while ts > 14 and tf.get_string_size(title_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, ts).x > avail:
+		ts -= 1
+	var title := etch(title_txt, ts, "wide_black")
+	title.position = Vector2(x - 2, 26 + (30 - ts) * 0.6)
+	silver.add_child(title)
+	var sub := etch(str(spec.get("sub", "")), 10, "mono")
+	sub.position = Vector2(x, 68)
+	silver.add_child(sub)
+	if with_knob:
+		var kn := plate("dial", Vector2(w - 82, 20), Vector2(50, 50), {"circle": true, "shadow": 0.5}, silver)
+		var ic := Kit.icon(str(spec.get("icon", "flag")), 22, Color(1, 1, 1, 0.95))
+		ic.position = Vector2(14, 14)
+		kn.add_child(ic)
+	var act := pill(str(spec.get("action", "ENGAGE  >>>")), int(spec.get("action_size", 20)), Color(1, 1, 1, 0.45) if off else Color.WHITE)
+	act.position = Vector2(18, 32)
+	sig.add_child(act)
+	var info: Label = null
+	if spec.has("info"):
+		var ix := maxf(w * 0.56, 34.0 + act.get_combined_minimum_size().x + 14.0)
+		info = Kit.label(str(spec["info"]), 10, Color(1, 1, 1, 0.5 if off else 0.9), "mono")
+		info.position = Vector2(ix, 30)
+		info.size = Vector2(w - 24 - ix, 40)
+		info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		info.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		info.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		sig.add_child(info)
+	return {"silver": silver, "sig": sig, "info": info}
 
 
 ## The Back control every screen uses (owner: the old one was too small): an ink disc with a
