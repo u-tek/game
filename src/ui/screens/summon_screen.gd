@@ -1086,7 +1086,8 @@ func _refresh() -> void:
 	var free_ready := _bid == "standard" and bool(Game.free_pull_available())
 	var p1 := _price(1)
 	var p10 := _price(10)
-	var guide := Guide.step() == "summon" and _bid == "standard"
+	# (Also while the guide's first step, the Sanctum claim, waits: here, the free pull is the thing.)
+	var guide := Guide.step() in ["summon", "claim"] and _bid == "standard"
 	var sig := "%s|%d|%s|%s|%s|%s|%d|%s|%s" % [_bid, int(_banner.get("pity", 0)), free_ready, JSON.stringify(p1), JSON.stringify(p10), guide,
 		int(_banner.get("limit_left", -1)), str(_banner.get("target", "")), bool(_banner.get("lost", false))]
 	if sig == _sig:

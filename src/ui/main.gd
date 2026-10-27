@@ -877,10 +877,25 @@ func _refresh_guide() -> void:
 			tab = "" if here in ["heroes", "hero_detail"] else "heroes"
 		"battle":
 			tab = "" if here in ["home", "campaign", "battle"] else "home"
+	# Never point away from a screen where a first-session step can be done right here (the free
+	# pull on Summon, the first fight from the Campaign or the team sheet): the player came to do it.
+	if tab != "" and _guide_step_here(here):
+		tab = ""
 	# Ring only: an arrow above the nav would cover the screen's bottom buttons.
 	for id: String in _tabs:
 		Guide.mark(_tabs[id] as Control, id == tab, 0)
 	Guide.mark(_quests_btn, step == "quests" and here != "quests", 0)
+
+
+## True if this screen offers a first-session step the guide still has ahead: a free pull or a full
+## ten on Summon, the first fight from the Campaign or the team sheet.
+func _guide_step_here(here: String) -> bool:
+	match here:
+		"summon":
+			return Game.free_pull_available() or int(Game.currency("scrolls")) >= 10
+		"campaign", "formation":
+			return Game.cleared_count() == 0
+	return false
 
 
 ## Things worth a tap right now (the bell): [{text, icon, screen}].

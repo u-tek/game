@@ -273,8 +273,11 @@ func _refresh() -> void:
 	_refresh_slots()
 	_refresh_summary()
 	_refresh_bench()
-	# First-session guidance: Auto-fill when it would clearly help.
+	# First-session guidance: Auto-fill when it would clearly help; the Battle pass for the first fight
+	# (the nav no longer points away from here then).
 	Guide.mark(_auto_btn, Guide.step() == "formation")
+	if _pass:
+		Guide.mark(_pass.hit, Guide.step() == "battle" and Game.cleared_count() == 0, 0)
 
 
 func _refresh_slots() -> void:

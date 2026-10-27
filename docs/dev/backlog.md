@@ -72,8 +72,10 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   (#402bcf for the violet #8048e8; not the teal overprint or the halftone's colour maths: two
   fixes changed nothing; reverted); the Legendary poster's restraint (foil, halftone, thorns and
   the stamp compete).
-- P2 todo **The first session:** the fresh-save guide loop circles 02 LOBBY on screens whose next step
-  is right there (free pull on Summon, ENTER on Campaign, LEVEL UP on the hero page).
+- P2 done **The first session's guide pointed away** from a step on the screen itself: it no longer
+  rings the nav there (free pull or a full ten on Summon, the first fight from Campaign or Team);
+  Summon rings the free pull while the Sanctum claim waits; Team rings its Battle pass for the first
+  fight. Next: walk the whole first session by shots (the third moment).
 - P2 todo **Lobby restraint pass:** fewer stuck-on objects (bulletin, arrows and counter, NEXT label,
   team plate, stage plate, ENGAGE), one readable giant line.
 - P2 todo **Settings is a stock list:** rebuild as the device panel of the brief (switches as
