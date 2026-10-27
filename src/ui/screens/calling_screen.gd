@@ -60,8 +60,9 @@ func _build() -> void:
 	# The band: her red print at the foot, CALLED. down it, micro type.
 	PK.rect(p, Rect2(0, 0, BAND, ph), BAND_C)
 	if _hero != "":
-		var ht := PK.halftone_print(_hero, Kit.hero_look(_hero), Vector2(BAND, ph * 0.5), 6.0)
-		ht.position = Vector2(0, ph * 0.5)
+		# Her face, close (a narrow band showed only a sliver of her, as red blobs).
+		var ht := PK.halftone_print(_hero, Kit.hero_look(_hero), Vector2(BAND, ph * 0.42), 5.0, PK.PRINT, 2.4)
+		ht.position = Vector2(0, ph * 0.58)
 		p.add_child(ht)
 	Poster.vlabel(p, "©2026 HH · INTAKE · PLEASE COMPLETE IN INK", Vector2(24, 26), 10, Color(PAPER, 0.8))
 	var fs := 230

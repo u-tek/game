@@ -12,6 +12,8 @@ extends Control
 ## pass; a hero list showing what each one wears in that slot and the score change), Unequip, Open
 ## the wearer's page, or Salvage a spare piece for gold and dust.
 
+## Where the slot tabs start: under the Back row.
+const HEAD_ROW := 84.0
 const PK := preload("res://src/ui/v4/poster_kit.gd")
 
 const COLS := 4
@@ -67,16 +69,20 @@ func _build() -> void:
 	_w = get_viewport_rect().size.x
 	_tile = floorf((_w - 36 - 40 - (COLS - 1) * 12.0) / COLS)
 	PK.matte(self)
-	PK.at(self, PK.t("HALO & HORN  ©2026  ·  GEAR CATALOGUE Nº 04", 13, INK, "mono_bold"), Vector2(20, 12))
+	# Back (Gear is reached from the Bag's armoury and hero pages), the catalogue line beside it.
+	var back := SignalKit.back_button(func() -> void: UI.back())
+	back.position = Vector2(4, 0)
+	add_child(back)
+	PK.at(self, PK.t("GEAR CATALOGUE Nº 04", 13, INK, "mono_bold"), Vector2(190, 22))
 	_count = PK.t("", 11, Color(INK, 0.75), "mono")
 	_count.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_count.size = Vector2(_w - 40, 14)
-	PK.at(self, _count, Vector2(20, 32))
+	_count.size = Vector2(_w - 210, 14)
+	PK.at(self, _count, Vector2(190, 44))
 	# The printed index of slots.
 	_tabs_box = Control.new()
 	_tabs_box.name = "SlotChips"
 	_tabs_box.mouse_filter = MOUSE_FILTER_IGNORE
-	_tabs_box.position = Vector2(18, 40)
+	_tabs_box.position = Vector2(18, HEAD_ROW)
 	_tabs_box.size = Vector2(_w - 36, Kit.BUTTON_H)
 	add_child(_tabs_box)
 	_build_tabs()
@@ -87,14 +93,14 @@ func _build() -> void:
 		_refresh(true), {"size": Vector2(250, Kit.BUTTON_H), "text_size": 14, "underline": false})
 	_spare_chip.name = "SpareChip"
 	_spare_chip.toggle_mode = false
-	PK.at(self, _spare_chip, Vector2(28, 40 + Kit.BUTTON_H))
+	PK.at(self, _spare_chip, Vector2(28, HEAD_ROW + Kit.BUTTON_H - 14))
 	_sort_btn = PK.print_button("", _open_sort, {"size": Vector2(250, Kit.BUTTON_H), "text_size": 14, "align": "right", "underline": false})
 	_sort_btn.name = "Sort"
-	PK.at(self, _sort_btn, Vector2(_w - 28 - 250, 40 + Kit.BUTTON_H))
-	PK.rule(self, Rect2(18, 40 + Kit.BUTTON_H * 2, _w - 36, 1), Color(INK, 0.55))
+	PK.at(self, _sort_btn, Vector2(_w - 28 - 250, HEAD_ROW + Kit.BUTTON_H - 14))
+	PK.rule(self, Rect2(18, HEAD_ROW + Kit.BUTTON_H * 2 - 14, _w - 36, 1), Color(INK, 0.55))
 	_dress_switches()
 
-	var top := 40 + Kit.BUTTON_H * 2 + 2
+	var top := HEAD_ROW + Kit.BUTTON_H * 2 - 12
 	_sheet_wrap = Control.new()
 	_sheet_wrap.name = "Sheet"
 	_sheet_wrap.mouse_filter = MOUSE_FILTER_PASS

@@ -80,7 +80,8 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   team plate, stage plate, ENGAGE), one readable giant line.
 - P2 todo **Settings is a stock list:** rebuild as the device panel of the brief (switches as
   hardware, a glass disc, serial codes), ON/OFF readable at a glance.
-- P2 todo **Gear: no back; the empty state leads nowhere; 450 px of chrome above the first item.**
+- P2 done **Gear had no Back** (top left now). Left: the empty state leads nowhere; the chrome above
+  the first item is tall.
 - P2 todo **Gallery: the strip is left-aligned and tiny; a locked look has no BUY step; dark lightbox.**
 - P2 done **Daily resets reopened when the day went backwards** (a flight west, a zone change): days
   roll forward only (unit test; port spec 8.1, 9c, 9e).
