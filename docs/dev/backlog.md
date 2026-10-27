@@ -59,10 +59,10 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 - P2 doing **Halloween is a moment** (2026-10-31): done: cut-paper bats on a taped thread (Blender
   renders; they swing with the tilt, a thumb brushes them, strung up in front of the player the first
   time), the stamp in pumpkin ink, the boot print run in pumpkin with HALLOWEEN on the proof stamp,
-  candlelight from 18:00 to 05:00. Left: the gift receipt, a check of every Halloween screen, the
-  build on the phone by 2026-10-30 UTC.
-- P2 todo **Every real day checked:** Christmas Eve, Christmas, New Year's Eve, New Year, Valentine's,
-  three heroine birthdays (Lobby, hero page, roster, shop).
+  candlelight from 18:00 to 05:00, the gift's receipt in pumpkin with a paper bat taped to it. Left:
+  the last build on the phone by 2026-10-30 UTC.
+- P2 done **Every real day checked** (2026-10-28, `screenshots/days/`): each holiday and birthday
+  shows its line, stamp and ink. Christmas has no ink or decorations yet (see the next item).
 - P2 todo **Decorations for the other days:** snowflakes, gold stars, hearts and bunting to the bats'
   standard (take 1: ghostly snowflakes, a broken heart fill, flat pennants).
 - P2 todo **The summon reveal, produced** (the money moment): a motion piece made with real tools,
@@ -75,8 +75,8 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   hardware, a glass disc, serial codes), ON/OFF readable at a glance.
 - P2 todo **Gear: no back; the empty state leads nowhere; 450 px of chrome above the first item.**
 - P2 todo **Gallery: the strip is left-aligned and tiny; a locked look has no BUY step; dark lightbox.**
-- P2 todo **Daily resets reopen when the day goes backwards** (time zone west): roll forward only
-  (`game_model.gd` refresh_daily, free pull, Rue's haul, Champion). Rules change: port check + test.
+- P2 done **Daily resets reopened when the day went backwards** (a flight west, a zone change): days
+  roll forward only (unit test; port spec 8.1, 9c, 9e).
 - P2 done **Replay the opening, then SKIP, wiped the signature** (unit test).
 - P2 done **On a birthday with 18+ on, the bulletin's sale opened a shop tab that doesn't exist.**
 - P2 done **Notices waited for a Lobby rebuild**; **daylight saving read as travel** ("an hour" now).

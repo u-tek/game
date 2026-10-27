@@ -360,14 +360,16 @@ func refresh_daily() -> void:
 		return
 	var day := today()
 	var did := false
-	if int(state.quests.day) != day:
+	# Days only roll forward: a day number that goes back (a flight west, the phone's zone or clock
+	# changed) never reopens what today already gave.
+	if int(state.quests.day) < day:
 		state.quests = {"day": day, "progress": {}, "claimed": []}
 		did = true
-	if int(state.idle.quick_claim_day) != day:
+	if int(state.idle.quick_claim_day) < day:
 		state.idle.quick_claim_day = day
 		state.idle.quick_claims_used = 0
 		did = true
-	if int(state.shop.day) != day:
+	if int(state.shop.day) < day:
 		state.shop.day = day
 		state.shop.daily = {}
 		did = true
@@ -1260,7 +1262,7 @@ func summon_left(banner_id: String) -> int:
 		return int(lim.pulls)
 	var bs := _bstate(banner_id)
 	var period := SummonRules.limit_period(b, today(), EconomyData.BANNER_EPOCH_DAY)
-	var used := int(bs.period_pulls) if int(bs.period) == period else 0
+	var used := int(bs.period_pulls) if int(bs.period) >= period else 0
 	return maxi(0, int(lim.pulls) - used)
 
 
@@ -1288,7 +1290,7 @@ func free_pull_available() -> bool:
 	if state.is_empty():
 		return false
 	refresh_daily()
-	return int(state.summon.last_free_pull_day) != today()
+	return int(state.summon.last_free_pull_day) < today()
 
 
 ## count = 1 or 10 on banner_id (standard by default). use_free: the standard banner's daily
@@ -1351,7 +1353,9 @@ func summon(count: int, use_free: bool = false, banner_id: String = "standard") 
 			bs.lost = bool(roll.lost)
 		if left >= 0:
 			var period := SummonRules.limit_period(b, day, epoch)
-			if int(bs.period) != period:
+			# A later period starts afresh (a day going back never does); a banner with no pulls
+			# counted yet takes this one (its -1 marker can sit above a period before the epoch).
+			if int(bs.period) < period or int(bs.period_pulls) <= 0:
 				bs.period = period
 				bs.period_pulls = 0
 			bs.period_pulls = int(bs.period_pulls) + count
@@ -1902,7 +1906,7 @@ func rival() -> Dictionary:
 		"prints": (rs.prints as Array).duplicate(true),
 		"tags": {"you": bool(rs.tag_you), "her": bool(rs.tag_her), "v": int(rs.tag_v)},
 		"haul": RivalRules.haul(cleared_count()),
-		"haul_ready": int(rs.haul_day) != day,
+		"haul_ready": int(rs.haul_day) < day,
 		"haul_print": RivalRules.best_untaken(rs).duplicate(),
 		"counter": {"faction": str(tm.prefer), "main": str(tm.main)} if countering else {"faction": "", "main": ""},
 		"line": ln,
@@ -1917,7 +1921,7 @@ func rival_alert() -> bool:
 		return false
 	_rival_sync()
 	var rs: Dictionary = state.rival
-	return int(rs.haul_day) != today() or int(rs.feed_seq) > int(rs.seen)
+	return int(rs.haul_day) < today() or int(rs.feed_seq) > int(rs.seen)
 
 
 ## The first visit: she introduces herself. Result {ok, value: {line}, error}.
@@ -1985,7 +1989,7 @@ func complete_rival(outcome: Dictionary) -> Dictionary:
 		rs.wins = int(rs.wins) + 1
 		rs.tag_her = true
 		rs.tag_you = false
-		if int(rs.haul_day) != day:
+		if int(rs.haul_day) < day:
 			rs.haul_day = day
 			paid = true
 			reward = grant(RivalRules.haul(cleared_count()))
@@ -2115,7 +2119,8 @@ func _champ_sync() -> Dictionary:
 	var day := today()
 	var week := WarRules.week_of(day)
 	var hero := WarRules.champion_for(week, side)
-	if int(c.week) != week or str(c.hero) != hero:
+	# (Weeks and days roll forward only, like the dailies: stepping back never pays tiers again.)
+	if int(c.week) < week or (int(c.week) == week and str(c.hero) != hero):
 		var lv := WarRules.champion_level(int(_rival_ctx().avg))
 		c.week = week
 		c.hero = hero
@@ -2126,7 +2131,7 @@ func _champ_sync() -> Dictionary:
 		c.tiers = []
 		c.day = day
 		c.tries = 0
-	if int(c.day) != day:
+	if int(c.day) < day:
 		c.day = day
 		c.tries = 0
 	return c

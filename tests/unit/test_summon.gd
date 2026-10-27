@@ -63,6 +63,13 @@ func test_free_daily_pull(t: TestCtx) -> void:
 	t.eq(g.summon(10, true).ok, false, "free pull is single only")
 	g.now_override_ms = BASE_MS + 24 * 3600 * 1000
 	t.ok(g.free_pull_available(), "available again the next day")
+	t.ok(g.summon(1, true).ok, "the next day's free pull")
+	# The day going back (a flight west, the zone changed) reopens nothing: days only roll forward.
+	g.now_override_ms = BASE_MS
+	g.model.refresh_daily()
+	t.eq(g.free_pull_available(), false, "a day back: no second free pull")
+	g.now_override_ms = BASE_MS + 24 * 3600 * 1000
+	t.eq(g.free_pull_available(), false, "and forward again: still the one")
 	g.free()
 
 

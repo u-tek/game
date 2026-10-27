@@ -798,15 +798,19 @@ func confirm(text: String, on_yes: Callable, on_no: Callable = Callable(), yes_t
 ## leader, a barcode and a RECEIVED stamp with the item count on a silver disc, a torn edge), then OK
 ## (the signal plate). The rows print one after another with rising notes and the stamp comes down
 ## last; on close the currencies fly from their rows to the wallet.
-func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callable()) -> void:
+## opts (a real day's gift): ink (Color: the day's, for the keyword, the rule and the halftone),
+## sticker (a texture path: a cut-paper piece taped over the receipt's top corner, its *_shadow.png
+## beside it if there is one).
+func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callable(), opts: Dictionary = {}) -> void:
 	if _modal_layer() == null:
 		print("[reward] ", title, " ", reward)
 		if on_closed.is_valid():
 			on_closed.call()
 		return
 	if _reward_open:
-		_reward_queue.append([title, reward, on_closed])
+		_reward_queue.append([title, reward, on_closed, opts])
 		return
+	var ink: Color = opts.get("ink", Kit.ACCENT)
 	_reward_open = true
 	sfx("reward")
 	haptic(25)
@@ -822,7 +826,7 @@ func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callab
 	var prints := Control.new()
 	prints.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	prints.clip_contents = true
-	var ramp := Kit.halftone_ramp(Vector2(260, 120), Color(1.0, 0.36, 0.16, 0.55), 7.0, "right")
+	var ramp := Kit.halftone_ramp(Vector2(260, 120), Color(ink, 0.55) if opts.has("ink") else Color(1.0, 0.36, 0.16, 0.55), 7.0, "right")
 	ramp.anchor_left = 1.0
 	ramp.anchor_right = 1.0
 	ramp.offset_left = -260
@@ -843,6 +847,38 @@ func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callab
 	var tm := Time.get_time_dict_from_system()
 	top.add_child(Kit.print_label("%s  %02d:%02d" % [Kit._print_date(), int(tm.hour), int(tm.minute)], 12, Color(Kit.TEXT, 0.6), "mono"))
 	inner.add_child(top)
+	var sticker := str(opts.get("sticker", ""))
+	if sticker != "" and ResourceLoader.exists(sticker):
+		# A cut-paper piece taped over the top corner (a real day's gift: the Lobby's decorations).
+		var pin := Control.new()
+		pin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		top.add_child(pin)
+		var tex: Texture2D = load(sticker)
+		var sk := 0.78
+		var shp := sticker.replace(".png", "_shadow.png")
+		if ResourceLoader.exists(shp):
+			var sh := TextureRect.new()
+			sh.texture = load(shp)
+			sh.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			sh.modulate.a = 0.5
+			sh.size = Vector2(sh.texture.get_size()) * sk
+			sh.position = Vector2(-58 + 5, -86 + 8) - Vector2(14, 14) * sk
+			sh.rotation = 0.2
+			pin.add_child(sh)
+		var st := TextureRect.new()
+		st.texture = tex
+		st.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		st.size = Vector2(tex.get_size()) * sk
+		st.position = Vector2(-58, -86)
+		st.rotation = 0.2
+		pin.add_child(st)
+		var tape := ColorRect.new()
+		tape.color = Color(0.93, 0.9, 0.8, 0.88)
+		tape.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		tape.size = Vector2(46, 15)
+		tape.position = Vector2(-60, -22)
+		tape.rotation = -0.62
+		pin.add_child(tape)
 	var head := RichTextLabel.new()
 	head.name = "Title"
 	head.bbcode_enabled = true
@@ -854,7 +890,7 @@ func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callab
 	var words := title.to_upper().split(" ", false)
 	var key := words[words.size() - 1] if not words.is_empty() else ""
 	var lead := " ".join(words.slice(0, maxi(words.size() - 1, 0)))
-	head.text = ("%s [color=#%s]%s[/color]" % [lead, Kit.ACCENT.to_html(false), key]).strip_edges()
+	head.text = ("%s [color=#%s]%s[/color]" % [lead, ink.to_html(false), key]).strip_edges()
 	var hf := Kit.font("compressed")
 	var fs := 100
 	while fs > 52 and hf.get_string_size(title.to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > iw:
@@ -864,7 +900,7 @@ func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callab
 	head.add_theme_color_override("default_color", Kit.TEXT)
 	head.add_theme_constant_override("line_separation", -int(fs * 0.18))
 	inner.add_child(head)
-	inner.add_child(Kit.tick_rule(iw, Color(Kit.TEXT, 0.55), {"lead": Kit.ACCENT}))
+	inner.add_child(Kit.tick_rule(iw, Color(Kit.TEXT, 0.55), {"lead": ink}))
 	var entries := Kit.reward_entries(reward)
 	var rows: Array[Control] = []
 	var icons: Array[Control] = []
@@ -951,7 +987,7 @@ func show_reward(title: String, reward: Dictionary, on_closed: Callable = Callab
 			on_closed.call()
 		if not _reward_queue.is_empty():
 			var nxt: Array = _reward_queue.pop_front()
-			show_reward.call_deferred(nxt[0], nxt[1], nxt[2])
+			show_reward.call_deferred(nxt[0], nxt[1], nxt[2], nxt[3] if nxt.size() > 3 else {})
 	var m := modal(col, true, closed, "")
 	m_ref.append(m)
 	# Never leave the wallet frozen, however the popup goes away.

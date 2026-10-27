@@ -618,7 +618,10 @@ A featured banner's results also carry `featured` (bool) and the summon returns 
 hero is `featured_rotation[posmod(period_index(day, epoch_day, rotation_days), count)]`, the faction
 likewise; `next_change_day = epoch_day + (period_index + 1) * days`. A limit's period is the day
 itself ("day") or `period_index(day, epoch_day, 7)` ("week"); it resets on `day + 1` or the next
-week's first day.
+week's first day. Days only roll forward (2026-10-28): a summon starts a new count only when its
+period is greater than the stored one (or nothing is counted yet: `period_pulls <= 0`), and
+`summon_left` counts the stored pulls while `stored period >= period`; the free pull is available
+while `last_free_pull_day < today`.
 
 Paying (GameModel.summon(count, use_free, banner_id)): the free pull (count 1, once per local day,
 only on the `free_daily` banner) or scrolls if the banner takes them and `scrolls >= cost.scrolls`,
@@ -756,9 +759,10 @@ by method; it is plain dictionary logic over the rules above. Its environment:
   after actions (now) or after a daily rollover found by a query (deferred) and schedules a save.
 
 Ordering details that change results:
-- **Daily rollover** (`refresh_daily`, called at the start of most actions and queries): new
-  day -> reset quests, quick claims and daily shop counts; monthly card pays `daily_gems` once
-  per day while active.
+- **Daily rollover** (`refresh_daily`, called at the start of most actions and queries): a later
+  day (stored day `<` today; a day number that went back, after a flight west or a zone change,
+  resets nothing) -> reset quests, quick claims and daily shop counts; monthly card pays
+  `daily_gems` once per day while active.
 - **Counter bumps** (`_bump`): after the rollover, `counters[c] += n`; every quest with that
   counter advances; crossing its goal (unclaimed) queues `quest_ready`.
 - **grant(reward)**: currencies in order gold, hero_exp, gems, scrolls, dust; `gear_drops`
@@ -899,11 +903,11 @@ stars (at least 1) and `main` (the most common faction, battle.json order on tie
 (`name, title, unlocked, unlock_cleared, met, team, ace, level, roster [{hero_id, dupes, stars}],
 power` (sum of the team's power), `your_power, record {wins, losses, fights}, cleared, tower_best,
 pulls, banner, feed, new_feed (feed_seq - seen), prints, tags {you, her, v}, haul, haul_ready
-(haul_day != today), haul_print, counter {faction, main}, line, line_kind`); `line_kind` is
+(haul_day < today), haul_print, counter {faction, main}, line, line_kind`); `line_kind` is
 `intro` (not met), `win` (tag_you), `lose` (tag_her), `counter`, today's newest feed entry (its
 stored line), else `idle`; the line is `line(kind, seed, today, fights, {you: player_name, faction,
 main})` (faction names capitalised). `rival_meet()` sets `met` (line `intro`, salt 0);
-`rival_seen()` sets `seen = feed_seq`; `rival_alert() = haul_day != today or feed_seq > seen`.
+`rival_seen()` sets `seen = feed_seq`; `rival_alert() = haul_day < today or feed_seq > seen` (days roll forward only, as the dailies).
 `rival_battle_setup()`: allies as for stages, enemies = her team as echoes, `seed = mix(rng_seed
 + 900001, battles_started)` (then `battles_started += 1`), `background(today)`. `complete_rival(outcome)`:
 `fights += 1`, `tag_v = mix(seed, fights) % 1000`; a win bumps `battles_won`, `wins += 1`, `tag_her
@@ -945,9 +949,10 @@ Offline: both sides' hosts are simulated; the player's souls are the only live i
   level_over)` (avg: the formation's average level, integer division, 1 with no team);
   `champion_stats(id, level)` = StatCalc stats at `stars`, `hp * hp_bp / 10000`, `atk * atk_bp /
   10000`; `tiers_reached(hp, damage)` = indices with `damage * 100 >= hp * pct`. GameModel keeps
-  `war.champ {week, hero, level, hp, damage, day, tries, tiers}`: on the first look of a week (or a
-  new champion) it sets hero and level, `hp` = the max_hp of e0 in a BattleSim with her alone (boss
-  multipliers and passives), damage 0, tiers []; tries reset each day. `war_champion_setup()`:
+  `war.champ {week, hero, level, hp, damage, day, tries, tiers}`: on the first look of a later week
+  (or a new champion the same week) it sets hero and level, `hp` = the max_hp of e0 in a BattleSim
+  with her alone (boss multipliers and passives), damage 0, tiers []; tries reset on a later day
+  (weeks and days roll forward only: a day number that goes back changes nothing). `war_champion_setup()`:
   allies vs `[e0 = her, slot 0, is_boss]`, `max_ms` = champion.max_ms, only with tries left
   (`tries_per_day`). `complete_champion(outcome)`: tries + 1; damage = the sum of
   `outcome.damage_dealt` over ally uids ("a" prefix); every newly reached tier grants its reward

@@ -1128,8 +1128,15 @@ func _stamp_day() -> void:
 	var reward: Dictionary = r.value.reward
 	if _quiet_stamp:
 		return
+	# The gift's receipt prints in the day's ink; a day with decorations tapes its first piece on.
+	var opts := {}
+	if str(e.kind) == "day" and str(CalendarRules.holiday(str(e.id)).get("ink", "")) != "":
+		opts["ink"] = _day_ink(e)
+	var dec := str(CalendarRules.holiday(str(e.id)).get("decor", "")) if str(e.kind) == "day" else ""
+	if dec != "" and Garland.SETS.has(dec):
+		opts["sticker"] = Garland.DIR + str((Garland.SETS[dec] as Array)[0][0]) + ".png"
 	get_tree().create_timer(0.5).timeout.connect(func() -> void:
-		UI.show_reward(title, reward))
+		UI.show_reward(title, reward, Callable(), opts))
 
 
 ## Now and then (one minute in four) she says where she stands in the team: leading it or left out.
