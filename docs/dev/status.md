@@ -56,6 +56,10 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
     a step on the screen; Gear's Back; Settings as a device panel; `WarFront` (the War behind one
     interface); one palette source; a side switch on the Front; ENLISTED local; stamped days kept
     ten years. Summary for the owner: `docs/dev/morning-2026-10-28.md`.
+  - **Shots now show the phone's colours (2026-10-28):** on this PC the HDR canvas is really 8-bit,
+    so shader-drawn colours (halftones, foil, paper, candlelight) printed darker and more saturated
+    than the iPhone (HDR off) shows; `tools/shoot` renders with `--ldr` unless `SHOOT_HDR=1`.
+    Earlier shots, sent and archived, are in the darker colours.
   - **IPA: run 40529352708** (green, commit 64f21f1). Before: 40517231772 (c6d4e17). Run
     40526508839 failed only because GitHub had no macOS runner free.
 - **Combat v1, the war version (started 2026-10-22, PC chat; the owner: "yeah see what you can come
@@ -691,6 +695,10 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
 
 ## Waiting on the owner
 
+- **A quieter Lobby (pitched 2026-10-28):** the current poster or the "quiet" take (no bulletin card,
+  no hero arrows and number, no NEXT label; the bulletin's news in the bell, heroines switched by a
+  swipe on the band). Shots: `tools/shoot home --rich --safe-area-sim --shoot-params='{"take":"quiet"}'`.
+- **The Legendary foil:** the new pressed-foil surface or the old smooth gold (sent 2026-10-28).
 0. **The War for Souls server:** the war, the Champion and the district run offline with simulated
    other players. Real sides need a backend (hosting and its cost are the owner's call). The client
    is ready for one: the game reaches the war through one interface (`WarFront`, 2026-10-28), so a
