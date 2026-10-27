@@ -1,6 +1,6 @@
 # Status and handoff
 
-**Status as of 2026-10-28, 15:00 UTC (01:00 on the owner's PC clock, UTC+10).** This is the living
+**Status as of 2026-10-28, 15:30 UTC (01:30 on the owner's PC clock, UTC+10).** This is the living
 status file: update it at the end of every work block. Rules and conventions are in `CLAUDE.md`;
 this file says where things stand. Older logs are under "History" at the bottom. **The ranked work
 list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
@@ -49,7 +49,15 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
     the veil above the bars; a win lost by leaving in the victory pose; Champion retreats; props
     bought by a swipe; notices said late; daylight saving read as travel; a replayed form's SKIP
     erasing the signature; the shop across midnight; a stuck Level Up pass; hit-stop vs. ultimates.
-  - **IPA: run 40517231772** (green, commit c6d4e17): everything up to the battle fixes.
+  - **Since (commits 99488ad..c156b9b):** the Halloween receipt in pumpkin with a taped bat; 18+ skin
+    looks gated by `data/adult_skins.json`; days roll forward only (dailies, the free pull, Rue's
+    haul, the Champion); the gold foil's pressed surface (`tools/textures/foil_normal.py`, global
+    `foil_n`); print dates from the model's day; the first-session guide no longer points away from
+    a step on the screen; Gear's Back; Settings as a device panel; `WarFront` (the War behind one
+    interface); one palette source; a side switch on the Front; ENLISTED local; stamped days kept
+    ten years. Summary for the owner: `docs/dev/morning-2026-10-28.md`.
+  - **IPA: run 40529352708** (green, commit 64f21f1). Before: 40517231772 (c6d4e17). Run
+    40526508839 failed only because GitHub had no macOS runner free.
 - **Combat v1, the war version (started 2026-10-22, PC chat; the owner: "yeah see what you can come
   up with").** Built and committed the same day: charm (the Infernal signature, rules + port check
   + fixtures), the front view (the team big in the foreground, a camera gliding along the line,
