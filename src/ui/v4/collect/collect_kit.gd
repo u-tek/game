@@ -66,7 +66,9 @@ static func acrylic_tab(text: String, count: int, selected: bool, w: float, on_p
 	var slab := Panel.new()
 	slab.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(1.0, 0.36, 0.17, 0.82) if selected else Color(0.96, 0.97, 0.98, 0.55)
+	# The chosen tab is smoked acrylic (ink), its LED lit: a tinted orange slab read as a second red
+	# beside the signal on the slabs.
+	sb.bg_color = Color(0.07, 0.07, 0.08, 0.86) if selected else Color(0.96, 0.97, 0.98, 0.55)
 	sb.border_color = Color(1, 1, 1, 0.95)
 	sb.border_width_top = 2
 	sb.border_width_left = 2

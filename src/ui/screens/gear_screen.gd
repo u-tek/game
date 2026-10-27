@@ -263,6 +263,12 @@ func _build_sheet(items: Array[Dictionary], _total: int, _worn: int) -> void:
 		el.position = Vector2(x, HEAD_H + 60)
 		_empty.add_child(el)
 		PK.at(_empty, PK.stencil("00", 120, Color(INK, 0.12), PAPER), Vector2(30, HEAD_H + 50))
+		# Where it comes from, one tap away.
+		if not _spare_only:
+			var go := PK.print_button("TO THE CAMPAIGN  →", func() -> void: UI.go("campaign"), {"size": Vector2(300, 88), "text_size": 14})
+			go.name = "ToCampaign"
+			_empty.add_child(go)
+			go.position = Vector2(x - 6, HEAD_H + 140)
 		return
 	var cw := _tile
 	for i in items.size():

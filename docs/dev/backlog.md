@@ -86,8 +86,8 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 - P2 done **Settings was a stock list:** rows are channel lines on a device panel (01.1 SOUND
   EFFECTS, mono caps, no stock glyphs); the switch's state word prints in full ink. Could go further:
   rendered hardware switches (Blender), a glass disc.
-- P2 done **Gear had no Back** (top left now). Left: the empty state leads nowhere; the chrome above
-  the first item is tall.
+- P2 done **Gear had no Back** (top left now); its empty state links TO THE CAMPAIGN. Left: the chrome
+  above the first item is tall.
 - P2 doing **Gallery:** done: the look strip sits centred when it fits, captions 11 px. Left: the dark
   lightbox is outside the poster language (a take to show the owner); a locked look's BUY pass only
   shows once the look is chosen.
@@ -99,9 +99,9 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 - P2 done **The shop and quests didn't refresh at midnight.**
 - P2 done **Holding LEVEL UP to the cap left the pass sunk.**
 - P2 done **A hit-stop during an ultimate's hold cancelled its freeze.**
-- P2 doing **Too many reds:** done: Quests (red only on what is ready to claim: the CLAIM stickers and
+- P2 done **Too many reds:** done: Quests (red only on what is ready to claim: the CLAIM stickers and
   the map's ready circles), Gear (ink tier stickers on the sheet), Rival (the counter-pick tag and her
-  line's label in ink). Left: Prints.
+  line's label in ink), Prints (the chosen filter tab is smoked ink, not a second orange).
 
 ## P3
 
