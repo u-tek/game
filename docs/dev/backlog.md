@@ -63,8 +63,9 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   the last build on the phone by 2026-10-30 UTC.
 - P2 done **Every real day checked** (2026-10-28, `screenshots/days/`): each holiday and birthday
   shows its line, stamp and ink. Christmas has no ink or decorations yet (see the next item).
-- P2 todo **Decorations for the other days:** snowflakes, gold stars, hearts and bunting to the bats'
-  standard (take 1: ghostly snowflakes, a broken heart fill, flat pennants).
+- P2 done **Decorations for the other days:** white card snowflakes (Christmas Eve, Christmas), folded
+  gold card stars (New Year's Eve, New Year), pink card hearts in Valentine's ink. Left: bunting for
+  birthdays (the pennants are still flat).
 - P2 doing **The summon reveal, produced** (the money moment): a motion piece made with real tools,
   not code shapes. Done: the gold foil has a real surface (a tiling normal map of creased facets,
   `tools/textures/foil_normal.py`, global `foil_n`), so it catches the glint facet by facet instead

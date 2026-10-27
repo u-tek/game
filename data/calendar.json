@@ -3,7 +3,7 @@
 	"about": "Real days the game notices (CalendarRules, docs/dev/unity-port.md section 9f). md is MM-DD on the player's local calendar. On a day: a stamp on the Lobby (tap it: the gift, once a year) and her line, by her faction. player_birthday: the player's own day, if they gave it on the intake form ({name} is theirs). Birthdays: each heroine's day, for owned heroines only; the Lobby heroine says 'mine' on her own and names the other one ({her}) on someone else's; her skins are skin_discount_bp off that day. Lines are short: the Lobby sets them huge. ink (optional, hex): the Lobby's halftone band prints in it that day. decor (optional): the cut-paper decorations the Lobby hangs on a thread across the poster (src/ui/components/garland.gd SETS). night (optional): how the evening is lit (candle: from 18:00 to 05:00 the phone is lit by candlelight instead of the lamp).",
 	"days": [
 		{
-			"id": "new_year", "md": "01-01", "name": "New Year", "stamp": "NEW YEAR", "ink": "e0a33a",
+			"id": "new_year", "md": "01-01", "name": "New Year", "stamp": "NEW YEAR", "decor": "newyear", "ink": "e0a33a",
 			"gift": {"gems": 300, "scrolls": 1},
 			"lines": {
 				"celestial": "A new year. I wrote you into every page of it.",
@@ -12,7 +12,7 @@
 			}
 		},
 		{
-			"id": "valentine", "md": "02-14", "name": "Valentine's Day", "stamp": "VALENTINE", "ink": "ff4f8b",
+			"id": "valentine", "md": "02-14", "name": "Valentine's Day", "stamp": "VALENTINE", "decor": "valentine", "ink": "ff4f8b",
 			"gift": {"gems": 200},
 			"lines": {
 				"celestial": "I wrote you a hymn. Please don't read it aloud.",
@@ -30,7 +30,7 @@
 			}
 		},
 		{
-			"id": "christmas_eve", "md": "12-24", "name": "Christmas Eve", "stamp": "CHRISTMAS EVE",
+			"id": "christmas_eve", "md": "12-24", "name": "Christmas Eve", "stamp": "CHRISTMAS EVE", "decor": "christmas",
 			"gift": {"gems": 150},
 			"lines": {
 				"celestial": "Heaven's busiest night. I stayed here with you.",
@@ -39,7 +39,7 @@
 			}
 		},
 		{
-			"id": "christmas", "md": "12-25", "name": "Christmas", "stamp": "CHRISTMAS",
+			"id": "christmas", "md": "12-25", "name": "Christmas", "stamp": "CHRISTMAS", "decor": "christmas",
 			"gift": {"gems": 300, "scrolls": 1},
 			"lines": {
 				"celestial": "Merry Christmas, envoy. Unwrap me carefully.",
@@ -48,7 +48,7 @@
 			}
 		},
 		{
-			"id": "new_years_eve", "md": "12-31", "name": "New Year's Eve", "stamp": "LAST NIGHT",
+			"id": "new_years_eve", "md": "12-31", "name": "New Year's Eve", "stamp": "LAST NIGHT", "decor": "newyear",
 			"gift": {"gems": 150},
 			"lines": {
 				"celestial": "The last night of the year. Stay up with me.",

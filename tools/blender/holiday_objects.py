@@ -13,7 +13,7 @@ python tools/blender/finish_holiday.py <out_dir> crops, scales and writes assets
   bat_p                        bat_c in pumpkin card (it reads over the Lobby's black type)
   snow_a, snow_b, snow_c       folded-and-cut white paper snowflakes (Christmas Eve, Christmas)
   star_a, star_b               folded gold-foil card stars (New Year's Eve, New Year)
-  heart_a, heart_b             red paper hearts, b with a heart cut out (Valentine's Day)
+  heart_a, heart_b             pink card hearts (the day's ink), b with a heart cut out (Valentine's Day)
   flag_ink, flag_paper, flag_red   bunting pennants (birthdays), hung by their top edge
 """
 import math
@@ -149,10 +149,14 @@ def mat_for(name: str) -> bpy.types.Material:
     if name.startswith("bat") or name == "flag_ink":
         return paper("BlackCard", (0.022, 0.021, 0.024), rough=0.62, sheen=0.55, fibre=0.25)
     if name.startswith("snow") or name == "flag_paper":
-        return paper("WhitePaper", (0.86, 0.85, 0.82), rough=0.88, sheen=0.1, fibre=0.14, sss=0.15)
+        # Opaque white card (a translucent paper went grey on the poster's paper).
+        return paper("WhitePaper", (0.95, 0.945, 0.92), rough=0.86, sheen=0.12, fibre=0.14, sss=0.0)
     if name.startswith("star"):
-        return paper("GoldFoil", (1.0, 0.70, 0.30), rough=0.24, sheen=0.0, metal=1.0, fibre=0.03, crinkle=0.35)
-    # heart, flag_red: the house signal red as a dyed paper
+        return paper("GoldFoil", (1.0, 0.79, 0.42), rough=0.18, sheen=0.0, metal=1.0, fibre=0.03, crinkle=0.3)
+    if name.startswith("heart"):
+        # Valentine's pink (the day's ink, calendar.json ff4f8b) as a dyed card.
+        return paper("PinkCard", (1.0, 0.085, 0.26), rough=0.8, sheen=0.25, fibre=0.16, sss=0.04)
+    # flag_red: the house signal red as a dyed paper
     return paper("RedPaper", (0.80, 0.075, 0.03), rough=0.8, sheen=0.2, fibre=0.16, sss=0.05)
 
 
@@ -306,6 +310,59 @@ def snowflake(variant: int):
     return outline, holes
 
 
+def snow_strips(variant: int, thick: float) -> bpy.types.Object:
+    """A paper snowflake built from strips of card: six arms (a spine each, tapering) with pairs of
+    branches at 60 degrees, a small hexagon at the heart. Strips overlap as one piece of paper (a
+    filled curve would punch holes where they cross)."""
+    spec = {
+        0: {"len": 0.47, "w": 0.040, "branches": [(0.18, 0.15, 0.030), (0.31, 0.10, 0.024)], "tip": 0.05},
+        1: {"len": 0.45, "w": 0.046, "branches": [(0.13, 0.09, 0.028), (0.24, 0.14, 0.030), (0.35, 0.07, 0.022)], "tip": 0.0},
+        2: {"len": 0.48, "w": 0.034, "branches": [(0.22, 0.17, 0.026)], "tip": 0.07},
+    }[variant]
+    parts = []
+
+    def bar(x0, y0, x1, y1, w):
+        dx, dy = x1 - x0, y1 - y0
+        ln = math.hypot(dx, dy)
+        bpy.ops.mesh.primitive_cube_add(size=1, location=((x0 + x1) / 2, (y0 + y1) / 2, 0))
+        b = bpy.context.object
+        b.scale = (ln + w * 0.6, w, thick)
+        b.rotation_euler = (0, 0, math.atan2(dy, dx))
+        bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+        parts.append(b)
+
+    for k in range(6):
+        a = math.pi / 2 + k * math.pi / 3
+        ux, uy = math.cos(a), math.sin(a)
+        bar(0, 0, ux * spec["len"], uy * spec["len"], spec["w"])
+        for d, ln, w in spec["branches"]:
+            bx, by = ux * d, uy * d
+            for sgn in (-1, 1):
+                b = a + sgn * math.pi / 3
+                bar(bx, by, bx + math.cos(b) * ln, by + math.sin(b) * ln, w)
+        if spec["tip"] > 0:
+            tx, ty = ux * spec["len"], uy * spec["len"]
+            bpy.ops.mesh.primitive_cylinder_add(vertices=6, radius=spec["tip"] * 0.5, depth=thick,
+                location=(tx, ty, 0))
+            parts.append(bpy.context.object)
+    bpy.ops.mesh.primitive_cylinder_add(vertices=6, radius=0.075, depth=thick, location=(0, 0, 0))
+    parts.append(bpy.context.object)
+    bpy.ops.object.select_all(action="DESELECT")
+    for p in parts:
+        p.select_set(True)
+    bpy.context.view_layer.objects.active = parts[0]
+    bpy.ops.object.join()
+    ob = bpy.context.object
+    ob.name = "Snow%d" % variant
+    # Fuse the strips into one solid piece of card (overlapping strips rendered their inner faces as
+    # dark patches); the voxel mesh is fine enough to bend smoothly.
+    rm = ob.modifiers.new("Fuse", "REMESH")
+    rm.mode = "VOXEL"
+    rm.voxel_size = 0.0022
+    bpy.ops.object.modifier_apply(modifier="Fuse")
+    return ob
+
+
 # ------------------------------------------------------------------ build
 
 def curve_object(name: str, loops, thick: float) -> bpy.types.Object:
@@ -384,9 +441,8 @@ def build(name: str) -> bpy.types.Object:
         curl(ob, c)
         tilt(ob, rx, ry)
     elif name.startswith("snow"):
-        outline, holes = snowflake("abc".index(name[-1]))
-        ob = curve_object(name, [jitter(outline, 0.0018, seed)] + holes, 0.006)
-        curl(ob, -12 if name != "snow_b" else 10)
+        ob = snow_strips("abc".index(name[-1]), 0.006)
+        curl(ob, -10 if name != "snow_b" else 8)
         tilt(ob, 4, -3)
     elif name.startswith("star"):
         pts = star(0.48, 0.21) if name == "star_a" else star(0.46, 0.18)
@@ -394,7 +450,7 @@ def build(name: str) -> bpy.types.Object:
         tilt(ob, 5, -7 if name == "star_a" else 6)
         ob.rotation_euler[2] = math.radians(0 if name == "star_a" else 8)
     elif name.startswith("heart"):
-        loops = [jitter(heart(0.46), 0.002, seed)]
+        loops = [heart(0.46)]
         if name == "heart_b":
             loops.append([(x * 0.38, y * 0.38 + 0.0) for x, y in heart(0.46)])
         ob = curve_object(name, loops, thick)
@@ -414,6 +470,10 @@ def build(name: str) -> bpy.types.Object:
 
 for name in WHICH:
     reset()
+    if name.startswith("star"):
+        # Gold mirrors the room: a dim grey room turned its shaded facets olive. A bright one.
+        bpy.context.scene.world.node_tree.nodes["Background"].inputs["Color"].default_value = (0.95, 0.92, 0.85, 1)
+        bpy.context.scene.world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.6
     build(name)
     sc = bpy.context.scene
     sc.render.filepath = os.path.join(OUT, name + ".png")

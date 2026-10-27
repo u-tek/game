@@ -14,6 +14,9 @@ const DIR := "res://assets/art/ui/holiday/"
 ## Each set: the pieces along the thread, left to right: [name, scale, drop px, flipped].
 const SETS := {
 	"halloween": [["bat_p", 0.74, 12.0, false], ["bat_a", 0.92, 34.0, true], ["bat_b", 0.7, 16.0, false]],
+	"christmas": [["snow_a", 0.78, 14.0, false], ["snow_c", 0.9, 30.0, false], ["snow_b", 0.72, 18.0, true]],
+	"newyear": [["star_a", 0.82, 16.0, false], ["star_b", 0.7, 34.0, true], ["star_a", 0.66, 12.0, true]],
+	"valentine": [["heart_a", 0.86, 14.0, false], ["heart_b", 0.92, 32.0, false], ["heart_a", 0.7, 18.0, true]],
 }
 const INK := SignalKit.INK
 const TAPE := Color(0.93, 0.9, 0.8, 0.9)
