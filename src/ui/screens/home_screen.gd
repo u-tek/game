@@ -1078,13 +1078,18 @@ func _refresh_days(pressed_key: String = "") -> void:
 	_day_layer.add_child(b)
 
 
-## On a holiday with decorations (CalendarRules.decor) the print shop strings them across the top of
-## the poster, behind her: strung up in front of the player the first time that year (setting
-## "decor_hung"), simply hanging after that. Rebuilt when the day's set changes.
+## On a holiday with decorations (CalendarRules.decor), or a birthday (bunting), the print shop strings
+## them across the top of the poster, behind her: strung up in front of the player the first time
+## that day (setting "decor_hung"), simply hanging after that. Rebuilt when the day's set changes.
 func _refresh_decor() -> void:
 	if _decor_layer == null or not is_instance_valid(_decor_layer):
 		return
 	var decor := CalendarRules.decor(Game.today())
+	if decor == "":
+		# A birthday (an owned heroine's or the player's) strings up the bunting.
+		for e: Dictionary in Game.calendar_today():
+			if str(e.kind) in ["birthday", "player"]:
+				decor = "birthday"
 	if decor == _decor_for:
 		return
 	_decor_for = decor
@@ -1092,7 +1097,8 @@ func _refresh_decor() -> void:
 		c.queue_free()
 	if decor == "":
 		return
-	var mark := "%s:%d" % [decor, CalendarRules.civil(Game.today())[0]]
+	# Strung up in front of the player the first time that day (each real day comes once a year).
+	var mark := "%s:%d" % [decor, Game.today()]
 	var fresh := str(Game.setting("decor_hung")) != mark
 	var g := Garland.new()
 	g.name = "Garland"

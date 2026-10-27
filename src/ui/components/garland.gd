@@ -1,6 +1,7 @@
 extends Control
 ## Cut-paper decorations on a thread across the Lobby poster on a real day that has them
-## (data/calendar.json "decor", CalendarRules.decor; the pieces are Cycles renders from
+## (data/calendar.json "decor", CalendarRules.decor; on a birthday, a heroine's or the player's,
+## the bunting; the pieces are Cycles renders from
 ## tools/blender/holiday_objects.py + finish_holiday.py in assets/art/ui/holiday/). The thread is
 ## taped at both ends and sags between; each piece hangs from it on a short drop and swings, a
 ## pendulum that leans with the phone's tilt, stirred by a faint draught and brushed by a passing
@@ -17,6 +18,8 @@ const SETS := {
 	"christmas": [["snow_a", 0.78, 14.0, false], ["snow_c", 0.9, 30.0, false], ["snow_b", 0.72, 18.0, true]],
 	"newyear": [["star_a", 0.82, 16.0, false], ["star_b", 0.7, 34.0, true], ["star_a", 0.66, 12.0, true]],
 	"valentine": [["heart_a", 0.86, 14.0, false], ["heart_b", 0.92, 32.0, false], ["heart_a", 0.7, 18.0, true]],
+	"birthday": [["flag_red", 0.56, 2.0, false], ["flag_paper", 0.56, 2.0, false], ["flag_ink", 0.56, 2.0, false],
+		["flag_red", 0.56, 2.0, false], ["flag_paper", 0.56, 2.0, false]],
 }
 const INK := SignalKit.INK
 const TAPE := Color(0.93, 0.9, 0.8, 0.9)

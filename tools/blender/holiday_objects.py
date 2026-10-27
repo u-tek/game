@@ -457,8 +457,20 @@ def build(name: str) -> bpy.types.Object:
         curl(ob, -16)
         tilt(ob, 6, 5)
     elif name.startswith("flag"):
-        ob = curve_object(name, [jitter(pennant(), 0.002, seed)], 0.008)
-        curl(ob, 8, "X")
+        # A pennant of card with its top folded over the thread: the hem is a strip a little proud
+        # of the face, its fold edge rounded; the point hangs and the card bows a touch.
+        ob = curve_object(name, [jitter(pennant(0.7, 0.84), 0.0016, seed)], 0.008)
+        bpy.ops.mesh.primitive_cylinder_add(vertices=24, radius=0.026, depth=0.69, location=(0, 0.405, 0.01),
+            rotation=(0, math.radians(90), 0))
+        hem = bpy.context.object
+        hem.scale = (1.0, 1.0, 1.0)
+        bpy.ops.object.select_all(action="DESELECT")
+        hem.select_set(True)
+        ob.select_set(True)
+        bpy.context.view_layer.objects.active = ob
+        bpy.ops.object.join()
+        ob = bpy.context.object
+        curl(ob, 10, "X")
         tilt(ob, -4, 3 if name == "flag_paper" else -3)
     else:
         raise SystemExit("unknown piece " + name)
