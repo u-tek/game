@@ -65,8 +65,13 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   shows its line, stamp and ink. Christmas has no ink or decorations yet (see the next item).
 - P2 todo **Decorations for the other days:** snowflakes, gold stars, hearts and bunting to the bats'
   standard (take 1: ghostly snowflakes, a broken heart fill, flat pennants).
-- P2 todo **The summon reveal, produced** (the money moment): a motion piece made with real tools,
-  not code shapes. Pitch the take first in shots and a video.
+- P2 doing **The summon reveal, produced** (the money moment): a motion piece made with real tools,
+  not code shapes. Done: the gold foil has a real surface (a tiling normal map of creased facets,
+  `tools/textures/foil_normal.py`, global `foil_n`), so it catches the glint facet by facet instead
+  of reading as a smooth gradient. Left: the charge's Epic tell renders as solid electric blue
+  (#402bcf for the violet #8048e8; not the teal overprint or the halftone's colour maths: two
+  fixes changed nothing; reverted); the Legendary poster's restraint (foil, halftone, thorns and
+  the stamp compete).
 - P2 todo **The first session:** the fresh-save guide loop circles 02 LOBBY on screens whose next step
   is right there (free pull on Summon, ENTER on Campaign, LEVEL UP on the hero page).
 - P2 todo **Lobby restraint pass:** fewer stuck-on objects (bulletin, arrows and counter, NEXT label,

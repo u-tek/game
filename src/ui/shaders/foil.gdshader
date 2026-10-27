@@ -16,6 +16,9 @@ render_mode unshaded;
 
 global uniform float ui_linear;
 global uniform vec2 ui_tilt;
+// The foil's surface: small creased facets over the paper's tooth (tools/textures/foil_normal.py),
+// a tiling normal map (x right, y up).
+global uniform sampler2D foil_n : filter_linear_mipmap, repeat_enable;
 
 uniform int mode = 0;
 // The foil's mid tone, its highlight and its shadow (sRGB numbers).
@@ -73,18 +76,18 @@ vec4 to_canvas(vec3 c, float a) {
 // the glint strength in w.
 vec4 foil(vec2 p, vec2 uv, float tone) {
 	float tm = TIME * motion;
-	// Crinkle: the foil is never perfectly flat. Soft facets from a warped wave field (no grid), so
-	// each patch catches the light at its own angle.
-	vec2 q = p / 85.0 + vec2(seed * 3.1, seed * 1.7);
-	float w1 = sin(q.x * 1.7 + sin(q.y * 1.3 + 1.7) * 1.6);
-	float w2 = sin(q.y * 2.1 + sin(q.x * 1.1 + 0.4) * 1.9 + 2.0);
-	float w3 = sin((q.x + q.y) * 3.4 + sin(q.x * 2.7 - q.y * 1.9) * 1.2);
-	float cr = clamp(0.5 + 0.24 * w1 + 0.18 * w2 + 0.1 * w3, 0.0, 1.0);
+	// The film is never flat: it breaks into small creased facets over the paper's tooth (the normal
+	// map). Each facet turns toward the key light (top left) or away, so it reads bright or dark on
+	// its own, and the glint reaches it at its own tilt: crisp foil, not a smooth gradient.
+	vec3 n = texture(foil_n, p / 520.0 + vec2(seed * 0.37, seed * 0.61)).rgb * 2.0 - 1.0;
+	vec2 r = 2.0 * n.z * n.xy;
+	float facet = dot(r, vec2(-0.6, 0.8));
 	// Brushed: faint hairlines along the press direction, and a pixel grain.
 	float br = sin(p.y * 1.7 + sin(p.x * 0.011 + p.y * 0.02) * 9.0) * 0.5;
 	float fine = hash(floor(p / 2.0)) - 0.5;
+	float cr = clamp(0.5 + facet * 0.32, 0.0, 1.0);
 	// The light's position across the sheet follows the tilt and drifts; facets shift it.
-	float pos = uv.x * 0.78 + uv.y * 0.52 + (cr - 0.5) * 0.5 + tone * 0.22;
+	float pos = uv.x * 0.78 + uv.y * 0.52 + facet * 0.22 + tone * 0.22;
 	float drift = travel ? fract(tm * speed + seed * 0.37) * 2.8 - 0.9 : 0.62 + sin(tm * speed * 6.2832 + seed) * 0.42;
 	float lp = drift + ui_tilt.x * 1.5 + ui_tilt.y * 0.9;
 	float band = exp(-sq((pos - lp) * 4.2));

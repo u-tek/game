@@ -61,3 +61,7 @@ ui_px={
 "type": "float",
 "value": 1.0
 }
+foil_n={
+"type": "sampler2D",
+"value": "res://assets/art/ui/foil/foil_n.png"
+}
