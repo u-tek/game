@@ -152,6 +152,8 @@ func _process(delta: float) -> void:
 		for l in _reset_labels:
 			if is_instance_valid(l):
 				l.text = "%s%s" % [str(l.get_meta("prefix", "BACK IN ")), Kit.format_time(Game.ms_until_reset()).to_upper()]
+		# Past midnight: today's look, a birthday's prices (the signature carries the day).
+		_refresh()
 
 
 # ------------------------------------------------------------------ refresh
@@ -161,7 +163,7 @@ func _refresh() -> void:
 		return
 	var offers := Game.offers()
 	var sig := JSON.stringify(offers) + str(Game.monthly_card_days_left()) \
-		+ JSON.stringify(Game.state.get("skins", {})) + str(Game.currency("gems"))
+		+ JSON.stringify(Game.state.get("skins", {})) + str(Game.currency("gems")) + str(Game.today())
 	if sig == _sig:
 		return
 	_sig = sig

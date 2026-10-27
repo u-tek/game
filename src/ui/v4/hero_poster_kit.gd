@@ -419,6 +419,9 @@ class Pass:
 	func set_live(on: bool) -> void:
 		hit.disabled = not on
 		sig.modulate = Color.WHITE if on else Color(0.55, 0.55, 0.55, 1.0)
+		# Disabled under a held finger, the button never sees the release: let the plates up now.
+		if not on:
+			_press(false)
 
 	static func _etch_box(text: String, size: int, weight: String) -> Control:
 		var box := Control.new()

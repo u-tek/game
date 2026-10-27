@@ -5,6 +5,8 @@
 	"notice": {
 		"tz_ahead": "Your clock jumped {h} hours. Where did you take me?",
 		"tz_behind": "You lost {h} hours somewhere. I'll help you find them.",
+		"tz_ahead_1": "Your clock jumped an hour. Where did you take me?",
+		"tz_behind_1": "You lost an hour somewhere. I'll help you find it.",
 		"late": "It's past {hour}. You should be asleep. ...Stay a minute.",
 		"early": "You're up before the sun. So am I, now.",
 		"visits": "Ten times today. I'm starting to think you like me."

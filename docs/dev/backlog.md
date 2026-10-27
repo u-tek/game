@@ -77,12 +77,12 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 - P2 todo **Gallery: the strip is left-aligned and tiny; a locked look has no BUY step; dark lightbox.**
 - P2 todo **Daily resets reopen when the day goes backwards** (time zone west): roll forward only
   (`game_model.gd` refresh_daily, free pull, Rue's haul, Champion). Rules change: port check + test.
-- P2 todo **Replay the opening, then SKIP, wipes the signature.**
-- P2 todo **On a birthday with 18+ on, the bulletin's sale opens a shop tab that doesn't exist.**
-- P2 todo **Notices wait for a Lobby rebuild**; **daylight saving reads as travel**.
-- P2 todo **Shop and quests don't refresh at midnight.**
-- P2 todo **Holding LEVEL UP to the cap leaves the pass sunk.**
-- P2 todo **A hit-stop during an ultimate's hold cancels its freeze.**
+- P2 done **Replay the opening, then SKIP, wiped the signature** (unit test).
+- P2 done **On a birthday with 18+ on, the bulletin's sale opened a shop tab that doesn't exist.**
+- P2 done **Notices waited for a Lobby rebuild**; **daylight saving read as travel** ("an hour" now).
+- P2 done **The shop didn't refresh at midnight** (quests: todo).
+- P2 done **Holding LEVEL UP to the cap left the pass sunk.**
+- P2 done **A hit-stop during an ultimate's hold cancelled its freeze.**
 - P2 todo **Too many reds:** Quests, Gear, Rival, Prints each print five or more red masses.
 
 ## P3

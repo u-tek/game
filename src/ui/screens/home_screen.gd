@@ -105,6 +105,7 @@ var _sig_label: Label
 var _day_layer: Control        ## the calendar's stamps and line beside the date (_refresh_days)
 var _day_sig := "-"
 var _day_key := ""             ## the day still waiting to be stamped ("" when none)
+var _visit_seen := -1         ## Game.visit_n when her line was last set (a new visit speaks again)
 var _press_key := ""           ## the day being stamped right now: its stamp comes down (_stamp_day)
 var _built_day := -1           ## the day the poster was printed for: a new day reprints it
 var _decor_layer: Control      ## a holiday's cut-paper decorations hang here (_refresh_decor)
@@ -724,6 +725,12 @@ func _refresh() -> void:
 	if not is_inside_tree() or _page == null:
 		return
 	_refresh_hero()
+	# Back to an open Lobby (a new visit, no rebuild): what she noticed is said now, not later.
+	if _hero_id != "" and Game.visit_n != _visit_seen:
+		_visit_seen = Game.visit_n
+		var back := _welcome_back()
+		if back != "":
+			_typeset(back, true)
 	_refresh_idle()
 	_refresh_campaign()
 	_refresh_badges()
@@ -964,6 +971,7 @@ func _refresh_hero() -> void:
 	HeroArt.fit_sprite(_sprite, _anchor, Rect2(BAND - 140.0, _ph * 0.02, _pw - (BAND - 140.0), _ph * 0.98), BAND + 250.0, true)
 	var lines := LobbyLines.lines(id)
 	_line = int(Time.get_unix_time_from_system() / 60.0) % lines.size()
+	_visit_seen = Game.visit_n
 	var back := _welcome_back()
 	if back == "":
 		back = _day_line(id)
@@ -1180,7 +1188,7 @@ func _welcome_back() -> String:
 	# a tenth visit today (Game.notices; each once).
 	var tz: Variant = Game.take_notice("tz")
 	if tz != null:
-		return LobbyLines.notice("tz_ahead" if int(tz) > 0 else "tz_behind", {"h": absi(int(tz))})
+		return LobbyLines.notice(("tz_ahead" if int(tz) > 0 else "tz_behind") + ("_1" if absi(int(tz)) == 1 else ""), {"h": absi(int(tz))})
 	var away := int(Game.get("last_away_ms"))
 	if away >= 8 * 3600000 and not bool(Game.get("away_noticed")):
 		Game.set("away_noticed", true)
@@ -1520,6 +1528,9 @@ func _show_bulletin(page: int, animate: bool = true) -> void:
 
 ## A heroine whose birthday it is and who has looks on sale ("" when none).
 func _birthday_sale_hero() -> String:
+	# In 18+ mode skins are off and the shop has no wardrobe: no sale to announce.
+	if HeroArt.nudity:
+		return ""
 	for id in HeroData.ids():
 		if CalendarRules.skin_discount_bp(Game.today(), id) > 0:
 			for sk: Dictionary in Game.skins_for(id):

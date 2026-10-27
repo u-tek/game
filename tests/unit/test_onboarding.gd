@@ -35,6 +35,7 @@ func test_new_player_signs_the_form(t: TestCtx) -> void:
 	t.eq(g.signature(), [[10, 20, 30, 40, 1000, 0]], "strokes cleaned: clamped, short and bad ones dropped")
 	g.complete_intake("", [])
 	t.eq(str(g.state.player_name), "Aria the Very Lo", "a blank name keeps the old one")
+	t.eq(g.signature(), [[10, 20, 30, 40, 1000, 0]], "a blank pad (SKIP on a replay) keeps the old signature")
 	g.reset_intake()
 	t.ok(not g.onboarded(), "replaying the opening")
 	_done()

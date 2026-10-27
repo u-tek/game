@@ -140,6 +140,9 @@ var away_noticed := false
 ## across time zones: hours, + = ahead), "late" (opened 01:00-04:59: the hour), "early" (05:00-06:59),
 ## "visits" (the tenth visit today).
 var notices: Dictionary = {}
+## Visits so far this run (a launch, or a return after 5 minutes or more): a screen already open can
+## tell that a new visit began (the Lobby says its welcome-back line then).
+var visit_n := 0
 
 
 ## Notes when the player leaves (kept in the settings: an adapter detail, not a rule).
@@ -167,11 +170,20 @@ func _notice_visit(away: int) -> void:
 	var tz := int(Time.get_time_zone_from_system().get("bias", 0))
 	# The day follows the device's zone even after travelling while the app was in the background.
 	model.tz_bias_ms = tz * 60000
-	if st.has("tz_bias") and int(st.tz_bias) != tz and absi(tz - int(st.tz_bias)) >= 60:
-		notices["tz"] = (tz - int(st.tz_bias)) / 60
+	# Travel is noticed on the zone's standard offset, so a daylight-saving switch is not a trip.
+	var std := tz - (60 if bool(Time.get_datetime_dict_from_system().get("dst", false)) else 0)
+	if not st.has("tz_std"):
+		st["tz_std"] = std
+	if int(st.tz_std) != std and absi(std - int(st.tz_std)) >= 60:
+		notices["tz"] = (std - int(st.tz_std)) / 60
+	st["tz_std"] = std
 	st["tz_bias"] = tz
 	if away >= 0 and away < 300000:
 		return
+	visit_n += 1
+	# A small-hours or early notice not said by now belongs to an earlier visit: the hour decides again.
+	notices.erase("late")
+	notices.erase("early")
 	var hour := int(Time.get_datetime_dict_from_system().hour)
 	var day := today()
 	if hour >= 1 and hour < 5 and int(st.get("late_seen_day", -1)) != day:

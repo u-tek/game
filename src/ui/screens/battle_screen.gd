@@ -1107,8 +1107,10 @@ func _step_display(delta: float) -> void:
 		_hitstop -= delta
 		if _hitstop > 0.0:
 			return
-		for uid: String in _views:
-			_views[uid].call("set_speed", float(_speed))
+		# (Inside an ultimate's hold the hold owns the speeds: the caster's and everyone else frozen.)
+		if _hold <= 0.0:
+			for uid: String in _views:
+				_views[uid].call("set_speed", float(_speed))
 	if _hold > 0.0:
 		_hold -= delta
 		if _hold > 0.0:

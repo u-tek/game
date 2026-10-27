@@ -2542,7 +2542,10 @@ func complete_intake(player_name: String, strokes: Array, born: String = "") -> 
 	var md := CalendarRules.clean_md(born)
 	if md != "":
 		state.player_birthday = md
-	state.signature = _clean_signature(strokes)
+	# Like the name: a blank pad (SKIP on a replayed form) keeps the signature already given.
+	var sig := _clean_signature(strokes)
+	if not sig.is_empty():
+		state.signature = sig
 	state.onboarded = true
 	_changed()
 	return _ok({"name": str(state.player_name)})
