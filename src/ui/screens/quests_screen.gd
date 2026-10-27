@@ -458,7 +458,7 @@ func _claim_stamp(parent: Control, pos: Vector2, on_pressed: Callable, node_name
 	sb.shadow_offset = Vector2(0, 3)
 	sb.anti_aliasing = true
 	st.add_theme_stylebox_override("panel", sb)
-	st.add_child(Poster.t("CLAIM", 19, Color("f5f4f0"), "wide_black"))
+	st.add_child(Poster.t("CLAIM", 19, SignalKit.MATTE, "wide_black"))
 	st.position = pos + Vector2(4, 22)
 	st.rotation = -0.05
 	parent.add_child(st)

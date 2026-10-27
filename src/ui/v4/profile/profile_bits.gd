@@ -20,7 +20,7 @@ class Badge:
 	var ring := "COMMENDATION"
 	var value := "01"
 	var earned := false
-	var ink := Color("101113")
+	var ink := SignalKit.INK
 
 	func _init() -> void:
 		mouse_filter = MOUSE_FILTER_IGNORE

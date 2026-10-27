@@ -6,7 +6,7 @@ extends Control
 
 const Fx := preload("res://src/ui/summon/summon_fx.gd")
 
-var color := Color("101113")
+var color := SignalKit.INK
 var strength := 1.0
 
 var _t := 0.0

@@ -15,7 +15,7 @@ extends RefCounted
 
 const SIG := SignalKit.SIGNAL
 const INK := SignalKit.INK
-const PAPER := Color("f5f4f0")
+const PAPER := SignalKit.MATTE
 ## Taps closer together than this count as a flurry.
 const FLURRY_GAP := 1.4
 

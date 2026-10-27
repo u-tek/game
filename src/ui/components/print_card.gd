@@ -327,7 +327,7 @@ class Stamp:
 	extends Control
 	var text := "MISPRINT"
 	var sub := ""
-	var color := Color("ff4b1f")
+	var color := SignalKit.SIGNAL
 	var seed_v := 7
 
 	func _ready() -> void:
@@ -391,8 +391,8 @@ class HoloSticker:
 		var f := Kit.font("wide_black")
 		var fs := maxi(6, int(rad * 0.36))
 		var w1 := f.get_string_size("HOLO", HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-		draw_string(f, c + Vector2(-w1 * 0.5, -1), "HOLO", HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color("101113"))
+		draw_string(f, c + Vector2(-w1 * 0.5, -1), "HOLO", HORIZONTAL_ALIGNMENT_LEFT, -1, fs, SignalKit.INK)
 		var fm := Kit.font("mono_bold")
 		var fs2 := maxi(5, int(rad * 0.22))
 		var w2 := fm.get_string_size("FOIL", HORIZONTAL_ALIGNMENT_LEFT, -1, fs2).x
-		draw_string(fm, c + Vector2(-w2 * 0.5, fs2 + 1), "FOIL", HORIZONTAL_ALIGNMENT_LEFT, -1, fs2, Color("101113"))
+		draw_string(fm, c + Vector2(-w2 * 0.5, fs2 + 1), "FOIL", HORIZONTAL_ALIGNMENT_LEFT, -1, fs2, SignalKit.INK)

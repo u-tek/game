@@ -247,7 +247,7 @@ func _greet() -> void:
 class SignPad:
 	extends Control
 
-	const INK := Color("101113")
+	const INK := SignalKit.INK
 	var _strokes: Array = []
 	var _cur := PackedVector2Array()
 	var _down := false

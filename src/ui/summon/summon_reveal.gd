@@ -1011,7 +1011,7 @@ class SerialStamp:
 	func _draw() -> void:
 		var p := print_data
 		var early := int(p.get("serial", 9999)) <= PrintRules.EARLY_SERIAL
-		var c := Color(Color("ff4b1f") if early else Color("101113"), 0.9)
+		var c := Color(SignalKit.SIGNAL if early else SignalKit.INK, 0.9)
 		var fm := Kit.font("mono_bold")
 		var fr := Kit.font("mono")
 		draw_rect(Rect2(Vector2.ZERO, size), c, false, 2.0)
@@ -1024,6 +1024,6 @@ class SerialStamp:
 		draw_string(fm, Vector2(10, 58), PrintCard.edition_line(p), HORIZONTAL_ALIGNMENT_LEFT, size.x - 18, 10, c)
 		var rng := RandomNumberGenerator.new()
 		rng.seed = int(p.get("v", 7)) + 11
-		var paper := Color("e9e8e2")
+		var paper := SignalKit.PAPER
 		for i in 90:
 			draw_circle(Vector2(rng.randf() * size.x, rng.randf() * size.y), rng.randf_range(0.4, 1.2), Color(paper, rng.randf_range(0.5, 0.95)))

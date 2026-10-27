@@ -839,7 +839,7 @@ func _refresh_rue_tag() -> void:
 	var horn := CK.Sticker.new()
 	horn.name = "RueSticker"
 	horn.lines = ["RUE", "WAS HERE"]
-	horn.fill = Color("101113")
+	horn.fill = SignalKit.INK
 	horn.ink = SIG
 	horn.horns = true
 	horn.size = Vector2(96, 96)

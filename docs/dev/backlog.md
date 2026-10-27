@@ -105,9 +105,9 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 
 ## P3
 
-- P3 doing **One poster kit:** done: the palette has one source (41 files' INK, PAPER, SIG/SIGNAL,
-  MATTE and BAND constants now point at SignalKit / Kit.BAND). Left: 72 inline uses of the same hex
-  colours in expressions; folding `poster_kit.gd`, `hero_poster_kit.gd`, survey `poster.gd` and
+- P3 doing **One poster kit:** done: the palette has one source (every INK, PAPER, SIGNAL, MATTE and
+  BAND constant and inline use in 60 files points at SignalKit / Kit.BAND; only the palette files and
+  theme.gd hold the hex). Left: folding `poster_kit.gd`, `hero_poster_kit.gd`, survey `poster.gd` and
   SignalKit into one kit (three copies of the pass alone); one set of spacing constants.
 - P3 done **War claim paid by the current side** (no switch while a claim waits); **the oath promised a
   side switch no screen offered** (CHANGE TO ... on the Front at a week's start).

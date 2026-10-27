@@ -300,7 +300,7 @@ func _build_gear(pw: float, y: float, cell: float) -> float:
 		fr.position = Vector2(20 + (i % 4) * (cell + 12.0), y + (i / 4) * (cell + 34.0))
 		fr.size = Vector2(cell, cell + 30)
 		p.add_child(fr)
-		PK.rect(fr, Rect2(0, 0, cell, cell), Color("f5f4f0"))
+		PK.rect(fr, Rect2(0, 0, cell, cell), SignalKit.MATTE)
 		PK.rule(fr, Vector2(0, cell - 1), Vector2(cell, 1), Color(INK, 0.3))
 		PPK.gear_object(str(it.slot), cell - 16, fr, Vector2(8, 6), str(it.get("name", "")), int(it.get("tier", 1)))
 		var by := str(it.get("equipped_by", ""))
@@ -352,7 +352,7 @@ func _build_shards(pw: float, y: float, list: Array[Dictionary], cell: float) ->
 		fr.size = Vector2(cell, cell + 46)
 		p.add_child(fr)
 		var bg := ColorRect.new()
-		bg.color = Color("f5f4f0")
+		bg.color = SignalKit.MATTE
 		bg.mouse_filter = MOUSE_FILTER_IGNORE
 		bg.size = Vector2(cell, cell)
 		fr.add_child(bg)
@@ -448,7 +448,7 @@ func _build_links(pw: float, y: float) -> void:
 		box.position = Vector2(20 + i * (sw + 12.0), y)
 		box.size = Vector2(sw, 110)
 		p.add_child(box)
-		PK.rect(box, Rect2(0, 0, sw, 110), Color("f5f4f0"))
+		PK.rect(box, Rect2(0, 0, sw, 110), SignalKit.MATTE)
 		PK.rect(box, Rect2(0, 0, 6, 110), SIG if i == 0 else INK)
 		PK.at(box, PK.t(str(sl[0]), 34, INK, "compressed"), Vector2(18, 6))
 		PK.at(box, PK.t(str(sl[1]), 12, INK, "mono_bold"), Vector2(18, 54))

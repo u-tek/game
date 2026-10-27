@@ -24,7 +24,7 @@ class TickRule:
 	var lead_w := 34.0
 	## 0..1: a meter; the ticks up to this fraction are drawn tall in fill_color. < 0 = a plain rule.
 	var filled := -1.0
-	var fill_color := Color("ff4b1f")
+	var fill_color := SignalKit.SIGNAL
 	var ticks := true
 
 	func _init() -> void:
@@ -57,8 +57,8 @@ class TickRule:
 class Dial:
 	extends Control
 	var frac := 0.0
-	var ink := Color("101113")
-	var on := Color("ff4b1f")
+	var ink := SignalKit.INK
+	var on := SignalKit.SIGNAL
 	var count := 60
 
 	func _init() -> void:
@@ -158,7 +158,7 @@ class CropMarks:
 class Sweep:
 	extends Control
 	var ink := Color(0.96, 0.957, 0.94, 0.55)
-	var on := Color("ff4b1f")
+	var on := SignalKit.SIGNAL
 	var step := 10.0
 	var _t := 0.0
 

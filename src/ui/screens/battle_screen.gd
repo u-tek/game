@@ -86,15 +86,15 @@ const SWIPE_HOLD := 2.6
 const NUM_FAN := [Vector2(0, -10), Vector2(34, -40), Vector2(-34, -70), Vector2(14, -100)]
 ## Status words float up in mono type: debuffs in signal, buffs on paper.
 const STATUS_TEXT := {
-	"stun": ["STUNNED", Color("ff4b1f")], "burn": ["BURN", Color("ff8a62")], "regen": ["REGEN", Color("9fe0bf")],
-	"taunt": ["TAUNT", Color("f5f4f0")], "atk_up": ["ATK UP", Color("f5f4f0")], "atk_down": ["ATK DOWN", Color("ff4b1f")],
-	"def_up": ["DEF UP", Color("f5f4f0")], "def_down": ["DEF DOWN", Color("ff4b1f")], "spd_up": ["HASTE", Color("f5f4f0")],
+	"stun": ["STUNNED", SignalKit.SIGNAL], "burn": ["BURN", Color("ff8a62")], "regen": ["REGEN", Color("9fe0bf")],
+	"taunt": ["TAUNT", SignalKit.MATTE], "atk_up": ["ATK UP", SignalKit.MATTE], "atk_down": ["ATK DOWN", SignalKit.SIGNAL],
+	"def_up": ["DEF UP", SignalKit.MATTE], "def_down": ["DEF DOWN", SignalKit.SIGNAL], "spd_up": ["HASTE", SignalKit.MATTE],
 	"charm": ["CHARMED", Color("ff6fae")],
 }
 ## Floating numbers (style v4): damage in compressed type, paper on ink for hits on echoes, ink on
 ## paper for hits on the team, signal for crits and executes; heals and shields in mono.
-const NUM_PAPER := Color("f5f4f0")
-const NUM_INK := Color("101113")
+const NUM_PAPER := SignalKit.MATTE
+const NUM_INK := SignalKit.INK
 const NUM_HEAL := Color("9fe0bf")
 const NUM_SHIELD := Color("c9d6de")
 
@@ -1693,9 +1693,9 @@ class ChampBar:
 			var td := t as Dictionary
 			var x := w * float(td.pct) / 100.0
 			var on := bool(td.done)
-			draw_line(Vector2(x, y - 4), Vector2(x, y + h + 4), Color("ff4b1f") if on else Color(0.063, 0.067, 0.075, 0.6), 2.0)
+			draw_line(Vector2(x, y - 4), Vector2(x, y + h + 4), SignalKit.SIGNAL if on else Color(0.063, 0.067, 0.075, 0.6), 2.0)
 			draw_string(f, Vector2(x - 30, y + h + 18), "%d%%" % int(td.pct), HORIZONTAL_ALIGNMENT_CENTER, 60, 10,
-				Color("ff4b1f") if on else Color(0.063, 0.067, 0.075, 0.7))
+				SignalKit.SIGNAL if on else Color(0.063, 0.067, 0.075, 0.7))
 
 
 ## The Rival's result poster: YOU BEAT RUE (the haul, her print, your tag) or RUE WINS (costs nothing).

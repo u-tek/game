@@ -195,7 +195,7 @@ static func grain(parent: Node, amount: float = 0.06) -> void:
 ## A hairline frame with a small solid tab on its top-right corner (the dossier's pixel squares).
 class Frame:
 	extends Control
-	var color := Color("101113")
+	var color := SignalKit.INK
 	var tab := 7.0
 
 	func _init() -> void:
@@ -211,7 +211,7 @@ class Stars:
 	extends Control
 	var count := 6
 	var filled := 3
-	var color := Color("101113")
+	var color := SignalKit.INK
 	var empty := Color(0.06, 0.07, 0.08, 0.3)
 	var gap := 3.0
 
@@ -241,7 +241,7 @@ class Stars:
 ## A thin printed chevron (browse arrows): points left when dir < 0.
 class Chevron:
 	extends Control
-	var color := Color("101113")
+	var color := SignalKit.INK
 	var dir := 1
 	var width := 2.0
 
@@ -264,7 +264,7 @@ class Chevron:
 ## A long thin printed arrow pointing left (the dossier's back arrow).
 class Arrow:
 	extends Control
-	var color := Color("101113")
+	var color := SignalKit.INK
 	var width := 2.0
 
 	func _init() -> void:
@@ -477,7 +477,7 @@ class PressPass:
 		_sub = Pass._etch_box("", 10, "mono")
 		_sub.position = Vector2(x, 64)
 		silver.add_child(_sub)
-		_act = Kit.label("", 12, Color("ff4b1f"), "mono_bold")
+		_act = Kit.label("", 12, SignalKit.SIGNAL, "mono_bold")
 		_act.position = Vector2(x, 84)
 		silver.add_child(_act)
 		_info = Kit.label("", 10, Color("131416"), "mono")

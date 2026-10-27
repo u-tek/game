@@ -210,7 +210,7 @@ func _loss_block(p: Control, x0: float, y: float, cw: float, rv: Dictionary) -> 
 	_fade_in.append(st)
 	var stk := CK.Sticker.new()
 	stk.lines = ["TAGGED", "YOUR LOBBY POSTER"]
-	stk.fill = Color("101113")
+	stk.fill = SignalKit.INK
 	stk.ink = BP.SIG
 	stk.horns = true
 	stk.size = Vector2(118, 118)

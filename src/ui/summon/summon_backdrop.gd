@@ -76,7 +76,7 @@ func _draw() -> void:
 	# The printer's colour bar along the bottom edge.
 	var bar_y := y1 - 4.0
 	var x := 48.0
-	var patches := [INK, Color(INK, 0.6), Color(INK, 0.3), Color(INK, 0.12), SIGNAL, Color(SIGNAL, 0.55), Color(SIGNAL, 0.25), Color("e9e8e2")]
+	var patches := [INK, Color(INK, 0.6), Color(INK, 0.3), Color(INK, 0.12), SIGNAL, Color(SIGNAL, 0.55), Color(SIGNAL, 0.25), SignalKit.PAPER]
 	for i in patches.size():
 		var pc: Color = patches[i]
 		pc = pc.lerp(Color("1a1b1e"), _darken * 0.6)

@@ -121,7 +121,7 @@ static func acrylic_tab(text: String, count: int, selected: bool, w: float, on_p
 class HUDLed:
 	extends Control
 	var on := false
-	var color := Color("ff4b1f")
+	var color := SignalKit.SIGNAL
 	var _t := 0.0
 
 	func _ready() -> void:
@@ -154,7 +154,7 @@ class HudRing:
 	var center := Vector2.ZERO
 	var radius := 200.0
 	var color := Color(0.063, 0.067, 0.075, 0.8)
-	var accent := Color("ff4b1f")
+	var accent := SignalKit.SIGNAL
 	var _t := 0.0
 
 	func _ready() -> void:
@@ -228,7 +228,7 @@ class CropFrame:
 class BarcodeRing:
 	extends Control
 	var seed_v := 1
-	var color := Color("101113")
+	var color := SignalKit.INK
 	var caption := "ID"
 
 	func _ready() -> void:
@@ -264,7 +264,7 @@ class BarcodeRing:
 class DataList:
 	extends Control
 	var rows: Array = []
-	var color := Color("101113")
+	var color := SignalKit.INK
 	var text_size := 13
 	var row_h := 22.0
 	var bar := Color(1, 1, 1, 0.65)
@@ -424,7 +424,7 @@ class Leader:
 class Scrawl:
 	extends Control
 	var text := "RUE WAS HERE"
-	var color := Color("ff4b1f")
+	var color := SignalKit.SIGNAL
 	var stroke := 7.0
 	var seed_v := 3
 	var reveal := 1.0
@@ -524,8 +524,8 @@ class Scrawl:
 class Sticker:
 	extends Control
 	var lines: Array = ["RUE"]
-	var fill := Color("101113")
-	var ink := Color("ff4b1f")
+	var fill := SignalKit.INK
+	var ink := SignalKit.SIGNAL
 	var round := true
 	var horns := false
 

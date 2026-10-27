@@ -16,7 +16,7 @@ const PRESETS := {
 	"silver": {"mat": 0, "albedo": Color("e3e6e2"), "albedo_low": Color("a9aeab"), "bevel": 5.0},
 	"graphite": {"mat": 1, "albedo": Color("34383d"), "albedo_low": Color("1c1e22"), "bevel": 4.0},
 	"slate": {"mat": 2, "albedo": Color("a2a8ad"), "albedo_low": Color("6c7277"), "bevel": 5.0},
-	"signal": {"mat": 3, "albedo": Color("ff4b1f"), "albedo_low": Color("ff4b1f"), "bevel": 6.0},
+	"signal": {"mat": 3, "albedo": SignalKit.SIGNAL, "albedo_low": SignalKit.SIGNAL, "bevel": 6.0},
 	"dial": {"mat": 4, "albedo": Color("7d838a"), "albedo_low": Color("33373c"), "bevel": 7.0},
 	"ink": {"mat": 5, "albedo": Color("0c0d0f"), "albedo_low": Color("0c0d0f"), "bevel": 3.0},
 	"white": {"mat": 2, "albedo": Color("f4f4f2"), "albedo_low": Color("cfd1ce"), "bevel": 6.0},

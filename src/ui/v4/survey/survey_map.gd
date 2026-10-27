@@ -53,7 +53,7 @@ const PALETTE := {
 	"canyons": {"lo": Color("21160f"), "hi": Color("8a6655"), "warm": Color("ff5520"), "hot": Color("ffb25a"), "side": Color("1a120e")},
 	"craters": {"lo": Color("18151f"), "hi": Color("6f6880"), "warm": Color("ff4f22"), "hot": Color("ffa95a"), "side": Color("141219")},
 	"ice": {"lo": Color("3b4452"), "hi": Color("d6dde5"), "warm": Color("ff6a2c"), "hot": Color("ffc178"), "side": Color("262c36")},
-	"lava": {"lo": Color("0e0c0e"), "hi": Color("4a4042"), "warm": Color("ff4b1f"), "hot": Color("ffa04a"), "side": Color("0e0c0d")},
+	"lava": {"lo": Color("0e0c0e"), "hi": Color("4a4042"), "warm": SignalKit.SIGNAL, "hot": Color("ffa04a"), "side": Color("0e0c0d")},
 	"crystal": {"lo": Color("1a1824"), "hi": Color("7c7894"), "warm": Color("ff5126"), "hot": Color("ffb06a"), "side": Color("16141d")},
 }
 

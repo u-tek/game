@@ -141,7 +141,7 @@ func _draw() -> void:
 				"next":
 					fill = (SIGNAL * lerpf(1.25, 1.7, light)) if not muted else Color(SIGNAL, 0.5)
 				"cleared":
-					fill = Color("141517").lerp(Color("2a2c30"), light)
+					fill = Kit.BAND.lerp(Color("2a2c30"), light)
 				_:
 					fill = PAPER.darkened(0.04 + 0.1 * (1.0 - light))
 			fill.a = 1.0

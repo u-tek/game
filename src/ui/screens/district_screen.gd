@@ -280,9 +280,9 @@ func _arrange_toggle(pw: float) -> void:
 	tag.mouse_filter = MOUSE_FILTER_PASS
 	_poster.add_child(tag)
 	var box := Rect2(Vector2(20, 0), Vector2(130, 30))
-	PK.rect(tag, box, SIG if _arranging else Color("f5f4f0"))
+	PK.rect(tag, box, SIG if _arranging else SignalKit.MATTE)
 	PosterKit.hairbox(tag, box, SIG if _arranging else INK)
-	var l := PK.t("DONE" if _arranging else "ARRANGE", 12, Color("f5f4f0") if _arranging else INK, "mono_bold")
+	var l := PK.t("DONE" if _arranging else "ARRANGE", 12, SignalKit.MATTE if _arranging else INK, "mono_bold")
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.size = Vector2(box.size.x, 16)
 	PK.at(tag, l, box.position + Vector2(0, 7))
@@ -331,7 +331,7 @@ func _decor_shelf(pw: float, y: float, dist: Dictionary) -> void:
 		card.mouse_filter = MOUSE_FILTER_PASS
 		p.add_child(card)
 		var held := kid == _held_kind
-		PK.rect(card, Rect2(Vector2.ZERO, card.size), Color("f5f4f0"))
+		PK.rect(card, Rect2(Vector2.ZERO, card.size), SignalKit.MATTE)
 		PosterKit.hairbox(card, Rect2(Vector2.ZERO, card.size), SIG if held else Color(INK, 0.4))
 		if held:
 			PosterKit.hairbox(card, Rect2(Vector2(1, 1), card.size - Vector2(2, 2)), SIG)
@@ -406,7 +406,7 @@ func _build_ledger(pw: float, y: float, dist: Dictionary) -> void:
 		row.position = Vector2(20, y)
 		row.size = Vector2(pw - 40, ROW_H - 6)
 		p.add_child(row)
-		PK.rect(row, Rect2(Vector2.ZERO, row.size), Color("f5f4f0") if open else Color(INK, 0.04))
+		PK.rect(row, Rect2(Vector2.ZERO, row.size), SignalKit.MATTE if open else Color(INK, 0.04))
 		PK.rect(row, Rect2(0, 0, 5, row.size.y), (SIG if bool(bd.doubled) else INK) if open else Color(INK, 0.2))
 		PK.at(row, PK.t("%02d" % (int(bd.i) + 1), 24, INK if open else Color(INK, 0.35), "compressed"), Vector2(16, 14))
 		var nm_t := str(bd.name).to_upper()

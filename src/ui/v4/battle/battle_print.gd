@@ -222,7 +222,7 @@ class Readout:
 	extends Control
 	var value := 1.0
 	var chip := 1.0
-	var fill := Color("101113")
+	var fill := SignalKit.INK
 	var track := Color(0.063, 0.067, 0.075, 0.07)
 	var frame := Color(0.063, 0.067, 0.075, 0.85)
 	var chip_color := Color(0.063, 0.067, 0.075, 0.28)
@@ -288,7 +288,7 @@ class BossBand:
 		clip_contents = true
 		var bg := ColorRect.new()
 		bg.mouse_filter = MOUSE_FILTER_IGNORE
-		bg.color = Color("141517")
+		bg.color = Kit.BAND
 		bg.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 		add_child(bg)
 		if hero_id != "":
@@ -312,7 +312,7 @@ class BossBand:
 			add_child(pr)
 			var fade := TextureRect.new()
 			fade.mouse_filter = MOUSE_FILTER_IGNORE
-			fade.texture = Kit.vgradient(Color("141517"), Color(0.078, 0.082, 0.09, 0.0), true)
+			fade.texture = Kit.vgradient(Kit.BAND, Color(0.078, 0.082, 0.09, 0.0), true)
 			fade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			fade.stretch_mode = TextureRect.STRETCH_SCALE
 			fade.anchor_left = 1.0
@@ -331,8 +331,8 @@ class BossBand:
 		_paper.set("title", boss_name.to_upper())
 		_paper.set("kicker", kicker)
 		_paper.set("fs", fs)
-		_paper.set("ink", Color("e9e8e2"))
-		_paper.set("accent", Color("ff4b1f"))
+		_paper.set("ink", SignalKit.PAPER)
+		_paper.set("accent", SignalKit.SIGNAL)
 		_paper.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 		add_child(_paper)
 		_ink_clip = Control.new()
@@ -345,8 +345,8 @@ class BossBand:
 		_ink.set("title", boss_name.to_upper())
 		_ink.set("kicker", kicker)
 		_ink.set("fs", fs)
-		_ink.set("ink", Color("101113"))
-		_ink.set("accent", Color("101113"))
+		_ink.set("ink", SignalKit.INK)
+		_ink.set("accent", SignalKit.INK)
 		_ink.position = -_ink_clip.position
 		_ink.size = size
 		_ink_clip.add_child(_ink)
@@ -401,13 +401,13 @@ class BossBand:
 		p.mouse_filter = MOUSE_FILTER_IGNORE
 		var sb := StyleBoxFlat.new()
 		sb.bg_color = Color(0, 0, 0, 0)
-		sb.border_color = Color("ff4b1f")
+		sb.border_color = SignalKit.SIGNAL
 		sb.set_border_width_all(3)
 		sb.set_corner_radius_all(3)
 		sb.content_margin_left = 12
 		sb.content_margin_right = 12
 		p.add_theme_stylebox_override("panel", sb)
-		p.add_child(Kit.label("DOWN", 28, Color("ff4b1f"), "wide_black"))
+		p.add_child(Kit.label("DOWN", 28, SignalKit.SIGNAL, "wide_black"))
 		p.position = Vector2(size.x * 0.42, 18)
 		p.rotation = -0.12
 		add_child(p)
@@ -426,7 +426,7 @@ class BossBand:
 		_bars.draw_rect(r, Color(0.91, 0.91, 0.89, 0.1))
 		if chip > frac:
 			_bars.draw_rect(Rect2(16 + w * frac, BAR_Y, w * (chip - frac), BAR_H), Color(0.91, 0.91, 0.89, 0.55))
-		_bars.draw_rect(Rect2(16, BAR_Y, w * frac, BAR_H), Color("ff4b1f"))
+		_bars.draw_rect(Rect2(16, BAR_Y, w * frac, BAR_H), SignalKit.SIGNAL)
 		_bars.draw_rect(r, Color(0.91, 0.91, 0.89, 0.55), false, 1.0)
 		# Tick ruler under the bar: every 2%, majors every 10%.
 		for i in 51:
@@ -442,8 +442,8 @@ class _BandText:
 	var title := ""
 	var kicker := ""
 	var fs := 60
-	var ink := Color("e9e8e2")
-	var accent := Color("ff4b1f")
+	var ink := SignalKit.PAPER
+	var accent := SignalKit.SIGNAL
 	var hp_text := ""
 	var pct := ""
 

@@ -4,7 +4,7 @@ extends Control
 ## breathes, slowly.
 
 var _tw: Tween
-var color := Color("ff4b1f")
+var color := SignalKit.SIGNAL
 
 
 func _ready() -> void:

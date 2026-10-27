@@ -696,7 +696,7 @@ class Target:
 class Roller:
 	extends Control
 	var signal_ink := false
-	var ink := Color("ff4b1f")
+	var ink := SignalKit.SIGNAL
 
 	func _init() -> void:
 		mouse_filter = MOUSE_FILTER_IGNORE
@@ -716,7 +716,7 @@ class Roller:
 		if signal_ink:
 			cols = [ink.darkened(0.3), ink.lightened(0.48), ink.lightened(0.14), ink, ink.darkened(0.24), ink.darkened(0.1)]
 		else:
-			cols = [Color("1b1c1f"), Color("6a6c72"), Color("2e2f33"), Color("141517"), Color("070708"), Color("2a2b2f")]
+			cols = [Color("1b1c1f"), Color("6a6c72"), Color("2e2f33"), Kit.BAND, Color("070708"), Color("2a2b2f")]
 		for i in stops.size() - 1:
 			_band(x0, x1, stops[i] * h, stops[i + 1] * h, cols[i], cols[i + 1])
 		# The wet sheen on the highlight and a hairline where it meets the paper.

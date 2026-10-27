@@ -299,7 +299,7 @@ class _Engrave:
 			var k3: float = s.impact
 			draw_arc(c, r * (1.0 + 0.9 * (1.0 - k3)), 0, TAU, 64, Color(1.0, 0.85, 0.5, k3 * 0.8), 2.0 + 10.0 * k3, true)
 
-	const SIG_C := Color("ff4b1f")
+	const SIG_C := SignalKit.SIGNAL
 
 
 # ------------------------------------------------------------------ crown stamp
@@ -523,7 +523,7 @@ class AwakenFx:
 		p.size = Vector2(vs.x, h)
 		_content.add_child(p)
 		var band := ColorRect.new()
-		band.color = Color("141517")
+		band.color = Kit.BAND
 		band.mouse_filter = MOUSE_FILTER_IGNORE
 		band.size = p.size
 		p.add_child(band)

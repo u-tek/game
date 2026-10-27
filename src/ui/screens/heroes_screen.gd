@@ -434,12 +434,12 @@ func _card(id: String, browse: Array[String]) -> PosterCard:
 		var k2 := _card_w / 218.0
 		var tag := ColorRect.new()
 		tag.mouse_filter = MOUSE_FILTER_IGNORE
-		tag.color = Color("ff4b1f")
+		tag.color = SignalKit.SIGNAL
 		tag.size = Vector2(roundf(96.0 * k2), roundf(20.0 * k2))
 		tag.position = Vector2(_card_w - tag.size.x - 8.0 * k2, 8.0 * k2)
 		tag.rotation = 0.04
 		card.add_child(tag)
-		var tl := Kit.label("BIRTHDAY", int(roundf(10.0 * k2)), Color("f5f4f0"), "mono_bold")
+		var tl := Kit.label("BIRTHDAY", int(roundf(10.0 * k2)), SignalKit.MATTE, "mono_bold")
 		tl.mouse_filter = MOUSE_FILTER_IGNORE
 		tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		tl.size = tag.size

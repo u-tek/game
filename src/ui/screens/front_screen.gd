@@ -392,7 +392,7 @@ func _build_claim(pw: float, y: float, claim: Dictionary) -> void:
 	slip.rotation = -0.012
 	p.add_child(slip)
 	PK.rect(slip, Rect2(3, 5, slip.size.x, slip.size.y), Color(0, 0, 0, 0.18))
-	PK.rect(slip, Rect2(Vector2.ZERO, slip.size), Color("f5f4f0"))
+	PK.rect(slip, Rect2(Vector2.ZERO, slip.size), SignalKit.MATTE)
 	PK.rect(slip, Rect2(0, 0, 8, slip.size.y), SIG if won else INK)
 	var winner := str(claim.winner)
 	var head := "LAST WEEK  ·  " + ("%s HELD THE FRONT" % WarRules.side_name(winner).to_upper() if winner != "" else "THE FRONT HELD LEVEL")

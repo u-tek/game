@@ -16,8 +16,8 @@ const BAR_W := 108.0
 const PAPER := SignalKit.PAPER
 const INK := SignalKit.INK
 const SIG := SignalKit.SIGNAL
-const MARK_ALLY := Color("f5f4f0")
-const MARK_ENEMY := Color("ff4b1f")
+const MARK_ALLY := SignalKit.MATTE
+const MARK_ENEMY := SignalKit.SIGNAL
 
 var uid := ""
 var hero_id := ""

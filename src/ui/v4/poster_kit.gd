@@ -697,7 +697,7 @@ static func led(parent: Node, pos: Vector2, mode: String = "breathe", color: Col
 class _Table:
 	extends Control
 	var rows: Array = []
-	var color := Color("101113")
+	var color := SignalKit.INK
 	var text_size := 15
 	var row_h := 28.0
 	var bar := Color(1, 1, 1, 0.6)
@@ -739,7 +739,7 @@ class _Table:
 
 class _Brackets:
 	extends Control
-	var color := Color("101113")
+	var color := SignalKit.INK
 	var arm := 18.0
 	var width := 1.5
 
@@ -760,8 +760,8 @@ class _Ticks:
 	extends Control
 	var count := 60
 	var filled := 20
-	var color := Color("101113")
-	var on := Color("ff4b1f")
+	var color := SignalKit.INK
+	var on := SignalKit.SIGNAL
 
 	func _init() -> void:
 		mouse_filter = MOUSE_FILTER_IGNORE
@@ -779,8 +779,8 @@ class _Stencil:
 	extends Control
 	var text := ""
 	var font_size := 120
-	var color := Color("101113")
-	var cut := Color("e9e8e2")
+	var color := SignalKit.INK
+	var cut := SignalKit.PAPER
 	var weight := "wide_black"
 
 	func _init() -> void:
@@ -796,7 +796,7 @@ class _Stencil:
 class _Chevrons:
 	extends Control
 	var count := 3
-	var color := Color("101113")
+	var color := SignalKit.INK
 
 	func _init() -> void:
 		mouse_filter = MOUSE_FILTER_IGNORE

@@ -1629,7 +1629,7 @@ class _TicketPart:
 	const R := 11.0
 	var part := "body"
 	var fill := Color("f4f3ef")
-	var ink := Color("101113")
+	var ink := SignalKit.INK
 	var stub_w := 90.0
 
 	func _init() -> void:
@@ -1717,7 +1717,7 @@ class _Stamp:
 ## The banner's seal printed on a ticket: two rings and the portal number.
 class _Seal:
 	extends Control
-	var ink := Color("101113")
+	var ink := SignalKit.INK
 	var text := "Nº01"
 
 	func _init() -> void:
@@ -1738,7 +1738,7 @@ class _Seal:
 ## A hairline ring (the faction emblem's frame).
 class _Ring:
 	extends Control
-	var color := Color("101113")
+	var color := SignalKit.INK
 
 	func _init() -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1762,7 +1762,7 @@ class _Loop:
 			var a := TAU * k / 60.0 - 0.6
 			var wob := 1.0 + 0.03 * sin(a * 3.0 + 1.0) + 0.02 * sin(a * 7.0)
 			pts.append(c + Vector2(cos(a) * size.x * 0.52, sin(a) * size.y * 0.51) * wob)
-		draw_polyline(pts, Color("ff4b1f"), 3.0, true)
+		draw_polyline(pts, SignalKit.SIGNAL, 3.0, true)
 
 
 ## The wish punch card: `count` cells in rows of ten, the first `used` punched out (a hole and a
@@ -1776,7 +1776,7 @@ class _Punch:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	func _draw() -> void:
-		var ink := Color("101113")
+		var ink := SignalKit.INK
 		var s := 15.0
 		var gap := 6.0
 		draw_rect(Rect2(Vector2(-6, -6), Vector2(10 * (s + gap) - gap + 12, ceilf(count / 10.0) * (s + gap) - gap + 12)), Color("f4f3ef"))
@@ -1799,7 +1799,7 @@ class _Coupons:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	func _draw() -> void:
-		var ink := Color("101113")
+		var ink := SignalKit.INK
 		var s := 26.0
 		var f := Kit.font("mono_bold")
 		for i in count:

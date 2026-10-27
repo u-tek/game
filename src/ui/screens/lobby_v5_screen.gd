@@ -15,7 +15,7 @@ const W := 720.0
 const BAND := 248.0
 const PAPER := SignalKit.PAPER
 const MATTE := SignalKit.MATTE
-const INKC := Color("101113")
+const INKC := SignalKit.INK
 const SIG := SignalKit.SIGNAL
 
 var _hero_id := ""
@@ -82,7 +82,7 @@ func _build() -> void:
 
 	# Dark band with the hero as a red halftone print (head to waist, cover-cropped).
 	var band := ColorRect.new()
-	band.color = Color("141517")
+	band.color = Kit.BAND
 	band.size = Vector2(BAND, ph)
 	poster.add_child(band)
 	var tex := HeroArt.texture(_hero_id, Game.equipped_skin(_hero_id))

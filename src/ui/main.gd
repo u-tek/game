@@ -443,7 +443,7 @@ func _build_top_bar() -> void:
 	_power_chip.name = "Power"
 	_power_chip.mouse_filter = MOUSE_FILTER_IGNORE
 	var psb := StyleBoxFlat.new()
-	psb.bg_color = Color("f5f4f0")
+	psb.bg_color = SignalKit.MATTE
 	psb.border_color = SignalKit.INK
 	psb.set_border_width_all(1)
 	psb.content_margin_left = 6

@@ -916,7 +916,7 @@ class Pips extends Control:
 	var current := 0
 	var colors: Array[Color] = []
 	## The type and the hollow squares' ink (paper-coloured in the dark).
-	var ink := Color("101113")
+	var ink := SignalKit.INK
 	var _t := 0.0
 
 	func _ready() -> void:
@@ -940,8 +940,8 @@ class Pips extends Control:
 			var col: Color = colors[i] if i < colors.size() else Color(0, 0, 0, 0)
 			if i == current:
 				var on := fmod(_t, 0.8) < 0.5
-				draw_rect(r, Color("ff4b1f") if on else ink, false, 2.0)
-				draw_rect(r.grow(-4), Color("ff4b1f") if on else ink)
+				draw_rect(r, SignalKit.SIGNAL if on else ink, false, 2.0)
+				draw_rect(r.grow(-4), SignalKit.SIGNAL if on else ink)
 			elif col.a > 0.0:
 				draw_rect(r, Color(col, 1.0))
 				if col.a < 1.0:
@@ -961,8 +961,8 @@ class _Film extends Control:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	func _draw() -> void:
-		var paper := Color("e9e8e2")
-		draw_rect(Rect2(Vector2.ZERO, size), Color("141517"))
+		var paper := SignalKit.PAPER
+		draw_rect(Rect2(Vector2.ZERO, size), Kit.BAND)
 		var x := 8.0
 		while x < size.x - 10.0:
 			for y: float in [8.0, size.y - 17.0]:

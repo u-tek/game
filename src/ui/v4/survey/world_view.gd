@@ -33,7 +33,7 @@ const LOOK := {
 	2: {"glow": 0.5, "glow_range": Vector2(0.55, 0.98), "glint": 0.0, "relief": 0.022, "normal": 1.25, "tint": Color(1.0, 0.97, 0.95), "glow_color": Color("ff5a26")},
 	3: {"glow": 0.0, "glint": 0.0, "relief": 0.02, "normal": 1.2, "tint": Color(0.98, 0.98, 1.0)},
 	4: {"glow": 0.0, "glint": 0.8, "relief": 0.014, "normal": 1.25, "tint": Color(0.97, 0.99, 1.0)},
-	5: {"glow": 1.0, "glint": 0.0, "relief": 0.02, "normal": 1.2, "tint": Color(1.0, 1.0, 1.0), "glow_color": Color("ff4b1f")},
+	5: {"glow": 1.0, "glint": 0.0, "relief": 0.02, "normal": 1.2, "tint": Color(1.0, 1.0, 1.0), "glow_color": SignalKit.SIGNAL},
 	6: {"glow": 0.0, "glint": 1.0, "relief": 0.022, "normal": 1.25, "tint": Color(0.98, 0.97, 1.0)},
 }
 

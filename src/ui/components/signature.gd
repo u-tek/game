@@ -9,7 +9,7 @@ extends Control
 ## With no strokes it draws `fallback` in the slanted serif instead (the typed name).
 
 var strokes: Array = []
-var ink := Color("101113")
+var ink := SignalKit.INK
 var fallback := ""
 ## Nib width at its widest (px at this control's size).
 var weight := 3.2
