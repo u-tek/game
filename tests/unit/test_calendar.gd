@@ -39,6 +39,26 @@ func test_civil_dates(t: TestCtx) -> void:
 	t.eq(CalendarRules.md(CalendarRules.day_number(2026, 1, 9)), "01-09")
 
 
+func test_holiday_inks_and_decor(t: TestCtx) -> void:
+	var hw := CalendarRules.day_number(2026, 10, 31)
+	t.eq(CalendarRules.ink(hw), "ff8a1c", "Halloween prints in pumpkin")
+	t.eq(CalendarRules.decor(hw), "halloween", "Halloween hangs its bats")
+	t.eq(CalendarRules.decor(hw + 1), "", "the day after: nothing hung")
+	t.eq(CalendarRules.decor(CalendarRules.day_number(2027, 10, 31)), "halloween", "every year")
+	t.eq(CalendarRules.night(hw), "candle", "Halloween night by candlelight")
+	t.eq(CalendarRules.night(hw + 1), "", "not the night after")
+	# Every decor named in the calendar is a set the Lobby can hang, with its renders.
+	var sets: Dictionary = load("res://src/ui/components/garland.gd").SETS
+	for h: Dictionary in CalendarRules._d.days:
+		var dec := str(h.get("decor", ""))
+		if dec == "":
+			continue
+		t.ok(sets.has(dec), "decor %s is a garland set" % dec)
+		for spec: Array in sets.get(dec, []):
+			t.ok(ResourceLoader.exists("res://assets/art/ui/holiday/%s.png" % spec[0]), "render %s" % spec[0])
+			t.ok(ResourceLoader.exists("res://assets/art/ui/holiday/%s_shadow.png" % spec[0]), "shadow %s" % spec[0])
+
+
 func test_events(t: TestCtx) -> void:
 	var hw := CalendarRules.day_number(2026, 10, 31)
 	var ev := CalendarRules.events(hw, [])

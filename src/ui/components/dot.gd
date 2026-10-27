@@ -4,6 +4,7 @@ extends Control
 ## breathes, slowly.
 
 var _tw: Tween
+var color := Color("ff4b1f")
 
 
 func _ready() -> void:
@@ -40,4 +41,4 @@ func _breathe() -> void:
 func _draw() -> void:
 	var r := minf(size.x, size.y) * 0.32
 	var c := size * 0.5
-	draw_circle(c, r, Color("ff4b1f"), true, -1.0, true)
+	draw_circle(c, r, color, true, -1.0, true)

@@ -5,12 +5,13 @@ extends RefCounted
 ## legendary, hit, ult, victory, defeat; the summon sequence (src/ui/summon/) adds portal
 ## (the 2.7 s charge), tell / tell_big (the portal's rarity color tells), burst (the portal
 ## opening), reveal (a Rare hero), riser + beat (the held beat before a Legendary) and slam
-## (the rarity word landing).
+## (the rarity word landing); the Lobby adds stamp (a real day stamped), pulse (her heartbeat)
+## and rustle (a holiday decoration brushed on its thread).
 
 const RATE := 22050
 const NAMES: Array[String] = ["tap", "tab", "pop", "deny", "toggle", "coin", "sparkle", "close", "hit", "reward",
 	"ult", "summon", "victory", "defeat", "legendary",
-	"portal", "tell", "tell_big", "burst", "reveal", "riser", "beat", "slam", "stamp", "pulse"]
+	"portal", "tell", "tell_big", "burst", "reveal", "riser", "beat", "slam", "stamp", "pulse", "rustle"]
 
 
 ## Builds the stream for `sound_name` (null if unknown).
@@ -67,6 +68,8 @@ static func make(sound_name: String) -> AudioStreamWAV:
 			s = _stamp()
 		"pulse":
 			s = _pulse()
+		"rustle":
+			s = _rustle()
 		_:
 			return null
 	return _to_wav(s)
@@ -500,6 +503,24 @@ static func _pulse() -> PackedFloat32Array:
 			var t := float(i) / RATE
 			phase += TAU * (40.0 + 22.0 * exp(-t * 35.0)) / RATE
 			b[i0 + i] += (sin(phase) + 0.3 * sin(phase * 3.0) + 0.12 * sin(phase * 5.0)) * exp(-t * 20.0) * amp * minf(1.0, t * 200.0)
+	return b
+
+
+## Cut paper brushed on its thread: a dry flutter of thin bright noise, a few quick flaps dying away.
+static func _rustle() -> PackedFloat32Array:
+	var b := _buf(0.26)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 307
+	var hp := 0.0
+	var prev := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		var n := rng.randf_range(-1.0, 1.0)
+		# High-passed (paper is all top end), flapped at ~19 Hz, dying away.
+		hp = 0.86 * (hp + n - prev)
+		prev = n
+		var flap := 0.55 + 0.45 * sin(TAU * 19.0 * t + sin(TAU * 7.0 * t) * 1.5)
+		b[i] = hp * flap * exp(-t * 11.0) * minf(1.0, t * 300.0) * 0.32
 	return b
 
 

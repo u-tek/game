@@ -173,6 +173,9 @@ const _FONT_FILES := {
 }
 
 static var _fonts: Dictionary = {}
+## The phone's tilt as the "ui_tilt" shader global has it (main.gd sets both each frame), for scripts:
+## the global itself can't be read back outside the editor.
+static var tilt := Vector2.ZERO
 static var _icons: Dictionary = {}
 static var _grad_textures: Dictionary = {}
 static var _crops: Dictionary = {}
@@ -1093,6 +1096,11 @@ static func _sheet_no(s: String) -> int:
 
 ## Today as printed on sheets: "2026.10.19".
 static func _print_date() -> String:
+	# The model's day (the player's local calendar, the same day the Lobby prints).
+	var g := autoload("Game")
+	if g != null and g.has_method("today"):
+		var c := CalendarRules.civil(int(g.call("today")))
+		return "%d.%02d.%02d" % [c[0], c[1], c[2]]
 	var d := Time.get_date_dict_from_system()
 	return "%d.%02d.%02d" % [int(d.year), int(d.month), int(d.day)]
 
@@ -1769,8 +1777,9 @@ static func equip_slot(slot: String, item: Dictionary = {}, size: float = 132.0,
 # ------------------------------------------------------------------ notification dot
 
 ## Red notification dot (with white rim).
-static func dot(size: float = 22.0) -> Control:
+static func dot(size: float = 22.0, color: Color = Color("ff4b1f")) -> Control:
 	var d := Dot.new()
+	d.set("color", color)
 	d.custom_minimum_size = Vector2(size, size)
 	d.size = Vector2(size, size)
 	return d

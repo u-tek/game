@@ -111,6 +111,10 @@ var _cover: ColorRect
 var _led: Control
 
 static var _rng := RandomNumberGenerator.new()
+## The signal plate's ink: the house red, or on a holiday with its own ink (calendar.json) that ink:
+## the print shop runs the day's colour, and the proof stamp names the day.
+var _ink := SIG
+var _day_word := ""
 
 
 func _ready() -> void:
@@ -119,6 +123,15 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	_rng.randomize()
 	_motion = Kit.motion_ok()
+	var g := Kit.autoload("Game")
+	if g != null and g.has_method("today"):
+		var day := int(g.call("today"))
+		var hx := CalendarRules.ink(day)
+		if hx != "":
+			_ink = Color(hx)
+			for h: Dictionary in CalendarRules.holidays_on(day):
+				_day_word = str(h.get("stamp", ""))
+				break
 	var ui := Kit.autoload("UI")
 	_top = float(ui.call("safe_top")) if ui else 0.0
 	_bottom = float(ui.call("safe_bottom")) if ui else 0.0
@@ -138,6 +151,7 @@ func _ready() -> void:
 	_roller_s = Roller.new()
 	_roller_s.name = "SignalRoller"
 	_roller_s.signal_ink = true
+	_roller_s.ink = _ink
 	add_child(_roller_s)
 	_grain = SignalKit.grain(0.06, true)
 	add_child(_grain)
@@ -198,7 +212,7 @@ func show_print(id: String, skin: String) -> void:
 	_print.mouse_filter = MOUSE_FILTER_IGNORE
 	_print.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_print.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	_print.material = SignalKit.halftone_material(7.0, Kit.PRINT_RED)
+	_print.material = SignalKit.halftone_material(7.0, Kit.PRINT_RED if _ink == SIG else _ink)
 	_sig_a_in.add_child(_print)
 	_place_print()
 	# Late art (the signal plate already ran): it inks in.
@@ -244,9 +258,10 @@ func _build_sheet() -> void:
 	_sig_micro.name = "SignalMicro"
 	_sig_micro.mouse_filter = MOUSE_FILTER_IGNORE
 	_sig_b_in.add_child(_sig_micro)
-	_stamp = SignalKit.stamp("PRESS PROOF · HALO & HORN · RUN 2026 · ", "OK", 136.0)
+	var rim := "PRESS PROOF · %s · RUN 2026 · " % (_day_word if _day_word != "" else "HALO & HORN")
+	_stamp = SignalKit.stamp(rim, "OK", 136.0)
 	_stamp.name = "ProofStamp"
-	_stamp.set("ink", Color(SIG, 0.92))
+	_stamp.set("ink", Color(_ink.darkened(0.12 if _ink != SIG else 0.0), 0.92))
 	_stamp.pivot_offset = _stamp.size * 0.5
 	_stamp.rotation = -0.16
 	_poster.add_child(_stamp)
@@ -393,7 +408,7 @@ func _set_type(ps: Vector2, bw: float) -> void:
 	_amp_label.text = "&"
 	_amp_label.add_theme_font_override("font", f)
 	_amp_label.add_theme_font_size_override("font_size", fs)
-	_amp_label.add_theme_color_override("font_color", SIG)
+	_amp_label.add_theme_color_override("font_color", _ink)
 	_amp_label.rotation = PI * 0.5
 	_amp_label.position = Vector2(x_top, ps.y * 0.03 + before)
 
@@ -442,10 +457,10 @@ func _set_micro(ps: Vector2, bw: float) -> void:
 	var by := ps.y - 112.0
 	for k in 3:
 		_rect(_micro, Rect2(col_x + k * 16.0, by, 14, 14), Color(INK, [1.0, 0.6, 0.3][k]))
-		_rect(_sig_micro, Rect2(col_x + 48.0 + k * 16.0, by, 14, 14), Color(SIG, [1.0, 0.6, 0.3][k]))
+		_rect(_sig_micro, Rect2(col_x + 48.0 + k * 16.0, by, 14, 14), Color(_ink, [1.0, 0.6, 0.3][k]))
 	var tgt := Vector2(col_x + 120.0, by + 7.0)
 	_micro.add_child(Target.new(tgt, INK))
-	_sig_micro.add_child(Target.new(tgt, SIG))
+	_sig_micro.add_child(Target.new(tgt, _ink))
 	var bc := SignalKit.barcode(Vector2(150, 30), INK, 2026)
 	bc.position = Vector2(rx - 26 - 150, ps.y - 52)
 	_micro.add_child(bc)
@@ -458,8 +473,8 @@ func _set_micro(ps: Vector2, bw: float) -> void:
 	_led.size = Vector2(16, 16)
 	_led.draw.connect(func() -> void:
 		var k := 0.5 + 0.5 * sin(_t * 3.4) if _motion else 1.0
-		_led.draw_circle(Vector2(8, 8), 7.0, Color(SIG, 0.12 * k), true, -1.0, true)
-		_led.draw_circle(Vector2(8, 8), 3.6, Color(SIG.lightened(0.2 * k), 0.55 + 0.45 * k), true, -1.0, true))
+		_led.draw_circle(Vector2(8, 8), 7.0, Color(_ink, 0.12 * k), true, -1.0, true)
+		_led.draw_circle(Vector2(8, 8), 3.6, Color(_ink.lightened(0.2 * k), 0.55 + 0.45 * k), true, -1.0, true))
 	_sig_micro.add_child(_led)
 
 
@@ -681,6 +696,7 @@ class Target:
 class Roller:
 	extends Control
 	var signal_ink := false
+	var ink := Color("ff4b1f")
 
 	func _init() -> void:
 		mouse_filter = MOUSE_FILTER_IGNORE
@@ -698,7 +714,7 @@ class Roller:
 		var stops: Array[float] = [0.0, 0.13, 0.26, 0.56, 0.86, 1.0]
 		var cols: Array[Color]
 		if signal_ink:
-			cols = [Color("b3300d"), Color("ffa585"), Color("ff6a3d"), Color("ff4b1f"), Color("c2360f"), Color("e0532b")]
+			cols = [ink.darkened(0.3), ink.lightened(0.48), ink.lightened(0.14), ink, ink.darkened(0.24), ink.darkened(0.1)]
 		else:
 			cols = [Color("1b1c1f"), Color("6a6c72"), Color("2e2f33"), Color("141517"), Color("070708"), Color("2a2b2f")]
 		for i in stops.size() - 1:

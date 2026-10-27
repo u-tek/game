@@ -19,8 +19,10 @@ func _init() -> void:
 	size = custom_minimum_size
 
 
-## Sets the rim word and the date (month 1..12, day of month).
-func setup(word: String, month: int, day: int) -> void:
+## Sets the rim word, the date (month 1..12, day of month) and, optionally, the ink (a holiday's).
+func setup(word: String, month: int, day: int, with_ink: Color = Color(0, 0, 0, 0)) -> void:
+	if with_ink.a > 0.0:
+		ink = Color(with_ink, 0.95)
 	rim = "%s  ·  HALO & HORN  ·  " % word
 	big = "%02d" % day
 	small = MONTHS[clampi(month - 1, 0, 11)]

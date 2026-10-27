@@ -23,6 +23,7 @@ extends Control
 
 const DeviceTier := preload("res://src/art/device_tier.gd")
 const DayStamp := preload("res://src/ui/components/day_stamp.gd")
+const Garland := preload("res://src/ui/components/garland.gd")
 const Heartbeat := preload("res://src/ui/components/heartbeat.gd")
 const HUD := preload("res://src/ui/components/hud.gd")
 const LobbyLines := preload("res://src/ui/battle/lobby_lines.gd")
@@ -104,6 +105,10 @@ var _sig_label: Label
 var _day_layer: Control        ## the calendar's stamps and line beside the date (_refresh_days)
 var _day_sig := "-"
 var _day_key := ""             ## the day still waiting to be stamped ("" when none)
+var _press_key := ""           ## the day being stamped right now: its stamp comes down (_stamp_day)
+var _built_day := -1           ## the day the poster was printed for: a new day reprints it
+var _decor_layer: Control      ## a holiday's cut-paper decorations hang here (_refresh_decor)
+var _decor_for := "-"
 var _age_override := -1        ## debug: the poster's age in days (shot param "age")
 var _quiet_stamp := false      ## debug: the calendar stamp without its receipt (motion captures)
 ## The heartbeat (hold a thumb on her): how long the press has lasted (-1: none), where it landed,
@@ -235,6 +240,10 @@ func _build() -> void:
 	_hero_box.mouse_filter = MOUSE_FILTER_IGNORE
 	_hero_box.size = Vector2(_pw - 49, _ph)
 	_poster.add_child(_hero_box)
+	# A holiday's paper decorations on their thread: in front of the paper (out of its relief pass,
+	# which would print them flat), behind her (_refresh_decor).
+	_decor_layer = _layer(_hero_box, "Decor")
+	_decor_for = "-"
 	_anchor = Node2D.new()
 	_anchor.name = "LobbyHero"
 	_anchor.position = Vector2(BAND + 250, _ph)
@@ -303,7 +312,8 @@ func _build() -> void:
 
 	# ---- Under the poster: the date and her signature. On a real day (the calendar) the date is
 	# where it is stamped: tap it.
-	var d := CalendarRules.civil(Game.today())
+	_built_day = Game.today()
+	var d := CalendarRules.civil(_built_day)
 	var date := Kit.label("%d %02d/%02d" % [d[0], d[1], d[2]], 26, INK, "regular")
 	date.position = Vector2(20, pr.end.y + 22)
 	_page.add_child(date)
@@ -978,6 +988,7 @@ func _poster_age() -> int:
 ## still waiting gets a red line beside the date ("HALLOWEEN · STAMP IT"), and tapping the date
 ## brings the stamp down, then the gift. Rebuilt only when what it shows changes.
 func _refresh_days(pressed_key: String = "") -> void:
+	_refresh_decor()
 	if _day_layer == null or not is_instance_valid(_day_layer):
 		return
 	var evs: Array = Game.calendar_today()
@@ -988,6 +999,10 @@ func _refresh_days(pressed_key: String = "") -> void:
 	if sig == _day_sig:
 		return
 	_day_sig = sig
+	# The claim's own `changed` usually lands here first: the stamp being pressed still comes down.
+	if pressed_key == "":
+		pressed_key = _press_key
+	_press_key = ""
 	for c in _day_layer.get_children():
 		c.queue_free()
 	_day_key = ""
@@ -1001,7 +1016,7 @@ func _refresh_days(pressed_key: String = "") -> void:
 			continue
 		var st := DayStamp.new()
 		st.name = "Stamp_" + str(e.key)
-		st.setup(_day_word(e), d[1], d[2])
+		st.setup(_day_word(e), d[1], d[2], _day_ink(e))
 		st.position = Vector2(166 + n * 70, -12 - (n % 2) * 6)
 		_day_layer.add_child(st)
 		var rot := -0.14 + n * 0.22
@@ -1015,10 +1030,11 @@ func _refresh_days(pressed_key: String = "") -> void:
 		return
 	_day_key = str(waiting.key)
 	var x := 168.0 + n * 80.0
-	var dot := Kit.dot(14)
+	var ink := _day_ink(waiting)
+	var dot := Kit.dot(14, Color(ink, 1.0))
 	dot.position = Vector2(x, 34)
 	_day_layer.add_child(dot)
-	var cap := Kit.label("%s  ·  STAMP IT" % _day_word(waiting), 12, SIG, "mono_bold")
+	var cap := Kit.label("%s  ·  STAMP IT" % _day_word(waiting), 12, Color(ink, 1.0), "mono_bold")
 	cap.mouse_filter = MOUSE_FILTER_IGNORE
 	cap.position = Vector2(x + 22, 31)
 	_day_layer.add_child(cap)
@@ -1035,6 +1051,43 @@ func _refresh_days(pressed_key: String = "") -> void:
 	_day_layer.add_child(b)
 
 
+## On a holiday with decorations (CalendarRules.decor) the print shop strings them across the top of
+## the poster, behind her: strung up in front of the player the first time that year (setting
+## "decor_hung"), simply hanging after that. Rebuilt when the day's set changes.
+func _refresh_decor() -> void:
+	if _decor_layer == null or not is_instance_valid(_decor_layer):
+		return
+	var decor := CalendarRules.decor(Game.today())
+	if decor == _decor_for:
+		return
+	_decor_for = decor
+	for c in _decor_layer.get_children():
+		c.queue_free()
+	if decor == "":
+		return
+	var mark := "%s:%d" % [decor, CalendarRules.civil(Game.today())[0]]
+	var fresh := str(Game.setting("decor_hung")) != mark
+	var g := Garland.new()
+	g.name = "Garland"
+	g.size = _decor_layer.size
+	if g.setup(decor, Vector2(BAND + 18, 12), Vector2(_pw - 66, 18), 30.0, fresh):
+		_decor_layer.add_child(g)
+		if fresh:
+			Game.set_setting("decor_hung", mark)
+	else:
+		g.free()
+
+
+## A day's ink: a holiday with its own (calendar.json "ink", the band's that day) stamps in it,
+## pressed a shade darker the way a stamp pad prints; every other day the stamp red.
+func _day_ink(e: Dictionary) -> Color:
+	if str(e.get("kind", "")) == "day":
+		var hx := str(CalendarRules.holiday(str(e.id)).get("ink", ""))
+		if hx != "":
+			return Color(hx).darkened(0.14)
+	return SIG
+
+
 ## The word on a day's stamp: the holiday's, or the birthday heroine's name.
 func _day_word(e: Dictionary) -> String:
 	if str(e.kind) == "player":
@@ -1048,13 +1101,15 @@ func _stamp_day() -> void:
 	var key := _day_key
 	if key == "":
 		return
+	_press_key = key
 	var r: Dictionary = Game.claim_calendar(key)
 	if not bool(r.get("ok", false)):
+		_press_key = ""
 		UI.toast(str(r.get("error", "")), "bad")
 		return
 	Kit.haptic(28, 0.9)
 	Kit.sfx("stamp")
-	_refresh_days(key)
+	_refresh_days()
 	var e: Dictionary = r.value.event
 	var title := str(CalendarRules.holiday(str(e.id)).get("name", "A gift"))
 	if str(e.kind) == "birthday":
@@ -1912,6 +1967,11 @@ func _process(delta: float) -> void:
 	if _tick >= 1.0:
 		_tick = 0.0
 		_refresh_idle()
+		# Past midnight (or back from a night away) the poster is reprinted for the new day: the
+		# date, a holiday's ink and decorations, her line for the day.
+		if _built_day >= 0 and Game.today() != _built_day:
+			_built = Vector2.ZERO
+			_rebuild.call_deferred()
 	if _over and _over.visible:
 		_bull_t += delta
 		if _bull_t >= BANNER_SECS:

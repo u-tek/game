@@ -131,6 +131,34 @@ static func ink(day: int) -> String:
 	return ""
 
 
+## How the evening of a holiday is lit ("" for the usual lamp): "candle" on Halloween (main.gd).
+static func night(day: int) -> String:
+	for h: Dictionary in holidays_on(day):
+		if str(h.get("night", "")) != "":
+			return str(h.night)
+	return ""
+
+
+## Today's holidays (data/calendar.json "days" entries), in the file's order.
+static func holidays_on(day: int) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var key_md := md(day)
+	for h: Dictionary in _d.days:
+		if str(h.md) == key_md:
+			out.append(h)
+	return out
+
+
+## The cut-paper decorations the Lobby hangs on a holiday that has them ("" otherwise): the first of
+## the day's holidays with a "decor" set (src/ui/components/garland.gd SETS).
+static func decor(day: int) -> String:
+	var key_md := md(day)
+	for h: Dictionary in _d.days:
+		if str(h.md) == key_md and str(h.get("decor", "")) != "":
+			return str(h.decor)
+	return ""
+
+
 ## The stamp's word for an event.
 static func stamp(ev: Dictionary) -> String:
 	if str(ev.get("kind", "")) == "player":

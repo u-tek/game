@@ -16,7 +16,8 @@ extends Control
 ##
 ## Screenshot mode (docs/dev/architecture.md section 1), args after "--":
 ##   --shoot=<screen> --shoot-out=<png> --shoot-params=<json> --shoot-wait=<s>
-##   --safe-area-sim  (108 px top / 62 px bottom insets, like a notched iPhone)
+##   --safe-area-sim  (108 px top / 62 px bottom insets, like a notched iPhone; a 16:9 window gets a
+##                    home-button iPhone's 38 px status bar and no bottom inset)
 ##   --tilt=x,y  holds the phone tilt (ui_tilt, about -0.6..0.6): the Legendary foil and the plates
 ##   at a fixed lean, e.g. --tilt=-0.45,0.05 (left), --tilt=0,0 (at rest), --tilt=0.45,-0.1 (right)
 ##   --shoot=boot                 the boot screen (held; --shoot-params='{"t":2.0}' holds the
@@ -88,6 +89,8 @@ var _chrome_shown := Vector2i(-1, -1)
 var _no_boot := false
 ## The night warmth (multiply) and its colour.
 var _lamp: ColorRect
+## Halloween night: candlelight instead of the lamp (calendar.json "night": "candle").
+var _candle: ColorRect
 const LAMP := Color(1.0, 0.955, 0.88)
 
 
@@ -168,6 +171,7 @@ func _process(delta: float) -> void:
 	if _tilt_fixed.is_finite():
 		_tilt = _tilt_fixed
 	RenderingServer.global_shader_parameter_set(&"ui_tilt", _tilt)
+	Kit.tilt = _tilt
 	# Device pixels per UI pixel (the canvas_items stretch), for shaders that read the screen at
 	# offsets measured in UI pixels (deboss, acrylic frost).
 	var px := get_viewport().get_final_transform().get_scale().x
@@ -256,13 +260,21 @@ func _boot(hold: bool = false, freeze: float = -1.0) -> void:
 
 
 ## The lamp is on from 22:00 to 05:00 local time (screenshots: --lamp forces it, --no-lamp hides it).
+## On a candle night (Halloween, calendar.json "night") candlelight takes over from 18:00 until
+## 05:00 the next morning (--candle forces it in shots).
 func _update_lamp() -> void:
 	if _lamp == null:
 		return
 	var args := OS.get_cmdline_user_args()
 	var h := int(Time.get_datetime_dict_from_system().hour)
+	var day := Game.today()
+	var candle := (h >= 18 and CalendarRules.night(day) == "candle") or (h < 5 and CalendarRules.night(day - 1) == "candle")
+	candle = (candle and not _shoot.has("screen") and not args.has("--no-lamp")) or args.has("--candle")
+	if _candle:
+		_candle.visible = candle
+		(_candle.material as ShaderMaterial).set_shader_parameter("flicker", 1.0 if Kit.motion_ok() else 0.0)
 	var on := (h >= 22 or h < 5) and not args.has("--no-lamp") and not _shoot.has("screen")
-	_lamp.visible = on or args.has("--lamp")
+	_lamp.visible = (on or args.has("--lamp")) and not candle
 
 
 ## Desktop stand-in for tilting the phone: the mouse's offset from the window centre while it moves
@@ -361,6 +373,16 @@ func _build() -> void:
 	_lamp.material = mul
 	_lamp.color = LAMP
 	add_child(_lamp)
+	_candle = ColorRect.new()
+	_candle.name = "Candle"
+	_candle.mouse_filter = MOUSE_FILTER_IGNORE
+	_candle.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	_candle.z_index = 150
+	var cm := ShaderMaterial.new()
+	cm.shader = load("res://src/ui/shaders/candle.gdshader")
+	_candle.material = cm
+	_candle.visible = false
+	add_child(_candle)
 	_update_lamp()
 	var lt := Timer.new()
 	lt.wait_time = 60.0
@@ -1025,7 +1047,10 @@ func _parse_args() -> void:
 			# Render without HDR 2D (what an LDR platform shows; checks the shaders' sRGB path).
 			get_viewport().use_hdr_2d = false
 		elif a == "--safe-area-sim":
-			UI.safe_override = Vector2(108, 62)
+			# A notched iPhone (Dynamic Island and home bar: 59 pt / 34 pt at 393 pt wide); a 16:9
+			# window is a home-button iPhone instead (SE, 8: a 20 pt status bar, nothing below).
+			var ws := DisplayServer.window_get_size()
+			UI.safe_override = Vector2(38, 0) if ws.x > 0 and float(ws.y) / float(ws.x) < 1.9 else Vector2(108, 62)
 		elif a.begins_with("--holo-debug="):
 			# The Legendary foil's debug views (tuning): 1 its masks, 2 what it adds.
 			HeroSprite.holo_debug = a.substr("--holo-debug=".length()).to_int()

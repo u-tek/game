@@ -1,0 +1,103 @@
+# Backlog
+
+The ranked work list for the autonomous blocks (the owner's autopilot brief).
+One line per item: priority, status, what, and "done when". P0 broken, P1 visibly wrong, P2 below the
+bar, P3 code health, P4 new things. Status: `todo`, `doing`, `done <commit>`, `parked` (needs the
+owner: see `status.md` "Waiting on the owner"). Keep each item under about an hour; split big ones.
+
+Sources: the audit of 2026-10-27 (every screen fresh / rich / skins / short, `screenshots/audit/`,
+reviewed by eye and by four review agents; a code read by four agents, each finding checked by a
+skeptic). Short-phone shots before 2026-10-27 23:30 UTC used notch insets on a 16:9 window (too
+pessimistic; `--safe-area-sim` now gives a 16:9 window a home-button iPhone's insets), so short-phone
+items are re-checked against `screenshots/audit2/`.
+
+Not on the list on purpose (owner decisions the reviewers flagged): the faction growths on the poster
+corners, the rendered currency icons in the masthead, no birthday question on the intake form.
+
+## P0
+
+- P0 todo **Gallery: BACK dead after hiding the UI** (`gallery_screen.gd` `_toggle_ui` restores
+  every filter to IGNORE). Done when: hide, show, BACK works; a test covers it.
+- P0 todo **Formation's BATTLE pass under the nav** (tall phones: the plate hangs off the poster into
+  the tab bar's rule; short phones: hidden). Done when: the pass sits inside the poster on both sizes.
+- P0 todo **Front oath: SWEAR passes under the nav on short phones** (re-check with audit2). Done
+  when: both passes show at 720x1280.
+
+## P1
+
+- P1 done **The Halloween stamp never animates** (the claim's `changed` rebuilt the stamps first).
+- P1 done **The Lobby date goes stale after midnight**: a new day reprints the poster.
+- P1 todo **Leaving in the victory pose loses the win** (`battle_screen.gd` 'ending' phase reports a
+  defeat). Done when: a win is a win once the last foe falls.
+- P1 todo **Champion retreat**: uses a try, counts no damage, returns to Campaign. Done when: damage
+  dealt counts and Back returns to the Front.
+- P1 todo **District: a swipe that starts on a free lot buys a prop.** Done when: buying needs a tap
+  (press and release without moving).
+- P1 todo **Gallery in 18+ mode sells skins** that can't show; **hidden BUY still live**; **a tap
+  undoes the zoom**; the strip highlight lands on a card being freed. Done when: each fixed.
+- P1 todo **Hero page: the level-up pass and abilities capsule cover her legs and wings**; sub-tabs
+  45 px tall. Done when: nothing interactive crosses her figure's box on any of 4 heroes.
+- P1 todo **Summon: the RATES card sits on her head; the x1 stub on her feet.** Done when: clear of
+  her figure on both sizes.
+- P1 todo **Quests: the last order row is cut by the sheet; two title sizes; 69 px GO boxes.**
+- P1 todo **Shop: a long skin description runs into the price; the vertical micro type runs through
+  the giant name.**
+- P1 todo **Heroes: PWR runs into the tier numeral; the fifth star overflows the card; tabs 30 px.**
+- P1 todo **Prints: the grade word is cut by the label strip; the count runs into its caption.**
+- P1 todo **Rival: 'HER LV · POWER' cut by the plate; the reward line overflows the plate.**
+- P1 todo **Battle: a flame particle covers the SOULS count; the fifth FOES square prints over TEAM;
+  '+40 SOULS' shows on wins that pay none.**
+- P1 todo **Campaign and Spire: the pass plate's sub-line is cut by its bevel; world arrows 20 px.**
+- P1 todo **Settings: the band's micro type runs through the giant title; the E's stem breaks.**
+- P1 todo **Lobby: VIEW clipped on short phones; the > arrow under the Sanctum disc; the rights line
+  cut by the bulletin tab; the hero arrows 52 px.** (re-check with audit2)
+- P1 todo **Calling: SKIP and the signature copy nearly invisible.**
+- P1 todo **Profile: PORTRAIT > CHANGE tag over the avatar art; side menu 44 px wide.**
+- P1 todo **Toasts draw under modals; the loading veil draws under the bars.**
+
+## P2
+
+- P2 doing **Halloween is a moment** (2026-10-31): done: cut-paper bats on a taped thread (Blender
+  renders; they swing with the tilt, a thumb brushes them, strung up in front of the player the first
+  time), the stamp in pumpkin ink, the boot print run in pumpkin with HALLOWEEN on the proof stamp,
+  candlelight from 18:00 to 05:00. Left: the gift receipt, a check of every Halloween screen, the
+  build on the phone by 2026-10-30 UTC.
+- P2 todo **Every real day checked:** Christmas Eve, Christmas, New Year's Eve, New Year, Valentine's,
+  three heroine birthdays (Lobby, hero page, roster, shop).
+- P2 todo **Decorations for the other days:** snowflakes, gold stars, hearts and bunting to the bats'
+  standard (take 1: ghostly snowflakes, a broken heart fill, flat pennants).
+- P2 todo **The summon reveal, produced** (the money moment): a motion piece made with real tools,
+  not code shapes. Pitch the take first in shots and a video.
+- P2 todo **The first session:** the fresh-save guide loop circles 02 LOBBY on screens whose next step
+  is right there (free pull on Summon, ENTER on Campaign, LEVEL UP on the hero page).
+- P2 todo **Lobby restraint pass:** fewer stuck-on objects (bulletin, arrows and counter, NEXT label,
+  team plate, stage plate, ENGAGE), one readable giant line.
+- P2 todo **Settings is a stock list:** rebuild as the device panel of the brief (switches as
+  hardware, a glass disc, serial codes), ON/OFF readable at a glance.
+- P2 todo **Gear: no back; the empty state leads nowhere; 450 px of chrome above the first item.**
+- P2 todo **Gallery: the strip is left-aligned and tiny; a locked look has no BUY step; dark lightbox.**
+- P2 todo **Daily resets reopen when the day goes backwards** (time zone west): roll forward only
+  (`game_model.gd` refresh_daily, free pull, Rue's haul, Champion). Rules change: port check + test.
+- P2 todo **Replay the opening, then SKIP, wipes the signature.**
+- P2 todo **On a birthday with 18+ on, the bulletin's sale opens a shop tab that doesn't exist.**
+- P2 todo **Notices wait for a Lobby rebuild**; **daylight saving reads as travel**.
+- P2 todo **Shop and quests don't refresh at midnight.**
+- P2 todo **Holding LEVEL UP to the cap leaves the pass sunk.**
+- P2 todo **A hit-stop during an ultimate's hold cancels its freeze.**
+- P2 todo **Too many reds:** Quests, Gear, Rival, Prints each print five or more red masses.
+
+## P3
+
+- P3 todo **One poster kit:** fold `poster_kit.gd`, `hero_poster_kit.gd`, survey `poster.gd` and
+  `SignalKit` pieces into one kit; one `INK`/`PAPER` palette (about 35 copies) and one set of spacing
+  constants. Done when: no file defines its own INK/PAPER and `tools/check e2e` is green.
+- P3 todo **War claim pays by the current side; the oath promises a side switch no screen offers.**
+- P3 todo **Profile ENLISTED date in UTC** (the rest is local).
+- P3 todo **The record forgets stamped days after 400 days** (claims are pruned).
+
+## P4
+
+- P4 todo **Per-skin 18+ art:** `HeroArt._built_art` uses `skins/<art>/adult/` when it exists (base
+  nude as fallback); `test_skins.gd test_nudity_mode_drops_skins` updated.
+- P4 todo **The War behind one interface:** every screen reaches the war through one class, with the
+  offline simulation behind it, so a server drops in later.

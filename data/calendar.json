@@ -1,6 +1,6 @@
 {
 	"version": 1,
-	"about": "Real days the game notices (CalendarRules, docs/dev/unity-port.md section 9f). md is MM-DD on the player's local calendar. On a day: a stamp on the Lobby (tap it: the gift, once a year) and her line, by her faction. player_birthday: the player's own day, if they gave it on the intake form ({name} is theirs). Birthdays: each heroine's day, for owned heroines only; the Lobby heroine says 'mine' on her own and names the other one ({her}) on someone else's; her skins are skin_discount_bp off that day. Lines are short: the Lobby sets them huge. ink (optional, hex): the Lobby's halftone band prints in it that day.",
+	"about": "Real days the game notices (CalendarRules, docs/dev/unity-port.md section 9f). md is MM-DD on the player's local calendar. On a day: a stamp on the Lobby (tap it: the gift, once a year) and her line, by her faction. player_birthday: the player's own day, if they gave it on the intake form ({name} is theirs). Birthdays: each heroine's day, for owned heroines only; the Lobby heroine says 'mine' on her own and names the other one ({her}) on someone else's; her skins are skin_discount_bp off that day. Lines are short: the Lobby sets them huge. ink (optional, hex): the Lobby's halftone band prints in it that day. decor (optional): the cut-paper decorations the Lobby hangs on a thread across the poster (src/ui/components/garland.gd SETS). night (optional): how the evening is lit (candle: from 18:00 to 05:00 the phone is lit by candlelight instead of the lamp).",
 	"days": [
 		{
 			"id": "new_year", "md": "01-01", "name": "New Year", "stamp": "NEW YEAR", "ink": "e0a33a",
@@ -21,7 +21,7 @@
 			}
 		},
 		{
-			"id": "halloween", "md": "10-31", "name": "Halloween", "stamp": "HALLOWEEN", "ink": "ff8a1c",
+			"id": "halloween", "md": "10-31", "name": "Halloween", "stamp": "HALLOWEEN", "ink": "ff8a1c", "decor": "halloween", "night": "candle",
 			"gift": {"gems": 200, "dust": 300},
 			"lines": {
 				"celestial": "I came as an angel. Nobody believes it's a costume.",
