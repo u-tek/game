@@ -38,6 +38,7 @@ const SceneBackdrop := preload("res://src/ui/battle/scene_backdrop.gd")
 const UnitView := preload("res://src/ui/battle/unit_view.gd")
 const BattleFx := preload("res://src/ui/battle/battle_fx.gd")
 const UltCinematic := preload("res://src/ui/battle/ult_cinematic.gd")
+const UltCutin := preload("res://src/ui/battle/ult_cutin.gd")
 const SoulsCrowd := preload("res://src/ui/battle/souls_crowd.gd")
 const AllyPortrait := preload("res://src/ui/battle/ally_portrait.gd")
 const BattleResult := preload("res://src/ui/battle/battle_result.gd")
@@ -170,6 +171,12 @@ var _souls_line := ""
 ## Encore (battle_sim): the last ally ultimate's hero, when its window closes (display ms) and the
 ## sticker over the cards that counts it down.
 var _encore_hero := ""
+## The heroines' ultimate cut-ins: who has shown her full cut-in this fight (later auto casts get
+## the short one), who asked by hand (always the full one), and the one landing now.
+var _cutin_shown := {}
+var _ult_by_hand := {}
+var _ult_main := ""
+var _ult_caster: Node2D
 var _encore_until := -1.0
 var _encore_tag: Control
 var _encore_label: Label
@@ -261,6 +268,22 @@ func setup(params: Dictionary) -> void:
 				_tap_unit(a[1])
 			if not e.is_empty():
 				_tap_unit(e[0]))
+	# ult_demo = true (or {"hero": index, "at": seconds}): a heroine's cut-in once the fight starts,
+	# on the first foe (display only; the sim is untouched).
+	if _debug_params_ok() and params.has("ult_demo"):
+		var ud: Variant = params["ult_demo"]
+		var udd: Dictionary = ud if ud is Dictionary else {}
+		get_tree().create_timer(float(udd.get("at", INTRO_TIME + 0.4))).timeout.connect(func() -> void:
+			var a: Array[String] = []
+			var e: Array[String] = []
+			for uid: String in _views:
+				(a if str(_views[uid].get("side")) == "ally" else e).append(uid)
+			var k := clampi(int(udd.get("hero", 0)), 0, maxi(a.size() - 1, 0))
+			if a.is_empty() or e.is_empty():
+				return
+			var hid := str(_views[a[k]].get("hero_id"))
+			var ult: Dictionary = Game.hero_def(hid).get("ultimate", {})
+			_start_ult({"type": "ultimate", "src": a[k], "skill_name": str(ult.get("name", "Ultimate")), "targets": [e[0]], "encore": int(udd.get("encore", 0))}))
 	if _debug_params_ok() and bool(params.get("encore_demo", false)):
 		get_tree().create_timer(INTRO_TIME + 0.3).timeout.connect(func() -> void:
 			var ids: Array[String] = []
@@ -1264,15 +1287,21 @@ func _on_damage(ev: Dictionary) -> void:
 	if not dot:
 		dst.call("play_hit")
 		var at: Vector2 = _fx.to_local(dst.call("chest_global"))
-		if ult:
+		var cut_in := ult and src != null and str(src.get("side")) == "ally"
+		if cut_in:
+			if str(ev.target) != _ult_main:
+				BattleFx.splash(_fx, at, BP.SIG, 150.0 * float(dst.get("depth_scale")), false)
+				UI.sfx("stamp", 1.15)
+		elif ult:
 			BattleFx.burst(_fx, at, _fx_color(src) if src else Kit.ACCENT_HI, 80.0, 10)
 		elif src and str(src.call("attack_anim")) != "attack_ranged" and not bool(src.get("has_swing_vfx")):
 			BattleFx.slash(_fx, at, Color(1.0, 0.95, 0.85), str(src.get("side")) == "enemy", 64.0 * float(dst.get("depth_scale")))
 		UI.sfx("hit")
-		if ult:
+		if cut_in:
+			_hit_stop(0.08)
+		elif ult:
 			_shake(11.0)
 			_hit_stop(0.1)
-			_screen_flash(Color(1, 1, 1), 0.35)
 		elif crit:
 			_shake(7.0)
 			_hit_stop(0.07)
@@ -1461,17 +1490,14 @@ func _start_ult(ev: Dictionary) -> void:
 	var v: Node2D = _views.get(str(ev.src))
 	if v == null or v.get("dead"):
 		return
-	var ally := str(v.get("side")) == "ally"
-	if ally:
-		_focus(str(ev.src), true)
-	# The caster's wind-up plays during the hold; enemy ultimates wind up faster so the
-	# player's own heroes get the longer, bigger moment.
-	var cs := minf(float(_speed), 2.0) * (1.0 if ally else 1.6)
+	if str(v.get("side")) == "ally":
+		_start_cutin(v, ev)
+		return
+	# A foe's (echo's) ultimate: its band over the frozen field. Its wind-up plays during the hold,
+	# faster than the heroines' cut-ins, so the player's own get the bigger moment.
+	var cs := minf(float(_speed), 2.0) * 1.6
 	var hit_s: float = float(v.get("ult_hit_s"))
 	var d := (hit_s if hit_s > 0.0 else ULT_HIT_S) / cs
-	if ally:
-		# The player's close-up (UltCinematic) gets at least 1.5 s at 1x before the hit lands.
-		d = maxf(d, 1.5 / cs)
 	_hold = d
 	_hold_view = v
 	for uid: String in _views:
@@ -1486,21 +1512,114 @@ func _start_ult(ev: Dictionary) -> void:
 			target = _lunge_point(v, tv)
 	v.call("play_ultimate", target)
 	_units.move_child(v, -1)
-	_dim_target = 0.62 if ally else 0.4
+	_dim_target = 0.4
 	var c: Control = UltCinematic.new()
 	_overlay.add_child(c)
-	var step := int(ev.get("encore", 0))
-	var partner := _encore_hero if ally and step > 0 and _encore_hero != str(v.get("hero_id")) else ""
-	c.call("play", str(v.get("hero_id")), str(ev.get("skill_name", "Ultimate")), ally, d + 0.12, partner, step)
-	if ally:
-		_encore_hero = str(v.get("hero_id"))
-		_encore_until = _display_ms + float(BattleSim.ENCORE_WINDOW_MS)
+	c.call("play", str(v.get("hero_id")), str(ev.get("skill_name", "Ultimate")), false, d + 0.12)
 	UI.sfx("ult")
-	UI.haptic(40 if ally else 20)
+	UI.haptic(20)
 	_shake(4.0)
 	var p: Node = _portraits.get(str(ev.src))
 	if p:
 		p.set("queued", false)
+
+
+## A heroine's ultimate: her cut-in (UltCutin) covers the field while it holds. Under the cover the
+## field camera jumps to frame her, and her field self plays her ultimate timed so its blow falls on
+## the cut-in's contact frame, when the field comes back punched in on the target (_on_ult_contact).
+## The first cast of each heroine in a fight and every cast by hand get the full cut-in; later auto
+## casts and Encore steps the short one.
+func _start_cutin(v: Node2D, ev: Dictionary) -> void:
+	var uid := str(ev.src)
+	var tv: Node2D = null
+	for tid: Variant in ev.get("targets", []):
+		var cand: Node2D = _views.get(str(tid))
+		if cand and str(cand.get("side")) != "ally" and not cand.get("dead"):
+			tv = cand
+			break
+	_focus(uid, true)
+	_cam_x = _cam_goal
+	_place_units()
+	v.call("play_ultimate", _lunge_point(v, tv) if tv else Vector2.INF)
+	_units.move_child(v, -1)
+	var step := int(ev.get("encore", 0))
+	var tier := "repeat" if step > 0 or (_cutin_shown.has(uid) and not _ult_by_hand.has(uid)) else "full"
+	_cutin_shown[uid] = true
+	_ult_by_hand.erase(uid)
+	var ct := get_viewport().get_canvas_transform()
+	var p: Vector2 = ct * ((tv.call("chest_global") if tv else v.call("head_global")) as Vector2)
+	var me: Vector2 = ct * (v.call("chest_global") as Vector2)
+	var hid := str(v.get("hero_id"))
+	var c: Control = UltCutin.new()
+	_overlay.add_child(c)
+	c.call("play", {"hero": hid, "skin": Game.equipped_skin(hid), "skill_name": str(ev.get("skill_name", "Ultimate")),
+		"rate": float({1: 1.0, 2: 1.5, 4: 2.1}.get(_speed, 1.0)), "tier": tier, "P": p, "dir": 1 if p.x >= me.x else -1,
+		"top_h": UI.safe_top() + TOP_H + (BOSS_H if _boss_uid != "" else 0.0), "bottom_h": UI.safe_bottom() + BOTTOM_H,
+		"chain": step})
+	var lead := float(c.call("contact_time"))
+	var hit_s: float = float(v.get("ult_hit_s"))
+	for u_id: String in _views:
+		var u: Node2D = _views[u_id]
+		u.call("set_speed", (hit_s if hit_s > 0.0 else ULT_HIT_S) / maxf(lead, 0.05) if u == v else 0.0)
+		u.call("bars_visible", false)
+	# A safety only: the cut-in's contact ends the hold.
+	_hold = lead + 0.6
+	_hold_view = null
+	_ult_main = str(tv.get("uid")) if tv else ""
+	_ult_caster = v
+	c.connect("contact", _on_ult_contact)
+	_encore_hero = hid
+	_encore_until = _display_ms + float(BattleSim.ENCORE_WINDOW_MS)
+	if _tap_hint:
+		_tap_hint.visible = false
+	var pr: Node = _portraits.get(uid)
+	if pr:
+		pr.set("queued", false)
+
+
+## The cut-in's contact frame: the field comes back punched in on the target (its chest where the
+## ink crown just burst), the same crown stamps on it in signal, it prints two-tone for a beat,
+## everyone else dims, and after the hit-stop the field pushes along the blow and eases back out.
+func _on_ult_contact() -> void:
+	# (A cut-in freed with the screen, the player leaving mid-cast, lands nothing.)
+	if not is_inside_tree() or is_queued_for_deletion() or _sim == null or _completed:
+		return
+	if _hold > 0.0:
+		_hold = 0.0
+		_end_hold()
+	var tv: Node2D = _views.get(_ult_main)
+	UI.sfx("ult_boom")
+	UI.haptic(55, 1.0)
+	if tv == null:
+		return
+	var gp: Vector2 = tv.call("chest_global")
+	_world.pivot_offset = gp - _world.global_position
+	_world.scale = Vector2(1.25, 1.25)
+	_units.move_child(_dim, -1)
+	_units.move_child(tv, -1)
+	if is_instance_valid(_ult_caster):
+		_units.move_child(_ult_caster, -1)
+	_dim.modulate.a = 0.5
+	_dim_target = 0.5
+	# The splash runs on along the blow (it is rendered running to the right).
+	var from_right := false
+	if is_instance_valid(_ult_caster):
+		from_right = (_ult_caster.call("chest_global") as Vector2).x > gp.x
+	BattleFx.splash(_fx, _fx.to_local(gp), BP.SIG, 380.0 * float(tv.get("depth_scale")), from_right)
+	var sp: Node2D = tv.get("sprite")
+	if sp:
+		sp.call("two_tone", true, Color("141517"), Color("ff5c29"), 0.45)
+	get_tree().create_timer(0.07).timeout.connect(func() -> void:
+		if is_instance_valid(sp):
+			sp.call("two_tone", false))
+	get_tree().create_timer(0.08).timeout.connect(func() -> void:
+		if not is_inside_tree():
+			return
+		_shake(12.0)
+		var tw := create_tween()
+		tw.tween_property(_world, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+		_dim_target = 0.0
+		_layout_order())
 
 
 func _end_hold() -> void:
@@ -1541,6 +1660,7 @@ func _on_portrait(uid: String) -> void:
 	if _sim.request_ultimate(uid):
 		UI.sfx("tap")
 		p.call("mark_queued")
+		_ult_by_hand[uid] = true
 	elif _sim.auto_ultimates or bool(p.get("queued")):
 		p.call("mark_queued")
 	elif (_sim.unit(uid).get("statuses", {}) as Dictionary).has("stun"):

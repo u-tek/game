@@ -6,6 +6,8 @@ extends SceneTree
 ## to Game.complete_stage exactly once and ends on a result panel. Exit code 1 on failure.
 
 var _fails: Array[String] = []
+var _cutins := 0
+var _cutin_skipped := false
 var _game: Node
 var _ui: Node
 
@@ -37,6 +39,7 @@ func _run() -> void:
 	_check(_ui.current_name == "battle", "Fight did not open the battle")
 	await _wait_result(_ui.current, "1x stage %d" % idx)
 	_check(_results() - before == 1, "1x battle reported %d results" % (_results() - before))
+	_check(_cutins > 0, "a heroine's ultimate played its cut-in at 1x")
 
 	# Next Stage, then Skip.
 	var won: bool = bool(_ui.current.get("_sim").outcome().victory)
@@ -86,6 +89,7 @@ func _run() -> void:
 	_ui.go("battle", {"stage_index": 0})
 	await _wait_result(_ui.current, "manual 4x", true)
 	_check(_results() - before == 1, "manual battle reported %d results" % (_results() - before))
+	_check(_cutin_skipped, "a tap skipped a cut-in and the fight went on")
 	_game.set_setting("auto_ultimates", true)
 	_game.set_setting("battle_speed", 1)
 
@@ -110,6 +114,16 @@ func _wait_result(scr: Node, label: String, tap_ultimates: bool = false) -> void
 	var t0 := Time.get_ticks_msec()
 	while is_instance_valid(scr) and str(scr.get("_phase")) != "result":
 		await create_timer(0.1).timeout
+		# A heroine's cut-in on the overlay: counted; in the by-hand run a tap skips it (its contact
+		# must still land, or the fight would hang and never reach the result).
+		if is_instance_valid(scr):
+			for c in scr.get("_overlay").get_children():
+				if c.has_method("contact_time") and not c.has_meta("e2e_seen"):
+					c.set_meta("e2e_seen", true)
+					_cutins += 1
+					if tap_ultimates:
+						c.call("skip")
+						_cutin_skipped = true
 		if tap_ultimates and is_instance_valid(scr):
 			var views: Dictionary = scr.get("_views")
 			for uid: String in scr.get("_portraits"):

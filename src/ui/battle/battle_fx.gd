@@ -89,6 +89,36 @@ static func burst(layer: Node, pos: Vector2, color: Color, radius: float = 60.0,
 	layer.add_child(b)
 
 
+## An ink crown (a heroine's ultimate landing): the Blender-rendered splash
+## (assets/art/ui/ult/ink_crown.png, 8 frames) printed in `color` and stepped through in 0.24 s,
+## then it lifts off. Ink, not light: it covers what is under it.
+static func splash(layer: Node, pos: Vector2, color: Color, size: float = 200.0, flip: bool = false) -> void:
+	var s := Splash.new()
+	s.position = pos
+	s.modulate = color
+	s.scale = Vector2(size / 512.0 * (-1.0 if flip else 1.0), size / 512.0)
+	layer.add_child(s)
+
+
+class Splash extends Sprite2D:
+	const SHEET := preload("res://assets/art/ui/ult/ink_crown.png")
+	var _t := 0.0
+
+	func _ready() -> void:
+		texture = SHEET
+		hframes = 4
+		vframes = 2
+		frame = 0
+
+	func _process(delta: float) -> void:
+		_t += delta
+		frame = mini(int(_t / 0.03), 7)
+		if _t > 0.42:
+			modulate.a = maxf(0.0, 1.0 - (_t - 0.42) / 0.3)
+		if _t > 0.75:
+			queue_free()
+
+
 ## The effect classes below blend additively (glows add light instead of covering what is
 ## behind), each with one shared material.
 ## Glowing bolt: a bright comet (core, halo, tapering streak and shed sparks) on a slight

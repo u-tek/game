@@ -1,6 +1,6 @@
 # Status and handoff
 
-**Status as of 2026-10-27, 20:55 UTC (2026-10-28 06:55 on the owner's PC clock, UTC+10).** This is the living
+**Status as of 2026-11-03, 08:00 UTC (18:00 on the owner's PC clock, UTC+10).** This is the living
 status file: update it at the end of every work block. Rules and conventions are in `CLAUDE.md`;
 this file says where things stand. Older logs are under "History" at the bottom. **The ranked work
 list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
@@ -28,6 +28,15 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
 
 ## Where things stand
 
+- **The ultimate, cut in (2026-11-03, PC chat).** Nothing had happened since 2026-10-27; the owner
+  asked "is this even close to what the prompt asked for? this seems so shallow". It wasn't: the
+  last block made 2-4 s effects around the heroines, opened none of After Effects, ComfyUI or
+  Photoshop, made one take of each piece, and stopped on a question. This block went for the core
+  loop's biggest moment instead: a heroine's ultimate is now a produced cut-in (backlog P2 "A
+  heroine's ultimate, cut in"; three takes designed and judged by a workflow, the winner built, shot,
+  critiqued and reworked three times). The same review found the real depth gap: **300 of the 302
+  rigs are 8-bone quick rigs**, so the heroines can tilt, bob and breathe but no arm, eye or mouth
+  moves (backlog P1 "The heroines barely move"; needs the owner, under "Waiting on the owner").
 - **The big moments block (2026-10-28, PC chat, after the owner's "oh come on is that it?").** Fewer
   fixes, more produced moments, each shown as a real capture with sound (`tools/shoot --movie`:
   Godot's Movie Maker at 30 fps; encode with the ffmpeg line in its header):
@@ -721,6 +730,10 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
 
 ## Waiting on the owner
 
+- **Heroines that really move (asked 2026-11-03):** the layered rigs (`tools/layered/`, Seraphiel's
+  prototype: separate arms, breasts, eyes, mouth, hair locks) for the heroines people see most. Each
+  one needs new rig-pose paintings (the owner picks) and GPU time (See-through about 15 min plus
+  repaints), so it needs the owner's go, and which heroines first.
 - **A quieter Lobby (pitched 2026-10-28):** the current poster or the "quiet" take (no bulletin card,
   no hero arrows and number, no NEXT label; the bulletin's news in the bell, heroines switched by a
   swipe on the band). Shots: `tools/shoot home --rich --safe-area-sim --shoot-params='{"take":"quiet"}'`.

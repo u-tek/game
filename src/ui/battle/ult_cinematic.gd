@@ -5,13 +5,10 @@ extends Control
 ## huge in compressed paper type (its last word in signal) under a mono kicker with her name. Allies
 ## get the tall band mid-screen, enemies (echo ultimates) a slimmer one near the top. The battle
 ## screen dims and freezes the field around it. Frees itself when done.
-## The player's heroines get the close-up instead (combat v1, docs/dev/combat-v1.md): the screen cuts
-## to ink with her red halftone print and speed lines, she fills it at close range (her live rig in
-## her equipped skin, playing her ultimate, the camera pushing in on her face), the skill name lands
-## huge across the foot, then a quick cut back to the field as the hit lands.
+## The player's heroines get their cut-in instead (src/ui/battle/ult_cutin.gd); this is the foes' (echo)
+## ultimate.
 ##   var c := UltCinematic.new(); add_child(c); c.play(hero_id, "Hymn of Judgment", true, 1.0)
 
-const DeviceTier := preload("res://src/art/device_tier.gd")
 const BP := preload("res://src/ui/v4/battle/battle_print.gd")
 
 var hero_id := ""
@@ -29,9 +26,7 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 
-## partner: the heroine whose ultimate this one chains from (Encore; she joins the close-up), chain:
-## the Encore step (0 = none).
-func play(id: String, skill_name: String, is_ally: bool, duration: float, partner: String = "", chain: int = 0) -> void:
+func play(id: String, skill_name: String, is_ally: bool, duration: float) -> void:
 	hero_id = id
 	ally = is_ally
 	dur = maxf(duration, 0.35)
@@ -41,9 +36,6 @@ func play(id: String, skill_name: String, is_ally: bool, duration: float, partne
 	var cy := vs.y * (0.44 if ally else 0.24)
 	var skin := Game.equipped_skin(id) if ally else ""
 	var hero_name := str(Game.hero_def(id).get("name", id))
-	if ally:
-		_closeup(id, skin, hero_name, skill_name, vs, partner, chain)
-		return
 
 	# The band: dark, turned a little, the red print on the open side, hairlines and ticks.
 	_band = Control.new()
@@ -167,150 +159,6 @@ func play(id: String, skill_name: String, is_ally: bool, duration: float, partne
 	tw.tween_property(self, "modulate:a", 0.0, 0.2).set_delay(out)
 	tw.tween_property(por, "position:x", w if ally else -por.size.x, 0.2).set_delay(out).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	tw.chain().tween_callback(queue_free)
-
-
-## The player's close-up: ink, her print, her live rig at close range, the skill name across the foot.
-func _closeup(id: String, skin: String, hero_name: String, skill_name: String, vs: Vector2, partner: String = "", chain: int = 0) -> void:
-	var w := vs.x
-	var h := vs.y
-	var root := Control.new()
-	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.size = vs
-	root.modulate.a = 0.0
-	add_child(root)
-	BP.rect(root, Rect2(Vector2.ZERO, vs), BP.BAND)
-	# Her red halftone print down the right two thirds, fading into the ink on its left edge.
-	var pr := BP.halftone(id, skin, {"crop": "face", "cell": 7.0})
-	pr.position = Vector2(w * 0.3, 0)
-	pr.size = Vector2(w * 0.7, h)
-	root.add_child(pr)
-	var fade := TextureRect.new()
-	fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	fade.texture = Kit.vgradient(BP.BAND, Color(BP.BAND, 0.0), true)
-	fade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	fade.stretch_mode = TextureRect.STRETCH_SCALE
-	fade.position = Vector2(w * 0.3 - 2.0, 0)
-	fade.size = Vector2(220, h)
-	root.add_child(fade)
-	_bh = h
-	_lines_c = Control.new()
-	_lines_c.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_lines_c.size = vs
-	_lines_c.draw.connect(_draw_lines)
-	root.add_child(_lines_c)
-	for i in 26:
-		_lines.append(Vector3(randf() * w, randf_range(30.0, h - 30.0), randf_range(0.6, 1.5)))
-
-	# Her live rig, framed on her face: head and shoulders about two thirds of the screen wide (half
-	# of it with an Encore partner, set right).
-	var anchor := _framed_rig(root, id, skin, w * (0.5 if partner != "" else 0.64), Vector2(w * (0.7 if partner != "" else 0.47), h * (0.3 if partner != "" else 0.34)))
-	anchor.scale = Vector2(1.12, 1.12)
-	# Encore: the heroine she chains from leans in from the lower left, in front (wings and props of
-	# the caster would hide her behind), sliding in from the edge.
-	if partner != "":
-		var back := _framed_rig(root, partner, Game.equipped_skin(partner), w * 0.4, Vector2(w * 0.2, h * 0.44))
-		var bx := back.position.x
-		back.position.x = bx - w * 0.3
-		var btw := create_tween()
-		btw.tween_property(back, "position:x", bx, 0.24).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	var sp: Node2D = anchor.get_child(0)
-	if sp.has_method("play_ultimate"):
-		sp.call("play_ultimate", Vector2.INF)
-
-	# The type across the foot on an ink fade: kicker, the skill name huge (last word in signal), her line.
-	var foot := TextureRect.new()
-	foot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	foot.texture = Kit.vgradient(Color(BP.BAND, 0.0), Color(BP.BAND, 0.92))
-	foot.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	foot.stretch_mode = TextureRect.STRETCH_SCALE
-	foot.position = Vector2(0, h * 0.56)
-	foot.size = Vector2(w, h * 0.44)
-	root.add_child(foot)
-	var words := skill_name.to_upper().split(" ")
-	var key := words[words.size() - 1]
-	var bb := " ".join(words.slice(0, words.size() - 1)) + (" " if words.size() > 1 else "") + "[color=#%s]%s[/color]" % [BP.SIG.to_html(false), key]
-	var fs := BP.fit(skill_name.to_upper(), w - 56.0, 120, 48)
-	var kick := BP.t("ULTIMATE  ·  %s" % hero_name.to_upper(), 14, BP.SIG, "mono_bold")
-	kick.position = Vector2(28, h * 0.7)
-	root.add_child(kick)
-	var big := RichTextLabel.new()
-	big.bbcode_enabled = true
-	big.text = bb
-	big.scroll_active = false
-	big.fit_content = true
-	big.autowrap_mode = TextServer.AUTOWRAP_OFF
-	big.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	big.add_theme_font_override("normal_font", Kit.font("compressed"))
-	big.add_theme_font_size_override("normal_font_size", fs)
-	big.add_theme_color_override("default_color", BP.PAPER)
-	big.size = Vector2(w, fs * 1.3)
-	big.position = Vector2(24, h * 0.7 + 18.0)
-	big.pivot_offset = Vector2(0, fs * 0.6)
-	big.scale = Vector2(1.25, 1.25)
-	root.add_child(big)
-	var fac := str(Game.hero_def(id).get("faction", ""))
-	var sub := BP.t("%s  ·  %s" % [str(Kit.FACTION_NAMES.get(fac, fac)).to_upper(), str(Game.hero_def(id).get("title", "")).to_upper()], 11, Color(BP.PAPER, 0.7), "mono")
-	sub.position = Vector2(28, h * 0.7 + 22.0 + fs * 1.1)
-	root.add_child(sub)
-	for edge: float in [14.0, h - 15.0]:
-		BP.rect(root, Rect2(0, edge, w, 1), Color(BP.PAPER, 0.6))
-	if chain > 0:
-		# ENCORE xN stamped top right in signal, printed slightly out of register.
-		var st := Control.new()
-		st.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		st.position = Vector2(w - 368.0, h * 0.06)
-		st.size = Vector2(280, 120)
-		st.pivot_offset = st.size * 0.5
-		st.rotation = -0.09
-		root.add_child(st)
-		var ghost := BP.t("ENCORE ×%d" % (chain + 1), 58, Color(BP.PAPER, 0.35), "compressed")
-		ghost.position = Vector2(5, 4)
-		st.add_child(ghost)
-		st.add_child(BP.t("ENCORE ×%d" % (chain + 1), 58, BP.SIG, "compressed"))
-		st.add_child(BP.t("+%d%% BY HAND" % (chain * BattleSim.ENCORE_STEP_BP / 100), 13, BP.PAPER, "mono_bold"))
-		(st.get_child(st.get_child_count() - 1) as Control).position = Vector2(4, 72)
-		st.scale = Vector2(1.6, 1.6)
-		var stw := create_tween()
-		stw.tween_property(st, "scale", Vector2.ONE, 0.18).set_delay(0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-
-	# In fast, push in on her while she casts, the name slams down, out on the hit.
-	var tw := create_tween().set_parallel(true)
-	tw.tween_property(root, "modulate:a", 1.0, 0.09)
-	tw.tween_property(anchor, "scale", Vector2.ONE, 0.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tw.tween_property(anchor, "scale", Vector2(1.08, 1.08), maxf(dur - 0.3, 0.1)).set_delay(0.2)
-	tw.tween_property(anchor, "position:x", anchor.position.x + 18.0, maxf(dur - 0.3, 0.1)).set_delay(0.2)
-	tw.tween_property(big, "scale", Vector2.ONE, 0.16).set_delay(0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	var out := maxf(dur - 0.16, 0.2)
-	tw.tween_property(root, "modulate:a", 0.0, 0.16).set_delay(out)
-	tw.tween_property(anchor, "scale", Vector2(1.22, 1.22), 0.16).set_delay(out).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	tw.chain().tween_callback(queue_free)
-
-
-## A hero's live rig on an anchor at `at` (screen px), scaled so her head-and-shoulders frame (the
-## rig's portrait rect, converted from canvas pixels to rig units) is `face_px` wide and centred there.
-func _framed_rig(parent: Control, id: String, skin: String, face_px: float, at: Vector2) -> Node2D:
-	var anchor := Node2D.new()
-	parent.add_child(anchor)
-	var sp := HeroArt.make_sprite(id, skin)
-	anchor.add_child(sp)
-	DeviceTier.light(sp)
-	var face := Vector2(0, -1500)
-	var face_w := 460.0
-	var rp: Variant = sp.get("rig")
-	var rd: Variant = (rp as Node).get("rig") if rp is Node else null
-	if rd is RigData and (rd as RigData).portrait_rect.size.x > 0.0:
-		var r := rd as RigData
-		face = r.portrait_rect.get_center() - r.origin
-		face_w = r.portrait_rect.size.x
-	var body: Variant = sp.get("_body")
-	var bs := absf((body as Node2D).scale.y) if body is Node2D else 1.0
-	face *= bs
-	face_w *= bs
-	var k := face_px / maxf(face_w, 1.0)
-	sp.scale = Vector2(k, k)
-	sp.position = -face * k
-	anchor.position = at
-	return anchor
 
 
 func _process(delta: float) -> void:

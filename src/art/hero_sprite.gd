@@ -334,6 +334,36 @@ func set_facing(dir: int) -> void:
 	_apply_scale()
 
 
+## Two-tone print (the ultimate's impact frame): her shadows in `dark`, her lights in `light`, cut
+## at luminance `cut`; the foil and Live Light step aside (they would round the flat print). Off
+## puts her look back (the echo's desaturation and violet shade included).
+func two_tone(on: bool, dark: Color = Color("141517"), light: Color = Color("ff5c29"), cut: float = 0.45) -> void:
+	if rig == null:
+		return
+	if on:
+		rig.set_tint(&"desat", 0.0)
+		rig.set_tint(&"shade", 0.0)
+		rig.set_tint(&"map_dark", dark)
+		rig.set_tint(&"map_mid", dark.lerp(light, 0.5))
+		rig.set_tint(&"map_light", light)
+		rig.set_tint(&"map_cut", cut)
+		rig.set_tint(&"map_hard", 1.0)
+		rig.set_tint(&"map_on", 1.0)
+		rig.set_warp_param(&"strength", 0.0)
+		rig.set_warp_param(&"live_light", 0.0)
+		return
+	rig.set_tint(&"map_hard", 0.0)
+	rig.set_tint(&"map_on", 1.0 if is_fallback else 0.0)
+	if is_fallback:
+		var fc := HeroArt.faction_color(faction)
+		rig.set_tint(&"map_dark", Color("0d0a1c"))
+		rig.set_tint(&"map_mid", fc.darkened(0.4))
+		rig.set_tint(&"map_light", fc.lightened(0.35))
+	set_echo(_echo)
+	rig.set_warp_param(&"strength", 1.0)
+	_apply_live()
+
+
 ## Enemy "echo" look: desaturated with violet shadows.
 func set_echo(on: bool) -> void:
 	_echo = on

@@ -1,6 +1,8 @@
 // HaloRig shared fragment tint (docs/dev/halorig.md section 6): hit flash, desaturate +
 // violet shadow (enemy "echo"), luminance gradient map (fallback silhouettes) and the death
 // "fade" dissolve. Included by rig.gdshader (cutout parts) and warp.gdshader (warp meshes).
+// map_hard cuts the map to two tones at map_cut (the ultimate's impact frame: her shadows in one
+// ink, her lights in the other, like a single printing plate).
 uniform float flash = 0.0;
 uniform vec4 flash_color : source_color = vec4(1.0, 1.0, 1.0, 1.0);
 uniform float desat = 0.0;
@@ -10,6 +12,8 @@ uniform float map_on = 0.0;
 uniform vec4 map_dark : source_color = vec4(0.07, 0.05, 0.14, 1.0);
 uniform vec4 map_mid : source_color = vec4(0.45, 0.35, 0.6, 1.0);
 uniform vec4 map_light : source_color = vec4(1.0, 0.95, 0.8, 1.0);
+uniform float map_hard = 0.0;
+uniform float map_cut = 0.5;
 uniform float dissolve = 0.0;          // 0..1: burns away into light
 uniform vec4 dissolve_color : source_color = vec4(1.0, 0.85, 0.45, 1.0);
 
@@ -34,6 +38,7 @@ vec4 halo_tint(vec4 tex, vec4 vcolor) {
 	vec3 c = tex.rgb;
 	float l = dot(c, vec3(0.299, 0.587, 0.114));
 	if (map_on > 0.0) {
+		l = mix(l, step(map_cut, l), map_hard);
 		vec3 m = l < 0.5 ? mix(map_dark.rgb, map_mid.rgb, l * 2.0) : mix(map_mid.rgb, map_light.rgb, l * 2.0 - 1.0);
 		c = mix(c, m, map_on);
 		l = dot(c, vec3(0.299, 0.587, 0.114));

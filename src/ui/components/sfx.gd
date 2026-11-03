@@ -8,13 +8,15 @@ extends RefCounted
 ## (the rarity word landing); the Lobby adds stamp (a real day stamped), pulse (her heartbeat)
 ## and rustle (a holiday decoration brushed on its thread); a reward's receipt adds printer (it feeds out
 ## of a thermal printer) and tear (torn off); a won battle's photo finish adds shutter;
-## a level up's counter adds clack (a digit's drum turning over).
+## a level up's counter adds clack (a digit's drum turning over); a heroine's ultimate cut-in adds
+## ult_in (the cut: a paper snap on a thump), ult_rise (the wind-up, cut dead into the crack),
+## ult_crack (the impact frame) and ult_boom (the hit landing on the field).
 
 const RATE := 22050
 const NAMES: Array[String] = ["tap", "tab", "pop", "deny", "toggle", "coin", "sparkle", "close", "hit", "reward",
 	"ult", "summon", "victory", "defeat", "legendary",
 	"portal", "tell", "tell_big", "burst", "reveal", "riser", "beat", "slam", "stamp", "pulse", "rustle",
-	"printer", "tear", "shutter", "clack"]
+	"printer", "tear", "shutter", "clack", "ult_in", "ult_rise", "ult_crack", "ult_boom"]
 
 
 ## Builds the stream for `sound_name` (null if unknown).
@@ -81,19 +83,28 @@ static func make(sound_name: String) -> AudioStreamWAV:
 			s = _shutter()
 		"clack":
 			s = _clack()
+		"ult_in":
+			s = _ult_in()
+		"ult_rise":
+			s = _ult_rise()
+		"ult_crack":
+			s = _ult_crack()
+		"ult_boom":
+			s = _ult_boom()
 		_:
 			return null
-	return _to_wav(s)
+	# The cut-in's riser stops dead on the crack: no tail fade.
+	return _to_wav(s, 0.004 if sound_name == "ult_rise" else 0.03)
 
 
-static func _to_wav(s: PackedFloat32Array) -> AudioStreamWAV:
+static func _to_wav(s: PackedFloat32Array, fade_s: float = 0.03) -> AudioStreamWAV:
 	var peak := 0.0001
 	for v in s:
 		peak = maxf(peak, absf(v))
 	var gain := 0.9 / peak if peak > 0.9 else 1.0
 	var bytes := PackedByteArray()
 	bytes.resize(s.size() * 2)
-	var fade := mini(int(0.03 * RATE), s.size())
+	var fade := mini(maxi(int(fade_s * RATE), 1), s.size())
 	var fade_from := s.size() - fade
 	for i in s.size():
 		var v := s[i] * gain
@@ -636,4 +647,69 @@ static func _clack() -> PackedFloat32Array:
 		var tick := rng.randf_range(-1.0, 1.0) * exp(-t * 900.0)
 		var knock := sin(ph) * exp(-t * 70.0)
 		b[i] = (tick * 0.8 + knock * 0.45) * 0.8
+	return b
+
+
+## The cut to her poster: a high, dry paper snap over a short thump that falls from 120 to 52 Hz
+## (harmonics so a phone speaker carries it), and a small tick as the bars seat.
+static func _ult_in() -> PackedFloat32Array:
+	var dur := 0.22
+	var b := _buf(dur)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 211
+	var lp := 0.0
+	var ph := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		var n := rng.randf_range(-1.0, 1.0)
+		lp += (n - lp) * 0.2
+		var snap := (n - lp) * exp(-t * 110.0) * 0.7 if t < 0.03 else 0.0
+		ph += TAU * (52.0 + 68.0 * exp(-t * 18.0)) / RATE
+		var thump := (sin(ph) + 0.35 * sin(ph * 2.0) + 0.18 * sin(ph * 3.0)) * exp(-t * 14.0) * 0.8
+		var tick := sin(TAU * 3200.0 * t) * exp(-(t - 0.05) * 600.0) * 0.25 if t >= 0.05 and t < 0.056 else 0.0
+		b[i] = snap + thump + tick
+	return b
+
+
+## The wind-up: a tone climbing three octaves from 170 Hz under a swelling hiss; it stops dead.
+static func _ult_rise() -> PackedFloat32Array:
+	var dur := 0.38
+	var b := _buf(dur)
+	var ph := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		var k := t / dur
+		ph += TAU * 170.0 * pow(2.0, 3.0 * k) / RATE
+		b[i] = (sin(ph) + 0.4 * sin(ph * 2.0) + 0.2 * sin(ph * 3.0)) * k * k * 0.24
+	_noise_into(b, 0.0, dur, 0.75, 311, 0.02, 0.55, 2.2, true)
+	return b
+
+
+## The impact frame: a broadband snap, a crack body falling 900 -> 300 Hz and a short press ring.
+static func _ult_crack() -> PackedFloat32Array:
+	var dur := 0.3
+	var b := _buf(dur)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 419
+	var ph := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		ph += TAU * (300.0 + 600.0 * exp(-t * 30.0)) / RATE
+		b[i] = rng.randf_range(-1.0, 1.0) * exp(-t * 140.0) + sin(ph) * exp(-t * 60.0) * 0.35
+	_bell(b, 0.0, 1480.0, 0.1, 12.0, dur)
+	_bell(b, 0.0, 2217.0, 0.07, 14.0, dur)
+	return b
+
+
+## The hit landing on the field: a sub drop from 125 to 40 Hz, a crunch and a rumble tail.
+static func _ult_boom() -> PackedFloat32Array:
+	var dur := 0.8
+	var b := _buf(dur)
+	var ph := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		ph += TAU * (40.0 + 85.0 * exp(-t * 20.0)) / RATE
+		b[i] = (sin(ph) + 0.4 * sin(ph * 2.0) + 0.2 * sin(ph * 3.0)) * exp(-t * 4.5) * 0.85
+	_noise_into(b, 0.0, 0.18, 0.65, 431, 0.45, 0.08, 1.6, false)
+	_noise_into(b, 0.05, 0.7, 0.18, 433, 0.03, 0.01, 1.2, false)
 	return b

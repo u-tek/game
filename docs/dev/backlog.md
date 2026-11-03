@@ -56,6 +56,28 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 
 ## P2
 
+- P2 done **A heroine's ultimate, cut in** (2026-11-03, after the owner's "this seems so shallow"): the
+  old close-up was a still painting with a slow zoom, an orange smudge and a white wash. Three takes
+  were designed by three agents and judged; the winner, built: ink bars slam over the HUD, a hard cut
+  to her poster (paper, a straight ink band with her red print), the camera climbs from her hips to a
+  cowboy shot as she surges up, her head snaps to the lens and the skill's key word slams in up the
+  band's edge (two-tone, a signal ghost out of register), she coils and lunges, the impact frame
+  prints the poster as its plates (paper to ink, band to signal, her a hard two-tone at her own cut
+  point), a Blender-rendered ink crown bursts where the blow lands, hit-stop in colour, and a hard cut
+  back to the field punched in on the target where the same crown stamps. New sounds (ult_in,
+  ult_rise, ult_crack, ult_boom), haptics on each beat. First cast per heroine and every cast by hand:
+  the full take (contact 1.22 s at 1x, 0.81 at 2x, 0.58 at 4x); later auto casts and Encore steps
+  start at the pose; an Encore's giant element is its ×N numeral. Reduce motion: a still poster.
+  A tap skips to the strike. `src/ui/battle/ult_cutin.gd`, `tools/blender/ult_fx.py` +
+  `finish_ult_fx.py`, `tools/anim/make_ult_cutin.py`. The white wash (the 'flash' track) is gone from
+  every ultimate. Left (phase 2): the Encore partner's print beside her, the ink band as a rendered
+  wet-ink texture, the Live Light swing on Pro phones, a Settings switch (Always / First per fight
+  and by hand / By hand only), numbers that land instead of floating.
+- P1 todo **The heroines barely move** (found 2026-11-03): 300 of the 302 built rigs are 8-bone quick
+  rigs (root, hips, torso, chest, neck, head, face, bangs): no arms, eyes, mouth or props move. That
+  is the gap to the reference games' characters, everywhere she appears (Lobby, hero page, battle,
+  cut-in). The layered pipeline exists (`tools/layered/`, Seraphiel's prototype) but each heroine
+  needs new rig-pose paintings and GPU time (See-through ~15 min plus repaints): needs the owner.
 - P2 doing **Halloween is a moment** (2026-10-31): done: cut-paper bats on a taped thread (Blender
   renders; they swing with the tilt, a thumb brushes them, strung up in front of the player the first
   time), the stamp in pumpkin ink, the boot print run in pumpkin with HALLOWEEN on the proof stamp,

@@ -95,6 +95,7 @@ const SFX_VOLUME_DB := {
 	"coin": -13.0, "sparkle": -15.0, "hit": -6.0, "reward": -5.0, "summon": -4.0, "legendary": -3.0,
 	"ult": -5.0, "victory": -4.0, "defeat": -5.0, "stamp": -7.0, "pulse": -19.0,
 	"printer": -13.0, "tear": -11.0, "shutter": -8.0, "clack": -12.0,
+	"ult_in": -5.0, "ult_rise": -9.0, "ult_crack": -6.0, "ult_boom": -2.0,
 }
 
 ## App root (main.gd). Screens mount into root.content.
