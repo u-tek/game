@@ -127,6 +127,12 @@ func _draw() -> void:
 	draw_string(f, tp + Vector2(10, 16), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(0.063, 0.067, 0.075))
 
 
+## The count's paper tag, in this node's space (the battle's numbers keep clear of it).
+func label_rect() -> Rect2:
+	var tw := Kit.font("mono_bold").get_string_size("SOULS  %02d / %d" % [souls_owned(), COUNT], HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
+	return Rect2(band.position + Vector2(0, -4), Vector2(tw + 18, 22))
+
+
 ## A teardrop flame: a round base of radius r at p and a tip about 2.6 r above it, leaning by sway.
 func _flame(p: Vector2, r: float, sway: float, col: Color) -> void:
 	var pts := PackedVector2Array()

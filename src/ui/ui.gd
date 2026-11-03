@@ -96,6 +96,8 @@ const SFX_VOLUME_DB := {
 	"ult": -5.0, "victory": -4.0, "defeat": -5.0, "stamp": -7.0, "pulse": -19.0,
 	"printer": -13.0, "tear": -11.0, "shutter": -8.0, "clack": -12.0,
 	"ult_in": -5.0, "ult_rise": -9.0, "ult_crack": -6.0, "ult_boom": -2.0,
+	"press": -9.0, "brush": -14.0, "flick": -14.0, "splat": -9.0, "tick": -18.0, "peel": -10.0,
+	"brayer": -14.0, "foil": -12.0,
 }
 
 ## App root (main.gd). Screens mount into root.content.
@@ -124,7 +126,9 @@ var _next_player := 0
 var _streams: Dictionary = {}
 var _streams_mutex := Mutex.new()
 var _gen_task := -1
+## sound name -> [ms, level dB, player] of its last play.
 var _last_played: Dictionary = {}
+var _haptic_at := -1000
 var _sfx_rng := RandomNumberGenerator.new()
 var _music: AudioStreamPlayer
 var _music_tw: Tween
@@ -1134,21 +1138,39 @@ func has_modal() -> bool:
 ## sparkle, reward, summon, legendary, hit, ult, victory, defeat). pitch > 0 sets the pitch
 ## (taps and hits otherwise vary a little by themselves). Silent when Game.setting("sound")
 ## is false.
-func sfx(sound_name: String, pitch: float = -1.0) -> void:
+## db: added to the sound's own level (a hit off camera plays quieter).
+func sfx(sound_name: String, pitch: float = -1.0, db: float = 0.0) -> void:
 	if _audio_released or not _sound_on():
 		return
-	# The same sound within 45 ms only gets louder, not better (fast battles): skip it.
+	# The same sound within 45 ms only gets louder, not better (fast battles): skip it, unless this
+	# one is louder (the camera's blow after an off-camera one): then it takes that voice over.
 	var now := Time.get_ticks_msec()
-	if now - int(_last_played.get(sound_name, -1000)) < 45:
-		return
-	_last_played[sound_name] = now
+	var level := float(SFX_VOLUME_DB.get(sound_name, -6.0)) + db
 	var stream := _stream(sound_name)
 	if stream == null or _players.is_empty():
 		return
-	var p := _players[_next_player]
-	_next_player = (_next_player + 1) % _players.size()
+	var p: AudioStreamPlayer = null
+	var last: Array = _last_played.get(sound_name, [-1000, -100.0, null])
+	if now - int(last[0]) < 45:
+		var lp: Variant = last[2]
+		if level <= float(last[1]) + 0.5 or not (lp is AudioStreamPlayer) or (lp as AudioStreamPlayer).stream != stream:
+			return
+		p = lp
+	else:
+		# A free voice first; steal the next in turn only when all are busy (so a long ultimate
+		# sound is not cut off by a routine hit).
+		for k in _players.size():
+			var c := _players[(_next_player + k) % _players.size()]
+			if not c.playing:
+				p = c
+				_next_player = (_next_player + k + 1) % _players.size()
+				break
+		if p == null:
+			p = _players[_next_player]
+			_next_player = (_next_player + 1) % _players.size()
+	_last_played[sound_name] = [now, level, p]
 	p.stream = stream
-	p.volume_db = float(SFX_VOLUME_DB.get(sound_name, -6.0))
+	p.volume_db = level
 	if pitch > 0.0:
 		p.pitch_scale = pitch
 	elif sound_name in ["hit", "tap", "tab", "coin"]:
@@ -1178,6 +1200,11 @@ func release_audio() -> void:
 func haptic(ms: int = 20, amplitude: float = -1.0) -> void:
 	if not OS.has_feature("mobile"):
 		return
+	# One at a time: calls within 40 ms of the last would stack into one buzz (and cost battery).
+	var now := Time.get_ticks_msec()
+	if now - _haptic_at < 40:
+		return
+	_haptic_at = now
 	var v: Variant = Game.setting("haptics") if Game.has_method("setting") else null
 	if v is bool and not v:
 		return

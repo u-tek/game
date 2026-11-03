@@ -70,9 +70,41 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   start at the pose; an Encore's giant element is its ×N numeral. Reduce motion: a still poster.
   A tap skips to the strike. `src/ui/battle/ult_cutin.gd`, `tools/blender/ult_fx.py` +
   `finish_ult_fx.py`, `tools/anim/make_ult_cutin.py`. The white wash (the 'flash' track) is gone from
-  every ultimate. Left (phase 2): the Encore partner's print beside her, the ink band as a rendered
-  wet-ink texture, the Live Light swing on Pro phones, a Settings switch (Always / First per fight
-  and by hand / By hand only), numbers that land instead of floating.
+  every ultimate. Left (phase 2): the Encore partner's print beside her, the Live Light swing on Pro
+  phones. (The Settings switch and the numbers that land are done: below. A wet-ink band texture was
+  rendered and dropped: under her print it barely showed.)
+- P2 done **Every hit, printed** (2026-11-03, the 90% of a fight the cut-in didn't touch): every basic
+  blow was a code shape (additive glow bolts, a white crescent, spark rings), every number a floating
+  label (twenty at once, clipped at the screen's edge, printed over the heroines), every hit a white
+  flash and a random shake. Three takes designed by three agents (print shop, action director,
+  restraint) and judged; the print shop won with the restraint take's numbers grafted on; built, shot
+  six times, reviewed by three more agents (look, bugs, iOS) and reworked. Every blow on a foe is a
+  print pulled on the field: a Blender-rendered dry-brush stroke for a slash (a diagonal cut across
+  her, alternating), a jab for a thrust, an ink splat for a shot (the shot flies as a stretched
+  droplet of ink), two strokes crossed for a crit and an assassin's cuts; its key plate over a second
+  plate out of register, held a beat then lifted against paper grain (`tools/blender/hit_fx.py` +
+  `finish_hit_fx.py` -> `assets/art/ui/hit/`, `ink_print.gdshader`, `src/ui/battle/press_layer.gd`,
+  between the foes and the heroines so a heroine in front covers a foe's print). Signal is spent once:
+  on the camera's heroine's crit (its second plate, its impact frame, a slab twice a tally's size).
+  The struck echo prints two-tone for 60-90 ms at her own cut point (baked: `tools/art_cuts.py` ->
+  `assets/art/heroes/cuts.json`; a governor: 3 a second, 330 ms apart on one foe), knocks back on a
+  spring, the camera kicks along the blow; the white flash is an ink dip; a fallen echo holds a
+  two-tone proof, then lifts off as paper halftone dots, lights first, and leaves an ink blot on the
+  street; a fallen heroine settles into her ink halftone print at 35% and stays (`rig_tint` halftone
+  mode). Nothing lands on a heroine's painting: light blows don't make her flinch or dip; her numbers
+  dock on her squad card. The numbers are set in a galley: one tally per foe docked beside her tag
+  (blows within 450 ms merge, the camera's foe's bigger, a press climbs in pitch with them), burn
+  lines, ink status chips (a debuff stamps in signal, then settles; STUNNED and CHARMED stay while it
+  lasts), laid out every frame off the tags, the tap hint, the souls tag and each other
+  (`src/ui/battle/galley.gd`; `hit_plan.gd` the pure plan; tests `test_hit_plan`, `test_galley`). New
+  sounds: press, brush, flick, splat, tick, peel, brayer, foil; a louder call takes a voice over a
+  quieter one of the same sound, free voices first; haptics through the governor and 40 ms apart.
+  Reduce motion: fades, no stops, knocks or kicks. The rig tints now take luma in sRGB numbers on the
+  desktop too (shots and the PC match the phone). Left: the EXECUTED rubber stamp as a render,
+  embossed label tapes for statuses, more stroke variants, the Galley's layout cached between frames.
+- P2 done **Ultimate cut-ins in Settings** (2026-11-03): Battle > Ultimate cut-ins: Every / First (the
+  default: her first in a fight and every one fired by hand) / By hand (auto casts play on the field
+  under her band).
 - P1 todo **The heroines barely move** (found 2026-11-03): 300 of the 302 built rigs are 8-bone quick
   rigs (root, hips, torso, chest, neck, head, face, bangs): no arms, eyes, mouth or props move. That
   is the gap to the reference games' characters, everywhere she appears (Lobby, hero page, battle,

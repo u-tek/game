@@ -41,6 +41,8 @@ const INK := Color("141517")
 const SIG := Color("ff5c29")
 
 static var _cuts := {}
+## The baked cut points (assets/art/heroes/cuts.json), by rig file base.
+static var _baked := {}
 
 var tier := "full"
 var rate := 1.0
@@ -325,6 +327,15 @@ static func _key_word(skill_name: String) -> String:
 static func _cut_point(hero: String, skin: String) -> float:
 	var key := hero + "@" + skin
 	if _cuts.has(key):
+		return float(_cuts[key])
+	# Baked offline (tools/art_cuts.py): reading the painting back from the GPU hitches on a phone.
+	if _baked.is_empty():
+		var d: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://assets/art/heroes/cuts.json")) 			if FileAccess.file_exists("res://assets/art/heroes/cuts.json") else null
+		_baked = d if d is Dictionary else {"": 0.45}
+	var art := HeroArt._built_art(hero, skin)
+	var bk := RigData.file_base(hero, art).trim_prefix("res://assets/art/heroes/")
+	if _baked.has(bk):
+		_cuts[key] = float(_baked[bk])
 		return float(_cuts[key])
 	var cut := 0.45
 	var tex := HeroArt.texture(hero, skin)

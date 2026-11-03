@@ -1,6 +1,6 @@
 # Status and handoff
 
-**Status as of 2026-11-03, 08:00 UTC (18:00 on the owner's PC clock, UTC+10).** This is the living
+**Status as of 2026-11-03, 22:00 UTC (08:00 on 2026-11-04 on the owner's PC clock, UTC+10).** This is the living
 status file: update it at the end of every work block. Rules and conventions are in `CLAUDE.md`;
 this file says where things stand. Older logs are under "History" at the bottom. **The ranked work
 list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
@@ -12,7 +12,7 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
    but cannot render, run the filter or see the owner's images. Check `git fetch origin && git
    status && git log --oneline -8 origin/claude/game-planning` and pull before you change anything.
 2. **Read** this file's "Where things stand" and "Waiting on the owner", then
-   `docs/dev/morning-2026-10-18.md` (the last summary sent to the owner). On the PC also read
+   `docs/dev/morning-2026-11-04.md` (the last summary sent to the owner). On the PC also read
    `art_src/_review/HANDOFF.md` (local only: exact file locations and the review tools).
 3. **ComfyUI** (PC only) must answer on `http://127.0.0.1:8188` (`curl -s
    http://127.0.0.1:8188/system_stats`). If it doesn't, start it with the PowerShell line in
@@ -28,6 +28,15 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
 
 ## Where things stand
 
+- **Every hit, printed (2026-11-03 20:20-22:00 UTC, PC chat).** The cut-in made one moment
+  produced; the other 90% of a fight was still code shapes and floating numbers. Every basic blow is
+  now a print pulled on the field (Blender-rendered dry-brush strokes, jabs, splats, a crossed X for a
+  crit, each in two plates out of register), the struck foe prints two-tone for a beat, knocks back
+  and the camera kicks along the blow; fallen foes lift off as halftone dots and leave a blot; the
+  numbers dock as one tally per foe and as slips on the heroines' cards, and nothing lands on a
+  heroine's painting (backlog P2 "Every hit, printed"). Also: a Settings switch for how often the
+  cut-in plays (Every / First / By hand). Videos: `screenshots/deep2/hits_before_after.mp4`,
+  `hits_after_1x.mp4`, `hits_after_4x.mp4`. Summary for the owner: `docs/dev/morning-2026-11-04.md`.
 - **The ultimate, cut in (2026-11-03, PC chat).** Nothing had happened since 2026-10-27; the owner
   asked "is this even close to what the prompt asked for? this seems so shallow". It wasn't: the
   last block made 2-4 s effects around the heroines, opened none of After Effects, ComfyUI or

@@ -67,6 +67,7 @@ func setup(params: Dictionary) -> void:
 	body.add_child(_section("Battle", [
 		_speed_row(),
 		_toggle_row("auto", "Auto ultimates", "Heroes fire ultimates when ready. Turn off to time them yourself.", "auto_ultimates", true),
+		_cutins_row(),
 	]))
 	body.add_child(_section("Adult content", [_nudity_row()]))
 	body.add_child(_data_section())
@@ -392,6 +393,20 @@ func _speed_row() -> Control:
 		opts.append("%dx" % s)
 	var seg := Kit.segmented(opts, maxi(0, SPEEDS.find(cur)), func(i: int) -> void:
 		Game.set_setting("battle_speed", SPEEDS[i]), Kit.BUTTON_H)
+	v.add_child(seg)
+	v.add_child(Kit.spacer(0, 16))
+	return v
+
+
+## How often a heroine's ultimate cuts in (the "cutins" setting; battle_screen._cutin_mode).
+func _cutins_row() -> Control:
+	var v := Kit.vbox(6)
+	v.add_child(_row_head("crown", "Ultimate cut-ins", "Her poster on every cast, on her first in each fight and every one you fire, or only on the ones you fire."))
+	var keys: Array[String] = ["every", "first", "hand"]
+	var cur := str(Game.setting("cutins")) if Game.setting("cutins") != null else "first"
+	var seg := Kit.segmented(["Every", "First", "By hand"], maxi(0, keys.find(cur)), func(i: int) -> void:
+		Game.set_setting("cutins", keys[i]), Kit.BUTTON_H)
+	seg.name = "Cutins"
 	v.add_child(seg)
 	v.add_child(Kit.spacer(0, 16))
 	return v

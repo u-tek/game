@@ -47,6 +47,11 @@ var _boss := false
 var _echo := false
 var _t := 0.0
 var _hit_flash := 0.0
+## The hit flash: its colour, its peak and how fast it decays (per second). Battle sets an ink dip
+## (UnitView.setup); everywhere else it is the old white flash.
+var flash_color := Color(1, 1, 1)
+var flash_peak := 0.65
+var flash_decay := 6.0
 var _holo_on := false          ## the foil shader is on the rig
 var _holo_motion := -1.0       ## motion uniform last sent (Reduce motion holds it at 0)
 
@@ -337,7 +342,7 @@ func set_facing(dir: int) -> void:
 ## Two-tone print (the ultimate's impact frame): her shadows in `dark`, her lights in `light`, cut
 ## at luminance `cut`; the foil and Live Light step aside (they would round the flat print). Off
 ## puts her look back (the echo's desaturation and violet shade included).
-func two_tone(on: bool, dark: Color = Color("141517"), light: Color = Color("ff5c29"), cut: float = 0.45) -> void:
+func two_tone(on: bool, dark: Color = Color("141517"), light: Color = Color("ff5c29"), cut: float = 0.45, strength: float = 1.0) -> void:
 	if rig == null:
 		return
 	if on:
@@ -348,7 +353,7 @@ func two_tone(on: bool, dark: Color = Color("141517"), light: Color = Color("ff5
 		rig.set_tint(&"map_light", light)
 		rig.set_tint(&"map_cut", cut)
 		rig.set_tint(&"map_hard", 1.0)
-		rig.set_tint(&"map_on", 1.0)
+		rig.set_tint(&"map_on", strength)
 		rig.set_warp_param(&"strength", 0.0)
 		rig.set_warp_param(&"live_light", 0.0)
 		return
@@ -362,6 +367,17 @@ func two_tone(on: bool, dark: Color = Color("141517"), light: Color = Color("ff5
 	set_echo(_echo)
 	rig.set_warp_param(&"strength", 1.0)
 	_apply_live()
+
+
+## Her figure as a halftone print (k 0..1 mixes it in): dots of `ink` `cell` rig pixels apart, as big
+## as she is dark; `lift` 0..1 shrinks them away, the lights first. k 0 is her own look again.
+func halftone(k: float, ink: Color = Color("e9e8e2"), cell: float = 14.0, lift: float = 0.0) -> void:
+	if rig == null:
+		return
+	rig.set_tint(&"halftone", k)
+	rig.set_tint(&"halftone_ink", ink)
+	rig.set_tint(&"halftone_cell", cell)
+	rig.set_tint(&"halftone_lift", lift)
 
 
 ## Enemy "echo" look: desaturated with violet shadows.
@@ -473,10 +489,10 @@ func _process(delta: float) -> void:
 	if _holo_on:
 		_sync_holo_motion()
 	if _hit_flash > 0.0:
-		_hit_flash = maxf(0.0, _hit_flash - delta * 6.0)
+		_hit_flash = maxf(0.0, _hit_flash - delta * flash_decay)
 		# Bosses take hits from the whole team at once: a softer flash keeps her colours.
-		rig.set_tint(&"flash", _hit_flash * (0.22 if _boss else 0.65))
-		rig.set_tint(&"flash_color", Color(1, 1, 1))
+		rig.set_tint(&"flash", _hit_flash * (minf(flash_peak, 0.22) if _boss else flash_peak))
+		rig.set_tint(&"flash_color", flash_color)
 	if _boss:
 		var k := 0.5 + 0.5 * sin(_t * 2.6)
 		_aura_back.position = Vector2(0, -900)

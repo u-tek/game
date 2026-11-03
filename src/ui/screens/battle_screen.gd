@@ -39,6 +39,9 @@ const UnitView := preload("res://src/ui/battle/unit_view.gd")
 const BattleFx := preload("res://src/ui/battle/battle_fx.gd")
 const UltCinematic := preload("res://src/ui/battle/ult_cinematic.gd")
 const UltCutin := preload("res://src/ui/battle/ult_cutin.gd")
+const HitPlan := preload("res://src/ui/battle/hit_plan.gd")
+const PressLayer := preload("res://src/ui/battle/press_layer.gd")
+const Galley := preload("res://src/ui/battle/galley.gd")
 const SoulsCrowd := preload("res://src/ui/battle/souls_crowd.gd")
 const AllyPortrait := preload("res://src/ui/battle/ally_portrait.gd")
 const BattleResult := preload("res://src/ui/battle/battle_result.gd")
@@ -83,21 +86,15 @@ const FOE_PARALLAX := 0.28
 const CAM_RATE := 3.0
 const CAM_HOLD := 0.9
 const SWIPE_HOLD := 2.6
-## Where repeat numbers on one unit appear (fan slots 0-3, relative to the head).
-const NUM_FAN := [Vector2(0, -10), Vector2(34, -40), Vector2(-34, -70), Vector2(14, -100)]
-## Status words float up in mono type: debuffs in signal, buffs on paper.
+## Status words, set as chips by the Galley: [word, debuff].
 const STATUS_TEXT := {
-	"stun": ["STUNNED", SignalKit.SIGNAL], "burn": ["BURN", Color("ff8a62")], "regen": ["REGEN", Color("9fe0bf")],
-	"taunt": ["TAUNT", SignalKit.MATTE], "atk_up": ["ATK UP", SignalKit.MATTE], "atk_down": ["ATK DOWN", SignalKit.SIGNAL],
-	"def_up": ["DEF UP", SignalKit.MATTE], "def_down": ["DEF DOWN", SignalKit.SIGNAL], "spd_up": ["HASTE", SignalKit.MATTE],
-	"charm": ["CHARMED", Color("ff6fae")],
+	"stun": ["STUNNED", true], "burn": ["BURN", true], "regen": ["REGEN", false], "taunt": ["TAUNT", false],
+	"atk_up": ["ATK UP", false], "atk_down": ["ATK DOWN", true], "def_up": ["DEF UP", false],
+	"def_down": ["DEF DOWN", true], "spd_up": ["HASTE", false], "charm": ["CHARMED", true],
 }
-## Floating numbers (style v4): damage in compressed type, paper on ink for hits on echoes, ink on
-## paper for hits on the team, signal for crits and executes; heals and shields in mono.
-const NUM_PAPER := SignalKit.MATTE
-const NUM_INK := SignalKit.INK
-const NUM_HEAL := Color("9fe0bf")
-const NUM_SHIELD := Color("c9d6de")
+## The camera's kick: a spring on the field (rad/s, damping ratio).
+const KICK_W := 42.0
+const KICK_Z := 0.6
 
 var _index := -1
 var _stage: Dictionary = {}
@@ -128,7 +125,19 @@ var _units: Node2D
 var _dim: ColorRect
 var _bars: Node2D
 var _fx: Node2D
-var _numbers: Control
+## The printed hits (impressions over the units; blots on the street under them) and the numbers.
+var _press: Node2D
+var _blots: Node2D
+var _galley: Control
+## The hits' governor (HitPlan) and the last heal and tick sounds (real ms).
+var _hit_gov := HitPlan.new_gov()
+var _heal_snd_at := -1000
+var _tick_snd_at := -1000
+## The heroine the camera follows (her blows are the big ones) and the foe she last hit.
+var _focus_uid := ""
+var _focus_foe := ""
+var _kick_pos := Vector2.ZERO
+var _kick_vel := Vector2.ZERO
 var _hud: Control
 var _bottom: Control
 var _overlay: Control
@@ -145,11 +154,8 @@ var _speed_stamp: Control
 var _boss_band: Control
 ## Debug screenshots: the result a Skip lands on ("victory" | "defeat"; "" = the real one).
 var _force_result := ""
-var _shake_t := 0.0
-var _shake_amp := 0.0
 var _dim_target := 0.0
 var _manual_hint: Control
-var _num_stack: Dictionary = {}
 ## Front view: each unit's spot (allies: x along the team's line, foes: x on screen; y on screen),
 ## the camera (x along the line) and its goal, the focus hold, the swipe.
 var _home: Dictionary = {}
@@ -177,10 +183,11 @@ var _cutin_shown := {}
 var _ult_by_hand := {}
 var _ult_main := ""
 var _ult_caster: Node2D
+## The key word of the cut-in landing now (its tallies carry it).
+var _ult_word := ""
 var _encore_until := -1.0
 var _encore_tag: Control
 var _encore_label: Label
-var _num_n := 0
 var _shown_secs := -1
 
 
@@ -246,6 +253,9 @@ func setup(params: Dictionary) -> void:
 			_sim.auto_ultimates = false
 	var sp: Variant = Game.setting("battle_speed")
 	_speed = int(sp) if (sp is int or sp is float) and [1, 2, 4].has(int(sp)) else 1
+	# Screenshots: start at another speed (params speed = 2 or 4).
+	if _debug_params_ok() and [2, 4].has(int(params.get("speed", 0))):
+		_speed = int(params.speed)
 	for u: Dictionary in _sim.units:
 		if u.side == "enemy" and bool(u.is_boss):
 			_boss_uid = str(u.uid)
@@ -366,6 +376,10 @@ func _build() -> void:
 	_souls.name = "Souls"
 	_souls.visible = _mode != "champion"
 	_world.add_child(_souls)
+	_blots = PressLayer.new()
+	_blots.name = "Blots"
+	_blots.set("blots", true)
+	_world.add_child(_blots)
 	_units = Node2D.new()
 	_units.name = "Units"
 	_world.add_child(_units)
@@ -379,14 +393,22 @@ func _build() -> void:
 	_bars = Node2D.new()
 	_bars.name = "Bars"
 	_world.add_child(_bars)
+	# The prints sit between the foes and the heroines (_layout_order keeps them there): a heroine in
+	# front of a foe covers the foe's print.
+	_press = PressLayer.new()
+	_press.name = "Press"
+	_units.add_child(_press)
+	_press.call("seed_rng", hash(str(_stage.get("id", "")) + _mode))
 	_fx = Node2D.new()
 	_fx.name = "Fx"
 	_world.add_child(_fx)
-	_numbers = Control.new()
-	_numbers.name = "Numbers"
-	_numbers.mouse_filter = MOUSE_FILTER_IGNORE
-	_numbers.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	_world.add_child(_numbers)
+	_galley = Galley.new()
+	_galley.name = "Numbers"
+	_galley.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	_galley.set("views", _views)
+	_galley.set("speed", _speed)
+	_galley.set("motion", Kit.motion_ok())
+	_world.add_child(_galley)
 
 	for u: Dictionary in _sim.units:
 		var v: Node2D = UnitView.new()
@@ -507,6 +529,7 @@ func _focus(uid: String, force: bool = false) -> void:
 		return
 	_cam_goal = _clamp_cam((_home[uid] as Vector2).x)
 	_cam_lock_until = now + CAM_HOLD
+	_focus_uid = uid
 
 
 ## The player's share of the souls: how much more of the foes' health is gone than the team's.
@@ -586,16 +609,16 @@ func _tap_unit(best: Node2D) -> void:
 				_views[k].call("set_spotlit", k == uid)
 			_focus(uid, true)
 			_swipe_until = Time.get_ticks_msec() / 1000.0 + SWIPE_HOLD
-			_float_text(best, "SPOTLIGHT", Color(1.0, 0.86, 0.5), 20, 46.0, 0.0, Vector2(0, -20), "mono_bold")
+			_galley.call("chip", uid, "SPOTLIGHT", false)
 			Kit.sfx("tap")
 			UI.haptic(18)
 		elif _sim.spotlight() != uid:
-			_float_text(best, "SPOTLIGHT COOLING", NUM_PAPER, 16, 30.0, 0.0, Vector2(0, -20), "mono_bold")
+			_galley.call("chip", uid, "COOLING", false)
 	else:
 		if _sim.set_mark(uid):
 			for k: String in _views:
 				_views[k].call("set_marked", k == uid)
-			_float_text(best, "MARKED", BP.SIG, 18, 40.0, 0.0, Vector2(0, -30), "mono_bold")
+			_galley.call("chip", uid, "MARKED", true)
 			Kit.sfx("tap")
 			UI.haptic(12)
 	_hide_tap_hint()
@@ -1107,7 +1130,8 @@ func _start_intro() -> void:
 func _process(delta: float) -> void:
 	if _sim == null:
 		return
-	_update_shake(delta)
+	_update_kick(delta)
+	_sync_print_layers()
 	_dim.modulate.a = move_toward(_dim.modulate.a, _dim_target, delta * 4.0)
 	_cam_x = lerpf(_cam_x, _cam_goal, 1.0 - exp(-delta * CAM_RATE))
 	_place_units()
@@ -1192,20 +1216,26 @@ func _apply(ev: Dictionary) -> void:
 				src.call("play_attack", _lunge_point(src, dst))
 				# The camera finds the heroine acting, or the one being hit.
 				_focus(str(ev.src) if str(src.get("side")) == "ally" else str(ev.target))
+				if str(src.call("attack_anim")) != "attack_ranged" and not bool(src.get("has_swing_vfx")):
+					UI.sfx("brush", -1.0, 0.0 if str(ev.src) == _focus_uid else -6.0)
 		"_bolt":
 			var s2: Node2D = _views.get(str(ev.src))
 			var d2: Node2D = _views.get(str(ev.target))
 			if s2 and d2 and not s2.get("dead"):
-				var col := _fx_color(s2)
-				BattleFx.projectile(_fx, _fx.to_local(s2.call("hand_global")), _fx.to_local(d2.call("chest_global")), BOLT_MS / 1000.0 / _speed, col)
+				var on_her := str(d2.get("side")) == "ally"
+				_press.call("droplet", s2, d2, BOLT_MS / 1000.0 / _speed, HitPlan.INK if on_her else HitPlan.PAPER)
+				UI.sfx("flick", -1.0, 0.0 if str(ev.src) == _focus_uid else -6.0)
 		"damage":
 			_on_damage(ev)
 		"heal":
 			var hv: Node2D = _views.get(str(ev.target))
 			if hv:
 				hv.call("set_hp", int(ev.hp_after), int(hv.get("shield")))
-				_float_text(hv, "+%s" % Kit.format_num(int(ev.amount)), NUM_HEAL, 26, 60.0, 0.0, Vector2.ZERO, "mono_bold")
-				BattleFx.burst(_fx, _fx.to_local(hv.call("chest_global")), Color("5cd6a0"), 46.0, 6)
+				_galley.call("heal", str(ev.target), int(ev.amount))
+				var now_h := Time.get_ticks_msec()
+				if now_h - _heal_snd_at >= 400:
+					_heal_snd_at = now_h
+					UI.sfx("brayer")
 				_sync_portrait(hv)
 				if str(ev.target) == _boss_uid and _boss_band:
 					_boss_band.call("set_hp", int(ev.hp_after), int(hv.get("max_hp")), false)
@@ -1213,15 +1243,20 @@ func _apply(ev: Dictionary) -> void:
 			var sv: Node2D = _views.get(str(ev.target))
 			if sv:
 				sv.call("set_hp", int(sv.get("hp")), int(ev.shield_after))
-				_float_text(sv, "+%s" % Kit.format_num(int(ev.amount)), NUM_SHIELD, 22, 50.0, 0.0, Vector2(0, 26), "mono_bold")
-				BattleFx.burst(_fx, _fx.to_local(sv.call("chest_global")), Color("8fd3ff"), 60.0, 0)
+				_galley.call("shield", str(ev.target), int(ev.amount))
+				UI.sfx("foil")
+				if str(sv.get("side")) == "ally":
+					_gov_haptic(8, 0.2, 120)
 		"status":
 			var tv: Node2D = _views.get(str(ev.target))
 			if tv and not tv.get("dead"):
 				var st := str(ev.status)
 				tv.call("add_status", st, _display_ms + float(ev.duration_ms))
-				var info: Array = STATUS_TEXT.get(st, [st.to_upper(), NUM_PAPER])
-				_float_text(tv, str(info[0]), info[1], 18, 40.0, 0.08, Vector2(0, -34), "mono_bold")
+				var info: Array = STATUS_TEXT.get(st, [st.to_upper(), false])
+				_galley.call("chip", str(ev.target), str(info[0]), bool(info[1]), st if st in ["stun", "charm"] else "")
+				UI.sfx("clack", 1.4)
+				if bool(info[1]) and str(tv.get("side")) == "ally":
+					_gov_haptic(6, 0.25, 120)
 		"ultimate":
 			_start_ult(ev)
 		"energy":
@@ -1235,6 +1270,16 @@ func _apply(ev: Dictionary) -> void:
 			var dv: Node2D = _views.get(str(ev.unit))
 			if dv:
 				dv.call("die")
+				_galley.call("ko", str(ev.unit))
+				if str(dv.get("side")) != "ally":
+					# What she leaves on the street: a blot that stays for the fight.
+					# (A weak reference: a lambda holding a freed node prints an error when it runs.)
+					var dw: WeakRef = weakref(dv)
+					var big := str(dv.get("uid")) == _boss_uid
+					get_tree().create_timer(UnitView.PROOF_S).timeout.connect(func() -> void:
+						var d: Node2D = dw.get_ref()
+						if d and is_instance_valid(_blots):
+							_blots.call("blot", d, 1.4 if big else 1.0))
 				var dp: Node = _portraits.get(str(ev.unit))
 				if dp:
 					dp.call("set_dead")
@@ -1244,74 +1289,116 @@ func _apply(ev: Dictionary) -> void:
 			_on_end(str(ev.winner))
 
 
+## A blow landing, printed (src/ui/battle/hit_plan.gd plans it): its number goes to the Galley; the
+## plan is carried out by _print_blow. A heroine's ultimate lands under her cut-in: one number per
+## target set big with the skill's key word; its contact crown is _on_ult_contact's, side targets
+## take a smaller one here.
 func _on_damage(ev: Dictionary) -> void:
 	var dst: Node2D = _views.get(str(ev.target))
 	if dst == null:
 		return
 	var src: Node2D = _views.get(str(ev.src))
+	var hp_before := int(dst.get("hp"))
 	dst.call("set_hp", int(ev.hp_after), int(ev.shield_after))
 	_sync_portrait(dst)
+	if str(ev.target) == _boss_uid and _boss_band:
+		_boss_band.call("set_hp", int(ev.hp_after), int(dst.get("max_hp")), true)
+	var uid := str(ev.target)
 	var amount := int(ev.amount)
 	var crit := bool(ev.get("crit", false))
 	var adv := bool(ev.get("advantage", false))
-	var ult := bool(ev.get("from_ultimate", false))
-	var dot := bool(ev.get("dot", false))
 	var on_ally := str(dst.get("side")) == "ally"
-	# Hits on echoes: paper type cut out of ink; hits on the team: ink type cut out of paper.
-	var col := NUM_INK if on_ally else NUM_PAPER
-	var edge := NUM_PAPER if on_ally else NUM_INK
-	var fs := 36
-	var weight := "compressed"
-	var text := Kit.format_num(amount)
-	if dot:
-		col = BP.SIG_HI
-		edge = NUM_INK
-		fs = 20
-		weight = "mono_bold"
-	elif bool(ev.get("execute", false)):
-		col = BP.SIG
-		edge = NUM_INK
-		fs = 46
-		text = "EXECUTE"
-	else:
-		if adv and not on_ally:
-			col = BP.SIG_HI
-		if crit:
-			col = BP.SIG
-			edge = NUM_INK if not on_ally else NUM_PAPER
-			fs = 50
-			text += "!"
-		if ult:
-			fs += 6
-	_float_text(dst, text, col, fs, 70.0 if not dot else 44.0, 0.0, Vector2(randf_range(-14.0, 14.0), 0), weight, edge)
-	if not dot:
+	if bool(ev.get("dot", false)):
+		_galley.call("dot", uid, amount)
+		var now_t := Time.get_ticks_msec()
+		if now_t - _tick_snd_at >= 250:
+			_tick_snd_at = now_t
+			UI.sfx("tick", randf_range(0.9, 1.1))
+		return
+	var ult := bool(ev.get("from_ultimate", false))
+	if ult and src != null and str(src.get("side")) == "ally":
+		_galley.call("hit", uid, amount, on_ally, crit, adv, _ult_word)
+		if bool(ev.get("execute", false)):
+			_galley.call("chip", uid, "EXECUTED", true)
 		dst.call("play_hit")
-		var at: Vector2 = _fx.to_local(dst.call("chest_global"))
-		var cut_in := ult and src != null and str(src.get("side")) == "ally"
-		if cut_in:
-			if str(ev.target) != _ult_main:
-				BattleFx.splash(_fx, at, BP.SIG, 150.0 * float(dst.get("depth_scale")), false)
-				UI.sfx("stamp", 1.15)
-		elif ult:
-			BattleFx.burst(_fx, at, _fx_color(src) if src else Kit.ACCENT_HI, 80.0, 10)
-		elif src and str(src.call("attack_anim")) != "attack_ranged" and not bool(src.get("has_swing_vfx")):
-			BattleFx.slash(_fx, at, Color(1.0, 0.95, 0.85), str(src.get("side")) == "enemy", 64.0 * float(dst.get("depth_scale")))
-		UI.sfx("hit")
-		if cut_in:
-			_hit_stop(0.08)
-		elif ult:
-			_shake(11.0)
-			_hit_stop(0.1)
-		elif crit:
-			_shake(7.0)
-			_hit_stop(0.07)
-			# Against the Champion the whole team crits all the time: no flash, or the screen strobes.
-			if _mode != "champion":
-				_screen_flash(Color(1, 0.95, 0.8), 0.22)
+		if uid != _ult_main:
+			BattleFx.splash(_fx, _fx.to_local(dst.call("chest_global")), BP.SIG, 150.0 * float(dst.get("depth_scale")), false)
+			UI.sfx("stamp", 1.15)
+		_hit_stop(0.08)
+		return
+	var kind := "melee"
+	if src:
+		var anim := str(src.call("attack_anim"))
+		var spr: Node = src.get("sprite")
+		if anim == "attack_ranged":
+			kind = "ranged"
+		elif anim == "attack_thrust":
+			kind = "thrust"
+		elif spr and str(spr.get("role")) == "assassin":
+			kind = "assassin"
+	var execute := bool(ev.get("execute", false))
+	var kill := int(ev.hp_after) <= 0
+	var hit := {"kind": kind, "on_ally": on_ally, "crit": crit or execute or ult, "adv": adv, "kill": kill,
+		"last_foe": kill and not on_ally and _foes_standing() == 0, "heavy_bp": amount * 10000 / maxi(int(dst.get("max_hp")), 1),
+		"absorbed": amount > 0 and hp_before == int(ev.hp_after), "dst_uid": uid,
+		"support": src != null and src.get("sprite") != null and str((src.get("sprite") as Node).get("role")) == "support"}
+	var plan := HitPlan.plan(hit, {"speed": _speed, "motion": Kit.motion_ok(), "champion": _mode == "champion",
+		"focus": src != null and str(ev.src) == _focus_uid, "now": Time.get_ticks_msec(), "gov": _hit_gov})
+	# Only the camera's heroine's crits get their own slab (one accent); the rest mark the tally.
+	var by_focus := src != null and str(ev.src) == _focus_uid
+	if by_focus and not on_ally:
+		_focus_foe = uid
+	_galley.call("hit", uid, amount, on_ally, crit, adv, "", bool(hit.absorbed), by_focus)
+	if execute:
+		_galley.call("chip", uid, "EXECUTED", true)
+	_print_blow(src, dst, plan, kind)
+
+
+## Foes still standing (hp above 0).
+func _foes_standing() -> int:
+	var n := 0
+	for k: String in _views:
+		var v: Node2D = _views[k]
+		if str(v.get("side")) != "ally" and int(v.get("hp")) > 0:
+			n += 1
+	return n
+
+
+## Carries out a blow's plan: the impression printed on a foe (an assassin's two cuts as an X), the
+## impact frame or an ink take (and the hit animation: on a heroine only for the blows she feels), the
+## knock, the stop, the camera's kick along the blow, the sounds (a press climbs 3% a blow on the same
+## foe, to +12%) and the haptic. Nothing is printed on a heroine.
+func _print_blow(src: Node2D, dst: Node2D, plan: Dictionary, kind: String) -> void:
+	var to: Vector2 = dst.call("chest_global")
+	var from: Vector2 = src.call("chest_global") if src else to + Vector2(0, 200)
+	var dir := (to - from).normalized() if to.distance_to(from) > 1.0 else Vector2.UP
+	var on_ally := str(dst.get("side")) == "ally"
+	var src_uid := str(src.get("uid")) if src else ""
+	if not on_ally:
+		_press.call("impress", dst, plan, dir, Vector2.ZERO, src_uid, kind == "assassin")
+	if bool(plan.get("react", true)):
+		dst.call("play_hit")
+	if int(plan.flip) > 0:
+		dst.call("impact", int(plan.flip), plan.flip_dark, plan.flip_light)
+	elif bool(plan.jolt):
+		dst.call("impact", 2, HitPlan.INK, HitPlan.PAPER, 0.25)
+	dst.call("knock", dir, float(plan.knock) + (6.0 if bool(plan.jolt) else 0.0), 1.0 if on_ally else 0.98)
+	if float(plan.stop) > 0.0:
+		_hit_stop(float(plan.stop))
+	_kick(dir, maxf(float(plan.kick), float(plan.thump)))
+	var hits := int(_galley.call("hits_on", str(dst.get("uid"))))
+	for snd: Array in plan.sounds:
+		var nm := str(snd[0])
+		var pitch := float(snd[1])
+		if nm == "press" or nm == "splat":
+			pitch *= (1.0 + 0.03 * clampi(hits - 1, 0, 4)) * randf_range(0.97, 1.03)
+		if float(snd[3]) > 0.0:
+			var db := float(snd[2])
+			get_tree().create_timer(float(snd[3])).timeout.connect(func() -> void: UI.sfx(nm, pitch, db))
 		else:
-			_shake(2.5)
-	if str(ev.target) == _boss_uid and _boss_band:
-		_boss_band.call("set_hp", int(ev.hp_after), int(dst.get("max_hp")), true)
+			UI.sfx(nm, pitch, float(snd[2]))
+	if not (plan.haptic as Array).is_empty():
+		UI.haptic(int(plan.haptic[0]), float(plan.haptic[1]))
 
 
 ## Freeze the display clock and every rig for `secs` (real time) on a big hit.
@@ -1404,30 +1491,15 @@ func _screen_flash(col: Color, peak: float) -> void:
 
 
 ## Effects the hero animations ask for (animation events named "vfx_<kind>").
-func _on_vfx(kind: String, pos: Vector2, facing: int, v: Node2D) -> void:
-	var at := _fx.to_local(pos)
-	var col := _fx_color(v)
-	var k := float(v.get("depth_scale"))
+## The swing's swish is heard here; what lands is printed by the blow (_on_damage). Only the
+## victory's sparkle still draws (a support's cast sparkles too, but mid-fight its heal is the slip).
+func _on_vfx(kind: String, pos: Vector2, _facing: int, v: Node2D) -> void:
 	match kind:
-		"slash":
-			BattleFx.slash(_fx, at, Color(1.0, 0.95, 0.85), facing < 0, 62.0 * k)
-		"thrust":
-			BattleFx.slash(_fx, at, Color(1.0, 0.95, 0.85), facing < 0, 44.0 * k)
-		"bolt":
-			BattleFx.burst(_fx, at, col, 26.0 * k, 4)
-		"burst":
-			BattleFx.burst(_fx, at, col, 72.0 * k, 10)
-		"charge":
-			BattleFx.burst(_fx, at, col, 44.0 * k, 6)
+		"slash", "thrust":
+			UI.sfx("brush", -1.0, 0.0 if str(v.get("uid")) == _focus_uid else -6.0)
 		"sparkle":
-			BattleFx.burst(_fx, at, Kit.GOLD_LIGHT, 34.0 * k, 6)
-		"dissolve":
-			BattleFx.burst(_fx, at, Color("b48cff"), 80.0 * k, 12)
-
-
-## Floating-number lifetime factor for the current battle speed.
-func _life() -> float:
-	return 1.0 / sqrt(float(_speed))
+			if _phase != "fight":
+				BattleFx.burst(_fx, _fx.to_local(pos), Kit.GOLD_LIGHT, 34.0 * float(v.get("depth_scale")), 6)
 
 
 func _sync_portrait(v: Node2D) -> void:
@@ -1444,44 +1516,10 @@ func _lunge_point(src: Node2D, dst: Node2D) -> Vector2:
 	return a + (b - a) * (0.16 if str(src.get("side")) == "ally" else 0.3)
 
 
-## Spawn point for a floating number over a unit. Numbers that land on the same unit in
-## quick succession fan out (up and to alternating sides) instead of piling up; _num_n is
-## the slot used (0-3).
-func _num_pos(v: Node2D) -> Vector2:
-	var uid := str(v.get("uid"))
-	var now := Time.get_ticks_msec()
-	var st: Array = _num_stack.get(uid, [0, 0])
-	var n := int(st[1]) + 1 if now - int(st[0]) < 320 else 0
-	_num_stack[uid] = [now, n % 4]
-	_num_n = n % 4
-	return v.call("head_global") - _numbers.global_position + NUM_FAN[_num_n]
-
-
-## A floating number or status word over unit `v`, kept below the HUD: when it would rise
-## into the top bar (top-row enemies on short screens) it starts lower, and its fan slot
-## stacks downward instead.
-func _float_text(v: Node2D, text: String, col: Color, fs: int, rise: float, delay: float = 0.0, extra: Vector2 = Vector2.ZERO,
-		weight: String = "compressed", edge: Color = NUM_INK) -> void:
-	var pos := _num_pos(v) + extra
-	var lo := _hud_bottom() + 8.0 + fs * 0.75 + rise
-	if pos.y < lo:
-		pos.y = lo + _num_n * 30.0 + maxf(extra.y, 0.0)
-	pos.x = clampf(pos.x, 70.0, size.x - 70.0)
-	BattleFx.number(_numbers, pos, text, col, fs, rise, delay, _life(), weight, edge)
-
-
-## Bottom edge of the top strip (and the boss band) in the numbers layer's space.
+## Bottom edge of the top strip (and the boss band) in the numbers' (Galley's) space.
 func _hud_bottom() -> float:
 	var b := UI.safe_top() + TOP_H + (BOSS_H if _boss_uid != "" else 0.0)
-	return b - _numbers.global_position.y
-
-
-func _fx_color(v: Node2D) -> Color:
-	if v == null:
-		return Kit.ACCENT_HI
-	if str(v.get("side")) == "enemy":
-		return Color("b48cff")
-	return HeroArt.faction_color(str(v.get("faction"))).lightened(0.3)
+	return b - _galley.global_position.y
 
 
 # ------------------------------------------------------------------ ultimates
@@ -1491,10 +1529,15 @@ func _start_ult(ev: Dictionary) -> void:
 	if v == null or v.get("dead"):
 		return
 	if str(v.get("side")) == "ally":
-		_start_cutin(v, ev)
-		return
-	# A foe's (echo's) ultimate: its band over the frozen field. Its wind-up plays during the hold,
-	# faster than the heroines' cut-ins, so the player's own get the bigger moment.
+		if _cutin_mode() != "hand" or _ult_by_hand.has(str(ev.src)):
+			_start_cutin(v, ev)
+			return
+		# Cut-ins only by hand: an auto cast plays on the field under her band, like a foe's.
+		_ult_main = ""
+		_ult_word = UltCutin._key_word(str(ev.get("skill_name", "Ultimate")))
+	# A foe's (echo's) ultimate, or a heroine's auto cast with cut-ins only by hand: a band over the
+	# frozen field. The wind-up plays during the hold, faster than a cut-in, so the big moment stays
+	# the cut-in's.
 	var cs := minf(float(_speed), 2.0) * 1.6
 	var hit_s: float = float(v.get("ult_hit_s"))
 	var d := (hit_s if hit_s > 0.0 else ULT_HIT_S) / cs
@@ -1515,7 +1558,7 @@ func _start_ult(ev: Dictionary) -> void:
 	_dim_target = 0.4
 	var c: Control = UltCinematic.new()
 	_overlay.add_child(c)
-	c.call("play", str(v.get("hero_id")), str(ev.get("skill_name", "Ultimate")), false, d + 0.12)
+	c.call("play", str(v.get("hero_id")), str(ev.get("skill_name", "Ultimate")), str(v.get("side")) == "ally", d + 0.12)
 	UI.sfx("ult")
 	UI.haptic(20)
 	_shake(4.0)
@@ -1543,7 +1586,8 @@ func _start_cutin(v: Node2D, ev: Dictionary) -> void:
 	v.call("play_ultimate", _lunge_point(v, tv) if tv else Vector2.INF)
 	_units.move_child(v, -1)
 	var step := int(ev.get("encore", 0))
-	var tier := "repeat" if step > 0 or (_cutin_shown.has(uid) and not _ult_by_hand.has(uid)) else "full"
+	var again := _cutin_shown.has(uid) and not _ult_by_hand.has(uid) and _cutin_mode() != "every"
+	var tier := "repeat" if step > 0 or again else "full"
 	_cutin_shown[uid] = true
 	_ult_by_hand.erase(uid)
 	var ct := get_viewport().get_canvas_transform()
@@ -1567,6 +1611,7 @@ func _start_cutin(v: Node2D, ev: Dictionary) -> void:
 	_hold_view = null
 	_ult_main = str(tv.get("uid")) if tv else ""
 	_ult_caster = v
+	_ult_word = UltCutin._key_word(str(ev.get("skill_name", "Ultimate")))
 	c.connect("contact", _on_ult_contact)
 	_encore_hero = hid
 	_encore_until = _display_ms + float(BattleSim.ENCORE_WINDOW_MS)
@@ -1575,6 +1620,13 @@ func _start_cutin(v: Node2D, ev: Dictionary) -> void:
 	var pr: Node = _portraits.get(uid)
 	if pr:
 		pr.set("queued", false)
+
+
+## The "cutins" setting: "every" cast, her "first" in a fight and every cast by hand (the default),
+## or only casts by "hand".
+func _cutin_mode() -> String:
+	var m := str(Game.setting("cutins")) if Game.setting("cutins") != null else "first"
+	return m if m in ["every", "first", "hand"] else "first"
 
 
 ## The cut-in's contact frame: the field comes back punched in on the target (its chest where the
@@ -1609,13 +1661,23 @@ func _on_ult_contact() -> void:
 	var sp: Node2D = tv.get("sprite")
 	if sp:
 		sp.call("two_tone", true, Color("141517"), Color("ff5c29"), 0.45)
+	# (Weak references: a lambda holding a freed node prints an error when it runs.)
+	var spw: WeakRef = weakref(sp)
+	var tvw: WeakRef = weakref(tv)
 	get_tree().create_timer(0.07).timeout.connect(func() -> void:
-		if is_instance_valid(sp):
-			sp.call("two_tone", false))
+		var s2: Node2D = spw.get_ref()
+		var t2: Node2D = tvw.get_ref()
+		# A target the blow killed holds her own death proof (UnitView.die).
+		if s2 and t2 and not bool(t2.get("dead")):
+			s2.call("two_tone", false))
 	get_tree().create_timer(0.08).timeout.connect(func() -> void:
 		if not is_inside_tree():
 			return
-		_shake(12.0)
+		var kd := Vector2.UP
+		var t3: Node2D = tvw.get_ref()
+		if is_instance_valid(_ult_caster) and t3:
+			kd = ((t3.call("chest_global") as Vector2) - (_ult_caster.call("chest_global") as Vector2)).normalized()
+		_kick(kd, 12.0)
 		var tw := create_tween()
 		tw.tween_property(_world, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 		_dim_target = 0.0
@@ -1642,8 +1704,13 @@ func _layout_order() -> void:
 	for uid: String in _views:
 		order.append(_views[uid])
 	order.sort_custom(func(a: Node2D, b: Node2D) -> bool: return a.position.y < b.position.y)
+	var foes := 0
 	for i in order.size():
 		_units.move_child(order[i], i)
+		if str((order[i] as Node2D).get("side")) != "ally":
+			foes = i + 1
+	if _press:
+		_units.move_child(_press, foes)
 	_units.move_child(_dim, -1)
 
 
@@ -1701,6 +1768,8 @@ func _skip() -> void:
 		return
 	var out := _sim.run_to_end()
 	_queue.clear()
+	_press.call("clear")
+	_galley.call("clear")
 	_hold = 0.0
 	_dim_target = 0.0
 	for c in _overlay.get_children():
@@ -1760,6 +1829,8 @@ func _on_end(winner: String) -> void:
 	_phase = "ending"
 	_phase_t = 0.0
 	_manual_hint.visible = false
+	# The cards' numbers draw above the strip (and so above the report): they go with the fight.
+	_galley.set("cards", {})
 	if _mode == "champion":
 		_souls_won = 0
 	if _souls and _souls_won < 0:
@@ -2089,16 +2160,77 @@ func _update_hud() -> void:
 		_timer_label.add_theme_color_override("font_color", BP.SIG)
 
 
+## A screen rect (canvas space) in the Galley's own space.
+static func _to_galley(inv: Transform2D, r: Rect2) -> Rect2:
+	var a := inv * r.position
+	var b := inv * r.end
+	return Rect2(Vector2(minf(a.x, b.x), minf(a.y, b.y)), (b - a).abs())
+
+
+## A haptic outside a blow (a shield, a debuff on a heroine), through the blows' governor.
+func _gov_haptic(ms: int, amp: float, gap: int) -> void:
+	var h := HitPlan.haptic(_hit_gov, Time.get_ticks_msec(), ms, amp, gap)
+	if not h.is_empty():
+		UI.haptic(int(h[0]), float(h[1]))
+
+
+## A jolt of the whole field (a foe's ultimate landing): a kick downward, a little off true.
 func _shake(amount: float) -> void:
-	_shake_amp = maxf(_shake_amp, amount)
-	_shake_t = 0.28
+	_kick(Vector2.DOWN.rotated(randf_range(-0.6, 0.6)), amount)
 
 
-func _update_shake(delta: float) -> void:
-	if _shake_t > 0.0:
-		_shake_t -= delta
-		var k := maxf(_shake_t, 0.0) / 0.28
-		_world.position = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * _shake_amp * k
-		if _shake_t <= 0.0:
-			_shake_amp = 0.0
-			_world.position = Vector2.ZERO
+## The camera's kick along a blow: the field knocked `px` along `dir` at once, springing back with
+## one overshoot (no random shake: the eye follows the hit).
+func _kick(dir: Vector2, px: float) -> void:
+	if px <= 0.0 or not Kit.motion_ok():
+		return
+	if px < _kick_pos.length():
+		return
+	_kick_pos = dir.normalized() * px
+	_kick_vel = Vector2.ZERO
+
+
+func _update_kick(delta: float) -> void:
+	if _kick_pos == Vector2.ZERO and _kick_vel == Vector2.ZERO:
+		return
+	# Sub-steps of at most 1/120 s: at 30 fps one Euler step of this stiff a spring would blow up.
+	var n := ceili(minf(delta, 0.1) * 120.0)
+	var dt := minf(delta, 0.1) / maxf(n, 1)
+	for _i in n:
+		_kick_vel += (-KICK_W * KICK_W * _kick_pos - 2.0 * KICK_Z * KICK_W * _kick_vel) * dt
+		_kick_pos += _kick_vel * dt
+	if _kick_pos.length() < 0.15 and _kick_vel.length() < 2.0:
+		_kick_pos = Vector2.ZERO
+		_kick_vel = Vector2.ZERO
+	_world.position = _kick_pos
+
+
+## The numbers' field (below the top strip, above the cards, clear of the tap hint) and the print
+## layers' pause while an ultimate holds the screen.
+func _sync_print_layers() -> void:
+	if _galley == null:
+		return
+	# Rects are built on the screen and mapped into the Galley (the world scales and kicks under it).
+	var inv := _galley.get_global_transform().affine_inverse()
+	var gt := get_global_transform()
+	var top := UI.safe_top() + TOP_H + (BOSS_H if _boss_uid != "" else 0.0) + 8.0
+	var strip := size.y - UI.safe_bottom() - BOTTOM_H
+	_galley.set("field", _to_galley(inv, gt * Rect2(12.0, top, maxf(size.x - 24.0, 10.0), maxf(strip - 8.0 - top, 10.0))))
+	_galley.set("card_area", _to_galley(inv, gt * Rect2(0.0, strip - 70.0, size.x, 70.0 + BOTTOM_H)))
+	var cards := {}
+	for uid: String in (_portraits if _phase == "fight" else {}):
+		var pc: Control = _portraits[uid]
+		if is_instance_valid(pc) and pc.is_visible_in_tree():
+			cards[uid] = _to_galley(inv, pc.get_global_rect())
+	_galley.set("cards", cards)
+	var keep: Array[Rect2] = []
+	if _tap_hint and is_instance_valid(_tap_hint) and _tap_hint.visible:
+		keep.append(_to_galley(inv, _tap_hint.get_global_rect()))
+	if _souls and _souls.visible:
+		keep.append(_to_galley(inv, _souls.get_global_transform() * (_souls.call("label_rect") as Rect2)))
+	_galley.set("blocked", keep)
+	_galley.set("speed", _speed)
+	_galley.set("focus_uid", _focus_foe)
+	var held := _hold > 0.0
+	_galley.set("paused", held)
+	_press.set("paused", held)

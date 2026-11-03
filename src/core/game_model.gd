@@ -2620,6 +2620,12 @@ func set_setting(key: String, value: Variant) -> void:
 			state.settings.battle_speed = v
 		"sound", "music", "haptics", "auto_ultimates", "nudity":
 			state.settings[key] = bool(value)
+		"cutins":
+			# How often a heroine's ultimate plays her cut-in: every cast, her first in a fight (and
+			# every cast by hand), or only casts by hand.
+			if not str(value) in ["every", "first", "hand"]:
+				return
+			state.settings.cutins = str(value)
 		"chapter_intro_seen":
 			# Highest chapter index whose story intro the player has seen (campaign screen).
 			state.settings[key] = maxi(int(value), int(state.settings.get(key, -1)))

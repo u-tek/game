@@ -4,7 +4,7 @@ shader_type canvas_item;
 // large draw with src/art/holo_foil.gdshader instead (the same skinning plus the holographic foil).
 #include "res://src/art/rig/rig_tint.gdshaderinc"
 #include "res://src/art/rig/warp_skin.gdshaderinc"
-global uniform float ui_linear;
+// (ui_linear is declared by rig_tint.gdshaderinc.)
 global uniform vec2 ui_tilt;
 #include "res://src/art/live_light.gdshaderinc"
 

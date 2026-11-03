@@ -1,10 +1,21 @@
 extends Node2D
 ## One battle unit on the field: the animated HeroSprite plus its overhead readout (style v4: a
 ## printed paper tag with HP and a trailing damage chip, a tick ruler, shield and energy), status
-## chips, stun stars and a printed range ring on the ground. Feet at the origin.
+## chips and a printed range ring on the ground. Feet at the origin.
 ## The battle screen feeds it display-time values from sim events; it never reads the sim.
+## A blow's reaction (src/ui/battle/hit_plan.gd): an impact frame (her figure printed in two inks for
+## a couple of drawn frames, at her own cut point), a knock (a spring along the blow), an ink dip
+## instead of a white flash. A fallen echo holds a two-tone proof, then her print lifts off as
+## halftone dots, lights first; a fallen heroine settles into her red halftone print and stays.
 
 const BattleFxRef := preload("res://src/ui/battle/battle_fx.gd")
+const UltCutinRef := preload("res://src/ui/battle/ult_cutin.gd")
+## The knock's spring (rad/s, damping ratio): one overshoot, settled in about 0.2 s.
+const KNOCK_W := 38.0
+const KNOCK_Z := 0.55
+## A fallen echo: the proof holds PROOF_S, then the dots lift off in DOTS_LIFT_S.
+const PROOF_S := 0.16
+const DOTS_LIFT_S := 0.42
 const STATUS_ICONS := {
 	"stun": "star", "burn": "faction_infernal", "regen": "stat_hp", "taunt": "role_guardian",
 	"atk_up": "stat_atk", "atk_down": "stat_atk", "def_up": "stat_def", "def_down": "stat_def",
@@ -59,6 +70,20 @@ var _icon_cache := {}
 var _bars_alpha := 1.0
 ## Bar opacity while the body is away from its spot (attack lunges).
 var _lunge_k := 1.0
+## Her two-tone cut point (UltCutin._cut_point, found a beat into the fight; -1 until then).
+var _cut := -1.0
+var _skin := ""
+## The impact frame shows until this time (_t, seconds; -1 = none): time, not drawn frames, so it
+## lasts as long on a 120 Hz phone as in a 30 fps capture.
+var _flip_until := -1.0
+var _knock := Vector2.ZERO
+var _knock_v := Vector2.ZERO
+var _knock_px := 0.0
+var _knock_s := 1.0
+var _base_scale := 1.0
+## Seconds since she fell (-1 alive).
+var _death_t := -1.0
+var _death_cell := 14.0
 
 
 ## bars_layer: a Node2D drawn above every sprite (same transform as this node's parent);
@@ -78,10 +103,16 @@ func setup(u: Dictionary, k: float, facing: int, echo: bool, bars_layer: Node2D)
 	depth_scale = k
 	home_facing = facing
 	# The player's heroes wear their equipped skin; enemies (campaign echoes) keep the base look.
-	sprite = HeroArt.make_sprite(hero_id, Game.equipped_skin(hero_id) if side == "ally" else "")
+	_skin = Game.equipped_skin(hero_id) if side == "ally" else ""
+	sprite = HeroArt.make_sprite(hero_id, _skin)
 	sprite.set("holo", false)    # the Legendary foil is for the big portraits, not the battlefield
 	add_child(sprite)
 	sprite.scale = Vector2(k, k)
+	# A blow is an ink dip, not a white flash: a faint one on a heroine (only blows she feels make
+	# her react at all: HitPlan), a harder take on foes.
+	sprite.set("flash_color", INK)
+	sprite.set("flash_peak", 0.1 if side == "ally" else 0.4)
+	sprite.set("flash_decay", 8.3 if side == "ally" else 12.5)
 	sprite.call("set_facing", facing)
 	if echo:
 		sprite.call("set_echo", true)
@@ -171,8 +202,52 @@ func body_offset() -> Vector2:
 	return Vector2.ZERO
 
 
+## Her height on the field (the unit's own pixels).
+func body_height() -> float:
+	return _head_h
+
+
+## Her overhead paper tag, in her parent's space (the numbers dock on it).
+func tag_rect() -> Rect2:
+	var w := BAR_W * (1.35 if is_boss else 1.0) * clampf(depth_scale, 0.85, 1.05)
+	var y := -_head_h - 32.0
+	var x0 := -w * 0.5 + 12.0
+	return Rect2((_bars.position if _bars else position) + Vector2(x0 - 22.0, y - 4.0), Vector2(w - 10.0 + 26.0, 27.0))
+
+
+## The impact frame: her figure in two inks (`dark` her shadows, `light` her lights, cut at her own
+## mid-tone) for `frames` beats of 30 ms (2: 60 ms, 3: 90 ms); `strength` below 1 only leans her
+## toward them (a jolt).
+func impact(frames: int, dark: Color, light: Color, strength: float = 1.0) -> void:
+	if dead or frames <= 0 or sprite == null:
+		return
+	if _cut < 0.0:
+		_cut = UltCutinRef._cut_point(hero_id, _skin)
+	sprite.call("two_tone", true, dark, light, _cut, strength)
+	_flip_until = _t + 0.03 * frames
+
+
+## The knock: her body pushed `px` along `dir` (and scaled by `scale_k` at the peak), springing back.
+func knock(dir: Vector2, px: float, scale_k: float = 1.0) -> void:
+	if dead or px <= 0.0 or sprite == null:
+		return
+	if _knock_px <= 0.0:
+		# The field's layout sizes her (battle_screen): the knock scales from whatever she is now.
+		_base_scale = absf(sprite.scale.y)
+	_knock = dir.normalized() * px
+	_knock_v = Vector2.ZERO
+	_knock_px = px
+	_knock_s = scale_k
+
+
 func chest_global() -> Vector2:
 	return to_global(body_offset() + Vector2(0, -_head_h * 0.55))
+
+
+## Her chest at her spot, not where a lunge has carried her (prints land here: a foe mid-lunge is
+## behind the heroine she charges, and her print must not land on the heroine).
+func chest_home_global() -> Vector2:
+	return to_global(Vector2(0, -_head_h * 0.55))
 
 
 func head_global() -> Vector2:
@@ -230,7 +305,9 @@ func set_spotlit(on: bool) -> void:
 		return
 	spotlit = on
 	if sprite:
+		var a := sprite.modulate.a
 		sprite.modulate = Color(1.1, 1.08, 1.02) if on else Color.WHITE
+		sprite.modulate.a = a
 	queue_redraw()
 
 
@@ -282,8 +359,24 @@ func die() -> void:
 	sprite.call("play_death")
 	var tw := create_tween()
 	tw.tween_property(self, "_bars_alpha", 0.0, 0.25)
-	tw.tween_interval(1.1)
-	tw.tween_property(sprite, "modulate:a", 0.0, 0.5)
+	if _cut < 0.0:
+		_cut = UltCutinRef._cut_point(hero_id, _skin)
+	var rp: Variant = sprite.get("rig")
+	var rs := absf((rp as Node2D).get_global_transform().get_scale().y) if rp is Node2D else 0.3
+	# The dots' pitch: 10 screen pixels on a foe, 8 on a heroine, in rig pixels.
+	_death_cell = (8.0 if side == "ally" else 10.0) / maxf(rs, 0.01)
+	_flip_until = -1.0
+	# The halftone rides the warp mesh's rest pose; a cutout rig (the silhouette fallback) just fades.
+	var data: Variant = (rp as Node).get("rig") if rp is Node else null
+	if not (data is Object and "kind" in data and str(data.get("kind")) == "warp"):
+		var ft := create_tween()
+		ft.tween_interval(PROOF_S)
+		ft.tween_property(sprite, "modulate:a", 0.35 if side == "ally" else 0.0, 0.4)
+		return
+	_death_t = 0.0
+	if not Kit.motion_ok():
+		return
+	sprite.call("two_tone", true, INK, SIG if side == "ally" else PAPER, _cut)
 
 
 ## Instantly shows the final state after a Skip.
@@ -308,6 +401,28 @@ func _exit_tree() -> void:
 
 func _process(delta: float) -> void:
 	_t += delta
+	if _cut < 0.0 and _t > 0.3 + slot * 0.12 + (0.6 if side == "enemy" else 0.0):
+		# Baked (tools/art_cuts.py), so this is a lookup; spread out in case it falls back to a scan.
+		_cut = UltCutinRef._cut_point(hero_id, _skin)
+	if _flip_until >= 0.0 and _t >= _flip_until and not dead:
+		_flip_until = -1.0
+		sprite.call("two_tone", false)
+	if _knock_px > 0.0:
+		# Sub-steps of at most 1/120 s (one Euler step at 30 fps would blow this spring up).
+		var n := ceili(minf(delta, 0.1) * 120.0)
+		var dt := minf(delta, 0.1) / maxf(n, 1)
+		for _i in n:
+			_knock_v += (-KNOCK_W * KNOCK_W * _knock - 2.0 * KNOCK_Z * KNOCK_W * _knock_v) * dt
+			_knock += _knock_v * dt
+		var kk := clampf(_knock.length() / _knock_px, 0.0, 1.0)
+		sprite.position = _knock
+		sprite.scale = Vector2(signf(sprite.scale.x), 1.0) * _base_scale * lerpf(1.0, _knock_s, kk)
+		if _knock.length() < 0.2 and _knock_v.length() < 2.0:
+			_knock_px = 0.0
+			sprite.position = Vector2.ZERO
+			sprite.scale = Vector2(signf(sprite.scale.x), 1.0) * _base_scale
+	if _death_t >= 0.0:
+		_step_death(delta)
 	# The bars lean only a little with attack lunges and fade while the body is far from its
 	# spot, so units bunching up mid-fight never stack their bars into an unreadable pile.
 	var off := body_offset()
@@ -322,7 +437,7 @@ func _process(delta: float) -> void:
 		_bars.queue_redraw()
 	elif _chip < frac:
 		_chip = frac
-	if statuses.has("stun") or energy >= 1000 or (_bars_alpha > 0.0 and _bars_alpha < 1.0):
+	if energy >= 1000 or (_bars_alpha > 0.0 and _bars_alpha < 1.0):
 		_bars.queue_redraw()
 
 
@@ -405,23 +520,43 @@ func _draw_bars() -> void:
 			var pts := PackedVector2Array([tp + Vector2(-5, 3), tp + Vector2(5, 3), tp + Vector2(0, -5)]) if up else PackedVector2Array([tp + Vector2(-5, -3), tp + Vector2(5, -3), tp + Vector2(0, 5)])
 			_bars.draw_colored_polygon(pts, Color(INK if up else SIG, a))
 		ix += 26.0
-	# Stun: little signal stars circling the head.
-	if statuses.has("stun") and not dead:
-		var hc2 := Vector2(0, y + 44)
-		for i in 3:
-			var ang := _t * 5.0 + TAU * i / 3.0
-			var p := hc2 + Vector2(cos(ang) * 30.0, sin(ang) * 9.0)
-			_draw_star(p, 8.0, Color(INK, a))
-			_draw_star(p, 6.0, Color(SIG, a))
 
 
-func _draw_star(c: Vector2, r: float, col: Color) -> void:
-	var pts := PackedVector2Array()
-	for i in 10:
-		var ang := -PI * 0.5 + TAU * i / 10.0
-		var rr := r if i % 2 == 0 else r * 0.45
-		pts.append(c + Vector2(cos(ang), sin(ang)) * rr)
-	_bars.draw_colored_polygon(pts, col)
+## A fallen unit's print. An echo: the two-tone proof holds, then her figure turns to paper dots that
+## shrink away, the lights first, and she is gone. A heroine: ink and signal for a beat, then she
+## settles into her red halftone print (her poster band's) at 40%, sunk a little, and stays on the
+## line. Reduce motion: plain crossfades.
+func _step_death(delta: float) -> void:
+	var was := _death_t
+	_death_t += delta
+	var t := _death_t
+	var calm := not Kit.motion_ok()
+	if side == "ally":
+		# Her ink dots at 35%: she stays on the line, quiet (the signal stays the camera's).
+		if was < 0.05 and t >= 0.05 and not calm:
+			sprite.call("two_tone", false)
+		if t >= 0.05 or calm:
+			var k := clampf((t - (0.0 if calm else 0.05)) / 0.5, 0.0, 1.0)
+			sprite.call("halftone", k, INK, _death_cell, 0.0)
+			sprite.modulate.a = lerpf(1.0, 0.35, k)
+			if not calm:
+				sprite.position.y = 8.0 * k
+		if t > 0.6:
+			_death_t = -1.0
+		return
+	var proof := 0.0 if calm else PROOF_S
+	if was < proof and t >= proof and not calm:
+		sprite.call("two_tone", false)
+	if t >= proof:
+		var k := clampf((t - proof) / (0.3 if calm else DOTS_LIFT_S), 0.0, 1.0)
+		if calm:
+			sprite.call("halftone", k, PAPER, _death_cell, 0.0)
+			sprite.modulate.a = 1.0 - clampf((t - 0.3) / 0.3, 0.0, 1.0)
+		else:
+			sprite.call("halftone", 1.0, PAPER, _death_cell, k)
+	if t >= proof + (0.6 if calm else DOTS_LIFT_S):
+		sprite.visible = false
+		_death_t = -1.0
 
 
 func _status_tex(st: String) -> Texture2D:

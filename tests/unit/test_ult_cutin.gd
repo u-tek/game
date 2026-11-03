@@ -2,7 +2,8 @@ extends RefCounted
 ## A heroine's ultimate cut-in (src/ui/battle/ult_cutin.gd) and what it stands on: its beats in
 ## order and short enough to play ten times a fight, its contact at each battle speed, her
 ## performance (anim warp/ult_cutin) keyed to the same impact beat, no white wash left on any
-## ultimate, the two-tone print that switches back to her own look (an echo's violet included).
+## ultimate, the two-tone print that switches back to her own look (an echo's violet included), the
+## "cutins" setting (every cast / her first and by hand / by hand only).
 
 const UltCutin := preload("res://src/ui/battle/ult_cutin.gd")
 
@@ -81,3 +82,27 @@ func test_two_tone_switches_back(t: TestCtx) -> void:
 	t.near(float(tint.get(&"desat", 0.0)), 0.5, 0.001, "off: the echo's grey back")
 	t.near(float(tint.get(&"shade", 0.0)), 0.7, 0.001, "off: the echo's violet back")
 	spr.free()
+
+
+func test_cutins_setting(t: TestCtx) -> void:
+	var g: Node = load("res://src/core/game.gd").new()
+	g.save_path = ""
+	g.tz_bias_ms = 0
+	g.now_override_ms = 1_702_083_600_000
+	g.new_game()
+	t.eq(g.setting("cutins"), null, "a new save has no choice (the battle reads it as 'first')")
+	g.set_setting("cutins", "hand")
+	t.eq(str(g.setting("cutins")), "hand", "by hand only")
+	g.set_setting("cutins", "sometimes")
+	t.eq(str(g.setting("cutins")), "hand", "an unknown value is refused")
+	g.free()
+
+
+func test_cut_points_are_baked(t: TestCtx) -> void:
+	# tools/art_cuts.py writes them; a fight never reads a painting back from the GPU.
+	var d: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://assets/art/heroes/cuts.json"))
+	t.ok(d is Dictionary and (d as Dictionary).size() > 0, "cuts.json")
+	var id := str(HeroData.all()[0].id)
+	var cut := UltCutin._cut_point(id, "")
+	t.ok(UltCutin._baked.has(RigData.file_base(id, HeroArt._built_art(id, "")).trim_prefix("res://assets/art/heroes/")), "%s's base art is baked" % id)
+	t.ok(cut >= 0.25 and cut <= 0.7, "within its range")

@@ -10,13 +10,18 @@ extends RefCounted
 ## of a thermal printer) and tear (torn off); a won battle's photo finish adds shutter;
 ## a level up's counter adds clack (a digit's drum turning over); a heroine's ultimate cut-in adds
 ## ult_in (the cut: a paper snap on a thump), ult_rise (the wind-up, cut dead into the crack),
-## ult_crack (the impact frame) and ult_boom (the hit landing on the field).
+## ult_crack (the impact frame) and ult_boom (the hit landing on the field); a battle's printed hits
+## (src/ui/battle/press_layer.gd) add press (a platen's thunk: a blow printing), brush (the swing's
+## swish), flick (a shot of ink leaving the hand), splat (it landing), tick (a type-bar tick: a burn
+## or regen line), peel (a fallen echo's print lifting off), brayer (a rubber roller: a heal) and
+## foil (a crinkle: a shield).
 
 const RATE := 22050
 const NAMES: Array[String] = ["tap", "tab", "pop", "deny", "toggle", "coin", "sparkle", "close", "hit", "reward",
 	"ult", "summon", "victory", "defeat", "legendary",
 	"portal", "tell", "tell_big", "burst", "reveal", "riser", "beat", "slam", "stamp", "pulse", "rustle",
-	"printer", "tear", "shutter", "clack", "ult_in", "ult_rise", "ult_crack", "ult_boom"]
+	"printer", "tear", "shutter", "clack", "ult_in", "ult_rise", "ult_crack", "ult_boom",
+	"press", "brush", "flick", "splat", "tick", "peel", "brayer", "foil"]
 
 
 ## Builds the stream for `sound_name` (null if unknown).
@@ -91,6 +96,22 @@ static func make(sound_name: String) -> AudioStreamWAV:
 			s = _ult_crack()
 		"ult_boom":
 			s = _ult_boom()
+		"press":
+			s = _press()
+		"brush":
+			s = _brush()
+		"flick":
+			s = _flick()
+		"splat":
+			s = _splat()
+		"tick":
+			s = _tick(0.025, 3500.0, 400.0, 0.7, 0.5, 61)
+		"peel":
+			s = _peel()
+		"brayer":
+			s = _brayer()
+		"foil":
+			s = _foil()
 		_:
 			return null
 	# The cut-in's riser stops dead on the crack: no tail fade.
@@ -712,4 +733,122 @@ static func _ult_boom() -> PackedFloat32Array:
 		b[i] = (sin(ph) + 0.4 * sin(ph * 2.0) + 0.2 * sin(ph * 3.0)) * exp(-t * 4.5) * 0.85
 	_noise_into(b, 0.0, 0.18, 0.65, 431, 0.45, 0.08, 1.6, false)
 	_noise_into(b, 0.05, 0.7, 0.18, 433, 0.03, 0.01, 1.2, false)
+	return b
+
+
+## A blow printing: a platen's thunk falling 110 -> 60 Hz, the paper slapped (a short high-passed
+## burst) and a tiny 2.2 kHz click where the type bites.
+static func _press() -> PackedFloat32Array:
+	var dur := 0.16
+	var b := _buf(dur)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 97
+	var lp := 0.0
+	var ph := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		ph += TAU * (60.0 + 50.0 * exp(-t * 40.0)) / RATE
+		var thunk := (sin(ph) + 0.4 * sin(ph * 2.0) + 0.2 * sin(ph * 3.0)) * exp(-t * 40.0) * minf(1.0, t * 900.0)
+		var n := rng.randf_range(-1.0, 1.0)
+		lp += (n - lp) * 0.25
+		var slap := (n - lp) * exp(-t * 170.0) * 0.6 if t < 0.018 else 0.0
+		var click := sin(TAU * 2200.0 * t) * exp(-t * 900.0) * 0.3 if t < 0.004 else 0.0
+		b[i] = thunk * 0.75 + slap + click
+	return b
+
+
+## The swing: a 90 ms swish, noise swept up a band from 1.2 to 4 kHz and back.
+static func _brush() -> PackedFloat32Array:
+	var dur := 0.09
+	var b := _buf(dur)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 131
+	var lp := 0.0
+	var lp2 := 0.0
+	for i in b.size():
+		var k := float(i) / b.size()
+		var n := rng.randf_range(-1.0, 1.0)
+		# A moving band: two one-pole low-passes, their difference a crude band-pass.
+		var a := lerpf(0.3, 0.75, sin(k * PI))
+		lp += (n - lp) * a
+		lp2 += (lp - lp2) * a * 0.35
+		b[i] = (lp - lp2) * sin(k * PI) * 0.8
+	return b
+
+
+## Ink leaving the hand: a wet tsk, a 50 ms noise burst through a rising resonance.
+static func _flick() -> PackedFloat32Array:
+	var dur := 0.06
+	var b := _buf(dur)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 151
+	var y1 := 0.0
+	var y2 := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		var f := 900.0 + 2600.0 * t / dur
+		var r := 0.96
+		var c := 2.0 * r * cos(TAU * f / RATE)
+		var x := rng.randf_range(-1.0, 1.0) * exp(-t * 60.0)
+		var y := x + c * y1 - r * r * y2
+		y2 = y1
+		y1 = y
+		b[i] = y * 0.08
+	return b
+
+
+## It lands: a low squelch, noise low-passed over a sine falling 180 -> 90 Hz.
+static func _splat() -> PackedFloat32Array:
+	var dur := 0.12
+	var b := _buf(dur)
+	var ph := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		ph += TAU * (90.0 + 90.0 * exp(-t * 30.0)) / RATE
+		b[i] = (sin(ph) + 0.3 * sin(ph * 2.0)) * exp(-t * 32.0) * 0.6 * minf(1.0, t * 800.0)
+	_noise_into(b, 0.0, 0.1, 0.55, 163, 0.18, 0.05, 1.8, false)
+	return b
+
+
+## A fallen echo's print lifting off: noise through a rising high-pass, a crackle in it.
+static func _peel() -> PackedFloat32Array:
+	var dur := 0.28
+	var b := _buf(dur)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 173
+	var lp := 0.0
+	for i in b.size():
+		var k := float(i) / b.size()
+		var n := rng.randf_range(-1.0, 1.0)
+		lp += (n - lp) * lerpf(0.05, 0.6, k)
+		var hp := n - lp
+		var crackle := rng.randf_range(-1.0, 1.0) * 0.9 if rng.randf() < 0.012 else 0.0
+		b[i] = (hp * 0.35 + crackle) * sin(k * PI) * (1.0 - k * 0.4)
+	return b
+
+
+## A heal: a soft rubber roller, low-passed noise rolling at 24 Hz.
+static func _brayer() -> PackedFloat32Array:
+	var dur := 0.2
+	var b := _buf(dur)
+	_noise_into(b, 0.0, dur, 0.9, 181, 0.06, 0.03, 1.0, false)
+	for i in b.size():
+		var t := float(i) / RATE
+		b[i] *= (0.55 + 0.45 * sin(TAU * 24.0 * t)) * sin(PI * t / dur)
+	return b
+
+
+## A shield: a foil crinkle, thirty high-passed clicks over 120 ms.
+static func _foil() -> PackedFloat32Array:
+	var dur := 0.13
+	var b := _buf(dur)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 191
+	for c in 30:
+		var i0 := int(rng.randf_range(0.0, 0.12) * RATE)
+		var amp := rng.randf_range(0.3, 1.0)
+		for j in 40:
+			if i0 + j >= b.size():
+				break
+			b[i0 + j] += rng.randf_range(-1.0, 1.0) * amp * exp(-float(j) / 6.0)
 	return b
