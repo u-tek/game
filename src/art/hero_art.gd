@@ -18,6 +18,9 @@ const FACTION_COLORS := {
 	"fallen": Color("8e6ce0"),
 }
 const FALLBACK := "_silhouette"
+## A heroine's layered rig (tools/layered/, docs/dev/halorig.md 11.4: arms, breasts, eyes, mouth and hair
+## that move) in skins/live/: her base look wherever it is built, in place of the single painting.
+const LIVE := "live"
 
 static var _tinted := {}
 ## Show adult (nude) art where it is installed (skins and the base look). Game sets it from the
@@ -63,9 +66,19 @@ static func has_adult_art(hero_id: String, skin_id: String = "") -> bool:
 	return art != "" and RigData.exists(hero_id, RigData.adult_art(art))
 
 
+static var _live := {}
+
+
+## True if the heroine's base look is her layered rig (skins/live/).
+static func is_live(hero_id: String) -> bool:
+	if not _live.has(hero_id):
+		_live[hero_id] = RigData.exists(hero_id, LIVE)
+	return bool(_live[hero_id])
+
+
 ## The built art to use (a RigData art string). Nudity on: the nude base look ("/adult") when it
 ## is built, else "" (the base art), whatever skin is equipped. Nudity off: the skin's art if its
-## rig exists, else "" (the base art or the silhouette).
+## rig exists, else her layered look (LIVE) where it is built, else "" (the base art or the silhouette).
 static func _built_art(hero_id: String, skin_id: String) -> String:
 	if nudity:
 		# The skin's own 18+ look where it is current, else her nude base look, else her base art.
@@ -76,7 +89,7 @@ static func _built_art(hero_id: String, skin_id: String) -> String:
 	var art := _skin_art(hero_id, skin_id)
 	if art != "" and RigData.exists(hero_id, art):
 		return art
-	return ""
+	return LIVE if is_live(hero_id) else ""
 
 
 ## What texture/portrait/make_sprite show for this hero and skin right now, as "<id>@<art>"

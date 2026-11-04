@@ -932,7 +932,7 @@ def build(hero, regen=False, check=False):
     por = img.crop((int(prect[0]), int(prect[1]), int(prect[0] + prect[2]), int(prect[1] + prect[3])))
     por.resize((PORTRAIT_PX, PORTRAIT_PX), Image.LANCZOS).save(os.path.join(hdir, out["portrait"]))
     write_import(os.path.join(hdir, out["portrait"]))
-    for sub in ("variants",):
+    for sub in ("variants", "st"):      # st/: a layered rig's source masks (tools/layered/), build input only
         p = os.path.join(hdir, sub)
         if os.path.isdir(p) and not os.path.exists(os.path.join(p, ".gdignore")):
             open(os.path.join(p, ".gdignore"), "w").close()

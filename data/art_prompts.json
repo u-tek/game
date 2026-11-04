@@ -517,7 +517,18 @@
    "negative_extra": "(blue archive:1.3), (loli:1.3), (child:1.3), (aged down:1.2), (teenage:1.2), (petite:1.2), (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2)",
    "variants": {
     "eyes_closed": "closed eyes, grin, confident",
-    "mouth_open": "blue eyes, open mouth, confident, teeth"
+    "mouth_open": "blue eyes, open mouth, confident, teeth",
+    "eyes_half": "blue eyes, narrowed eyes, eyes mostly closed, upper eyelids lowered over the top half of the irises, confident smile",
+    "mouth_small": "blue eyes, looking at viewer, slightly parted lips, small open mouth, talking",
+    "mouth_wide": "blue eyes, wide open mouth, shouting, excited, teeth"
+   },
+   "rig": {
+    "_doc": "The rig-ready pose (layered rig, 2026-11-04): eyes open for the blink frames, the lance upright at her side, nothing crossing her body.",
+    "natural": "A toned, curvy adult sky racer with makeup: a glossy azure and white racing leotard, highleg and thong-cut, with an underboob cutout and a navel window, chrome sun-sigil decals, racing gloves and white platform racing boots; a chrome wraparound shield visor pushed up into a high honey-blonde ponytail that falls behind her shoulders; pearl wings spread wide behind her, a thin chrome halo; her right hand holds a tall chrome aero lance with a frosted aqua blade upright at her side like a standard, its butt on the ground and its blade above her head; her left arm relaxed a little away from her side; eyes open, bright blue eyes looking at the viewer, a confident closed-mouth smile.",
+    "eyes": "blue eyes, looking at viewer",
+    "default_eyes": "open",
+    "expression": "confident smile, closed mouth",
+    "pose": "standing, front view, arms at sides, holding spear"
    },
    "adult": {"outfit": "nude, completely nude, bottomless, nipples", "natural": "Adult. Uriela nude: only her platform boots, halo, sunglasses and wings."},
    "brief_gaps": [

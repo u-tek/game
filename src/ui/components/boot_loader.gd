@@ -138,6 +138,10 @@ static func rig_files(id: String, look: String, still_only: bool = false) -> Arr
 		return out
 	if str(d.get("format", "")) == "halowarp":
 		out.append(dir + str(d.get("image", id + ".png")))
+		# a layered rig's pieces (version 2: arms, breasts, hair ...)
+		for lj: Variant in d.get("layers", []):
+			if lj is Dictionary and str((lj as Dictionary).get("image", "")) != "":
+				out.append(dir + str(lj["image"]))
 	for sj: Variant in d.get("slots", []):
 		if not (sj is Dictionary):
 			continue

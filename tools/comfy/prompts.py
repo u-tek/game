@@ -528,6 +528,12 @@ def _sentence_full_body(bible, fam, h, hero_id, bg, extra_tags, adult, pose=None
     subj = _sentence_subject(bible, h, adult)
     composition = fam.get("composition_rig_natural" if pose == "rig" else "composition_natural", "")
     style = fam.get("style_natural", "")
+    if pose == "rig" and fam.get("pin_up_natural"):
+        # the rig pose stands upright and symmetrical: an arched pin-up would bend the body the rig has to bend
+        style = style.replace(fam["pin_up_natural"], "standing tall with her chest out, showing off her whole body.")
+        # and a face the blink and talk frames can start from: eyes open, lips closed
+        style = style.replace("a hungry half-lidded bedroom gaze", "a hungry, inviting gaze with her eyes wide open")
+        style = style.replace("wet glossy parted lips", "wet glossy closed lips")
     if h.get("cover") and fam.get("outfit_natural") and fam.get("topless_natural"):
         # implied topless (After Dark pack, owner 2026-10-22: "no bra at all. and the hand/s would be covering the
         # nipples"): no micro top; the skin's hands, arm or hair cover her completely

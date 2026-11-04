@@ -153,6 +153,24 @@ func test_installed_skin_art_loads(t: TestCtx) -> void:
 	t.ok(built > 0, "some skin art is installed (assets/art/heroes/<id>/skins/)")
 
 
+## A heroine's layered rig (skins/live/) is her base look; a skin and 18+ mode still take over.
+func test_the_live_look_is_her_base(t: TestCtx) -> void:
+	HeroArt.nudity = false
+	t.ok(HeroArt.is_live("seraphiel"), "Seraphiel's layered rig is built")
+	t.eq(HeroArt.art_key("seraphiel"), "seraphiel@" + HeroArt.LIVE, "her base look is the layered rig")
+	var rd := RigData.load_rig("seraphiel", HeroArt.LIVE)
+	t.ok(rd != null, "it loads")
+	t.eq(HeroArt.art_key("seraphiel", "no_such_skin"), "seraphiel@" + HeroArt.LIVE, "an unknown skin keeps it")
+	for s: Dictionary in SkinData.for_hero("seraphiel"):
+		if HeroArt.has_skin_art("seraphiel", str(s["id"])):
+			t.eq(HeroArt.art_key("seraphiel", str(s["id"])), "seraphiel@" + str(s["art"]), "a built skin still wins")
+			break
+	HeroArt.nudity = true
+	t.ok(HeroArt.art_key("seraphiel") != "seraphiel@" + HeroArt.LIVE, "18+ mode shows her nude look, not the rig")
+	HeroArt.nudity = false
+	t.ok(not HeroArt.is_live("_silhouette"), "the fallback has no live look")
+
+
 func test_nudity_mode_drops_skins(t: TestCtx) -> void:
 	var g := _game()
 	g.new_game()

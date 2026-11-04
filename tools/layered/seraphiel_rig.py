@@ -9,7 +9,7 @@ What changed from make_rig.py (v1):
 - Back hair and drapes are two-bone chains (they wave instead of swinging stiffly).
 - Every layer's half-transparent edge takes the colour of its nearest solid pixel (no dark fringes).
 Reads st_canvas/*.png (st_to_canvas.py), the v1 rig folder's painting and variants, and the SAM masks
-(sam_cut.py: breast_r/l, hand_r/l in SCRATCH/sam). Writes assets/art/heroes/seraphiel/skins/rigproto2/.
+(sam_cut.py: breast_r/l, hand_r/l in SCRATCH/sam). Writes assets/art/heroes/seraphiel/skins/live/ (her shipped look since 2026-11-04).
 Usage: tools/layered/seraphiel_rig.py [sam dir]   (sam_cut.py's masks from seraphiel_sam.json: breast_r/l, hand_r/l;
        default <work>/sam)"""
 import json
@@ -30,7 +30,7 @@ SRC = os.path.join(ROOT, "art_src", "_review", "rigproto", "seraphiel")
 ST = os.path.join(SRC, "st_canvas")
 HEROES = os.path.join(ROOT, "assets", "art", "heroes", "seraphiel", "skins")
 V1 = os.path.join(HEROES, "rigproto")
-NAME = "rigproto2"
+NAME = "live"            # her shipped layered look (HeroArt.LIVE); the local prototype was rigproto2
 RIG = os.path.join(HEROES, NAME)
 SAM = sys.argv[1] if len(sys.argv) > 1 else os.path.join(SRC, "sam")     # sam_cut.py ... seraphiel_sam.json
 W, H = 1024, 2048
@@ -589,7 +589,7 @@ for rl, z in sorted(RIG_Z.items(), key=lambda t: t[1]):
 src = {
     "_doc": "Prototype layered rig v2 (2026-10-20): Seraphiel (MOSS rig pose, seed 101953) split by See-through, "
             "breasts and arms as their own layers, own weights per layer; tools/layered/seraphiel_rig.py. "
-            "Not shipped: a local prototype.",
+            "Her shipped look since 2026-11-04 (HeroArt.LIVE).",
     "version": 2, "cell": 10, "image": NAME + ".png", "origin": fmeta.get("origin", [512, 1990]), "texel_scale": 1.0,
     "portrait": [334, 692, 362], "look_px": [10, 6],
     "meta": {"weapon": "mic stand", "fx_color": "#bff6ff", "art": "moss s101953 rig pose, See-through layers, v2",

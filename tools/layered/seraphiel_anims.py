@@ -1,6 +1,6 @@
 """Seraphiel's own animations for the layered rig v2 (prototype, 2026-10-20).
 
-Writes assets/art/heroes/seraphiel/skins/rigproto2/anim/*.anim.json (the art's own set: RigAnim.find
+Writes assets/art/heroes/seraphiel/skins/live/anim/*.anim.json (the art's own set: RigAnim.find
 looks there first for this art only). Conventions as tools/art_anims.py: rotate in degrees, + =
 clockwise on screen; _r = her right = the viewer's left (the stand hand). Wings: + lifts the r wings
 (viewer's left), - lifts the l wings. "carry" (fx) 0 = the stand planted on its base and leaning to
@@ -17,7 +17,7 @@ ROOT = os.path.normpath(os.path.join(HERE, "..", ".."))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 from art_anims import Anim, keys  # noqa: E402
 
-OUT = os.path.join(ROOT, "assets", "art", "heroes", "seraphiel", "skins", "rigproto2", "anim")
+OUT = os.path.join(ROOT, "assets", "art", "heroes", "seraphiel", "skins", "live", "anim")
 # EO was expo_out: it dumps ~80% of a 4-frame move into its first frame (a pop); strikes use cubic_out
 S, CO, EO, BO, QI, CIO = "sine_in_out", "cubic_out", "cubic_out", "back_out", "quad_in", "cubic_in_out"
 QO = "quad_out"

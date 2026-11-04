@@ -269,8 +269,17 @@ static func _clamp_in(b: Rect2, area: Rect2) -> Rect2:
 
 # ------------------------------------------------------------------ drawing
 
+## Text sizes measured once (the galley lays out every frame; a tally's text only changes on a blow).
+var _sizes := {}
+
+
 func _num_size(text: String, fs: int, font: Font) -> Vector2:
-	return Vector2(font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x, fs * 0.92)
+	var key := "%d|%d|%s" % [font.get_instance_id(), fs, text]
+	if not _sizes.has(key):
+		if _sizes.size() > 512:
+			_sizes.clear()
+		_sizes[key] = Vector2(font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x, fs * 0.92)
+	return _sizes[key]
 
 
 func _draw() -> void:
