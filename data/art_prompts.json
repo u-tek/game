@@ -1226,7 +1226,7 @@
    "pose": "arm up, hand on headphones, arched back",
    "face": "black hair, pink hair, two-tone hair, high ponytail, demon horns, goggles on head",
    "natural": "A tall, lithe adult cyber-goth DJ demon in her late 20s with light brown skin: a black latex micro top under hot-pink criss-cross harness straps with chrome O-rings, a hot-pink PVC highleg thong bottom on O-ring hip straps, a bare midriff, fluffy black-and-pink faux-fur leg warmers over chunky black platform boots; one huge high ponytail of hot-pink and black synthetic hair falls, cyber goggles on her forehead, rhinestone face gems, glossy chrome horns, a spaded tail with a chrome tip, no wings; a chrome DJ deck slung on a strap at her hip, one hand pressing a headphone cup to her ear, the other raised high with a glossy red vinyl record; a mid-beat grin.",
-   "negative_extra": "(covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2), (impossible clothes:1.2), (petite:1.2), twintails, wings, (wings:1.3), (bat wings:1.3)",
+   "negative_extra": "(covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2), (impossible clothes:1.2), (petite:1.2), twintails, wings",
    "variants": {
     "eyes_closed": "closed eyes, grin, confident",
     "mouth_open": "pink eyes, open mouth, laughing, confident",
@@ -1235,8 +1235,8 @@
     "mouth_wide": "pink eyes, wide open mouth, shouting, excited, fangs"
    },
    "rig": {
-    "_doc": "The rig-ready pose (layered rig, 2026-11-04): eyes open for the blink frames, the DJ deck slung at her hip, the record in her right hand down at her side, the ponytail falling behind her, the tail out to one side; no wings.",
-    "natural": "A tall, lithe adult cyber-goth DJ demon with light brown skin: a black latex micro top under hot-pink criss-cross harness straps with chrome O-rings, a hot-pink PVC highleg thong bottom on O-ring hip straps, a bare midriff, fluffy black-and-pink faux-fur leg warmers over chunky black platform boots; one huge high ponytail of hot-pink and black synthetic hair falling behind her shoulder, cyber goggles on her forehead, big headphones round her neck, rhinestone face gems, glossy chrome horns, a spaded tail with a chrome tip curving out to one side; she has no wings; a chrome DJ deck slung on a strap at her left hip; her right hand holds a glossy red vinyl record down at her side, clear of her body; her left arm relaxed a little away from her side; eyes open, pink eyes looking at the viewer, a confident closed-mouth grin.",
+    "_doc": "The rig-ready pose (layered rig, 2026-11-04): eyes open for the blink frames, the DJ deck slung at her hip, the record in her right hand down at her side, the ponytail falling behind her, the tail out to one side. Her rig art has the pink bat wings and the fur-trimmed coat of her shipped painting (every MOSS try grew them; 2026-11-04).",
+    "natural": "A tall, lithe adult cyber-goth DJ demon with light brown skin: a black latex micro top under hot-pink criss-cross harness straps with chrome O-rings, a hot-pink PVC highleg thong bottom on O-ring hip straps, a bare midriff, fluffy black-and-pink faux-fur leg warmers over chunky black platform boots; one huge high ponytail of hot-pink and black synthetic hair falling behind her shoulder, cyber goggles on her forehead, big headphones round her neck, rhinestone face gems, glossy chrome horns, a spaded tail with a chrome tip curving out to one side; small pink bat wings; a chrome DJ deck slung on a strap at her left hip; her right hand holds a glossy red vinyl record down at her side, clear of her body; her left arm relaxed a little away from her side; eyes open, pink eyes looking at the viewer, a confident closed-mouth grin.",
     "eyes": "pink eyes, looking at viewer",
     "default_eyes": "open",
     "expression": "grin, closed mouth",
