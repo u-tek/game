@@ -513,7 +513,25 @@ func _apply() -> void:
 	elif shown:
 		_apply_camera(t)
 		_apply_poster(t)
+		_apply_light(t)
 	_beats(t)
+
+
+## Live Light (Pro phones): a stage light sweeps across her as she rises, drifts through the pose,
+## then whips round to her upper left on the coil, and lets go to the phone's tilt on the strike.
+func _apply_light(t: float) -> void:
+	if _sp == null or not bool(_sp.get("live")):
+		return
+	var sw := Vector2.ZERO
+	if t < T_SNAP:
+		sw = Vector2(-0.4, -0.1).lerp(Vector2(0.35, 0.0), _sine(clampf((t - T_CUT) / (T_SNAP - T_CUT), 0.0, 1.0)))
+	elif t < T_COIL:
+		sw = Vector2(0.35, 0.0).lerp(Vector2(0.45, 0.05), clampf((t - T_SNAP) / (T_COIL - T_SNAP), 0.0, 1.0))
+	elif t < T_STRIKE:
+		sw = Vector2(0.45, 0.05).lerp(Vector2(-0.45, -0.25), _sine(clampf((t - T_COIL) / (T_STRIKE - T_COIL), 0.0, 1.0)))
+	elif t < T_IMPACT:
+		sw = Vector2(-0.45, -0.25).lerp(Vector2.ZERO, clampf((t - T_STRIKE) / (T_IMPACT - T_STRIKE), 0.0, 1.0))
+	_sp.call("light_swing", sw)
 
 
 func _apply_still(t: float) -> void:

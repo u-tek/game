@@ -10,9 +10,12 @@ uniform float strength = 0.42;
 uniform vec2 throw_px = vec2(90.0, 30.0);
 uniform float spread = 14.0;    // blur radius in texels
 uniform vec4 shadow_color : source_color = vec4(0.06, 0.03, 0.07, 1.0);
+// The same swing as live_light.gdshaderinc's (her cut-in sweeps the light).
+uniform vec2 ll_swing = vec2(0.0);
 
 void vertex() {
-	vec2 l = vec2(-0.5 + ui_tilt.x * 1.5, -0.6 + ui_tilt.y * 1.5);
+	vec2 t = ui_tilt + ll_swing;
+	vec2 l = vec2(-0.5 + t.x * 1.5, -0.6 + t.y * 1.5);
 	VERTEX += -l * throw_px;
 }
 

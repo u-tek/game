@@ -29,9 +29,13 @@ float ll_luma(vec3 c) {
 	return dot(c, vec3(0.299, 0.587, 0.114));
 }
 
+// A swing added to the tilt (HeroSprite.light_swing: her cut-in sweeps the light across her).
+uniform vec2 ll_swing = vec2(0.0);
+
 // Toward the light (screen y down): upper left at rest, swung by the tilt.
 vec3 ll_light_dir() {
-	return normalize(vec3(-0.5 + ui_tilt.x * 1.5, -0.6 + ui_tilt.y * 1.5, 0.75));
+	vec2 t = ui_tilt + ll_swing;
+	return normalize(vec3(-0.5 + t.x * 1.5, -0.6 + t.y * 1.5, 0.75));
 }
 
 

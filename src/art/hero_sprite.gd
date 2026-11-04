@@ -193,6 +193,16 @@ func _apply_live() -> void:
 		_live_shadow.visible = live
 
 
+## Swings Live Light's light by `v` (tilt units, added to the phone's tilt) on her and her shadow; her
+## cut-in sweeps it across her. Vector2.ZERO puts it back on the tilt alone.
+func light_swing(v: Vector2) -> void:
+	if not live or rig == null:
+		return
+	rig.set_warp_param(&"ll_swing", v)
+	if _live_shadow and _live_shadow.material is ShaderMaterial:
+		(_live_shadow.material as ShaderMaterial).set_shader_parameter("ll_swing", v)
+
+
 ## Reduce motion (the setting) holds the foil still and gentle; checked every frame (cheap).
 func _sync_holo_motion() -> void:
 	var m := 1.0 if Kit.motion_ok() else 0.0
