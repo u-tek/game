@@ -1,6 +1,6 @@
 # Status and handoff
 
-**Status as of 2026-11-04, 04:00 UTC (14:00 on the owner's PC clock, UTC+10).** This is the living
+**Status as of 2026-11-04, 07:45 UTC (17:45 on the owner's PC clock, UTC+10).** This is the living
 status file: update it at the end of every work block. Rules and conventions are in `CLAUDE.md`;
 this file says where things stand. Older logs are under "History" at the bottom. **The ranked work
 list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
@@ -56,8 +56,17 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
     (the arm masks limited to tubes round their bones: SAM's took wing pearls and black hair strands),
     `lucen_anims.py` on the new `animkit.py` (Riposte, Twinfeather Flurry, the blade-flick victory,
     flourish, hair flick, shades). Repaints: chest s11, side_r s12 (sides now a 14 px band only).
-  - **Kessa:** her first four candidates all grew bat wings (not in her design); the rig block now says
-    no wings (19525c3). Of the second four only s205013 is wingless: Claude's pick, queued to finalize.
+  - **Lucen shipped (ff0d7c0), Kessa shipped (bec2c59):** all three starters are layered. Kessa's first
+    four candidates grew bat wings; of the second four only s205013 is wingless (Claude's pick). Her smile
+    is a mouth frame only (both smile tries turned her amber eyes red).
+  - **Touch reactions (782fc1a):** a tap's first beat is the layered heroine's own touch animation and every
+    tap kicks her breast springs. `test_every_live_rig_plays` (cf0edf5) covers every layered rig.
+  - **IPA run 41791140409** (07:21 UTC): all three starters, Seraphiel, the touch reactions, the third stroke.
+  - **Mordessa (in progress):** rig pose s201001 (Claude's pick of 4), `mordessa_sam.json`, `mordessa_rig.py`
+    (her coat sleeves cut as tubes round the arm bones: SAM could not tell them from the coat; her crimson
+    hair ends by colour), `mordessa_anims.py` (Ember Cleave, Ninth Furnace, the sword-on-shoulder victory,
+    preen, lean, wings). Face frames and repaints queued on the PC (`screenshots/live/mordessa*.sh`).
+  - **Noctaire:** rig block written (b65ef41); candidates queued after Mordessa's face frames.
   - **Also this block:** an execute is stamped EXECUTED (054d495, `tools/textures/stamp_print.py`);
     statuses print on embossed label tape (84f1566); the Epic summon's own beat, a die-cut (71316e4);
     the Encore partner's print in the cut-in (afaadcf); Live Light swings through the cut-in on Pro
