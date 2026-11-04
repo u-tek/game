@@ -67,6 +67,9 @@ var _band: Control
 var _band_fill: ColorRect
 var _print: TextureRect
 var _print_base := Vector2.ZERO
+## An Encore step: the partner's print on the paper and its caption.
+var _partner: TextureRect
+var _partner_cap: Label
 var _words: Array[RichTextLabel] = []
 var _ghost: Array[RichTextLabel] = []
 var _mono: Label
@@ -90,7 +93,8 @@ func _ready() -> void:
 
 ## opts: hero, skin, skill_name, rate (1 / 1.5 / 2.1), tier, P (where the blow lands, screen px),
 ## dir (+1: she strikes to the right), top_h / bottom_h (the HUD strips the bars cover), chain (an
-## Encore step: the giant word becomes the chain's numeral).
+## Encore step: the giant word becomes the chain's numeral), partner (an Encore step: the heroine who
+## passed it, whose ink print stays on the sheet behind her) and partner_skin.
 func play(opts: Dictionary) -> void:
 	_vs = get_viewport_rect().size if is_inside_tree() else Vector2(720, 1280)
 	var hero := str(opts.get("hero", ""))
@@ -108,6 +112,8 @@ func play(opts: Dictionary) -> void:
 	_cut = _cut_point(hero, skin)
 	_contact_t = STILL_CONTACT if tier == "still" else T_CONTACT
 	_build_bg(hero, skin, str(opts.get("skill_name", "Ultimate")), int(opts.get("chain", 0)))
+	if int(opts.get("chain", 0)) > 0 and str(opts.get("partner", "")) != "":
+		_build_partner(str(opts.partner), str(opts.get("partner_skin", "")))
 	_build_her(hero, skin)
 	_build_bars(hero, skin)
 	if tier == "repeat":
@@ -282,6 +288,25 @@ func _build_bg(hero: String, skin: String, skill_name: String, chain: int) -> vo
 	_crown.flip_h = _dir < 0
 	_crown.visible = false
 	_bg.add_child(_crown)
+
+
+## An Encore step: the heroine who passed the Encore stays on the sheet as an ink print of her face,
+## pasted in the paper's top corner above the new caster (shadows only, turned a little), captioned in mono. It flips to paper
+## with the rest on the impact frame.
+func _build_partner(partner: String, skin: String) -> void:
+	var bx := floorf(_vs.x * BAND_X)
+	var fh := _y1 - _y0
+	_partner = BP.halftone(partner, skin, {"crop": "face", "cell": 4.5, "ink": Color(INK, 0.6), "light_dots": false})
+	_partner.size = Vector2(bx * 0.5, fh * 0.2)
+	_partner.position = Vector2(16.0, _y0 + 40.0)
+	_partner.pivot_offset = _partner.size * 0.5
+	_partner.rotation = -0.04
+	_bg.add_child(_partner)
+	_bg.move_child(_partner, 2)
+	var nm := str(_hero_def(partner).get("name", partner)).to_upper()
+	_partner_cap = BP.t("ENCORE FROM  ·  %s" % nm, 12, Color(INK, 0.75), "mono_bold")
+	_partner_cap.position = Vector2(18.0, _y0 + 16.0)
+	_bg.add_child(_partner_cap)
 
 
 func _turned(text: String, fs: int, org: Vector2, block: Vector2, regions: Array, rot: float = -PI * 0.5) -> Array[RichTextLabel]:
@@ -538,6 +563,9 @@ func _apply_poster(t: float) -> void:
 	_band_fill.color = SIG if flip else BP.BAND
 	(_print.material as ShaderMaterial).set_shader_parameter("ink", BP.PAPER if flip else BP.RED_INK)
 	_mono.visible = not flip
+	if _partner:
+		(_partner.material as ShaderMaterial).set_shader_parameter("ink", Color(BP.PAPER, 0.6) if flip else Color(INK, 0.6))
+		_partner_cap.visible = not flip
 	# Her red print: out of register until the snap, drifts against her through the pose, jumps
 	# on the impact and settles.
 	var reg := Vector2(14, 14) if t < T_GHOST else Vector2.ZERO

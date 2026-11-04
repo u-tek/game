@@ -1608,6 +1608,8 @@ func _start_cutin(v: Node2D, ev: Dictionary) -> void:
 	v.call("play_ultimate", _lunge_point(v, tv) if tv else Vector2.INF)
 	_units.move_child(v, -1)
 	var step := int(ev.get("encore", 0))
+	# An Encore step keeps the heroine who passed it on the sheet (her print, behind the new caster).
+	var partner := _encore_hero if step > 0 and _encore_hero != str(v.get("hero_id")) else ""
 	var again := _cutin_shown.has(uid) and not _ult_by_hand.has(uid) and _cutin_mode() != "every"
 	var tier := "repeat" if step > 0 or again else "full"
 	_cutin_shown[uid] = true
@@ -1621,7 +1623,7 @@ func _start_cutin(v: Node2D, ev: Dictionary) -> void:
 	c.call("play", {"hero": hid, "skin": Game.equipped_skin(hid), "skill_name": str(ev.get("skill_name", "Ultimate")),
 		"rate": float({1: 1.0, 2: 1.5, 4: 2.1}.get(_speed, 1.0)), "tier": tier, "P": p, "dir": 1 if p.x >= me.x else -1,
 		"top_h": UI.safe_top() + TOP_H + (BOSS_H if _boss_uid != "" else 0.0), "bottom_h": UI.safe_bottom() + BOTTOM_H,
-		"chain": step})
+		"chain": step, "partner": partner, "partner_skin": Game.equipped_skin(partner) if partner != "" else ""})
 	var lead := float(c.call("contact_time"))
 	var hit_s: float = float(v.get("ult_hit_s"))
 	for u_id: String in _views:
