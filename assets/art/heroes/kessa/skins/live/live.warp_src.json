@@ -1,0 +1,1325 @@
+{
+ "_doc": "Kessa's layered rig (2026-11-04): MOSS rig pose seed 205013, cut by SAM (tools/layered/kessa_rig.py, rigkit.py), hidden parts painted in. Her base look (HeroArt.LIVE).",
+ "version": 2,
+ "cell": 10,
+ "image": "live.png",
+ "origin": [
+  512,
+  1990
+ ],
+ "texel_scale": 1.0,
+ "portrait": [
+  376,
+  330,
+  260
+ ],
+ "look_px": [
+  10,
+  6
+ ],
+ "meta": {
+  "weapon": "sickle",
+  "attack": "attack_melee",
+  "fx_color": "#ff5a6a",
+  "art": "moss s205013 rig pose, SAM layers",
+  "idle_gestures": [
+   "idle_spin",
+   "idle_stretch",
+   "idle_ears"
+  ],
+  "idle": {
+   "breath": 6.0,
+   "noise": 2.2,
+   "head": 1.6,
+   "arms": 2.2,
+   "wings": 1.8,
+   "sway": 6.0,
+   "sway_period": 6.8,
+   "sway_rot": 0.8,
+   "sway_dip": 2.5,
+   "kick_breath": 75.0,
+   "kick_sway": 45.0,
+   "iris_x": 1.6,
+   "iris_y": 0.5,
+   "gaze": 0.6
+  }
+ },
+ "body_bone": "hips",
+ "bones": [
+  {
+   "name": "ik_foot_r",
+   "parent": "root",
+   "pivot": [
+    440,
+    1860
+   ]
+  },
+  {
+   "name": "ik_foot_l",
+   "parent": "root",
+   "pivot": [
+    700,
+    1860
+   ]
+  },
+  {
+   "name": "hips",
+   "parent": "root",
+   "pivot": [
+    510,
+    1050
+   ]
+  },
+  {
+   "name": "torso",
+   "parent": "hips",
+   "pivot": [
+    510,
+    920
+   ]
+  },
+  {
+   "name": "chest",
+   "parent": "torso",
+   "pivot": [
+    510,
+    720
+   ]
+  },
+  {
+   "name": "neck",
+   "parent": "chest",
+   "pivot": [
+    508,
+    575
+   ]
+  },
+  {
+   "name": "head",
+   "parent": "neck",
+   "pivot": [
+    506,
+    545
+   ]
+  },
+  {
+   "name": "face",
+   "parent": "head",
+   "pivot": [
+    504,
+    490
+   ]
+  },
+  {
+   "name": "iris",
+   "parent": "face",
+   "pivot": [
+    504,
+    464
+   ]
+  },
+  {
+   "name": "hair_front_r",
+   "parent": "head",
+   "pivot": [
+    430,
+    420
+   ],
+   "spring": "bangs"
+  },
+  {
+   "name": "hair_front_l",
+   "parent": "head",
+   "pivot": [
+    580,
+    410
+   ],
+   "spring": "bangs"
+  },
+  {
+   "name": "phones",
+   "parent": "head",
+   "pivot": [
+    600,
+    445
+   ],
+   "spring": "accessory;limit=3"
+  },
+  {
+   "name": "visor",
+   "parent": "head",
+   "pivot": [
+    492,
+    405
+   ],
+   "spring": "accessory;limit=3"
+  },
+  {
+   "name": "breast_r",
+   "parent": "chest",
+   "pivot": [
+    430,
+    640
+   ],
+   "spring": "jiggle;ky=190"
+  },
+  {
+   "name": "breast_r_lo",
+   "parent": "breast_r",
+   "pivot": [
+    430,
+    715
+   ],
+   "spring": "jiggle;kx=170;ky=230;ky2=560;z=0.3;limit=10;tx=0.3;ty=0.45;rot=0.35;sq=0.6;kick=0"
+  },
+  {
+   "name": "breast_l",
+   "parent": "chest",
+   "pivot": [
+    592,
+    640
+   ],
+   "spring": "jiggle;ky=190"
+  },
+  {
+   "name": "breast_l_lo",
+   "parent": "breast_l",
+   "pivot": [
+    592,
+    715
+   ],
+   "spring": "jiggle;kx=170;ky=230;ky2=560;z=0.3;limit=10;tx=0.3;ty=0.45;rot=0.35;sq=0.6;kick=0"
+  },
+  {
+   "name": "arm_r",
+   "parent": "chest",
+   "pivot": [
+    368,
+    625
+   ]
+  },
+  {
+   "name": "forearm_r",
+   "parent": "arm_r",
+   "pivot": [
+    318,
+    860
+   ]
+  },
+  {
+   "name": "hand_r",
+   "parent": "forearm_r",
+   "pivot": [
+    262,
+    1075
+   ]
+  },
+  {
+   "name": "arm_l",
+   "parent": "chest",
+   "pivot": [
+    650,
+    625
+   ]
+  },
+  {
+   "name": "forearm_l",
+   "parent": "arm_l",
+   "pivot": [
+    700,
+    860
+   ]
+  },
+  {
+   "name": "hand_l",
+   "parent": "forearm_l",
+   "pivot": [
+    752,
+    1075
+   ]
+  },
+  {
+   "name": "weapon",
+   "parent": "hand_r",
+   "pivot": [
+    240,
+    1110
+   ],
+   "tip": [
+    70,
+    1270
+   ]
+  },
+  {
+   "name": "weapon_l",
+   "parent": "hand_l",
+   "pivot": [
+    775,
+    1110
+   ],
+   "tip": [
+    950,
+    1270
+   ]
+  },
+  {
+   "name": "thigh_r",
+   "parent": "hips",
+   "pivot": [
+    410,
+    1100
+   ]
+  },
+  {
+   "name": "shin_r",
+   "parent": "thigh_r",
+   "pivot": [
+    415,
+    1480
+   ]
+  },
+  {
+   "name": "foot_r",
+   "parent": "shin_r",
+   "pivot": [
+    440,
+    1860
+   ]
+  },
+  {
+   "name": "thigh_l",
+   "parent": "hips",
+   "pivot": [
+    612,
+    1100
+   ]
+  },
+  {
+   "name": "shin_l",
+   "parent": "thigh_l",
+   "pivot": [
+    640,
+    1480
+   ]
+  },
+  {
+   "name": "foot_l",
+   "parent": "shin_l",
+   "pivot": [
+    700,
+    1860
+   ]
+  },
+  {
+   "name": "cape_r",
+   "parent": "chest",
+   "pivot": [
+    330,
+    870
+   ],
+   "spring": "cape;w=0.12;g=0.85;limit=12"
+  },
+  {
+   "name": "cape_r2",
+   "parent": "cape_r",
+   "pivot": [
+    290,
+    1250
+   ],
+   "spring": "cape;w=0.08;g=0.9;limit=9"
+  },
+  {
+   "name": "cape_l",
+   "parent": "chest",
+   "pivot": [
+    720,
+    660
+   ],
+   "spring": "cape;w=0.12;g=0.85;limit=12"
+  },
+  {
+   "name": "cape_l2",
+   "parent": "cape_l",
+   "pivot": [
+    750,
+    1250
+   ],
+   "spring": "cape;w=0.08;g=0.9;limit=9"
+  },
+  {
+   "name": "tail1",
+   "parent": "hips",
+   "pivot": [
+    681,
+    1330
+   ],
+   "spring": "hair_long;w=0.09;i=0.6;g=0.6;limit=16;k=40"
+  },
+  {
+   "name": "tail2",
+   "parent": "tail1",
+   "pivot": [
+    745,
+    1400
+   ],
+   "spring": "hair_long;w=0.09;i=0.6;g=0.6;limit=16;k=35"
+  },
+  {
+   "name": "tail3",
+   "parent": "tail2",
+   "pivot": [
+    806,
+    1470
+   ],
+   "spring": "hair_long;w=0.09;i=0.6;g=0.6;limit=16;k=30"
+  },
+  {
+   "name": "tail4",
+   "parent": "tail3",
+   "pivot": [
+    811,
+    1540
+   ],
+   "spring": "hair_long;w=0.09;i=0.6;g=0.6;limit=16;k=25"
+  }
+ ],
+ "regions": [
+  {
+   "name": "face",
+   "rule": {
+    "type": "ellipse",
+    "center": [
+     504,
+     478
+    ],
+    "radius": [
+     58,
+     62
+    ],
+    "feather": 12
+   }
+  },
+  {
+   "name": "iris",
+   "rule": {
+    "type": "mask",
+    "image": "st/iris_m.png"
+   }
+  },
+  {
+   "name": "phones",
+   "soft": 6,
+   "rule": {
+    "type": "mask",
+    "image": "st/phones.png"
+   }
+  },
+  {
+   "name": "visor",
+   "soft": 6,
+   "rule": {
+    "type": "mask",
+    "image": "st/visor.png"
+   }
+  },
+  {
+   "name": "hair_front_r",
+   "soft": 16,
+   "rule": {
+    "type": "polygon",
+    "points": [
+     [
+      400,
+      410
+     ],
+     [
+      460,
+      410
+     ],
+     [
+      458,
+      470
+     ],
+     [
+      440,
+      540
+     ],
+     [
+      404,
+      548
+     ],
+     [
+      392,
+      470
+     ]
+    ]
+   }
+  },
+  {
+   "name": "hair_front_l",
+   "soft": 16,
+   "rule": {
+    "type": "polygon",
+    "points": [
+     [
+      550,
+      400
+     ],
+     [
+      610,
+      400
+     ],
+     [
+      620,
+      480
+     ],
+     [
+      604,
+      545
+     ],
+     [
+      566,
+      540
+     ],
+     [
+      550,
+      470
+     ]
+    ]
+   }
+  },
+  {
+   "name": "head",
+   "rule": {
+    "type": "ellipse",
+    "center": [
+     506,
+     450
+    ],
+    "radius": [
+     112,
+     116
+    ],
+    "feather": 18
+   }
+  },
+  {
+   "name": "neck",
+   "rule": {
+    "type": "polygon",
+    "points": [
+     [
+      470,
+      530
+     ],
+     [
+      545,
+      530
+     ],
+     [
+      552,
+      600
+     ],
+     [
+      462,
+      600
+     ]
+    ],
+    "feather": 14
+   }
+  },
+  {
+   "name": "breast_r_lo",
+   "rule": {
+    "type": "mask",
+    "image": "st/breast_r_lo_w.png",
+    "levels": true
+   }
+  },
+  {
+   "name": "breast_r",
+   "rule": {
+    "type": "mask",
+    "image": "st/breast_r_w.png",
+    "levels": true
+   }
+  },
+  {
+   "name": "breast_l_lo",
+   "rule": {
+    "type": "mask",
+    "image": "st/breast_l_lo_w.png",
+    "levels": true
+   }
+  },
+  {
+   "name": "breast_l",
+   "rule": {
+    "type": "mask",
+    "image": "st/breast_l_w.png",
+    "levels": true
+   }
+  },
+  {
+   "name": "chest",
+   "rule": {
+    "type": "polygon",
+    "points": [
+     [
+      360,
+      590
+     ],
+     [
+      660,
+      590
+     ],
+     [
+      680,
+      700
+     ],
+     [
+      665,
+      830
+     ],
+     [
+      355,
+      830
+     ],
+     [
+      340,
+      700
+     ]
+    ],
+    "feather": 26
+   }
+  },
+  {
+   "name": "torso",
+   "rule": {
+    "type": "polygon",
+    "points": [
+     [
+      380,
+      810
+     ],
+     [
+      640,
+      810
+     ],
+     [
+      640,
+      960
+     ],
+     [
+      380,
+      960
+     ]
+    ],
+    "feather": 26
+   }
+  },
+  {
+   "name": "foot_r",
+   "rule": {
+    "type": "mask",
+    "image": "st/leg_r.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       0,
+       1820
+      ],
+      [
+       512,
+       1820
+      ],
+      [
+       512,
+       2048
+      ],
+      [
+       0,
+       2048
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "shin_r",
+   "rule": {
+    "type": "mask",
+    "image": "st/leg_r.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       0,
+       1560
+      ],
+      [
+       512,
+       1560
+      ],
+      [
+       512,
+       2048
+      ],
+      [
+       0,
+       2048
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "thigh_r",
+   "rule": {
+    "type": "mask",
+    "image": "st/leg_r.png"
+   }
+  },
+  {
+   "name": "foot_l",
+   "rule": {
+    "type": "mask",
+    "image": "st/leg_l.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       512,
+       1820
+      ],
+      [
+       1024,
+       1820
+      ],
+      [
+       1024,
+       2048
+      ],
+      [
+       512,
+       2048
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "shin_l",
+   "rule": {
+    "type": "mask",
+    "image": "st/leg_l.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       512,
+       1560
+      ],
+      [
+       1024,
+       1560
+      ],
+      [
+       1024,
+       2048
+      ],
+      [
+       512,
+       2048
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "thigh_l",
+   "rule": {
+    "type": "mask",
+    "image": "st/leg_l.png"
+   }
+  },
+  {
+   "name": "hips",
+   "rule": {
+    "type": "polygon",
+    "points": [
+     [
+      320,
+      940
+     ],
+     [
+      700,
+      940
+     ],
+     [
+      720,
+      1160
+     ],
+     [
+      300,
+      1160
+     ]
+    ],
+    "feather": 22
+   }
+  },
+  {
+   "name": "weapon",
+   "rule": {
+    "type": "mask",
+    "image": "st/sickle_r.png"
+   }
+  },
+  {
+   "name": "weapon_l",
+   "rule": {
+    "type": "mask",
+    "image": "st/sickle_l.png"
+   }
+  },
+  {
+   "name": "hand_r",
+   "rule": {
+    "type": "mask",
+    "image": "st/hand_r.png",
+    "within": {
+     "type": "mask",
+     "image": "st/arm_r_fore.png"
+    }
+   }
+  },
+  {
+   "name": "forearm_r",
+   "rule": {
+    "type": "mask",
+    "image": "st/arm_r_fore.png"
+   }
+  },
+  {
+   "name": "arm_r",
+   "rule": {
+    "type": "mask",
+    "image": "st/arm_r_up.png"
+   }
+  },
+  {
+   "name": "hand_l",
+   "rule": {
+    "type": "mask",
+    "image": "st/hand_l.png",
+    "within": {
+     "type": "mask",
+     "image": "st/arm_l_fore.png"
+    }
+   }
+  },
+  {
+   "name": "forearm_l",
+   "rule": {
+    "type": "mask",
+    "image": "st/arm_l_fore.png"
+   }
+  },
+  {
+   "name": "arm_l",
+   "rule": {
+    "type": "mask",
+    "image": "st/arm_l_up.png"
+   }
+  },
+  {
+   "name": "cape_r2",
+   "soft": 120,
+   "rule": {
+    "type": "mask",
+    "image": "st/cape_m.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       0,
+       1250
+      ],
+      [
+       512,
+       1250
+      ],
+      [
+       512,
+       2048
+      ],
+      [
+       0,
+       2048
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "cape_l2",
+   "soft": 120,
+   "rule": {
+    "type": "mask",
+    "image": "st/cape_m.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       512,
+       1250
+      ],
+      [
+       1024,
+       1250
+      ],
+      [
+       1024,
+       2048
+      ],
+      [
+       512,
+       2048
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "cape_r",
+   "rule": {
+    "type": "mask",
+    "image": "st/cape_m.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       0,
+       0
+      ],
+      [
+       512,
+       0
+      ],
+      [
+       512,
+       2048
+      ],
+      [
+       0,
+       2048
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "cape_l",
+   "rule": {
+    "type": "mask",
+    "image": "st/cape_m.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       512,
+       0
+      ],
+      [
+       1024,
+       0
+      ],
+      [
+       1024,
+       2048
+      ],
+      [
+       512,
+       2048
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "tail4",
+   "soft": 18,
+   "rule": {
+    "type": "mask",
+    "image": "st/tail_m.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       0,
+       1540
+      ],
+      [
+       1024,
+       1540
+      ],
+      [
+       1024,
+       2048
+      ],
+      [
+       0,
+       2048
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "tail3",
+   "soft": 18,
+   "rule": {
+    "type": "mask",
+    "image": "st/tail_m.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       0,
+       1470
+      ],
+      [
+       1024,
+       1470
+      ],
+      [
+       1024,
+       1540
+      ],
+      [
+       0,
+       1540
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "tail2",
+   "soft": 18,
+   "rule": {
+    "type": "mask",
+    "image": "st/tail_m.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       0,
+       1400
+      ],
+      [
+       1024,
+       1400
+      ],
+      [
+       1024,
+       1470
+      ],
+      [
+       0,
+       1470
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "tail1",
+   "soft": 18,
+   "rule": {
+    "type": "mask",
+    "image": "st/tail_m.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       0,
+       1330
+      ],
+      [
+       1024,
+       1330
+      ],
+      [
+       1024,
+       1400
+      ],
+      [
+       0,
+       1400
+      ]
+     ]
+    }
+   }
+  }
+ ],
+ "layers": [
+  {
+   "name": "cape",
+   "image": "live_cape.png",
+   "z": -40,
+   "image_rect": [
+    209,
+    576,
+    613,
+    979
+   ],
+   "parts": [
+    "cape"
+   ],
+   "weights": "own"
+  },
+  {
+   "name": "tail",
+   "image": "live_tail.png",
+   "z": -30,
+   "image_rect": [
+    644,
+    1293,
+    194,
+    328
+   ],
+   "parts": [
+    "tail"
+   ],
+   "weights": "own"
+  },
+  {
+   "name": "body",
+   "image": "live_body.png",
+   "z": 0,
+   "image_rect": [
+    270,
+    293,
+    495,
+    1698
+   ],
+   "parts": [
+    "face",
+    "head",
+    "neck",
+    "chest",
+    "torso",
+    "hips",
+    "thigh",
+    "shin",
+    "foot",
+    "phones",
+    "visor",
+    "hair_front"
+   ],
+   "weights": "own"
+  },
+  {
+   "name": "irides",
+   "image": "live_irides.png",
+   "z": 1,
+   "image_rect": [
+    457,
+    448,
+    100,
+    34
+   ],
+   "parts": [
+    "iris"
+   ],
+   "weights": "own"
+  },
+  {
+   "name": "lashes",
+   "image": "live_lashes.png",
+   "z": 2,
+   "image_rect": [
+    445,
+    441,
+    119,
+    45
+   ],
+   "parts": [
+    "face"
+   ],
+   "weights": "own"
+  },
+  {
+   "name": "arm_l_up",
+   "image": "live_arm_l_up.png",
+   "z": 3,
+   "image_rect": [
+    613,
+    591,
+    104,
+    293
+   ],
+   "bone": "arm_l"
+  },
+  {
+   "name": "arm_r_up",
+   "image": "live_arm_r_up.png",
+   "z": 3,
+   "image_rect": [
+    300,
+    560,
+    141,
+    324
+   ],
+   "bone": "arm_r"
+  },
+  {
+   "name": "breast_r",
+   "image": "live_breast_r.png",
+   "z": 4,
+   "image_rect": [
+    352,
+    626,
+    162,
+    200
+   ],
+   "parts": [
+    "breast_r"
+   ],
+   "weights": "own",
+   "rest_bone": "chest",
+   "cell": 6
+  },
+  {
+   "name": "breast_l",
+   "image": "live_breast_l.png",
+   "z": 5,
+   "image_rect": [
+    510,
+    601,
+    169,
+    232
+   ],
+   "parts": [
+    "breast_l"
+   ],
+   "weights": "own",
+   "rest_bone": "chest",
+   "cell": 6
+  },
+  {
+   "name": "sickle_r",
+   "image": "live_sickle_r.png",
+   "z": 8,
+   "image_rect": [
+    23,
+    1102,
+    209,
+    255
+   ],
+   "bone": "weapon"
+  },
+  {
+   "name": "sickle_l",
+   "image": "live_sickle_l.png",
+   "z": 8,
+   "image_rect": [
+    793,
+    1137,
+    208,
+    250
+   ],
+   "bone": "weapon_l"
+  },
+  {
+   "name": "arm_l_fore",
+   "image": "live_arm_l_fore.png",
+   "z": 9,
+   "image_rect": [
+    645,
+    837,
+    188,
+    317
+   ],
+   "parts": [
+    "hand_l",
+    "forearm_l"
+   ],
+   "weights": "own",
+   "cell": 8
+  },
+  {
+   "name": "arm_r_fore",
+   "image": "live_arm_r_fore.png",
+   "z": 11,
+   "image_rect": [
+    204,
+    838,
+    173,
+    300
+   ],
+   "parts": [
+    "hand_r",
+    "forearm_r"
+   ],
+   "weights": "own",
+   "cell": 8
+  }
+ ],
+ "ik": [
+  {
+   "upper": "thigh_r",
+   "lower": "shin_r",
+   "target": "ik_foot_r",
+   "foot": "foot_r",
+   "knee_room": 10
+  },
+  {
+   "upper": "thigh_l",
+   "lower": "shin_l",
+   "target": "ik_foot_l",
+   "foot": "foot_l",
+   "knee_room": 10
+  }
+ ],
+ "overlays": [
+  {
+   "slot": "eyes",
+   "bone": "face",
+   "base": "open",
+   "default": "open",
+   "z": 3,
+   "rect": [
+    437,
+    441,
+    134,
+    46
+   ],
+   "variants": {
+    "closed": "variants/eyes_closed.png",
+    "half": "variants/eyes_half.png"
+   }
+  },
+  {
+   "slot": "mouth",
+   "bone": "face",
+   "base": "default",
+   "default": "default",
+   "z": 3,
+   "rect": [
+    468,
+    482,
+    74,
+    50
+   ],
+   "variants": {
+    "open": "variants/mouth_open.png",
+    "small": "variants/mouth_small.png",
+    "wide": "variants/mouth_wide.png",
+    "smile": "variants/smile.png"
+   }
+  }
+ ]
+}

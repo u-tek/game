@@ -1,0 +1,419 @@
+{
+ "name": "idle_stretch",
+ "duration": 2.6,
+ "loop": false,
+ "mix": 0.25,
+ "mix_out": 0.4,
+ "bones": {
+  "arm_r": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 0.0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.6,
+     "v": 115.7,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.6,
+     "v": 119.6,
+     "e": "cubic_in_out"
+    },
+    {
+     "t": 2.2,
+     "v": 0.0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "forearm_r": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 0.0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.6,
+     "v": 137.6,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.6,
+     "v": 139.6,
+     "e": "cubic_in_out"
+    },
+    {
+     "t": 2.2,
+     "v": 0.0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "arm_l": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 0.0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.6,
+     "v": -115.3,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.6,
+     "v": -119.2,
+     "e": "cubic_in_out"
+    },
+    {
+     "t": 2.2,
+     "v": 0.0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "forearm_l": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 0.0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.6,
+     "v": -138.7,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.6,
+     "v": -140.7,
+     "e": "cubic_in_out"
+    },
+    {
+     "t": 2.2,
+     "v": 0.0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "weapon": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 0.0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.6,
+     "v": -93.3,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.6,
+     "v": -101.2,
+     "e": "cubic_in_out"
+    },
+    {
+     "t": 2.2,
+     "v": 0.0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "weapon_l": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 0.0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.6,
+     "v": 94.0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.6,
+     "v": 101.9,
+     "e": "cubic_in_out"
+    },
+    {
+     "t": 2.2,
+     "v": 0.0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "chest": {
+   "translate": [
+    {
+     "t": 0.0,
+     "x": 0,
+     "y": 0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.6,
+     "x": 0,
+     "y": -10,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.6,
+     "x": 0,
+     "y": -9,
+     "e": "quad_in"
+    },
+    {
+     "t": 2.2,
+     "x": 0,
+     "y": 2,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 2.6,
+     "x": 0,
+     "y": 0,
+     "e": "sine_in_out"
+    }
+   ],
+   "scale": [
+    {
+     "t": 0.0,
+     "x": 1,
+     "y": 1,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.6,
+     "x": 1.01,
+     "y": 1.03,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 2.2,
+     "x": 1,
+     "y": 1,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "head": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.6,
+     "v": 6,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.6,
+     "v": 7,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 2.4,
+     "v": 0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "tail1": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 0.0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.6,
+     "v": -18.0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.6,
+     "v": -14.0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 2.4,
+     "v": 0.0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "tail2": {
+   "rotate": [
+    {
+     "t": 0.05,
+     "v": 0.0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.65,
+     "v": -24.3,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.65,
+     "v": -18.900000000000002,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 2.45,
+     "v": 0.0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "tail3": {
+   "rotate": [
+    {
+     "t": 0.1,
+     "v": 0.0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.7,
+     "v": -30.599999999999998,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.7,
+     "v": -23.8,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 2.5,
+     "v": 0.0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "tail4": {
+   "rotate": [
+    {
+     "t": 0.15,
+     "v": 0.0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.75,
+     "v": -36.9,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.75,
+     "v": -28.699999999999996,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 2.55,
+     "v": 0.0,
+     "e": "sine_in_out"
+    }
+   ]
+  }
+ },
+ "slots": {
+  "eye_l": {
+   "attachment": [
+    {
+     "t": 0.0,
+     "v": "open"
+    },
+    {
+     "t": 0.5,
+     "v": "closed"
+    },
+    {
+     "t": 1.7,
+     "v": "half"
+    },
+    {
+     "t": 2.1,
+     "v": "open"
+    }
+   ]
+  },
+  "eye_r": {
+   "attachment": [
+    {
+     "t": 0.0,
+     "v": "open"
+    },
+    {
+     "t": 0.5,
+     "v": "closed"
+    },
+    {
+     "t": 1.7,
+     "v": "half"
+    },
+    {
+     "t": 2.1,
+     "v": "open"
+    }
+   ]
+  },
+  "eyes": {
+   "attachment": [
+    {
+     "t": 0.0,
+     "v": "open"
+    },
+    {
+     "t": 0.5,
+     "v": "closed"
+    },
+    {
+     "t": 1.7,
+     "v": "half"
+    },
+    {
+     "t": 2.1,
+     "v": "open"
+    }
+   ]
+  },
+  "mouth": {
+   "attachment": [
+    {
+     "t": 0.0,
+     "v": "default"
+    },
+    {
+     "t": 0.7,
+     "v": "wide"
+    },
+    {
+     "t": 1.4,
+     "v": "small"
+    },
+    {
+     "t": 1.8,
+     "v": "default"
+    }
+   ]
+  }
+ },
+ "events": [
+  {
+   "t": 0.6,
+   "name": "jiggle:0,-130"
+  },
+  {
+   "t": 2.2,
+   "name": "jiggle:0,180"
+  }
+ ]
+}

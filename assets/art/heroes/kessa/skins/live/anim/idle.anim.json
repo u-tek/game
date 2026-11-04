@@ -1,0 +1,152 @@
+{
+ "name": "idle",
+ "duration": 4.0,
+ "loop": true,
+ "mix": 0.3,
+ "mix_out": 0.15,
+ "bones": {
+  "hips": {
+   "translate": [
+    {
+     "t": 0.0,
+     "x": -8,
+     "y": 2,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 4.0,
+     "x": -8,
+     "y": 2,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "torso": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 1.5,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 4.0,
+     "v": 1.5,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "chest": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": -1.0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 4.0,
+     "v": -1.0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "head": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": -5.0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 4.0,
+     "v": -5.0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "weapon": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": -6,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 4.0,
+     "v": -6,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "weapon_l": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 6,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 4.0,
+     "v": 6,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "tail1": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 6.0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 4.0,
+     "v": 6.0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "tail2": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 8.100000000000001,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 4.0,
+     "v": 8.100000000000001,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "tail3": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 10.2,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 4.0,
+     "v": 10.2,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "tail4": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 12.299999999999999,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 4.0,
+     "v": 12.299999999999999,
+     "e": "sine_in_out"
+    }
+   ]
+  }
+ },
+ "events": []
+}
