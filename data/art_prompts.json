@@ -1577,7 +1577,18 @@
    "negative_extra": "(blue archive:1.3), (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2)",
    "variants": {
     "eyes_closed": "closed eyes, melancholy",
-    "mouth_open": "purple eyes, half-closed eyes, open mouth, melancholy"
+    "mouth_open": "purple eyes, half-closed eyes, open mouth, melancholy",
+    "eyes_half": "purple eyes, narrowed eyes, eyes mostly closed, upper eyelids lowered over the top half of the irises, melancholy",
+    "mouth_small": "purple eyes, looking at viewer, slightly parted lips, small open mouth, talking softly",
+    "mouth_wide": "purple eyes, wide open mouth, laughing, a rare smile"
+   },
+   "rig": {
+    "_doc": "The rig-ready pose (layered rig, 2026-11-04): eyes open for the blink frames, the scythe upright at her side with its butt on the ground and the blade above her head, the drape hanging straight, wings spread clear.",
+    "natural": "A tall, slender adult glitch reaper: a black latex sling leotard open at the sides, highleg, with a long oil-slick holographic vinyl drape hanging straight down from chrome hip buckles, black latex opera gloves and heeled thigh boots; long silver hair falling behind her shoulders; a cracked chrome halo with pixel gaps above her head; tattered black wings with pixel-block tips spread wide behind her; her right hand holds a huge oil-slick chrome scythe upright at her side like a staff, its butt on the ground and its curved blade above her head; her left arm relaxed a little away from her side; eyes open, cold violet eyes looking at the viewer, a faint closed-mouth smile.",
+    "eyes": "purple eyes, looking at viewer",
+    "default_eyes": "open",
+    "expression": "faint smile, closed mouth",
+    "pose": "standing, front view, arms at sides, holding scythe"
    },
    "adult": {"outfit": "nude, completely nude, bottomless, nipples", "natural": "Adult. Noctaire nude: only her thigh boots, halo and black wings."},
    "brief_gaps": [
