@@ -106,7 +106,7 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   stamp EXECUTED pressed across the foe in signal (`tools/textures/stamp_print.py`: a pressure field,
   the rubber's grain, three frames from the first kiss to the spread; a stamp layer over the heroines);
   statuses print on embossed label-maker tape (letters punched up one by one, slanted ends); the
-  galley measures text once. Left: more stroke variants.
+  galley measures text once; a third stroke, the hooked flick (`hit_fx.py slash 2`).
 - P2 done **Ultimate cut-ins in Settings** (2026-11-03): Battle > Ultimate cut-ins: Every / First (the
   default: her first in a fight and every one fired by hand) / By hand (auto casts play on the field
   under her band).
@@ -116,8 +116,9 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   her base look (`HeroArt.LIVE`); **Seraphiel** ships her prototype (separate arms, breasts, eyes,
   mouth, hair locks, her own attack, cast, touch, victory and idle gestures). **Uriela**, the first
   starter, is cut by the new SAM route (`tools/layered/rigkit.py`, `uriela_rig.py`, `uriela_anims.py`;
-  See-through was removed from the PC and reinstalling it was blocked, see status.md). Next: Lucen
-  and Kessa (rig blocks in the bible; candidates rendered), then the rest of the roster.
+  See-through was removed from the PC and reinstalling it was blocked, see status.md). **Lucen** in
+  progress (`lucen_sam.json`, `lucen_rig.py`, `lucen_anims.py`, `animkit.py`); **Kessa** re-rendering
+  (her first candidates grew wings). Then the rest of the roster.
 - P2 doing **Halloween is a moment** (2026-10-31): done: cut-paper bats on a taped thread (Blender
   renders; they swing with the tilt, a thumb brushes them, strung up in front of the player the first
   time), the stamp in pumpkin ink, the boot print run in pumpkin with HALLOWEEN on the proof stamp,

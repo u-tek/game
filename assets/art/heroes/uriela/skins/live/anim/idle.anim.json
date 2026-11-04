@@ -1,0 +1,110 @@
+{
+ "name": "idle",
+ "duration": 4.0,
+ "loop": true,
+ "mix": 0.3,
+ "mix_out": 0.15,
+ "bones": {
+  "hips": {
+   "translate": [
+    {
+     "t": 0.0,
+     "x": 8,
+     "y": 2,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 4.0,
+     "x": 8,
+     "y": 2,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "torso": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": -1.5,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 4.0,
+     "v": -1.5,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "chest": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 1.0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 4.0,
+     "v": 1.0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "head": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 4.0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 4.0,
+     "v": 4.0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "arm_l": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 15.4,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 4.0,
+     "v": 15.4,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "forearm_l": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": -14.7,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 4.0,
+     "v": -14.7,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "hand_l": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": -14,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 4.0,
+     "v": -14,
+     "e": "sine_in_out"
+    }
+   ]
+  }
+ },
+ "events": []
+}

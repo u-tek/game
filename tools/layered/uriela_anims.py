@@ -216,8 +216,23 @@ def idle_visor():
     return a
 
 
+def idle():
+    """Her display pose, held under everything (the base track's "idle"; the procedural breath and sway ride on
+    it): weight on her left hip, a tilt of the head, her free hand on her hip, the lance leaned a little."""
+    a = A("idle", 4.0, loop=True, mix=0.3, mix_out=0.15)
+    a.tr("hips", (0.0, 8, 2), (4.0, 8, 2))
+    a.rot("torso", (0.0, -1.5), (4.0, -1.5))
+    a.rot("chest", (0.0, 1.0), (4.0, 1.0))
+    a.rot("head", (0.0, 4.0), (4.0, 4.0))
+    du, df = arm_pose("l", (640, 1185))
+    a.rot("arm_l", (0.0, du), (4.0, du))
+    a.rot("forearm_l", (0.0, df), (4.0, df))
+    a.rot("hand_l", (0.0, -14), (4.0, -14))
+    return a
+
+
 if __name__ == "__main__":
-    for f in (attack, cast, touch, victory, idle_twirl, idle_stretch, idle_visor):
+    for f in (idle, attack, cast, touch, victory, idle_twirl, idle_stretch, idle_visor):
         print(f().save(OUT))
     for side, tgt in (("r", (338, 985)), ("l", (590, 700)), ("l", (640, 1185))):
         print("arm_pose", side, tgt, arm_pose(side, tgt))

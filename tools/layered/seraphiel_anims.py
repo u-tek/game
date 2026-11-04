@@ -227,6 +227,19 @@ def idle_lean():
     return a
 
 
+def idle():
+    """Her display pose, held under everything (the base track's "idle"): her weight toward the stand, head
+    tilted, her free hand on her hip (idle_lean's pose, softer)."""
+    a = A("idle", 4.0, loop=True, mix=0.3, mix_out=0.15)
+    a.tr("hips", (0.0, 6, 2), (4.0, 6, 2))
+    a.rot("torso", (0.0, -2), (4.0, -2))
+    a.rot("head", (0.0, -4), (4.0, -4))
+    a.rot("arm_l", (0.0, -38), (4.0, -38))
+    a.rot("forearm_l", (0.0, 90), (4.0, 90))
+    a.rot("hand_l", (0.0, -12), (4.0, -12))
+    return a
+
+
 if __name__ == "__main__":
-    for f in (attack, cast, touch, victory, idle_wings, idle_sway, idle_lean):
+    for f in (idle, attack, cast, touch, victory, idle_wings, idle_sway, idle_lean):
         print(f().save(OUT))
