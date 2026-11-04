@@ -1,0 +1,1440 @@
+{
+ "_doc": "Lucen's layered rig (2026-11-04): MOSS rig pose seed 304000, cut by SAM (tools/layered/lucen_rig.py, rigkit.py), hidden parts painted in. Her base look (HeroArt.LIVE).",
+ "version": 2,
+ "cell": 10,
+ "image": "live.png",
+ "origin": [
+  512,
+  1990
+ ],
+ "texel_scale": 1.0,
+ "portrait": [
+  380,
+  560,
+  260
+ ],
+ "look_px": [
+  10,
+  6
+ ],
+ "meta": {
+  "weapon": "rapier",
+  "attack": "attack_melee",
+  "fx_color": "#e9e0ff",
+  "art": "moss s304000 rig pose, SAM layers",
+  "idle_gestures": [
+   "idle_flourish",
+   "idle_hair",
+   "idle_shades"
+  ],
+  "idle": {
+   "breath": 6.0,
+   "noise": 2.2,
+   "head": 1.6,
+   "arms": 2.2,
+   "wings": 1.8,
+   "sway": 6.0,
+   "sway_period": 6.8,
+   "sway_rot": 0.8,
+   "sway_dip": 2.5,
+   "kick_breath": 75.0,
+   "kick_sway": 45.0,
+   "iris_x": 1.6,
+   "iris_y": 0.5,
+   "gaze": 0.6
+  }
+ },
+ "body_bone": "hips",
+ "bones": [
+  {
+   "name": "ik_foot_r",
+   "parent": "root",
+   "pivot": [
+    476,
+    1850
+   ]
+  },
+  {
+   "name": "ik_foot_l",
+   "parent": "root",
+   "pivot": [
+    701,
+    1787
+   ]
+  },
+  {
+   "name": "hips",
+   "parent": "root",
+   "pivot": [
+    500,
+    1180
+   ]
+  },
+  {
+   "name": "torso",
+   "parent": "hips",
+   "pivot": [
+    503,
+    1070
+   ]
+  },
+  {
+   "name": "chest",
+   "parent": "torso",
+   "pivot": [
+    507,
+    940
+   ]
+  },
+  {
+   "name": "neck",
+   "parent": "chest",
+   "pivot": [
+    510,
+    805
+   ]
+  },
+  {
+   "name": "head",
+   "parent": "neck",
+   "pivot": [
+    510,
+    780
+   ]
+  },
+  {
+   "name": "face",
+   "parent": "head",
+   "pivot": [
+    505,
+    740
+   ]
+  },
+  {
+   "name": "iris",
+   "parent": "face",
+   "pivot": [
+    505,
+    714
+   ]
+  },
+  {
+   "name": "hair_front_r",
+   "parent": "head",
+   "pivot": [
+    440,
+    660
+   ],
+   "spring": "bangs"
+  },
+  {
+   "name": "hair_front_l",
+   "parent": "head",
+   "pivot": [
+    574,
+    650
+   ],
+   "spring": "bangs"
+  },
+  {
+   "name": "hair_back",
+   "parent": "head",
+   "pivot": [
+    510,
+    640
+   ],
+   "spring": "hair_mass;g=0.85"
+  },
+  {
+   "name": "hair_w1",
+   "parent": "hair_back",
+   "pivot": [
+    453,
+    770
+   ],
+   "spring": "hair_long;w=0.07;i=0.62;g=0.8;limit=13;k=46"
+  },
+  {
+   "name": "hair_w2",
+   "parent": "hair_w1",
+   "pivot": [
+    389,
+    870
+   ],
+   "spring": "hair_long;w=0.07;i=0.62;g=0.8;limit=13;k=41"
+  },
+  {
+   "name": "hair_w3",
+   "parent": "hair_w2",
+   "pivot": [
+    403,
+    960
+   ],
+   "spring": "hair_long;w=0.07;i=0.62;g=0.8;limit=13;k=36"
+  },
+  {
+   "name": "hair_b1",
+   "parent": "hair_back",
+   "pivot": [
+    581,
+    770
+   ],
+   "spring": "hair_long;w=0.07;i=0.62;g=0.8;limit=13;k=46"
+  },
+  {
+   "name": "hair_b2",
+   "parent": "hair_b1",
+   "pivot": [
+    655,
+    870
+   ],
+   "spring": "hair_long;w=0.07;i=0.62;g=0.8;limit=13;k=41"
+  },
+  {
+   "name": "hair_b3",
+   "parent": "hair_b2",
+   "pivot": [
+    671,
+    960
+   ],
+   "spring": "hair_long;w=0.07;i=0.62;g=0.8;limit=13;k=36"
+  },
+  {
+   "name": "glasses",
+   "parent": "head",
+   "pivot": [
+    492,
+    648
+   ],
+   "spring": "accessory;limit=4"
+  },
+  {
+   "name": "earring_r",
+   "parent": "head",
+   "pivot": [
+    451,
+    738
+   ],
+   "spring": "accessory;limit=12"
+  },
+  {
+   "name": "earring_l",
+   "parent": "head",
+   "pivot": [
+    565,
+    734
+   ],
+   "spring": "accessory;limit=12"
+  },
+  {
+   "name": "breast_r",
+   "parent": "chest",
+   "pivot": [
+    438,
+    868
+   ],
+   "spring": "jiggle;ky=190"
+  },
+  {
+   "name": "breast_r_lo",
+   "parent": "breast_r",
+   "pivot": [
+    438,
+    930
+   ],
+   "spring": "jiggle;kx=170;ky=230;ky2=560;z=0.3;limit=10;tx=0.3;ty=0.45;rot=0.35;sq=0.6;kick=0"
+  },
+  {
+   "name": "breast_l",
+   "parent": "chest",
+   "pivot": [
+    582,
+    868
+   ],
+   "spring": "jiggle;ky=190"
+  },
+  {
+   "name": "breast_l_lo",
+   "parent": "breast_l",
+   "pivot": [
+    582,
+    930
+   ],
+   "spring": "jiggle;kx=170;ky=230;ky2=560;z=0.3;limit=10;tx=0.3;ty=0.45;rot=0.35;sq=0.6;kick=0"
+  },
+  {
+   "name": "arm_r",
+   "parent": "chest",
+   "pivot": [
+    400,
+    840
+   ]
+  },
+  {
+   "name": "forearm_r",
+   "parent": "arm_r",
+   "pivot": [
+    335,
+    1060
+   ]
+  },
+  {
+   "name": "hand_r",
+   "parent": "forearm_r",
+   "pivot": [
+    290,
+    1170
+   ]
+  },
+  {
+   "name": "arm_l",
+   "parent": "chest",
+   "pivot": [
+    605,
+    840
+   ]
+  },
+  {
+   "name": "forearm_l",
+   "parent": "arm_l",
+   "pivot": [
+    650,
+    1060
+   ]
+  },
+  {
+   "name": "hand_l",
+   "parent": "forearm_l",
+   "pivot": [
+    665,
+    1220
+   ]
+  },
+  {
+   "name": "weapon",
+   "parent": "hand_r",
+   "pivot": [
+    282,
+    1240
+   ],
+   "tip": [
+    382,
+    1962
+   ]
+  },
+  {
+   "name": "thigh_r",
+   "parent": "hips",
+   "pivot": [
+    430,
+    1230
+   ]
+  },
+  {
+   "name": "shin_r",
+   "parent": "thigh_r",
+   "pivot": [
+    445,
+    1555
+   ]
+  },
+  {
+   "name": "foot_r",
+   "parent": "shin_r",
+   "pivot": [
+    476,
+    1850
+   ]
+  },
+  {
+   "name": "thigh_l",
+   "parent": "hips",
+   "pivot": [
+    582,
+    1230
+   ]
+  },
+  {
+   "name": "shin_l",
+   "parent": "thigh_l",
+   "pivot": [
+    626,
+    1520
+   ]
+  },
+  {
+   "name": "foot_l",
+   "parent": "shin_l",
+   "pivot": [
+    701,
+    1787
+   ]
+  },
+  {
+   "name": "wing_r",
+   "parent": "chest",
+   "pivot": [
+    392,
+    868
+   ],
+   "spring": "wing;w=0.05"
+  },
+  {
+   "name": "wing_r2",
+   "parent": "wing_r",
+   "pivot": [
+    210,
+    830
+   ],
+   "spring": "wing;w=0.04;limit=8"
+  },
+  {
+   "name": "wing_l",
+   "parent": "chest",
+   "pivot": [
+    640,
+    862
+   ],
+   "spring": "wing;w=0.05"
+  },
+  {
+   "name": "wing_l2",
+   "parent": "wing_l",
+   "pivot": [
+    810,
+    826
+   ],
+   "spring": "wing;w=0.04;limit=8"
+  }
+ ],
+ "regions": [
+  {
+   "name": "face",
+   "rule": {
+    "type": "ellipse",
+    "center": [
+     505,
+     730
+    ],
+    "radius": [
+     60,
+     66
+    ],
+    "feather": 12
+   }
+  },
+  {
+   "name": "iris",
+   "rule": {
+    "type": "mask",
+    "image": "st/iris_m.png"
+   }
+  },
+  {
+   "name": "glasses",
+   "soft": 6,
+   "rule": {
+    "type": "mask",
+    "image": "st/glasses.png"
+   }
+  },
+  {
+   "name": "earring_r",
+   "soft": 6,
+   "rule": {
+    "type": "polygon",
+    "points": [
+     [
+      436,
+      734
+     ],
+     [
+      466,
+      734
+     ],
+     [
+      466,
+      800
+     ],
+     [
+      436,
+      800
+     ]
+    ]
+   }
+  },
+  {
+   "name": "earring_l",
+   "soft": 6,
+   "rule": {
+    "type": "polygon",
+    "points": [
+     [
+      550,
+      730
+     ],
+     [
+      580,
+      730
+     ],
+     [
+      580,
+      796
+     ],
+     [
+      550,
+      796
+     ]
+    ]
+   }
+  },
+  {
+   "name": "hair_front_r",
+   "soft": 16,
+   "rule": {
+    "type": "polygon",
+    "points": [
+     [
+      410,
+      640
+     ],
+     [
+      470,
+      640
+     ],
+     [
+      468,
+      700
+     ],
+     [
+      446,
+      780
+     ],
+     [
+      410,
+      790
+     ],
+     [
+      396,
+      720
+     ]
+    ]
+   }
+  },
+  {
+   "name": "hair_front_l",
+   "soft": 16,
+   "rule": {
+    "type": "polygon",
+    "points": [
+     [
+      540,
+      630
+     ],
+     [
+      606,
+      630
+     ],
+     [
+      618,
+      720
+     ],
+     [
+      604,
+      790
+     ],
+     [
+      566,
+      780
+     ],
+     [
+      544,
+      700
+     ]
+    ]
+   }
+  },
+  {
+   "name": "head",
+   "rule": {
+    "type": "ellipse",
+    "center": [
+     508,
+     690
+    ],
+    "radius": [
+     110,
+     120
+    ],
+    "feather": 18
+   }
+  },
+  {
+   "name": "neck",
+   "rule": {
+    "type": "polygon",
+    "points": [
+     [
+      478,
+      770
+     ],
+     [
+      548,
+      770
+     ],
+     [
+      556,
+      830
+     ],
+     [
+      470,
+      830
+     ]
+    ],
+    "feather": 14
+   }
+  },
+  {
+   "name": "breast_r_lo",
+   "rule": {
+    "type": "mask",
+    "image": "st/breast_r_lo_w.png",
+    "levels": true
+   }
+  },
+  {
+   "name": "breast_r",
+   "rule": {
+    "type": "mask",
+    "image": "st/breast_r_w.png",
+    "levels": true
+   }
+  },
+  {
+   "name": "breast_l_lo",
+   "rule": {
+    "type": "mask",
+    "image": "st/breast_l_lo_w.png",
+    "levels": true
+   }
+  },
+  {
+   "name": "breast_l",
+   "rule": {
+    "type": "mask",
+    "image": "st/breast_l_w.png",
+    "levels": true
+   }
+  },
+  {
+   "name": "chest",
+   "rule": {
+    "type": "polygon",
+    "points": [
+     [
+      390,
+      820
+     ],
+     [
+      625,
+      820
+     ],
+     [
+      645,
+      920
+     ],
+     [
+      630,
+      1010
+     ],
+     [
+      385,
+      1010
+     ],
+     [
+      370,
+      920
+     ]
+    ],
+    "feather": 26
+   }
+  },
+  {
+   "name": "torso",
+   "rule": {
+    "type": "polygon",
+    "points": [
+     [
+      395,
+      990
+     ],
+     [
+      625,
+      990
+     ],
+     [
+      620,
+      1130
+     ],
+     [
+      400,
+      1130
+     ]
+    ],
+    "feather": 26
+   }
+  },
+  {
+   "name": "foot_r",
+   "rule": {
+    "type": "mask",
+    "image": "st/leg_r.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       0,
+       1810
+      ],
+      [
+       512,
+       1810
+      ],
+      [
+       512,
+       2048
+      ],
+      [
+       0,
+       2048
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "shin_r",
+   "rule": {
+    "type": "mask",
+    "image": "st/leg_r.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       0,
+       1545
+      ],
+      [
+       512,
+       1545
+      ],
+      [
+       512,
+       2048
+      ],
+      [
+       0,
+       2048
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "thigh_r",
+   "rule": {
+    "type": "mask",
+    "image": "st/leg_r.png"
+   }
+  },
+  {
+   "name": "foot_l",
+   "rule": {
+    "type": "mask",
+    "image": "st/leg_l.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       512,
+       1760
+      ],
+      [
+       1024,
+       1760
+      ],
+      [
+       1024,
+       2048
+      ],
+      [
+       512,
+       2048
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "shin_l",
+   "rule": {
+    "type": "mask",
+    "image": "st/leg_l.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       512,
+       1510
+      ],
+      [
+       1024,
+       1510
+      ],
+      [
+       1024,
+       2048
+      ],
+      [
+       512,
+       2048
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "thigh_l",
+   "rule": {
+    "type": "mask",
+    "image": "st/leg_l.png"
+   }
+  },
+  {
+   "name": "hips",
+   "rule": {
+    "type": "polygon",
+    "points": [
+     [
+      360,
+      1110
+     ],
+     [
+      650,
+      1110
+     ],
+     [
+      670,
+      1290
+     ],
+     [
+      345,
+      1290
+     ]
+    ],
+    "feather": 22
+   }
+  },
+  {
+   "name": "weapon",
+   "rule": {
+    "type": "mask",
+    "image": "st/rapier.png"
+   }
+  },
+  {
+   "name": "hand_r",
+   "rule": {
+    "type": "mask",
+    "image": "st/hand_r.png",
+    "within": {
+     "type": "mask",
+     "image": "st/arm_r_fore.png"
+    }
+   }
+  },
+  {
+   "name": "forearm_r",
+   "rule": {
+    "type": "mask",
+    "image": "st/arm_r_fore.png"
+   }
+  },
+  {
+   "name": "arm_r",
+   "rule": {
+    "type": "mask",
+    "image": "st/arm_r_up.png"
+   }
+  },
+  {
+   "name": "hand_l",
+   "rule": {
+    "type": "mask",
+    "image": "st/hand_l.png",
+    "within": {
+     "type": "mask",
+     "image": "st/arm_l_fore.png"
+    }
+   }
+  },
+  {
+   "name": "forearm_l",
+   "rule": {
+    "type": "mask",
+    "image": "st/arm_l_fore.png"
+   }
+  },
+  {
+   "name": "arm_l",
+   "rule": {
+    "type": "mask",
+    "image": "st/arm_l_up.png"
+   }
+  },
+  {
+   "name": "wing_r2",
+   "soft": 60,
+   "rule": {
+    "type": "mask",
+    "image": "st/wings_m.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       0,
+       0
+      ],
+      [
+       210,
+       0
+      ],
+      [
+       210,
+       2048
+      ],
+      [
+       0,
+       2048
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "wing_r",
+   "rule": {
+    "type": "mask",
+    "image": "st/wings_m.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       0,
+       0
+      ],
+      [
+       510,
+       0
+      ],
+      [
+       510,
+       2048
+      ],
+      [
+       0,
+       2048
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "wing_l2",
+   "soft": 60,
+   "rule": {
+    "type": "mask",
+    "image": "st/wings_m.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       810,
+       0
+      ],
+      [
+       1024,
+       0
+      ],
+      [
+       1024,
+       2048
+      ],
+      [
+       810,
+       2048
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "wing_l",
+   "rule": {
+    "type": "mask",
+    "image": "st/wings_m.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       510,
+       0
+      ],
+      [
+       1024,
+       0
+      ],
+      [
+       1024,
+       2048
+      ],
+      [
+       510,
+       2048
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "hair_b3",
+   "soft": 22,
+   "rule": {
+    "type": "mask",
+    "image": "st/hair.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       510,
+       960
+      ],
+      [
+       1024,
+       960
+      ],
+      [
+       1024,
+       2048
+      ],
+      [
+       510,
+       2048
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "hair_b2",
+   "soft": 22,
+   "rule": {
+    "type": "mask",
+    "image": "st/hair.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       510,
+       870
+      ],
+      [
+       1024,
+       870
+      ],
+      [
+       1024,
+       960
+      ],
+      [
+       510,
+       960
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "hair_b1",
+   "soft": 22,
+   "rule": {
+    "type": "mask",
+    "image": "st/hair.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       510,
+       770
+      ],
+      [
+       1024,
+       770
+      ],
+      [
+       1024,
+       870
+      ],
+      [
+       510,
+       870
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "hair_w3",
+   "soft": 22,
+   "rule": {
+    "type": "mask",
+    "image": "st/hair.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       0,
+       960
+      ],
+      [
+       510,
+       960
+      ],
+      [
+       510,
+       2048
+      ],
+      [
+       0,
+       2048
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "hair_w2",
+   "soft": 22,
+   "rule": {
+    "type": "mask",
+    "image": "st/hair.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       0,
+       870
+      ],
+      [
+       510,
+       870
+      ],
+      [
+       510,
+       960
+      ],
+      [
+       0,
+       960
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "hair_w1",
+   "soft": 22,
+   "rule": {
+    "type": "mask",
+    "image": "st/hair.png",
+    "within": {
+     "type": "polygon",
+     "points": [
+      [
+       0,
+       770
+      ],
+      [
+       510,
+       770
+      ],
+      [
+       510,
+       870
+      ],
+      [
+       0,
+       870
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "hair_back",
+   "rule": {
+    "type": "mask",
+    "image": "st/hair.png"
+   }
+  }
+ ],
+ "layers": [
+  {
+   "name": "wings",
+   "image": "live_wings.png",
+   "z": -40,
+   "image_rect": [
+    23,
+    725,
+    977,
+    358
+   ],
+   "parts": [
+    "wing"
+   ],
+   "weights": "own"
+  },
+  {
+   "name": "back_hair",
+   "image": "live_back_hair.png",
+   "z": -30,
+   "image_rect": [
+    370,
+    752,
+    338,
+    325
+   ],
+   "parts": [
+    "hair_back",
+    "hair_w",
+    "hair_b"
+   ],
+   "weights": "own"
+  },
+  {
+   "name": "body",
+   "image": "live_body.png",
+   "z": 0,
+   "image_rect": [
+    252,
+    588,
+    494,
+    1402
+   ],
+   "parts": [
+    "face",
+    "head",
+    "neck",
+    "chest",
+    "torso",
+    "hips",
+    "thigh",
+    "shin",
+    "foot",
+    "glasses",
+    "earring",
+    "hair_front"
+   ],
+   "weights": "own"
+  },
+  {
+   "name": "irides",
+   "image": "live_irides.png",
+   "z": 1,
+   "image_rect": [
+    462,
+    700,
+    88,
+    30
+   ],
+   "parts": [
+    "iris"
+   ],
+   "weights": "own"
+  },
+  {
+   "name": "lashes",
+   "image": "live_lashes.png",
+   "z": 2,
+   "image_rect": [
+    451,
+    695,
+    109,
+    38
+   ],
+   "parts": [
+    "face"
+   ],
+   "weights": "own"
+  },
+  {
+   "name": "arm_l_up",
+   "image": "live_arm_l_up.png",
+   "z": 3,
+   "image_rect": [
+    587,
+    820,
+    67,
+    262
+   ],
+   "bone": "arm_l"
+  },
+  {
+   "name": "arm_r_up",
+   "image": "live_arm_r_up.png",
+   "z": 3,
+   "image_rect": [
+    316,
+    846,
+    99,
+    238
+   ],
+   "bone": "arm_r"
+  },
+  {
+   "name": "breast_r",
+   "image": "live_breast_r.png",
+   "z": 4,
+   "image_rect": [
+    364,
+    843,
+    148,
+    161
+   ],
+   "parts": [
+    "breast_r"
+   ],
+   "weights": "own",
+   "rest_bone": "chest",
+   "cell": 6
+  },
+  {
+   "name": "breast_l",
+   "image": "live_breast_l.png",
+   "z": 5,
+   "image_rect": [
+    510,
+    842,
+    141,
+    169
+   ],
+   "parts": [
+    "breast_l"
+   ],
+   "weights": "own",
+   "rest_bone": "chest",
+   "cell": 6
+  },
+  {
+   "name": "rapier",
+   "image": "live_rapier.png",
+   "z": 8,
+   "image_rect": [
+    216,
+    1196,
+    171,
+    774
+   ],
+   "bone": "weapon"
+  },
+  {
+   "name": "arm_l_fore",
+   "image": "live_arm_l_fore.png",
+   "z": 9,
+   "image_rect": [
+    619,
+    1039,
+    77,
+    297
+   ],
+   "parts": [
+    "hand_l",
+    "forearm_l"
+   ],
+   "weights": "own",
+   "cell": 8
+  },
+  {
+   "name": "arm_r_fore",
+   "image": "live_arm_r_fore.png",
+   "z": 11,
+   "image_rect": [
+    245,
+    1040,
+    125,
+    228
+   ],
+   "parts": [
+    "hand_r",
+    "forearm_r"
+   ],
+   "weights": "own",
+   "cell": 8
+  }
+ ],
+ "ik": [
+  {
+   "upper": "thigh_r",
+   "lower": "shin_r",
+   "target": "ik_foot_r",
+   "foot": "foot_r",
+   "knee_room": 10
+  },
+  {
+   "upper": "thigh_l",
+   "lower": "shin_l",
+   "target": "ik_foot_l",
+   "foot": "foot_l",
+   "knee_room": 10
+  }
+ ],
+ "overlays": [
+  {
+   "slot": "eyes",
+   "bone": "face",
+   "base": "open",
+   "default": "open",
+   "z": 3,
+   "rect": [
+    441,
+    691,
+    131,
+    46
+   ],
+   "variants": {
+    "closed": "variants/eyes_closed.png",
+    "half": "variants/eyes_half.png",
+    "smile": "variants/smile.png"
+   }
+  },
+  {
+   "slot": "mouth",
+   "bone": "face",
+   "base": "default",
+   "default": "default",
+   "z": 3,
+   "rect": [
+    472,
+    742,
+    74,
+    42
+   ],
+   "variants": {
+    "open": "variants/mouth_open.png",
+    "small": "variants/mouth_small.png",
+    "wide": "variants/mouth_wide.png",
+    "smile": "variants/smile.png"
+   }
+  }
+ ]
+}

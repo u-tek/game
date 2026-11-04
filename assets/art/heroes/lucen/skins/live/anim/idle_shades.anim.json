@@ -1,0 +1,349 @@
+{
+ "name": "idle_shades",
+ "duration": 2.4,
+ "loop": false,
+ "mix": 0.25,
+ "mix_out": 0.35,
+ "bones": {
+  "arm_l": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 0.0,
+     "e": "cubic_out"
+    },
+    {
+     "t": 0.45,
+     "v": -140.7,
+     "e": "back_out"
+    },
+    {
+     "t": 0.6,
+     "v": -142.2,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.6,
+     "v": -141.5,
+     "e": "cubic_in_out"
+    },
+    {
+     "t": 2.1,
+     "v": 0.0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "forearm_l": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 0.0,
+     "e": "cubic_out"
+    },
+    {
+     "t": 0.45,
+     "v": -145.4,
+     "e": "back_out"
+    },
+    {
+     "t": 0.6,
+     "v": -130.1,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.6,
+     "v": -131.8,
+     "e": "cubic_in_out"
+    },
+    {
+     "t": 2.1,
+     "v": 0.0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "hand_l": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 0,
+     "e": "cubic_out"
+    },
+    {
+     "t": 0.45,
+     "v": -30,
+     "e": "back_out"
+    },
+    {
+     "t": 0.6,
+     "v": -50,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.6,
+     "v": -46,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 2.1,
+     "v": 0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "glasses": {
+   "translate": [
+    {
+     "t": 0.0,
+     "x": 0,
+     "y": 0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.62,
+     "x": 0,
+     "y": 0,
+     "e": "cubic_out"
+    },
+    {
+     "t": 0.8,
+     "x": 0,
+     "y": 16,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.4,
+     "x": 0,
+     "y": 16,
+     "e": "cubic_out"
+    },
+    {
+     "t": 1.6,
+     "x": 0,
+     "y": 0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 2.4,
+     "x": 0,
+     "y": 0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "head": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 0.5,
+     "v": -3,
+     "e": "back_out"
+    },
+    {
+     "t": 0.8,
+     "v": 4,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.5,
+     "v": 3,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 2.3,
+     "v": 0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "wing_r": {
+   "rotate": [
+    {
+     "t": 0.0,
+     "v": 0,
+     "e": "back_out"
+    },
+    {
+     "t": 0.6,
+     "v": 5,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.6,
+     "v": 3,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 2.4,
+     "v": 0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "wing_l": {
+   "rotate": [
+    {
+     "t": 0.02,
+     "v": 0,
+     "e": "back_out"
+    },
+    {
+     "t": 0.62,
+     "v": -5,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.62,
+     "v": -3,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 2.42,
+     "v": 0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "wing_r2": {
+   "rotate": [
+    {
+     "t": 0.04,
+     "v": 0.0,
+     "e": "back_out"
+    },
+    {
+     "t": 0.64,
+     "v": 3.0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.64,
+     "v": 1.7999999999999998,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 2.44,
+     "v": 0.0,
+     "e": "sine_in_out"
+    }
+   ]
+  },
+  "wing_l2": {
+   "rotate": [
+    {
+     "t": 0.06,
+     "v": 0.0,
+     "e": "back_out"
+    },
+    {
+     "t": 0.66,
+     "v": -3.0,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 1.66,
+     "v": -1.7999999999999998,
+     "e": "sine_in_out"
+    },
+    {
+     "t": 2.46,
+     "v": 0.0,
+     "e": "sine_in_out"
+    }
+   ]
+  }
+ },
+ "slots": {
+  "eye_l": {
+   "attachment": [
+    {
+     "t": 0.0,
+     "v": "open"
+    },
+    {
+     "t": 0.85,
+     "v": "half"
+    },
+    {
+     "t": 1.05,
+     "v": "smile"
+    },
+    {
+     "t": 1.4,
+     "v": "open"
+    }
+   ]
+  },
+  "eye_r": {
+   "attachment": [
+    {
+     "t": 0.0,
+     "v": "open"
+    },
+    {
+     "t": 0.85,
+     "v": "half"
+    },
+    {
+     "t": 1.05,
+     "v": "smile"
+    },
+    {
+     "t": 1.4,
+     "v": "open"
+    }
+   ]
+  },
+  "eyes": {
+   "attachment": [
+    {
+     "t": 0.0,
+     "v": "open"
+    },
+    {
+     "t": 0.85,
+     "v": "half"
+    },
+    {
+     "t": 1.05,
+     "v": "smile"
+    },
+    {
+     "t": 1.4,
+     "v": "open"
+    }
+   ]
+  },
+  "mouth": {
+   "attachment": [
+    {
+     "t": 0.0,
+     "v": "default"
+    },
+    {
+     "t": 0.85,
+     "v": "smile"
+    },
+    {
+     "t": 1.8,
+     "v": "default"
+    }
+   ]
+  }
+ },
+ "events": [
+  {
+   "t": 0.6,
+   "name": "jiggle:20,120"
+  },
+  {
+   "t": 2.1,
+   "name": "jiggle:-20,90"
+  }
+ ]
+}

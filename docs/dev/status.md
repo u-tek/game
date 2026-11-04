@@ -49,9 +49,15 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
     Committed (26c6b0c); videos `art_src/_review/rigproto/uriela/uriela_rig_v2*.mp4` sent; seen on her
     hero page and in a fresh-save battle.
   - **IPA run 41774297809** (dispatched 04:37 UTC) has Seraphiel and Uriela live and everything below.
-  - **Lucen and Kessa:** rig blocks in the bible (b72a330); candidates rendered (Lucen s304000-s304003,
-    Claude's pick s304000; Kessa s205000-s205003). Next for each: finalize, face frames, SAM spec, rig
-    and anims scripts modelled on Uriela's.
+  - **Display poses (adef3ca):** a layered art's own `idle.anim.json` holds her display pose under
+    everything (weight on one hip, head tilted, free hand on her hip); the procedural idle rides on it.
+  - **Lucen** (in progress): s304000 finalized, face frames picked (blink s304503 at denoise 0.85),
+    `tools/layered/lucen_sam.json` (18 parts, cut on the CPU while MOSS held the GPU), `lucen_rig.py`
+    (the arm masks limited to tubes round their bones: SAM's took wing pearls and black hair strands),
+    `lucen_anims.py` on the new `animkit.py` (Riposte, Twinfeather Flurry, the blade-flick victory,
+    flourish, hair flick, shades). Repaints: chest s11, side_r s12 (sides now a 14 px band only).
+  - **Kessa:** her first four candidates all grew bat wings (not in her design); the rig block now says
+    no wings (19525c3). Of the second four only s205013 is wingless: Claude's pick, queued to finalize.
   - **Also this block:** an execute is stamped EXECUTED (054d495, `tools/textures/stamp_print.py`);
     statuses print on embossed label tape (84f1566); the Epic summon's own beat, a die-cut (71316e4);
     the Encore partner's print in the cut-in (afaadcf); Live Light swings through the cut-in on Pro
