@@ -1162,7 +1162,7 @@
    "pose": "leaning forward, arched back, hand on own thigh",
    "face": "black hair, short hair, streaked hair, cat ear headphones, small horns",
    "natural": "An athletic, curvy adult cat burglar in her mid-20s: a black latex catsuit zipped open to below the cleavage, a red chrome-ringed harness, thong-cut with hip windows, a long red vinyl scarf, black platform thigh boots; chrome cat-ear headphones over short choppy black hair with a red streak, a red cat-eye visor pushed up, small horns, amber slit-pupil eyes, a smug smile; twin black-chrome crescent sickles in a low, hip-cocked fighting stance; a long cat tail.",
-   "negative_extra": "(covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (impossible clothes:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2), (all fours:1.3), kneeling",
+   "negative_extra": "(covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (impossible clothes:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2), (all fours:1.3), kneeling, (wings:1.3), (bat wings:1.3), (demon wings:1.3)",
    "variants": {
     "eyes_closed": "closed eyes, fang, smug",
     "mouth_open": "orange eyes, slit pupils, open mouth, fang, smug",
@@ -1172,7 +1172,7 @@
    },
    "rig": {
     "_doc": "The rig-ready pose (layered rig, 2026-11-04): eyes open for the blink frames, a sickle hanging in each hand clear of her body, the tail out to one side.",
-    "natural": "An athletic, curvy adult cat burglar: a black latex catsuit zipped open to below the cleavage, a red chrome-ringed harness, thong-cut with hip windows, a long red vinyl scarf hanging down behind her shoulders, black platform thigh boots; chrome cat-ear headphones over short choppy black hair with a red streak, a red cat-eye visor pushed up, small horns; a black-chrome crescent sickle hanging in each hand at her sides, the blades turned outward and clear of her legs; a long black cat tail curving out to one side, clear of her legs; eyes open, amber slit-pupil eyes looking at the viewer, a smug closed-mouth smile with a small fang.",
+    "natural": "An athletic, curvy adult cat burglar: a black latex catsuit zipped open to below the cleavage, a red chrome-ringed harness, thong-cut with hip windows, a long red vinyl scarf hanging down behind her shoulders, black platform thigh boots; chrome cat-ear headphones over short choppy black hair with a red streak, a red cat-eye visor pushed up, small horns; a black-chrome crescent sickle hanging in each hand at her sides, the blades turned outward and clear of her legs; a long black cat tail curving out to one side, clear of her legs; small black horns in her hair; she has no wings and no cape; eyes open, amber slit-pupil eyes looking at the viewer, a smug closed-mouth smile with a small fang.",
     "eyes": "orange eyes, slit pupils, looking at viewer",
     "default_eyes": "open",
     "expression": "smug smile, closed mouth, fang",
