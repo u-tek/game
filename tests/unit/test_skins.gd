@@ -171,6 +171,37 @@ func test_the_live_look_is_her_base(t: TestCtx) -> void:
 	t.ok(not HeroArt.is_live("_silhouette"), "the fallback has no live look")
 
 
+## Every built layered rig loads as a format 2 rig with eye and mouth frames, her own display pose, touch
+## reaction and attack, and a few seconds of updates (idle, an action) run on it.
+func test_every_live_rig_plays(t: TestCtx) -> void:
+	var n := 0
+	for hv: Variant in GameData.heroes().get("heroes", []):
+		var id := str((hv as Dictionary).get("id", ""))
+		if not HeroArt.is_live(id):
+			continue
+		n += 1
+		var rd := RigData.load_rig(id, HeroArt.LIVE)
+		t.ok(rd != null and rd.version >= 2, "%s: a layered (format 2) rig" % id)
+		if rd == null:
+			continue
+		var slots := {}
+		for s: Variant in rd.slots:
+			slots[str((s as Dictionary).get("name", ""))] = true
+		t.ok(slots.has("eyes") and slots.has("mouth"), "%s: eye and mouth frames" % id)
+		var sp: Node2D = HeroArt.make_sprite(id)
+		for anim in ["idle", "touch", "victory"]:
+			t.ok(bool(sp.call("has_own_anim", anim)), "%s: her own %s" % [id, anim])
+		var atk := str(sp.call("attack_anim"))
+		t.ok(bool(sp.call("has_own_anim", atk)), "%s: her own attack (%s)" % [id, atk])
+		var rig: Node = sp.get("rig")
+		rig.call("play", "idle", 0)
+		rig.call("play", "touch", 1)
+		for i in 90:
+			rig.call("_process", 1.0 / 30.0)
+		sp.free()
+	t.ok(n >= 3, "the starters and Seraphiel are live (%d)" % n)
+
+
 func test_nudity_mode_drops_skins(t: TestCtx) -> void:
 	var g := _game()
 	g.new_game()
