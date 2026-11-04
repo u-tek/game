@@ -165,6 +165,12 @@ func setup(params: Dictionary) -> void:
 	if OS.is_debug_build() and params.has("shake"):
 		# Shots: a shake after that many seconds (no accelerometer on the PC).
 		get_tree().create_timer(float(params.shake)).timeout.connect(shake_sanctum)
+	if OS.is_debug_build() and params.has("tap"):
+		# Shots: a tap on her chest after that many seconds.
+		get_tree().create_timer(float(params.tap)).timeout.connect(func() -> void:
+			if _hero_hit and is_instance_valid(_hero_hit):
+				_tap_n = HeroReact.next_count(_tap_n, 99.0)
+				_react_at(_hero_hit.position + _hero_hit.size * Vector2(0.5, 0.33)))
 
 
 ## The "quiet" take (debug shots, a pitch): the poster without the bulletin card and its tab, the hero

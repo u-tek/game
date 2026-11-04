@@ -6,7 +6,8 @@ extends RefCounted
 ##   two print plates);
 ## - a camera punch on the figure (a quick scale-up from her feet that springs back) and a wobble;
 ## - an expression from the HaloRig's eye and mouth variants;
-## - a pose that changes tap by tap: victory, a cast with sparks, a hop, a laughing flinch;
+## - a pose that changes tap by tap: victory, a cast with sparks, a hop, a laughing flinch (a layered
+##   heroine's own touch reaction comes first, and every tap kicks her breast springs);
 ## - on a flurry of taps (4 within the window) a flustered beat: the poster shakes and a "!!"
 ##   rubber stamp lands by her head.
 ## Reduce motion keeps the pose and the expression only.
@@ -36,8 +37,14 @@ static func react(host: Control, sprite: Node2D, anchor: Node2D, at: Vector2, n:
 		return 0.0
 	var flustered := n >= 4
 	var beat: Array = BEATS[3] if flustered else BEATS[(maxi(n, 1) - 1) % 3]
+	# A layered heroine has her own reaction to a touch: it is the first beat (and her expression is in it).
+	var own := not flustered and (maxi(n, 1) - 1) % 3 == 0 and bool(sprite.call("has_own_anim", "touch"))
+	if own:
+		beat = ["", "", "touch"]
 	sprite.call("set_expression", "eyes", beat[0])
 	sprite.call("set_expression", "mouth", beat[1])
+	if sprite.has_method("poke"):
+		sprite.call("poke", sprite.get_global_transform().affine_inverse() * (host.get_global_transform() * at) if host else Vector2.ZERO)
 	match str(beat[2]):
 		"victory":
 			sprite.call("play_victory")

@@ -288,6 +288,21 @@ func play_victory() -> void:
 
 ## Plays any animation by name. Looping animations replace the base (idle) track; one-shots
 ## play on top and return to the base when done.
+## True if her art has its own animation `anim` (a layered rig's anim/ folder: touch, idle gestures ...).
+func has_own_anim(anim: String) -> bool:
+	if rig == null or rig.rig == null or rig.rig.dir == "":
+		return false
+	return FileAccess.file_exists("%sanim/%s.anim.json" % [rig.rig.dir, anim])
+
+
+## A poke on her at `local` (her own space): the breast springs kick away from the finger (layered rigs).
+func poke(local: Vector2) -> void:
+	if rig == null:
+		return
+	var d := Vector2(signf(local.x) * 60.0, -180.0)
+	rig.jiggle(d)
+
+
 func play(anim: String) -> void:
 	if rig == null:
 		return
