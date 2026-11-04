@@ -11,7 +11,9 @@ extends Control
 ##   a single tap on her  she reacts (HeroReact)
 ##   hide                 the type and strip fade out (tap anywhere to bring them back)
 ## Mono type in the poster style: her name, title, the look's name and pack, "07 / 40".
-## params: hero_id (start on her), skin (start on that look).
+## params: hero_id (start on her), skin (start on that look). Screenshots (debug builds): take = "paper"
+## shows the take on the posters' paper (matte paper and grain, her red print behind, ink type) instead
+## of the dark lightbox, for the owner to compare.
 
 const DeviceTier := preload("res://src/art/device_tier.gd")
 const PK := preload("res://src/ui/v4/hero_poster_kit.gd")
@@ -56,6 +58,8 @@ var _tap_n := 0
 var _tap_at := 0.0
 var _react_left := 0.0
 var _hidden := false
+## The paper take (debug: take = "paper"): the stage on paper, the type in ink.
+var _paper := false
 
 
 func setup(params: Dictionary) -> void:
@@ -77,6 +81,7 @@ func setup(params: Dictionary) -> void:
 	if want != "" and not _ids.has(want) and not Game.hero_def(want).is_empty():
 		_ids.insert(0, want)
 	_i = maxi(0, _ids.find(want))
+	_paper = OS.is_debug_build() and str(params.get("take", "")) == "paper"
 	_build()
 	_show_hero(_i, str(params.get("skin", "*")))
 	# Screenshots (debug): zoom = 2.2 and pan = [x, y] (the clamp keeps her on screen).
@@ -91,6 +96,11 @@ func setup(params: Dictionary) -> void:
 	resized.connect(_layout)
 
 
+## The type's colour: paper on the dark lightbox, ink on the paper take.
+func _fg(a: float) -> Color:
+	return Color(INK if _paper else PAPER, a)
+
+
 func _exit_tree() -> void:
 	UI.set_chrome(true, true)
 
@@ -102,6 +112,12 @@ func _build() -> void:
 	bg.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	bg.mouse_filter = MOUSE_FILTER_IGNORE
 	add_child(bg)
+	if _paper:
+		var sheet := Control.new()
+		sheet.mouse_filter = MOUSE_FILTER_IGNORE
+		sheet.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+		add_child(sheet)
+		PhysicalKit.paper_fill(sheet, PK.MATTE, 0.05, 0.22).set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	_stage = Control.new()
 	_stage.name = "Stage"
 	_stage.mouse_filter = MOUSE_FILTER_IGNORE
@@ -119,20 +135,20 @@ func _build() -> void:
 	_ui.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	add_child(_ui)
 	var top := UI.safe_top() + 14.0
-	var back := SignalKit.back_button(func() -> void: UI.back(), false)
+	var back := SignalKit.back_button(func() -> void: UI.back(), _paper)
 	back.name = "Back"
 	back.position = Vector2(12, top - 6.0)
 	_ui.add_child(back)
-	_count_l = PK.t("", 12, Color(PAPER, 0.7), "mono_bold")
+	_count_l = PK.t("", 12, _fg(0.7), "mono_bold")
 	_count_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_ui.add_child(_count_l)
-	_name_l = PK.t("", 64, PAPER, "compressed")
+	_name_l = PK.t("", 64, _fg(1.0), "compressed")
 	_type.add_child(_name_l)
-	_title_l = PK.t("", 11, Color(PAPER, 0.75), "mono")
+	_title_l = PK.t("", 11, _fg(0.75), "mono")
 	_type.add_child(_title_l)
 	_look_l = PK.t("", 12, SIG, "mono_bold")
 	_type.add_child(_look_l)
-	var hide := PK.t("HIDE  ·  TAP TO SHOW", 10, Color(PAPER, 0.6), "mono_bold")
+	var hide := PK.t("HIDE  ·  TAP TO SHOW", 10, _fg(0.6), "mono_bold")
 	hide.name = "HideLabel"
 	_ui.add_child(hide)
 	var hb := Button.new()
@@ -218,7 +234,7 @@ func _show_look() -> void:
 	if _anchor and is_instance_valid(_anchor):
 		_anchor.queue_free()
 	var vs := size if size.x > 0.0 else get_viewport_rect().size
-	_print = PK.halftone_print(id, skin, Vector2(vs.x * 0.9, vs.y * 0.7), 8.0, Color(PK.PRINT, 0.22))
+	_print = PK.halftone_print(id, skin, Vector2(vs.x * 0.9, vs.y * 0.7), 8.0, Color(PK.PRINT, 0.72 if _paper else 0.22))
 	_print.position = Vector2(vs.x * 0.1, vs.y * 0.1)
 	_stage.add_child(_print)
 	_stage.move_child(_print, 0)
@@ -312,7 +328,7 @@ func _build_strip() -> void:
 		card.mouse_filter = MOUSE_FILTER_PASS
 		_strip.add_child(card)
 		var bg := ColorRect.new()
-		bg.color = Color(PAPER, 0.08)
+		bg.color = _fg(0.07)
 		bg.size = Vector2(108, 118)
 		bg.mouse_filter = MOUSE_FILTER_IGNORE
 		card.add_child(bg)
@@ -324,13 +340,13 @@ func _build_strip() -> void:
 		if not bool(lk.owned):
 			pic.modulate = Color(0.55, 0.55, 0.6)
 		card.add_child(pic)
-		var nm := PK.t(str(lk.name).to_upper(), 11, PAPER, "mono_bold")
+		var nm := PK.t(str(lk.name).to_upper(), 11, _fg(1.0), "mono_bold")
 		Kit.fit_label(nm, 106.0, 11, 8)
 		nm.size = Vector2(108, 15)
 		nm.clip_text = true
 		nm.position = Vector2(0, 121)
 		card.add_child(nm)
-		var sub := PK.t("OWNED" if bool(lk.owned) else "%d GEMS" % int(lk.get("price_gems", 0)), 11, Color(PAPER, 0.65) if bool(lk.owned) else SIG, "mono")
+		var sub := PK.t("OWNED" if bool(lk.owned) else "%d GEMS" % int(lk.get("price_gems", 0)), 11, _fg(0.65) if bool(lk.owned) else SIG, "mono")
 		sub.position = Vector2(0, 137)
 		card.add_child(sub)
 		var kk := k
@@ -358,7 +374,7 @@ func _mark_strip() -> void:
 		var card := _strip.get_child(k) as Control
 		var bg := card.get_child(0) as ColorRect
 		if bg:
-			bg.color = SIG if k == _look else Color(PAPER, 0.08)
+			bg.color = SIG if k == _look else _fg(0.07)
 
 
 ## WEAR for an owned look she isn't wearing; BUY for a preview.
