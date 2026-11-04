@@ -1820,7 +1820,18 @@
    "negative_extra": "(blue archive:1.3), (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2), (impossible clothes:1.2), (outer space:1.2), (planet:1.2)",
    "variants": {
     "eyes_closed": "closed eyes, light smile, calm",
-    "mouth_open": "grey eyes, half-closed eyes, open mouth, light smile"
+    "mouth_open": "grey eyes, half-closed eyes, open mouth, light smile",
+    "eyes_half": "grey eyes, narrowed eyes, eyes mostly closed, upper eyelids lowered over the top half of the irises, light smile",
+    "mouth_small": "grey eyes, looking at viewer, slightly parted lips, small open mouth, talking softly",
+    "mouth_wide": "grey eyes, wide open mouth, laughing, a rare bright smile"
+   },
+   "rig": {
+    "_doc": "The rig-ready pose (layered rig, 2026-11-04): eyes open for the blink frames, the satellite staff planted upright at her side, the helmet held low under her left arm clear of her body, wings spread clear.",
+    "natural": "A tall, long-limbed adult satellite keeper with dark umber skin: a glossy black-and-violet space suit cut into a highleg bodysuit zipped open to the navel and open at both sides, oil-slick holographic panels and chrome mission patches, chunky white-and-chrome platform moon boots; long silver-white locs falling behind her shoulders; black wings with chrome solar-panel feathers spread wide behind her, a cracked chrome halo tilted like a planet's ring; her right hand holds a tall staff topped with a broken chrome satellite upright at her side, its butt on the ground; her left hand holds a mirrored chrome space helmet low at her hip, a little away from her body; eyes open, calm grey eyes looking at the viewer, a faint closed-mouth smile.",
+    "eyes": "grey eyes, looking at viewer",
+    "default_eyes": "open",
+    "expression": "light smile, closed mouth",
+    "pose": "standing, front view, arms at sides, holding staff"
    },
    "brief_gaps": [
     "The helmet is 'holding helmet, space helmet'; if it lands on her head, re-roll or fix it with img2img. Its mirrored visor must stay opaque.",
