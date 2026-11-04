@@ -1,6 +1,6 @@
 # Status and handoff
 
-**Status as of 2026-11-03, 22:00 UTC (08:00 on 2026-11-04 on the owner's PC clock, UTC+10).** This is the living
+**Status as of 2026-11-04, 04:00 UTC (14:00 on the owner's PC clock, UTC+10).** This is the living
 status file: update it at the end of every work block. Rules and conventions are in `CLAUDE.md`;
 this file says where things stand. Older logs are under "History" at the bottom. **The ranked work
 list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
@@ -12,7 +12,7 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
    but cannot render, run the filter or see the owner's images. Check `git fetch origin && git
    status && git log --oneline -8 origin/claude/game-planning` and pull before you change anything.
 2. **Read** this file's "Where things stand" and "Waiting on the owner", then
-   `docs/dev/morning-2026-11-04.md` (the last summary sent to the owner). On the PC also read
+   `docs/dev/morning-2026-11-05.md` (the last summary sent to the owner). On the PC also read
    `art_src/_review/HANDOFF.md` (local only: exact file locations and the review tools).
 3. **ComfyUI** (PC only) must answer on `http://127.0.0.1:8188` (`curl -s
    http://127.0.0.1:8188/system_stats`). If it doesn't, start it with the PowerShell line in
@@ -28,6 +28,35 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
 
 ## Where things stand
 
+- **Heroines that move, for real (2026-11-04 02:30 UTC on, PC chat; the owner: "continue. do
+  everything", read as the go for the layered rigs and their GPU time).**
+  - **Seraphiel's layered rig is her look in the game** (3d20684): a heroine's rig in
+    `assets/art/heroes/<id>/skins/live/` is her base look everywhere (`HeroArt.LIVE`, `is_live`): the
+    Lobby, hero page, battle (her own mic-stand attack), the cut-in, gallery and summons. A built skin
+    still wins; 18+ mode still shows her nude look. Video sent: `screenshots/live/lobby_seraphiel_live.mp4`.
+  - **See-through is gone from the PC** (`D:/AI/see-through`, 26 GB; most likely deleted to free disk).
+    Reinstalling it on G: was blocked by auto mode ("Code from External"); it needs the owner's
+    permission (under Waiting on the owner). New heroines take **the SAM route** instead:
+    `tools/layered/rigkit.py` (shared pieces), `sam_cut.py` masks from a per-hero spec, the hidden parts
+    found geometrically and repainted by MOSS one area at a time (`fill_hidden.py`). README updated.
+  - **Uriela** (the first starter): rig-pose candidates s104000-s104003 sent; s104002 picked by Claude
+    (nothing cropped, the lance upright and clear); finalized, six face frames (the blink needed
+    denoise 0.85), SAM masks (`tools/layered/uriela_sam.json`), `uriela_rig.py` (12 layers, 45 bones,
+    11k vertices; upper arms behind the breasts with their hidden part painted in; the shaft painted
+    through her fist), `uriela_anims.py` (a lance jab, Sunbreak Charge, touch, victory, three idle
+    gestures; an arm solver). Repaint picks: chest s11, side_r s11, side_l s12, shaft s12, wings s11/s11,
+    upper arms s11; the ponytail behind her arm is strand-filled (every repaint of it painted a figure).
+    Committed (26c6b0c); videos `art_src/_review/rigproto/uriela/uriela_rig_v2*.mp4` sent; seen on her
+    hero page and in a fresh-save battle.
+  - **IPA run 41774297809** (dispatched 04:37 UTC) has Seraphiel and Uriela live and everything below.
+  - **Lucen and Kessa:** rig blocks in the bible (b72a330); candidates rendered (Lucen s304000-s304003,
+    Claude's pick s304000; Kessa s205000-s205003). Next for each: finalize, face frames, SAM spec, rig
+    and anims scripts modelled on Uriela's.
+  - **Also this block:** an execute is stamped EXECUTED (054d495, `tools/textures/stamp_print.py`);
+    statuses print on embossed label tape (84f1566); the Epic summon's own beat, a die-cut (71316e4);
+    the Encore partner's print in the cut-in (afaadcf); Live Light swings through the cut-in on Pro
+    phones (953aabb); a paper take of the Gallery (0aff0a3, for the owner to pick); `tools/rig_bench.gd`
+    (a layered rig 0.28 ms per frame on the PC, a quick rig 0.06). `tools/check e2e` green, 0 error lines.
 - **Every hit, printed (2026-11-03 20:20-22:00 UTC, PC chat).** The cut-in made one moment
   produced; the other 90% of a fight was still code shapes and floating numbers. Every basic blow is
   now a print pulled on the field (Blender-rendered dry-brush strokes, jabs, splats, a crossed X for a
@@ -739,10 +768,14 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
 
 ## Waiting on the owner
 
-- **Heroines that really move (asked 2026-11-03):** the layered rigs (`tools/layered/`, Seraphiel's
-  prototype: separate arms, breasts, eyes, mouth, hair locks) for the heroines people see most. Each
-  one needs new rig-pose paintings (the owner picks) and GPU time (See-through about 15 min plus
-  repaints), so it needs the owner's go, and which heroines first.
+- **See-through (2026-11-04):** it was deleted from `D:/AI/see-through`. Reinstalling it on G: (about
+  26 GB, G: has 58 GB free) was blocked by auto mode. To allow it, add a Bash permission rule in this
+  PC session or switch it to Ask, then say "reinstall see-through". Until then the SAM route works
+  (Uriela), with more of the hidden parts repainted by MOSS.
+- **New rig-pose art to approve:** Uriela's (s104002, picked by Claude) and, next, Lucen's and Kessa's.
+  Say "use s<seed>" to swap a pick.
+- **Gallery:** the dark lightbox or the paper take (shots sent 2026-11-04;
+  `tools/shoot gallery --rich --shoot-params='{"take":"paper"}'`).
 - **A quieter Lobby (pitched 2026-10-28):** the current poster or the "quiet" take (no bulletin card,
   no hero arrows and number, no NEXT label; the bulletin's news in the bell, heroines switched by a
   swipe on the band). Shots: `tools/shoot home --rich --safe-area-sim --shoot-params='{"take":"quiet"}'`.

@@ -70,9 +70,11 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   start at the pose; an Encore's giant element is its ×N numeral. Reduce motion: a still poster.
   A tap skips to the strike. `src/ui/battle/ult_cutin.gd`, `tools/blender/ult_fx.py` +
   `finish_ult_fx.py`, `tools/anim/make_ult_cutin.py`. The white wash (the 'flash' track) is gone from
-  every ultimate. Left (phase 2): the Encore partner's print beside her, the Live Light swing on Pro
-  phones. (The Settings switch and the numbers that land are done: below. A wet-ink band texture was
-  rendered and dropped: under her print it barely showed.)
+  every ultimate. Phase 2 done 2026-11-04: an Encore step keeps the partner who passed it on the sheet
+  (an ink print of her face in the paper's top corner, ENCORE FROM · NAME); on Pro phones Live Light
+  swings through the cut-in (a stage light sweeps across her as she rises and whips round on the coil;
+  `ll_swing`, `HeroSprite.light_swing`). (The Settings switch and the numbers that land are done:
+  below. A wet-ink band texture was rendered and dropped: under her print it barely showed.)
 - P2 done **Every hit, printed** (2026-11-03, the 90% of a fight the cut-in didn't touch): every basic
   blow was a code shape (additive glow bolts, a white crescent, spark rings), every number a floating
   label (twenty at once, clipped at the screen's edge, printed over the heroines), every hit a white
@@ -100,16 +102,22 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   sounds: press, brush, flick, splat, tick, peel, brayer, foil; a louder call takes a voice over a
   quieter one of the same sound, free voices first; haptics through the governor and 40 ms apart.
   Reduce motion: fades, no stops, knocks or kicks. The rig tints now take luma in sRGB numbers on the
-  desktop too (shots and the PC match the phone). Left: the EXECUTED rubber stamp as a render,
-  embossed label tapes for statuses, more stroke variants, the Galley's layout cached between frames.
+  desktop too (shots and the PC match the phone). Phase 2 done 2026-11-04: an execute is a rubber
+  stamp EXECUTED pressed across the foe in signal (`tools/textures/stamp_print.py`: a pressure field,
+  the rubber's grain, three frames from the first kiss to the spread; a stamp layer over the heroines);
+  statuses print on embossed label-maker tape (letters punched up one by one, slanted ends); the
+  galley measures text once. Left: more stroke variants.
 - P2 done **Ultimate cut-ins in Settings** (2026-11-03): Battle > Ultimate cut-ins: Every / First (the
   default: her first in a fight and every one fired by hand) / By hand (auto casts play on the field
   under her band).
-- P1 todo **The heroines barely move** (found 2026-11-03): 300 of the 302 built rigs are 8-bone quick
-  rigs (root, hips, torso, chest, neck, head, face, bangs): no arms, eyes, mouth or props move. That
-  is the gap to the reference games' characters, everywhere she appears (Lobby, hero page, battle,
-  cut-in). The layered pipeline exists (`tools/layered/`, Seraphiel's prototype) but each heroine
-  needs new rig-pose paintings and GPU time (See-through ~15 min plus repaints): needs the owner.
+- P1 doing **The heroines barely move** (found 2026-11-03): 300 of the 302 built rigs were 8-bone quick
+  rigs (root, hips, torso, chest, neck, head, face, bangs): no arms, eyes, mouth or props moved. The
+  owner's "do everything" (2026-11-04) was the go. Done: a heroine's layered rig in `skins/live/` is
+  her base look (`HeroArt.LIVE`); **Seraphiel** ships her prototype (separate arms, breasts, eyes,
+  mouth, hair locks, her own attack, cast, touch, victory and idle gestures). **Uriela**, the first
+  starter, is cut by the new SAM route (`tools/layered/rigkit.py`, `uriela_rig.py`, `uriela_anims.py`;
+  See-through was removed from the PC and reinstalling it was blocked, see status.md). Next: Lucen
+  and Kessa (rig blocks in the bible; candidates rendered), then the rest of the roster.
 - P2 doing **Halloween is a moment** (2026-10-31): done: cut-paper bats on a taped thread (Blender
   renders; they swing with the tilt, a thumb brushes them, strung up in front of the player the first
   time), the stamp in pumpkin ink, the boot print run in pumpkin with HALLOWEEN on the proof stamp,
@@ -120,7 +128,7 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 - P2 done **Decorations for the other days:** white card snowflakes (Christmas Eve, Christmas), folded
   gold card stars (New Year's Eve, New Year), pink card hearts in Valentine's ink, and bunting on
   birthdays (a heroine's or the player's: card pennants with a hem folded over the thread).
-- P2 doing **The summon reveal, produced** (the money moment): a motion piece made with real tools,
+- P2 done **The summon reveal, produced** (the money moment): a motion piece made with real tools,
   not code shapes. Done: the gold foil has a real surface (a tiling normal map of creased facets,
   `tools/textures/foil_normal.py`, global `foil_n`), so it catches the glint facet by facet instead
   of reading as a smooth gradient. The Epic tell's "electric blue" was the desktop render only (see
@@ -130,8 +138,10 @@ corners, the rendered currency icons in the masthead, no birthday question on th
   the art), pulls back down all of her while the dots melt into the painting, then flies into her
   place on the gold poster, where she comes alive (a match cut). The LEGENDARY stamp moved off her
   legs onto the band's foot; the poster no longer flashes for a frame before the dark. Video:
-  `tools/shoot --movie` (Movie Maker, 30 fps, with sound). Left: the Epic's own beat (kept shorter:
-  the loupe stays the Legendary's).
+  `tools/shoot --movie` (Movie Maker, 30 fps, with sound). 2026-11-04: **the Epic's own beat**, a
+  die-cut: once her poster lands a paper-white cutter runs round her silhouette, she lifts off the
+  sheet over a soft ink shadow and is laid back down; the kiss-cut stays faintly
+  (`src/ui/shaders/die_cut.gdshader`).
 - P1 done **Shots didn't show what the phone shows:** on this Windows/Vulkan build the HDR 2D canvas
   is really 8-bit sRGB, so every shader-drawn colour (halftones, foil, paper relief, candle) printed
   darker and more saturated than on the iPhone, where HDR 2D is off (the band's red #ff5c29 came out
@@ -149,7 +159,8 @@ corners, the rendered currency icons in the masthead, no birthday question on th
 - P2 done **Gear had no Back** (top left now); its empty state links TO THE CAMPAIGN. Left: the chrome
   above the first item is tall.
 - P2 doing **Gallery:** done: the look strip sits centred when it fits, captions 11 px. Left: the dark
-  lightbox is outside the poster language (a take to show the owner); a locked look's BUY pass only
+  lightbox is outside the poster language (2026-11-04: the paper take is built, shot param take =
+  "paper", shots sent; waiting on the owner's pick); a locked look's BUY pass only
   shows once the look is chosen.
 - P2 done **Daily resets reopened when the day went backwards** (a flight west, a zone change): days
   roll forward only (unit test; port spec 8.1, 9c, 9e).
