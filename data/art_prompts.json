@@ -995,7 +995,18 @@
    "negative_extra": "(covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.3), (pubic hair:1.25)",
    "variants": {
     "eyes_closed": "closed eyes, smirk, confident",
-    "mouth_open": "red eyes, open mouth, laughing, confident"
+    "mouth_open": "red eyes, open mouth, laughing, confident",
+    "eyes_half": "red eyes, narrowed eyes, eyes mostly closed, upper eyelids lowered over the top half of the irises, smirk",
+    "mouth_small": "red eyes, looking at viewer, slightly parted lips, small open mouth, talking, smirk",
+    "mouth_wide": "red eyes, wide open mouth, laughing, fangs, confident"
+   },
+   "rig": {
+    "_doc": "The rig-ready pose (layered rig, 2026-11-04): eyes open for the blink frames, the greatsword planted point-down at her side, the coat open and hanging behind her arms, wings spread clear of her body.",
+    "natural": "A voluptuous adult nightclub empress: huge curled chrome ram horns with a rhinestone crown; long wavy black hair with crimson ends falling behind her shoulders; a candy-red metallic micro bikini with chrome O-rings, a chrome chain belt, red latex thigh-high platform boots and a floor-length black vinyl coat worn open, hanging from her shoulders behind her arms, with a huge fur collar; cyber-sigil tattoos on hip and thigh; her right hand rests on the pommel of a chrome greatsword with a painted flame edge planted point-down on the ground at her side; her left arm relaxed a little away from her side; black bat wings with chrome claws spread wide behind her, a spaded tail curving out to one side; eyes open, red eyes looking at the viewer, a commanding closed-mouth smirk.",
+    "eyes": "red eyes, looking at viewer",
+    "default_eyes": "open",
+    "expression": "smirk, closed mouth",
+    "pose": "standing, front view, arms at sides, hand on sword pommel"
    },
    "adult": {"outfit": "nude, completely nude, bottomless, nipples, black coat, open coat, fur-trimmed coat, chain belt, tribal tattoo", "natural": "Adult. Mordessa nude under her open fur-trimmed coat, with her chain belt, tattoos and red thigh boots."},
    "brief_gaps": [
