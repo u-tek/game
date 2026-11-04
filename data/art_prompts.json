@@ -1165,7 +1165,18 @@
    "negative_extra": "(covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (impossible clothes:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2), (all fours:1.3), kneeling",
    "variants": {
     "eyes_closed": "closed eyes, fang, smug",
-    "mouth_open": "orange eyes, slit pupils, open mouth, fang, smug"
+    "mouth_open": "orange eyes, slit pupils, open mouth, fang, smug",
+    "eyes_half": "orange eyes, slit pupils, narrowed eyes, eyes mostly closed, upper eyelids lowered over the top half of the irises, smug",
+    "mouth_small": "orange eyes, slit pupils, looking at viewer, slightly parted lips, small open mouth, fang, talking",
+    "mouth_wide": "orange eyes, slit pupils, wide open mouth, laughing, fangs, smug"
+   },
+   "rig": {
+    "_doc": "The rig-ready pose (layered rig, 2026-11-04): eyes open for the blink frames, a sickle hanging in each hand clear of her body, the tail out to one side.",
+    "natural": "An athletic, curvy adult cat burglar: a black latex catsuit zipped open to below the cleavage, a red chrome-ringed harness, thong-cut with hip windows, a long red vinyl scarf hanging down behind her shoulders, black platform thigh boots; chrome cat-ear headphones over short choppy black hair with a red streak, a red cat-eye visor pushed up, small horns; a black-chrome crescent sickle hanging in each hand at her sides, the blades turned outward and clear of her legs; a long black cat tail curving out to one side, clear of her legs; eyes open, amber slit-pupil eyes looking at the viewer, a smug closed-mouth smile with a small fang.",
+    "eyes": "orange eyes, slit pupils, looking at viewer",
+    "default_eyes": "open",
+    "expression": "smug smile, closed mouth, fang",
+    "pose": "standing, front view, arms at sides, holding sickles"
    },
    "adult": {"outfit": "nude, completely nude, bottomless, nipples, harness, red scarf", "natural": "Adult. Kessa nude: harness, red scarf and black thigh boots."},
    "brief_gaps": [
@@ -1679,7 +1690,18 @@
    "negative_extra": "halo, (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2)",
    "variants": {
     "eyes_closed": "closed eyes, seductive smile, smug",
-    "mouth_open": "purple eyes, half-closed eyes, open mouth, smile, smug"
+    "mouth_open": "purple eyes, half-closed eyes, open mouth, smile, smug",
+    "eyes_half": "purple eyes, narrowed eyes, eyes mostly closed, upper eyelids lowered over the top half of the irises, smug smile",
+    "mouth_small": "purple eyes, looking at viewer, slightly parted lips, small open mouth, talking, smug",
+    "mouth_wide": "purple eyes, wide open mouth, laughing, teeth, smug"
+   },
+   "rig": {
+    "_doc": "The rig-ready pose (layered rig, 2026-11-04): eyes open for the blink frames, the rapier point-down at her side, nothing crossing her body.",
+    "natural": "A slender, long-legged adult duelist, split down the middle: hair dyed white on one side and black on the other, falling behind her shoulders; an asymmetric glossy vinyl bodysuit, white on one side and black on the other, cut away diagonally across the torso (underboob on one side, sideboob on the other), thong-cut, one long sleeve and one bare arm; one white thigh-high platform boot, one bare leg with a black garter ring; tinted oval sunglasses pushed up into her hair; one white pearl wing and one black chrome wing spread wide behind her; her right hand holds a chrome rapier point-down at her side, the blade clear of her leg and its tip just above the ground; her left arm relaxed a little away from her side; eyes open, purple eyes looking at the viewer, a smug closed-mouth smile.",
+    "eyes": "purple eyes, looking at viewer",
+    "default_eyes": "open",
+    "expression": "smug smile, closed mouth",
+    "pose": "standing, front view, arms at sides, holding sword"
    },
    "adult": {"outfit": "nude, completely nude, bottomless, nipples, single sleeve", "natural": "Adult. Lucen nude: one sleeve and her asymmetric thigh boots."},
    "brief_gaps": [

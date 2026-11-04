@@ -1700,8 +1700,14 @@ class TestMoss(unittest.TestCase):
         self.assertEqual(prompts.check(BIBLE, "seraphiel", pr["positive"], pr["negative"]), [])
         self.assertIn("aqua eyes", prompts.face(BIBLE, "seraphiel", "moss", pose="rig")["positive"])
         self.assertEqual(prompts.hero_view(BIBLE, "seraphiel", pose="rig")["eyes"], rig["eyes"])
+        # the rig pose stands upright, eyes open and lips closed: the B+ pin-up and bedroom face give way
+        fam = BIBLE["families"]["moss"]
+        if fam.get("pin_up_natural"):
+            self.assertNotIn(fam["pin_up_natural"], pr["positive"])
+            self.assertIn(fam["pin_up_natural"], prompts.full_body(BIBLE, "seraphiel", "moss")["positive"])
+        self.assertNotIn("half-lidded bedroom gaze", pr["positive"])
         with self.assertRaises(KeyError):
-            prompts.full_body(BIBLE, "kessa", "moss", pose="rig")      # no rig block yet
+            prompts.full_body(BIBLE, "cassiel", "moss", pose="rig")      # no rig block yet
         with self.assertRaises(prompts.PromptError):
             prompts.full_body(BIBLE, "seraphiel", "moss", pose="rig", skin="seraphiel_tidal_diva")
         import run_hero
