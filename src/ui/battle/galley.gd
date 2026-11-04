@@ -345,7 +345,7 @@ func _draw() -> void:
 		if v == null:
 			continue
 		var word := str(c.word)
-		var sz := _num_size(word, WORD_FS, _font_num) + Vector2(16 + (4 if bool(c.bad) else 0), 10)
+		var sz := _num_size(word, WORD_FS, _font_num) + Vector2(20 + word.length() + (3 if bool(c.bad) else 0), 10)
 		var item := {"pri": PRI.chip, "kind": "chip", "text": word, "bad": bool(c.bad), "a": _alpha(float(c.t), CHIP_HOLD_S), "t": float(c.t)}
 		if str(v.get("side")) == "ally":
 			if not cards.has(str(c.uid)):
@@ -466,20 +466,39 @@ func _draw_slip(ci: CanvasItem, r: Rect2, it: Dictionary, a: float) -> void:
 	ci.draw_string(_font_num, Vector2(r.position.x + 9.0, r.end.y - 8.0), str(it.text), HORIZONTAL_ALIGNMENT_LEFT, -1, SLIP_FS, Color(INK, a))
 
 
-## An ink chip with paper type; a debuff stamps in signal, then settles to ink with a signal rule on
-## its left edge.
+## A status on embossed label tape (a label maker's): an ink plastic strip with its ends cut on a slant
+## and a sheen along its top, each letter punched up out of it one by one (a dark rim under it, a
+## little off the line, the way a hand-cranked label sits). A debuff's tape is punched in signal, then
+## settles to ink with a signal edge on its left.
 func _draw_chip(ci: CanvasItem, r: Rect2, it: Dictionary, a: float) -> void:
 	var bad := bool(it.bad)
 	var t := float(it.t)
-	var tilt := deg_to_rad(-4.0 if str(it.text).hash() & 1 else 4.0)
+	var word := str(it.text)
+	var h := word.hash()
+	var tilt := deg_to_rad(-4.0 if h & 1 else 4.0)
 	var slide := 0.0 if not motion else 6.0 * (1.0 - minf(t / 0.05, 1.0))
 	ci.draw_set_transform(r.get_center() + Vector2(slide, 0), tilt, Vector2.ONE)
 	var cr := Rect2(-r.size * 0.5, r.size)
-	ci.draw_rect(Rect2(cr.position + Vector2(2, 2), cr.size), Color(INK, 0.4 * a))
-	ci.draw_rect(cr, Color(SIG if bad and t < CHIP_SIG_S else INK, a))
-	var tx := cr.position.x + 8.0
-	if bad:
-		ci.draw_rect(Rect2(cr.position, Vector2(4, cr.size.y)), Color(SIG, a))
-		tx += 4.0
-	ci.draw_string(_font_num, Vector2(tx, cr.end.y - 7), str(it.text), HORIZONTAL_ALIGNMENT_LEFT, -1, WORD_FS, Color(PAPER, a))
+	var cut := 5.0
+	var tape := PackedVector2Array([cr.position + Vector2(cut, 0), Vector2(cr.end.x, cr.position.y), cr.end - Vector2(cut, 0),
+		Vector2(cr.position.x, cr.end.y)])
+	var shadow := PackedVector2Array()
+	for v in tape:
+		shadow.append(v + Vector2(2, 2))
+	ci.draw_colored_polygon(shadow, Color(INK, 0.4 * a))
+	ci.draw_colored_polygon(tape, Color(SIG if bad and t < CHIP_SIG_S else INK, a))
+	ci.draw_line(cr.position + Vector2(cut + 1.0, 1.5), Vector2(cr.end.x - 1.0, cr.position.y + 1.5), Color(1, 1, 1, 0.14 * a), 1.0)
+	var tx := cr.position.x + 9.0
+	if bad and t >= CHIP_SIG_S:
+		ci.draw_colored_polygon(PackedVector2Array([cr.position + Vector2(cut, 0), cr.position + Vector2(cut + 4.0, 0),
+			Vector2(cr.position.x + 4.0, cr.end.y), Vector2(cr.position.x, cr.end.y)]), Color(SIG, a))
+		tx += 3.0
+	var base := cr.end.y - 7.0
+	for i in word.length():
+		var ch := word[i]
+		var jy := float(((h >> (i * 2)) & 3) - 1) * 0.7
+		var p := Vector2(tx, base + jy)
+		ci.draw_string(_font_num, p + Vector2(0, 1.2), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, WORD_FS, Color(0, 0, 0, 0.55 * a))
+		ci.draw_string(_font_num, p, ch, HORIZONTAL_ALIGNMENT_LEFT, -1, WORD_FS, Color(PAPER, 0.94 * a))
+		tx += _num_size(ch, WORD_FS, _font_num).x + 1.0
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

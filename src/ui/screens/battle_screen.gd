@@ -295,6 +295,20 @@ func setup(params: Dictionary) -> void:
 			var hid := str(_views[a[k]].get("hero_id"))
 			var ult: Dictionary = Game.hero_def(hid).get("ultimate", {})
 			_start_ult({"type": "ultimate", "src": a[k], "skill_name": str(ult.get("name", "Ultimate")), "targets": [e[0]], "encore": int(udd.get("encore", 0))}))
+	# chip_demo = true: status tapes on the first two foes and the first heroine (display only).
+	if _debug_params_ok() and bool(params.get("chip_demo", false)):
+		get_tree().create_timer(INTRO_TIME + 0.5).timeout.connect(func() -> void:
+			var foes: Array[String] = []
+			var her := ""
+			for uid: String in _views:
+				if str(_views[uid].get("side")) == "ally":
+					her = uid if her == "" else her
+				else:
+					foes.append(uid)
+			for i in mini(foes.size(), 2):
+				_galley.call("chip", foes[i], ["STUNNED", "CHARMED"][i], true)
+			if her != "":
+				_galley.call("chip", her, "SHIELDED", false))
 	# stamp_demo = true: the EXECUTED stamp on the first foe once the fight starts (display only).
 	if _debug_params_ok() and bool(params.get("stamp_demo", false)):
 		get_tree().create_timer(INTRO_TIME + 0.6).timeout.connect(func() -> void:
