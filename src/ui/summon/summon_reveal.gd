@@ -15,6 +15,9 @@ extends Control
 ##              a teal one out of register, then the key plate presses: a radial halftone burst, a
 ##              camera punch and a short shake, the plates pull into register as she resolves, and
 ##              her name slams in with its violet and teal plates misregistered, snapping together.
+##              Then her own beat, the die-cut (about 1 s): a paper-white cutter line runs round her
+##              silhouette, she lifts off the sheet toward the viewer over a soft ink shadow, holds,
+##              and is laid back down with a press; the kiss-cut stays faintly round her.
 ##   Legendary  about 3.5 s, the cinematic: the room drops to black, a gold foil press plate (her
 ##              figure as a gold die, glinting with the phone's tilt) comes down and presses with
 ##              sparks, a painted paper-white flash (no bloom), a heavy shake and haptic; her faction's
@@ -54,7 +57,7 @@ const BEAT := {"rare": 0.2, "epic": 0.85, "legendary": 1.25}
 ## Element start times after the press: rarity word, name, title, badges, stamp disc; then settle.
 const SCHEDULE := {
 	"rare": [0.04, 0.1, 0.16, 0.2, 0.3, 0.8],
-	"epic": [0.1, 0.2, 0.36, 0.42, 0.52, 0.95],
+	"epic": [0.1, 0.2, 0.36, 0.42, 0.52, 1.95],
 	"legendary": [0.35, 0.8, 1.1, 1.15, 1.3, 2.25],
 }
 ## How long the print takes to turn into her after the press, per rarity.
@@ -63,6 +66,13 @@ const RESOLVE := {"rare": 0.3, "epic": 0.38, "legendary": 0.55}
 const SLIDE := {"rare": 0.2, "epic": 0.22, "legendary": 0.0}
 ## Epic: when the violet and the teal plate print.
 const EPIC_PLATES := [0.22, 0.52]
+## Epic, after the press: the die-cut starts at DIE_FROM; the cutter runs round her (DIE_CUT), she lifts
+## off the sheet (DIE_LIFT), holds, and is laid back down (DIE_LAY); seconds from DIE_FROM.
+const DIE_FROM := 0.95
+const DIE_CUT := [0.0, 0.34]
+const DIE_LIFT := [0.3, 0.46]
+const DIE_LAY := [0.8, 0.94]
+const DIE_SHADER := preload("res://src/ui/shaders/die_cut.gdshader")
 ## Legendary: the plate starts down at PLATE_FROM; heartbeats while it comes; after the press the
 ## growth erupts (GROW), the plate lifts (LIFT), the light sweeps (SWEEP) and the stamp slams (STAMP).
 const PLATE_FROM := 0.1
@@ -147,6 +157,10 @@ var _veil: ColorRect
 var _plate: Control
 var _plate_home := Vector2.ZERO
 var _foil_fig: TextureRect
+## Epic's die-cut: the cutter line round her, her shadow on the sheet, and where her figure rests.
+var _cut: TextureRect
+var _shadow: TextureRect
+var _anchor_home := Vector2.ZERO
 var _sweep: TextureRect
 var _sparks: RK.Sparks
 var _growths: Array[TextureRect] = []
@@ -290,7 +304,19 @@ func _build(stars: int, skin: String) -> void:
 		_foil_fig = _still(tex, sr, RK.foil_material("gold", 2, {"rect_size": sr.size, "glint": 1.2}))
 		_foil_fig.name = "FoilFigure"
 		box.add_child(_foil_fig)
+	if epic:
+		_shadow = _still(tex, sr, _die_mat(1, sr, INK))
+		_shadow.name = "DieShadow"
+		_shadow.set_meta("home", _shadow.position)
+		box.add_child(_shadow)
 	box.add_child(_anchor)
+	_anchor_home = _anchor.position
+	if epic:
+		_cut = _still(tex, sr, _die_mat(0, sr, PAPER))
+		_cut.name = "DieCut"
+		_cut.pivot_offset = feet - sr.position
+		_cut.set_meta("home", _cut.position)
+		box.add_child(_cut)
 	if legend:
 		_sweep = _still(tex, sr, RK.foil_material("gold", 3, {"rect_size": sr.size, "sweep_w": 0.035, "hi": Color("fff8e4")}))
 		_sweep.name = "LightSweep"
@@ -362,6 +388,18 @@ func _build(stars: int, skin: String) -> void:
 	PK.grain(_p, 0.07)
 	if legend:
 		_build_press(tex, sr, faction)
+
+
+## The die-cut's material (die_cut.gdshader): mode 0 the cutter line, 1 her shadow.
+func _die_mat(mode: int, sr: Rect2, ink: Color) -> ShaderMaterial:
+	var m := ShaderMaterial.new()
+	m.shader = DIE_SHADER
+	m.set_shader_parameter("mode", mode)
+	m.set_shader_parameter("rect_size", sr.size)
+	m.set_shader_parameter("ink", ink)
+	m.set_shader_parameter("k", 0.0)
+	m.set_shader_parameter("strength", 0.0)
+	return m
 
 
 ## A still of her art lined up with the live figure, on `mat`.
@@ -695,6 +733,9 @@ func _build_events() -> void:
 			_events.append([p, "burst"])
 			_events.append([p + float(_sched[0]), "slam"])
 			_events.append([p + float(_sched[1]) + 0.08, "name"])
+			_events.append([p + DIE_FROM, "cut"])
+			_events.append([p + DIE_FROM + float(DIE_LIFT[0]), "lift"])
+			_events.append([p + DIE_FROM + float(DIE_LAY[1]) - 0.02, "lay"])
 		"legendary":
 			_events.append([0.0, "beat_start"])
 			for i in PULSES.size():
@@ -821,6 +862,17 @@ func _on_event(id: String) -> void:
 			fx.emit("grain", Color.WHITE, 0.14)
 		"lights":
 			fx.emit("darken", Color.BLACK, 0.0)
+		"cut":
+			UI.sfx("brush", 1.35, -4.0)
+			UI.haptic(8)
+		"lift":
+			UI.sfx("peel", 1.1)
+			UI.haptic(18)
+		"lay":
+			UI.sfx("press", 0.85)
+			UI.haptic(30)
+			_shake(0.22)
+			fx.emit("grain", Color.WHITE, 0.12)
 		"pull":
 			UI.sfx("riser")
 			UI.haptic(12)
@@ -955,6 +1007,8 @@ func _apply() -> void:
 	m.a = hero_a
 	_anchor.modulate = m
 	_anchor.scale = Vector2(zoom, zoom)
+	if _cut:
+		_apply_die_cut(tb, zoom)
 	# The name (and everything after it) on the poster's clock.
 	tb = tp
 	var s1 := float(_sched[1])
@@ -1051,6 +1105,29 @@ func _apply_epic(t: float, tb: float, after: bool, res: float, kb: float) -> voi
 		var kh := Fx.k01(tb, 0.0, 0.8) if after else 0.0
 		_hburst.visible = after and kh < 1.0 and _mo > 0.0
 		(_hburst.material as ShaderMaterial).set_shader_parameter("k", kh)
+
+
+## Epic's own beat, the die-cut: the cutter runs round her, she lifts off the sheet over her shadow,
+## holds, and is laid back down; the kiss-cut stays faintly round her after.
+func _apply_die_cut(tb: float, zoom: float) -> void:
+	var dt := tb - DIE_FROM
+	var k := Fx.k01(dt, float(DIE_CUT[0]), float(DIE_CUT[1]))
+	var up := Fx.out_cubic(Fx.k01(dt, float(DIE_LIFT[0]), float(DIE_LIFT[1])))
+	var down := Fx.k01(dt, float(DIE_LAY[0]), float(DIE_LAY[1]))
+	var lift := up * (1.0 - down * down) * _mo
+	var cm := _cut.material as ShaderMaterial
+	cm.set_shader_parameter("k", k)
+	# Bright while it cuts and she is up; once she is laid down the cut stays, faint.
+	var shown := 0.0 if dt < 0.0 else lerpf(0.95, 0.3, Fx.k01(dt, float(DIE_LAY[1]), float(DIE_LAY[1]) + 0.3))
+	cm.set_shader_parameter("strength", shown)
+	var off := Vector2(-9.0, -15.0) * lift
+	var sc := zoom * (1.0 + 0.055 * lift)
+	_anchor.position = _anchor_home + off
+	_anchor.scale = Vector2(sc, sc)
+	_cut.position = (_cut.get_meta("home") as Vector2) + off
+	_cut.scale = Vector2(sc, sc)
+	(_shadow.material as ShaderMaterial).set_shader_parameter("strength", 0.42 * lift)
+	_shadow.position = (_shadow.get_meta("home") as Vector2) + Vector2(5.0, 7.0) * lift
 
 
 ## Legendary: the dark, the plate coming down and pressing, its lift off the gold foil, the
