@@ -66,7 +66,14 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
     (her coat sleeves cut as tubes round the arm bones: SAM could not tell them from the coat; her crimson
     hair ends by colour), `mordessa_anims.py` (Ember Cleave, Ninth Furnace, the sword-on-shoulder victory,
     preen, lean, wings). Face frames and repaints queued on the PC (`screenshots/live/mordessa*.sh`).
-  - **Noctaire:** rig block written (b65ef41); candidates queued after Mordessa's face frames.
+  - **Mordessa shipped (699a9b9).** Five heroines are layered: Seraphiel, Uriela, Lucen, Kessa, Mordessa.
+  - **Noctaire (in progress):** s301001 (Claude's pick of 4), `noctaire_sam.json`, `noctaire_rig.py` (the
+    drapes before the hair: SAM's hair masks spread over them; the halo kept off the scythe; her glove's
+    fingers added to the arms), `noctaire_anims.py` (Glitch Reap, Eclipse Harvest, a stepped glitch idle).
+    Face frames and repaints queued (`screenshots/live/noctaire*.sh`).
+  - **Drezza:** rig block (91a5778, no wings in her negative); candidates queued after Noctaire's repaints.
+  - **Hero page level-up plate:** it still covers her boots; every spot it could move to covers her or the
+    controls, so it stays a layout question for the owner.
   - **Also this block:** an execute is stamped EXECUTED (054d495, `tools/textures/stamp_print.py`);
     statuses print on embossed label tape (84f1566); the Epic summon's own beat, a die-cut (71316e4);
     the Encore partner's print in the cut-in (afaadcf); Live Light swings through the cut-in on Pro
