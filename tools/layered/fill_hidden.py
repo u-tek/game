@@ -32,6 +32,9 @@ ap.add_argument("--seeds", default="1,2,3")
 ap.add_argument("--denoise", type=float, default=0.6)
 ap.add_argument("--prompt-file")
 ap.add_argument("--hero", default="seraphiel")
+ap.add_argument("--plain", action="store_true",
+                help="a detail prompt with no figure in it (hair, wings, a coat): the subject and the body style "
+                     "made the model paint a small woman into a narrow hole")
 P.add_common_args(ap)
 a = ap.parse_args()
 os.makedirs(a.out, exist_ok=True)
@@ -45,7 +48,12 @@ desc = open(a.prompt_file).read().strip() if a.prompt_file else (
     "Close-up of the torso of an adult woman in a glossy white latex leotard: two narrow white latex "
     "panels run straight up her chest from her waist, smooth pale skin between them along her sternum, "
     "a soft shadow under her bust.")
-if fam.get("prompt_mode") == "sentences":
+if a.plain:
+    # (the content guard reads tags: "adult" leads, as in every prompt)
+    positive = ("adult, close-up detail. A polished 2D anime illustration, smooth airbrushed shading, fine line art, "
+                "glossy highlights. %s Only this, filling the frame: no face, no body, no skin." % desc)
+    negative = prompts._sentence_negative(bible, fam, h) + ", 1girl, person, face, body, breasts, skin"
+elif fam.get("prompt_mode") == "sentences":
     positive = "%s, close-up. %s %s" % (prompts._sentence_subject(bible, h, False), fam.get("style_natural", ""), desc)
     negative = prompts._sentence_negative(bible, fam, h)
 else:

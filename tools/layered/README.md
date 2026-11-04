@@ -1,8 +1,35 @@
 # Layered rigs: from one painting to a NIKKE/BD2-style rig
 
-The reference is Seraphiel's prototype, `rigproto2`, built 2026-10-20/21. The rig format is in
-`docs/dev/halorig.md` sections 11.4-11.5. Everything runs on the owner's PC: ComfyUI on
-127.0.0.1:8188, and See-through in `D:/AI/see-through`.
+The references are Seraphiel's rig (`seraphiel_rig.py`, built 2026-10-20/21 with See-through) and
+Uriela's (`uriela_rig.py`, 2026-11-04, the SAM route below). A built rig in
+`assets/art/heroes/<hero>/skins/live/` is her base look in the game (`HeroArt.LIVE`). The rig format
+is in `docs/dev/halorig.md` sections 11.4-11.5. Everything runs on the owner's PC: ComfyUI on
+127.0.0.1:8188. See-through was removed from the PC to free disk (2026-11); reinstalling it (about
+26 GB) needs the owner's go, so new heroines take the SAM route.
+
+## The SAM route (no See-through)
+
+`rigkit.py` holds the shared pieces; `uriela_rig.py` is the worked example.
+- **Masks:** `sam_cut.py` with a spec like `uriela_sam.json` cuts every moving part from the final:
+  arms with hands, breasts, the held prop (in two pieces when a fist splits it), each wing, the back
+  hair, the coat halves, the legs, the irises. Read the points off `layer_sheet.py`-style grids
+  (`grid.py`: a labelled grid over a crop of the final, zoomed). Check `_sam_sheet.png`: a prop's
+  mask can swallow the wing beside it; give it negative points there.
+- **Pieces split by something in front** (a lance through a fist, a wing split by the blade, a coat
+  split by the shaft, a boot below a leg): `rigkit.clean(..., keep_largest=False)` keeps them.
+- **Soft edges:** grow each part into the anti-aliased rim along its outline (`grow_edge`), or the
+  layer behind keeps a ghost of it.
+- **What a part hid:** `behind()` finds where the layers behind continue under it (the wing behind
+  a blade); `under_band()` continues a back layer under the ones in front (wing roots, back hair);
+  an upper arm that runs behind a breast is painted in under it (the upper arm sits behind the
+  breasts in z); the torso behind the breasts is `torso_fill()`. All of it is filled roughly, then
+  repainted by `fill_hidden.py`, one area at a time with its own prompt (the script writes
+  `work2/<area>_hole.png` and `*_rough.png`; copy the picked try to `work2/<area>_fill.png`).
+- **Face frames:** keep the eye and mouth patch boxes apart (`diff_rect(..., half=(x, y))`): the
+  model repaints the irises in a mouth frame, and a talking mouth then flickers the eyes.
+- **Arms:** `uriela_anims.arm_pose()` solves a wrist target into arm and forearm keys, the elbow on
+  the side it bends at rest; a carried prop's keys are counter-rotated (`lance()`) so it keeps the
+  tilt you mean.
 
 Work files stay local and are never committed:
 - The work folder is `art_src/_review/rigproto/<hero>/` (the final, See-through's output, SAM masks
