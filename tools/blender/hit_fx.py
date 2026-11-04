@@ -2,7 +2,7 @@
 
     blender --background --factory-startup --python tools/blender/hit_fx.py -- <out_dir> <which> [variant]
 
-which: slash (variants 0, 1), thrust, splat, droplet, blot. Writes <out_dir>/<which><variant>_<i>.png
+which: slash (variants 0, 1, 2), thrust, splat, droplet, blot. Writes <out_dir>/<which><variant>_<i>.png
 (white on transparent, at twice the shipped size). Then tools/blender/finish_hit_fx.py prints them as
 ink and packs them as soft-edged L8 sheets into assets/art/ui/hit/ (src/ui/battle/press_layer.gd).
 
@@ -35,7 +35,8 @@ prefs.compute_device_type = "OPTIX"
 prefs.get_devices()
 for d in prefs.devices:
     d.use = d.type == "OPTIX"
-sc.cycles.device = "GPU"
+# HALO_CYCLES_CPU=1: render on the CPU (while ComfyUI holds the GPU's memory)
+sc.cycles.device = "CPU" if os.environ.get("HALO_CYCLES_CPU") else "GPU"
 sc.cycles.samples = 8
 sc.cycles.use_denoising = False
 sc.cycles.transparent_max_bounces = 8
@@ -176,8 +177,9 @@ def render(name: str) -> None:
 
 def slash() -> None:
     rng = random.Random(40 + VAR)
-    # A shallow arc across the frame (2:1), upper left to the right; variant 1 flatter and heavier.
-    a0, span, rad, press, cy = [(152, 124, 4.0, 1.6, -1.25), (144, 108, 4.6, 1.8, -1.7)][VAR]
+    # A shallow arc across the frame (2:1), upper left to the right; variant 1 flatter and heavier; variant 2 a
+    # tight hooked flick (a hard press, a short belly, a long lifting tail round the hook).
+    a0, span, rad, press, cy = [(152, 124, 4.0, 1.6, -1.25), (144, 108, 4.6, 1.8, -1.7), (160, 150, 3.2, 1.9, -0.5)][VAR]
 
     def path(u):
         a = math.radians(a0 - span * u)

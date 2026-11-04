@@ -4,7 +4,7 @@
 
 Reads tools/blender/hit_fx.py's frames (rendered at twice the shipped size) and writes
 assets/art/ui/hit/ (src/ui/battle/press_layer.gd draws them through ink_print.gdshader):
-  slash0.png, slash1.png  6 frames of 384x192 in 3 x 2
+  slash0-2.png            6 frames of 384x192 in 3 x 2 (2: the hooked flick)
   thrust.png              6 frames of 320x128 in 3 x 2
   splat.png               6 frames of 256x256 in 3 x 2
   droplet.png             4 frames of 128x64 in 4 x 1
@@ -81,7 +81,9 @@ def sheet(name: str, frames, cols: int, rows: int, fw: int, fh: int) -> None:
     print(out, sh.size, os.path.getsize(out))
 
 
-for v in (0, 1):
+for v in (0, 1, 2):
+    if not os.path.exists(os.path.join(SRC, "slash%d_0.png" % v)):
+        continue
     sheet("slash%d" % v, [frame(os.path.join(SRC, "slash%d_%d.png" % (v, i)), (384, 192), soft=0.8, gain=False) for i in range(6)], 3, 2, 384, 192)
 sheet("thrust", [frame(os.path.join(SRC, "thrust0_%d.png" % i), (320, 128), soft=0.8, gain=False) for i in range(6)], 3, 2, 320, 128)
 sheet("splat", [frame(os.path.join(SRC, "splat0_%d.png" % i), (256, 256)) for i in range(6)], 3, 2, 256, 256)

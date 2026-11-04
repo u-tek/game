@@ -19,6 +19,7 @@ const GRAIN := preload("res://assets/art/ui/hit/press_grain.png")
 const SHEETS := {
 	"slash0": [preload("res://assets/art/ui/hit/slash0.png"), 3, 6],
 	"slash1": [preload("res://assets/art/ui/hit/slash1.png"), 3, 6],
+	"slash2": [preload("res://assets/art/ui/hit/slash2.png"), 3, 6],
 	"thrust": [preload("res://assets/art/ui/hit/thrust.png"), 3, 6],
 	"splat": [preload("res://assets/art/ui/hit/splat.png"), 3, 6],
 	"droplet": [preload("res://assets/art/ui/hit/droplet.png"), 4, 4],
@@ -84,7 +85,8 @@ func impress(v: Node2D, plan: Dictionary, dir: Vector2, off: Vector2, src_uid: S
 			rot = dir.angle()
 		_:
 			# A cut across her: a fixed diagonal, mirrored for a blow going left, alternating sides.
-			variant = "slash%d" % _rng.randi_range(0, 1)
+			# three strokes: two arcs and a hooked flick
+			variant = "slash%d" % _rng.randi_range(0, 2)
 			flip = -1.0 if dir.x < 0.0 else 1.0
 			var sgn := -float(_tilt.get(src_uid, 1.0))
 			_tilt[src_uid] = sgn
@@ -92,7 +94,7 @@ func impress(v: Node2D, plan: Dictionary, dir: Vector2, off: Vector2, src_uid: S
 	_make_room(str(v.get("uid")))
 	_add(v, plan, variant, rot, flip, float(plan.get("size", 1.0)), off, 0.0)
 	if crossed and shape == "slash":
-		var second := "slash1" if variant == "slash0" else "slash0"
+		var second := "slash%d" % ((int(variant.substr(5)) + 1 + _rng.randi_range(0, 1)) % 3)
 		_add(v, plan, second, rot + CROSS_TURN * flip, flip, float(plan.get("size", 1.0)) * 0.9, off, -CROSS_DELAY)
 	queue_redraw()
 
