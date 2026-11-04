@@ -1,6 +1,6 @@
 # Status and handoff
 
-**Status as of 2026-11-04, 07:45 UTC (17:45 on the owner's PC clock, UTC+10).** This is the living
+**Status as of 2026-11-04, 10:15 UTC (20:15 on the owner's PC clock, UTC+10).** This is the living
 status file: update it at the end of every work block. Rules and conventions are in `CLAUDE.md`;
 this file says where things stand. Older logs are under "History" at the bottom. **The ranked work
 list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
@@ -67,11 +67,13 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
     hair ends by colour), `mordessa_anims.py` (Ember Cleave, Ninth Furnace, the sword-on-shoulder victory,
     preen, lean, wings). Face frames and repaints queued on the PC (`screenshots/live/mordessa*.sh`).
   - **Mordessa shipped (699a9b9).** Five heroines are layered: Seraphiel, Uriela, Lucen, Kessa, Mordessa.
-  - **Noctaire (in progress):** s301001 (Claude's pick of 4), `noctaire_sam.json`, `noctaire_rig.py` (the
-    drapes before the hair: SAM's hair masks spread over them; the halo kept off the scythe; her glove's
-    fingers added to the arms), `noctaire_anims.py` (Glitch Reap, Eclipse Harvest, a stepped glitch idle).
-    Face frames and repaints queued (`screenshots/live/noctaire*.sh`).
-  - **Drezza:** rig block (91a5778, no wings in her negative); candidates queued after Noctaire's repaints.
+  - **Noctaire shipped (15da05b):** six heroines are layered. IPA run 41810618266 (10:01 UTC) has them all.
+  - **Drezza (in progress):** every MOSS try grew wings and a coat, and her shipped painting has both, so her
+    rig block now matches it (f511c9c; the wing negatives are out again). s210001 (Claude's pick),
+    `drezza_sam.json`, `drezza_rig.py` (fur sleeves as tubes round the bones, the record carried in her hand,
+    the deck on a spring at her hip), `drezza_anims.py` (Spin Toss, Bass Drop saved as cast and support_cast:
+    a support plays support_cast). Face frames and repaints queued (`screenshots/live/drezza*.sh`).
+  - **Nadira:** rig block (1b659bf); candidates queued after Drezza's repaints.
   - **Hero page level-up plate:** it still covers her boots; every spot it could move to covers her or the
     controls, so it stays a layout question for the owner.
   - **Also this block:** an execute is stamped EXECUTED (054d495, `tools/textures/stamp_print.py`);
