@@ -615,7 +615,18 @@
    "negative_extra": "(blue archive:1.3), (covered nipples:1.3), (nipples:1.2), (nipple slip:1.2), (areola slip:1.2), (cameltoe:1.25), (no panties:1.25), (pubic hair:1.2), (areolae:1.2), (body paint:1.2)",
    "variants": {
     "eyes_closed": "closed eyes, smirk, confident",
-    "mouth_open": "yellow eyes, open mouth, confident, teeth"
+    "mouth_open": "yellow eyes, open mouth, confident, teeth",
+    "eyes_half": "yellow eyes, narrowed eyes, eyes mostly closed, upper eyelids lowered over the top half of the irises, smirk",
+    "mouth_small": "yellow eyes, looking at viewer, slightly parted lips, small open mouth, talking",
+    "mouth_wide": "yellow eyes, wide open mouth, shouting a command, teeth"
+   },
+   "rig": {
+    "_doc": "The rig-ready pose (layered rig, 2026-11-04): eyes open for the blink frames, the glaive planted upright at her side instead of across her shoulders, both arms clear, wings spread clear.",
+    "natural": "A statuesque, athletic adult sky marshal with deep brown skin and thick soft thighs: liquid-chrome micro armor that looks still molten (two small mirror-chrome cups and a highleg, thong-cut chrome bottom joined by chrome rivulets over bare skin), a bare midriff and chrome thigh-high greaves; long black box braids gathered into a high crown with chrome cuffs, mirror-chrome lips, a broad chrome halo and four swept-back pearl wings with aqua tips spread wide behind her; her right hand holds a huge double-bladed chrome glaive upright at her side, its lower blade resting on the ground; her left arm relaxed a little away from her side; feet planted, chin up; eyes open, yellow eyes looking at the viewer, a confident closed-mouth smirk.",
+    "eyes": "yellow eyes, looking at viewer",
+    "default_eyes": "open",
+    "expression": "smirk, closed mouth",
+    "pose": "standing, front view, arms at sides, holding polearm"
    },
    "brief_gaps": [
     "The liquid chrome is 'bikini armor, silver armor, shiny clothes'; the molten rivulets over bare skin are left to the model ('liquid metal' and 'body paint' read as painted-on skin, so body paint is negated).",

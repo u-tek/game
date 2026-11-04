@@ -73,7 +73,13 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
     `drezza_sam.json`, `drezza_rig.py` (fur sleeves as tubes round the bones, the record carried in her hand,
     the deck on a spring at her hip), `drezza_anims.py` (Spin Toss, Bass Drop saved as cast and support_cast:
     a support plays support_cast). Face frames and repaints queued (`screenshots/live/drezza*.sh`).
-  - **Nadira:** rig block (1b659bf); candidates queued after Drezza's repaints.
+  - **Drezza shipped (5370c05):** seven heroines are layered.
+  - **Nadira (in progress):** s310001 (Claude's pick of 4), `nadira_sam.json`, `nadira_rig.py` (SAM's left-arm
+    mask took her white locs: the arm is a tube round its bones minus the white; the helmet rides her left
+    hand as its own piece), `nadira_anims.py` (Uplink, Deorbit, a signal-listening idle). Face frames and
+    repaints queued.
+  - **Argentiel:** rig block (the glaive planted at her side instead of across her shoulders); candidates
+    queued after Nadira's repaints.
   - **Hero page level-up plate:** it still covers her boots; every spot it could move to covers her or the
     controls, so it stays a layout question for the owner.
   - **Also this block:** an execute is stamped EXECUTED (054d495, `tools/textures/stamp_print.py`);
