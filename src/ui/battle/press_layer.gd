@@ -23,7 +23,12 @@ const SHEETS := {
 	"splat": [preload("res://assets/art/ui/hit/splat.png"), 3, 6],
 	"droplet": [preload("res://assets/art/ui/hit/droplet.png"), 4, 4],
 	"blot": [preload("res://assets/art/ui/hit/blot.png"), 1, 1],
+	"executed": [preload("res://assets/art/ui/hit/executed.png"), 3, 3],
 }
+## A rubber stamp's width against her body, its tilt, and its press (kiss, full, spread), hold and lift.
+const STAMP_W := 0.72
+const STAMP_TILT := -0.13
+const STAMP_PLAN := {"frames": [0, 1, 2], "step": 0.045, "hold": 0.85, "lift": 0.3}
 ## Where the second plate settles after a crit's wide first strike.
 const SETTLED := Vector2(4.0, 3.0)
 const MAX_BLOTS := 6
@@ -100,6 +105,25 @@ func _add(v: Node2D, plan: Dictionary, shape: String, rot: float, flip: float, s
 		"hold": float(plan.get("hold", 0.05)), "lift": float(plan.get("lift", 0.1)),
 		"key": plan.get("key", Color.WHITE), "back": plan.get("back", Color.BLACK), "offset": plan.get("offset", Vector2(3, 2)),
 		"settle": bool(plan.get("settle", false)), "uid": str(v.get("uid"))})
+
+
+## A rubber stamp pressed across unit `v` (EXECUTED: tools/textures/stamp_print.py) in `key` ink: one plate
+## (a stamp prints once, in register), across her shoulders, tilted; it holds, then lifts. The battle keeps
+## a stamp layer over the heroines, so one standing in front never hides it.
+func stamp(v: Node2D, key: Color, word: String = "executed") -> void:
+	if v == null or not SHEETS.has(word):
+		return
+	_make_room(str(v.get("uid")))
+	var tex: Texture2D = SHEETS[word][0]
+	var fw := float(tex.get_width()) / float(SHEETS[word][1])
+	var plan := STAMP_PLAN.duplicate()
+	if not Kit.motion_ok():
+		plan.frames = [2]
+	_items.append({"kind": word, "view": weakref(v), "off": Vector2(0, -0.12 * float(v.call("body_height"))),
+		"rot": STAMP_TILT + _rng.randf_range(-0.04, 0.04), "s": STAMP_W * float(v.call("body_height")) / fw, "flip": 1.0,
+		"t": 0.0, "frames": plan.frames, "step": float(plan.step), "hold": float(plan.hold), "lift": float(plan.lift),
+		"key": key, "back": Color(0, 0, 0, 0), "offset": Vector2.ZERO, "settle": false, "uid": str(v.get("uid"))})
+	queue_redraw()
 
 
 ## A shot of ink in flight from `src`'s hand to `dst`'s chest over `dur` seconds (re-read every frame):

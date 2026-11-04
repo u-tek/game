@@ -127,6 +127,7 @@ var _bars: Node2D
 var _fx: Node2D
 ## The printed hits (impressions over the units; blots on the street under them) and the numbers.
 var _press: Node2D
+var _stamps: Node2D
 var _blots: Node2D
 var _galley: Control
 ## The hits' governor (HitPlan) and the last heal and tick sounds (real ms).
@@ -294,6 +295,13 @@ func setup(params: Dictionary) -> void:
 			var hid := str(_views[a[k]].get("hero_id"))
 			var ult: Dictionary = Game.hero_def(hid).get("ultimate", {})
 			_start_ult({"type": "ultimate", "src": a[k], "skill_name": str(ult.get("name", "Ultimate")), "targets": [e[0]], "encore": int(udd.get("encore", 0))}))
+	# stamp_demo = true: the EXECUTED stamp on the first foe once the fight starts (display only).
+	if _debug_params_ok() and bool(params.get("stamp_demo", false)):
+		get_tree().create_timer(INTRO_TIME + 0.6).timeout.connect(func() -> void:
+			for uid: String in _views:
+				if str(_views[uid].get("side")) != "ally":
+					_stamp_executed(_views[uid])
+					return)
 	if _debug_params_ok() and bool(params.get("encore_demo", false)):
 		get_tree().create_timer(INTRO_TIME + 0.3).timeout.connect(func() -> void:
 			var ids: Array[String] = []
@@ -402,6 +410,10 @@ func _build() -> void:
 	_fx = Node2D.new()
 	_fx.name = "Fx"
 	_world.add_child(_fx)
+	# Rubber stamps (EXECUTED) land across a foe, over the heroines and the tags.
+	_stamps = PressLayer.new()
+	_stamps.name = "Stamps"
+	_world.add_child(_stamps)
 	_galley = Galley.new()
 	_galley.name = "Numbers"
 	_galley.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
@@ -1319,7 +1331,7 @@ func _on_damage(ev: Dictionary) -> void:
 	if ult and src != null and str(src.get("side")) == "ally":
 		_galley.call("hit", uid, amount, on_ally, crit, adv, _ult_word)
 		if bool(ev.get("execute", false)):
-			_galley.call("chip", uid, "EXECUTED", true)
+			_stamp_executed(dst)
 		dst.call("play_hit")
 		if uid != _ult_main:
 			BattleFx.splash(_fx, _fx.to_local(dst.call("chest_global")), BP.SIG, 150.0 * float(dst.get("depth_scale")), false)
@@ -1350,8 +1362,18 @@ func _on_damage(ev: Dictionary) -> void:
 		_focus_foe = uid
 	_galley.call("hit", uid, amount, on_ally, crit, adv, "", bool(hit.absorbed), by_focus)
 	if execute:
-		_galley.call("chip", uid, "EXECUTED", true)
+		_stamp_executed(dst)
 	_print_blow(src, dst, plan, kind)
+
+
+## An execute: the EXECUTED rubber stamp pressed across her in signal (one accent: it is the kill that
+## counts), with the stamp's thud.
+func _stamp_executed(dst: Node2D) -> void:
+	if _stamps == null or dst == null:
+		return
+	_stamps.call("stamp", dst, HitPlan.SIG)
+	UI.sfx("stamp", 0.92)
+	_gov_haptic(14, 0.6, 200)
 
 
 ## Foes still standing (hp above 0).
@@ -1769,6 +1791,7 @@ func _skip() -> void:
 	var out := _sim.run_to_end()
 	_queue.clear()
 	_press.call("clear")
+	_stamps.call("clear")
 	_galley.call("clear")
 	_hold = 0.0
 	_dim_target = 0.0
@@ -2234,3 +2257,4 @@ func _sync_print_layers() -> void:
 	var held := _hold > 0.0
 	_galley.set("paused", held)
 	_press.set("paused", held)
+	_stamps.set("paused", held)
