@@ -1,6 +1,6 @@
 # Status and handoff
 
-**Status as of 2026-11-04, 10:15 UTC (20:15 on the owner's PC clock, UTC+10).** This is the living
+**Status as of 2026-11-08, 23:40 UTC (09:40 on 2026-11-09 on the owner's PC clock, UTC+10).** This is the living
 status file: update it at the end of every work block. Rules and conventions are in `CLAUDE.md`;
 this file says where things stand. Older logs are under "History" at the bottom. **The ranked work
 list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
@@ -28,6 +28,14 @@ list is `docs/dev/backlog.md`** (the autopilot block keeps it current).
 
 ## Where things stand
 
+- **Layered rigs on hold (2026-11-08 23:40 UTC, PC chat).** The owner: "the rigs and inpainting suck. i
+  fear that a lot of time was spent on those". Nadira and Argentiel are stopped: don't resume them
+  (Nadira's partial rig and scripts are uncommitted on the PC; her repaints never ran). A look at
+  Drezza's rig agrees with the owner: the repaints are flat blocks and smears, her body stays frozen
+  while an arm swings as a flat piece, and the coat breaks into scraps. Proposed to the owner, no
+  answer yet: turn the layered look off (`HeroArt.is_live`; the original paintings are untouched),
+  finish the 98 approved v20 picks, and test image-to-video on one heroine, with the owner's verdict
+  on that one clip before any second heroine.
 - **Heroines that move, for real (2026-11-04 02:30 UTC on, PC chat; the owner: "continue. do
   everything", read as the go for the layered rigs and their GPU time).**
   - **Seraphiel's layered rig is her look in the game** (3d20684): a heroine's rig in
